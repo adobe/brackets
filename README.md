@@ -11,10 +11,9 @@ Getting started
 In addition to pulling the source from github, you'll need to also grab
 submodules referenced by Brackets. To do so, first make sure you have SSH
 access to github (since the submodule is referenced via a git: URL rather than
-https). Then run the following commands in the root of your Brackets repo:
+https). Then run the following command in the root of your Brackets repo:
 
-	git submodule init
-	git submodule update
+	git submodule update --init --recursive
 	
 See [Pro Git section 6.6](http://progit.org/book/ch6-6.html) for some caveats
 when working with submodules.
