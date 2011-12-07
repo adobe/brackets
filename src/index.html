@@ -1,0 +1,43 @@
+<!doctype html>
+
+<!-- TODO: copyright notice, etc. -->
+
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Brackets</title>
+
+	<!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->
+	<link rel="stylesheet/less" href="styles/bootstrap.less">
+	<link rel="stylesheet/less" href="styles/brackets.less">
+	<script src="thirdparty/less-1.1.5.min.js"></script>
+	
+	<script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
+	<link rel="stylesheet" href="thirdparty/CodeMirror2/lib/codemirror.css">
+	<script src="thirdparty/CodeMirror2/mode/javascript/javascript.js"></script>
+	
+	<script src="thirdparty/jquery-1.7.min.js"></script>
+	<script src="brackets.js"></script>
+</head>
+<body>
+	<!-- TODO: Write Brackets. -->
+
+	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
+	     due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
+
+	<div class="container">
+		<div class="row">
+			<div class="span6 offset5">
+				<div class="alert-message info">
+					<p>Brackets is going to be awesome!</p>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="span6 offset5">
+				<div id="editor"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
