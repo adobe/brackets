@@ -44,50 +44,6 @@
 /* All paddings, gutters, etc. should be multiples of this */
 @base-padding: 10px;
 
-/* Overrides for Bootstrap default behavior */
-.topbar-inner {
-	/* We don't want to use the default .container in here, so we need to .clearfix the children. */
-	.clearfix;
-	
-	.brand {
-		.sane-box-model;
-		margin-left: 0;
-		width: 200px;
-		padding-left: @base-padding;
-		padding-right: @base-padding;
-	}
-}
-
-/* Overall layout */
-
-html, body {
-	height: 100%;
-	overflow: auto;
-}
-
-body {
-	.vbox;
-
-	.topbar {
-		position: static;
-	}
-}
-
-.main-view {
-	.hbox;
-	.box-flex(1);
-		
-	.sidebar {
-		.vbox;
-		width: 200px;
-	}
-
-	.content {
-		.vbox;
-		.box-flex(1);
-	}
-}
-
 /* General styles for Brackets elements */
 
 .panel {
@@ -109,6 +65,49 @@ body {
   	border-bottom: 1px solid #aaa;
 	#gradient > .vertical(#eee, #ccc);
 	.box-shadow(0 1px 3px 0 rgba(0, 0, 0, 0.3));
+}
+
+/* Overall layout */
+
+html, body {
+	height: 100%;
+	overflow: auto;
+}
+
+body {
+	.vbox;
+
+	.topbar {
+		position: static;
+	}
+}
+
+.topbar-inner {
+	/* We don't want to use the default .container in here, so we need to .clearfix the children. */
+	.clearfix;
+	
+	.brand {
+		.sane-box-model;
+		margin-left: 0;
+		width: 200px;
+		padding-left: @base-padding;
+		padding-right: @base-padding;
+	}
+}
+
+.main-view {
+	.hbox;
+	.box-flex(1);
+		
+	.sidebar {
+		.vbox;
+		width: 200px;
+	}
+
+	.content {
+		.vbox;
+		.box-flex(1);
+	}
 }
 
 #main-toolbar {
@@ -143,7 +142,7 @@ body {
 
 /* Project panel */
 
-.panel .toolbar {
+#projects .toolbar {
 	.picker {
 		.box;
 		.box-flex(1);
