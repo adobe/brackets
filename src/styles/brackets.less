@@ -153,8 +153,7 @@ body {
 .file-list {
 	.box-flex(1);
 	margin: 0;
-  	padding-top: @base-padding;
-  	padding-bottom: @base-padding;
+  	padding: 0;
 	list-style: none;
 
 	a {
@@ -162,9 +161,9 @@ body {
 	  	padding: @base-padding/2 @base-padding @base-padding/2 @base-padding;
 	  	color: #000;
 	  	text-decoration: none;
-	}
-	&.selected {
-		#gradient > .vertical(#5fa3e0, #0065be);		
+		&.selected {
+			color: #fff;
+			#gradient > .vertical(#5fa3e0, #0065be);		
+		}
 	}
 }
-
