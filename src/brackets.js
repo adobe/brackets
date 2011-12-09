@@ -89,7 +89,9 @@ ProjectManager._renderTree = function(fileListData) {
 	projectList.parent().jstree({
 		plugins : ["ui", "themes", "html_data"],
 		core : { animation:0 },
-		themes : { theme:"brackets", dots:false, icons:false },
+		themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
+			//(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
+			// file because jsTree insists on loading one itself)
 		strings : { loading : "Loading ...", new_node : "New node" }	// TODO: localization
 	});
 };

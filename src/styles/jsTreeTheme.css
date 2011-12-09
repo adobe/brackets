@@ -1,0 +1,6 @@
+/* 
+ * This file only exists because jsTree insists on loading a CSS theme file itself.
+ *
+ * Our actual theme for the jsTree control lives in brackets.less (see all the various
+ * ".jstree-brackets" entries).
+ */
