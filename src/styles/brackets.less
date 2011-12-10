@@ -39,10 +39,16 @@
 	box-sizing: border-box;
 }
 
+
 /* Variables */
 
 /* All paddings, gutters, etc. should be multiples of this */
 @base-padding: 10px;
+
+/* Path prefix for all images used in our CSS. (Note: unlike a normal CSS file, in runtime-processed
+   LESS, image URLs are relative to the .html file, NOT to the .less file) */
+@img: "styles/images";
+
 
 /* General styles for Brackets elements */
 
@@ -166,8 +172,7 @@ body {
 /* (these are based on jsTree's default theme .css file, so they are not very LESS-like) */
 
 .jstree-brackets li, 
-.jstree-brackets ins { background-image:url("styles/jsTreeSprites.png"); background-repeat:no-repeat; background-color:transparent; }
-	/* note: image URLs are relative to the .html file, NOT to the .less file - unlike .css files! */
+.jstree-brackets ins { background-image:url("styles/images/jsTreeSprites.png"); background-repeat:no-repeat; background-color:transparent; }
 .jstree-brackets li { background-position:-90px 0; background-repeat:repeat-y; }
 .jstree-brackets li.jstree-last { background:transparent; }
 .jstree-brackets .jstree-open > ins { background-position:-72px 0; }
@@ -183,7 +188,7 @@ body {
 }
 
 .jstree-brackets a .jstree-icon { background-position:-56px -19px; }
-.jstree-brackets a.jstree-loading .jstree-icon { background:url("throbber.gif") center center no-repeat !important; }
+.jstree-brackets a.jstree-loading .jstree-icon { background:url("@{img}/throbber.gif") center center no-repeat !important; }
 
 .jstree-brackets li > a {
 	padding-top: 4px;
@@ -213,9 +218,9 @@ body {
 .jstree-brackets .jstree-undetermined > a > .jstree-checkbox:hover { background-position:-20px -37px; }
 
 #vakata-dragged.jstree-brackets ins { background:transparent !important; }
-#vakata-dragged.jstree-brackets .jstree-ok { background:url("styles/jsTreeSprites.png") -2px -53px no-repeat !important; }
-#vakata-dragged.jstree-brackets .jstree-invalid { background:url("styles/jsTreeSprites.png") -18px -53px no-repeat !important; }
-#jstree-marker.jstree-brackets { background:url("styles/jsTreeSprites.png") -41px -57px no-repeat !important; text-indent:-100px; }
+#vakata-dragged.jstree-brackets .jstree-ok { background:url("@{img}/jsTreeSprites.png") -2px -53px no-repeat !important; }
+#vakata-dragged.jstree-brackets .jstree-invalid { background:url("@{img}/jsTreeSprites.png") -18px -53px no-repeat !important; }
+#jstree-marker.jstree-brackets { background:url("@{img}/jsTreeSprites.png") -41px -57px no-repeat !important; text-indent:-100px; }
 
 .jstree-brackets a.jstree-search { color:aqua; }
 .jstree-brackets .jstree-locked a { color:silver; cursor:default; }
