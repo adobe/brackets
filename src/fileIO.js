@@ -3,55 +3,43 @@
 window.ProjectManager = {
 
 
-	/** 
-	 * TODO: param docs
-     */
-	showOpenDialog: function ( 	allowMultipleSelection,
+	/** showOpenPanel
+	 *
+	 * @param {bool} allowMultipleSelection
+	 * @param {bool} chooseDirectories
+	 * @param {string} title
+	 * @param {string} initialPath
+	 * @param {string[]} fileTypes
+	 * @param {function} resultCallback
+	 * @constructor
+	 */ 
+	showOpenPanel: function ( 	allowMultipleSelection,
 								chooseDirectories, 
 								title,
 								initialPath,
 								fileTypes,
 								resultCallback ) {
-								
-		var showOpenDialogCallback = resultCallback;
-								
-		// Default parameter values
-		if( allowMultipleSelection == undefined )
-			allowMultipleSelection = false;
-		if( chooseDirectories == undefined )
-			chooseDirectories = false;
-		if( title == undefined )
-			title = "Choose File";
-		if( initialPath == undefined )
-			initialPath = null;
-		if( fileTypes == undefined || fileTypes.length == 0 )
-			fileTypes = ["*"];
-			
-		// TODO: errow when callback is null
-		if( resultCallback )
+											
+		if( !resultCallback )
 			return null;
 			
-		var files = brackets.file.showOpenDialog( 	allowMultipleSelection,
+		var files = brackets.file.showOpenPanel( 	allowMultipleSelection,
 												  	chooseDirectories, 
 													title,
 													initialPath,
 													fileTypes );
 		
 		
-		// native implemenation of brackets.file.showOpenDialog should asynchronously
-		// call back showOpenDialogCallback						
+		resultCallback( files );					
 								
 	},
 
-	/** 
-	 * TODO: param docs
-     */
-	showOpenDialogCallback: function( files ){
-		showOpenDialogCallback( files );
-	},
-	
-	/** 
-	 * TODO: param docs
+
+	/** requestNativeFileSystem
+	 *
+	 * @param {string} path
+     * @param {function} successCallback
+     * @param {function} errorCallback
      */
 	requestNativeFileSystem: function( path, successCallback, errorCallback ){
 	
@@ -143,28 +131,24 @@ DirectoryEntry.prototype.createReader = function() {
 /** class: DirectoryReader
  */	
 DirectoryReader = function() {
-	this._directory = null;
-	this._successCallback = null;
-	this._successCallback = null;
+	
 };
 
 
 /** readEntires
  *
- * @param successCallback
- * @param errorCallback
+ * @param {function} successCallback
+ * @param {function} errorCallback
  * @returns {Entry[]}
  */	
 DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
-    this._successCallback = successCallback;
-    this._errorCallback = errorCallback;
-    
-    var jsonList = brackets.file.getDirectoryListing( this._directory.fullPath);
+    var rootPath = this._directory.fullPath;
+    var jsonList = brackets.file.getDirectoryListing( rootPath );
 	var nameList = JSON.parse(jsonList);
-	var entries = [];
-	var rootPath = this._directory.fullPath;
 	
-	 $(nameList).each(function(index, item){
+	// Create entries for each name
+	var entries = [];
+	nameList.forEach(function(item){
         // Ignore names starting with "."
      	if (item.indexOf(".") != 0) {
 	    	var itemFullPath = rootPath + "/" + item;
