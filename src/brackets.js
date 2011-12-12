@@ -1,6 +1,9 @@
 /* TODO: copyright notice, etc. */
 
-var inBrowser = !window.hasOwnProperty("brackets");
+// Define core brackets namespace
+brackets = {};
+
+brackets.inBrowser = true;	// FIXME: check for Brackets API availability
 
 
 $(document).ready(function() {
@@ -23,7 +26,7 @@ ProjectManager.loadProject = function(rootPath) {
 	// Build file list
 	var fileListData;
 	
-	if (inBrowser) {
+	if (brackets.inBrowser) {
 		var subfolderInner = { name:"Folder_inner", folder: true, items:["subsubfile_1","subsubfile_2"] };
 		fileListData = [
 			"Dummy tree content:",
@@ -34,18 +37,19 @@ ProjectManager.loadProject = function(rootPath) {
 		];
 		
 	} else {
-		var projectFiles = eval(brackets.file.getDirectoryListing(rootPath));
-		fileListData = [];
+		// TODO: fetch from real file APIs
+		// var projectFiles = JSON.parse(brackets.file.getDirectoryListing(rootPath)); //eval(
+		// fileListData = [];
 		
-		$(projectFiles).each(function(index, item) {
-			// Filter down to just visible files
-			if (ProjectManager.isFileShown(item)) {
-				if (brackets.file.isDirectory(rootPath + "/" + item))
-					fileListData.push( { name:item, folder:true, items:[] } );
-				else
-					fileListData.push(item);
-			}
-		});
+		// projectFiles.forEach(function(index, item) {
+			// // Filter down to just visible files
+			// if (ProjectManager.shouldShowFile(item)) {
+				// if (brackets.file.isDirectory(rootPath + "/" + item))
+					// fileListData.push( { name:item, folder:true, items:[] } );
+				// else
+					// fileListData.push(item);
+			// }
+		// });
 	}
 	
 	// Show file list in UI
@@ -54,7 +58,7 @@ ProjectManager.loadProject = function(rootPath) {
 	// ProjectManager._currentProjectRoot = rootPath;
 };
 
-ProjectManager.isFileShown = function(fileName) {
+ProjectManager.shouldShowFile = function(fileName) {
 	// Ignore names starting with "."
 	if (item.indexOf(".") == 0) return false;
 	
@@ -66,28 +70,29 @@ ProjectManager._renderTree = function(fileListData) {
 	var projectList = $("#project-files");
 	projectList.html("");
 	
-	// Render new project files
+	// Convert to jsTree's JSON model format
 	function _renderSubtree(fileListData) {
-		var result = "";
+		var result = [];
 		$(fileListData).each(function(index, item) {
-			if (item.folder)
-				result +=
-					"<li>" +
-						"<a href='#'>" + item.name + "</a>" +
-						"<ul>" + _renderSubtree(item.items) + "</ul>" +
-					"</li>";
-			else
-				result += "<li><a href='#'>" + item + "</a></li>";
+			var entry = {
+				data: (item.folder ? item.name : item)
+				// for additional options, see http://www.jstree.com/documentation/json_data
+			};
+			if (item.folder) {
+				entry.children = _renderSubtree(item.items);
+			}
+			
+			result.push(entry);
 		});
 		return result;
 	}
 	
-	var treeHTML = _renderSubtree(fileListData);
-	projectList.append(treeHTML);
+	var treeJSON = _renderSubtree(fileListData);
 	
 	// Transform into tree widget
 	projectList.parent().jstree({
-		plugins : ["ui", "themes", "html_data"],
+		plugins : ["ui", "themes", "json_data"],
+		json_data : { data:treeJSON },
 		core : { animation:0 },
 		themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
 			//(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
