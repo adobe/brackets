@@ -1,12 +1,168 @@
-/* Add Brackets-specific LESS/CSS styles here */
+/* Useful mixins */
+
+.box {
+	display: -webkit-box;
+	display: -moz-box;
+	display: box;	
+}
+.hbox {
+	.box;
+	-webkit-box-orient: horizontal;
+	-moz-box-orient: horizontal;
+	box-orient: horizontal;
+}
+.vbox {
+	.box;
+	-webkit-box-orient: vertical;
+	-moz-box-orient: vertical;
+	box-orient: vertical;
+}
+.box-flex(@ratio) {
+	-webkit-box-flex: @ratio;
+	-moz-box-flex: @ratio;
+	box-flex: @ratio;
+}
+.box-pack(@pack) {
+	-webkit-box-pack: @pack;
+	-moz-box-pack: @pack;
+	box-pack: @pack;
+}
+.box-align(@align) {
+	-webkit-box-align: @align;
+	-moz-box-align: @align;
+	box-align: @align;
+}
+
+.sane-box-model {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+/* Variables */
+
+/* All paddings, gutters, etc. should be multiples of this */
+@base-padding: 10px;
+
+/* General styles for Brackets elements */
+
+.panel {
+	.vbox;
+	.box-flex(1);
+	
+	padding: 0;
+	margin: 0;
+	background: #d8e0e8;
+	border-right: 1px solid #aaa;
+}
+
+.toolbar {
+	.hbox;
+	.box-align(center);
+	
+	height: 23px;
+	padding: @base-padding;
+  	border-bottom: 1px solid #aaa;
+	#gradient > .vertical(#eee, #ccc);
+	.box-shadow(0 1px 3px 0 rgba(0, 0, 0, 0.3));
+}
+
+/* Overall layout */
+
+html, body {
+	height: 100%;
+	overflow: auto;
+}
 
 body {
-	padding-top: 200px;
+	.vbox;
+
+	.topbar {
+		position: static;
+	}
+}
+
+.topbar-inner {
+	/* We don't want to use the default .container in here, so we need to .clearfix the children. */
+	.clearfix;
+	
+	.brand {
+		.sane-box-model;
+		margin-left: 0;
+		width: 200px;
+		padding-left: @base-padding;
+		padding-right: @base-padding;
+	}
+}
+
+.main-view {
+	.hbox;
+	.box-flex(1);
+		
+	.sidebar {
+		.vbox;
+		width: 200px;
+	}
+
+	.content {
+		.vbox;
+		.box-flex(1);
+	}
+}
+
+#main-toolbar {
+	/* make sure the shadow goes above other items */
+	z-index: 1;
+	.title {
+		font-size: 1.2em;
+		font-weight: bold;
+		text-shadow: 0 1px #fff;		
+	}
+	.buttons {
+		float: right;		
+	}
 }
 
 #editor {
-	margin: 0 auto;
-	width: 100%;
-	height: 300px;
-	border: 1px solid #999;
+	.vbox;
+	.box-flex(1);
+	
+	.CodeMirror {
+		.vbox;
+		.box-flex(1);
+	}
+	.CodeMirror-scroll {
+		.box;
+		.box-flex(1);
+	}
+	.CodeMirror-lines {
+		padding: @base-padding;
+	}
+}
+
+/* Project panel */
+
+#projects .toolbar {
+	.picker {
+		.box;
+		.box-flex(1);
+	}
+}
+
+.file-list {
+	.box-flex(1);
+	margin: 0;
+  	padding: 0;
+	list-style: none;
+
+	a {
+	  	display: block;
+	  	padding: @base-padding/2 @base-padding @base-padding/2 @base-padding;
+	  	color: #000;
+	  	text-decoration: none;
+		&.selected {
+			color: #fff;
+			#gradient > .vertical(#5fa3e0, #0065be);		
+		}
+	}
 }
