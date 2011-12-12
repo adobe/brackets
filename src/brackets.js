@@ -11,7 +11,7 @@ $(document).ready(function() {
 
 
     // Temporary button to test file directory traversa;
-    $("#open-folder").click(function(){
+    $("#menu-file-open").click(function(){
         if (!inBrowser) {
             window.ProjectManager.showOpenDialog(false, true, "Choose a folder", null, null,showOpenDialogCallback);
         }
