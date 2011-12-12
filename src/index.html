@@ -9,7 +9,6 @@
 
 	<!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->
 	<link rel="stylesheet/less" href="styles/bootstrap.less">
-	<link rel="stylesheet/less" href="styles/brackets.less">
 	<script src="thirdparty/less-1.1.5.min.js"></script>
 	
 	<script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
@@ -17,26 +16,60 @@
 	<script src="thirdparty/CodeMirror2/mode/javascript/javascript.js"></script>
 	
 	<script src="thirdparty/jquery-1.7.min.js"></script>
+	<script src="widgets/bootstrap-dropdown.js"></script>
+	
 	<script src="brackets.js"></script>
 </head>
 <body>
-	<!-- TODO: Write Brackets. -->
-
 	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
 	     due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
 
-	<div class="container">
-		<div class="row">
-			<div class="span6 offset5">
-				<div class="alert-message info">
-					<p>Brackets is going to be awesome!</p>
+	<!-- Top bar for menus -->
+	<div class="topbar" data-dropdown="dropdown">
+      <div class="topbar-inner">
+          <a class="brand" href="#">Brackets</a>
+          <ul class="nav">
+            <li class="dropdown">
+				<a href="#" class="dropdown-toggle">File</a>
+				<ul class="dropdown-menu">
+					<li><a href="#">New</a></li>
+					<li><a href="#">Open</a></li>
+					<li><a href="#">Save</a></li>
+					<li><a href="#">Quit</a></li>
+				</ul>
+			</li>
+          </ul>
+      </div>
+    </div>
+    
+	<!-- Main UI -->
+	<div class="main-view">
+		<div class="sidebar">
+			<div id="projects" class="panel">
+				<div id="project-toolbar" class="toolbar">
+					<select class="picker"></select> 
 				</div>
+				<ul id="project-files" class="file-list">
+					<li><a href="#">my-app.css</a></li>
+					<li><a href="#">my-app.js</a></li>
+					<li><a href="#" class="selected">awesome.js</a></li>
+				</ul>
 			</div>
 		</div>
-		<div class="row">
-			<div class="span6 offset5">
-				<div id="editor"></div>
-			</div>
+		<div class="content">
+			<div id="main-toolbar" class="toolbar">
+				<div class="buttons">
+	<!--		
+					<input class="resume" type="button" value="Pause"/>
+					<input class="resume" type="button" value="Resume"/>
+					<input class="new" type="button" value="New"/>
+					<input class="save" type="button" value="Save"/>
+					<input class="settings" type="button" value="Settings"/>
+	-->
+				</div>
+				<div class="title">awesome.js</div>
+			</div>			
+			<div id="editor"></div>
 		</div>
 	</div>
 </body>
