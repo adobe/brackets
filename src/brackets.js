@@ -1,9 +1,9 @@
 /* TODO: copyright notice, etc. */
 
 // Define core brackets namespace
-brackets = {};
+brackets = window.brackets || {};
 
-brackets.inBrowser = false;	// FIXME: check for Brackets API availability
+brackets.inBrowser = !brackets.hasOwnProperty("file");
 
 
 $(document).ready(function() {
