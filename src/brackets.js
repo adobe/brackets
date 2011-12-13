@@ -17,6 +17,7 @@ $(document).ready(function() {
         }
     });
     
+    // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var testWindow = null;
     $("#menu-runtests").click(function(){
         if (!(testWindow === null)) {
