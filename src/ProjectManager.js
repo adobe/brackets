@@ -42,6 +42,9 @@ ProjectManager.loadProject = function(rootPath) {
 			{ data: "file_2" }
 		];
 		
+		// Show file list in UI synchronously
+    	ProjectManager._renderTree(treeJSONData);
+		
 	} else {
 		// Actually scan the folder structure on local disk
         var rootEntry = NativeFileSystem.requestNativeFileSystem(rootPath, null, null);  // TODO: add success/error callbacks
@@ -133,9 +136,6 @@ ProjectManager.loadProject = function(rootPath) {
 			// }
 		// });
 	}
-	
-	// Show file list in UI
-	ProjectManager._renderTree(treeJSONData);
 	
 	// ProjectManager._currentProjectRoot = rootPath;
 };
