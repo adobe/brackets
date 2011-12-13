@@ -42,7 +42,7 @@ $(document).ready(function() {
                     
             var nestingLevel = 0;
                     
-            if( rootEntry.isDirectory )
+            if( rootEntry && rootEntry.isDirectory )
                 readDirectory( rootEntry );
         }
         
