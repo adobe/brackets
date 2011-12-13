@@ -13,7 +13,7 @@ $(document).ready(function() {
     // Temporary button to test file directory traversa;
     $("#menu-file-open").click(function(){
         if (!inBrowser) {
-            window.ProjectManager.showOpenDialog(false, true, "Choose a folder", null, null,showOpenDialogCallback);
+            window.NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null, showOpenDialogCallback);
         }
     });
     
@@ -34,24 +34,20 @@ $(document).ready(function() {
     });
 
     function showOpenDialogCallback( files ) {
-    
-    
         var folderName = files instanceof Array ? files[0] : files;
     
-        if (folderName != "")
-            var rootEntry = window.ProjectManager.requestNativeFileSystem( folderName, null, null ); // TODO: add callbacks
+        if (folderName != "") {
+            var rootEntry = window.NativeFileSystem.requestNativeFileSystem( folderName, null, null ); // TODO: add callbacks
                     
-        var nestingLevel = 0;
+            var nestingLevel = 0;
                     
-        if( rootEntry.isDirectory )
-            readDirectory( rootEntry )
-        
+            if( rootEntry && rootEntry.isDirectory )
+                readDirectory( rootEntry );
+        }
         
         
         // Test directory traversal
         function readDirectory( entry ){
-            
-        
             var reader = entry.createReader();
             reader.readEntries( dirReaderSuccessCB, dirReaderErrorCB);
         }
@@ -77,7 +73,6 @@ $(document).ready(function() {
                 }
             }
         }
-
         
         function dirReaderErrorCB() {
             // handle error

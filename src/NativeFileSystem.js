@@ -1,6 +1,4 @@
-
-    
-window.ProjectManager = {
+window.NativeFileSystem = {
 
 
     /** showOpenDialog
@@ -29,9 +27,6 @@ window.ProjectManager = {
                                                     initialPath,
                                                     fileTypes,
                                                     resultCallback );
-        
-                       
-                                
     },
 
 
@@ -46,13 +41,14 @@ window.ProjectManager = {
         // TODO: assumes path is a directory right now. Need to error check
         // TODO: don't actually need to get the listing here, but should verify the directory exists
         var entryList = brackets.file.getDirectoryListing(path); 
-        var files = JSON.parse(entryList);
-        
-        
-        var root = new DirectoryEntry( path );
-       
-        
-        return root;
+        if (entryList) {
+            var files = JSON.parse(entryList);
+            var root = new DirectoryEntry( path );
+            return root;
+        }
+        else {
+            return null;
+        }
      }
 };
 
