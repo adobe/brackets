@@ -1,4 +1,6 @@
-/* TODO: copyright notice, etc. */
+/*
+ * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ */
 
 // Define core brackets namespace
 brackets = window.brackets || {};

@@ -1,4 +1,8 @@
-window.NativeFileSystem = {
+/*
+ * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ */
+
+var NativeFileSystem = {
 
 
     /** showOpenDialog

@@ -1,6 +1,8 @@
-/* TODO: copyright notice, etc. */
+/*
+ * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ */
 
-window.ProjectManager = {};
+var ProjectManager = {};
 
 ProjectManager.loadProject = function(rootPath) {
 	// Set title
@@ -42,6 +44,10 @@ ProjectManager.loadProject = function(rootPath) {
 	// ProjectManager._currentProjectRoot = rootPath;
 };
 
+/**
+ * Returns true if the given file should be displayed in the file tree UI.
+ * @param fileName File name, including extension but excluding path
+ */
 ProjectManager.shouldShowFile = function(fileName) {
 	// Ignore names starting with "."
 	if (item.indexOf(".") == 0) return false;
@@ -49,6 +55,11 @@ ProjectManager.shouldShowFile = function(fileName) {
 	return true;
 };
 
+/**
+ * @private
+ * Given a tree of file data, display it in the file tree UI (replacing any existing file tree that
+ * was previously displayed).
+ */
 ProjectManager._renderTree = function(fileListData) {
 	// Clear old project files
 	var projectList = $("#project-files");
