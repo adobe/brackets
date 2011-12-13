@@ -37,13 +37,13 @@ describe("NativeFileSystem", function(){
       var readComplete = false;
 
       var nfs = window.NativeFileSystem.requestNativeFileSystem(path);
-      var reader = nfs.createReader()
+      var reader = nfs.createReader();
 
+      var successCallback = function(e) { entries = e; readComplete = true; }
       // TODO: not sure what parameters error callback will take because it's not implemented yet
-      reader.readEntries(
-        function(e) { entries = e; readComplete = true; }
-      , function()  { readComplete = true; }
-      );            
+      var errorCallback = function() { readComplete = true; }
+
+      reader.readEntries(successCallback, errorCallback);            
 
       waitsFor(function() { return readComplete; }, 1000);
 
@@ -52,7 +52,6 @@ describe("NativeFileSystem", function(){
         expect(entries).toContainFileWithName("file1");
         expect(entries).not.toContainFileWithName("file2");
       });
-
     });
   });
 });
