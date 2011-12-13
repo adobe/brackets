@@ -1,4 +1,4 @@
-describe("FileIO", function(){
+describe("NativeFileSystem", function(){
 
   describe("Reading", function() {
 
