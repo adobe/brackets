@@ -17,6 +17,23 @@ $(document).ready(function() {
         }
     });
     
+    // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
+    var testWindow = null;
+    $("#menu-runtests").click(function(){
+        if (!(testWindow === null)) {
+            try {
+                testWindow.location.reload();
+            } catch(e) {
+                testWindow = null;  // the window was probably closed
+            } 
+        }
+        
+        if (testWindow === null) {
+            testWindow = window.open("../test/SpecRunner.html");
+            testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
+        }
+    });
+
     function showOpenDialogCallback( files ) {
         var folderName = files instanceof Array ? files[0] : files;
     
