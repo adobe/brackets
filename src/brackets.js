@@ -1,9 +1,66 @@
 /* TODO: copyright notice, etc. */
 
 $(document).ready(function() {
-	var myCodeMirror = CodeMirror($('#editor').get(0), {
-		value: 'var myResponse="Yes, it will be!"\n'
-	});
 
-	// TODO: Write Brackets.
+    var myCodeMirror = CodeMirror($('#editor').get(0), {
+        value: 'var myResponse="Yes, it will be!"\n'
+    });
+
+    // Set the "inBrowser" flag
+    var inBrowser = !window.hasOwnProperty("brackets");
+
+
+    // Temporary button to test file directory traversa;
+    $("#menu-file-open").click(function(){
+        if (!inBrowser) {
+            window.NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null, showOpenDialogCallback);
+        }
+    });
+    
+    function showOpenDialogCallback( files ) {
+        var folderName = files instanceof Array ? files[0] : files;
+    
+        if (folderName != "") {
+            var rootEntry = window.NativeFileSystem.requestNativeFileSystem( folderName, null, null ); // TODO: add callbacks
+                    
+            var nestingLevel = 0;
+                    
+            if( rootEntry && rootEntry.isDirectory )
+                readDirectory( rootEntry );
+        }
+        
+        
+        // Test directory traversal
+        function readDirectory( entry ){
+            var reader = entry.createReader();
+            reader.readEntries( dirReaderSuccessCB, dirReaderErrorCB);
+        }
+        
+        function dirReaderSuccessCB( entries ){
+            var tabs = "";
+            for( i = 0; i < nestingLevel; i++ ){
+                tabs += "  ";
+            }
+        
+            for ( var entryI in entries ){
+                var entry = entries[entryI];
+                if( entry.isFile ){
+                    // create leaf tree node using entry.name
+                    console.log( tabs+ entry.name );
+                }
+                else if ( entry.isDirectory ){
+                    // create branch tree node using entry.name
+                    console.log( tabs + entry.name );
+                    
+                    nestingLevel++;
+                    readDirectory( entry )
+                }
+            }
+        }
+        
+        function dirReaderErrorCB() {
+            // handle error
+        }
+    }
+            
 });
