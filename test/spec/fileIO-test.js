@@ -4,7 +4,7 @@ describe("FileIO", function(){
 
         it("should run the test", function() {
             // verify editor content
-            expect("a").toEqual("a");
+            expect("a").toEqual("b");
         });
     });
 });
