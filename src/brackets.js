@@ -1,9 +1,9 @@
 /* TODO: copyright notice, etc. */
 
 // Define core brackets namespace
-brackets = {};
+brackets = window.brackets || {};
 
-brackets.inBrowser = true;	// FIXME: check for Brackets API availability
+brackets.inBrowser = !brackets.hasOwnProperty("file");
 
 
 $(document).ready(function() {
@@ -14,9 +14,9 @@ $(document).ready(function() {
 
 	ProjectManager.loadProject("DummyProject");
 
-    // Temporary button to test file directory traversa;
+    // Temporary button to test file directory traversal
     $("#menu-file-open").click(function(){
-        if (!inBrowser) {
+        if (!brackets.inBrowser) {
             window.NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null, showOpenDialogCallback);
         }
     });
@@ -29,7 +29,7 @@ $(document).ready(function() {
                     
             var nestingLevel = 0;
                     
-            if( rootEntry.isDirectory )
+            if( rootEntry && rootEntry.isDirectory )
                 readDirectory( rootEntry );
         }
         
@@ -66,5 +66,5 @@ $(document).ready(function() {
             // handle error
         }
     }
-            
+
 });
