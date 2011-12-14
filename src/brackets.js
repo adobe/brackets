@@ -14,10 +14,15 @@ $(document).ready(function() {
         value: 'var myResponse="Yes, it will be!"\n'
     });
 
+	// Load a default project into the tree
 	if (brackets.inBrowser) {
+	    // In browser: dummy folder tree (hardcoded in ProjectManager)
 		ProjectManager.loadProject("DummyProject");
 	} else {
-		// TODO: what is default project when in app shell ??
+	    // In app shell: load Brackets itself
+	    var loadedPath = window.location.pathname;
+	    var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+	    ProjectManager.loadProject(bracketsSrc);
 	}
 	
 	$("#btn-open-project").click(function() {
