@@ -36,22 +36,30 @@ describe("NativeFileSystem", function(){
       var entries = null;
       var readComplete = false;
 
-      var nfs = window.NativeFileSystem.requestNativeFileSystem(path);
-      var reader = nfs.createReader();
-
-      var successCallback = function(e) { entries = e; readComplete = true; }
-      // TODO: not sure what parameters error callback will take because it's not implemented yet
-      var errorCallback = function() { readComplete = true; }
-
-      reader.readEntries(successCallback, errorCallback);            
-
-      waitsFor(function() { return readComplete; }, 1000);
-
-      runs(function() {
-        expect(entries).toContainDirectoryWithName("dir1");
-        expect(entries).toContainFileWithName("file1");
-        expect(entries).not.toContainFileWithName("file2");
-      });
+      var nfs = window.NativeFileSystem.requestNativeFileSystem(path, requestNativeFileSystemSuccessCB, requestNativeFileSystemErrorCB ); 
+                    
+        
+        function requestNativeFileSystemSuccessCB( nfs ){
+            var reader = nfs.createReader();
+        
+            var successCallback = function(e) { entries = e; readComplete = true; }
+            // TODO: not sure what parameters error callback will take because it's not implemented yet
+            var errorCallback = function() { readComplete = true; }
+            
+            reader.readEntries(successCallback, errorCallback);            
+            
+            waitsFor(function() { return readComplete; }, 1000);
+            
+            runs(function() {
+                expect(entries).toContainDirectoryWithName("dir1");
+                expect(entries).toContainFileWithName("file1");
+                expect(entries).not.toContainFileWithName("file2");
+            });
+        }
+        
+        function requestNativeFileSystemErrorCB( err){
+            // TODO: what should be done here?
+        }      
     });
   });
 });

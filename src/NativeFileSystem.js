@@ -11,7 +11,7 @@ window.NativeFileSystem = {
      * @param {function} resultCallback
      * @constructor
      */ 
-    showOpenDialog: function (   allowMultipleSelection,
+    showOpenDialog: function (  allowMultipleSelection,
                                 chooseDirectories, 
                                 title,
                                 initialPath,
@@ -20,25 +20,22 @@ window.NativeFileSystem = {
                                 errorCallback ) {
                                             
        
-        if( !successCallback )
-            return null;
+        if( !successCallback || ! errorCallback)
+            return;
             
-        if( !errorCallback )
-            return null;
-            
-        var files = brackets.fs.showOpenDialog(   allowMultipleSelection,
-                                                    chooseDirectories, 
-                                                    title,
-                                                    initialPath,
-                                                    fileTypes,
-                                                    showOpenDialogCB );
+        var files = brackets.fs.showOpenDialog( allowMultipleSelection,
+            chooseDirectories, 
+            title,
+            initialPath,
+            fileTypes,
+            function( err, data ){
+                if( ! err )
+                    successCallback( data );
+                else
+                    errorCallback( err );
+            });
                                                     
-        function showOpenDialogCB( err, data ){
-            if( ! err )
-                successCallback( data );
-            else
-                errorCallback( err );
-        }
+        
     },
 
 
@@ -51,22 +48,17 @@ window.NativeFileSystem = {
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
     
         // TODO: use stat instead to verify directory exists
-        brackets.fs.readdir(path, readdirCB); 
-        
-        function readdirCB( err, data ){
-            if( !err ){
-                var root = new DirectoryEntry( path );
-                successCallback( root );
-            }
-            else{
-                // TODO NJ: error translation
-                // errorCallback( error );
-            }
-        }
+        brackets.fs.stat(path, function( err, data ){
+                if( !err ){
+                    var root = new DirectoryEntry( path );
+                    successCallback( root );
+                }
+                else{
+                    // TODO NJ: error translation
+                    // errorCallback( error );
+                }
+            }); 
      }
-     
-     
-     
      
 };
 
@@ -159,12 +151,8 @@ DirectoryReader = function() {
  */ 
 DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
     var rootPath = this._directory.fullPath;
-    var jsonList = brackets.fs.readdir( rootPath, readEntriesCB );
-        
-
-    function readEntriesCB( err, filelist ) {
+    var jsonList = brackets.fs.readdir( rootPath, function( err, filelist ) {
         if( ! err ){
-            
             // Create entries for each name
             var entries = [];
             filelist.forEach(function(item){
@@ -172,16 +160,19 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
                 if (item.indexOf(".") != 0) {
                     var itemFullPath = rootPath + "/" + item;
                     
-                    brackets.fs.stat( item, function( err, data) {
-                        }
-                    )
+                    brackets.fs.stat( itemFullPath, function( err, statData) {
                     
-                    if( brackets.fs.isDirectory( itemFullPath ) ) {
-                        entries.push( new DirectoryEntry( itemFullPath ) );
-                    } 
-                    else {
-                        entries.push( new FileEntry( itemFullPath ) );
-                    }
+                        if( !err ){
+                            if( statData.isDirectory( itemFullPath ) )
+                                entries.push( new DirectoryEntry( itemFullPath ) );
+                            else if( statData.isFile( itemFullPath ) ) 
+                                entries.push( new FileEntry( itemFullPath ) );
+                        }
+                        else {
+                            // TODO NJ: handle errors
+                        }
+                        
+                    })    
                 }
              });
 
@@ -191,55 +182,9 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
             // TODO NJ: error translation
             // errorCallback( error );
         }
-    }
-        
-    
-    
-    // TODO: error handling
+    });    
 };
 
-/*
-interface FileReader: EventTarget {
 
-    // async read methods
-    // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
-    // IMPLEMENT LATER void readAsBinaryString(Blob blob);
-    void readAsText(Blob blob, optional DOMString encoding);
-    // IMPLEMENT LATER void readAsDataURL(Blob blob);
-
-  // IMPLEMENT LATER void abort();
-
-  // states constants
-  var EMPTY = 0; 
-  var LOADING = 1;
-  var DONE = 2;
-
-
-  var readyState;
-  get readyState() { return readyState; }
-
-  // File or Blob data
-  var result;
-  get result() { return result; }
-  
-  var error;
-  get result() { return error; }
-
-
-  // event handler attributes
-  [TreatNonCallableAsNull] attribute Function? onloadstart;
-  [TreatNonCallableAsNull] attribute Function? onprogress;
-  [TreatNonCallableAsNull] attribute Function? onload;
-  [TreatNonCallableAsNull] attribute Function? onabort;
-  [TreatNonCallableAsNull] attribute Function? onerror;
-  [TreatNonCallableAsNull] attribute Function? onloadend;
-
-};
-
-FileReader.prototype.readAsText = function(blob, encoding ){
-
-}
-
-*/
 
 
