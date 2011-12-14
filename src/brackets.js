@@ -28,10 +28,13 @@ $(document).ready(function() {
 		ProjectManager.openProject();
 	});
     
-    // Implements the "Open File" menu
+    // Implements the File menu items
     $("#menu-file-open").click(function() {
         CommandManager.execute(Commands.FILE_OPEN);
     });
+    $("#menu-file-save").click(function() {
+        CommandManager.execute(Commands.FILE_SAVE);
+    })
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var testWindow = null;
@@ -49,8 +52,42 @@ $(document).ready(function() {
             testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
         }
     });
+    
+    // Application state
+    // TODO: factor this stuff out into a real app controller
+    var _currentFilePath = null;
+    var _currentTitlePath = null;
+    var _isDirty = false;
+    var _savedUndoPosition = 0;
+    
+    editor.setOption("onChange", function() {
+        updateDirty();
+    });
 
     // Utility functions
+    function updateDirty() {
+        // TODO: This doesn't currently work properly with undo because of brackets-app issue #9.
+        // So files get dirty, but they never get un-dirty.
+        
+        // If we've undone past the undo position at the last save, and there is no redo stack,
+        // then we can never get back to non-dirty state.
+        var historySize = editor.historySize();
+        var historyInfo = editor.historyInfo();
+        console.log(JSON.stringify(historyInfo));
+        if (historySize.undo < _savedUndoPosition && historySize.redo == 0) {
+            _savedUndoPosition = -1;
+        }
+        var newIsDirty = (editor.historySize().undo != _savedUndoPosition);
+        if (_isDirty != newIsDirty) {
+            _isDirty = newIsDirty;
+            updateTitle();
+        }        
+    }
+    
+    function updateTitle() {
+        $("#main-toolbar .title").text(_currentTitlePath + (_isDirty ? " \u2022" : ""));
+    }
+    
     function doOpen(fullPath) {          
         if (fullPath) {
             // TODO: use higher-level file API instead of raw API
@@ -59,6 +96,8 @@ $(document).ready(function() {
                     // TODO--this will change with the real file API implementation
                 }
                 else {
+                    _currentFilePath = _currentTitlePath = fullPath;
+                    
                     // TODO: have a real controller object for the editor
                     editor.setValue(content);
 
@@ -66,10 +105,12 @@ $(document).ready(function() {
                     if (fullPath.indexOf(projectRootPath) == 0) {
                         fullPath = fullPath.slice(projectRootPath.length);
                         if (fullPath.charAt(0) == '/') {
-                            fullPath = fullPath.slice(1);
+                            _currentTitlePath = fullPath.slice(1);
                         }                          
                     }
-                    $("#main-toolbar .title").text(fullPath);
+                    editor.clearHistory();
+                    _savedUndoPosition = editor.historySize().undo;
+                    updateDirty();
                 }
             });
         }
@@ -91,4 +132,17 @@ $(document).ready(function() {
         }
     });
 
+    CommandManager.register(Commands.FILE_SAVE, function() {
+        if (_currentFilePath && _isDirty) {
+            brackets.fs.writeFile(_currentFilePath, editor.getValue(), "utf8", function(err) {
+                if (err) {
+                    // TODO--this will change with the real file API implementation
+                }
+                else {
+                    _savedUndoPosition = editor.historySize().undo;
+                    updateDirty();
+                }
+            });
+        }
+    });
 });
