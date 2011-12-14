@@ -18,8 +18,7 @@ window.NativeFileSystem = {
                                 fileTypes,
                                 successCallback,
                                 errorCallback ) {
-                                                   
-        if( !successCallback || ! errorCallback)
+        if( !successCallback )
             return;
             
         var files = brackets.fs.showOpenDialog( allowMultipleSelection,
@@ -30,12 +29,11 @@ window.NativeFileSystem = {
             function( err, data ){
                 if( ! err )
                     successCallback( data );
-                else
+                else if (errorCallback)
                     errorCallback(NativeFileSystem._nativeToFileError(err));
             });                                                   
         
     },
-
 
     /** requestNativeFileSystem
      *
@@ -49,7 +47,7 @@ window.NativeFileSystem = {
                 var root = new DirectoryEntry( path );
                 successCallback( root );
             }
-            else{
+            else if (errorCallback) {
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
         }); 
@@ -194,7 +192,7 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
                         else if( statData.isFile( itemFullPath ) ) 
                             entries.push( new FileEntry( itemFullPath ) );
                     }
-                    else {
+                    else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
                     }
                     
@@ -203,7 +201,7 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
 
             successCallback( entries );        
         }
-        else{
+        else if (errorCallback) {
             errorCallback(NativeFileSystem._nativeToFileError(err));
         }
     });    

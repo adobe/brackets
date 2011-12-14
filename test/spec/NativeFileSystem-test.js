@@ -90,6 +90,19 @@ describe("NativeFileSystem", function(){
             expect(errorCalled).toBe(true);
             expect(error.code).toBe(FileError.SECURITY_ERR);
         });        
-    })
+    });
+    
+    it("should be okay to not pass an error callback", function() {
+        var entries = null;
+        window.NativeFileSystem.requestNativeFileSystem(this.path, function(data) {
+            entries = data;
+        });
+        
+        waitsFor(function() { return entries != null; }, 1000);
+        
+        runs(function() {
+            expect(entries).not.toBe(null);
+        });
+    });
   });
 });
