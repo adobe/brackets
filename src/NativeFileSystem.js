@@ -48,7 +48,7 @@ var NativeFileSystem = {
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
         brackets.fs.stat(path, function( err, data ){
             if( !err ){
-                var root = new DirectoryEntry( path );
+                var root = new brackets.fs.DirectoryEntry( path );
                 successCallback( root );
             }
             else if (errorCallback) {
@@ -101,7 +101,7 @@ var NativeFileSystem = {
  * @param {string} isFile
  * @constructor
  */
-Entry = function( fullPath, isDirectory) {
+brackets.fs.Entry = function( fullPath, isDirectory) {
     this.isDirectory = isDirectory;
     this.isFile = !isDirectory;
     // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
@@ -131,24 +131,36 @@ Entry = function( fullPath, isDirectory) {
  * @constructor
  * @extends {Entry}
  */ 
-FileEntry = function( name ) {
-    Entry.call(this, name, false);
+brackets.fs.FileEntry = function( name ) {
+    brackets.fs.Entry.call(this, name, false);
     
     // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
     
-    // IMPLEMENT LATER void createWriter (FileWriterCallback successCallback, optional ErrorCallback errorCallback);
-    // IMPLEMENT LATER void file (FileCallback successCallback, optional ErrorCallback errorCallback);
 };
 
 
+brackets.fs.FileEntry.prototype.file = function( successCallback, errorCallback ){
+    var newFile = new brackets.fs.File( this );    
+    successCallback( newFile );
+    
+    // TODO Ty: error handling
+    // errorCallback
+};
+
+/*
+TODO Jason
+brackets.fs.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
+
+}; */
+
 /** class: DirectoryEntry
  *
- * @param {string} name
  * @constructor
+ * @param {string} name
  * @extends {Entry}
  */ 
-DirectoryEntry = function( name ) {
-    Entry.call(this, name, true);
+brackets.fs.DirectoryEntry = function( name ) {
+    brackets.fs.Entry.call(this, name, true);
     
     // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
@@ -158,8 +170,8 @@ DirectoryEntry = function( name ) {
 };
 
 
-DirectoryEntry.prototype.createReader = function() {
-    var dirReader = new DirectoryReader();
+brackets.fs.DirectoryEntry.prototype.createReader = function() {
+    var dirReader = new brackets.fs.DirectoryReader();
     dirReader._directory = this;
     
     return dirReader;
@@ -168,7 +180,7 @@ DirectoryEntry.prototype.createReader = function() {
 
 /** class: DirectoryReader
  */ 
-DirectoryReader = function() {
+brackets.fs.DirectoryReader = function() {
     
 };
 
@@ -179,7 +191,7 @@ DirectoryReader = function() {
  * @param {function} errorCallback
  * @returns {Entry[]}
  */ 
-DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
+brackets.fs.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
     var rootPath = this._directory.fullPath;
     var jsonList = brackets.fs.readdir( rootPath, function( err, filelist ) {
         if( ! err ){
@@ -192,9 +204,9 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
                 
                     if( !err ){
                         if( statData.isDirectory( itemFullPath ) )
-                            entries.push( new DirectoryEntry( itemFullPath ) );
+                            entries.push( new brackets.fs.DirectoryEntry( itemFullPath ) );
                         else if( statData.isFile( itemFullPath ) ) 
-                            entries.push( new FileEntry( itemFullPath ) );
+                            entries.push( new brackets.fs.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
@@ -211,6 +223,120 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
     });    
 };
 
+
+/** class: FileReader
+ */ 
+brackets.fs.FileReader = function() {
+    
+    
+    // async read methods
+    // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
+    // IMPLEMENT LATER void readAsBinaryString(Blob blob);
+    // IMPLEMENT LATER void readAsDataURL(Blob blob);
+    
+    // IMPLEMENT LATER void abort();
+    
+    // states
+    this.EMPTY = 0;
+    this.LOADING = 1;
+    this.DONE = 2;
+    
+    
+    // IMPLEMENT LATER readonly attribute unsigned short readyState;
+    
+    // File or Blob data
+    // IMPLEMENT LATER readonly attribute any result;
+    
+    // IMPLEMENT LATER readonly attribute DOMError error;
+    
+    // event handler attributes
+    this.onloadstart = null;
+    this.onprogress = null;
+    this.onload = null;
+    this.onabort = null;
+    this.onerror = null;
+    this.onloadend = null;
+
+      
+};
+
+/** readAsText
+ *
+ * @param {Blob} blob
+ * @param {string} encoding
+ */ 
+brackets.fs.FileReader.prototype.readAsText = function( blob, encoding) {
+    var self = this;
+
+    if( !encoding )
+        encoding = "";
+        
+    if( this.onloadstart )
+        this.onloadstart(); // todo params
+    
+    brackets.fs.readFile( blob.entry.fullPath, encoding, function( err, data) {
+    
+        // TODO Ty
+        // the event objects passed to these event handlers is fake and incomplete right now
+        var fakeEvent = {
+            target: { result: null }
+        };
+    
+        if( err ){
+            if( self.onerror )
+                self.onerror(); // TODO Ty: pass event
+        }
+        else{
+        
+            if( self.onprogress )
+                self.onprogress(); // TODO Ty: pass event
+                
+            // note: this.onabort not currently supported
+            
+            if( self.onload ){
+                fakeEvent.target.result = data;
+                self.onload( fakeEvent );
+            }
+                
+            if( self.onloadend )
+                self.onloadend();
+        }
+    
+    });
+};
+
+/** class: Blob
+ *
+ * @constructor
+ * param {Entry} entry
+ */ 
+brackets.fs.Blob = function ( entry ){
+    this.entry = entry;
+
+    // IMPLEMENT LATER readonly attribute unsigned long long size;
+    // IMPLEMENT LATER readonly attribute DOMString type;
+  
+    //slice Blob into byte-ranged chunks
+  
+    // IMPLEMENT LATER Blob slice(optional long long start,
+    //           optional long long end,
+    //           optional DOMString contentType); 
+};
+
+/** class: File
+ *
+ * @constructor
+ * param {Entry} entry
+ * @extends {Blob}
+ */ 
+brackets.fs.File = function ( entry ){
+    brackets.fs.Blob.call( this, entry );
+
+    //IMPLEMENT LATER get name() { return this.entry.name; }
+    // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
+};
+
+
 /** class: FileError
  *
  * Implementation of HTML file API error code return class. Note that the 
@@ -223,7 +349,7 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
  * @param {number} code The error code to return with this FileError. Must be
  * one of the codes defined in the FileError class.
  */
-FileError = function(code) {
+brackets.fs.FileError = function(code) {
     this.code = code || 0;
 };
 
