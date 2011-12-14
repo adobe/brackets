@@ -136,6 +136,71 @@ FileEntry = function( name ) {
     // IMPLEMENT LATER void file (FileCallback successCallback, optional ErrorCallback errorCallback);
 };
 
+/** createWriter
+ * 
+   Creates a new FileWriter associated with the file that this FileEntry represents. 
+ *
+ * @param {function} successCallback
+ * @param {function} errorCallback
+ */
+FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
+    var fileWriter = new FileWriter();
+    successCallback( fileWriter );
+};
+
+/** class: FileSaver
+ *
+ * @param {Blob} data
+ * @constructor
+ */ 
+FileSaver = function( data ) {
+    _data = data;
+};
+
+// FileSaver constants
+Object.defineProperties(FileSaver, 
+    { INIT:     { value: 1 }
+    , WRITING:  { value: 2 }
+    , DONE:     { value: 3 }
+});
+
+// FileSaver private memeber vars
+FileSaver.prototype._data = null;
+FileSaver.prototype._readyState = FileSaver.INIT;
+FileSaver.prototype._error = null;
+
+// FileSaver methods
+
+// TODO (jasonsj): http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
+FileSaver.prototype.abort = function() {
+    // If readyState is DONE or INIT, terminate this overall series of steps without doing anything else..
+    if (_readyState == FileSaver.INIT || _readyState == FileSaver.DONE)
+        return;
+    
+    // Terminate any steps having to do with writing a file.
+
+    // Set the error attribute to a FileError object with the code ABORT_ERR.
+    _error = new FileError(FileError.ABORT_ERR);
+    
+    // Set readyState to DONE.
+    _readyState = FileSaver.DONE;
+
+    // Dispatch a progress event called abort
+    // Dispatch a progress event called writeend
+    // Stop dispatching any further progress events.
+    // Terminate this overall set of steps.
+    
+    return err;  
+};
+
+/** class: FileWriter
+ *
+ * @constructor
+ * @extends {FileSaver}
+ */ 
+FileWriter = function( ) {
+    FileSaver.call(this);
+};
 
 /** class: DirectoryEntry
  *
@@ -223,17 +288,18 @@ FileError = function(code) {
     this.code = code || 0;
 };
 
-$.extend(FileError, {
-    NOT_FOUND_ERR: 1,
-    SECURITY_ERR: 2,
-    ABORT_ERR: 3,
-    NOT_READABLE_ERR: 4,
-    ENCODING_ERR: 5,
-    NO_MODIFICATION_ALLOWED_ERR: 6,
-    INVALID_STATE_ERR: 7,
-    SYNTAX_ERR: 8,
-    INVALID_MODIFICATION_ERR: 9,
-    QUOTA_EXCEEDED_ERR: 10,
-    TYPE_MISMATCH_ERR: 11,
-    PATH_EXISTS_ERR: 12
+// FileSaver constants
+Object.defineProperties(FileError, 
+    { NOT_FOUND_ERR:                { value: 1 }
+    , SECURITY_ERR:                 { value: 2 }
+    , ABORT_ERR:                    { value: 3 }
+    , NOT_READABLE_ERR:             { value: 4 }
+    , ENCODING_ERR:                 { value: 5 }
+    , NO_MODIFICATION_ALLOWED_ERR:  { value: 6 }
+    , INVALID_STATE_ERR:            { value: 7 }
+    , SYNTAX_ERR:                   { value: 8 }
+    , INVALID_MODIFICATION_ERR:     { value: 9 }
+    , QUOTA_EXCEEDED_ERR:           { value: 10 }
+    , TYPE_MISMATCH_ERR:            { value: 11 }
+    , PATH_EXISTS_ERR:              { value: 12 }
 });
