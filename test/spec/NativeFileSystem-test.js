@@ -22,14 +22,7 @@ describe("NativeFileSystem", function(){
         }
       });
 
-      //TODO: Make this relative -- right now, asking for "." gives "/"
-      //Want to be able to simply use:
-      //  var path = "spec/NativeFileSystem-test-files";
-      var path = window.location.href;
-      path = path.substr("file://".length);
-      path = path.substr(0,path.lastIndexOf("/")+1);
-      path = path + "spec/NativeFileSystem-test-files";
-      this.path = path;
+      this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
     });
 
     it("should read a directory from disk", function() {
