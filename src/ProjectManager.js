@@ -22,15 +22,13 @@ ProjectManager.loadProject = function(rootPath) {
 	var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
 	$("#project-title").html(projectName);
 	
-	// Build file list in JSON format
-	var treeJSONData;
-	
+	// Populate file tree
 	if (brackets.inBrowser) {
-		// Hardcoded dummy data for local testing
+		// Hardcoded dummy data for local testing, in jsTree JSON format
 		var subfolderInner = { data:"Folder_inner", children:[
 			{ data: "subsubfile_1" }, { data: "subsubfile_2" }
 		] };
-		treeJSONData = [
+		var treeJSONData = [
 			{ data: "Dummy tree content:" },
 			{ data:"Folder_1", children:[
 				{ data: "subfile_1" }, { data: "subfile_2" }, { data: "subfile_3" }
@@ -40,35 +38,68 @@ ProjectManager.loadProject = function(rootPath) {
 			] },
 			{ data: "file_1" },
 			{ data: "file_2" }
-		];
+        ];
 		
-		// Show file list in UI synchronously
-    	ProjectManager._renderTree(treeJSONData);
+        // Show file list in UI synchronously
+        ProjectManager._renderTree(treeJSONData);
 		
 	} else {
-		// Actually scan the folder structure on local disk
+        // Actually scan the folder structure on local disk
         var rootEntry = NativeFileSystem.requestNativeFileSystem(rootPath, null, null);  // TODO: add success/error callbacks
 		
         var reader = rootEntry.createReader();
-        reader.readEntries(function(entries) {
+        var topLevelItems = [];
+        
+        function convertEntriesToJSON(entries) {
 			var jsonEntryList = [];
 			for (var entryI in entries) {
 				var entry = entries[entryI];
 				
 				// TODO: if (ProjectManager.shouldShowFile(item)) ...
 				
-				var jsonEntry = { data: entry.name };
+				var jsonEntry = {
+				    data: entry.name,
+				    metadata: { entry: entry }
+				};
 				if (entry.isDirectory) {
 					jsonEntry.children = [];
 					jsonEntry.state = "closed";
 				}
 				jsonEntryList.push(jsonEntry);
 			}
-			ProjectManager._renderTree(jsonEntryList);
+			return jsonEntryList;
+        }
+        
+        reader.readEntries(function(entries) {
+			topLevelItems = convertEntriesToJSON(entries);
+			
+			// This will cause the tree to start calling us, pulling down the root's immediate children
+			ProjectManager._renderTree(dataProvider);
 		},
 		function(error) {
 			console.log(error);     // TODO: real error handling
 		});
+		
+		function dataProvider(treeNode, callback) {
+		    // Special case: root
+		    if (treeNode == -1) {
+		        console.log("Displaying prefecthed root...");
+		        callback(topLevelItems);
+		    } else {
+		        var entry = treeNode.data("entry");
+		        console.log("Fetching subtree: "+entry.fullPath);
+
+		        entry.createReader().readEntries(
+		            function(entries) {
+		                var subtreeJSON = convertEntriesToJSON(entries);
+		                callback(subtreeJSON);
+		            },
+		            function(error) {
+		                console.log(error);     // TODO: real error handling
+		            }
+		        );
+		    }
+		}
 
 		// var rootedTreeJSONData = readDirectory(rootEntry);
 		// treeJSONData = rootedTreeJSONData.children;		// we don't want the root folder to be an actual tree node
@@ -153,10 +184,13 @@ ProjectManager.shouldShowFile = function(fileName) {
 
 /**
  * @private
- * Given a tree of file data, display it in the file tree UI (replacing any existing file tree that
- * was previously displayed).
+ *
+ * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
+ * (replacing any existing file tree that was previously displayed). This input could be
+ * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
+ * http://www.jstree.com/documentation/json_data
  */
-ProjectManager._renderTree = function(treeJSONData) {
+ProjectManager._renderTree = function(treeDataProvider) {
 	// Clear old project files
 	var projectList = $("#project-files");
 	projectList.html("");
@@ -164,7 +198,7 @@ ProjectManager._renderTree = function(treeJSONData) {
 	// Transform into tree widget
 	projectList.parent().jstree({
 		plugins : ["ui", "themes", "json_data"],
-		json_data : { data:treeJSONData },
+		json_data : { data:treeDataProvider },
 		core : { animation:0 },
 		themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
 			//(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
