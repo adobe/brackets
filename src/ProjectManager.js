@@ -188,12 +188,12 @@ ProjectManager.loadProject = function(rootPath) {
  * http://www.jstree.com/documentation/json_data
  */
 ProjectManager._renderTree = function(treeDataProvider) {
-    // Clear old project files
-    var projectList = $("#project-files");
-    projectList.html("");
     
-    // Transform into tree widget
-    projectList.parent().jstree({
+    var projectTreeContainer = $("#project-files-container");
+    
+    // Instantiate tree widget
+    // (jsTree is smart enough to replace the old tree if there's already one there)
+    projectTreeContainer.jstree({
         plugins : ["ui", "themes", "json_data"],
         json_data : { data:treeDataProvider },
         core : { animation:0 },
