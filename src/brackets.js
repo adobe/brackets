@@ -5,7 +5,7 @@
 // Define core brackets namespace
 brackets = window.brackets || {};
 
-brackets.inBrowser = !brackets.hasOwnProperty("file");
+brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
 
 $(document).ready(function() {
@@ -25,20 +25,27 @@ $(document).ready(function() {
 	    ProjectManager.loadProject(bracketsSrc);
 	}
 	
+	// Open project button
 	$("#btn-open-project").click(function() {
 		ProjectManager.openProject();
 	});
-
-    // Temporary button to test file directory traversal
-    $("#menu-file-open").click(function(){
-        if (!brackets.inBrowser) {
-            window.NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null, showOpenDialogCallback);
+    
+    
+    // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
+    var testWindow = null;
+    $("#menu-runtests").click(function(){
+        if (!(testWindow === null)) {
+            try {
+                testWindow.location.reload();
+            } catch(e) {
+                testWindow = null;  // the window was probably closed
+            } 
+        }
+        
+        if (testWindow === null) {
+            testWindow = window.open("../test/SpecRunner.html");
+            testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
         }
     });
-    
-    function showOpenDialogCallback( files ) {
-        var folderName = files instanceof Array ? files[0] : files;
-    
-    }
 
 });

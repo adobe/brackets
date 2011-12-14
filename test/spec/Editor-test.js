@@ -1,15 +1,5 @@
-describe("Brackets", function(){
-	var content = 'Brackets is going to be awesome!"\n';
-
-	it("should be awesome", function() {
-		this.addMatchers({
-			toBeAwesome: function(expected) {
-				return true;
-			}
-		});
-
-		expect("Brackets").toBeAwesome();
-	});
+describe("Editor", function(){
+	var content = 'Brackets is going to be awesome!\n';
 
 	describe("CodeMirror", function() {
 		var myCodeMirror;
@@ -31,11 +21,5 @@ describe("Brackets", function(){
 			// verify editor content
 			expect(myCodeMirror.getValue()).toEqual(content);
 		});
-	});
-});
-
-describe("Failure", function() {
-	it("is expected sometimes", function() {
-		expect("failure").toEqual("sometimes");
 	});
 });

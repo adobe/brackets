@@ -24,6 +24,9 @@ ProjectManager.openProject = function() {
                 // If length == 0, user canceled the dialog; length should never be > 1
                 if (files.length > 0)
                     ProjectManager.loadProject( files[0] );
+            },
+            function(error) {
+                console.log(error);     // TODO: real error handling
             }
         );
     }
@@ -64,14 +67,21 @@ ProjectManager.loadProject = function(rootPath) {
         
     } else {
         // Point at a real folder structure on local disk
-        ProjectManager.projectRoot = NativeFileSystem.requestNativeFileSystem(rootPath, null, null);
-        // TODO: add success callback (should work asynchronously)
-        // TODO: real error handling
+        NativeFileSystem.requestNativeFileSystem(rootPath,
+            function(rootEntry) {
+                // Success!
+                ProjectManager.projectRoot = rootEntry;
+                
+                // The tree will invoke our "data provider" function to populate the top-level items, then
+                // go idle until a node is expanded - at which time it'll call us again to fetch the node's
+                // immediate children, and so on.
+                ProjectManager._renderTree(ProjectManager._treeDataProvider);
+            },
+            function(error) {
+                console.log(error);     // TODO: real error handling
+            }
+        );
         
-        // The tree will invoke our "data provider" function to populate the top-level items, then
-        // go idle until a node is expanded - at which time it'll call us again to fetch the node's
-        // immediate children, and so on.
-        ProjectManager._renderTree(ProjectManager._treeDataProvider);
     }
 };
 
