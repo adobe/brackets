@@ -17,9 +17,11 @@
 	
 	<script src="thirdparty/jquery-1.7.min.js"></script>
 	<script src="widgets/bootstrap-dropdown.js"></script>
+	<script src="thirdparty/jstree_pre1.0_fix_1/jquery.jstree.js"></script>
 	
 	<script src="NativeFileSystem.js"></script>	
 	<script src="brackets.js"></script>
+	<script src="ProjectManager.js"></script>
 </head>
 <body>
 	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
@@ -49,13 +51,13 @@
 		<div class="sidebar">
 			<div id="projects" class="panel">
 				<div id="project-toolbar" class="toolbar">
-					<select class="picker"></select> 
+					<span id="project-title" class="title"></span>
+					<button id="btn-open-project" class="btn">Open</button>
+					<!-- <select class="picker"></select>  -->
 				</div>
-				<ul id="project-files" class="file-list">
-					<li><a href="#">my-app.css</a></li>
-					<li><a href="#">my-app.js</a></li>
-					<li><a href="#" class="selected">awesome.js</a></li>
-				</ul>
+				<div id="project-files-container">
+				    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
+				</div>
 			</div>
 		</div>
 		<div class="content">
@@ -69,7 +71,7 @@
 					<input class="settings" type="button" value="Settings"/>
 	-->
 				</div>
-				<div class="title">awesome.js</div>
+				<div class="title">will-brackets-be-awesome.js</div>
 			</div>			
 			<div id="editor"></div>
 		</div>

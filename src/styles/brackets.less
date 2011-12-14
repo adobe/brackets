@@ -39,10 +39,16 @@
 	box-sizing: border-box;
 }
 
+
 /* Variables */
 
 /* All paddings, gutters, etc. should be multiples of this */
 @base-padding: 10px;
+
+/* Path prefix for all images used in our CSS. (Note: unlike a normal CSS file, in runtime-processed
+   LESS, image URLs are relative to the .html file, NOT to the .less file) */
+@img: "styles/images";
+
 
 /* General styles for Brackets elements */
 
@@ -110,7 +116,8 @@ body {
 	}
 }
 
-#main-toolbar {
+/* #main-toolbar { */
+.toolbar {
 	/* make sure the shadow goes above other items */
 	z-index: 1;
 	.title {
@@ -149,20 +156,13 @@ body {
 	}
 }
 
-.file-list {
+#project-files-container {
 	.box-flex(1);
 	margin: 0;
   	padding: 0;
-	list-style: none;
-
-	a {
-	  	display: block;
-	  	padding: @base-padding/2 @base-padding @base-padding/2 @base-padding;
-	  	color: #000;
-	  	text-decoration: none;
-		&.selected {
-			color: #fff;
-			#gradient > .vertical(#5fa3e0, #0065be);		
-		}
+	overflow: auto; /* show scrollbars */
+	
+	> ul {
+		margin-top: 5px;
 	}
 }
