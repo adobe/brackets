@@ -174,5 +174,8 @@ ProjectManager._renderTree = function(treeDataProvider) {
             // file because jsTree insists on loading one itself)
         
         strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
+    })
+    .bind("select_node.jstree", function(event, data) {
+        CommandManager.execute("file.open", data.rslt.obj.data("entry").fullPath);
     });
 };

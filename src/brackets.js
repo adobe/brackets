@@ -10,9 +10,7 @@ brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
 $(document).ready(function() {
 
-    var myCodeMirror = CodeMirror($('#editor').get(0), {
-        value: 'var myResponse="Yes, it will be!"\n'
-    });
+    var editor = CodeMirror($('#editor').get(0));
 
 	// Load a default project into the tree
 	if (brackets.inBrowser) {
@@ -30,6 +28,10 @@ $(document).ready(function() {
 		ProjectManager.openProject();
 	});
     
+    // Implements the "Open File" menu
+    $("#menu-file-open").click(function() {
+        CommandManager.execute("file.open");
+    });
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var testWindow = null;
@@ -45,6 +47,32 @@ $(document).ready(function() {
         if (testWindow === null) {
             testWindow = window.open("../test/SpecRunner.html");
             testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
+        }
+    });
+
+    // Register global commands
+    CommandManager.register("file.open", function(fullPath) {
+        if (!fullPath) {
+            // Prompt the user with a dialog
+            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.projectRoot.fullPath, 
+                ["htm", "html", "js", "css"], function(files) {
+                    if (files.length > 0) {
+                        fullPath = files[0];
+                    }
+                })
+        }
+
+        if (fullPath) {
+            // TODO: use higher-level file API instead of raw API
+            brackets.fs.readFile(fullPath, "utf8", function(err, content) {
+                if (err) {
+                    // TODO--this will change with the real file API implementation
+                }
+                else {
+                    // TODO: have a real controller object for the editor
+                    editor.setValue(content);
+                }
+            });
         }
     });
 
