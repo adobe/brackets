@@ -8,10 +8,7 @@ describe("LowLevelFileIO", function() {
   });
   
   // Get window.location and remove the initial "file://" or "http://"
-  var baseDir = window.location.toString().substr(7);
-  // Remove the name of this html file
-  baseDir = baseDir.substr(0, baseDir.lastIndexOf("/") + 1);
-  baseDir += "spec/LowLevelFileIO-test-files/";
+  var baseDir = SpecRunnerUtils.getTestPath("/spec/LowLevelFileIO-test-files/");
 
   beforeEach(function() {
     // Pre-test setup - set permissions on special directories 
