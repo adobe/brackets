@@ -20,7 +20,7 @@ window.NativeFileSystem = {
                                 errorCallback ) {
                                             
        
-        if( !successCallback || ! errorCallback)
+        if( !successCallback )
             return;
             
         var files = brackets.fs.showOpenDialog( allowMultipleSelection,
@@ -31,8 +31,8 @@ window.NativeFileSystem = {
             function( err, data ){
                 if( ! err )
                     successCallback( data );
-                else
-                    errorCallback( err );
+                else if( errorCallback )
+                   errorCallback( err );
             });
                                                     
         
