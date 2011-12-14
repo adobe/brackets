@@ -16,17 +16,29 @@ window.NativeFileSystem = {
                                 title,
                                 initialPath,
                                 fileTypes,
-                                resultCallback ) {
+                                successCallback,
+                                errorCallback ) {
                                             
-        if( !resultCallback )
+       
+        if( !successCallback )
             return null;
             
-        var files = brackets.file.showOpenDialog(   allowMultipleSelection,
+        if( !errorCallback )
+            return null;
+            
+        var files = brackets.fs.showOpenDialog(   allowMultipleSelection,
                                                     chooseDirectories, 
                                                     title,
                                                     initialPath,
                                                     fileTypes,
-                                                    resultCallback );
+                                                    showOpenDialogCB );
+                                                    
+        function showOpenDialogCB( err, data ){
+            if( ! err )
+                successCallback( data );
+            else
+                errorCallback( err );
+        }
     },
 
 
@@ -38,19 +50,27 @@ window.NativeFileSystem = {
      */
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
     
-        // TODO: assumes path is a directory right now. Need to error check
-        // TODO: don't actually need to get the listing here, but should verify the directory exists
-        var entryList = brackets.file.getDirectoryListing(path); 
-        if (entryList) {
-            var files = JSON.parse(entryList);
-            var root = new DirectoryEntry( path );
-            return root;
-        }
-        else {
-            return null;
+        // TODO: use stat instead to verify directory exists
+        brackets.fs.readdir(path, readdirCB); 
+        
+        function readdirCB( err, data ){
+            if( !err ){
+                var root = new DirectoryEntry( path );
+                successCallback( root );
+            }
+            else{
+                // TODO NJ: error translation
+                // errorCallback( error );
+            }
         }
      }
+     
+     
+     
+     
 };
+
+
 
 
 /** class: Entry
@@ -73,7 +93,7 @@ Entry = function( fullPath, isDirectory) {
             this.name = pathParts.pop();
     }
         
-    // IMPLEMENT LATERvar filesystem;
+    // IMPLEMENT LATER var filesystem;
     // IMPLEMENT LATER void      moveTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
     // IMPLEMENT LATER void      copyTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
     // IMPLEMENT LATER DOMString toURL (optional DOMString mimeType);
@@ -139,31 +159,87 @@ DirectoryReader = function() {
  */ 
 DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
     var rootPath = this._directory.fullPath;
-    var jsonList = brackets.file.getDirectoryListing( rootPath );
-    var nameList = JSON.parse(jsonList);
-    
-    // Create entries for each name
-    var entries = [];
-    nameList.forEach(function(item){
-        // Ignore names starting with "."
-        if (item.indexOf(".") != 0) {
-            var itemFullPath = rootPath + "/" + item;
-            
-            if( brackets.file.isDirectory( itemFullPath ) ) {
-                entries.push( new DirectoryEntry( itemFullPath ) );
-            } 
-            else {
-                entries.push( new FileEntry( itemFullPath ) );
-            }
-        }
-     });
-    
-
+    var jsonList = brackets.fs.readdir( rootPath, readEntriesCB );
         
-    successCallback( entries );
+
+    function readEntriesCB( err, filelist ) {
+        if( ! err ){
+            
+            // Create entries for each name
+            var entries = [];
+            filelist.forEach(function(item){
+                // Ignore names starting with "."
+                if (item.indexOf(".") != 0) {
+                    var itemFullPath = rootPath + "/" + item;
+                    
+                    brackets.fs.stat( item, function( err, data) {
+                        }
+                    )
+                    
+                    if( brackets.fs.isDirectory( itemFullPath ) ) {
+                        entries.push( new DirectoryEntry( itemFullPath ) );
+                    } 
+                    else {
+                        entries.push( new FileEntry( itemFullPath ) );
+                    }
+                }
+             });
+
+            successCallback( entries );        
+        }
+        else{
+            // TODO NJ: error translation
+            // errorCallback( error );
+        }
+    }
+        
+    
     
     // TODO: error handling
 };
 
+/*
+interface FileReader: EventTarget {
+
+    // async read methods
+    // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
+    // IMPLEMENT LATER void readAsBinaryString(Blob blob);
+    void readAsText(Blob blob, optional DOMString encoding);
+    // IMPLEMENT LATER void readAsDataURL(Blob blob);
+
+  // IMPLEMENT LATER void abort();
+
+  // states constants
+  var EMPTY = 0; 
+  var LOADING = 1;
+  var DONE = 2;
+
+
+  var readyState;
+  get readyState() { return readyState; }
+
+  // File or Blob data
+  var result;
+  get result() { return result; }
+  
+  var error;
+  get result() { return error; }
+
+
+  // event handler attributes
+  [TreatNonCallableAsNull] attribute Function? onloadstart;
+  [TreatNonCallableAsNull] attribute Function? onprogress;
+  [TreatNonCallableAsNull] attribute Function? onload;
+  [TreatNonCallableAsNull] attribute Function? onabort;
+  [TreatNonCallableAsNull] attribute Function? onerror;
+  [TreatNonCallableAsNull] attribute Function? onloadend;
+
+};
+
+FileReader.prototype.readAsText = function(blob, encoding ){
+
+}
+
+*/
 
 
