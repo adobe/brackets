@@ -22,7 +22,8 @@ $(document).ready(function() {
     
     
     // Ty test code hooked up to "new" menu. Test reads a file and prints its constents to the log.
-    $("#menu-file-new").click(function(){
+    // uncomment to test
+    /*$("#menu-file-new").click(function(){
         var fileEntry = new brackets.fs.FileEntry( "/Users/tvoliter/github/brackets-app/README.md" );
         var file;
         fileEntry.file( function( f ){
@@ -40,8 +41,8 @@ $(document).ready(function() {
           console.log( "loading" );
         };
         
-        reader.onload = function ( data ){
-            console.log( data );
+        reader.onload = function ( event ){
+            console.log( event.target.result );
         };
         
     
@@ -63,7 +64,7 @@ $(document).ready(function() {
                 alert('An error occurred reading this file.');
             };
         }
-    });
+    });*/
     
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window

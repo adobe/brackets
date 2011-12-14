@@ -136,12 +136,11 @@ brackets.fs.FileEntry = function( name ) {
 
 
 brackets.fs.FileEntry.prototype.file = function( successCallback, errorCallback ){
-    var newFile = new brackets.fs.File( this );
-    
-    // TODO error handling
-    // errorCallback
-    
+    var newFile = new brackets.fs.File( this );    
     successCallback( newFile );
+    
+    // TODO Ty: error handling
+    // errorCallback
 };
 
 /*
@@ -272,19 +271,28 @@ brackets.fs.FileReader.prototype.readAsText = function( blob, encoding) {
         this.onloadstart(); // todo params
     
     brackets.fs.readFile( blob.entry.fullPath, encoding, function( err, data) {
+    
+        // TODO Ty
+        // the event objects passed to these event handlers is fake and incomplete right now
+        var fakeEvent = {
+            target: { result: null }
+        };
+    
         if( err ){
             if( self.onerror )
-                self.onerror(); // todo params
+                self.onerror(); // TODO Ty: pass event
         }
         else{
         
             if( self.onprogress )
-                self.onprogress();
+                self.onprogress(); // TODO Ty: pass event
                 
             // note: this.onabort not currently supported
             
-            if( self.onload )
-                self.onload( data );
+            if( self.onload ){
+                fakeEvent.target.result = data;
+                self.onload( fakeEvent );
+            }
                 
             if( self.onloadend )
                 self.onloadend();
@@ -321,7 +329,7 @@ brackets.fs.File = function ( entry ){
     brackets.fs.Blob.call( this, entry );
 
     //IMPLEMENT LATER get name() { return this.entry.name; }
-    // IMPLEMENT LATER get lastModifiedDate() { return } TODO: use stat to get mod date
+    // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
 };
 
 
