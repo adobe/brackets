@@ -13,9 +13,49 @@ $(document).ready(function() {
     // Temporary button to test file directory traversa;
     $("#menu-file-open").click(function(){
         if (!inBrowser) {
-            window.NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null, showOpenDialogCallback);
+            window.NativeFileSystem.showOpenDialog( false, true, "Choose a folder",
+                                                    null, null,
+                                                    showOpenDialogSuccessCallback,
+                                                    showOpenDialogErrorCallback);
+            
+           /*
+ // TEST CODE
+            var reader = new FileReader();
+            reader.onerror = errorHandler;
+            
+            reader.onabort = function(e) {
+              alert('File read cancelled');
+            };
+                        
+            reader.onloadstart = function(e) {
+              console.log( "loading" );
+            };
+            
+        
+            // Read in the image file as a binary string.
+            reader.readAsText(file);
+            
+            
+            function errorHandler(evt) {
+                switch(evt.target.error.code) {
+                  case evt.target.error.NOT_FOUND_ERR:
+                    alert('File Not Found!');
+                    break;
+                  case evt.target.error.NOT_READABLE_ERR:
+                    alert('File is not readable');
+                    break;
+                  case evt.target.error.ABORT_ERR:
+                    break; // noop
+                  default:
+                    alert('An error occurred reading this file.');
+                };
+            }
+            
+*/
+            
         }
     });
+    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var testWindow = null;
@@ -34,21 +74,36 @@ $(document).ready(function() {
         }
     });
 
-    function showOpenDialogCallback( files ) {
+    function showOpenDialogErrorCallback( err ){
+        console.log( err )
+    }
+
+    function showOpenDialogSuccessCallback( files ) {
         var folderName = files instanceof Array ? files[0] : files;
+        var nestingLevel = 0;
     
         if (folderName != "") {
-            var rootEntry = window.NativeFileSystem.requestNativeFileSystem( folderName, null, null ); // TODO: add callbacks
+            window.NativeFileSystem.requestNativeFileSystem( folderName, 
+                                                                             requestNativeFileSystemSuccessCB, requestNativeFileSystemErrorCB ); // TODO: add callbacks
                     
+            
+        }
+        
+        function requestNativeFileSystemSuccessCB( rootEntry ){
             var nestingLevel = 0;
                     
             if( rootEntry && rootEntry.isDirectory )
                 readDirectory( rootEntry );
         }
         
+        function requestNativeFileSystemErrorCB( err){
+            console.log( err );
+        }
+        
         
         // Test directory traversal
         function readDirectory( entry ){
+            
             var reader = entry.createReader();
             reader.readEntries( dirReaderSuccessCB, dirReaderErrorCB);
         }
