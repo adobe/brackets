@@ -30,7 +30,7 @@ $(document).ready(function() {
     
     // Implements the "Open File" menu
     $("#menu-file-open").click(function() {
-        CommandManager.execute("file.open");
+        CommandManager.execute(Commands.FILE_OPEN);
     });
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
@@ -50,18 +50,8 @@ $(document).ready(function() {
         }
     });
 
-    // Register global commands
-    CommandManager.register("file.open", function(fullPath) {
-        if (!fullPath) {
-            // Prompt the user with a dialog
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
-                ["htm", "html", "js", "css"], function(files) {
-                    if (files.length > 0) {
-                        fullPath = files[0];
-                    }
-                })
-        }
-
+    // Utility functions
+    function doOpen(fullPath) {          
         if (fullPath) {
             // TODO: use higher-level file API instead of raw API
             brackets.fs.readFile(fullPath, "utf8", function(err, content) {
@@ -71,7 +61,7 @@ $(document).ready(function() {
                 else {
                     // TODO: have a real controller object for the editor
                     editor.setValue(content);
-                    
+
                     var projectRootPath = ProjectManager.getProjectRoot().fullPath;
                     if (fullPath.indexOf(projectRootPath) == 0) {
                         fullPath = fullPath.slice(projectRootPath.length);
@@ -82,6 +72,22 @@ $(document).ready(function() {
                     $("#main-toolbar .title").text(fullPath);
                 }
             });
+        }
+    }
+    
+    // Register global commands
+    CommandManager.register(Commands.FILE_OPEN, function(fullPath) {
+        if (!fullPath) {
+            // Prompt the user with a dialog
+            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
+                ["htm", "html", "js", "css"], function(files) {
+                    if (files.length > 0) {
+                        doOpen(files[0]);
+                    }
+                });
+        }
+        else {
+            doOpen(fullPath);
         }
     });
 
