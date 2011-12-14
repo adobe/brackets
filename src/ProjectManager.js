@@ -6,15 +6,23 @@ var ProjectManager = {};
 
 
 /**
- * The root folder of the currently loaded project, or null if no project is open (during startup).
- * @type {DirectoryEntry}
+ * Returns the root folder of the currently loaded project, or null if no project is open (during
+ * startup, or running outside of app shell).
+ * @return {DirectoryEntry}
  */
-ProjectManager.projectRoot = null;
+ProjectManager.getProjectRoot = function() {
+    return ProjectManager._projectRoot;
+}
+/**
+ * @private
+ * @see Projectmanager.getProjectRoot()
+ */
+ProjectManager._projectRoot = null;
 
 
 /**
  * Displays a browser dialog where the user can choose a folder to load.
- * (If the user cancels the dialog, nothing ore happens).
+ * (If the user cancels the dialog, nothing more happens).
  */
 ProjectManager.openProject = function() {
     if (!brackets.inBrowser) {
@@ -46,7 +54,7 @@ ProjectManager.loadProject = function(rootPath) {
     // Populate file tree
     if (brackets.inBrowser) {
         // Hardcoded dummy data for local testing, in jsTree JSON format
-        // (we leave ProjectManager.projectRoot null)
+        // (we leave ProjectManager._projectRoot null)
         var subfolderInner = { data:"Folder_inner", children:[
             { data: "subsubfile_1" }, { data: "subsubfile_2" }
         ] };
@@ -70,7 +78,7 @@ ProjectManager.loadProject = function(rootPath) {
         NativeFileSystem.requestNativeFileSystem(rootPath,
             function(rootEntry) {
                 // Success!
-                ProjectManager.projectRoot = rootEntry;
+                ProjectManager._projectRoot = rootEntry;
                 
                 // The tree will invoke our "data provider" function to populate the top-level items, then
                 // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -99,7 +107,7 @@ ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
     
     if (treeNode == -1) {
         // Special case: root of tree
-        dirEntry = ProjectManager.projectRoot;
+        dirEntry = ProjectManager._projectRoot;
     } else {
         // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
         dirEntry = treeNode.data("entry");
