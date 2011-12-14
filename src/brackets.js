@@ -71,6 +71,15 @@ $(document).ready(function() {
                 else {
                     // TODO: have a real controller object for the editor
                     editor.setValue(content);
+                    
+                    var projectRootPath = ProjectManager.getProjectRoot().fullPath;
+                    if (fullPath.indexOf(projectRootPath) == 0) {
+                        fullPath = fullPath.slice(projectRootPath.length);
+                        if (fullPath.charAt(0) == '/') {
+                            fullPath = fullPath.slice(1);
+                        }                          
+                    }
+                    $("#main-toolbar .title").text(fullPath);
                 }
             });
         }
