@@ -17,42 +17,51 @@ $(document).ready(function() {
                                                     null, null,
                                                     showOpenDialogSuccessCallback,
                                                     showOpenDialogErrorCallback);
-            
-           /*
- // TEST CODE
-            var reader = new FileReader();
-            reader.onerror = errorHandler;
-            
-            reader.onabort = function(e) {
-              alert('File read cancelled');
-            };
-                        
-            reader.onloadstart = function(e) {
-              console.log( "loading" );
-            };
-            
+        }
+    });
+    
+    
+    // Ty test code hooked up to "new" menu. Test reads a file and prints its constents to the log.
+    $("#menu-file-new").click(function(){
+        var fileEntry = new brackets.fs.FileEntry( "/Users/tvoliter/github/brackets-app/README.md" );
+        var file;
+        fileEntry.file( function( f ){
+                file = f;
+            });
+
+        var reader = new brackets.fs.FileReader();
+        reader.onerror = errorHandler;
         
-            // Read in the image file as a binary string.
-            reader.readAsText(file);
-            
-            
-            function errorHandler(evt) {
-                switch(evt.target.error.code) {
-                  case evt.target.error.NOT_FOUND_ERR:
-                    alert('File Not Found!');
-                    break;
-                  case evt.target.error.NOT_READABLE_ERR:
-                    alert('File is not readable');
-                    break;
-                  case evt.target.error.ABORT_ERR:
-                    break; // noop
-                  default:
-                    alert('An error occurred reading this file.');
-                };
-            }
-            
-*/
-            
+        reader.onabort = function(e) {
+          alert('File read cancelled');
+        };
+                    
+        reader.onloadstart = function(e) {
+          console.log( "loading" );
+        };
+        
+        reader.onload = function ( data ){
+            console.log( data );
+        };
+        
+    
+        // Read in the image file as a binary string.
+        reader.readAsText(file);
+        
+        
+        function errorHandler(evt) {
+            switch(evt.target.error.code) {
+              case evt.target.error.NOT_FOUND_ERR:
+                alert('File Not Found!');
+                break;
+              case evt.target.error.NOT_READABLE_ERR:
+                alert('File is not readable');
+                break;
+              case evt.target.error.ABORT_ERR:
+                break; // noop
+              default:
+                alert('An error occurred reading this file.');
+            };
         }
     });
     

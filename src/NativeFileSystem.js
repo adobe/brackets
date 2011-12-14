@@ -132,15 +132,28 @@ brackets.fs.FileEntry = function( name ) {
     
     // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
     
-    // IMPLEMENT LATER void createWriter (FileWriterCallback successCallback, optional ErrorCallback errorCallback);
-    // IMPLEMENT LATER void file (FileCallback successCallback, optional ErrorCallback errorCallback);
 };
 
 
+brackets.fs.FileEntry.prototype.file = function( successCallback, errorCallback ){
+    var newFile = new brackets.fs.File( this );
+    
+    // TODO error handling
+    // errorCallback
+    
+    successCallback( newFile );
+};
+
+/*
+TODO Jason
+brackets.fs.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
+
+}; */
+
 /** class: DirectoryEntry
  *
- * @param {string} name
  * @constructor
+ * @param {string} name
  * @extends {Entry}
  */ 
 brackets.fs.DirectoryEntry = function( name ) {
@@ -208,7 +221,108 @@ brackets.fs.DirectoryReader.prototype.readEntries = function( successCallback, e
 };
 
 
+/** class: FileReader
+ */ 
+brackets.fs.FileReader = function() {
+    
+    
+    // async read methods
+    // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
+    // IMPLEMENT LATER void readAsBinaryString(Blob blob);
+    // IMPLEMENT LATER void readAsDataURL(Blob blob);
+    
+    // IMPLEMENT LATER void abort();
+    
+    // states
+    this.EMPTY = 0;
+    this.LOADING = 1;
+    this.DONE = 2;
+    
+    
+    // IMPLEMENT LATER readonly attribute unsigned short readyState;
+    
+    // File or Blob data
+    // IMPLEMENT LATER readonly attribute any result;
+    
+    // IMPLEMENT LATER readonly attribute DOMError error;
+    
+    // event handler attributes
+    this.onloadstart = null;
+    this.onprogress = null;
+    this.onload = null;
+    this.onabort = null;
+    this.onerror = null;
+    this.onloadend = null;
 
+      
+};
+
+/** readAsText
+ *
+ * @param {Blob} blob
+ * @param {string} encoding
+ */ 
+brackets.fs.FileReader.prototype.readAsText = function( blob, encoding) {
+    var self = this;
+
+    if( !encoding )
+        encoding = "";
+        
+    if( this.onloadstart )
+        this.onloadstart(); // todo params
+    
+    brackets.fs.readFile( blob.entry.fullPath, encoding, function( err, data) {
+        if( err ){
+            if( self.onerror )
+                self.onerror(); // todo params
+        }
+        else{
+        
+            if( self.onprogress )
+                self.onprogress();
+                
+            // note: this.onabort not currently supported
+            
+            if( self.onload )
+                self.onload( data );
+                
+            if( self.onloadend )
+                self.onloadend();
+        }
+    
+    });
+};
+
+/** class: Blob
+ *
+ * @constructor
+ * param {Entry} entry
+ */ 
+brackets.fs.Blob = function ( entry ){
+    this.entry = entry;
+
+    // IMPLEMENT LATER readonly attribute unsigned long long size;
+    // IMPLEMENT LATER readonly attribute DOMString type;
+  
+    //slice Blob into byte-ranged chunks
+  
+    // IMPLEMENT LATER Blob slice(optional long long start,
+    //           optional long long end,
+    //           optional DOMString contentType); 
+};
+
+/** class: File
+ *
+ * @constructor
+ * param {Entry} entry
+ * @extends {Blob}
+ */ 
+brackets.fs.File = function ( entry ){
+    brackets.fs.Blob.call( this, entry );
+
+    //IMPLEMENT LATER get name() { return this.entry.name; }
+    // IMPLEMENT LATER get lastModifiedDate() { return } TODO: use stat to get mod date
+};
 
 
 /** class: FileError
