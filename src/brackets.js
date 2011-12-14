@@ -54,7 +54,7 @@ $(document).ready(function() {
     CommandManager.register("file.open", function(fullPath) {
         if (!fullPath) {
             // Prompt the user with a dialog
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.projectRoot.fullPath, 
+            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
                 ["htm", "html", "js", "css"], function(files) {
                     if (files.length > 0) {
                         fullPath = files[0];
