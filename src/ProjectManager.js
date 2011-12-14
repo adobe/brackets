@@ -55,8 +55,6 @@ ProjectManager.loadProject = function(rootPath) {
 			for (var entryI in entries) {
 				var entry = entries[entryI];
 				
-				// TODO: if (ProjectManager.shouldShowFile(item)) ...
-				
 				var jsonEntry = {
 				    data: entry.name,
 				    metadata: { entry: entry }
@@ -169,17 +167,6 @@ ProjectManager.loadProject = function(rootPath) {
 	}
 	
 	// ProjectManager._currentProjectRoot = rootPath;
-};
-
-/**
- * Returns true if the given file should be displayed in the file tree UI.
- * @param fileName File name, including extension but excluding path
- */
-ProjectManager.shouldShowFile = function(fileName) {
-	// Ignore names starting with "."
-	if (item.indexOf(".") == 0) return false;
-	
-	return true;
 };
 
 /**
