@@ -1,3 +1,6 @@
+// These are tests for the low-level file io routines in brackets-app. Make sure
+// you have the latest brackets-app before running.
+
 describe("LowLevelFileIO", function() {
 
   it("should have a brackets.fs namespace", function() {
@@ -24,6 +27,19 @@ describe("LowLevelFileIO", function() {
     });          
   });
   
+  afterEach(function() {
+    // Restore directory permissions
+
+    // Set read-only mode
+    brackets.fs.chmod(baseDir + "cant_read_here", 0777, function(err) {
+      expect(err).toBeFalsy();
+    });
+
+    // Set write-only mode
+    brackets.fs.chmod(baseDir + "cant_write_here", 0777, function(err) {
+      expect(err).toBeFalsy();
+    });          
+  });  
   
   describe("readdir", function() {
     
@@ -145,18 +161,4 @@ describe("LowLevelFileIO", function() {
       });
     });
   }); // describe("writeFile")
-  
-  afterEach(function() {
-    // Restore directory permissions
-
-    // Set read-only mode
-    brackets.fs.chmod(baseDir + "cant_read_here", 0777, function(err) {
-      expect(err).toBeFalsy();
-    });
-
-    // Set write-only mode
-    brackets.fs.chmod(baseDir + "cant_write_here", 0777, function(err) {
-      expect(err).toBeFalsy();
-    });          
-  });
 });
