@@ -18,8 +18,7 @@ window.NativeFileSystem = {
                                 fileTypes,
                                 successCallback,
                                 errorCallback ) {
-                                            
-       
+                                                   
         if( !successCallback || ! errorCallback)
             return;
             
@@ -32,9 +31,8 @@ window.NativeFileSystem = {
                 if( ! err )
                     successCallback( data );
                 else
-                    errorCallback( err );
-            });
-                                                    
+                    errorCallback(NativeFileSystem._nativeToFileError(err));
+            });                                                   
         
     },
 
@@ -46,24 +44,54 @@ window.NativeFileSystem = {
      * @param {function} errorCallback
      */
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
-    
-        // TODO: use stat instead to verify directory exists
         brackets.fs.stat(path, function( err, data ){
-                if( !err ){
-                    var root = new DirectoryEntry( path );
-                    successCallback( root );
-                }
-                else{
-                    // TODO NJ: error translation
-                    // errorCallback( error );
-                }
-            }); 
-     }
+            if( !err ){
+                var root = new DirectoryEntry( path );
+                successCallback( root );
+            }
+            else{
+                errorCallback(NativeFileSystem._nativeToFileError(err));
+            }
+        }); 
+    },
      
+    _nativeToFileError: function(nativeErr) {
+        // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
+        // not covered by other error codes.
+        var error = FileError.SECURITY_ERR;
+        
+        switch (nativeErr) {
+            // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
+            // since there aren't specific mappings for these.
+            case brackets.fs.ERR_UNKNOWN:
+            case brackets.fs.ERR_INVALID_PARAMS:
+                error = FileError.SECURITY_ERR;
+                break;
+                
+            case brackets.fs.ERR_NOT_FOUND:
+                error = FileError.NOT_FOUND_ERR;
+                break;
+            case brackets.fs.ERR_CANT_READ:
+                error = FileError.NOT_READABLE_ERR;
+                break;
+                
+            // It might seem like you should use FileError.ENCODING_ERR for this,
+            // but according to the spec that's for malformed URLs.            
+            case brackets.fs.ERR_UNSUPPORTED_ENCODING:
+                error = FileError.SECURITY_ERR;
+                break;
+                
+            case brackets.fs.ERR_CANT_WRITE:
+                error = FileError.NO_MODIFICATION_ALLOWED_ERR;
+                break;
+            case brackets.fs.ERR_OUT_OF_SPACE:
+                error = FileError.QUOTA_EXCEEDED_ERR;
+                break;
+        }
+        
+        return new FileError(error);
+    }
 };
-
-
-
 
 /** class: Entry
  *
@@ -143,7 +171,7 @@ DirectoryReader = function() {
 };
 
 
-/** readEntires
+/** readEntries
  *
  * @param {function} successCallback
  * @param {function} errorCallback
@@ -156,35 +184,58 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
             // Create entries for each name
             var entries = [];
             filelist.forEach(function(item){
-                // Ignore names starting with "."
-                if (item.indexOf(".") != 0) {
-                    var itemFullPath = rootPath + "/" + item;
+                var itemFullPath = rootPath + "/" + item;
+                
+                brackets.fs.stat( itemFullPath, function( err, statData) {
+                
+                    if( !err ){
+                        if( statData.isDirectory( itemFullPath ) )
+                            entries.push( new DirectoryEntry( itemFullPath ) );
+                        else if( statData.isFile( itemFullPath ) ) 
+                            entries.push( new FileEntry( itemFullPath ) );
+                    }
+                    else {
+                        errorCallback(NativeFileSystem._nativeToFileError(err));
+                    }
                     
-                    brackets.fs.stat( itemFullPath, function( err, statData) {
-                    
-                        if( !err ){
-                            if( statData.isDirectory( itemFullPath ) )
-                                entries.push( new DirectoryEntry( itemFullPath ) );
-                            else if( statData.isFile( itemFullPath ) ) 
-                                entries.push( new FileEntry( itemFullPath ) );
-                        }
-                        else {
-                            // TODO NJ: handle errors
-                        }
-                        
-                    })    
-                }
-             });
+                })    
+            });
 
             successCallback( entries );        
         }
         else{
-            // TODO NJ: error translation
-            // errorCallback( error );
+            errorCallback(NativeFileSystem._nativeToFileError(err));
         }
     });    
 };
 
+/** class: FileError
+ *
+ * Implementation of HTML file API error code return class. Note that the 
+ * various HTML file API specs are not consistent in their definition of
+ * some error code values like ABORT_ERR; I'm using the definitions from
+ * the Directories and System spec since it seems to be the most
+ * comprehensive.
+ *
+ * @constructor
+ * @param {number} code The error code to return with this FileError. Must be
+ * one of the codes defined in the FileError class.
+ */
+FileError = function(code) {
+    this.code = code || 0;
+};
 
-
-
+$.extend(FileError, {
+    NOT_FOUND_ERR: 1,
+    SECURITY_ERR: 2,
+    ABORT_ERR: 3,
+    NOT_READABLE_ERR: 4,
+    ENCODING_ERR: 5,
+    NO_MODIFICATION_ALLOWED_ERR: 6,
+    INVALID_STATE_ERR: 7,
+    SYNTAX_ERR: 8,
+    INVALID_MODIFICATION_ERR: 9,
+    QUOTA_EXCEEDED_ERR: 10,
+    TYPE_MISMATCH_ERR: 11,
+    PATH_EXISTS_ERR: 12
+});

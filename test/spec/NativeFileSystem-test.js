@@ -21,9 +21,6 @@ describe("NativeFileSystem", function(){
           return false;                   
         }
       });
-    });
-
-    it("should read a directory from disk", function() {
 
       //TODO: Make this relative -- right now, asking for "." gives "/"
       //Want to be able to simply use:
@@ -32,13 +29,14 @@ describe("NativeFileSystem", function(){
       path = path.substr("file://".length);
       path = path.substr(0,path.lastIndexOf("/")+1);
       path = path + "spec/NativeFileSystem-test-files";
+      this.path = path;
+    });
 
+    it("should read a directory from disk", function() {
       var entries = null;
       var readComplete = false;
 
-      var nfs = window.NativeFileSystem.requestNativeFileSystem(path, requestNativeFileSystemSuccessCB, requestNativeFileSystemErrorCB ); 
-                    
-        
+      var nfs = window.NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);      
         function requestNativeFileSystemSuccessCB( nfs ){
             var reader = nfs.createReader();
         
@@ -55,11 +53,43 @@ describe("NativeFileSystem", function(){
                 expect(entries).toContainFileWithName("file1");
                 expect(entries).not.toContainFileWithName("file2");
             });
-        }
-        
-        function requestNativeFileSystemErrorCB( err){
-            // TODO: what should be done here?
-        }      
+        }  
     });
+    
+    it("should return an error if the directory doesn't exist", function() {
+        var successCalled = false, errorCalled = false, error = null;
+        window.NativeFileSystem.requestNativeFileSystem(this.path + '/nonexistent-dir', function(data) {
+            successCalled = true;
+        }, function(err) {
+            errorCalled = true;
+            error = err;
+        });
+        
+        waitsFor(function() { return successCalled || errorCalled; }, 1000);
+        
+        runs(function() {
+            expect(successCalled).toBe(false);
+            expect(errorCalled).toBe(true);
+            expect(error.code).toBe(FileError.NOT_FOUND_ERR);
+        });
+    });
+    
+    it("should return an error if you pass a bad parameter", function() {
+        var successCalled = false, errorCalled = false, error = null;
+        window.NativeFileSystem.requestNativeFileSystem(0xDEADBEEF, function(data) {
+            successCalled = true;
+        }, function(err) {
+            errorCalled = true;
+            error = err;
+        });
+        
+        waitsFor(function() { return successCalled || errorCalled; }, 1000);
+        
+        runs(function() {
+            expect(successCalled).toBe(false);
+            expect(errorCalled).toBe(true);
+            expect(error.code).toBe(FileError.SECURITY_ERR);
+        });        
+    })
   });
 });

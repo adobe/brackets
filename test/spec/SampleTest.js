@@ -33,9 +33,3 @@ describe("Brackets", function(){
 		});
 	});
 });
-
-describe("Failure", function() {
-	it("is expected sometimes", function() {
-		expect("failure").toEqual("sometimes");
-	});
-});
