@@ -84,7 +84,7 @@ $(document).ready(function() {
     
         if (folderName != "") {
             window.NativeFileSystem.requestNativeFileSystem( folderName, 
-                                                                             requestNativeFileSystemSuccessCB, requestNativeFileSystemErrorCB ); // TODO: add callbacks
+                                                                             requestNativeFileSystemSuccessCB, requestNativeFileSystemErrorCB ); 
                     
             
         }

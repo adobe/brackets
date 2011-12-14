@@ -44,7 +44,7 @@ window.NativeFileSystem = {
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
         brackets.fs.stat(path, function( err, data ){
             if( !err ){
-                var root = new DirectoryEntry( path );
+                var root = new brackets.fs.DirectoryEntry( path );
                 successCallback( root );
             }
             else if (errorCallback) {
@@ -97,7 +97,7 @@ window.NativeFileSystem = {
  * @param {string} isFile
  * @constructor
  */
-Entry = function( fullPath, isDirectory) {
+brackets.fs.Entry = function( fullPath, isDirectory) {
     this.isDirectory = isDirectory;
     this.isFile = !isDirectory;
     // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
@@ -127,8 +127,8 @@ Entry = function( fullPath, isDirectory) {
  * @constructor
  * @extends {Entry}
  */ 
-FileEntry = function( name ) {
-    Entry.call(this, name, false);
+brackets.fs.FileEntry = function( name ) {
+    brackets.fs.Entry.call(this, name, false);
     
     // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
     
@@ -143,8 +143,8 @@ FileEntry = function( name ) {
  * @constructor
  * @extends {Entry}
  */ 
-DirectoryEntry = function( name ) {
-    Entry.call(this, name, true);
+brackets.fs.DirectoryEntry = function( name ) {
+    brackets.fs.Entry.call(this, name, true);
     
     // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
@@ -154,8 +154,8 @@ DirectoryEntry = function( name ) {
 };
 
 
-DirectoryEntry.prototype.createReader = function() {
-    var dirReader = new DirectoryReader();
+brackets.fs.DirectoryEntry.prototype.createReader = function() {
+    var dirReader = new brackets.fs.DirectoryReader();
     dirReader._directory = this;
     
     return dirReader;
@@ -164,7 +164,7 @@ DirectoryEntry.prototype.createReader = function() {
 
 /** class: DirectoryReader
  */ 
-DirectoryReader = function() {
+brackets.fs.DirectoryReader = function() {
     
 };
 
@@ -175,7 +175,7 @@ DirectoryReader = function() {
  * @param {function} errorCallback
  * @returns {Entry[]}
  */ 
-DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
+brackets.fs.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
     var rootPath = this._directory.fullPath;
     var jsonList = brackets.fs.readdir( rootPath, function( err, filelist ) {
         if( ! err ){
@@ -188,9 +188,9 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
                 
                     if( !err ){
                         if( statData.isDirectory( itemFullPath ) )
-                            entries.push( new DirectoryEntry( itemFullPath ) );
+                            entries.push( new brackets.fs.DirectoryEntry( itemFullPath ) );
                         else if( statData.isFile( itemFullPath ) ) 
-                            entries.push( new FileEntry( itemFullPath ) );
+                            entries.push( new brackets.fs.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
@@ -207,6 +207,10 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
     });    
 };
 
+
+
+
+
 /** class: FileError
  *
  * Implementation of HTML file API error code return class. Note that the 
@@ -219,7 +223,7 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
  * @param {number} code The error code to return with this FileError. Must be
  * one of the codes defined in the FileError class.
  */
-FileError = function(code) {
+brackets.fs.FileError = function(code) {
     this.code = code || 0;
 };
 
