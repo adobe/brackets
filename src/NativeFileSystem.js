@@ -144,7 +144,7 @@ NativeFileSystem.FileEntry = function( name ) {
  *
  * @param {function} successCallback
  * @param {function} errorCallback
-/*
+ */
 NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
     var newFile = new NativeFileSystem.File( this );    
     successCallback( newFile );
@@ -209,9 +209,9 @@ NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallba
                 brackets.fs.stat( itemFullPath, function( err, statData) {
                 
                     if( !err ){
-                        if( statData.isDirectory( itemFullPath ) )
+                        if( statData.isDirectory() )
                             entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
-                        else if( statData.isFile( itemFullPath ) ) 
+                        else if( statData.isFile() ) 
                             entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
@@ -249,7 +249,8 @@ NativeFileSystem.FileReader = function() {
     this.LOADING = 1;
     this.DONE = 2;
     
-    // IMPLEMENT LATER readonly attribute unsigned short readyState;
+    // readyState is read only
+    this.readyState = this.EMPTY;
     
     // File or Blob data
     // IMPLEMENT LATER readonly attribute any result;
@@ -277,35 +278,55 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
     if( !encoding )
         encoding = "";
         
+    if( this.readyState == this.LOADING )
+        throw new InvalidateStateError();
+        
+    this.readyState = this.LOADING;
+        
     if( this.onloadstart )
         this.onloadstart(); // todo params
     
-    brackets.fs.readFile( blob.entry.fullPath, encoding, function( err, data) {
+    brackets.fs.readFile( blob.fullPath, encoding, function( err, data) {
     
-        // TODO Ty
-        // the event objects passed to these event handlers is fake and incomplete right now
+        // TODO: the event objects passed to these event handlers is fake and incomplete right now
         var fakeEvent = {
-            target: { result: null }
+            target: { result: null
+                      ,error: null }
+            ,loaded: 0
+            ,total: 0
         };
     
         if( err ){
-            if( self.onerror )
-                self.onerror(); // TODO Ty: pass event
+            if( self.onerror ){
+                this.readyState = this.DONE;
+                
+                fakeEvent.target.error = NativeFileSystem._nativeToFileError(err);
+                self.onerror(fakeEvent);
+            }
         }
         else{
         
+        // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
+        // and since we read the file in one go, assume 100% after the first read
+        fakeEvent.loaded = 1;
+        fakeEvent.total = 1;
+        
             if( self.onprogress )
-                self.onprogress(); // TODO Ty: pass event
+                self.onprogress(fakeEvent); 
                 
-            // note: this.onabort not currently supported
+            // TODO: this.onabort not currently supported since our native implementation doesn't support it
+            //if( self.onabort )
+            //    self.onabort(fakeEvent); 
             
             if( self.onload ){
                 fakeEvent.target.result = data;
                 self.onload( fakeEvent );
             }
                 
-            if( self.onloadend )
+            if( self.onloadend ){
+                this.readyState = this.DONE;
                 self.onloadend();
+            }
         }
     
     });
@@ -316,8 +337,8 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
  * @constructor
  * param {Entry} entry
  */ 
-NativeFileSystem.Blob = function ( entry ){
-    this.entry = entry;
+NativeFileSystem.Blob = function ( fullPath ){
+    this.fullPath = fullPath;
 
     // IMPLEMENT LATER readonly attribute unsigned long long size;
     // IMPLEMENT LATER readonly attribute DOMString type;
@@ -336,7 +357,7 @@ NativeFileSystem.Blob = function ( entry ){
  * @extends {Blob}
  */ 
 NativeFileSystem.File = function ( entry ){
-    NativeFileSystem.Blob.call( this, entry );
+    NativeFileSystem.Blob.call( this, entry.fullPath );
 
     //IMPLEMENT LATER get name() { return this.entry.name; }
     // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
