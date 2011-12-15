@@ -55,44 +55,42 @@ $(document).ready(function() {
     /*$("#menu-file-new").click(function(){
         var fileEntry = new NativeFileSystem.FileEntry( "/Users/tvoliter/github/brackets-app/README.md" );
         var file;
-        fileEntry.file( function( f ){
-                file = f;
-            });
-
-        var reader = new NativeFileSystem.FileReader();
-        reader.onerror = errorHandler;
+        fileEntry.file( function( file ){
+            var reader = new NativeFileSystem.FileReader();
+            reader.onerror = errorHandler;
         
-        reader.onabort = function(e) {
-          alert('File read cancelled');
-        };
+            reader.onabort = function(e) {
+              alert('File read cancelled');
+            };
                     
-        reader.onloadstart = function(e) {
-          console.log( "loading" );
-        };
+            reader.onloadstart = function(e) {
+              console.log( "loading" );
+            };
         
-        reader.onload = function ( event ){
-            console.log( event.target.result );
-        };
+            reader.onload = function ( event ){
+                console.log( event.target.result );
+            };
         
     
-        // Read in the image file as a binary string.
-        reader.readAsText(file);
+            // Read in the image file as a binary string.
+            reader.readAsText(file, "utf8");
         
         
-        function errorHandler(evt) {
-            switch(evt.target.error.code) {
-              case evt.target.error.NOT_FOUND_ERR:
-                alert('File Not Found!');
-                break;
-              case evt.target.error.NOT_READABLE_ERR:
-                alert('File is not readable');
-                break;
-              case evt.target.error.ABORT_ERR:
-                break; // noop
-              default:
-                alert('An error occurred reading this file.');
-            };
-        }
+            function errorHandler(evt) {
+                switch(evt.target.error.code) {
+                  case evt.target.error.NOT_FOUND_ERR:
+                    alert('File Not Found!');
+                    break;
+                  case evt.target.error.NOT_READABLE_ERR:
+                    alert('File is not readable');
+                    break;
+                  case evt.target.error.ABORT_ERR:
+                    break; // noop
+                  default:
+                    alert('An error occurred reading this file.');
+                };
+            }
+        });
     });*/
 
     // Utility functions

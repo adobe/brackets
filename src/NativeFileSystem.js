@@ -65,33 +65,33 @@ var NativeFileSystem = {
         switch (nativeErr) {
             // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
             // since there aren't specific mappings for these.
-            case NativeFileSystem.ERR_UNKNOWN:
-            case NativeFileSystem.ERR_INVALID_PARAMS:
+            case brackets.fs.ERR_UNKNOWN:
+            case brackets.fs.ERR_INVALID_PARAMS:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case NativeFileSystem.ERR_NOT_FOUND:
+            case brackets.fs.ERR_NOT_FOUND:
                 error = FileError.NOT_FOUND_ERR;
                 break;
-            case NativeFileSystem.ERR_CANT_READ:
+            case brackets.fs.ERR_CANT_READ:
                 error = FileError.NOT_READABLE_ERR;
                 break;
                 
             // It might seem like you should use FileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.            
-            case NativeFileSystem.ERR_UNSUPPORTED_ENCODING:
+            case brackets.fs.ERR_UNSUPPORTED_ENCODING:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case NativeFileSystem.ERR_CANT_WRITE:
+            case brackets.fs.ERR_CANT_WRITE:
                 error = FileError.NO_MODIFICATION_ALLOWED_ERR;
                 break;
-            case NativeFileSystem.ERR_OUT_OF_SPACE:
+            case brackets.fs.ERR_OUT_OF_SPACE:
                 error = FileError.QUOTA_EXCEEDED_ERR;
                 break;
         }
         
-        return new FileError(error);
+        return new NativeFileSystem.FileError(error);
     }
 };
 
@@ -209,9 +209,9 @@ NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallba
                 brackets.fs.stat( itemFullPath, function( err, statData) {
                 
                     if( !err ){
-                        if( statData.isDirectory( itemFullPath ) )
+                        if( statData.isDirectory() )
                             entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
-                        else if( statData.isFile( itemFullPath ) ) 
+                        else if( statData.isFile() ) 
                             entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
@@ -249,7 +249,8 @@ NativeFileSystem.FileReader = function() {
     this.LOADING = 1;
     this.DONE = 2;
     
-    // IMPLEMENT LATER readonly attribute unsigned short readyState;
+    // readyState is read only
+    this.readyState = this.EMPTY;
     
     // File or Blob data
     // IMPLEMENT LATER readonly attribute any result;
@@ -277,35 +278,55 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
     if( !encoding )
         encoding = "";
         
+    if( this.readyState == this.LOADING )
+        throw new InvalidateStateError();
+        
+    this.readyState = this.LOADING;
+        
     if( this.onloadstart )
         this.onloadstart(); // todo params
     
-    brackets.fs.readFile( blob.entry.fullPath, encoding, function( err, data) {
+    brackets.fs.readFile( blob.fullPath, encoding, function( err, data) {
     
-        // TODO Ty
-        // the event objects passed to these event handlers is fake and incomplete right now
+        // TODO: the event objects passed to these event handlers is fake and incomplete right now
         var fakeEvent = {
-            target: { result: null }
+            target: { result: null
+                      ,error: null }
+            ,loaded: 0
+            ,total: 0
         };
     
         if( err ){
-            if( self.onerror )
-                self.onerror(); // TODO Ty: pass event
+            if( self.onerror ){
+                this.readyState = this.DONE;
+                
+                fakeEvent.target.error = NativeFileSystem._nativeToFileError(err);
+                self.onerror(fakeEvent);
+            }
         }
         else{
         
+        // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
+        // and since we read the file in one go, assume 100% after the first read
+        fakeEvent.loaded = 1;
+        fakeEvent.total = 1;
+        
             if( self.onprogress )
-                self.onprogress(); // TODO Ty: pass event
+                self.onprogress(fakeEvent); 
                 
-            // note: this.onabort not currently supported
+            // TODO: this.onabort not currently supported since our native implementation doesn't support it
+            //if( self.onabort )
+            //    self.onabort(fakeEvent); 
             
             if( self.onload ){
                 fakeEvent.target.result = data;
                 self.onload( fakeEvent );
             }
                 
-            if( self.onloadend )
+            if( self.onloadend ){
+                this.readyState = this.DONE;
                 self.onloadend();
+            }
         }
     
     });
@@ -316,8 +337,8 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
  * @constructor
  * param {Entry} entry
  */ 
-NativeFileSystem.Blob = function ( entry ){
-    this.entry = entry;
+NativeFileSystem.Blob = function ( fullPath ){
+    this.fullPath = fullPath;
 
     // IMPLEMENT LATER readonly attribute unsigned long long size;
     // IMPLEMENT LATER readonly attribute DOMString type;
@@ -336,7 +357,7 @@ NativeFileSystem.Blob = function ( entry ){
  * @extends {Blob}
  */ 
 NativeFileSystem.File = function ( entry ){
-    NativeFileSystem.Blob.call( this, entry );
+    NativeFileSystem.Blob.call( this, entry.fullPath );
 
     //IMPLEMENT LATER get name() { return this.entry.name; }
     // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
@@ -345,11 +366,10 @@ NativeFileSystem.File = function ( entry ){
 
 /** class: FileError
  *
- * Implementation of HTML file API error code return class. Note that the 
- * various HTML file API specs are not consistent in their definition of
- * some error code values like ABORT_ERR; I'm using the definitions from
- * the Directories and System spec since it seems to be the most
- * comprehensive.
+ * Implementation of HTML file API error code return class. Note that we don't
+ * actually define the error codes here--we rely on the browser's built-in FileError
+ * class's constants. In other words, external clients of this API should always
+ * use FileError.<constant-name>, not NativeFileSystem.FileError.<constant-name>.
  *
  * @constructor
  * @param {number} code The error code to return with this FileError. Must be
@@ -359,17 +379,3 @@ NativeFileSystem.FileError = function(code) {
     this.code = code || 0;
 };
 
-$.extend(FileError, {
-    NOT_FOUND_ERR: 1,
-    SECURITY_ERR: 2,
-    ABORT_ERR: 3,
-    NOT_READABLE_ERR: 4,
-    ENCODING_ERR: 5,
-    NO_MODIFICATION_ALLOWED_ERR: 6,
-    INVALID_STATE_ERR: 7,
-    SYNTAX_ERR: 8,
-    INVALID_MODIFICATION_ERR: 9,
-    QUOTA_EXCEEDED_ERR: 10,
-    TYPE_MISMATCH_ERR: 11,
-    PATH_EXISTS_ERR: 12
-});
