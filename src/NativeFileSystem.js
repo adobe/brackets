@@ -65,33 +65,33 @@ var NativeFileSystem = {
         switch (nativeErr) {
             // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
             // since there aren't specific mappings for these.
-            case NativeFileSystem.ERR_UNKNOWN:
-            case NativeFileSystem.ERR_INVALID_PARAMS:
+            case brackets.fs.ERR_UNKNOWN:
+            case brackets.fs.ERR_INVALID_PARAMS:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case NativeFileSystem.ERR_NOT_FOUND:
+            case brackets.fs.ERR_NOT_FOUND:
                 error = FileError.NOT_FOUND_ERR;
                 break;
-            case NativeFileSystem.ERR_CANT_READ:
+            case brackets.fs.ERR_CANT_READ:
                 error = FileError.NOT_READABLE_ERR;
                 break;
                 
             // It might seem like you should use FileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.            
-            case NativeFileSystem.ERR_UNSUPPORTED_ENCODING:
+            case brackets.fs.ERR_UNSUPPORTED_ENCODING:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case NativeFileSystem.ERR_CANT_WRITE:
+            case brackets.fs.ERR_CANT_WRITE:
                 error = FileError.NO_MODIFICATION_ALLOWED_ERR;
                 break;
-            case NativeFileSystem.ERR_OUT_OF_SPACE:
+            case brackets.fs.ERR_OUT_OF_SPACE:
                 error = FileError.QUOTA_EXCEEDED_ERR;
                 break;
         }
         
-        return new FileError(error);
+        return new NativeFileSystem.FileError(error);
     }
 };
 
@@ -144,7 +144,7 @@ NativeFileSystem.FileEntry = function( name ) {
  *
  * @param {function} successCallback
  * @param {function} errorCallback
-/*
+ */
 NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
     var newFile = new NativeFileSystem.File( this );    
     successCallback( newFile );
