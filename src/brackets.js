@@ -66,11 +66,8 @@ $(document).ready(function() {
 
     // Utility functions
     function updateDirty() {
-        // TODO: This doesn't currently work properly with undo because of brackets-app issue #9.
-        // So files get dirty, but they never get un-dirty.
-        
         // If we've undone past the undo position at the last save, and there is no redo stack,
-        // then we can never get back to non-dirty state.
+        // then we can never get back to a non-dirty state.
         var historySize = editor.historySize();
         if (historySize.undo < _savedUndoPosition && historySize.redo == 0) {
             _savedUndoPosition = -1;
@@ -106,7 +103,11 @@ $(document).ready(function() {
                             _currentTitlePath = fullPath.slice(1);
                         }                          
                     }
+                    
+                    // Make sure we can't undo back to the previous content.
                     editor.clearHistory();
+                    
+                    // This should be 0, but just to be safe...
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
                 }
@@ -137,6 +138,8 @@ $(document).ready(function() {
                     // TODO--this will change with the real file API implementation
                 }
                 else {
+                    // Remember which position in the undo stack we're at as of the last save.
+                    // When we're exactly at that position again, we know we're not dirty.
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
                 }
