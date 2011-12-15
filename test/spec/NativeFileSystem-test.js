@@ -104,19 +104,44 @@ describe("NativeFileSystem", function() {
     describe("Writing", function() {
 
         it("should write new files", function() {
-           expect(1);
+            var nfs = null;
+
+            window.NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+                nfs = fs;
+            });
+
+            waitsFor( function() { return nfs }, 1000);
+
+            var fileEntry = null;
+            var writeComplete = false;
+
+            runs(function() {
+                var successCallback = function( entry ) {
+                    fileEntry = entry;
+                    writeComplete = true;
+                }
+                var errorCallback = function() { writeComplete = true };
+
+                nfs.root.getFile("should-write-new-files.txt", { create: true }, successCallback, errorCallback );
+            });
+
+            waitsFor( function() { return writeComplete; }, 1000 );
+
+            runs(function() {
+                expect(entries).not.toBe(null);
+            });
         });
 
         it("should append to existing files", function() {
-           expect(1);
+           this.fail("TODO");
         });
 
         it("should seek into a file before writing", function() {
-           expect(1);
+           this.fail("TODO");
         });
 
         it("should truncate files", function() {
-           expect(1);
+           this.fail("TODO");
         });
     });
 });

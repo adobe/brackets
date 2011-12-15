@@ -143,7 +143,41 @@ FileEntry = function( name ) {
  * @param {function} errorCallback
  */
 FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
-    var fileWriter = new FileWriter();
+    _FileWriter = function( data ) {
+        FileSaver.call(this, data);
+    };
+
+    // FileWriter private memeber vars
+    _FileWriter.prototype._length = 0;
+    _FileWriter.prototype._position = 0;
+
+    _FileWriter.prototype.length = function( ) {
+        return this._length;
+    };
+
+    _FileWriter.prototype.position = function( ) {
+        return this._position;
+    };
+
+    _FileWriter.prototype.write = function( data ) {
+        brackets.fs.writeFile(baseDir + "write_test.txt", contents, "utf8", function(err) {
+            expect(err).toBeFalsy();
+
+            // Read contents to verify
+            brackets.fs.readFile(baseDir + "write_test.txt", "utf8", function(err, data) {
+                expect(err).toBeFalsy();
+                expect(data).toBe(contents);
+            });
+        });
+    };
+
+    _FileWriter.prototype.seek = function( offset ) {
+    };
+
+    _FileWriter.prototype.truncate = function( size ) {
+    };
+
+    var fileWriter = new _FileWriter();
     successCallback( fileWriter );
 };
 
@@ -192,34 +226,6 @@ FileSaver.prototype.abort = function() {
     return err;
 };
 
-/** class: FileWriter
- *
- * @constructor
- * @extends {FileSaver}
- */
-FileWriter = function( ) {
-    FileSaver.call(this);
-};
-
-// FileWriter private memeber vars
-FileWriter.prototype._length = 0;
-FileWriter.prototype._position = 0;
-
-Object.defineProperties(FileWriter,
-    { length:   { value: function() { return this._length; }}
-    , position: { value: function() { return this._position; }}
-    }
-);
-
-FileWriter.prototype.write = function( data ) {
-};
-
-FileWriter.prototype.seek = function( offset ) {
-};
-
-FileWriter.prototype.truncate = function( size ) {
-};
-
 /** class: DirectoryEntry
  *
  * @param {string} name
@@ -231,7 +237,6 @@ DirectoryEntry = function( name ) {
 
     // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
-    // IMPLEMENT LATERvoid            getFile (DOMString path, optional Flags options, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
     // IMPLEMENT LATERvoid            getDirectory (DOMString path, optional Flags options, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
     // IMPLEMENT LATERvoid            removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
 };
@@ -242,6 +247,42 @@ DirectoryEntry.prototype.createReader = function() {
     dirReader._directory = this;
 
     return dirReader;
+};
+
+DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
+    // TODO (jasonsj): handle absolute paths
+    var fileFullPath = this.fullPath + "/" + path;
+
+    // Use stat() to check if file exists
+    brackets.fs.stat( fileFullPath, function( err, stats ) {
+        if ( options.create ) {
+            if ( ( options.exclusive && ( err !== FileError.ERR_NOT_FOUND ) ) {
+                // throw error if file already exists
+                errorCallback( new FileError( FileError.PATH_EXISTS_ERR ) );
+                return;
+            }
+            if ( err === FileError.ERR_NOT_FOUND ) {
+                brackets.fs.writeFile( fileFullPath, "utf8", "", function( err ) {
+                    if ( err )
+                        errorCallback( new FileError( err ) );
+                    else
+                        successCallback( new FileEntry( fileFullPath ) );
+                });
+
+                return;
+            }
+        }
+        else {
+            // file does not exist
+            if ( err === FileError.ERR_NOT_FOUND )
+                errorCallback( new FileError( FileError.ERR_NOT_FOUND ) );
+            // path is a directory and not a file
+            else if ( stats.isDirectory )
+                errorCallback( new FileError( FileError.TYPE_MISMATCH_ERR ) );
+            else
+                successCallback( new FileEntry( fileFullPath ) );
+        }
+    });
 };
 
 
