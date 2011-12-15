@@ -144,7 +144,7 @@ NativeFileSystem.FileEntry = function( name ) {
  *
  * @param {function} successCallback
  * @param {function} errorCallback
-/*
+ */
 NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
     var newFile = new NativeFileSystem.File( this );    
     successCallback( newFile );
