@@ -117,6 +117,15 @@ $(document).ready(function() {
     
     // Register global commands
     CommandManager.register(Commands.FILE_OPEN, function(fullPath) {
+        // TODO: In the future, when we implement multiple open files, we won't close the previous file when opening
+        // a new one. However, for now, since we only support a single open document, I'm pretending as if we're 
+        // closing the existing file first. This is so that I can put the code that checks for an unsaved file and 
+        // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
+        // we can remove this here.
+        if (_currentFilePath) {
+            CommandManager.execute(Commands.FILE_CLOSE);
+        }
+        
         if (!fullPath) {
             // Prompt the user with a dialog
             NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 

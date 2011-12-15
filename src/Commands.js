@@ -5,5 +5,6 @@
 // List of constants for global command IDs.
 var Commands = {
     FILE_OPEN: "file.open",
-    FILE_SAVE: "file.save"
+    FILE_SAVE: "file.save",
+    FILE_CLOSE: "file.close"
 };
