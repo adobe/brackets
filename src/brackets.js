@@ -72,8 +72,6 @@ $(document).ready(function() {
         // If we've undone past the undo position at the last save, and there is no redo stack,
         // then we can never get back to non-dirty state.
         var historySize = editor.historySize();
-        var historyInfo = editor.historyInfo();
-        console.log(JSON.stringify(historyInfo));
         if (historySize.undo < _savedUndoPosition && historySize.redo == 0) {
             _savedUndoPosition = -1;
         }
