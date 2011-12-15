@@ -53,13 +53,13 @@ $(document).ready(function() {
         // Ty test code hooked up to "new" menu. Test reads a file and prints its constents to the log.
     // uncomment to test
     /*$("#menu-file-new").click(function(){
-        var fileEntry = new brackets.fs.FileEntry( "/Users/tvoliter/github/brackets-app/README.md" );
+        var fileEntry = new NativeFileSystem.FileEntry( "/Users/tvoliter/github/brackets-app/README.md" );
         var file;
         fileEntry.file( function( f ){
                 file = f;
             });
 
-        var reader = new brackets.fs.FileReader();
+        var reader = new NativeFileSystem.FileReader();
         reader.onerror = errorHandler;
         
         reader.onabort = function(e) {

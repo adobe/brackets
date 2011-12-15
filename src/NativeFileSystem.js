@@ -48,7 +48,7 @@ var NativeFileSystem = {
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
         brackets.fs.stat(path, function( err, data ){
             if( !err ){
-                var root = new brackets.fs.DirectoryEntry( path );
+                var root = new NativeFileSystem.DirectoryEntry( path );
                 successCallback( root );
             }
             else if (errorCallback) {
@@ -65,28 +65,28 @@ var NativeFileSystem = {
         switch (nativeErr) {
             // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
             // since there aren't specific mappings for these.
-            case brackets.fs.ERR_UNKNOWN:
-            case brackets.fs.ERR_INVALID_PARAMS:
+            case NativeFileSystem.ERR_UNKNOWN:
+            case NativeFileSystem.ERR_INVALID_PARAMS:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case brackets.fs.ERR_NOT_FOUND:
+            case NativeFileSystem.ERR_NOT_FOUND:
                 error = FileError.NOT_FOUND_ERR;
                 break;
-            case brackets.fs.ERR_CANT_READ:
+            case NativeFileSystem.ERR_CANT_READ:
                 error = FileError.NOT_READABLE_ERR;
                 break;
                 
             // It might seem like you should use FileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.            
-            case brackets.fs.ERR_UNSUPPORTED_ENCODING:
+            case NativeFileSystem.ERR_UNSUPPORTED_ENCODING:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case brackets.fs.ERR_CANT_WRITE:
+            case NativeFileSystem.ERR_CANT_WRITE:
                 error = FileError.NO_MODIFICATION_ALLOWED_ERR;
                 break;
-            case brackets.fs.ERR_OUT_OF_SPACE:
+            case NativeFileSystem.ERR_OUT_OF_SPACE:
                 error = FileError.QUOTA_EXCEEDED_ERR;
                 break;
         }
@@ -101,7 +101,7 @@ var NativeFileSystem = {
  * @param {string} isFile
  * @constructor
  */
-brackets.fs.Entry = function( fullPath, isDirectory) {
+NativeFileSystem.Entry = function( fullPath, isDirectory) {
     this.isDirectory = isDirectory;
     this.isFile = !isDirectory;
     // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
@@ -131,16 +131,22 @@ brackets.fs.Entry = function( fullPath, isDirectory) {
  * @constructor
  * @extends {Entry}
  */ 
-brackets.fs.FileEntry = function( name ) {
-    brackets.fs.Entry.call(this, name, false);
+NativeFileSystem.FileEntry = function( name ) {
+    NativeFileSystem.Entry.call(this, name, false);
     
     // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
     
 };
 
-
-brackets.fs.FileEntry.prototype.file = function( successCallback, errorCallback ){
-    var newFile = new brackets.fs.File( this );    
+/** file
+ *
+ * Obtains the File objecte for a FileEntry object
+ *
+ * @param {function} successCallback
+ * @param {function} errorCallback
+/*
+NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
+    var newFile = new NativeFileSystem.File( this );    
     successCallback( newFile );
     
     // TODO Ty: error handling
@@ -149,7 +155,7 @@ brackets.fs.FileEntry.prototype.file = function( successCallback, errorCallback 
 
 /*
 TODO Jason
-brackets.fs.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
+NativeFileSystem.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
 
 }; */
 
@@ -159,8 +165,8 @@ brackets.fs.FileEntry.prototype.createfileerror = function( successCallback, err
  * @param {string} name
  * @extends {Entry}
  */ 
-brackets.fs.DirectoryEntry = function( name ) {
-    brackets.fs.Entry.call(this, name, true);
+NativeFileSystem.DirectoryEntry = function( name ) {
+    NativeFileSystem.Entry.call(this, name, true);
     
     // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
@@ -170,8 +176,8 @@ brackets.fs.DirectoryEntry = function( name ) {
 };
 
 
-brackets.fs.DirectoryEntry.prototype.createReader = function() {
-    var dirReader = new brackets.fs.DirectoryReader();
+NativeFileSystem.DirectoryEntry.prototype.createReader = function() {
+    var dirReader = new NativeFileSystem.DirectoryReader();
     dirReader._directory = this;
     
     return dirReader;
@@ -180,7 +186,7 @@ brackets.fs.DirectoryEntry.prototype.createReader = function() {
 
 /** class: DirectoryReader
  */ 
-brackets.fs.DirectoryReader = function() {
+NativeFileSystem.DirectoryReader = function() {
     
 };
 
@@ -191,7 +197,7 @@ brackets.fs.DirectoryReader = function() {
  * @param {function} errorCallback
  * @returns {Entry[]}
  */ 
-brackets.fs.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
+NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
     var rootPath = this._directory.fullPath;
     var jsonList = brackets.fs.readdir( rootPath, function( err, filelist ) {
         if( ! err ){
@@ -204,9 +210,9 @@ brackets.fs.DirectoryReader.prototype.readEntries = function( successCallback, e
                 
                     if( !err ){
                         if( statData.isDirectory( itemFullPath ) )
-                            entries.push( new brackets.fs.DirectoryEntry( itemFullPath ) );
+                            entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
                         else if( statData.isFile( itemFullPath ) ) 
-                            entries.push( new brackets.fs.FileEntry( itemFullPath ) );
+                            entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
@@ -225,9 +231,11 @@ brackets.fs.DirectoryReader.prototype.readEntries = function( successCallback, e
 
 
 /** class: FileReader
+ *
+ * @extends {EventTarget}
  */ 
-brackets.fs.FileReader = function() {
-    
+NativeFileSystem.FileReader = function() {
+    // Todo Ty: this classes should extend EventTarget
     
     // async read methods
     // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
@@ -241,12 +249,10 @@ brackets.fs.FileReader = function() {
     this.LOADING = 1;
     this.DONE = 2;
     
-    
     // IMPLEMENT LATER readonly attribute unsigned short readyState;
     
     // File or Blob data
     // IMPLEMENT LATER readonly attribute any result;
-    
     // IMPLEMENT LATER readonly attribute DOMError error;
     
     // event handler attributes
@@ -265,7 +271,7 @@ brackets.fs.FileReader = function() {
  * @param {Blob} blob
  * @param {string} encoding
  */ 
-brackets.fs.FileReader.prototype.readAsText = function( blob, encoding) {
+NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
     var self = this;
 
     if( !encoding )
@@ -310,7 +316,7 @@ brackets.fs.FileReader.prototype.readAsText = function( blob, encoding) {
  * @constructor
  * param {Entry} entry
  */ 
-brackets.fs.Blob = function ( entry ){
+NativeFileSystem.Blob = function ( entry ){
     this.entry = entry;
 
     // IMPLEMENT LATER readonly attribute unsigned long long size;
@@ -329,8 +335,8 @@ brackets.fs.Blob = function ( entry ){
  * param {Entry} entry
  * @extends {Blob}
  */ 
-brackets.fs.File = function ( entry ){
-    brackets.fs.Blob.call( this, entry );
+NativeFileSystem.File = function ( entry ){
+    NativeFileSystem.Blob.call( this, entry );
 
     //IMPLEMENT LATER get name() { return this.entry.name; }
     // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
@@ -349,7 +355,7 @@ brackets.fs.File = function ( entry ){
  * @param {number} code The error code to return with this FileError. Must be
  * one of the codes defined in the FileError class.
  */
-brackets.fs.FileError = function(code) {
+NativeFileSystem.FileError = function(code) {
     this.code = code || 0;
 };
 
