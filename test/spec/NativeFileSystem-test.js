@@ -31,7 +31,7 @@ describe("NativeFileSystem", function() {
             var entries = null;
             var readComplete = false;
 
-            var nfs = window.NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
+            var nfs = NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
             function requestNativeFileSystemSuccessCB( nfs ){
                 var reader = nfs.createReader();
 
@@ -53,7 +53,7 @@ describe("NativeFileSystem", function() {
 
         it("should return an error if the directory doesn't exist", function() {
             var successCalled = false, errorCalled = false, error = null;
-            window.NativeFileSystem.requestNativeFileSystem(this.path + '/nonexistent-dir', function(data) {
+            NativeFileSystem.requestNativeFileSystem(this.path + '/nonexistent-dir', function(data) {
                 successCalled = true;
             }, function(err) {
                 errorCalled = true;
@@ -71,7 +71,7 @@ describe("NativeFileSystem", function() {
 
         it("should return an error if you pass a bad parameter", function() {
             var successCalled = false, errorCalled = false, error = null;
-            window.NativeFileSystem.requestNativeFileSystem(0xDEADBEEF, function(data) {
+            NativeFileSystem.requestNativeFileSystem(0xDEADBEEF, function(data) {
                 successCalled = true;
             }, function(err) {
                 errorCalled = true;
@@ -89,7 +89,7 @@ describe("NativeFileSystem", function() {
 
         it("should be okay to not pass an error callback", function() {
             var entries = null;
-            window.NativeFileSystem.requestNativeFileSystem(this.path, function(data) {
+            NativeFileSystem.requestNativeFileSystem(this.path, function(data) {
                 entries = data;
             });
 
@@ -106,7 +106,7 @@ describe("NativeFileSystem", function() {
         it("should write new files", function() {
             var nfs = null;
 
-            window.NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
                 nfs = fs;
             });
 
