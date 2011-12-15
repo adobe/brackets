@@ -65,33 +65,33 @@ var NativeFileSystem = {
         switch (nativeErr) {
             // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
             // since there aren't specific mappings for these.
-            case NativeFileSystem.ERR_UNKNOWN:
-            case NativeFileSystem.ERR_INVALID_PARAMS:
+            case brackets.fs.ERR_UNKNOWN:
+            case brackets.fs.ERR_INVALID_PARAMS:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case NativeFileSystem.ERR_NOT_FOUND:
+            case brackets.fs.ERR_NOT_FOUND:
                 error = FileError.NOT_FOUND_ERR;
                 break;
-            case NativeFileSystem.ERR_CANT_READ:
+            case brackets.fs.ERR_CANT_READ:
                 error = FileError.NOT_READABLE_ERR;
                 break;
                 
             // It might seem like you should use FileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.            
-            case NativeFileSystem.ERR_UNSUPPORTED_ENCODING:
+            case brackets.fs.ERR_UNSUPPORTED_ENCODING:
                 error = FileError.SECURITY_ERR;
                 break;
                 
-            case NativeFileSystem.ERR_CANT_WRITE:
+            case brackets.fs.ERR_CANT_WRITE:
                 error = FileError.NO_MODIFICATION_ALLOWED_ERR;
                 break;
-            case NativeFileSystem.ERR_OUT_OF_SPACE:
+            case brackets.fs.ERR_OUT_OF_SPACE:
                 error = FileError.QUOTA_EXCEEDED_ERR;
                 break;
         }
         
-        return new FileError(error);
+        return new NativeFileSystem.FileError(error);
     }
 };
 
@@ -366,11 +366,10 @@ NativeFileSystem.File = function ( entry ){
 
 /** class: FileError
  *
- * Implementation of HTML file API error code return class. Note that the 
- * various HTML file API specs are not consistent in their definition of
- * some error code values like ABORT_ERR; I'm using the definitions from
- * the Directories and System spec since it seems to be the most
- * comprehensive.
+ * Implementation of HTML file API error code return class. Note that we don't
+ * actually define the error codes here--we rely on the browser's built-in FileError
+ * class's constants. In other words, external clients of this API should always
+ * use FileError.<constant-name>, not NativeFileSystem.FileError.<constant-name>.
  *
  * @constructor
  * @param {number} code The error code to return with this FileError. Must be
@@ -380,17 +379,3 @@ NativeFileSystem.FileError = function(code) {
     this.code = code || 0;
 };
 
-$.extend(FileError, {
-    NOT_FOUND_ERR: 1,
-    SECURITY_ERR: 2,
-    ABORT_ERR: 3,
-    NOT_READABLE_ERR: 4,
-    ENCODING_ERR: 5,
-    NO_MODIFICATION_ALLOWED_ERR: 6,
-    INVALID_STATE_ERR: 7,
-    SYNTAX_ERR: 8,
-    INVALID_MODIFICATION_ERR: 9,
-    QUOTA_EXCEEDED_ERR: 10,
-    TYPE_MISMATCH_ERR: 11,
-    PATH_EXISTS_ERR: 12
-});
