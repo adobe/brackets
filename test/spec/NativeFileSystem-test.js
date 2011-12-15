@@ -1,6 +1,10 @@
 describe("NativeFileSystem", function(){
 
-  describe("Reading", function() {
+  beforeEach(function() {
+      this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
+  });
+  
+  describe("Reading a directory", function() {
 
     beforeEach(function() {
       this.addMatchers({
@@ -21,8 +25,6 @@ describe("NativeFileSystem", function(){
           return false;                   
         }
       });
-
-      this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
     });
 
     it("should read a directory from disk", function() {
