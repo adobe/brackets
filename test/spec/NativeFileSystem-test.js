@@ -157,6 +157,7 @@ describe("NativeFileSystem", function(){
             gotProgress = false, gotError = false, gotAbort = false;
         var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
         fileEntry.file(function(file) {
+            gotFile = true;
             var reader = new NativeFileSystem.FileReader();
             reader.onload = function(event) {
                 gotLoad = true;
