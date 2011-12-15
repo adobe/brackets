@@ -109,6 +109,7 @@ $(document).ready(function() {
                 reader.onload = function(event) {
                     // TODO: have a real controller object for the editor
                     editor.setValue(event.target.result);
+                    editor.clearHistory();
 
                     // In the titlebar, show the project-relative path (if the file is inside the current project)
                     // or the full absolute path (if it's not in the project).
