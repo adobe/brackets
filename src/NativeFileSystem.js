@@ -276,7 +276,7 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
     var self = this;
 
     if( !encoding )
-        encoding = "";
+        encoding = "utf-8";
         
     if( this.readyState == this.LOADING )
         throw new InvalidateStateError();
@@ -286,47 +286,45 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
     if( this.onloadstart )
         this.onloadstart(); // todo params
     
-    brackets.fs.readFile( blob.fullPath, encoding, function( err, data) {
+    brackets.fs.readFile( blob._fullPath, encoding, function( err, data) {
     
         // TODO: the event objects passed to these event handlers is fake and incomplete right now
-        var fakeEvent = {
-            target: { result: null
-                      ,error: null }
-            ,loaded: 0
-            ,total: 0
-        };
+        var fakeEvent = 
+            { loaded: 0
+            , total: 0
+            };
+            
+        // The target for this event is the FileReader and the data/err result is stored in the FileReader
+        fakeEvent.target = this;
+        this.result = data;
+        this.error = NativeFileSystem._nativeToFileError(err);;
     
         if( err ){
+            this.readyState = this.DONE;
             if( self.onerror ){
-                this.readyState = this.DONE;
-                
-                fakeEvent.target.error = NativeFileSystem._nativeToFileError(err);
                 self.onerror(fakeEvent);
             }
         }
         else{
+            this.readyState = this.DONE;
         
-        // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
-        // and since we read the file in one go, assume 100% after the first read
-        fakeEvent.loaded = 1;
-        fakeEvent.total = 1;
+            // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
+            // and since we read the file in one go, assume 100% after the first read
+            fakeEvent.loaded = 1;
+            fakeEvent.total = 1;
         
             if( self.onprogress )
                 self.onprogress(fakeEvent); 
                 
             // TODO: this.onabort not currently supported since our native implementation doesn't support it
-            //if( self.onabort )
+            // if( self.onabort )
             //    self.onabort(fakeEvent); 
             
-            if( self.onload ){
-                fakeEvent.target.result = data;
+            if( self.onload )
                 self.onload( fakeEvent );
-            }
                 
-            if( self.onloadend ){
-                this.readyState = this.DONE;
+            if( self.onloadend )
                 self.onloadend();
-            }
         }
     
     });
@@ -338,7 +336,7 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
  * param {Entry} entry
  */ 
 NativeFileSystem.Blob = function ( fullPath ){
-    this.fullPath = fullPath;
+    this._fullPath = fullPath;
 
     // IMPLEMENT LATER readonly attribute unsigned long long size;
     // IMPLEMENT LATER readonly attribute DOMString type;
