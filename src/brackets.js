@@ -195,6 +195,7 @@ $(document).ready(function() {
             },
             function (error) {
                 // TODO: display meaningful error
+                result.reject();
             });
         }
         return result;
@@ -246,6 +247,7 @@ $(document).ready(function() {
     CommandManager.register(Commands.FILE_SAVE, function() {
         if (_currentFilePath && _isDirty) {
             var result = $.Deferred();
+            var writer = 
             brackets.fs.writeFile(_currentFilePath, editor.getValue(), "utf8", function(err) {
                 if (err) {
                     // TODO: display meaningful error
