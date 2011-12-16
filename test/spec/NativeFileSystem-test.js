@@ -225,8 +225,6 @@ describe("NativeFileSystem", function(){
         });
 
         afterEach( function() {
-            // reset file1 content
-            brackets.fs.writeFile( this.path + "/file1", this.file1content, "utf8" );
         });
 
         it("should create new, zero-length files", function() {
@@ -241,6 +239,7 @@ describe("NativeFileSystem", function(){
             var fileEntry = null;
             var writeComplete = false;
 
+            // create a new file exclusively
             runs(function() {
                 var successCallback = function( entry ) {
                     fileEntry = entry;
@@ -251,15 +250,155 @@ describe("NativeFileSystem", function(){
                 };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
-                // FIXME (jasonsj): Need brackets.fs.rm() to cleanup created file
-                //                  https://github.com/adobe/brackets-app/issues/14
-                nfs.getFile(Math.random() + "do-not-commit.txt", { create: true }, successCallback, errorCallback );
+                nfs.getFile("new-zero-length-file.txt", { create: true, exclusive: true }, successCallback, errorCallback );
             });
 
             waitsFor( function() { return writeComplete; }, 1000 );
 
+            // fileEntry is non-null on success
             runs(function() {
                 expect(fileEntry).not.toBe(null);
+            });
+
+            var actualContents = null;
+
+            // read the new file
+            runs(function() {
+                brackets.fs.readFile( fileEntry.fullPath, "utf8", function ( err, contents ) {
+                   actualContents = contents;
+                });
+            });
+
+            // wait for content to be read
+            waitsFor( function() { return (actualContents !== null); }, 1000 );
+
+            // verify actual content to be empty
+            runs(function() {
+                expect(actualContents).toEqual("");
+
+                // cleanup
+                var self = this;
+                brackets.fs.unlink(fileEntry.fullPath, function( err ) {
+                    if ( err !== brackets.fs.NO_ERROR )
+                        self.fail("Failed to delete " + fileEntry.fullPath);
+                });
+            });
+        });
+
+        it("should report an error when a file does not exist and create = false", function() {
+            var nfs = null;
+
+            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+                nfs = fs;
+            });
+
+            waitsFor( function() { return nfs }, 1000);
+
+            var fileEntry = null;
+            var writeComplete = false;
+            var error = null;
+
+            // create a new file exclusively
+            runs(function() {
+                var successCallback = function( entry ) {
+                    fileEntry = entry;
+                    writeComplete = true;
+                }
+                var errorCallback = function( err ) {
+                    error = err;
+                    writeComplete = true;
+                };
+
+                // FIXME (jasonsj): NativeFileSystem.root is missing
+                nfs.getFile("does-not-exist.txt", { create: false }, successCallback, errorCallback );
+            });
+
+            waitsFor( function() { return writeComplete; }, 1000 );
+
+            // fileEntry is null on error
+            runs(function() {
+                expect(fileEntry).toBe(null);
+                expect(error.code).toBe(FileError.NOT_FOUND_ERR)
+            });
+        });
+
+        it("should return an error if file exists and exclusive is true", function() {
+            var nfs = null;
+
+            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+                nfs = fs;
+            });
+
+            waitsFor( function() { return nfs }, 1000);
+
+            var fileEntry = null;
+            var writeComplete = false;
+            var error = null;
+
+            // try to create a new file exclusively when the file name already exists
+            runs(function() {
+                var successCallback = function( entry ) {
+                    fileEntry = entry;
+                    writeComplete = true;
+                }
+                var errorCallback = function( err ) {
+                    error = err;
+                    writeComplete = true;
+                };
+
+                // FIXME (jasonsj): NativeFileSystem.root is missing
+                nfs.getFile("file1", { create: true, exclusive: true }, successCallback, errorCallback );
+            });
+
+            // wait for success or error to return
+            waitsFor( function() { return writeComplete; }, 1000 );
+
+            runs(function() {
+                // fileEntry will be null when errorCallback is handled
+                expect(fileEntry).toBe(null);
+
+                // errorCallback should be called with PATH_EXISTS_ERR
+                expect(error.code).toEqual(FileError.PATH_EXISTS_ERR);
+            });
+        });
+
+        it("should return an error if the path is a directory", function() {
+            var nfs = null;
+
+            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+                nfs = fs;
+            });
+
+            waitsFor( function() { return nfs }, 1000);
+
+            var fileEntry = null;
+            var writeComplete = false;
+            var error = null;
+
+            // try to write to a path that is a directory instead of a file
+            runs(function() {
+                var successCallback = function( entry ) {
+                    fileEntry = entry;
+                    writeComplete = true;
+                }
+                var errorCallback = function( err ) {
+                    error = err;
+                    writeComplete = true;
+                };
+
+                // FIXME (jasonsj): NativeFileSystem.root is missing
+                nfs.getFile("dir1", { create: false }, successCallback, errorCallback );
+            });
+
+            // wait for success or error to return
+            waitsFor( function() { return writeComplete; }, 1000 );
+
+            runs(function() {
+                // fileEntry will be null when errorCallback is handled
+                expect(fileEntry).toBe(null);
+
+                // errorCallback should be called with TYPE_MISMATCH_ERR
+                expect(error.code).toEqual(FileError.TYPE_MISMATCH_ERR);
             });
         });
 
@@ -274,6 +413,7 @@ describe("NativeFileSystem", function(){
 
             var fileEntry = null;
             var writeComplete = false;
+            var error = null;
 
             runs(function() {
                 var successCallback = function( entry ) {
@@ -283,7 +423,7 @@ describe("NativeFileSystem", function(){
                         fileWriter.onwriteend = function( e ) {
                             writeComplete = true;
                         };
-                        fileWriter.onerror = function( e ) {
+                        fileWriter.onerror = function( err ) {
                             writeComplete = true;
                         };
 
@@ -312,6 +452,9 @@ describe("NativeFileSystem", function(){
 
             runs(function() {
                 expect(actualContents).toEqual("FileWriter.write");
+
+                // reset file1 content
+                brackets.fs.writeFile( this.path + "/file1", this.file1content, "utf8" );
             });
         });
 

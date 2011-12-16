@@ -85,6 +85,9 @@ var NativeFileSystem = {
             case brackets.fs.ERR_OUT_OF_SPACE:
                 error = FileError.QUOTA_EXCEEDED_ERR;
                 break;
+            case brackets.fs.PATH_EXISTS_ERR:
+                error = FileError.PATH_EXISTS_ERR;
+                break;
         }
         return new NativeFileSystem.FileError(error);
     }
@@ -148,6 +151,10 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
     var _FileWriter = function( data ) {
         NativeFileSystem.FileSaver.call(this, data);
 
+        // _FileWriter private memeber vars
+        this._length = 0;
+        this._position = 0;
+
         // initialize file length
         // TODO (jasonsj): handle async
         brackets.fs.readFile( fileEntry.fullPath, "utf8", function(err, contents) {
@@ -155,10 +162,6 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
                 this._length = contents.length;
         });
     };
-
-    // FileWriter private memeber vars
-    _FileWriter.prototype._length = 0;
-    _FileWriter.prototype._position = 0;
 
     _FileWriter.prototype.length = function( ) {
         return this._length;
@@ -193,7 +196,7 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
             }
             else {
                 // TODO (jasonsj): partial write, update length and position
-                // successful completetion of a write
+                // successful completion of a write
                 self.position += data.size;
             }
 
@@ -245,7 +248,10 @@ Object.defineProperties(NativeFileSystem.FileException,
  * @constructor
  */
 NativeFileSystem.FileSaver = function( data ) {
-    _data = data;
+    // FileSaver private member vars
+    this._data = data;
+    this._readyState = NativeFileSystem.FileSaver.INIT;
+    this._error = null;
 };
 
 // FileSaver constants
@@ -254,11 +260,6 @@ Object.defineProperties(NativeFileSystem.FileSaver,
     , WRITING:  { value: 2 }
     , DONE:     { value: 3 }
 });
-
-// FileSaver private memeber vars
-NativeFileSystem.FileSaver.prototype._data = null;
-NativeFileSystem.FileSaver.prototype._readyState = NativeFileSystem.FileSaver.INIT;
-NativeFileSystem.FileSaver.prototype._error = null;
 
 // FileSaver methods
 
@@ -271,7 +272,7 @@ NativeFileSystem.FileSaver.prototype.abort = function() {
     // Terminate any steps having to do with writing a file.
 
     // Set the error attribute to a FileError object with the code ABORT_ERR.
-    _error = new FileError(FileError.ABORT_ERR);
+    _error = new NativeFileSystem.FileError(FileError.ABORT_ERR);
 
     // Set readyState to DONE.
     _readyState = FileSaver.DONE;
@@ -358,7 +359,7 @@ NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, suc
                 errorCallback( NativeFileSystem._nativeToFileError( err ) );
             // path is a directory and not a file
             else if ( stats.isDirectory() )
-                errorCallback( NativeFileSystem._nativeToFileError( err ) );
+                errorCallback( new NativeFileSystem.FileError( FileError.TYPE_MISMATCH_ERR ) );
             else
                 successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
         }
