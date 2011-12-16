@@ -136,7 +136,7 @@ $(document).ready(function() {
                     editor.setValue(event.target.result);
                     editor.clearHistory();
 
-                    // In the titlebar, show the project-relative path (if the file is inside the current project)
+                    // In the main toolbar, show the project-relative path (if the file is inside the current project)
                     // or the full absolute path (if it's not in the project).
                     var projectRootPath = ProjectManager.getProjectRoot().fullPath;
                     if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
@@ -151,10 +151,13 @@ $(document).ready(function() {
                     $("#main-toolbar .title").text(fullPath);                    
                 };
                 reader.onerror = function(event) {
-                    // TODO--display meaningful error
+                    // TODO: display meaningful error
                 }
                 
                 reader.readAsText(file, "utf8");
+            },
+            function (error) {
+                // TODO: display meaningful error
             });
         }
     }
