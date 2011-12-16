@@ -26,6 +26,8 @@ CommandManager.register = function(id, command) {
  * @param {string} id The ID of the command to run.
  */
 CommandManager.execute = function(id) {
+    // TODO: are we guaranteed that all commands are synchronous? If not, we should
+    // take a callback, or (perhaps better) return a Deferred.
     var command = CommandManager._commands[id];
     if (command) {
         command.apply(null, Array.prototype.slice.call(arguments, 1));

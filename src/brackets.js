@@ -9,21 +9,36 @@ brackets = window.brackets || {};
 
 brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
+brackets.DIALOG_BTN_CANCEL = "cancel";
+brackets.DIALOG_BTN_OK = "ok";
+brackets.DIALOG_BTN_DONTSAVE = "dontsave";
+
+brackets.DIALOG_ID_ERROR = "error-dialog";
+brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
+
 /**
- * General purpose modal error dialog. 
+ * General purpose modal dialog. Assumes that the HTML for the dialog contains elements with "title"
+ * and "message" classes, as well as a number of elements with "dialog-button" class, each of which has
+ * a "data-button-id".
  *
+ * @param {string} id The ID of the dialog node in the HTML.
  * @param {string} title The title of the error dialog. Can contain HTML markup.
  * @param {string} message The message to display in the error dialog. Can contain HTML markup.
+ * @param {function=} callback The optional callback to be called when the dialog is dismissed. Called with
+ *     the value of the data-button-id of the clicked button.
  */
-brackets.showErrorDialog = function(title, message) {
-    var dlg = $("#error-dialog");
+brackets.showDialog = function(id, title, message, callback) {
+    var dlg = $("#" + id);
     
     // Set title and message
-    $("#error-dialog-title").html(title);
-    $("#error-dialog-message").html(message);
+    $(".dialog-title", dlg).html(title);
+    $(".dialog-message", dlg).html(message);
     
-    // Click handler for OK button
-    dlg.delegate("#error-dialog-ok", "click", function(e) {
+    // Click handler for buttons
+    dlg.on("click", ".dialog-button", function(e) {
+        if (callback) {
+            callback($(this).attr("data-button-id"));
+        }
         dlg.modal(true).hide();
     });
     
@@ -33,7 +48,7 @@ brackets.showErrorDialog = function(title, message) {
         , show: true
         }
     );
-}
+};
 
 $(document).ready(function() {
 
@@ -149,6 +164,8 @@ $(document).ready(function() {
                     // This should be 0, but just to be safe...
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
+
+                    editor.focus();
                 };
                 
                 reader.onerror = function(event) {
@@ -200,23 +217,63 @@ $(document).ready(function() {
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
                 }
+                editor.focus();
             });
         }
     });
     
     CommandManager.register(Commands.FILE_CLOSE, function() {
         if (_currentFilePath && _isDirty) {
-            // *** TODO: prompt to save
+            brackets.showDialog(
+                  brackets.DIALOG_ID_SAVE_CLOSE
+                , brackets.strings.SAVE_CLOSE_TITLE
+                , brackets.strings.format(brackets.strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
+                , function(id) {
+                    if (id !== brackets.DIALOG_BTN_CANCEL) {
+                        if (id === brackets.DIALOG_BTN_OK) {
+                            CommandManager.execute(Commands.FILE_SAVE);
+                        }   
+                            
+                        // TODO: When we implement multiple files being open, this will probably change to just
+                        // dispose of the editor for the current file (and will later change again if we choose to
+                        // limit the number of open editors).
+                        editor.setValue("");
+                        editor.clearHistory();
+                        _currentFilePath = _currentTitlePath = null;
+                        _savedUndoPosition = 0;
+                        _isDirty = false;
+                        updateTitle();
+                        editor.focus();
+                    }
+                }
+            );
         }
-        
-        // TODO: When we implement multiple files being open, this will probably change to just
-        // dispose of the editor for the current file (and will later change again if we choose to
-        // limit the number of open editors).
-        editor.setValue("");
-        editor.clearHistory();
-        _currentFilePath = _currentTitlePath = null;
-        _savedUndoPosition = 0;
-        _isDirty = false;
-        updateTitle();
+    });
+    
+    // Register keymaps and install the keyboard handler
+    // TODO: show keyboard equivalents in the menus
+    var KEYMAP_GLOBAL = "global";
+    KeyBindingManager.registerKeymap(new KeyMap(KEYMAP_GLOBAL, 0, 
+        { "Ctrl-O": Commands.FILE_OPEN
+        , "Ctrl-S": Commands.FILE_SAVE
+        , "Ctrl-W": Commands.FILE_CLOSE
+        }));
+    KeyBindingManager.activateKeymap(KEYMAP_GLOBAL);
+    
+    $(document.body).keydown(function(event) {
+        var keyDescriptor = [];
+        if (event.metaKey || event.ctrlKey) {
+            keyDescriptor.push("Ctrl");
+        }
+        if (event.altKey) {
+            keyDescriptor.push("Alt");
+        }
+        if (event.shiftKey) {
+            keyDescriptor.push("Shift");
+        }
+        keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
+        if (KeyBindingManager.handleKey(keyDescriptor.join("-"))) {
+            event.preventDefault();
+        }
     });
 });
