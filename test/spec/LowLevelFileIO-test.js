@@ -130,6 +130,12 @@ describe("LowLevelFileIO", function() {
          expect(err).toBe(brackets.fs.ERR_INVALID_PARAMS);
       });      
     });
+    
+    it ("should return an error if trying to read a directory", function() {
+      brackets.fs.readFile(baseDir, "utf8", function(err, contents) {
+         expect(err).toBe(brackets.fs.ERR_CANT_READ); 
+      });
+    })
   }); // describe("readFile")
   
   describe("writeFile", function() {
@@ -157,5 +163,12 @@ describe("LowLevelFileIO", function() {
         expect(err).toBe(brackets.fs.ERR_INVALID_PARAMS);
       });
     });
+
+    it ("should return an error if trying to write a directory", function() {
+      brackets.fs.writeFile(baseDir, contents, "utf8", function(err, contents) {
+        // Ideally we would get ERR_CANT_WRITE, but as long as we get some sort of error it's fine. 
+        expect(err).toBeTruthy(); 
+      });
+    })
   }); // describe("writeFile")
 });
