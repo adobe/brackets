@@ -107,7 +107,7 @@ NativeFileSystem.Entry = function( fullPath, isDirectory) {
     if( fullPath ){
         var pathParts = fullPath.split( "/" );
         if( pathParts.length > 0 )
-        this.name = pathParts.pop();
+            this.name = pathParts.pop();
     }
 
     // IMPLEMENT LATER var filesystem;
@@ -141,8 +141,19 @@ NativeFileSystem.FileEntry = function( name ) {
  * @param {function} errorCallback
  */
 NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
+    var fileEntry = this;
+
+    // [NoInterfaceObject]
+    // interface FileWriter : FileSaver
     _FileWriter = function( data ) {
-        FileSaver.call(this, data);
+        NativeFileSystem.FileSaver.call(this, data);
+
+        // initialize file length
+        // TODO (jasonsj): handle async
+        brackets.fs.readFile( fileEntry.fullPath, "utf8", function(err, contents) {
+            if ( contents )
+                this._length = contents.length;
+        });
     };
 
     // FileWriter private memeber vars
@@ -157,7 +168,47 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         return this._position;
     };
 
+    // TODO (jasonsj): handle Blob data instead of string
     _FileWriter.prototype.write = function( data ) {
+        // TODO (jasonsj): data is required
+        if ( !data )
+            throw new Error();
+
+        if ( this.readyState === NativeFileSystem.FileSaver.WRITING )
+            throw new NativeFileSystem.FileException( NativeFileSystem.FileException.INVALID_STATE_ERR );
+
+        this.readyState = NativeFileSystem.FileSaver.WRITING;
+
+        if ( this.onwritestart ) {
+            // TODO (jasonsj): progressevent
+            this.onwritestart();
+        }
+
+        brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
+            // FIXME (jasonsj): why is this === window?
+            if ( this.onerror ) {
+                this.onerror ( NativeFileSystem._nativeToFileError( err ) );
+
+                // TODO (jasonsj): partial write, update length and position
+            }
+            else {
+                // successful completetion of a write
+                this.position += data.size;
+            }
+
+            // DONE is set regardless of error
+            this.readyState = NativeFileSystem.FileSaver.DONE;
+
+            if ( this.onwrite ) {
+                // TODO (jasonsj): progressevent
+                this.onwrite();
+            }
+
+            if ( this.onwriteend ) {
+                // TODO (jasonsj): progressevent
+                this.onwriteend();
+            }
+        });
     };
 
     _FileWriter.prototype.seek = function( offset ) {
@@ -166,15 +217,32 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
     _FileWriter.prototype.truncate = function( size ) {
     };
 
-    var fileWriter = new _FileWriter();
-    successCallback( fileWriter );
+    successCallback( new _FileWriter() );
 };
 
+
+NativeFileSystem.FileException = function ( code ){
+    this.code = code || 0;
+};
+
+// FileException constants
+Object.defineProperties(NativeFileSystem.FileException,
+    { NOT_FOUND_ERR:                { value: 1 }
+    , SECURITY_ERR:                 { value: 2 }
+    , ABORT_ERR:                    { value: 3 }
+    , NOT_READABLE_ERR:             { value: 4 }
+    , ENCODING_ERR:                 { value: 5 }
+    , NO_MODIFICATION_ALLOWED_ERR:  { value: 6 }
+    , INVALID_STATE_ERR:            { value: 7 }
+    , SYNTAX_ERR:                   { value: 8 }
+    , QUOTA_EXCEEDED_ERR:           { value: 10 }
+});
+
 /** class: FileSaver
-*
-* @param {Blob} data
-* @constructor
-*/
+ *
+ * @param {Blob} data
+ * @constructor
+ */
 NativeFileSystem.FileSaver = function( data ) {
     _data = data;
 };
@@ -275,9 +343,9 @@ NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, suc
             if ( err === brackets.fs.ERR_NOT_FOUND ) {
                 brackets.fs.writeFile( fileFullPath, "", "utf8", function( err ) {
                     if ( err )
-                    errorCallback( NativeFileSystem._nativeToFileError( err ) );
+                        errorCallback( NativeFileSystem._nativeToFileError( err ) );
                     else
-                    successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
+                        successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
                 });
 
                 return;
@@ -286,19 +354,19 @@ NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, suc
         else {
             // file does not exist
             if ( err === brackets.fs.ERR_NOT_FOUND )
-            errorCallback( NativeFileSystem._nativeToFileError( err ) );
+                errorCallback( NativeFileSystem._nativeToFileError( err ) );
             // path is a directory and not a file
-            else if ( stats.isDirectory )
-            errorCallback( NativeFileSystem._nativeToFileError( err ) );
+            else if ( stats.isDirectory() )
+                errorCallback( NativeFileSystem._nativeToFileError( err ) );
             else
-            successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
+                successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
         }
     });
 };
 
 
 /** class: DirectoryReader
-*/
+ */
 NativeFileSystem.DirectoryReader = function() {
 
 };
@@ -444,10 +512,10 @@ NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
 };
 
 /** class: Blob
-*
-* @constructor
-* param {Entry} entry
-*/
+ *
+ * @constructor
+ * param {Entry} entry
+ */
 NativeFileSystem.Blob = function ( fullPath ){
     this._fullPath = fullPath;
 

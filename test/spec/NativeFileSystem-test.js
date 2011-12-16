@@ -2,6 +2,7 @@ describe("NativeFileSystem", function(){
 
     beforeEach(function() {
         this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
+        this.file1content = "Here is file1\n";
     });
 
     describe("Reading a directory", function() {
@@ -124,7 +125,7 @@ describe("NativeFileSystem", function(){
                 expect(gotFile).toBe(true);
                 expect(readFile).toBe(true);
                 expect(gotError).toBe(false);
-                expect(content).toBe("Here is file1\n");
+                expect(content).toBe(this.file1content);
             });
         });
 
@@ -220,6 +221,14 @@ describe("NativeFileSystem", function(){
 
     describe("Writing", function() {
 
+        beforeEach( function() {
+        });
+
+        afterEach( function() {
+            // reset file1 content
+            brackets.fs.writeFile( this.path + "/file1", this.file1content, "utf8" );
+        });
+
         it("should create new, zero-length files", function() {
             var nfs = null;
 
@@ -238,7 +247,7 @@ describe("NativeFileSystem", function(){
                     writeComplete = true;
                 }
                 var errorCallback = function() {
-                    writeComplete = true
+                    writeComplete = true;
                 };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
@@ -254,16 +263,68 @@ describe("NativeFileSystem", function(){
             });
         });
 
-        it("should append to existing files", function() {
-            this.fail("TODO");
+        it("should create overwrite files with new content", function() {
+            var nfs = null;
+
+            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+                nfs = fs;
+            });
+
+            waitsFor( function() { return nfs }, 1000);
+
+            var fileEntry = null;
+            var writeComplete = false;
+
+            runs(function() {
+                var successCallback = function( entry ) {
+                    fileEntry = entry;
+
+                    fileEntry.createWriter( function ( fileWriter ) {
+                        fileWriter.onwriteend = function( e ) {
+                            writeComplete = true;
+                        };
+                        fileWriter.onerror = function( e ) {
+                            writeComplete = true;
+                        };
+
+                        // TODO (jasonsj): BlobBulder
+                        fileWriter.write( "FileWriter.write" );
+                    });
+                }
+                var errorCallback = function() {
+                    writeComplete = true;
+                };
+
+                nfs.getFile( "file1", { create: false }, successCallback, errorCallback );
+            });
+
+            waitsFor( function() { return writeComplete && fileEntry; }, 1000 );
+
+            var actualContents = null;
+
+            runs(function() {
+                brackets.fs.readFile( fileEntry.fullPath, "utf8", function ( err, contents ) {
+                   actualContents = contents;
+                });
+            });
+
+            waitsFor( function() { return !!contents; }, 1000 );
+
+            runs(function() {
+                expect(actualContents).toEqual("FileWriter.write");
+            });
         });
 
-        it("should seek into a file before writing", function() {
-            this.fail("TODO");
+        xit("should append to existing files", function() {
+            this.fail("TODO (jasonsj): not supported for sprint 1");
         });
 
-        it("should truncate files", function() {
-            this.fail("TODO");
+        xit("should seek into a file before writing", function() {
+            this.fail("TODO (jasonsj): not supported for sprint 1");
+        });
+
+        xit("should truncate files", function() {
+            this.fail("TODO (jasonsj): not supported for sprint 1");
         });
     });
 });
