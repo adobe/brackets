@@ -2,6 +2,10 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+/**
+ * Manages global application commands that can be called from menu items, key bindings, or subparts
+ * of the application.
+ */
 var CommandManager = {};
 
 CommandManager._commands = {};
@@ -33,7 +37,7 @@ CommandManager.execute = function(id) {
     if (command) {
         var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
         if (result === undefined) {
-            return $.Deferred().resolve();
+            return (new $.Deferred()).resolve();
         }
         else {
             return result;
@@ -41,6 +45,6 @@ CommandManager.execute = function(id) {
     }
     else {
         console.log("Attempted to call unregistered command: " + id);
-        return $.Deferred().reject();
+        return (new $.Deferred()).reject();
     }
 }
