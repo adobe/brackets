@@ -283,6 +283,7 @@ $(document).ready(function() {
                             });
                         }   
                         else {
+                            // This is the "Don't Save" case--we can just go ahead and close the file.
                             doClose();
                             result.resolve();
                         }
