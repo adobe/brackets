@@ -1,6 +1,10 @@
 describe("NativeFileSystem", function(){
 
-  describe("Reading", function() {
+  beforeEach(function() {
+      this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
+  });
+  
+  describe("Reading a directory", function() {
 
     beforeEach(function() {
       this.addMatchers({
@@ -21,15 +25,13 @@ describe("NativeFileSystem", function(){
           return false;                   
         }
       });
-
-      this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
     });
 
     it("should read a directory from disk", function() {
       var entries = null;
       var readComplete = false;
 
-      var nfs = window.NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);      
+      var nfs = NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);      
         function requestNativeFileSystemSuccessCB( nfs ){
             var reader = nfs.createReader();
         
@@ -51,7 +53,7 @@ describe("NativeFileSystem", function(){
     
     it("should return an error if the directory doesn't exist", function() {
         var successCalled = false, errorCalled = false, error = null;
-        window.NativeFileSystem.requestNativeFileSystem(this.path + '/nonexistent-dir', function(data) {
+        NativeFileSystem.requestNativeFileSystem(this.path + '/nonexistent-dir', function(data) {
             successCalled = true;
         }, function(err) {
             errorCalled = true;
@@ -69,7 +71,7 @@ describe("NativeFileSystem", function(){
     
     it("should return an error if you pass a bad parameter", function() {
         var successCalled = false, errorCalled = false, error = null;
-        window.NativeFileSystem.requestNativeFileSystem(0xDEADBEEF, function(data) {
+        NativeFileSystem.requestNativeFileSystem(0xDEADBEEF, function(data) {
             successCalled = true;
         }, function(err) {
             errorCalled = true;
@@ -87,7 +89,7 @@ describe("NativeFileSystem", function(){
     
     it("should be okay to not pass an error callback", function() {
         var entries = null;
-        window.NativeFileSystem.requestNativeFileSystem(this.path, function(data) {
+        NativeFileSystem.requestNativeFileSystem(this.path, function(data) {
             entries = data;
         });
         
@@ -96,6 +98,123 @@ describe("NativeFileSystem", function(){
         runs(function() {
             expect(entries).not.toBe(null);
         });
+    });
+  });
+  
+  describe("Reading a file", function() {
+    it("should read a file from disk", function() {
+        var gotFile = false, readFile = false, gotError = false, content;
+        var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
+        fileEntry.file(function(file) {
+            gotFile = true;
+            var reader = new NativeFileSystem.FileReader();
+            reader.onload = function(event) {
+                readFile = true;
+                content = event.target.result;
+            };
+            reader.onerror = function(event) {
+                gotError = true;
+            };
+            reader.readAsText(file, "utf8");
+        });
+        
+        waitsFor(function() { return gotFile && readFile; }, 1000);
+        
+        runs(function() {
+            expect(gotFile).toBe(true);
+            expect(readFile).toBe(true);
+            expect(gotError).toBe(false);
+            expect(content).toBe("Here is file1\n");
+        });
+    });
+    
+    it("should return an error if the file is not found", function() {
+        var gotFile = false, readFile = false, errorCode;
+        var fileEntry = new NativeFileSystem.FileEntry(this.path + "/idontexist");
+        fileEntry.file(function(file) {
+            gotFile = true;
+            var reader = new NativeFileSystem.FileReader();
+            reader.onload = function(event) {
+                readFile = true;
+            };
+            reader.onerror = function(event) {
+                errorCode = event.target.error.code;
+            };
+            reader.readAsText(file, "utf8");
+        });
+        
+        waitsFor(function() { return gotFile && errorCode; }, 1000);
+        
+        runs(function() {
+            expect(gotFile).toBe(true);
+            expect(readFile).toBe(false);
+            expect(errorCode).toBe(FileError.NOT_FOUND_ERR);
+        });    
+    });
+    
+    it("should fire appropriate events when the file is done loading", function() {
+        var gotFile = false, gotLoad = false, gotLoadStart = false, gotLoadEnd = false, 
+            gotProgress = false, gotError = false, gotAbort = false;
+        var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
+        fileEntry.file(function(file) {
+            gotFile = true;
+            var reader = new NativeFileSystem.FileReader();
+            reader.onload = function(event) {
+                gotLoad = true;
+            };
+            reader.onloadstart = function(event) {
+                gotLoadStart = true;
+            }
+            reader.onloadend = function(event) {
+                gotLoadEnd = true;
+            };
+            reader.onprogress = function(event) {
+                gotProgress = true;
+            };
+            reader.onerror = function(event) {
+                gotError = true;
+            };
+            reader.onabort = function(event) {
+                gotAbort = true;
+            }
+            reader.readAsText(file, "utf8");
+        });
+        
+        waitsFor(function() { return gotLoad && gotLoadEnd && gotProgress; }, 1000);
+        
+        runs(function() {
+            expect(gotFile).toBe(true);
+            expect(gotLoadStart).toBe(true);
+            expect(gotLoad).toBe(true);
+            expect(gotLoadEnd).toBe(true);
+            expect(gotProgress).toBe(true);
+            expect(gotError).toBe(false);
+            expect(gotAbort).toBe(false);
+        });            
+    });
+    
+    it("should return an error but not crash if you create a bad FileEntry", function() {
+        var gotFile = false, readFile = false, gotError = false;
+        var fileEntry = new NativeFileSystem.FileEntry(null);
+        fileEntry.file(function(file) {
+            gotFile = true;
+            var reader = new NativeFileSystem.FileReader();
+            reader.onload = function(event) {
+                readFile = true;
+            };
+            reader.onerror = function(event) {
+                gotError = true;
+            };
+            reader.readAsText(file, "utf8");
+        });
+        
+        waitsFor(function() { return gotError; }, 1000);
+        
+        runs(function() {
+            expect(gotFile).toBe(true);
+            expect(readFile).toBe(false);
+            expect(gotError).toBe(true);
+        });        
     });
   });
 });
