@@ -24,10 +24,11 @@ brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
  * @param {string} id The ID of the dialog node in the HTML.
  * @param {string} title The title of the error dialog. Can contain HTML markup.
  * @param {string} message The message to display in the error dialog. Can contain HTML markup.
- * @param {function=} callback The optional callback to be called when the dialog is dismissed. Called with
- *     the value of the data-button-id of the clicked button.
+ * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
+ *     is dismissed.
  */
 brackets.showDialog = function(id, title, message, callback) {
+    var result = $.Deferred();
     var dlg = $("#" + id);
     
     // Set title and message
@@ -36,9 +37,7 @@ brackets.showDialog = function(id, title, message, callback) {
     
     // Click handler for buttons
     dlg.on("click", ".dialog-button", function(e) {
-        if (callback) {
-            callback($(this).attr("data-button-id"));
-        }
+        result.resolve($(this).attr("data-button-id"));
         dlg.modal(true).hide();
     });
     
@@ -48,6 +47,7 @@ brackets.showDialog = function(id, title, message, callback) {
         , show: true
         }
     );
+    return result;
 };
 
 $(document).ready(function() {
@@ -222,17 +222,20 @@ $(document).ready(function() {
         // we can remove this here.
         if (_currentFilePath) {
             var result = $.Deferred();
-            CommandManager.execute(Commands.FILE_CLOSE).done(function() {
-                doOpenWithOptionalPath(fullPath).done(function() {
-                    result.resolve();
+            CommandManager
+                .execute(Commands.FILE_CLOSE)
+                .done(function() {
+                    doOpenWithOptionalPath(fullPath)
+                        .done(function() {
+                            result.resolve();
+                        })
+                        .fail(function() {
+                            result.reject();
+                        });
                 })
                 .fail(function() {
                     result.reject();
                 });
-            })
-            .fail(function() {
-                result.reject();
-            });
             return result;
         }
         else {
@@ -245,7 +248,7 @@ $(document).ready(function() {
             var result = $.Deferred();
             brackets.fs.writeFile(_currentFilePath, editor.getValue(), "utf8", function(err) {
                 if (err) {
-                    // TODO--this will change with the real file API implementation
+                    // TODO: display meaningful error
                     result.reject();
                 }
                 else {
@@ -268,28 +271,29 @@ $(document).ready(function() {
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , brackets.strings.SAVE_CLOSE_TITLE
                 , brackets.strings.format(brackets.strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
-                , function(id) {
-                    if (id === brackets.DIALOG_BTN_CANCEL) {
-                        result.reject();
-                    }
-                    else {
-                        if (id === brackets.DIALOG_BTN_OK) {
-                            CommandManager.execute(Commands.FILE_SAVE).done(function() {
+            ).done(function(id) {
+                if (id === brackets.DIALOG_BTN_CANCEL) {
+                    result.reject();
+                }
+                else {
+                    if (id === brackets.DIALOG_BTN_OK) {
+                        CommandManager
+                            .execute(Commands.FILE_SAVE)
+                            .done(function() {
                                 doClose();
                                 result.resolve();
                             })
                             .fail(function() {
                                 result.reject();
                             });
-                        }   
-                        else {
-                            // This is the "Don't Save" case--we can just go ahead and close the file.
-                            doClose();
-                            result.resolve();
-                        }
+                    }   
+                    else {
+                        // This is the "Don't Save" case--we can just go ahead and close the file.
+                        doClose();
+                        result.resolve();
                     }
                 }
-            );
+            });
             return result;
         }
         else {
