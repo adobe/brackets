@@ -330,38 +330,82 @@ NativeFileSystem.DirectoryEntry.prototype.createReader = function() {
     return dirReader;
 };
 
+/**
+ * Creates or looks up a file.
+ * http://dev.w3.org/2009/dap/file-system/pub/FileSystem/#widl-DirectoryEntry-getFile
+ *
+ * @param {string} path Either an absolute path or a relative path from this
+ *        DirectoryEntry to the file to be looked up or created. It is an error
+ *        to attempt to create a file whose immediate parent does not yet
+ *        exist.
+ * @param {object} options
+ * @param {function(entry)} successCallback
+ * @param {function(err)} errorCallback
+ */
 NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
     // TODO (jasonsj): handle absolute paths
     var fileFullPath = this.fullPath + "/" + path;
 
+    var createFileEntry = function () {
+        if ( successCallback ) {
+            successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
+        }
+    }
+
+    var createFileError = function ( err ) {
+        if ( errorCallback ) {
+            errorCallback( NativeFileSystem._nativeToFileError( err ) );
+        }
+    }
+
     // Use stat() to check if file exists
     brackets.fs.stat( fileFullPath, function( err, stats ) {
-        if ( options.create ) {
-            if ( options.exclusive && ( err !== brackets.fs.ERR_NOT_FOUND ) ) {
-                // throw error if file already exists
-                errorCallback( NativeFileSystem._nativeToFileError( brackets.fs.PATH_EXISTS_ERR ) );
+        if ( ( err === brackets.fs.NO_ERROR ) ) {
+            // NO_ERROR implies the path already exists
+
+            // throw error if the file the path is a directory
+            if ( stats.isDirectory() ) {
+                if ( errorCallback ) {
+                    errorCallback( new NativeFileSystem.FileError( FileError.TYPE_MISMATCH_ERR ) );
+                }
+
                 return;
             }
-            if ( err === brackets.fs.ERR_NOT_FOUND ) {
+
+            // throw error if the file exists but create is exclusive
+            if ( options.create && options.exclusive ) {
+                if ( errorCallback ) {
+                    errorCallback( new NativeFileSystem.FileError( FileError.PATH_EXISTS_ERR ) );
+                }
+
+                return;
+            }
+
+            // Create a file entry for the existing file. If create == true,
+            // a file entry is created without error.
+            createFileEntry();
+        } else if ( err === brackets.fs.ERR_NOT_FOUND ) {
+            // ERR_NOT_FOUND implies we write a new, empty file
+
+            // create the file
+            if ( options.create ) {
                 brackets.fs.writeFile( fileFullPath, "", "utf8", function( err ) {
                     if ( err )
-                        errorCallback( NativeFileSystem._nativeToFileError( err ) );
+                        createFileError( err );
                     else
-                        successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
+                        createFileEntry();
                 });
 
                 return;
             }
-        }
-        else {
-            // file does not exist
-            if ( err === brackets.fs.ERR_NOT_FOUND )
-                errorCallback( NativeFileSystem._nativeToFileError( err ) );
-            // path is a directory and not a file
-            else if ( stats.isDirectory() )
-                errorCallback( new NativeFileSystem.FileError( FileError.TYPE_MISMATCH_ERR ) );
-            else
-                successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
+
+            // throw error if file not found and the create == false
+            if ( errorCallback ) {
+                errorCallback( new NativeFileSystem.FileError( FileError.NOT_FOUND_ERR ) );
+            }
+        } else {
+            // all other brackets.fs.stat() errors
+            createFileError( err );
         }
     });
 };
