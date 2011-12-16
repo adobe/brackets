@@ -39,10 +39,6 @@ $(document).ready(function() {
 
     var editor = CodeMirror($('#editor').get(0));
 
-    var myCodeMirror = CodeMirror($('#editor').get(0), {
-        value: 'var myResponse="Yes, it will be!"\n'
-    });
-
     // Load a default project into the tree
     if (brackets.inBrowser) {
         // In browser: dummy folder tree (hardcoded in ProjectManager)
