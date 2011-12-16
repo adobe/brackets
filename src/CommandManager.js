@@ -11,7 +11,9 @@ CommandManager._commands = {};
  *
  * @param {string} id The ID of the command.
  * @param {function} command The function to call when the command is executed. Any arguments passed to
- *     execute() (after the id) are passed as arguments to the function.
+ *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
+ *     it must return a jQuery Deferred that is resolved when the command completes. Otherwise, the
+ *     CommandManager will assume it is synchronous, and return a Deferred that is already resolved.
  */
 CommandManager.register = function(id, command) {
     if (CommandManager._commands[id]) {
@@ -24,15 +26,21 @@ CommandManager.register = function(id, command) {
  * Runs a global command. Additional arguments are passed to the command.
  *
  * @param {string} id The ID of the command to run.
+ * @return {Deferred} a jQuery Deferred that will be resolved when the command completes.
  */
 CommandManager.execute = function(id) {
-    // TODO: are we guaranteed that all commands are synchronous? If not, we should
-    // take a callback, or (perhaps better) return a Deferred.
     var command = CommandManager._commands[id];
     if (command) {
-        command.apply(null, Array.prototype.slice.call(arguments, 1));
+        var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
+        if (result === undefined) {
+            return $.Deferred().resolve();
+        }
+        else {
+            return result;
+        }
     }
     else {
         console.log("Attempted to call unregistered command: " + id);
+        return $.Deferred().reject();
     }
 }

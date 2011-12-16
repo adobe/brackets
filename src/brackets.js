@@ -128,7 +128,24 @@ $(document).ready(function() {
         $("#main-toolbar .title").text(_currentTitlePath ? (_currentTitlePath + (_isDirty ? " \u2022" : "")) : "Untitled");
     }
     
-    function doOpen(fullPath) {          
+    function doOpenWithOptionalPath(fullPath) {     
+        if (!fullPath) {
+            // Prompt the user with a dialog
+            // TODO: we're relying on this to not be asynchronous--is that safe?
+            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
+                ["htm", "html", "js", "css"], function(files) {
+                    if (files.length > 0) {
+                        return doOpen(files[0]);
+                    }
+                });
+        }
+        else {
+            return doOpen(fullPath);
+        }
+    }
+    
+    function doOpen(fullPath) { 
+        var result = $.Deferred();         
         if (fullPath) {
             var reader = new NativeFileSystem.FileReader();
 
@@ -166,10 +183,12 @@ $(document).ready(function() {
                     updateDirty();
 
                     editor.focus();
+                    result.resolve();
                 };
                 
                 reader.onerror = function(event) {
                     // TODO: display meaningful error
+                    result.reject();
                 }
                 
                 reader.readAsText(file, "utf8");
@@ -178,6 +197,20 @@ $(document).ready(function() {
                 // TODO: display meaningful error
             });
         }
+        return result;
+    }
+    
+    function doClose() {
+        // TODO: When we implement multiple files being open, this will probably change to just
+        // dispose of the editor for the current file (and will later change again if we choose to
+        // limit the number of open editors).
+        editor.setValue("");
+        editor.clearHistory();
+        _currentFilePath = _currentTitlePath = null;
+        _savedUndoPosition = 0;
+        _isDirty = false;
+        updateTitle();
+        editor.focus();
     }
     
     // Register global commands
@@ -188,65 +221,78 @@ $(document).ready(function() {
         // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
         // we can remove this here.
         if (_currentFilePath) {
-            CommandManager.execute(Commands.FILE_CLOSE);
-        }
-        
-        if (!fullPath) {
-            // Prompt the user with a dialog
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
-                ["htm", "html", "js", "css"], function(files) {
-                    if (files.length > 0) {
-                        doOpen(files[0]);
-                    }
+            var result = $.Deferred();
+            CommandManager.execute(Commands.FILE_CLOSE).done(function() {
+                doOpenWithOptionalPath(fullPath).done(function() {
+                    result.resolve();
+                })
+                .fail(function() {
+                    result.reject();
                 });
+            })
+            .fail(function() {
+                result.reject();
+            });
+            return result;
         }
         else {
-            doOpen(fullPath);
+            return doOpenWithOptionalPath(fullPath);
         }
     });
 
     CommandManager.register(Commands.FILE_SAVE, function() {
         if (_currentFilePath && _isDirty) {
+            var result = $.Deferred();
             brackets.fs.writeFile(_currentFilePath, editor.getValue(), "utf8", function(err) {
                 if (err) {
                     // TODO--this will change with the real file API implementation
+                    result.reject();
                 }
                 else {
                     // Remember which position in the undo stack we're at as of the last save.
                     // When we're exactly at that position again, we know we're not dirty.
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
+                    result.resolve();
                 }
                 editor.focus();
             });
+            return result;
         }
     });
     
     CommandManager.register(Commands.FILE_CLOSE, function() {
         if (_currentFilePath && _isDirty) {
+            var result = $.Deferred();
             brackets.showDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , brackets.strings.SAVE_CLOSE_TITLE
                 , brackets.strings.format(brackets.strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
                 , function(id) {
-                    if (id !== brackets.DIALOG_BTN_CANCEL) {
+                    if (id === brackets.DIALOG_BTN_CANCEL) {
+                        result.reject();
+                    }
+                    else {
                         if (id === brackets.DIALOG_BTN_OK) {
-                            CommandManager.execute(Commands.FILE_SAVE);
+                            CommandManager.execute(Commands.FILE_SAVE).done(function() {
+                                doClose();
+                                result.resolve();
+                            })
+                            .fail(function() {
+                                result.reject();
+                            });
                         }   
-                            
-                        // TODO: When we implement multiple files being open, this will probably change to just
-                        // dispose of the editor for the current file (and will later change again if we choose to
-                        // limit the number of open editors).
-                        editor.setValue("");
-                        editor.clearHistory();
-                        _currentFilePath = _currentTitlePath = null;
-                        _savedUndoPosition = 0;
-                        _isDirty = false;
-                        updateTitle();
-                        editor.focus();
+                        else {
+                            doClose();
+                            result.resolve();
+                        }
                     }
                 }
             );
+            return result;
+        }
+        else {
+            doClose();
         }
     });
     
