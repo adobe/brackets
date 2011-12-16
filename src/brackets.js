@@ -10,6 +10,32 @@ brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
 $(document).ready(function() {
 
+	/**
+	 * General purpose modal error dialog. 
+	 *
+	 * @param {string} title The title of the error dialog. Can contain HTML markup.
+	 * @param {string} message The message to display in the error dialog. Can contain HTML markup.
+	 */
+	brackets.showErrorDialog = function(title, message) {
+		var dlg = $("#error-dialog");
+		
+		// Set title and message
+		$("#error-dialog-title").html(title);
+		$("#error-dialog-message").html(message);
+		
+		// Click handler for OK button
+		dlg.delegate("#error-dialog-ok", "click", function(e) {
+			dlg.modal(true).hide();
+		});
+		
+		// Run the dialog
+		dlg.modal(
+			{ backdrop: "static" 
+			, show: true
+			}
+		);
+	}
+
     var myCodeMirror = CodeMirror($('#editor').get(0), {
         value: 'var myResponse="Yes, it will be!"\n'
     });
@@ -47,5 +73,4 @@ $(document).ready(function() {
             testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
         }
     });
-
 });
