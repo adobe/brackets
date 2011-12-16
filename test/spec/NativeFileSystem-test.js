@@ -308,7 +308,7 @@ describe("NativeFileSystem", function(){
                 });
             });
 
-            waitsFor( function() { return !!contents; }, 1000 );
+            waitsFor( function() { return !!actualContents; }, 1000 );
 
             runs(function() {
                 expect(actualContents).toEqual("FileWriter.write");

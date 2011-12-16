@@ -145,7 +145,7 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
 
     // [NoInterfaceObject]
     // interface FileWriter : FileSaver
-    _FileWriter = function( data ) {
+    var _FileWriter = function( data ) {
         NativeFileSystem.FileSaver.call(this, data);
 
         // initialize file length
@@ -170,7 +170,6 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
 
     // TODO (jasonsj): handle Blob data instead of string
     _FileWriter.prototype.write = function( data ) {
-        // TODO (jasonsj): data is required
         if ( !data )
             throw new Error();
 
@@ -184,29 +183,30 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
             this.onwritestart();
         }
 
+        var self = this;
+
         brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
-            // FIXME (jasonsj): why is this === window?
-            if ( this.onerror ) {
-                this.onerror ( NativeFileSystem._nativeToFileError( err ) );
+            if ( self.onerror ) {
+                self.onerror ( NativeFileSystem._nativeToFileError( err ) );
 
                 // TODO (jasonsj): partial write, update length and position
             }
             else {
                 // successful completetion of a write
-                this.position += data.size;
+                self.position += data.size;
             }
 
             // DONE is set regardless of error
             this.readyState = NativeFileSystem.FileSaver.DONE;
 
-            if ( this.onwrite ) {
+            if ( self.onwrite ) {
                 // TODO (jasonsj): progressevent
-                this.onwrite();
+                self.onwrite();
             }
 
             if ( this.onwriteend ) {
                 // TODO (jasonsj): progressevent
-                this.onwriteend();
+                self.onwriteend();
             }
         });
     };
