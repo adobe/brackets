@@ -17,6 +17,7 @@
 	
 	<script src="thirdparty/jquery-1.7.min.js"></script>
 	<script src="widgets/bootstrap-dropdown.js"></script>
+	<script src="widgets/bootstrap-modal.js"></script>
 	<script src="thirdparty/jstree_pre1.0_fix_1/jquery.jstree.js"></script>
 	
 	<script src="NativeFileSystem.js"></script>	
@@ -24,6 +25,7 @@
 	<script src="Commands.js"></script>
 	<script src="ProjectManager.js"></script>
 	<script src="brackets.js"></script>
+	<script src="strings.js"></script>
 </head>
 <body>
 	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
@@ -77,6 +79,20 @@
 			</div>			
 			<div id="editor"></div>
 		</div>
+	</div>
+	
+	<!-- Modal Windows -->
+	<div id="error-dialog" class="modal hide fade">
+		<div class="modal-header">
+			<a href="#" class="close">&times;</a>
+			<h3 id="error-dialog-title">Error</h3>
+		</div>
+		<div class="modal-body">
+			<p id="error-dialog-message">Message goes here</p>
+		</div>
+		<div class="modal-footer">
+			<a id="error-dialog-ok" href="#" class="btn primary">OK</a>
+		</div>		
 	</div>
 </body>
 </html>
