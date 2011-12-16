@@ -2,39 +2,40 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+// TODO: break out the definition of brackets into a separate module from the application controller logic
+
 // Define core brackets namespace
 brackets = window.brackets || {};
 
 brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
+/**
+ * General purpose modal error dialog. 
+ *
+ * @param {string} title The title of the error dialog. Can contain HTML markup.
+ * @param {string} message The message to display in the error dialog. Can contain HTML markup.
+ */
+brackets.showErrorDialog = function(title, message) {
+    var dlg = $("#error-dialog");
+    
+    // Set title and message
+    $("#error-dialog-title").html(title);
+    $("#error-dialog-message").html(message);
+    
+    // Click handler for OK button
+    dlg.delegate("#error-dialog-ok", "click", function(e) {
+        dlg.modal(true).hide();
+    });
+    
+    // Run the dialog
+    dlg.modal(
+        { backdrop: "static" 
+        , show: true
+        }
+    );
+}
 
 $(document).ready(function() {
-
-    /**
-     * General purpose modal error dialog. 
-     *
-     * @param {string} title The title of the error dialog. Can contain HTML markup.
-     * @param {string} message The message to display in the error dialog. Can contain HTML markup.
-     */
-    brackets.showErrorDialog = function(title, message) {
-        var dlg = $("#error-dialog");
-        
-        // Set title and message
-        $("#error-dialog-title").html(title);
-        $("#error-dialog-message").html(message);
-        
-        // Click handler for OK button
-        dlg.delegate("#error-dialog-ok", "click", function(e) {
-            dlg.modal(true).hide();
-        });
-        
-        // Run the dialog
-        dlg.modal(
-            { backdrop: "static" 
-            , show: true
-            }
-        );
-    }
 
     var editor = CodeMirror($('#editor').get(0));
 
