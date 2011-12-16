@@ -27,7 +27,7 @@ brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
  * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
  *     is dismissed.
  */
-brackets.showDialog = function(id, title, message, callback) {
+brackets.showModalDialog = function(id, title, message, callback) {
     var result = $.Deferred();
     var dlg = $("#" + id);
     
@@ -279,7 +279,7 @@ $(document).ready(function() {
     CommandManager.register(Commands.FILE_CLOSE, function() {
         if (_currentFilePath && _isDirty) {
             var result = $.Deferred();
-            brackets.showDialog(
+            brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , brackets.strings.SAVE_CLOSE_TITLE
                 , brackets.strings.format(brackets.strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
