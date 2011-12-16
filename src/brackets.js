@@ -245,25 +245,35 @@ $(document).ready(function() {
     });
 
     CommandManager.register(Commands.FILE_SAVE, function() {
+        var result = $.Deferred();
         if (_currentFilePath && _isDirty) {
-            var result = $.Deferred();
-            var writer = 
-            brackets.fs.writeFile(_currentFilePath, editor.getValue(), "utf8", function(err) {
-                if (err) {
-                    // TODO: display meaningful error
-                    result.reject();
-                }
-                else {
-                    // Remember which position in the undo stack we're at as of the last save.
-                    // When we're exactly at that position again, we know we're not dirty.
+            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
+            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
+            var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
+            
+            fileEntry.createWriter(function(writer) {
+                writer.onwrite = function() {
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
                     result.resolve();
                 }
-                editor.focus();
+                writer.onerror = function() {
+                    result.reject();
+                }
+                writer.write(editor.getValue());
+            },
+            function(error) {
+                // TODO: display meaningful error
+                result.reject();
             });
-            return result;
         }
+        else {
+            result.resolve();
+        }
+        result.always(function() { 
+            editor.focus(); 
+        });
+        return result;
     });
     
     CommandManager.register(Commands.FILE_CLOSE, function() {
