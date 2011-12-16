@@ -10,7 +10,8 @@ CommandManager._commands = {};
  * Registers a global command.
  *
  * @param {string} id The ID of the command.
- * @param {function} command The function to call when the command is executed.
+ * @param {function} command The function to call when the command is executed. Any arguments passed to
+ *     execute() (after the id) are passed as arguments to the function.
  */
 CommandManager.register = function(id, command) {
     if (CommandManager._commands[id]) {

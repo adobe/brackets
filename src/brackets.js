@@ -112,7 +112,7 @@ $(document).ready(function() {
                     // In the titlebar, show the project-relative path (if the file is inside the current project)
                     // or the full absolute path (if it's not in the project).
                     var projectRootPath = ProjectManager.getProjectRoot().fullPath;
-                    if (projectRootPath.length > 1 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
+                    if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
                         projectRootPath += "/";
                     }
                     if (fullPath.indexOf(projectRootPath) == 0) {
