@@ -32,7 +32,7 @@ if (!brackets.strings)
     
     // Project error strings
     s.ERROR_LOADING_PROJECT = "Error loading project";
-    s.OPEN_DIALOG_ERROR = "An error occured when showing the open file dialog. (error {0})";
-    s.REQUEST_NATIVE_FILE_SYSTEM_ERROR = "An error occured when trying to load the directory '{0}'. (error {1})";
-    s.READ_DIRECTORY_ENTRIES_ERROR = "An error occured when reading the contents of the directory '{0}'. (error {1})";
+    s.OPEN_DIALOG_ERROR = "An error occurred when showing the open file dialog. (error {0})";
+    s.REQUEST_NATIVE_FILE_SYSTEM_ERROR = "An error occurred when trying to load the directory '{0}'. (error {1})";
+    s.READ_DIRECTORY_ENTRIES_ERROR = "An error occurred when reading the contents of the directory '{0}'. (error {1})";
 })();
