@@ -48,7 +48,7 @@ var NativeFileSystem = {
     requestNativeFileSystem: function( path, successCallback, errorCallback ){
         brackets.fs.stat(path, function( err, data ){
             if( !err ){
-                var root = new DirectoryEntry( path );
+                var root = new NativeFileSystem.DirectoryEntry( path );
                 successCallback( root );
             }
             else if (errorCallback) {
@@ -91,7 +91,7 @@ var NativeFileSystem = {
                 break;
         }
         
-        return new FileError(error);
+        return new NativeFileSystem.FileError(error);
     }
 };
 
@@ -101,7 +101,7 @@ var NativeFileSystem = {
  * @param {string} isFile
  * @constructor
  */
-Entry = function( fullPath, isDirectory) {
+NativeFileSystem.Entry = function( fullPath, isDirectory) {
     this.isDirectory = isDirectory;
     this.isFile = !isDirectory;
     // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
@@ -131,24 +131,42 @@ Entry = function( fullPath, isDirectory) {
  * @constructor
  * @extends {Entry}
  */ 
-FileEntry = function( name ) {
-    Entry.call(this, name, false);
+NativeFileSystem.FileEntry = function( name ) {
+    NativeFileSystem.Entry.call(this, name, false);
     
     // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
     
-    // IMPLEMENT LATER void createWriter (FileWriterCallback successCallback, optional ErrorCallback errorCallback);
-    // IMPLEMENT LATER void file (FileCallback successCallback, optional ErrorCallback errorCallback);
 };
 
+/** file
+ *
+ * Obtains the File objecte for a FileEntry object
+ *
+ * @param {function} successCallback
+ * @param {function} errorCallback
+ */
+NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
+    var newFile = new NativeFileSystem.File( this );    
+    successCallback( newFile );
+    
+    // TODO Ty: error handling
+    // errorCallback
+};
+
+/*
+TODO Jason
+NativeFileSystem.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
+
+}; */
 
 /** class: DirectoryEntry
  *
- * @param {string} name
  * @constructor
+ * @param {string} name
  * @extends {Entry}
  */ 
-DirectoryEntry = function( name ) {
-    Entry.call(this, name, true);
+NativeFileSystem.DirectoryEntry = function( name ) {
+    NativeFileSystem.Entry.call(this, name, true);
     
     // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
@@ -158,8 +176,8 @@ DirectoryEntry = function( name ) {
 };
 
 
-DirectoryEntry.prototype.createReader = function() {
-    var dirReader = new DirectoryReader();
+NativeFileSystem.DirectoryEntry.prototype.createReader = function() {
+    var dirReader = new NativeFileSystem.DirectoryReader();
     dirReader._directory = this;
     
     return dirReader;
@@ -168,7 +186,7 @@ DirectoryEntry.prototype.createReader = function() {
 
 /** class: DirectoryReader
  */ 
-DirectoryReader = function() {
+NativeFileSystem.DirectoryReader = function() {
     
 };
 
@@ -179,7 +197,7 @@ DirectoryReader = function() {
  * @param {function} errorCallback
  * @returns {Entry[]}
  */ 
-DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
+NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
     var rootPath = this._directory.fullPath;
     var jsonList = brackets.fs.readdir( rootPath, function( err, filelist ) {
         if( ! err ){
@@ -191,10 +209,10 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
                 brackets.fs.stat( itemFullPath, function( err, statData) {
                 
                     if( !err ){
-                        if( statData.isDirectory( itemFullPath ) )
-                            entries.push( new DirectoryEntry( itemFullPath ) );
-                        else if( statData.isFile( itemFullPath ) ) 
-                            entries.push( new FileEntry( itemFullPath ) );
+                        if( statData.isDirectory() )
+                            entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
+                        else if( statData.isFile() ) 
+                            entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
@@ -211,33 +229,153 @@ DirectoryReader.prototype.readEntries = function( successCallback, errorCallback
     });    
 };
 
+
+/** class: FileReader
+ *
+ * @extends {EventTarget}
+ */ 
+NativeFileSystem.FileReader = function() {
+    // Todo Ty: this classes should extend EventTarget
+    
+    // async read methods
+    // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
+    // IMPLEMENT LATER void readAsBinaryString(Blob blob);
+    // IMPLEMENT LATER void readAsDataURL(Blob blob);
+    
+    // IMPLEMENT LATER void abort();
+    
+    // states
+    this.EMPTY = 0;
+    this.LOADING = 1;
+    this.DONE = 2;
+    
+    // readyState is read only
+    this.readyState = this.EMPTY;
+    
+    // File or Blob data
+    // IMPLEMENT LATER readonly attribute any result;
+    // IMPLEMENT LATER readonly attribute DOMError error;
+    
+    // event handler attributes
+    this.onloadstart = null;
+    this.onprogress = null;
+    this.onload = null;
+    this.onabort = null;
+    this.onerror = null;
+    this.onloadend = null;
+
+      
+};
+
+/** readAsText
+ *
+ * @param {Blob} blob
+ * @param {string} encoding
+ */ 
+NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
+    var self = this;
+
+    if( !encoding )
+        encoding = "";
+        
+    if( this.readyState == this.LOADING )
+        throw new InvalidateStateError();
+        
+    this.readyState = this.LOADING;
+        
+    if( this.onloadstart )
+        this.onloadstart(); // todo params
+    
+    brackets.fs.readFile( blob.fullPath, encoding, function( err, data) {
+    
+        // TODO: the event objects passed to these event handlers is fake and incomplete right now
+        var fakeEvent = {
+            target: { result: null
+                      ,error: null }
+            ,loaded: 0
+            ,total: 0
+        };
+    
+        if( err ){
+            if( self.onerror ){
+                this.readyState = this.DONE;
+                
+                fakeEvent.target.error = NativeFileSystem._nativeToFileError(err);
+                self.onerror(fakeEvent);
+            }
+        }
+        else{
+        
+        // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
+        // and since we read the file in one go, assume 100% after the first read
+        fakeEvent.loaded = 1;
+        fakeEvent.total = 1;
+        
+            if( self.onprogress )
+                self.onprogress(fakeEvent); 
+                
+            // TODO: this.onabort not currently supported since our native implementation doesn't support it
+            //if( self.onabort )
+            //    self.onabort(fakeEvent); 
+            
+            if( self.onload ){
+                fakeEvent.target.result = data;
+                self.onload( fakeEvent );
+            }
+                
+            if( self.onloadend ){
+                this.readyState = this.DONE;
+                self.onloadend();
+            }
+        }
+    
+    });
+};
+
+/** class: Blob
+ *
+ * @constructor
+ * param {Entry} entry
+ */ 
+NativeFileSystem.Blob = function ( fullPath ){
+    this.fullPath = fullPath;
+
+    // IMPLEMENT LATER readonly attribute unsigned long long size;
+    // IMPLEMENT LATER readonly attribute DOMString type;
+  
+    //slice Blob into byte-ranged chunks
+  
+    // IMPLEMENT LATER Blob slice(optional long long start,
+    //           optional long long end,
+    //           optional DOMString contentType); 
+};
+
+/** class: File
+ *
+ * @constructor
+ * param {Entry} entry
+ * @extends {Blob}
+ */ 
+NativeFileSystem.File = function ( entry ){
+    NativeFileSystem.Blob.call( this, entry.fullPath );
+
+    //IMPLEMENT LATER get name() { return this.entry.name; }
+    // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
+};
+
+
 /** class: FileError
  *
- * Implementation of HTML file API error code return class. Note that the 
- * various HTML file API specs are not consistent in their definition of
- * some error code values like ABORT_ERR; I'm using the definitions from
- * the Directories and System spec since it seems to be the most
- * comprehensive.
+ * Implementation of HTML file API error code return class. Note that we don't
+ * actually define the error codes here--we rely on the browser's built-in FileError
+ * class's constants. In other words, external clients of this API should always
+ * use FileError.<constant-name>, not NativeFileSystem.FileError.<constant-name>.
  *
  * @constructor
  * @param {number} code The error code to return with this FileError. Must be
  * one of the codes defined in the FileError class.
  */
-FileError = function(code) {
+NativeFileSystem.FileError = function(code) {
     this.code = code || 0;
 };
 
-$.extend(FileError, {
-    NOT_FOUND_ERR: 1,
-    SECURITY_ERR: 2,
-    ABORT_ERR: 3,
-    NOT_READABLE_ERR: 4,
-    ENCODING_ERR: 5,
-    NO_MODIFICATION_ALLOWED_ERR: 6,
-    INVALID_STATE_ERR: 7,
-    SYNTAX_ERR: 8,
-    INVALID_MODIFICATION_ERR: 9,
-    QUOTA_EXCEEDED_ERR: 10,
-    TYPE_MISMATCH_ERR: 11,
-    PATH_EXISTS_ERR: 12
-});

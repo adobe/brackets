@@ -85,22 +85,31 @@ $(document).ready(function() {
     
     function doOpen(fullPath) {          
         if (fullPath) {
-            // TODO: use higher-level file API instead of raw API
-            brackets.fs.readFile(fullPath, "utf8", function(err, content) {
-                if (err) {
-                    // TODO--this will change with the real file API implementation
-                }
-                else {
+            var reader = new NativeFileSystem.FileReader();
+
+            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
+            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            
+            // TODO: it's weird to have to construct a FileEntry just to get a File.
+            fileEntry.file(function(file) {                
+                reader.onload = function(event) {
                     _currentFilePath = _currentTitlePath = fullPath;
                     
                     // TODO: have a real controller object for the editor
-                    editor.setValue(content);
+                    editor.setValue(event.target.result);
+                    editor.clearHistory();
 
+                    // In the titlebar, show the project-relative path (if the file is inside the current project)
+                    // or the full absolute path (if it's not in the project).
                     var projectRootPath = ProjectManager.getProjectRoot().fullPath;
+                    if (projectRootPath.length > 1 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
+                        projectRootPath += "/";
+                    }
                     if (fullPath.indexOf(projectRootPath) == 0) {
-                        fullPath = fullPath.slice(projectRootPath.length);
-                        if (fullPath.charAt(0) == '/') {
-                            _currentTitlePath = fullPath.slice(1);
+                        _currentTitlePath = fullPath.slice(projectRootPath.length);
+                        if (_currentTitlePath.charAt(0) == '/') {
+                            _currentTitlePath = _currentTitlePath.slice(1);
                         }                          
                     }
                     
@@ -110,7 +119,13 @@ $(document).ready(function() {
                     // This should be 0, but just to be safe...
                     _savedUndoPosition = editor.historySize().undo;
                     updateDirty();
-                }
+                };
+                
+                reader.onerror = function(event) {
+                    // TODO--display meaningful error
+                };
+                
+                reader.readAsText(file, "utf8");
             });
         }
     }
