@@ -59,9 +59,12 @@ $(document).ready(function() {
     $("#menu-file-open").click(function() {
         CommandManager.execute(Commands.FILE_OPEN);
     });
+    $("#menu-file-close").click(function() {
+        CommandManager.execute(Commands.FILE_CLOSE);
+    });
     $("#menu-file-save").click(function() {
         CommandManager.execute(Commands.FILE_SAVE);
-    })
+    });
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var testWindow = null;
@@ -107,7 +110,7 @@ $(document).ready(function() {
     }
     
     function updateTitle() {
-        $("#main-toolbar .title").text(_currentTitlePath + (_isDirty ? " \u2022" : ""));
+        $("#main-toolbar .title").text(_currentTitlePath ? (_currentTitlePath + (_isDirty ? " \u2022" : "")) : "Untitled");
     }
     
     function doOpen(fullPath) {          
@@ -199,5 +202,21 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+    
+    CommandManager.register(Commands.FILE_CLOSE, function() {
+        if (_currentFilePath && _isDirty) {
+            // *** TODO: prompt to save
+        }
+        
+        // TODO: When we implement multiple files being open, this will probably change to just
+        // dispose of the editor for the current file (and will later change again if we choose to
+        // limit the number of open editors).
+        editor.setValue("");
+        editor.clearHistory();
+        _currentFilePath = _currentTitlePath = null;
+        _savedUndoPosition = 0;
+        _isDirty = false;
+        updateTitle();
     });
 });
