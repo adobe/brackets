@@ -11,10 +11,10 @@ if (!brackets.strings)
     /**
      * Format a string by replacing placeholder symbols with passed in arguments.
      *
-     * Example: var formatted = brackets.string.format("Hello {0}", "World");
+     * Example: var formatted = brackets.strings.format("Hello {0}", "World");
      *
      * @param {string} str The base string
-     * @param {string} ... Arguments to be subsituted into the string
+     * @param {string} ... Arguments to be substituted into the string
      *
      * @return {string} Formatted string
      */
