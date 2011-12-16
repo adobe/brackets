@@ -85,6 +85,9 @@ var NativeFileSystem = {
             case brackets.fs.ERR_OUT_OF_SPACE:
                 error = FileError.QUOTA_EXCEEDED_ERR;
                 break;
+            case brackets.fs.PATH_EXISTS_ERR:
+                error = FileError.PATH_EXISTS_ERR;
+                break;
         }
         return new NativeFileSystem.FileError(error);
     }
@@ -355,7 +358,7 @@ NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, suc
                 errorCallback( NativeFileSystem._nativeToFileError( err ) );
             // path is a directory and not a file
             else if ( stats.isDirectory() )
-                errorCallback( NativeFileSystem._nativeToFileError( err ) );
+                errorCallback( new NativeFileSystem.FileError( FileError.TYPE_MISMATCH_ERR ) );
             else
                 successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
         }
