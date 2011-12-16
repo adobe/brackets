@@ -122,7 +122,8 @@ describe("NativeFileSystem", function() {
                 }
                 var errorCallback = function() { writeComplete = true };
 
-                nfs.root.getFile("should-write-new-files.txt", { create: true }, successCallback, errorCallback );
+                // FIXME (jasonsj): NativeFileSystem.root is missing
+                nfs.getFile("should-write-new-files.txt", { create: true }, successCallback, errorCallback );
             });
 
             waitsFor( function() { return writeComplete; }, 1000 );

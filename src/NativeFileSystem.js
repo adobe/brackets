@@ -163,15 +163,6 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
     };
 
     _FileWriter.prototype.write = function( data ) {
-        brackets.fs.writeFile(baseDir + "write_test.txt", contents, "utf8", function(err) {
-            expect(err).toBeFalsy();
-
-            // Read contents to verify
-            brackets.fs.readFile(baseDir + "write_test.txt", "utf8", function(err, data) {
-                expect(err).toBeFalsy();
-                expect(data).toBe(contents);
-            });
-        });
     };
 
     _FileWriter.prototype.seek = function( offset ) {
@@ -189,12 +180,12 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
  * @param {Blob} data
  * @constructor
  */
-FileSaver = function( data ) {
+NativeFileSystem.FileSaver = function( data ) {
     _data = data;
 };
 
 // FileSaver constants
-Object.defineProperties(FileSaver,
+Object.defineProperties(NativeFileSystem.FileSaver,
     { INIT:     { value: 1 }
     , WRITING:  { value: 2 }
     , DONE:     { value: 3 }
@@ -202,7 +193,7 @@ Object.defineProperties(FileSaver,
 
 // FileSaver private memeber vars
 NativeFileSystem.FileSaver.prototype._data = null;
-NativeFileSystem.FileSaver.prototype._readyState = FileSaver.INIT;
+NativeFileSystem.FileSaver.prototype._readyState = NativeFileSystem.FileSaver.INIT;
 NativeFileSystem.FileSaver.prototype._error = null;
 
 // FileSaver methods
@@ -281,15 +272,15 @@ NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, suc
     // Use stat() to check if file exists
     brackets.fs.stat( fileFullPath, function( err, stats ) {
         if ( options.create ) {
-            if ( ( options.exclusive && ( err !== FileError.ERR_NOT_FOUND ) ) {
+            if ( options.exclusive && ( err !== brackets.fs.ERR_NOT_FOUND ) ) {
                 // throw error if file already exists
-                errorCallback( new FileError( FileError.PATH_EXISTS_ERR ) );
+                errorCallback( NativeFileSystem._nativeToFileError( brackets.fs.PATH_EXISTS_ERR ) );
                 return;
             }
-            if ( err === FileError.ERR_NOT_FOUND ) {
+            if ( err === brackets.fs.ERR_NOT_FOUND ) {
                 brackets.fs.writeFile( fileFullPath, "utf8", "", function( err ) {
                     if ( err )
-                        errorCallback( new FileError( err ) );
+                        errorCallback( NativeFileSystem._nativeToFileError( err ) );
                     else
                         successCallback( new FileEntry( fileFullPath ) );
                 });
@@ -299,11 +290,11 @@ NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, suc
         }
         else {
             // file does not exist
-            if ( err === FileError.ERR_NOT_FOUND )
-                errorCallback( new FileError( FileError.ERR_NOT_FOUND ) );
+            if ( err === brackets.fs.ERR_NOT_FOUND )
+                errorCallback( NativeFileSystem._nativeToFileError( err ) );
             // path is a directory and not a file
             else if ( stats.isDirectory )
-                errorCallback( new FileError( FileError.TYPE_MISMATCH_ERR ) );
+                errorCallback( NativeFileSystem._nativeToFileError( err ) );
             else
                 successCallback( new FileEntry( fileFullPath ) );
         }
@@ -487,7 +478,7 @@ NativeFileSystem.FileError = function(code) {
 };
 
 // FileError constants
-Object.defineProperties(FileError,
+Object.defineProperties(NativeFileSystem.FileError,
     { NOT_FOUND_ERR:                { value: 1 }
     , SECURITY_ERR:                 { value: 2 }
     , ABORT_ERR:                    { value: 3 }
