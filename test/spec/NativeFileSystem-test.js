@@ -220,7 +220,7 @@ describe("NativeFileSystem", function(){
 
     describe("Writing", function() {
 
-        it("should write new files", function() {
+        it("should create new, zero-length files", function() {
             var nfs = null;
 
             NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
@@ -237,16 +237,20 @@ describe("NativeFileSystem", function(){
                     fileEntry = entry;
                     writeComplete = true;
                 }
-                var errorCallback = function() { writeComplete = true };
+                var errorCallback = function() {
+                    writeComplete = true
+                };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
-                nfs.getFile("should-write-new-files.txt", { create: true }, successCallback, errorCallback );
+                // FIXME (jasonsj): Need brackets.fs.rm() to cleanup created file
+                //                  https://github.com/adobe/brackets-app/issues/14
+                nfs.getFile(Math.random() + "do-not-commit.txt", { create: true }, successCallback, errorCallback );
             });
 
             waitsFor( function() { return writeComplete; }, 1000 );
 
             runs(function() {
-                expect(entries).not.toBe(null);
+                expect(fileEntry).not.toBe(null);
             });
         });
 
