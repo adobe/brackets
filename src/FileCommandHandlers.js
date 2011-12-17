@@ -8,27 +8,31 @@
 var FileCommandHandlers = (function() {
     // TODO: remove this and use the real exports variable when we switch to modules.
     var exports = {};
-    
+
     var _editor, _title, _currentFilePath, _currentTitlePath,
         _isDirty = false,
         _savedUndoPosition = 0;
-    
+
     exports.init = function init(editor, title) {
         _editor = editor;
         _title = title;
-        
+
         _editor.setOption("onChange", function() {
             updateDirty();
         });
-    
+
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
     };
-    
+
     exports.getEditor = function getEditor() {
         return _editor;
+    };
+
+    exports.isDirty = function isDirty() {
+        return _isDirty;
     };
 
     function updateDirty() {
@@ -42,24 +46,24 @@ var FileCommandHandlers = (function() {
         if (_isDirty != newIsDirty) {
             _isDirty = newIsDirty;
             updateTitle();
-        }        
+        }
     }
-    
+
     function updateTitle() {
         _title.text(
-            _currentTitlePath 
-                ? (_currentTitlePath + (_isDirty ? " \u2022" : "")) 
+            _currentTitlePath
+                ? (_currentTitlePath + (_isDirty ? " \u2022" : ""))
                 : "Untitled"
         );
     }
-    
+
     function handleFileOpen(fullPath) {
         // TODO: In the future, when we implement multiple open files, we won't close the previous file when opening
-        // a new one. However, for now, since we only support a single open document, I'm pretending as if we're 
-        // closing the existing file first. This is so that I can put the code that checks for an unsaved file and 
+        // a new one. However, for now, since we only support a single open document, I'm pretending as if we're
+        // closing the existing file first. This is so that I can put the code that checks for an unsaved file and
         // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
         // we can remove this here.
-        var result; 
+        var result;
         if (_currentFilePath) {
             result = new $.Deferred();
             CommandManager
@@ -80,17 +84,17 @@ var FileCommandHandlers = (function() {
         else {
             result = doOpenWithOptionalPath(fullPath);
         }
-        result.always(function() { 
-            _editor.focus(); 
+        result.always(function() {
+            _editor.focus();
         });
         return result;
     }
-    
-    function doOpenWithOptionalPath(fullPath) {  
+
+    function doOpenWithOptionalPath(fullPath) {
         if (!fullPath) {
             // Prompt the user with a dialog
             // TODO: we're relying on this to not be asynchronous--is that safe?
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
+            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath,
                 ["htm", "html", "js", "css"], function(files) {
                     if (files.length > 0) {
                         return doOpen(files[0]);
@@ -101,21 +105,21 @@ var FileCommandHandlers = (function() {
             return doOpen(fullPath);
         }
     }
-    
-    function doOpen(fullPath) { 
-        var result = new $.Deferred();         
+
+    function doOpen(fullPath) {
+        var result = new $.Deferred();
         if (fullPath) {
             var reader = new NativeFileSystem.FileReader();
 
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            
+
             // TODO: it's weird to have to construct a FileEntry just to get a File.
-            fileEntry.file(function(file) {                
+            fileEntry.file(function(file) {
                 reader.onload = function(event) {
                     _currentFilePath = _currentTitlePath = fullPath;
-                    
+
                     // TODO: have a real controller object for the editor
                     _editor.setValue(event.target.result);
                     _editor.clearHistory();
@@ -130,12 +134,12 @@ var FileCommandHandlers = (function() {
                         _currentTitlePath = fullPath.slice(projectRootPath.length);
                         if (_currentTitlePath.charAt(0) == '/') {
                             _currentTitlePath = _currentTitlePath.slice(1);
-                        }                          
+                        }
                     }
-                    
+
                     // Make sure we can't undo back to the previous content.
                     _editor.clearHistory();
-                    
+
                     // This should be 0, but just to be safe...
                     _savedUndoPosition = _editor.historySize().undo;
                     updateDirty();
@@ -143,12 +147,12 @@ var FileCommandHandlers = (function() {
                     _editor.focus();
                     result.resolve();
                 };
-                
+
                 reader.onerror = function(event) {
                     // TODO: display meaningful error
                     result.reject();
                 }
-                
+
                 reader.readAsText(file, "utf8");
             },
             function (error) {
@@ -158,14 +162,14 @@ var FileCommandHandlers = (function() {
         }
         return result;
     }
-    
+
     function handleFileSave() {
         var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
             var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
-        
+
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwrite = function() {
@@ -176,6 +180,7 @@ var FileCommandHandlers = (function() {
                     writer.onerror = function() {
                         result.reject();
                     }
+                    // TODO (jasonsj): Blob instead of string
                     writer.write(_editor.getValue());
                 },
                 function(error) {
@@ -187,12 +192,12 @@ var FileCommandHandlers = (function() {
         else {
             result.resolve();
         }
-        result.always(function() { 
-            _editor.focus(); 
+        result.always(function() {
+            _editor.focus();
         });
         return result;
     }
-    
+
     function handleFileClose() {
         if (_currentFilePath && _isDirty) {
             var result = new $.Deferred();
@@ -215,7 +220,7 @@ var FileCommandHandlers = (function() {
                             .fail(function() {
                                 result.reject();
                             });
-                    }   
+                    }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
                         doClose();
@@ -223,8 +228,8 @@ var FileCommandHandlers = (function() {
                     }
                 }
             });
-            result.always(function() { 
-                _editor.focus(); 
+            result.always(function() {
+                _editor.focus();
             });
             return result;
         }
@@ -233,7 +238,7 @@ var FileCommandHandlers = (function() {
             _editor.focus();
         }
     }
-    
+
     function doClose() {
         // TODO: When we implement multiple files being open, this will probably change to just
         // dispose of the editor for the current file (and will later change again if we choose to
@@ -246,7 +251,7 @@ var FileCommandHandlers = (function() {
         updateTitle();
         _editor.focus();
     }
-    
+
     return exports;
 })();
 
