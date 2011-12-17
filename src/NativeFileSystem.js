@@ -189,12 +189,13 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         var self = this;
 
         brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
-            if ( self.onerror ) {
-                self.onerror ( NativeFileSystem._nativeToFileError( err ) );
-
-                // TODO (jasonsj): partial write, update length and position
+            if ( err ) {
+                if ( self.onerror ) {
+                    self.onerror ( NativeFileSystem._nativeToFileError( err ) );
+                }
             }
             else {
+                // TODO (jasonsj): partial write, update length and position
                 // successful completion of a write
                 self.position += data.size;
             }
@@ -207,7 +208,7 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
                 self.onwrite();
             }
 
-            if ( this.onwriteend ) {
+            if ( self.onwriteend ) {
                 // TODO (jasonsj): progressevent
                 self.onwriteend();
             }

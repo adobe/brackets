@@ -23,6 +23,8 @@
 	<script src="NativeFileSystem.js"></script>	
 	<script src="CommandManager.js"></script>
 	<script src="Commands.js"></script>
+	<script src="FileCommandHandlers.js"></script>
+	<script src="KeyBindingManager.js"></script>
 	<script src="ProjectManager.js"></script>
 	<script src="brackets.js"></script>
 	<script src="strings.js"></script>
@@ -41,6 +43,7 @@
 				<ul class="dropdown-menu">
 					<li><a href="#" id="menu-file-new">New</a></li>
 					<li><a href="#" id="menu-file-open">Open</a></li>
+					<li><a href="#" id="menu-file-close">Close</a></li>
 					<li><a href="#" id="menu-file-save">Save</a></li>
 					<li><a href="#" id="menu-file-quit">Quit</a></li>
 				</ul>
@@ -85,13 +88,28 @@
 	<div id="error-dialog" class="modal hide fade">
 		<div class="modal-header">
 			<a href="#" class="close">&times;</a>
-			<h3 id="error-dialog-title">Error</h3>
+			<h3 class="dialog-title">Error</h3>
 		</div>
 		<div class="modal-body">
-			<p id="error-dialog-message">Message goes here</p>
+			<p class="dialog-message">Message goes here</p>
 		</div>
 		<div class="modal-footer">
-			<a id="error-dialog-ok" href="#" class="btn primary">OK</a>
+			<a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
+		</div>		
+	</div>
+	<div id="save-close-dialog" class="modal hide fade">
+		<div class="modal-header">
+			<a href="#" class="close">&times;</a>
+			<h3 class="dialog-title">Save Changes</h3>
+		</div>
+		<div class="modal-body">
+			<p class="dialog-message">Message goes here</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
+			<!-- TODO: switch buttons on Windows -->
+			<a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
+			<a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
 		</div>		
 	</div>
 </body>
