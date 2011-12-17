@@ -41,8 +41,11 @@ describe("LowLevelFileIO", function() {
     describe("readdir", function() {
         var complete, error, content;
         
-        it("should read a directory from disk", function() {
+        beforeEach(function() {
             complete = false;
+        });
+        
+        it("should read a directory from disk", function() {
             brackets.fs.readdir(baseDir, function(err, contents) {
                 error = err;
                 content = contents;
@@ -66,7 +69,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if the directory doesn't exist", function() {
-            complete = false;
             brackets.fs.readdir("/This/directory/doesnt/exist", function(err, contents) {
                 error = err;
                 complete = true;
@@ -80,7 +82,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if the directory can't be read", function() {
-            complete = false;
             brackets.fs.readdir(baseDir + "cant_read_here", function(err, contents) {
                 error = err;
                 complete = true;
@@ -94,7 +95,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if invalid parameters are passed", function() {
-            complete = false;
             brackets.fs.readdir(42, function(err, contents) {
                 error = err;
                 complete = true;
@@ -110,9 +110,12 @@ describe("LowLevelFileIO", function() {
 
     describe("stat", function() {
         var complete, error, stat;
+       
+        beforeEach(function() {
+            complete = false;
+        });
         
         it ("should return correct information for a directory", function() {
-            complete = false;
             brackets.fs.stat(baseDir, function(err, _stat) {
                 error = err;
                 stat = _stat;
@@ -129,7 +132,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return correct information for a file", function() {
-            complete = false;
             brackets.fs.stat(baseDir + "file_one.txt", function(err, _stat) {
                 error = err;
                 stat = _stat;
@@ -146,7 +148,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if the file/directory doesn't exist", function() {
-            complete = false;
             brackets.fs.stat("/This/directory/doesnt/exist", function(err, _stat) {
                 error = err;
                 complete = true;
@@ -160,7 +161,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if incorrect parameters are passed", function() {
-            complete = false;
             brackets.fs.stat(42, function(err, _stat) {
                 error = err;
                 complete = true;
@@ -178,8 +178,11 @@ describe("LowLevelFileIO", function() {
     describe("readFile", function() {
         var complete, error, content;
         
-        it ("should read a text file", function() {
+        beforeEach(function() {
             complete = false;
+        });
+        
+        it ("should read a text file", function() {
             brackets.fs.readFile(baseDir + "file_one.txt", "utf8", function(err, contents) {
                 error = err;
                 content = contents;
@@ -195,7 +198,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if trying to read a non-existent file", function() {
-            complete = false;
             brackets.fs.readFile("/This/file/doesnt/exist.txt", "utf8", function(err, contents) {
                 error = err;
                 content = contents;
@@ -210,7 +212,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if trying to use an unsppported encoding", function() {
-            complete = false;
             brackets.fs.readFile(baseDir + "file_one.txt", "utf16", function(err, contents) {
                 error = err;
                 content = contents;
@@ -225,7 +226,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if called with invalid parameters", function() {
-            complete = false;
             brackets.fs.readFile(42, [], function(err, contents) {
                 error = err;
                 content = contents;
@@ -240,7 +240,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if trying to read a directory", function() {
-            complete = false;
             brackets.fs.readFile(baseDir, "utf8", function(err, contents) {
                 error = err;
                 content = contents;
@@ -258,8 +257,11 @@ describe("LowLevelFileIO", function() {
     describe("writeFile", function() {
         var complete, error, content, contents = "This content was generated from LowLevelFileIO-test.js";
         
-        it ("should write the entire contents of a file", function() {
+        beforeEach(function() {
             complete = false;
+        });
+        
+        it ("should write the entire contents of a file", function() {
             brackets.fs.writeFile(baseDir + "write_test.txt", contents, "utf8", function(err) {
                 error = err;
                 complete = true;
@@ -290,7 +292,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if the file can't be written", function() {
-            complete = false;
             brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, "utf8", function(err) {
                 error = err;
                 complete = true;
@@ -304,7 +305,6 @@ describe("LowLevelFileIO", function() {
         });
         
         it ("should return an error if called with invalid parameters", function() {
-            complete = false;
             brackets.fs.writeFile(42, contents, 2, function(err) {
                 error = err;
                 complete = true;
@@ -318,7 +318,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if trying to write a directory", function() {
-            complete = false;
             brackets.fs.writeFile(baseDir, contents, "utf8", function(err) {
                 error = err;
                 complete = true;
@@ -336,10 +335,13 @@ describe("LowLevelFileIO", function() {
     describe("unlink", function() {
         var complete, error, content, contents = "This content was generated from LowLevelFileIO-test.js";
         
+        beforeEach(function() {
+            complete = false;
+        });
+        
         it ("should remove a file", function() {
             var filename = baseDir + "remove_me.txt";
             
-            complete = false;
             brackets.fs.writeFile(filename, contents, "utf8", function(err) {
                 error = err;
                 complete = true;
@@ -401,7 +403,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if the file doesn't exist", function() {
-            complete = false;
             brackets.fs.unlink("/This/file/doesnt/exist.txt", function(err) {
                 error = err;
                 complete = true;
@@ -415,7 +416,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if the a directory is specified", function() {
-            complete = false;
             brackets.fs.unlink(baseDir, function(err) {
                 error = err;
                 complete = true;
@@ -429,7 +429,6 @@ describe("LowLevelFileIO", function() {
         });
 
         it ("should return an error if called with invalid parameters", function() {
-            complete = false;
             brackets.fs.unlink(42, function(err) {
                 error = err;
                 complete = true;
