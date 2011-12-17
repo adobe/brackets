@@ -179,7 +179,7 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         if ( this.readyState === NativeFileSystem.FileSaver.WRITING )
             throw new NativeFileSystem.FileException( NativeFileSystem.FileException.INVALID_STATE_ERR );
 
-        this.readyState = NativeFileSystem.FileSaver.WRITING;
+        this._readyState = NativeFileSystem.FileSaver.WRITING;
 
         if ( this.onwritestart ) {
             // TODO (jasonsj): progressevent
@@ -200,7 +200,7 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
             }
 
             // DONE is set regardless of error
-            this.readyState = NativeFileSystem.FileSaver.DONE;
+            this._readyState = NativeFileSystem.FileSaver.DONE;
 
             if ( self.onwrite ) {
                 // TODO (jasonsj): progressevent
@@ -242,6 +242,11 @@ Object.defineProperties(NativeFileSystem.FileException,
 });
 
 /** class: FileSaver
+ * This interface provides methods to monitor the asynchronous writing of
+ * blobs to disk using progress events and event handler attributes.
+ *
+ * This interface is specified to be used within the context of the global
+ * object and within Web Workers.
  *
  * @param {Blob} data
  * @constructor
@@ -261,6 +266,13 @@ Object.defineProperties(NativeFileSystem.FileSaver,
 });
 
 // FileSaver methods
+
+/**
+ *
+ */
+NativeFileSystem.FileSaver.prototype.readyState = function() {
+    return this._readyState;
+}
 
 // TODO (jasonsj): http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
 NativeFileSystem.FileSaver.prototype.abort = function() {
