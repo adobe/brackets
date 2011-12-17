@@ -140,8 +140,8 @@ NativeFileSystem.FileEntry = function( name ) {
  *
  * Creates a new FileWriter associated with the file that this FileEntry represents.
  *
- * @param {function} successCallback
- * @param {function} errorCallback
+ * @param {function(_FileWriter)} successCallback
+ * @param {function(FileError)} errorCallback
  */
 NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
     var fileEntry = this;
@@ -230,15 +230,15 @@ NativeFileSystem.FileException = function ( code ){
 
 // FileException constants
 Object.defineProperties(NativeFileSystem.FileException,
-    { NOT_FOUND_ERR:                { value: 1 }
-    , SECURITY_ERR:                 { value: 2 }
-    , ABORT_ERR:                    { value: 3 }
-    , NOT_READABLE_ERR:             { value: 4 }
-    , ENCODING_ERR:                 { value: 5 }
-    , NO_MODIFICATION_ALLOWED_ERR:  { value: 6 }
-    , INVALID_STATE_ERR:            { value: 7 }
-    , SYNTAX_ERR:                   { value: 8 }
-    , QUOTA_EXCEEDED_ERR:           { value: 10 }
+    { NOT_FOUND_ERR:                { value: 1, writable: false }
+    , SECURITY_ERR:                 { value: 2, writable: false }
+    , ABORT_ERR:                    { value: 3, writable: false }
+    , NOT_READABLE_ERR:             { value: 4, writable: false }
+    , ENCODING_ERR:                 { value: 5, writable: false }
+    , NO_MODIFICATION_ALLOWED_ERR:  { value: 6, writable: false }
+    , INVALID_STATE_ERR:            { value: 7, writable: false }
+    , SYNTAX_ERR:                   { value: 8, writable: false }
+    , QUOTA_EXCEEDED_ERR:           { value: 10, writable: false }
 });
 
 /** class: FileSaver
@@ -260,9 +260,9 @@ NativeFileSystem.FileSaver = function( data ) {
 
 // FileSaver constants
 Object.defineProperties(NativeFileSystem.FileSaver,
-    { INIT:     { value: 1 }
-    , WRITING:  { value: 2 }
-    , DONE:     { value: 3 }
+    { INIT:     { value: 1, writable: false }
+    , WRITING:  { value: 2, writable: false }
+    , DONE:     { value: 3, writable: false }
 });
 
 // FileSaver methods
@@ -343,15 +343,14 @@ NativeFileSystem.DirectoryEntry.prototype.createReader = function() {
 
 /**
  * Creates or looks up a file.
- * http://dev.w3.org/2009/dap/file-system/pub/FileSystem/#widl-DirectoryEntry-getFile
  *
  * @param {string} path Either an absolute path or a relative path from this
  *        DirectoryEntry to the file to be looked up or created. It is an error
  *        to attempt to create a file whose immediate parent does not yet
  *        exist.
- * @param {object} options
- * @param {function(entry)} successCallback
- * @param {function(err)} errorCallback
+ * @param {Object.<string, boolean>} options
+ * @param {function(number)} successCallback
+ * @param {function(number)} errorCallback
  */
 NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
     // TODO (jasonsj): handle absolute paths
