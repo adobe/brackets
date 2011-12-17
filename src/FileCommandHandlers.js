@@ -26,6 +26,10 @@ var FileCommandHandlers = (function() {
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
     };
+    
+    exports.getEditor = function getEditor() {
+        return _editor;
+    };
 
     function updateDirty() {
         // If we've undone past the undo position at the last save, and there is no redo stack,
