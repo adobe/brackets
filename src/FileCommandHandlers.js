@@ -112,10 +112,6 @@ var FileCommandHandlers = (function() {
                 reader.onload = function(event) {
                     _currentFilePath = _currentTitlePath = fullPath;
                     
-                    // TODO: have a real controller object for the editor
-                    _editor.setValue(event.target.result);
-                    _editor.clearHistory();
-
                     // In the main toolbar, show the project-relative path (if the file is inside the current project)
                     // or the full absolute path (if it's not in the project).
                     var projectRootPath = ProjectManager.getProjectRoot().fullPath;
@@ -129,6 +125,9 @@ var FileCommandHandlers = (function() {
                         }                          
                     }
                     
+                    // TODO: have a real controller object for the editor
+                    _editor.setValue(event.target.result);
+ 
                     // Make sure we can't undo back to the previous content.
                     _editor.clearHistory();
                     
@@ -136,7 +135,6 @@ var FileCommandHandlers = (function() {
                     _savedUndoPosition = _editor.historySize().undo;
                     updateDirty();
 
-                    _editor.focus();
                     result.resolve();
                 };
                 
@@ -190,8 +188,8 @@ var FileCommandHandlers = (function() {
     }
     
     function handleFileClose() {
+        var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {
-            var result = new $.Deferred();
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , brackets.strings.SAVE_CLOSE_TITLE
@@ -222,12 +220,13 @@ var FileCommandHandlers = (function() {
             result.always(function() { 
                 _editor.focus(); 
             });
-            return result;
         }
         else {
             doClose();
             _editor.focus();
+            result.resolve();
         }
+        return result;
     }
     
     function doClose() {
