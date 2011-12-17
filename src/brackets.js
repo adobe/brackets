@@ -9,21 +9,35 @@ brackets = window.brackets || {};
 
 brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
+brackets.DIALOG_BTN_CANCEL = "cancel";
+brackets.DIALOG_BTN_OK = "ok";
+brackets.DIALOG_BTN_DONTSAVE = "dontsave";
+
+brackets.DIALOG_ID_ERROR = "error-dialog";
+brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
+
 /**
- * General purpose modal error dialog. 
+ * General purpose modal dialog. Assumes that the HTML for the dialog contains elements with "title"
+ * and "message" classes, as well as a number of elements with "dialog-button" class, each of which has
+ * a "data-button-id".
  *
+ * @param {string} id The ID of the dialog node in the HTML.
  * @param {string} title The title of the error dialog. Can contain HTML markup.
  * @param {string} message The message to display in the error dialog. Can contain HTML markup.
+ * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
+ *     is dismissed.
  */
-brackets.showErrorDialog = function(title, message) {
-    var dlg = $("#error-dialog");
+brackets.showModalDialog = function(id, title, message, callback) {
+    var result = $.Deferred();
+    var dlg = $("#" + id);
     
     // Set title and message
-    $("#error-dialog-title").html(title);
-    $("#error-dialog-message").html(message);
+    $(".dialog-title", dlg).html(title);
+    $(".dialog-message", dlg).html(message);
     
-    // Click handler for OK button
-    dlg.delegate("#error-dialog-ok", "click", function(e) {
+    // Click handler for buttons
+    dlg.on("click", ".dialog-button", function(e) {
+        result.resolve($(this).attr("data-button-id"));
         dlg.modal(true).hide();
     });
     
@@ -33,149 +47,96 @@ brackets.showErrorDialog = function(title, message) {
         , show: true
         }
     );
-}
+    return result;
+};
 
 $(document).ready(function() {
 
     var editor = CodeMirror($('#editor').get(0));
-
-    // Load a default project into the tree
-    if (brackets.inBrowser) {
-        // In browser: dummy folder tree (hardcoded in ProjectManager)
-        ProjectManager.loadProject("DummyProject");
-    } else {
-        // In app shell: load Brackets itself
-        var loadedPath = window.location.pathname;
-        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-        ProjectManager.loadProject(bracketsSrc);
+    
+    initProject();
+    initMenus();
+    initCommandHandlers();
+    initKeyBindings();
+    
+    function initProject() {    
+        // Load a default project into the tree
+        if (brackets.inBrowser) {
+            // In browser: dummy folder tree (hardcoded in ProjectManager)
+            ProjectManager.loadProject("DummyProject");
+        } else {
+            // In app shell: load Brackets itself
+            var loadedPath = window.location.pathname;
+            var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+            ProjectManager.loadProject(bracketsSrc);
+        }
+    
+        // Open project button
+        $("#btn-open-project").click(function() {
+            ProjectManager.openProject();
+        });
     }
+ 
+    function initMenus() {
+        // Implements the File menu items
+        $("#menu-file-open").click(function() {
+            CommandManager.execute(Commands.FILE_OPEN);
+        });
+        $("#menu-file-close").click(function() {
+            CommandManager.execute(Commands.FILE_CLOSE);
+        });
+        $("#menu-file-save").click(function() {
+            CommandManager.execute(Commands.FILE_SAVE);
+        });
     
-    // Open project button
-    $("#btn-open-project").click(function() {
-        ProjectManager.openProject();
-    });
-    
-    // Implements the "Open File" menu
-    $("#menu-file-open").click(function() {
-        CommandManager.execute(Commands.FILE_OPEN);
-    });
-    
-    // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
-    var testWindow = null;
-    $("#menu-runtests").click(function(){
-        if (!(testWindow === null)) {
-            try {
-                testWindow.location.reload();
-            } catch(e) {
-                testWindow = null;  // the window was probably closed
-            } 
-        }
+        // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
+        var testWindow = null;
+        $("#menu-runtests").click(function(){
+            if (!(testWindow === null)) {
+                try {
+                    testWindow.location.reload();
+                } catch(e) {
+                    testWindow = null;  // the window was probably closed
+                } 
+            }
         
-        if (testWindow === null) {
-            testWindow = window.open("../test/SpecRunner.html");
-            testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
-        }
-    });
-    
-    // Ty test code hooked up to "new" menu. Test reads a file and prints its constents to the log.
-    // uncomment to test
-    /*$("#menu-file-new").click(function(){
-        var fileEntry = new NativeFileSystem.FileEntry( "/Users/tvoliter/github/brackets-app/README.md" );
-        var file;
-        fileEntry.file( function( file ){
-            var reader = new NativeFileSystem.FileReader();
-            reader.onerror = errorHandler;
-        
-            reader.onabort = function(e) {
-              alert('File read cancelled');
-            };
-                    
-            reader.onloadstart = function(e) {
-              console.log( "loading" );
-            };
-        
-            reader.onload = function ( event ){
-                console.log( event.target.result );
-            };
-        
-    
-            // Read in the image file as a binary string.
-            reader.readAsText(file, "utf8");
-        
-        
-            function errorHandler(evt) {
-                switch(evt.target.error.code) {
-                  case evt.target.error.NOT_FOUND_ERR:
-                    alert('File Not Found!');
-                    break;
-                  case evt.target.error.NOT_READABLE_ERR:
-                    alert('File is not readable');
-                    break;
-                  case evt.target.error.ABORT_ERR:
-                    break; // noop
-                  default:
-                    alert('An error occurred reading this file.');
-                };
+            if (testWindow === null) {
+                testWindow = window.open("../test/SpecRunner.html");
+                testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
             }
         });
-    });*/
-
-    // Utility functions
-    function doOpen(fullPath) {          
-        if (fullPath) {
-            var reader = new NativeFileSystem.FileReader();
-
-            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            
-            // TODO: it's weird to have to construct a FileEntry just to get a File.
-            fileEntry.file(function(file) {                
-                reader.onload = function(event) {
-                    // TODO: have a real controller object for the editor
-                    editor.setValue(event.target.result);
-                    editor.clearHistory();
-
-                    // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                    // or the full absolute path (if it's not in the project).
-                    var projectRootPath = ProjectManager.getProjectRoot().fullPath;
-                    if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
-                        projectRootPath += "/";
-                    }
-                    if (fullPath.indexOf(projectRootPath) == 0) {
-                        fullPath = fullPath.slice(projectRootPath.length);
-                        if (fullPath.charAt(0) == '/') {
-                            fullPath = fullPath.slice(1);
-                        }                          
-                    }
-                    $("#main-toolbar .title").text(fullPath);                    
-                };
-                reader.onerror = function(event) {
-                    // TODO: display meaningful error
-                }
-                
-                reader.readAsText(file, "utf8");
-            },
-            function (error) {
-                // TODO: display meaningful error
-            });
-        }
     }
     
-    // Register global commands
-    CommandManager.register(Commands.FILE_OPEN, function(fullPath) {
-        if (!fullPath) {
-            // Prompt the user with a dialog
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
-                ["htm", "html", "js", "css"], function(files) {
-                    if (files.length > 0) {
-                        doOpen(files[0]);
-                    }
-                });
-        }
-        else {
-            doOpen(fullPath);
-        }
-    });
-
+    function initCommandHandlers() {    
+        FileCommandHandlers.init(editor, $("#main-toolbar .title"));
+    }
+    
+    function initKeyBindings() {
+        // Register keymaps and install the keyboard handler
+        // TODO: show keyboard equivalents in the menus
+        var _globalKeymap = new KeyMap(
+            { "Ctrl-O": Commands.FILE_OPEN
+            , "Ctrl-S": Commands.FILE_SAVE
+            , "Ctrl-W": Commands.FILE_CLOSE
+            }
+        );
+        KeyBindingManager.installKeymap(_globalKeymap);
+    
+        $(document.body).keydown(function(event) {
+            var keyDescriptor = [];
+            if (event.metaKey || event.ctrlKey) {
+                keyDescriptor.push("Ctrl");
+            }
+            if (event.altKey) {
+                keyDescriptor.push("Alt");
+            }
+            if (event.shiftKey) {
+                keyDescriptor.push("Shift");
+            }
+            keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
+            if (KeyBindingManager.handleKey(keyDescriptor.join("-"))) {
+                event.preventDefault();
+            }
+        });
+    }
 });
