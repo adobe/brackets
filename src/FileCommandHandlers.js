@@ -139,14 +139,14 @@ var FileCommandHandlers = (function() {
                 };
                 
                 reader.onerror = function(event) {
-                    // TODO: display meaningful error
+                    showFileOpenError(event.target.error.code, fullPath);
                     result.reject();
                 }
                 
                 reader.readAsText(file, "utf8");
             },
             function (error) {
-                // TODO: display meaningful error
+                showFileOpenError(event.target.error.code, fullPath);
                 result.reject();
             });
         }
@@ -167,13 +167,14 @@ var FileCommandHandlers = (function() {
                         updateDirty();
                         result.resolve();
                     }
-                    writer.onerror = function() {
+                    writer.onerror = function(event) {
+                        showSaveFileError(event.target.error.code, _currentFilePath);
                         result.reject();
                     }
                     writer.write(_editor.getValue());
                 },
-                function(error) {
-                    // TODO: display meaningful error
+                function(event) {
+                    showSaveFileError(event.target.error.code, _currentFilePath);
                     result.reject();
                 }
             );
@@ -240,6 +241,45 @@ var FileCommandHandlers = (function() {
         _isDirty = false;
         updateTitle();
         _editor.focus();
+    }
+    
+    function showFileOpenError(code, path) {
+        brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , brackets.strings.ERROR_OPENING_FILE_TITLE
+            , brackets.strings.format(
+                    brackets.strings.ERROR_OPENING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+    
+    function showSaveFileError(code, path) {
+        brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , brackets.strings.ERROR_SAVING_FILE_TITLE
+            , brackets.strings.format(
+                    brackets.strings.ERROR_SAVING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+    
+    function getErrorString(code) {
+        // There are a few error codes that we have specific error messages for. The rest are
+        // displayed with a generic "(error N)" message.
+        var result;
+        
+        if (code == FileError.NOT_FOUND_ERR)
+            result = brackets.strings.NOT_FOUND_ERR;
+        else if (code == FileError.NOT_READABLE_ERR)
+            result = brackets.strings.NOT_READABLE_ERR;
+        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
+            result = brackets.strings.NO_MODIFICATION_ALLOWED_ERR;
+        else
+            result = brackets.strings.format(brackets.strings.GENERIC_ERROR, code);
+        
+        return result;
     }
     
     return exports;
