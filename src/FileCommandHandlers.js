@@ -99,7 +99,7 @@ var FileCommandHandlers = (function() {
             result = doOpen(fullPath);
         }
         if (!result)
-            result = new $.Deferred();
+            result = (new $.Deferred()).reject();
         return result;
     }
     
