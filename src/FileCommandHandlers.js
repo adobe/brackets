@@ -87,7 +87,7 @@ var FileCommandHandlers = (function() {
         if (!fullPath) {
             // Prompt the user with a dialog
             // TODO: we're relying on this to not be asynchronous--is that safe?
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath, 
+            NativeFileSystem.showOpenDialog(false, false, brackets.strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath, 
                 ["htm", "html", "js", "css"], function(files) {
                     if (files.length > 0) {
                         result = doOpen(files[0]);
