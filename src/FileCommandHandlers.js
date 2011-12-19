@@ -107,9 +107,7 @@ var FileCommandHandlers = (function() {
         var result = new $.Deferred();    
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
-            result.reject();
-            return result;
-            
+            return result.reject();
         }     
         
         var reader = new NativeFileSystem.FileReader();
@@ -156,7 +154,7 @@ var FileCommandHandlers = (function() {
             
             reader.readAsText(file, "utf8");
         },
-        function (error) {
+        function fileEntry_onerror(event) {
             showFileOpenError(event.target.error.code, fullPath);
             result.reject();
         });
