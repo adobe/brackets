@@ -146,8 +146,13 @@ NativeFileSystem.FileEntry = function( name ) {
 NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
     var fileEntry = this;
 
-    // [NoInterfaceObject]
-    // interface FileWriter : FileSaver
+    /**
+     * This interface expands on the FileSaver interface to allow for multiple
+     * write actions, rather than just saving a single Blob.
+     *
+     * @extends NativeFileSystem.FileSaver
+     * @constructor
+     */
     var _FileWriter = function( data ) {
         NativeFileSystem.FileSaver.call(this, data);
 
@@ -163,10 +168,24 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         });
     };
 
+    /**
+     * The length of the file. If the user does not have read access to the
+     * file, this must be the highest byte offset at which the user has
+     * written.
+     *
+     * @return {number} The length of the file.
+     */
     _FileWriter.prototype.length = function( ) {
         return this._length;
     };
 
+    /**
+     * The byte offset at which the next write to the file will occur. This
+     * must be no greater than length. A newly-created FileWriter must have
+     * position set to 0.
+     *
+     * @return {number} The position where the next write will occur.
+     */
     _FileWriter.prototype.position = function( ) {
         return this._position;
     };
@@ -189,34 +208,39 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         var self = this;
 
         brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
-            if ( self.onerror ) {
-                self.onerror ( NativeFileSystem._nativeToFileError( err ) );
-
-                // TODO (jasonsj): partial write, update length and position
-            }
-            else {
-                // successful completion of a write
-                self.position += data.size;
+            var fileError = null;
+            if ( self.err ) {
+                fileError = NativeFileSystem._nativeToFileError( err );
             }
 
             // DONE is set regardless of error
             this._readyState = NativeFileSystem.FileSaver.DONE;
 
-            if ( self.onwrite ) {
+            if ( self.onerror ) {
                 // TODO (jasonsj): progressevent
-                self.onwrite();
+                self.onerror();
             }
 
             if ( this.onwriteend ) {
                 // TODO (jasonsj): progressevent
                 self.onwriteend();
             }
+
+            // successful completion of a write
+            self.position += data.size;
+            self.length += data.size;
         });
     };
 
+    /**
+     * TODO (jasonsj)
+     */
     _FileWriter.prototype.seek = function( offset ) {
     };
 
+    /**
+     * TODO (jasonsj)
+     */
     _FileWriter.prototype.truncate = function( size ) {
     };
 
@@ -268,17 +292,28 @@ Object.defineProperties(NativeFileSystem.FileSaver,
 // FileSaver methods
 
 /**
+ * The FileSaver object can be in one of 3 states. The readyState attribute, on
+ * getting, must return the current state, which must be one of the following
+ * values:
  *
+ * INIT
+ * WRITING
+ * DONE
+ *
+ * @return {number}
  */
 NativeFileSystem.FileSaver.prototype.readyState = function() {
     return this._readyState;
 }
 
-// TODO (jasonsj): http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
+/*
+ * TODO (jasonsj): implement
+ * http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
+ */
 NativeFileSystem.FileSaver.prototype.abort = function() {
     // If readyState is DONE or INIT, terminate this overall series of steps without doing anything else..
     if (_readyState == FileSaver.INIT || _readyState == FileSaver.DONE)
-    return;
+        return;
 
     // Terminate any steps having to do with writing a file.
 
@@ -310,12 +345,6 @@ NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCall
     // TODO Ty: error handling
     // errorCallback
 };
-
-/*
-TODO Jason
-NativeFileSystem.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
-};
-*/
 
 /** class: DirectoryEntry
  *
