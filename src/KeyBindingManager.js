@@ -3,7 +3,9 @@
  */
 
 define(function(require, exports, module) {
-    CommandManager = require("CommandManager").CommandManager;
+    CommandManager = require("CommandManager");
+    
+    // TODO: Split KeyMap into a separate file.
     
     /**
      * Manages the mapping of keyboard inputs to commands.

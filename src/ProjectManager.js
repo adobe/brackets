@@ -8,39 +8,38 @@ define(function(require, exports, module) {
     
     // Load dependent modules
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
-    ,   CommandManager      = require("CommandManager").CommandManager
-    ,   Commands            = require("Commands").Commands
+    ,   CommandManager      = require("CommandManager")
+    ,   Commands            = require("Commands")
     ;
-    
-    var ProjectManager = {};
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
      * @return {DirectoryEntry}
      */
-    ProjectManager.getProjectRoot = function() {
-        return ProjectManager._projectRoot;
+    exports.getProjectRoot = function() {
+        return _projectRoot;
     }
     /**
      * @private
-     * @see Projectmanager.getProjectRoot()
+     * @see getProjectRoot()
      */
-    ProjectManager._projectRoot = null;
+    
+    var _projectRoot = null;
 
 
     /**
      * Displays a browser dialog where the user can choose a folder to load.
      * (If the user cancels the dialog, nothing more happens).
      */
-    ProjectManager.openProject = function() {
+    exports.openProject = function() {
         if (!brackets.inBrowser) {
             // Pop up a folder browse dialog
             NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
                 function(files) {
                     // If length == 0, user canceled the dialog; length should never be > 1
                     if (files.length > 0)
-                        ProjectManager.loadProject( files[0] );
+                        loadProject( files[0] );
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -59,7 +58,7 @@ define(function(require, exports, module) {
      * 
      * @param {string} rootPath  Absolute path to the root folder of the project.
      */
-    ProjectManager.loadProject = function(rootPath) {
+    exports.loadProject = function(rootPath) {
         // Set title
         var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
         $("#project-title").html(projectName);
@@ -67,7 +66,7 @@ define(function(require, exports, module) {
         // Populate file tree
         if (brackets.inBrowser) {
             // Hardcoded dummy data for local testing, in jsTree JSON format
-            // (we leave ProjectManager._projectRoot null)
+            // (we leave _projectRoot null)
             var subfolderInner = { data:"Folder_inner", children:[
                 { data: "subsubfile_1" }, { data: "subsubfile_2" }
             ] };
@@ -84,19 +83,19 @@ define(function(require, exports, module) {
             ];
         
             // Show file list in UI synchronously
-            ProjectManager._renderTree(treeJSONData);
+            _renderTree(treeJSONData);
         
         } else {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function(rootEntry) {
                     // Success!
-                    ProjectManager._projectRoot = rootEntry;
+                    _projectRoot = rootEntry;
                 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
-                    ProjectManager._renderTree(ProjectManager._treeDataProvider);
+                    _renderTree(_treeDataProvider);
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -119,12 +118,12 @@ define(function(require, exports, module) {
      * @param {jQueryObject} treeNode  jQ object for the DOM node being expanded
      * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
      */
-    ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {    
+    function _treeDataProvider(treeNode, jsTreeCallback) {    
         var dirEntry;
     
         if (treeNode == -1) {
             // Special case: root of tree
-            dirEntry = ProjectManager._projectRoot;
+            dirEntry = _projectRoot;
         } else {
             // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
             dirEntry = treeNode.data("entry");
@@ -133,7 +132,7 @@ define(function(require, exports, module) {
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             function(entries) {
-                var subtreeJSON = ProjectManager._convertEntriesToJSON(entries);
+                var subtreeJSON = _convertEntriesToJSON(entries);
                 jsTreeCallback(subtreeJSON);
             },
             function(error) {
@@ -159,7 +158,7 @@ define(function(require, exports, module) {
      * @param {Array.<Entry>} entries  Array of NativeFileSystem entry objects.
      * @return {Array} jsTree node data: array of JSON objects
      */
-    ProjectManager._convertEntriesToJSON = function(entries) {
+    function _convertEntriesToJSON(entries) {
         var jsonEntryList = [];
         for (var entryI in entries) {
             var entry = entries[entryI];
@@ -187,7 +186,7 @@ define(function(require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    ProjectManager._renderTree = function(treeDataProvider) {
+    function _renderTree(treeDataProvider) {
     
         var projectTreeContainer = $("#project-files-container");
     
@@ -208,6 +207,4 @@ define(function(require, exports, module) {
             CommandManager.execute(Commands.FILE_OPEN, data.rslt.obj.data("entry").fullPath);
         });
     };
-    
-    exports.ProjectManager = ProjectManager;
 });

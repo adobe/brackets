@@ -7,8 +7,9 @@
 	<meta charset="utf-8">
 	<title>Brackets</title>
 
-    <!-- jQuery is the only external script that is loaded without require(). -->
+    <!-- Pre-load third party scripts that cannot be async loaded. -->
     <script src="thirdparty/jquery-1.7.min.js"></script>
+    <script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
     <script src="thirdparty/require.js" data-main="brackets"></script>
     
 	<!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->

@@ -8,9 +8,7 @@ define(function(require, exports, module) {
      * Manages global application commands that can be called from menu items, key bindings, or subparts
      * of the application.
      */
-    var CommandManager = {};
-
-    CommandManager._commands = {};
+    var _commands = {};
 
     /**
      * Registers a global command.
@@ -21,11 +19,11 @@ define(function(require, exports, module) {
      *     it must return a jQuery Deferred that is resolved when the command completes. Otherwise, the
      *     CommandManager will assume it is synchronous, and return a Deferred that is already resolved.
      */
-    CommandManager.register = function(id, command) {
-        if (CommandManager._commands[id]) {
+    exports.register = function(id, command) {
+        if (_commands[id]) {
             throw new Error("Attempting to register an already-registered command: " + id);
         }
-        CommandManager._commands[id] = command;
+        _commands[id] = command;
     }
 
     /**
@@ -34,8 +32,8 @@ define(function(require, exports, module) {
      * @param {string} id The ID of the command to run.
      * @return {Deferred} a jQuery Deferred that will be resolved when the command completes.
      */
-    CommandManager.execute = function(id) {
-        var command = CommandManager._commands[id];
+    exports.execute = function(id) {
+        var command = _commands[id];
         if (command) {
             var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
             if (result === undefined) {
@@ -50,6 +48,4 @@ define(function(require, exports, module) {
             return (new $.Deferred()).reject();
         }
     }
-    
-    exports.CommandManager = CommandManager;
 });

@@ -4,10 +4,10 @@
 
 define(function(require, exports, module) {
     // Load dependent modules
-    var CommandManager      = require("CommandManager").CommandManager
-    ,   Commands            = require("Commands").Commands
+    var CommandManager      = require("CommandManager")
+    ,   Commands            = require("Commands")
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
-    ,   ProjectManager      = require("ProjectManager").ProjectManager
+    ,   ProjectManager      = require("ProjectManager")
     ,   Strings             = require("strings");
     ;
     

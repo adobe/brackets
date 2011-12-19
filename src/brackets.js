@@ -5,17 +5,16 @@
 // TODO: break out the definition of brackets into a separate module from the application controller logic
 define(function(require, exports, module) {
     // Load dependent non-module scripts
-    require("thirdparty/CodeMirror2/lib/codemirror");
     require("thirdparty/CodeMirror2/mode/javascript/javascript");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
 
     // Load dependent modules
-    var ProjectManager          = require("ProjectManager").ProjectManager
+    var ProjectManager          = require("ProjectManager")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
-    ,   Commands                = require("Commands").Commands
+    ,   Commands                = require("Commands")
     ;
 
     // Define core brackets namespace
