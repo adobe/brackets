@@ -1,0 +1,1 @@
+Thumbs.db
