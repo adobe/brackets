@@ -104,57 +104,63 @@ var FileCommandHandlers = (function() {
     }
     
     function doOpen(fullPath) { 
-        var result = new $.Deferred();         
-        if (fullPath) {
-            var reader = new NativeFileSystem.FileReader();
-
-            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        var result = new $.Deferred();    
+        if (!fullPath) {
+            console.log("doOpen() called without fullPath");
+            result.reject();
+            return result;
             
-            // TODO: it's weird to have to construct a FileEntry just to get a File.
-            fileEntry.file(function(file) {                
-                reader.onload = function(event) {
-                    _currentFilePath = _currentTitlePath = fullPath;
-                    
-                    // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                    // or the full absolute path (if it's not in the project).
-                    var projectRootPath = ProjectManager.getProjectRoot().fullPath;
-                    if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
-                        projectRootPath += "/";
-                    }
-                    if (fullPath.indexOf(projectRootPath) == 0) {
-                        _currentTitlePath = fullPath.slice(projectRootPath.length);
-                        if (_currentTitlePath.charAt(0) == '/') {
-                            _currentTitlePath = _currentTitlePath.slice(1);
-                        }                          
-                    }
-                    
-                    // TODO: have a real controller object for the editor
-                    _editor.setValue(event.target.result);
- 
-                    // Make sure we can't undo back to the previous content.
-                    _editor.clearHistory();
-                    
-                    // This should be 0, but just to be safe...
-                    _savedUndoPosition = _editor.historySize().undo;
-                    updateDirty();
+        }     
+        
+        var reader = new NativeFileSystem.FileReader();
 
-                    result.resolve();
-                };
+        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
+        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        
+        // TODO: it's weird to have to construct a FileEntry just to get a File.
+        fileEntry.file(function(file) {                
+            reader.onload = function(event) {
+                _currentFilePath = _currentTitlePath = fullPath;
                 
-                reader.onerror = function(event) {
-                    showFileOpenError(event.target.error.code, fullPath);
-                    result.reject();
+                // In the main toolbar, show the project-relative path (if the file is inside the current project)
+                // or the full absolute path (if it's not in the project).
+                var projectRootPath = ProjectManager.getProjectRoot().fullPath;
+                if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
+                    projectRootPath += "/";
+                }
+                if (fullPath.indexOf(projectRootPath) == 0) {
+                    _currentTitlePath = fullPath.slice(projectRootPath.length);
+                    if (_currentTitlePath.charAt(0) == '/') {
+                        _currentTitlePath = _currentTitlePath.slice(1);
+                    }                          
                 }
                 
-                reader.readAsText(file, "utf8");
-            },
-            function (error) {
+                // TODO: have a real controller object for the editor
+                _editor.setValue(event.target.result);
+
+                // Make sure we can't undo back to the previous content.
+                _editor.clearHistory();
+                
+                // This should be 0, but just to be safe...
+                _savedUndoPosition = _editor.historySize().undo;
+                updateDirty();
+
+                result.resolve();
+            };
+            
+            reader.onerror = function(event) {
                 showFileOpenError(event.target.error.code, fullPath);
                 result.reject();
-            });
-        }
+            }
+            
+            reader.readAsText(file, "utf8");
+        },
+        function (error) {
+            showFileOpenError(event.target.error.code, fullPath);
+            result.reject();
+        });
+
         return result;
     }
     
