@@ -34,8 +34,9 @@ ProjectManager.openProject = function() {
                     ProjectManager.loadProject( files[0] );
             },
             function(error) {
-                brackets.showErrorDialog(
-                      brackets.strings.ERROR_LOADING_PROJECT
+                brackets.showModalDialog(
+                      brackets.DIALOG_ID_ERROR
+                    , brackets.strings.ERROR_LOADING_PROJECT
                     , brackets.strings.format(brackets.strings.OPEN_DIALOG_ERROR, error.code)
                 );
             }
@@ -89,8 +90,9 @@ ProjectManager.loadProject = function(rootPath) {
                 ProjectManager._renderTree(ProjectManager._treeDataProvider);
             },
             function(error) {
-                brackets.showErrorDialog(
-                      brackets.strings.ERROR_LOADING_PROJECT
+                brackets.showModalDialog(
+                      brackets.DIALOG_ID_ERROR
+                    , brackets.strings.ERROR_LOADING_PROJECT
                     , brackets.strings.format(brackets.strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code)
                 );
             }
@@ -126,8 +128,9 @@ ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
             jsTreeCallback(subtreeJSON);
         },
         function(error) {
-            brackets.showErrorDialog(
-                  brackets.strings.ERROR_LOADING_PROJECT
+            brackets.showModalDialog(
+                  brackets.DIALOG_ID_ERROR
+                , brackets.strings.ERROR_LOADING_PROJECT
                 , brackets.strings.format(brackets.strings.READ_DIRECTORY_ENTRIES_ERROR, dirEntry.fullPath, error.code)
             );
         }
