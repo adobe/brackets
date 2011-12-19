@@ -29,6 +29,10 @@ if (!brackets.strings)
     }
     
     // General file io error strings
+    s.GENERIC_ERROR = "(error {0})";
+    s.NOT_FOUND_ERR = "The file could not be found.";
+    s.NOT_READABLE_ERR = "The file could not be read.";
+    s.NO_MODIFICATION_ALLOWED_ERR = "The target directory cannot be modified.";
     
     // Project error strings
     s.ERROR_LOADING_PROJECT = "Error loading project";
@@ -36,6 +40,14 @@ if (!brackets.strings)
     s.REQUEST_NATIVE_FILE_SYSTEM_ERROR = "An error occurred when trying to load the directory \"{0}\". (error {1})";
     s.READ_DIRECTORY_ENTRIES_ERROR = "An error occurred when reading the contents of the directory \"{0}\". (error {1})";
     
+    // File open/save error string
+    s.ERROR_OPENING_FILE_TITLE = "Error opening file";
+    s.ERROR_OPENING_FILE = "An error occurred when trying to open the file \"{0}\". {1}";
+    s.ERROR_SAVING_FILE_TITLE = "Error saving file";
+    s.ERROR_SAVING_FILE = "An error occurred when trying to save the file \"{0}\". {1}";
+    
     s.SAVE_CLOSE_TITLE = "Save Changes";
     s.SAVE_CLOSE_MESSAGE = "Do you want to save the changes you made in the document \"{0}\"?";
+    
+    s.OPEN_FILE = "Open File";
 })();

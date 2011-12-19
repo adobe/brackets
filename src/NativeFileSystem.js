@@ -191,7 +191,9 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
             if ( err ) {
                 if ( self.onerror ) {
-                    self.onerror ( NativeFileSystem._nativeToFileError( err ) );
+                    this.error = NativeFileSystem._nativeToFileError( err );
+                    // TODO: Dispatch a proper event here
+                    self.onerror ({ target: this });
                 }
             }
             else {
