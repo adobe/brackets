@@ -1,4 +1,5 @@
 define(function(require, exports, module) {
+    // Load dependent modules
     var SpecRunnerUtils = require("./SpecRunnerUtils").SpecRunnerUtils;
     
     // These are tests for the low-level file io routines in brackets-app. Make sure

@@ -1,4 +1,5 @@
 define(function(require, exports, module) {
+    // Load dependent modules
     var NativeFileSystem    = require("../../src/NativeFileSystem").NativeFileSystem
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils").SpecRunnerUtils
     ;

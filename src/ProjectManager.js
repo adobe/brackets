@@ -3,10 +3,10 @@
  */
 
 define(function(require, exports, module) {
-    // Non-module requires
+    // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
     
-    // Module requires
+    // Load dependent modules
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   CommandManager      = require("CommandManager").CommandManager
     ,   Commands            = require("Commands").Commands

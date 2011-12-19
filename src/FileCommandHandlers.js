@@ -3,6 +3,7 @@
  */
 
 define(function(require, exports, module) {
+    // Load dependent modules
     var CommandManager      = require("CommandManager").CommandManager
     ,   Commands            = require("Commands").Commands
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
