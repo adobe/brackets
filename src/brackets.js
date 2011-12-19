@@ -12,7 +12,7 @@ define(function(require, exports, module) {
 
     // Load dependent modules
     var ProjectManager          = require("ProjectManager").ProjectManager
-    ,   FileCommandHandlers     = require("FileCommandHandlers").FileCommandHandlers
+    ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
     ,   Commands                = require("Commands").Commands
