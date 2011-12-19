@@ -17,11 +17,17 @@
 	
 	<script src="thirdparty/jquery-1.7.min.js"></script>
 	<script src="widgets/bootstrap-dropdown.js"></script>
+	<script src="widgets/bootstrap-modal.js"></script>
 	<script src="thirdparty/jstree_pre1.0_fix_1/jquery.jstree.js"></script>
 	
 	<script src="NativeFileSystem.js"></script>	
-	<script src="brackets.js"></script>
+	<script src="CommandManager.js"></script>
+	<script src="Commands.js"></script>
+	<script src="FileCommandHandlers.js"></script>
+	<script src="KeyBindingManager.js"></script>
 	<script src="ProjectManager.js"></script>
+	<script src="brackets.js"></script>
+	<script src="strings.js"></script>
 </head>
 <body>
 	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
@@ -37,6 +43,7 @@
 				<ul class="dropdown-menu">
 					<li><a href="#" id="menu-file-new">New</a></li>
 					<li><a href="#" id="menu-file-open">Open</a></li>
+					<li><a href="#" id="menu-file-close">Close</a></li>
 					<li><a href="#" id="menu-file-save">Save</a></li>
 					<li><a href="#" id="menu-file-quit">Quit</a></li>
 				</ul>
@@ -71,10 +78,39 @@
 					<input class="settings" type="button" value="Settings"/>
 	-->
 				</div>
-				<div class="title">will-brackets-be-awesome.js</div>
+				<div class="title">Untitled</div>
 			</div>			
 			<div id="editor"></div>
 		</div>
+	</div>
+	
+	<!-- Modal Windows -->
+	<div id="error-dialog" class="modal hide fade">
+		<div class="modal-header">
+			<a href="#" class="close">&times;</a>
+			<h3 class="dialog-title">Error</h3>
+		</div>
+		<div class="modal-body">
+			<p class="dialog-message">Message goes here</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
+		</div>		
+	</div>
+	<div id="save-close-dialog" class="modal hide fade">
+		<div class="modal-header">
+			<a href="#" class="close">&times;</a>
+			<h3 class="dialog-title">Save Changes</h3>
+		</div>
+		<div class="modal-body">
+			<p class="dialog-message">Message goes here</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
+			<!-- TODO: switch buttons on Windows -->
+			<a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
+			<a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
+		</div>		
 	</div>
 </body>
 </html>
