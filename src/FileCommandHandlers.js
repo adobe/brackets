@@ -23,6 +23,7 @@ var FileCommandHandlers = (function() {
     
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
+        CommandManager.register(Commands.FILE_NEW, handleFileNew);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
     };
@@ -153,6 +154,51 @@ var FileCommandHandlers = (function() {
         return result;
     }
     
+    function handleFileNew() {
+        var result = new $.Deferred();
+        
+        // Determine the directory to put the new file
+        // If a file is currently selected, put it next to it.
+        // If a directory is currently selected, put it in it.
+        // If nothing is selected, put it at the root of the project
+        var baseDir;
+        
+        if (_currentFilePath) {
+            var isDirectory = false;
+            // TODO: Replace this stat() call with a NativeFileSystem implementation or
+            // some other way to determine if _currentFilePath specifies a directory
+            brackets.fs.stat(_currentFilePath, function(err, stat) {
+                if (err)
+                    console.log("Error calling stat()");
+                // If an error occurred in stat, isDirectory() returns false
+                isDirectory = stat.isDirectory();
+            });
+            
+            if (isDirectory)
+                baseDir = _currentFilePath;
+            else
+                baseDir = _currentFilePath.substr(0, _currentFilePath.lastIndexOf("/"));
+        }
+        else {
+            baseDir = ProjectManager.getProjectRoot().fullPath;
+        }
+        
+        // Make sure there is a trailing "/"
+        if (baseDir.length > 0 && baseDir.charAt(baseDir.length - 1) != "/") {
+            baseDir += "/";
+        }
+        
+        // Add a new tree entry
+        alert(baseDir);
+        
+        // Validate the name
+        
+        // Open the newly-created file
+//        result = CommandManager.execute(Commands.FILE_OPEN, newFileName);
+        
+        return result;
+    }
+    
     function handleFileSave() {
         var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {
@@ -241,6 +287,10 @@ var FileCommandHandlers = (function() {
         _isDirty = false;
         updateTitle();
         _editor.focus();
+    }
+    
+    function doFileNew() {
+        
     }
     
     function showFileOpenError(code, path) {
