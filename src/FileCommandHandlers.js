@@ -172,7 +172,7 @@ var FileCommandHandlers = (function() {
 
             fileEntry.createWriter(
                 function(writer) {
-                    writer.onwrite = function() {
+                    writer.onwriteend = function() {
                         _savedUndoPosition = _editor.historySize().undo;
                         updateDirty();
                         result.resolve();
