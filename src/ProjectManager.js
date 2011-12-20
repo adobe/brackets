@@ -168,7 +168,8 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
             }
 
             // Create a file entry for the new node
-            selection.getFile(initialName
+            selection = (selection || ProjectManager.getProjectRoot());
+            selection.getFile(data.rslt.name
                 , {create: true, exclusive: true}
                 , function( entry ) {
                     data.rslt.obj.data("entry", entry);
