@@ -91,72 +91,82 @@ var FileCommandHandlers = (function() {
     }
 
     function doOpenWithOptionalPath(fullPath) {
+        var result;
         if (!fullPath) {
             // Prompt the user with a dialog
             // TODO: we're relying on this to not be asynchronous--is that safe?
-            NativeFileSystem.showOpenDialog(false, false, "Open File", ProjectManager.getProjectRoot().fullPath,
+            NativeFileSystem.showOpenDialog(false, false, brackets.strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath,
                 ["htm", "html", "js", "css"], function(files) {
                     if (files.length > 0) {
-                        return doOpen(files[0]);
+                        result = doOpen(files[0]);
+                        return;
                     }
                 });
         }
         else {
-            return doOpen(fullPath);
+            result = doOpen(fullPath);
         }
+        if (!result)
+            result = (new $.Deferred()).reject();
+        return result;
     }
 
     function doOpen(fullPath) {
         var result = new $.Deferred();
-        if (fullPath) {
-            var reader = new NativeFileSystem.FileReader();
+        if (!fullPath) {
+            console.log("doOpen() called without fullPath");
+            return result.reject();
+        }
 
-            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        var reader = new NativeFileSystem.FileReader();
 
-            // TODO: it's weird to have to construct a FileEntry just to get a File.
-            fileEntry.file(function(file) {
-                reader.onload = function(event) {
-                    _currentFilePath = _currentTitlePath = fullPath;
+        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
+        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-                    // TODO: have a real controller object for the editor
-                    _editor.setValue(event.target.result);
-                    _editor.clearHistory();
+        // TODO: it's weird to have to construct a FileEntry just to get a File.
+        fileEntry.file(function(file) {
+            reader.onload = function(event) {
+                _currentFilePath = _currentTitlePath = fullPath;
 
-                    // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                    // or the full absolute path (if it's not in the project).
-                    var projectRootPath = ProjectManager.getProjectRoot().fullPath;
-                    if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
-                        projectRootPath += "/";
+                // In the main toolbar, show the project-relative path (if the file is inside the current project)
+                // or the full absolute path (if it's not in the project).
+                var projectRootPath = ProjectManager.getProjectRoot().fullPath;
+                if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
+                    projectRootPath += "/";
+                }
+                if (fullPath.indexOf(projectRootPath) == 0) {
+                    _currentTitlePath = fullPath.slice(projectRootPath.length);
+                    if (_currentTitlePath.charAt(0) == '/') {
+                        _currentTitlePath = _currentTitlePath.slice(1);
                     }
-                    if (fullPath.indexOf(projectRootPath) == 0) {
-                        _currentTitlePath = fullPath.slice(projectRootPath.length);
-                        if (_currentTitlePath.charAt(0) == '/') {
-                            _currentTitlePath = _currentTitlePath.slice(1);
-                        }
-                    }
-
-                    // This should be 0, but just to be safe...
-                    _savedUndoPosition = _editor.historySize().undo;
-                    updateDirty();
-
-                    _editor.focus();
-                    result.resolve();
-                };
-
-                reader.onerror = function(event) {
-                    // TODO: display meaningful error
-                    result.reject();
                 }
 
-                reader.readAsText(file, "utf8");
-            },
-            function (error) {
-                // TODO: display meaningful error
+                // TODO: have a real controller object for the editor
+                _editor.setValue(event.target.result);
+
+                // Make sure we can't undo back to the previous content.
+                _editor.clearHistory();
+
+                // This should be 0, but just to be safe...
+                _savedUndoPosition = _editor.historySize().undo;
+                updateDirty();
+
+                result.resolve();
+            };
+
+            reader.onerror = function(event) {
+                showFileOpenError(event.target.error.code, fullPath);
                 result.reject();
-            });
-        }
+            }
+
+            reader.readAsText(file, "utf8");
+        },
+        function fileEntry_onerror(event) {
+            showFileOpenError(event.target.error.code, fullPath);
+            result.reject();
+        });
+
         return result;
     }
 
@@ -174,15 +184,16 @@ var FileCommandHandlers = (function() {
                         updateDirty();
                         result.resolve();
                     }
-                    writer.onerror = function() {
+                    writer.onerror = function(event) {
+                        showSaveFileError(event.target.error.code, _currentFilePath);
                         result.reject();
                     }
 
                     // TODO (jasonsj): Blob instead of string
                     writer.write(_editor.getValue());
                 },
-                function(error) {
-                    // TODO: display meaningful error
+                function(event) {
+                    showSaveFileError(event.target.error.code, _currentFilePath);
                     result.reject();
                 }
             );
@@ -249,6 +260,45 @@ var FileCommandHandlers = (function() {
         _isDirty = false;
         updateTitle();
         _editor.focus();
+    }
+
+    function showFileOpenError(code, path) {
+        brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , brackets.strings.ERROR_OPENING_FILE_TITLE
+            , brackets.strings.format(
+                    brackets.strings.ERROR_OPENING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+
+    function showSaveFileError(code, path) {
+        brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , brackets.strings.ERROR_SAVING_FILE_TITLE
+            , brackets.strings.format(
+                    brackets.strings.ERROR_SAVING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+
+    function getErrorString(code) {
+        // There are a few error codes that we have specific error messages for. The rest are
+        // displayed with a generic "(error N)" message.
+        var result;
+
+        if (code == FileError.NOT_FOUND_ERR)
+            result = brackets.strings.NOT_FOUND_ERR;
+        else if (code == FileError.NOT_READABLE_ERR)
+            result = brackets.strings.NOT_READABLE_ERR;
+        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
+            result = brackets.strings.NO_MODIFICATION_ALLOWED_ERR;
+        else
+            result = brackets.strings.format(brackets.strings.GENERIC_ERROR, code);
+
+        return result;
     }
 
     return exports;
