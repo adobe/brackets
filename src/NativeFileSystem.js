@@ -477,25 +477,34 @@ NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallba
         if( ! err ){
             // Create entries for each name
             var entries = [];
-            filelist.forEach(function(item){
+			var statErr;
+			for( var i = 0; i < filelist.length; i++ ){
+				var item = filelist[i];
                 var itemFullPath = rootPath + "/" + item;
 
-                brackets.fs.stat( itemFullPath, function( err, statData) {
+                brackets.fs.stat( itemFullPath, function( statErr, statData) {
 
-                    if( !err ){
+                    if( !statErr ){
                         if( statData.isDirectory() )
                             entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
                         else if( statData.isFile() )
                             entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
                     }
                     else if (errorCallback) {
-                        errorCallback(NativeFileSystem._nativeToFileError(err));
+                        errorCallback(NativeFileSystem._nativeToFileError(statErr));
                     }
 
-                })
-            });
-
-            successCallback( entries );
+                });
+				
+				// exit loop if there is an error
+				if( statErr )
+					break;
+            }
+			
+			if( !statErr )
+				successCallback( entries );
+			else
+				 errorCallback(NativeFileSystem._nativeToFileError(statErr));
         }
         else if (errorCallback) {
             errorCallback(NativeFileSystem._nativeToFileError(err));
