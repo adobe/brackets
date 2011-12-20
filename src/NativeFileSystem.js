@@ -192,7 +192,7 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
 
     // TODO (jasonsj): handle Blob data instead of string
     _FileWriter.prototype.write = function( data ) {
-        if ( !data )
+        if ( data === undefined )
             throw new Error();
 
         if ( this.readyState === NativeFileSystem.FileSaver.WRITING )
