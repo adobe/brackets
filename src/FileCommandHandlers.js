@@ -164,8 +164,6 @@ var FileCommandHandlers = (function() {
     }
     
     function handleFileNew() {
-        var result = new $.Deferred();
-        
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
@@ -177,15 +175,9 @@ var FileCommandHandlers = (function() {
         if (selected.isFile) 
             baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
         
-        // Create the new node
-        ProjectManager.createNewItem(baseDir, "Untitled.js", false);
-        
-        // Validate the name
-        
-        // Open the newly-created file
-//        result = CommandManager.execute(Commands.FILE_OPEN, newFileName);
-        
-        return result;
+        // Create the new node. The createNewItem function does all the heavy work
+        // of validating file name, creating the new file and selecting.
+        return ProjectManager.createNewItem(baseDir, "Untitled.js", false);
     }
     
     function handleFileSave() {
@@ -276,10 +268,6 @@ var FileCommandHandlers = (function() {
         _isDirty = false;
         updateTitle();
         _editor.focus();
-    }
-    
-    function doFileNew() {
-        
     }
     
     function showFileOpenError(code, path) {
