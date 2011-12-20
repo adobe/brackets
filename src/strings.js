@@ -51,4 +51,6 @@ if (!brackets.strings)
     
     s.SAVE_CLOSE_TITLE = "Save Changes";
     s.SAVE_CLOSE_MESSAGE = "Do you want to save the changes you made in the document \"{0}\"?";
+    
+    s.OPEN_FILE = "Open File";
 })();
