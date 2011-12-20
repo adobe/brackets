@@ -16,10 +16,6 @@ describe("FileCommandHandlers", function() {
             isReady = true;
         });
         waitsFor(function() { return isReady; }, 5000);
-        runs(function() {
-            this.app.ProjectManager.loadProject(this.testPath);
-        });
-        waitsFor(function() { return this.app.ProjectManager.getProjectRoot(); } , 1000);
     });
 
     describe("Close File", function() {
@@ -32,7 +28,7 @@ describe("FileCommandHandlers", function() {
                 .fail(function() { gotError = true; });
             });
 
-            waitsFor(function() { return didClose || gotError; }, 1000);
+            waitsFor(function() { return didClose && !gotError; }, 1000);
 
             runs(function() {
                 expect(this.app.$("#main-toolbar .title").text()).toBe("Untitled");
@@ -47,7 +43,7 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didOpen = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didOpen || gotError; }, 1000);
+            waitsFor(function() { return didOpen && !gotError; }, 1000);
 
             runs(function() {
                 gotError = false;
@@ -55,7 +51,7 @@ describe("FileCommandHandlers", function() {
                 .done(function() { didClose = true; })
                 .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didClose || gotError; }, 1000);
+            waitsFor(function() { return didClose && !gotError; }, 1000);
 
             runs(function() {
                 expect(this.app.$("#main-toolbar .title").text()).toBe("Untitled");
@@ -72,7 +68,7 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didOpen = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didOpen || gotError; }, 1000);
+            waitsFor(function() { return didOpen && !gotError; }, 1000);
 
             runs(function() {
                 expect(this.app.FileCommandHandlers.getEditor().getValue()).toBe(TEST_JS_CONTENT);
@@ -91,7 +87,7 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didOpen = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didOpen || gotError; }, "FILE_OPEN timeout", 1000);
+            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
 
             // modify and save
             runs(function() {
@@ -101,7 +97,7 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didSave = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didSave || gotError; }, "FILE_SAVE timeout", 1000);
+            waitsFor(function() { return didSave && !gotError; }, "FILE_SAVE timeout", 1000);
 
             // confirm file contents
             var actualContent = null, error = -1;
@@ -114,7 +110,7 @@ describe("FileCommandHandlers", function() {
             waitsFor(function() { return error >=0 }, "readFile timeout", 1000);
 
             runs(function() {
-                expect(error).toBe(0);
+                expect(error).toBe(brackets.fs.NO_ERROR);
                 expect(actualContent).toBe(TEST_JS_NEW_CONTENT);
             });
 
@@ -135,7 +131,7 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didOpen = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didOpen || gotError; }, "FILE_OPEN timeout", 1000);
+            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
 
             runs(function() {
                 // change editor content, followed by undo
@@ -157,7 +153,7 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didOpen = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didOpen || gotError; }, "FILE_OPEN timeout", 1000);
+            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
 
             runs(function() {
                 // change editor content
@@ -174,6 +170,7 @@ describe("FileCommandHandlers", function() {
                 // Commands.FILE_OPEN. I had to re-order this suite so that
                 // this bug has minimal impact. This *does not* appear to be an
                 // issue with the FileCommandHandlers module.
+                // FIXME (jasonsj): editor.clearHistory() doesn't work either.
                 editor.undo();
             });
         });
@@ -186,16 +183,18 @@ describe("FileCommandHandlers", function() {
                     .done(function() { didOpen = true; })
                     .fail(function() { gotError = true; });
             });
-            waitsFor(function() { return didOpen || gotError; }, "FILE_OPEN timeout", 1000);
+            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
 
             runs(function() {
                 // change editor content, followed by undo and redo
                 var editor = this.app.FileCommandHandlers.getEditor();
                 editor.setValue(TEST_JS_NEW_CONTENT);
+
                 editor.undo();
-                editor.redo();
+                expect(editor.getValue()).toBe(TEST_JS_CONTENT);
 
                 // verify FileCommandHandler dirty status
+                editor.redo();
                 expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
                 expect(this.app.FileCommandHandlers.isDirty()).toBe(true);
             });
