@@ -45,6 +45,9 @@ if (!brackets.strings)
     s.ERROR_OPENING_FILE = "An error occurred when trying to open the file \"{0}\". {1}";
     s.ERROR_SAVING_FILE_TITLE = "Error saving file";
     s.ERROR_SAVING_FILE = "An error occurred when trying to save the file \"{0}\". {1}";
+    s.INVALID_FILENAME_TITLE = "Invalid file name";
+    s.INVALID_FILENAME_MESSAGE = "Filenames cannot contain the following characters: /?*:;{}\\]+";
+    s.FILE_ALREADY_EXISTS = "The file \"{0}\" already exists.";
     
     s.SAVE_CLOSE_TITLE = "Save Changes";
     s.SAVE_CLOSE_MESSAGE = "Do you want to save the changes you made in the document \"{0}\"?";

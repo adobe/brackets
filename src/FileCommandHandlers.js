@@ -161,35 +161,15 @@ var FileCommandHandlers = (function() {
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
         // If nothing is selected, put it at the root of the project
-        var baseDir;
+        var baseDir, 
+            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
-        if (_currentFilePath) {
-            var isDirectory = false;
-            // TODO: Replace this stat() call with a NativeFileSystem implementation or
-            // some other way to determine if _currentFilePath specifies a directory
-            brackets.fs.stat(_currentFilePath, function(err, stat) {
-                if (err)
-                    console.log("Error calling stat()");
-                // If an error occurred in stat, isDirectory() returns false
-                isDirectory = stat.isDirectory();
-            });
-            
-            if (isDirectory)
-                baseDir = _currentFilePath;
-            else
-                baseDir = _currentFilePath.substr(0, _currentFilePath.lastIndexOf("/"));
-        }
-        else {
-            baseDir = ProjectManager.getProjectRoot().fullPath;
-        }
+        baseDir = selected.fullPath;
+        if (selected.isFile) 
+            baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
         
-        // Make sure there is a trailing "/"
-        if (baseDir.length > 0 && baseDir.charAt(baseDir.length - 1) != "/") {
-            baseDir += "/";
-        }
-        
-        // Add a new tree entry
-        alert(baseDir);
+        // Create the new node
+        ProjectManager.createNewItem(baseDir, "Untitled.js", false);
         
         // Validate the name
         
