@@ -23,7 +23,10 @@ var FileCommandHandlers = (function() {
     
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
-        CommandManager.register(Commands.FILE_NEW, handleFileNew);
+        // TODO: For now, hook up File > New to the "new in project" handler. Eventually
+        // File > New should open a new blank tab, and handleFileNewInProject should
+        // be called from a "+" button in the project
+        CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
     };
@@ -163,7 +166,7 @@ var FileCommandHandlers = (function() {
         return result;
     }
     
-    function handleFileNew() {
+    function handleFileNewInProject() {
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.

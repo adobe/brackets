@@ -135,7 +135,7 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
     // relative to the selection
     var node = null,
         selection = ProjectManager.getSelectedItem(),
-        position = "inside"
+        position = "inside",
         result = new $.Deferred();
     
     if (selection && selection.isFile)
@@ -149,7 +149,10 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
         $(event.target).off("create.jstree");
 
         // Validate file name
-        if (data.rslt.name.search(/[/?*:;{}\\]+/) !== -1) {
+        // TODO: There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
+        // We may want to add checks for those here.
+        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+        if (data.rslt.name.search(/[/?*:;{}<>\\|]+/) !== -1) {
             brackets.showModalDialog(
                     brackets.DIALOG_ID_ERROR
                 ,   brackets.strings.INVALID_FILENAME_TITLE
@@ -192,6 +195,7 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
         });
         data.rslt.obj.data("entry", fileEntry);
         ProjectManager._projectTree.jstree("select_node", data.rslt.obj);
+        result.resolve(fileEntry);
     });
     
     // TODO: Figure out better way to style this input. All styles are inlined by jsTree...
