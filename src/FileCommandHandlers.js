@@ -23,6 +23,10 @@ var FileCommandHandlers = (function() {
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
+        // TODO: For now, hook up File > New to the "new in project" handler. Eventually
+        // File > New should open a new blank tab, and handleFileNewInProject should
+        // be called from a "+" button in the project
+        CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
     };
@@ -169,7 +173,25 @@ var FileCommandHandlers = (function() {
 
         return result;
     }
-
+    
+    function handleFileNewInProject() {
+        // Determine the directory to put the new file
+        // If a file is currently selected, put it next to it.
+        // If a directory is currently selected, put it in it.
+        // If nothing is selected, put it at the root of the project
+        var baseDir, 
+            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
+        
+        baseDir = selected.fullPath;
+        if (selected.isFile) 
+            baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
+        
+        // Create the new node. The createNewItem function does all the heavy work
+        // of validating file name, creating the new file and selecting.
+        // TODO: Use a unique name like Untitled-1, Untitled-2, etc.
+        return ProjectManager.createNewItem(baseDir, "Untitled.js", false);
+    }
+    
     function handleFileSave() {
         var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {

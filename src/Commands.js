@@ -7,6 +7,7 @@
  */
 var Commands = {
     FILE_OPEN: "file.open",
+    FILE_NEW: "file.new",
     FILE_SAVE: "file.save",
     FILE_CLOSE: "file.close"
 };
