@@ -1,3 +1,5 @@
+if (window.opener) { // (function(){
+
 describe("FileCommandHandlers", function() {
 
     var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
@@ -202,3 +204,4 @@ describe("FileCommandHandlers", function() {
 
     // TODO (jasonsj): experiment with mocks instead of real UI
 });
+} // })();
