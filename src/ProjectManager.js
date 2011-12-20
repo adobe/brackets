@@ -142,9 +142,6 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
     if (selection && selection.isFile)
         position = "after";
     
-    // Create the node and open the editor 
-    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, false);
-    
     ProjectManager._projectTree.on("create.jstree", function(event, data) {
         var error = false;
         $(event.target).off("create.jstree");
@@ -200,6 +197,9 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
         ProjectManager._projectTree.jstree("select_node", data.rslt.obj, true);
         result.resolve(fileEntry);
     });
+    
+    // Create the node and open the editor 
+    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, false);
     
     var renameInput = ProjectManager._projectTree.find(".jstree-rename-input");
     
