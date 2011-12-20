@@ -180,6 +180,7 @@ var FileCommandHandlers = (function() {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
+        // TODO: Use a unique name like Untitled-1, Untitled-2, etc.
         return ProjectManager.createNewItem(baseDir, "Untitled.js", false);
     }
     

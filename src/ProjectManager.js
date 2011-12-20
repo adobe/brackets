@@ -136,6 +136,7 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
     var node = null,
         selection = ProjectManager.getSelectedItem(),
         position = "inside",
+        escapeKeyPressed = false,
         result = new $.Deferred();
     
     if (selection && selection.isFile)
@@ -148,40 +149,42 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
         var error = false;
         $(event.target).off("create.jstree");
 
-        // Validate file name
-        // TODO: There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-        // We may want to add checks for those here.
-        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-        if (data.rslt.name.search(/[/?*:;{}<>\\|]+/) !== -1) {
-            brackets.showModalDialog(
-                    brackets.DIALOG_ID_ERROR
-                ,   brackets.strings.INVALID_FILENAME_TITLE
-                ,   brackets.strings.INVALID_FILENAME_MESSAGE);
-            
-            error = true;
-        }
-        
-        // Make sure the file doesn't already exist
-        fullPath = baseDir + "/" + data.rslt.name;
-        
-        // TODO: Use NativeFileSystem call instead of fs.stat(). Also, this
-        // is currently depending on stat being synchronous.
-        brackets.fs.stat(fullPath, function(err, stat) {
-            if (err != brackets.fs.ERR_NOT_FOUND) {
+        if (!escapeKeyPressed) {
+            // Validate file name
+            // TODO: There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
+            // We may want to add checks for those here.
+            // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+            if (data.rslt.name.search(/[/?*:;{}<>\\|]+/) !== -1) {
                 brackets.showModalDialog(
                         brackets.DIALOG_ID_ERROR
                     ,   brackets.strings.INVALID_FILENAME_TITLE
-                    ,   brackets.strings.format(
-                            brackets.strings.FILE_ALREADY_EXISTS
-                        ,   data.rslt.name
-                    ));
+                    ,   brackets.strings.INVALID_FILENAME_MESSAGE);
+            
                 error = true;
             }
-        });
         
-        if (error) {
-            // TODO: Allow the user to fix the filename. For now we just remove the node so
-            // you have to start again.
+            // Make sure the file doesn't already exist
+            fullPath = baseDir + "/" + data.rslt.name;
+        
+            // TODO: Use NativeFileSystem call instead of fs.stat(). Also, this
+            // is currently depending on stat being synchronous.
+            brackets.fs.stat(fullPath, function(err, stat) {
+                if (err != brackets.fs.ERR_NOT_FOUND) {
+                    brackets.showModalDialog(
+                            brackets.DIALOG_ID_ERROR
+                        ,   brackets.strings.INVALID_FILENAME_TITLE
+                        ,   brackets.strings.format(
+                                brackets.strings.FILE_ALREADY_EXISTS
+                            ,   data.rslt.name
+                        ));
+                    error = true;
+                }
+            });
+        }
+    
+        if (error || escapeKeyPressed) {
+            // TODO: If an error occurred, we should allow the user to fix the filename. 
+            // For now we just remove the node so you have to start again.
             ProjectManager._projectTree.jstree("remove", data.rslt.obj);
             result.reject();
             return;            
@@ -194,12 +197,21 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
             writer.write("");
         });
         data.rslt.obj.data("entry", fileEntry);
-        ProjectManager._projectTree.jstree("select_node", data.rslt.obj);
+        ProjectManager._projectTree.jstree("select_node", data.rslt.obj, true);
         result.resolve(fileEntry);
     });
     
+    var renameInput = ProjectManager._projectTree.find(".jstree-rename-input");
+    
+    renameInput.on("keydown", function(event) {
+        // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+        if (event.keyCode == 27) {
+            escapeKeyPressed = true;
+        }
+    });
+    
     // TODO: Figure out better way to style this input. All styles are inlined by jsTree...
-    ProjectManager._projectTree.find(".jstree-rename-input").css(
+    renameInput.css(
         { left: "17px"
         , height: "24px"
         }
