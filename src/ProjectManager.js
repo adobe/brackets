@@ -134,13 +134,44 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
     // In the meantime, pass null for node so new item is placed
     // relative to the selection
     var node = null,
-        selection = ProjectManager.getSelectedItem(),
+        selection = ProjectManager._projectTree.jstree("get_selected"),
+        selectionEntry = null,
         position = "inside",
         escapeKeyPressed = false,
         result = new $.Deferred();
 
-    if (selection && selection.isFile)
+    // get the FileEntry or DirectoryEntry
+    if ( selection ) {
+        selectionEntry = selection.data("entry")
+    }
+
+    // move selection to parent DirectoryEntry
+    if ( selectionEntry && selectionEntry.isFile ) {
         position = "after";
+
+        // FIXME (jasonsj): get_parent returns the tree instead of the directory?
+        /*
+        selection = ProjectManager._projectTree.jstree("get_parent", selection);
+
+        if ( typeof( selection.data ) == "function" ) {
+            // get Entry from tree node
+            // note that the jstree root will return undefined
+            selectionEntry = selection.data("entry");
+        }
+        else {
+            // reset here. will be replaced with project root.
+            selectionEntry = null;
+        }
+        */
+        // FIXME (jasonsj): hackish way to get parent directory
+        var filePath = selectionEntry.fullPath;
+        selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
+    }
+
+    // use the project root DirectoryEntry
+    if ( !selectionEntry ) {
+        selectionEntry = ProjectManager.getProjectRoot();
+    }
 
     ProjectManager._projectTree.on("create.jstree", function(event, data) {
         $(event.target).off("create.jstree");
@@ -167,11 +198,8 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
                 return;
             }
 
-            // Create a file entry for the new node
-            selection = (selection || ProjectManager.getProjectRoot());
-
             // Use getFile() to create the new file
-            selection.getFile(data.rslt.name
+            selectionEntry.getFile(data.rslt.name
                 , {create: true, exclusive: true}
                 , function( entry ) {
                     data.rslt.obj.data("entry", entry);
@@ -179,15 +207,24 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
                     result.resolve(entry);
                 }
                 , function ( error ) {
-                    // TODO (jasonsj): proper message for error.code
-                    brackets.showModalDialog(
-                          brackets.DIALOG_ID_ERROR
-                        , brackets.strings.INVALID_FILENAME_TITLE
-                        , brackets.strings.format(
-                              brackets.strings.FILE_ALREADY_EXISTS
-                            , data.rslt.name
-                        )
-                    );
+                    if ( ( error.code === FileError.PATH_EXISTS_ERR )
+                         || (error.code === FileError.TYPE_MISMATCH_ERR ) ) {
+                        brackets.showModalDialog(
+                              brackets.DIALOG_ID_ERROR
+                            , brackets.strings.INVALID_FILENAME_TITLE
+                            , brackets.strings.format(
+                                  brackets.strings.FILE_ALREADY_EXISTS
+                                , data.rslt.name
+                            )
+                        );
+                    }
+                    // TODO (jasonsj): proper message for each error.code
+                    /*
+                    else if ( error.code == FileError ) {
+
+                    }
+                    */
+
                     errorCleanup();
                 }
             );

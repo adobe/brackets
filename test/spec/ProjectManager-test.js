@@ -60,6 +60,50 @@ describe("ProjectManager", function() {
                 , 1000
             );
         });
+
+        it("should fail when a file already exists", function() {
+            var didCreate = false, gotError = false;
+
+            runs(function() {
+                this.app.ProjectManager.loadProject(this.testPath);
+            });
+            waitsFor(function() { return this.app.ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+
+            runs(function() {
+                // skip rename
+                this.app.ProjectManager.createNewItem(this.testPath, "file.js", true)
+                    .done(function() { didCreate = true; })
+                    .fail(function() { gotError = true; });
+            });
+            waitsFor(function() { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+            runs(function() {
+                expect(gotError).toBeTruthy();
+                expect(didCreate).toBeFalsy();
+            });
+        });
+
+        it("should fail when a file name matches a directory that already exists", function() {
+            var didCreate = false, gotError = false;
+
+            runs(function() {
+                this.app.ProjectManager.loadProject(this.testPath);
+            });
+            waitsFor(function() { return this.app.ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+
+            runs(function() {
+                // skip rename
+                this.app.ProjectManager.createNewItem(this.testPath, "directory", true)
+                    .done(function() { didCreate = true; })
+                    .fail(function() { gotError = true; });
+            });
+            waitsFor(function() { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+            runs(function() {
+                expect(gotError).toBeTruthy();
+                expect(didCreate).toBeFalsy();
+            });
+        });
     });
 
 });
