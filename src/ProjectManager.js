@@ -344,8 +344,7 @@ ProjectManager._renderTree = function(treeDataProvider) {
     // (jsTree is smart enough to replace the old tree if there's already one there)
     ProjectManager._projectTree = projectTreeContainer.jstree({
         plugins : ["ui", "themes", "json_data", "crrm"],
-        json_data : { data:treeDataProvider },
-
+        json_data : { data:treeDataProvider, correct_state: false },
         core : { animation:0 },
         themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
             //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
@@ -354,6 +353,8 @@ ProjectManager._renderTree = function(treeDataProvider) {
         strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
     })
     .bind("select_node.jstree", function(event, data) {
-        CommandManager.execute(Commands.FILE_OPEN, data.rslt.obj.data("entry").fullPath);
+        var entry = data.rslt.obj.data("entry");
+        if (entry.isFile)
+            CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
     });
 };
