@@ -18,6 +18,10 @@ describe("FileCommandHandlers", function() {
         waitsFor(function() { return isReady; }, 5000);
     });
 
+    // TODO (jasonsj): test Commands.FILE_NEW. Current implementation of
+    // ProjectManager.createNewItem() is tightly coupled to jstree UI and
+    // events.
+
     describe("Close File", function() {
         it("should complete without error if no files are open", function() {
             var didClose = false, gotError = false;
@@ -197,54 +201,6 @@ describe("FileCommandHandlers", function() {
                 editor.redo();
                 expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
                 expect(this.app.FileCommandHandlers.isDirty()).toBe(true);
-            });
-        });
-    });
-
-    describe("New File", function() {
-        it("should create a new file named Untitled.js", function() {
-            var didCreate = false, gotError = false;
-
-            var isReady = false;
-            runs(function() {
-                $(this.app.document).ready(function() {
-                    isReady = true;
-                });
-            });
-            waitsFor(function() { return isReady; }, 1000);
-
-            runs(function() {
-                jasmine.console.log(this.testPath);
-                this.app.ProjectManager.loadProject(this.testPath);
-
-                this.app.ProjectManager._projectTree.on("create.jstree", function(event, data) {
-                    this.fail(event);
-                });
-            });
-            waitsFor(function() { return this.app.ProjectManager.getProjectRoot(); } , 1000);
-
-            runs(function() {
-
-                this.app.CommandManager.execute(this.app.Commands.FILE_NEW)
-                    .done(function() { didCreate = true; })
-                    .fail(function() { gotError = true; });
-            });
-            waitsFor(function() { return didCreate && !gotError; }, "FILE_NEW timeout", 1000);
-
-            var error, stat, complete = false;
-            runs(function() {
-                brackets.fs.stat(this.testPath + "/Untitled.js", function(err, _stat) {
-                    error = err;
-                    stat = _stat;
-                    complete = true;
-                });
-            });
-
-            waitsFor(function() { return complete; }, 1000);
-
-            runs(function() {
-                expect(error).toBeFalsy();
-                expect(stat.isFile()).toBe(true);
             });
         });
     });

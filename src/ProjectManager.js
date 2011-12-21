@@ -169,6 +169,8 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
 
             // Create a file entry for the new node
             selection = (selection || ProjectManager.getProjectRoot());
+
+            // Use getFile() to create the new file
             selection.getFile(data.rslt.name
                 , {create: true, exclusive: true}
                 , function( entry ) {
@@ -196,7 +198,7 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
     });
 
     // Create the node and open the editor
-    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, false);
+    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
     var renameInput = ProjectManager._projectTree.find(".jstree-rename-input");
 
