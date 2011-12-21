@@ -189,14 +189,25 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
         var self = this;
 
         brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
-            if ( self.onerror ) {
-                self.onerror ( NativeFileSystem._nativeToFileError( err ) );
+            var fileError = null;
+
+            if ( ( err != brackets.fs.NO_ERROR ) && self.onerror ) {
+                fileError = NativeFileSystem._nativeToFileError( err );
+
+                // TODO (jasonsj): set readonly FileSaver.error attribute
+                // self._error = fileError;
+
+                self.onerror ( fileError );
 
                 // TODO (jasonsj): partial write, update length and position
             }
             else {
-                // successful completion of a write
-                self.position += data.size;
+                // TODO (jasonsj): After changing data argument to Blob, use
+                // Blob.size to update position and length upon successful
+                // completion of a write.
+
+                // self.position = ;
+                // self.length = ;
             }
 
             // DONE is set regardless of error
