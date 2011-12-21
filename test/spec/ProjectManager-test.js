@@ -104,6 +104,36 @@ describe("ProjectManager", function() {
                 expect(didCreate).toBeFalsy();
             });
         });
+
+        it("should fail when file name contains special characters", function() {
+            var chars = "/?*:;{}<>\\";
+            var i = 0;
+            var len = chars.length;
+            var didCreate, gotError;
+
+            runs(function() {
+                this.app.ProjectManager.loadProject(this.testPath);
+            });
+            waitsFor(function() { return this.app.ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+
+            for (i = 0; i < len; i++) {
+                didCreate = false;
+                gotError = false;
+
+                runs(function() {
+                    // skip rename
+                    this.app.ProjectManager.createNewItem(this.testPath, "file" + char + ".js", true)
+                        .done(function() { didCreate = true; })
+                        .fail(function() { gotError = true; });
+                });
+                waitsFor(function() { return !didCreate && gotError; }, "ProjectManager.createNewItem() timeout", 1000);
+
+                runs(function() {
+                    expect(gotError).toBeTruthy();
+                    expect(didCreate).toBeFalsy();
+                });
+            }
+        });
     });
 
 });
