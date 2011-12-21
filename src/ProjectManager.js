@@ -318,6 +318,8 @@ ProjectManager._renderTree = function(treeDataProvider) {
         strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
     })
     .bind("select_node.jstree", function(event, data) {
-        CommandManager.execute(Commands.FILE_OPEN, data.rslt.obj.data("entry").fullPath);
+        var entry = data.rslt.obj.data("entry");
+        if (entry.isFile)
+            CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
     });
 };
