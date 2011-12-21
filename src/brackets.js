@@ -41,23 +41,37 @@ brackets.showModalDialog = function(id, title, message, callback) {
         dlg.modal(true).hide();
     });
     
-    // Enter/Return handler for the primary button
-    $(document).on("keyup.modal", function(e) {
+    // Enter/Return handler for the primary button. Need to 
+    // add both keydown and keyup handlers here to make sure
+    // the enter key was pressed while the dialog was showing.
+    // Otherwise, if a keydown or keypress from somewhere else
+    // triggered an alert, the keyup could immediately dismiss it.
+    var enterKeyPressed = false;
+    $(document).on("keydown.modal", function(e) {
         if (e.keyCode === 13) {
+            enterKeyPressed = true;
+        }
+    }).on("keyup.modal", function(e) {
+        if (e.keyCode === 13 && enterKeyPressed) {
             var primaryBtn = dlg.find(".primary");
             if (primaryBtn) {
                 result.resolve(primaryBtn.attr("data-button-id"));
                 dlg.modal(true).hide();
             }
         }
+        enterKeyPressed = false;
     });
+    
     
     // Run the dialog
     dlg.modal(
         { backdrop: "static" 
         , show: true
         }
-    );
+    ).on("hide", function(e) {
+        // Remove our keyboard handlers.
+        $(document).off("keyup.modal").off("keydown.modal"); 
+    });
     return result;
 };
 
