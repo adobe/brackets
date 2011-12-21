@@ -247,8 +247,6 @@ ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
     dirEntry.createReader().readEntries(
         function(entries) {
             var subtreeJSON = ProjectManager._convertEntriesToJSON(entries);
-			if( subtreeJSON.length === 0 )
-				treeNode.removeClass("jstree-leaf jstree-closed").addClass("jstree-open");
             jsTreeCallback(subtreeJSON);
         },
         function(error) {
