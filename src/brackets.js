@@ -69,8 +69,8 @@ brackets.showModalDialog = function(id, title, message, callback) {
         , show: true
         }
     ).on("hide", function(e) {
-        // Remove our keyboard handlers.
-        $(document).off("keyup.modal keydown.modal"); 
+        // Remove all handlers in the .modal namespace
+        $(document).off(".modal"); 
     });
     return result;
 };
