@@ -18,6 +18,10 @@ describe("FileCommandHandlers", function() {
         waitsFor(function() { return isReady; }, 5000);
     });
 
+    // TODO (jasonsj): test Commands.FILE_NEW. Current implementation of
+    // ProjectManager.createNewItem() is tightly coupled to jstree UI and
+    // events.
+
     describe("Close File", function() {
         it("should complete without error if no files are open", function() {
             var didClose = false, gotError = false;

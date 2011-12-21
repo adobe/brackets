@@ -52,14 +52,14 @@ ProjectManager.openProject = function() {
 /**
  * Loads the given folder as a project. Normally, you would call openProject() instead to let the
  * user choose a folder.
- * 
+ *
  * @param {string} rootPath  Absolute path to the root folder of the project.
  */
 ProjectManager.loadProject = function(rootPath) {
     // Set title
     var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
     $("#project-title").html(projectName);
-    
+
     // Populate file tree
     if (brackets.inBrowser) {
         // Hardcoded dummy data for local testing, in jsTree JSON format
@@ -78,17 +78,17 @@ ProjectManager.loadProject = function(rootPath) {
             { data: "file_1" },
             { data: "file_2" }
         ];
-        
+
         // Show file list in UI synchronously
         ProjectManager._renderTree(treeJSONData);
-        
+
     } else {
         // Point at a real folder structure on local disk
         NativeFileSystem.requestNativeFileSystem(rootPath,
             function(rootEntry) {
                 // Success!
                 ProjectManager._projectRoot = rootEntry;
-                
+
                 // The tree will invoke our "data provider" function to populate the top-level items, then
                 // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                 // immediate children, and so on.
@@ -102,7 +102,7 @@ ProjectManager.loadProject = function(rootPath) {
                 );
             }
         );
-        
+
     }
 };
 
@@ -113,9 +113,9 @@ ProjectManager.loadProject = function(rootPath) {
  * @return {string}
  */
 ProjectManager.getSelectedItem = function() {
-    var selected = ProjectManager._projectTree.jstree("get_selected");   
+    var selected = ProjectManager._projectTree.jstree("get_selected");
     if (selected)
-        return selected.data("entry");        
+        return selected.data("entry");
     return null;
 };
 
@@ -134,17 +134,54 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
     // In the meantime, pass null for node so new item is placed
     // relative to the selection
     var node = null,
-        selection = ProjectManager.getSelectedItem(),
+        selection = ProjectManager._projectTree.jstree("get_selected"),
+        selectionEntry = null,
         position = "inside",
         escapeKeyPressed = false,
         result = new $.Deferred();
-    
-    if (selection && selection.isFile)
+
+    // get the FileEntry or DirectoryEntry
+    if ( selection ) {
+        selectionEntry = selection.data("entry")
+    }
+
+    // move selection to parent DirectoryEntry
+    if ( selectionEntry && selectionEntry.isFile ) {
         position = "after";
-    
+
+        // FIXME (jasonsj): get_parent returns the tree instead of the directory?
+        /*
+        selection = ProjectManager._projectTree.jstree("get_parent", selection);
+
+        if ( typeof( selection.data ) == "function" ) {
+            // get Entry from tree node
+            // note that the jstree root will return undefined
+            selectionEntry = selection.data("entry");
+        }
+        else {
+            // reset here. will be replaced with project root.
+            selectionEntry = null;
+        }
+        */
+        // FIXME (jasonsj): hackish way to get parent directory
+        var filePath = selectionEntry.fullPath;
+        selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
+    }
+
+    // use the project root DirectoryEntry
+    if ( !selectionEntry ) {
+        selectionEntry = ProjectManager.getProjectRoot();
+    }
+
     ProjectManager._projectTree.on("create.jstree", function(event, data) {
-        var error = false;
         $(event.target).off("create.jstree");
+
+        function errorCleanup() {
+            // TODO: If an error occurred, we should allow the user to fix the filename.
+            // For now we just remove the node so you have to start again.
+            ProjectManager._projectTree.jstree("remove", data.rslt.obj);
+            result.reject();
+        }
 
         if (!escapeKeyPressed) {
             // Validate file name
@@ -156,70 +193,69 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
                         brackets.DIALOG_ID_ERROR
                     ,   brackets.strings.INVALID_FILENAME_TITLE
                     ,   brackets.strings.INVALID_FILENAME_MESSAGE);
-            
-                error = true;
+
+                errorCleanup();
+                return;
             }
-        
-            // Make sure the file doesn't already exist
-            fullPath = baseDir + "/" + data.rslt.name;
-        
-            // TODO: Use NativeFileSystem call instead of fs.stat(). Also, this
-            // is currently depending on stat being synchronous.
-            brackets.fs.stat(fullPath, function(err, stat) {
-                if (err != brackets.fs.ERR_NOT_FOUND) {
-                    brackets.showModalDialog(
-                            brackets.DIALOG_ID_ERROR
-                        ,   brackets.strings.INVALID_FILENAME_TITLE
-                        ,   brackets.strings.format(
-                                brackets.strings.FILE_ALREADY_EXISTS
-                            ,   data.rslt.name
-                        ));
-                    error = true;
+
+            // Use getFile() to create the new file
+            selectionEntry.getFile(data.rslt.name
+                , {create: true, exclusive: true}
+                , function( entry ) {
+                    data.rslt.obj.data("entry", entry);
+                    ProjectManager._projectTree.jstree("select_node", data.rslt.obj, true);
+                    result.resolve(entry);
                 }
-            });
+                , function ( error ) {
+                    if ( ( error.code === FileError.PATH_EXISTS_ERR )
+                         || (error.code === FileError.TYPE_MISMATCH_ERR ) ) {
+                        brackets.showModalDialog(
+                              brackets.DIALOG_ID_ERROR
+                            , brackets.strings.INVALID_FILENAME_TITLE
+                            , brackets.strings.format(
+                                  brackets.strings.FILE_ALREADY_EXISTS
+                                , data.rslt.name
+                            )
+                        );
+                    }
+                    // TODO (jasonsj): proper message for each error.code
+                    /*
+                    else if ( error.code == FileError ) {
+
+                    }
+                    */
+
+                    errorCleanup();
+                }
+            );
         }
-    
-        if (error || escapeKeyPressed) {
-            // TODO: If an error occurred, we should allow the user to fix the filename. 
-            // For now we just remove the node so you have to start again.
-            ProjectManager._projectTree.jstree("remove", data.rslt.obj);
-            result.reject();
-            return;            
+        else { //escapeKeyPressed
+            errorCleanup();
         }
-        
-        // Create a file entry for the new node
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-        // Create a file writer (which will create the file)
-        fileEntry.createWriter(function(writer) {
-            writer.write("");
-        });
-        data.rslt.obj.data("entry", fileEntry);
-        ProjectManager._projectTree.jstree("select_node", data.rslt.obj, true);
-        result.resolve(fileEntry);
     });
-    
-    // Create the node and open the editor 
-    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, false);
-    
+
+    // Create the node and open the editor
+    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
+
     var renameInput = ProjectManager._projectTree.find(".jstree-rename-input");
-    
+
     renameInput.on("keydown", function(event) {
         // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
         if (event.keyCode == 27) {
             escapeKeyPressed = true;
         }
     });
-    
+
     // TODO: Figure out better way to style this input. All styles are inlined by jsTree...
     renameInput.css(
         { left: "17px"
         , height: "24px"
         }
     ).parent().css(
-        { height: "26px" 
+        { height: "26px"
         }
     );
-    
+
     return result;
 }
 
@@ -228,13 +264,13 @@ ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
  * Called by jsTree when the user has expanded a node that has never been expanded before. We call
  * jsTree back asynchronously with the node's immediate children data once the subfolder is done
  * being fetched.
- * 
+ *
  * @param {jQueryObject} treeNode  jQ object for the DOM node being expanded
  * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
  */
-ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {    
+ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
     var dirEntry;
-    
+
     if (treeNode == -1) {
         // Special case: root of tree
         dirEntry = ProjectManager._projectRoot;
@@ -242,7 +278,7 @@ ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
         // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
         dirEntry = treeNode.data("entry");
     }
-    
+
     // Fetch dirEntry's contents
     dirEntry.createReader().readEntries(
         function(entries) {
@@ -257,7 +293,7 @@ ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
             );
         }
     );
-    
+
 }
 
 /**
@@ -276,7 +312,7 @@ ProjectManager._convertEntriesToJSON = function(entries) {
     var jsonEntryList = [];
     for (var entryI in entries) {
         var entry = entries[entryI];
-        
+
         var jsonEntry = {
             data: entry.name,
             metadata: { entry: entry }
@@ -286,7 +322,7 @@ ProjectManager._convertEntriesToJSON = function(entries) {
             jsonEntry.state = "closed";
         }
         // For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data
-        
+
         jsonEntryList.push(jsonEntry);
     }
     return jsonEntryList;
@@ -301,9 +337,9 @@ ProjectManager._convertEntriesToJSON = function(entries) {
  * http://www.jstree.com/documentation/json_data
  */
 ProjectManager._renderTree = function(treeDataProvider) {
-    
+
     var projectTreeContainer = $("#project-files-container");
-    
+
     // Instantiate tree widget
     // (jsTree is smart enough to replace the old tree if there's already one there)
     ProjectManager._projectTree = projectTreeContainer.jstree({
@@ -313,7 +349,7 @@ ProjectManager._renderTree = function(treeDataProvider) {
         themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
             //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
             // file because jsTree insists on loading one itself)
-        
+
         strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
     })
     .bind("select_node.jstree", function(event, data) {
