@@ -70,7 +70,7 @@ brackets.showModalDialog = function(id, title, message, callback) {
         }
     ).on("hide", function(e) {
         // Remove our keyboard handlers.
-        $(document).off("keyup.modal").off("keydown.modal"); 
+        $(document).off("keyup.modal keydown.modal"); 
     });
     return result;
 };
