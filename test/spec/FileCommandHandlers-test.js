@@ -1,4 +1,5 @@
-if (window.opener) { // (function(){
+// FIXME (jasonsj): these tests are ommitted when launching in the main app window
+if (window.opener) {
 
 describe("FileCommandHandlers", function() {
 
@@ -207,4 +208,4 @@ describe("FileCommandHandlers", function() {
 
     // TODO (jasonsj): experiment with mocks instead of real UI
 });
-} // })();
+}
