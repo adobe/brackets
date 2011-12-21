@@ -109,7 +109,7 @@ describe("ProjectManager", function() {
             var chars = "/?*:;{}<>\\";
             var i = 0;
             var len = chars.length;
-            var didCreate, gotError;
+            var charAt, didCreate, gotError;
 
             runs(function() {
                 this.app.ProjectManager.loadProject(this.testPath);
@@ -119,10 +119,11 @@ describe("ProjectManager", function() {
             for (i = 0; i < len; i++) {
                 didCreate = false;
                 gotError = false;
+                charAt = chars.charAt(i);
 
                 runs(function() {
                     // skip rename
-                    this.app.ProjectManager.createNewItem(this.testPath, "file" + char + ".js", true)
+                    this.app.ProjectManager.createNewItem(this.testPath, "file" + charAt + ".js", true)
                         .done(function() { didCreate = true; })
                         .fail(function() { gotError = true; });
                 });
