@@ -19,6 +19,11 @@ ProjectManager.getProjectRoot = function() {
  */
 ProjectManager._projectRoot = null;
 
+/**
+ * @private
+ * Reference to the tree control
+ */
+ProjectManager._projectTree = null;
 
 /**
  * Displays a browser dialog where the user can choose a folder to load.
@@ -100,6 +105,123 @@ ProjectManager.loadProject = function(rootPath) {
         
     }
 };
+
+/**
+ * Returns the FileEntry corresponding to the selected item, or null
+ * if no item is selected.
+ *
+ * @return {string}
+ */
+ProjectManager.getSelectedItem = function() {
+    var selected = ProjectManager._projectTree.jstree("get_selected");   
+    if (selected)
+        return selected.data("entry");        
+    return null;
+};
+
+/**
+ * Create a new item in the project tree.
+ *
+ * @param baseDir {string} Full path of the directory where the item should go
+ * @param initialName {string} Initial name for the item
+ * @param skipRename {boolean} If true, don't allow the user to rename the item
+ * @return {Deferred} A $.Deferred() object that will be resolved with the FileEntry
+ *  of the created object, or rejected if the user cancelled or entered an illegal
+ *  filename.
+ */
+ProjectManager.createNewItem = function(baseDir, initialName, skipRename) {
+    // TODO: Need API to get tree node for baseDir.
+    // In the meantime, pass null for node so new item is placed
+    // relative to the selection
+    var node = null,
+        selection = ProjectManager.getSelectedItem(),
+        position = "inside",
+        escapeKeyPressed = false,
+        result = new $.Deferred();
+    
+    if (selection && selection.isFile)
+        position = "after";
+    
+    ProjectManager._projectTree.on("create.jstree", function(event, data) {
+        var error = false;
+        $(event.target).off("create.jstree");
+
+        if (!escapeKeyPressed) {
+            // Validate file name
+            // TODO: There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
+            // We may want to add checks for those here.
+            // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+            if (data.rslt.name.search(/[/?*:;{}<>\\|]+/) !== -1) {
+                brackets.showModalDialog(
+                        brackets.DIALOG_ID_ERROR
+                    ,   brackets.strings.INVALID_FILENAME_TITLE
+                    ,   brackets.strings.INVALID_FILENAME_MESSAGE);
+            
+                error = true;
+            }
+        
+            // Make sure the file doesn't already exist
+            fullPath = baseDir + "/" + data.rslt.name;
+        
+            // TODO: Use NativeFileSystem call instead of fs.stat(). Also, this
+            // is currently depending on stat being synchronous.
+            brackets.fs.stat(fullPath, function(err, stat) {
+                if (err != brackets.fs.ERR_NOT_FOUND) {
+                    brackets.showModalDialog(
+                            brackets.DIALOG_ID_ERROR
+                        ,   brackets.strings.INVALID_FILENAME_TITLE
+                        ,   brackets.strings.format(
+                                brackets.strings.FILE_ALREADY_EXISTS
+                            ,   data.rslt.name
+                        ));
+                    error = true;
+                }
+            });
+        }
+    
+        if (error || escapeKeyPressed) {
+            // TODO: If an error occurred, we should allow the user to fix the filename. 
+            // For now we just remove the node so you have to start again.
+            ProjectManager._projectTree.jstree("remove", data.rslt.obj);
+            result.reject();
+            return;            
+        }
+        
+        // Create a file entry for the new node
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        // Create a file writer (which will create the file)
+        fileEntry.createWriter(function(writer) {
+            writer.write("");
+        });
+        data.rslt.obj.data("entry", fileEntry);
+        ProjectManager._projectTree.jstree("select_node", data.rslt.obj, true);
+        result.resolve(fileEntry);
+    });
+    
+    // Create the node and open the editor 
+    ProjectManager._projectTree.jstree("create", node, position, {data: initialName}, null, false);
+    
+    var renameInput = ProjectManager._projectTree.find(".jstree-rename-input");
+    
+    renameInput.on("keydown", function(event) {
+        // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+        if (event.keyCode == 27) {
+            escapeKeyPressed = true;
+        }
+    });
+    
+    // TODO: Figure out better way to style this input. All styles are inlined by jsTree...
+    renameInput.css(
+        { left: "17px"
+        , height: "24px"
+        }
+    ).parent().css(
+        { height: "26px" 
+        }
+    );
+    
+    return result;
+}
 
 /**
  * @private
@@ -186,8 +308,8 @@ ProjectManager._renderTree = function(treeDataProvider) {
     
     // Instantiate tree widget
     // (jsTree is smart enough to replace the old tree if there's already one there)
-    projectTreeContainer.jstree({
-        plugins : ["ui", "themes", "json_data"],
+    ProjectManager._projectTree = projectTreeContainer.jstree({
+        plugins : ["ui", "themes", "json_data", "crrm"],
         json_data : { data:treeDataProvider, correct_state: false },
         core : { animation:0 },
         themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
@@ -197,6 +319,8 @@ ProjectManager._renderTree = function(treeDataProvider) {
         strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
     })
     .bind("select_node.jstree", function(event, data) {
-        CommandManager.execute(Commands.FILE_OPEN, data.rslt.obj.data("entry").fullPath);
+        var entry = data.rslt.obj.data("entry");
+        if (entry.isFile)
+            CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
     });
 };

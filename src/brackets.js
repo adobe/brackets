@@ -79,6 +79,9 @@ $(document).ready(function() {
  
     function initMenus() {
         // Implements the File menu items
+        $("#menu-file-new").click(function() {
+            CommandManager.execute(Commands.FILE_NEW);
+        });
         $("#menu-file-open").click(function() {
             CommandManager.execute(Commands.FILE_OPEN);
         });
