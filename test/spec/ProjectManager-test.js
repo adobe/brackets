@@ -1,3 +1,6 @@
+// FIXME (jasonsj): these tests are ommitted when launching in the main app window
+if (window.opener) { // (function(){
+
 describe("ProjectManager", function() {
 
     beforeEach(function() {
@@ -138,3 +141,5 @@ describe("ProjectManager", function() {
     });
 
 });
+
+}

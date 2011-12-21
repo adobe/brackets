@@ -222,20 +222,41 @@ describe("NativeFileSystem", function(){
     describe("Writing", function() {
 
         beforeEach( function() {
+            var nfs = null;
+
+            runs(function() {
+                NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
+                    nfs = fs;
+                });
+            });
+            waitsFor( function() { return nfs }, 1000);
+
+            runs(function() {
+                this.nfs = nfs;
+            });
+
+            // set read-only permissions
+            runs(function() {
+                brackets.fs.chmod(this.path + "/cant_read_here.txt", 0222, function(err) {
+                    _err = err;
+                    chmodDone = true;
+                });
+            });
+            waitsFor( function() { return chmodDone && ( _err === brackets.fs.NO_ERROR ) }, 1000);
         });
 
         afterEach( function() {
+            // restore permissions for git
+            runs(function() {
+                brackets.fs.chmod(this.path + "/cant_read_here.txt", 0777, function(err) {
+                    _err = err;
+                    chmodDone = true;
+                });
+            });
+            waitsFor( function() { return chmodDone && ( _err === brackets.fs.NO_ERROR ) }, 1000);
         });
 
         it("should create new, zero-length files", function() {
-            var nfs = null;
-
-            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
-                nfs = fs;
-            });
-
-            waitsFor( function() { return nfs }, 1000);
-
             var fileEntry = null;
             var writeComplete = false;
 
@@ -250,7 +271,7 @@ describe("NativeFileSystem", function(){
                 };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
-                nfs.getFile("new-zero-length-file.txt", { create: true, exclusive: true }, successCallback, errorCallback );
+                this.nfs.getFile("new-zero-length-file.txt", { create: true, exclusive: true }, successCallback, errorCallback );
             });
 
             waitsFor( function() { return writeComplete; }, 1000 );
@@ -286,14 +307,6 @@ describe("NativeFileSystem", function(){
         });
 
         it("should report an error when a file does not exist and create = false", function() {
-            var nfs = null;
-
-            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
-                nfs = fs;
-            });
-
-            waitsFor( function() { return nfs }, 1000);
-
             var fileEntry = null;
             var writeComplete = false;
             var error = null;
@@ -310,7 +323,7 @@ describe("NativeFileSystem", function(){
                 };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
-                nfs.getFile("does-not-exist.txt", { create: false }, successCallback, errorCallback );
+                this.nfs.getFile("does-not-exist.txt", { create: false }, successCallback, errorCallback );
             });
 
             waitsFor( function() { return writeComplete; }, 1000 );
@@ -323,14 +336,6 @@ describe("NativeFileSystem", function(){
         });
 
         it("should return an error if file exists and exclusive is true", function() {
-            var nfs = null;
-
-            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
-                nfs = fs;
-            });
-
-            waitsFor( function() { return nfs }, 1000);
-
             var fileEntry = null;
             var writeComplete = false;
             var error = null;
@@ -347,7 +352,7 @@ describe("NativeFileSystem", function(){
                 };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
-                nfs.getFile("file1", { create: true, exclusive: true }, successCallback, errorCallback );
+                this.nfs.getFile("file1", { create: true, exclusive: true }, successCallback, errorCallback );
             });
 
             // wait for success or error to return
@@ -363,14 +368,6 @@ describe("NativeFileSystem", function(){
         });
 
         it("should return an error if the path is a directory", function() {
-            var nfs = null;
-
-            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
-                nfs = fs;
-            });
-
-            waitsFor( function() { return nfs }, 1000);
-
             var fileEntry = null;
             var writeComplete = false;
             var error = null;
@@ -387,7 +384,7 @@ describe("NativeFileSystem", function(){
                 };
 
                 // FIXME (jasonsj): NativeFileSystem.root is missing
-                nfs.getFile("dir1", { create: false }, successCallback, errorCallback );
+                this.nfs.getFile("dir1", { create: false }, successCallback, errorCallback );
             });
 
             // wait for success or error to return
@@ -403,14 +400,6 @@ describe("NativeFileSystem", function(){
         });
 
         it("should create overwrite files with new content", function() {
-            var nfs = null;
-
-            NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
-                nfs = fs;
-            });
-
-            waitsFor( function() { return nfs }, 1000);
-
             var fileEntry = null;
             var writeComplete = false;
             var error = null;
@@ -435,7 +424,7 @@ describe("NativeFileSystem", function(){
                     writeComplete = true;
                 };
 
-                nfs.getFile( "file1", { create: false }, successCallback, errorCallback );
+                this.nfs.getFile( "file1", { create: false }, successCallback, errorCallback );
             });
 
             waitsFor( function() { return writeComplete && fileEntry; }, 1000 );
@@ -455,6 +444,30 @@ describe("NativeFileSystem", function(){
 
                 // reset file1 content
                 brackets.fs.writeFile( this.path + "/file1", this.file1content, "utf8" );
+            });
+        });
+
+        it("should report an error when writing to a file that cannot be read", function() {
+            var chmodDone = false;
+            var complete = false;
+            var error = null;
+
+            // createWriter() should return an error for files it can't read
+            runs(function() {
+                this.nfs.getFile( "cant_read_here.txt", { create: false }, function( entry ) {
+                    entry.createWriter(function() {
+                        complete = true;
+                    }
+                    , function(err) {
+                        error = err;
+                    });
+                });
+            });
+            waitsFor( function() { return complete || error; }, 1000 );
+
+            runs(function() {
+                expect(complete).toBeFalsy();
+                expect(error.code).toBe(FileError.NOT_READABLE_ERR);
             });
         });
 
