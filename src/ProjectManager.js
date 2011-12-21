@@ -125,6 +125,8 @@ ProjectManager._treeDataProvider = function(treeNode, jsTreeCallback) {
     dirEntry.createReader().readEntries(
         function(entries) {
             var subtreeJSON = ProjectManager._convertEntriesToJSON(entries);
+			if( subtreeJSON.length === 0 )
+				treeNode.removeClass("jstree-leaf jstree-closed").addClass("jstree-open");
             jsTreeCallback(subtreeJSON);
         },
         function(error) {
@@ -186,8 +188,7 @@ ProjectManager._renderTree = function(treeDataProvider) {
     // (jsTree is smart enough to replace the old tree if there's already one there)
     projectTreeContainer.jstree({
         plugins : ["ui", "themes", "json_data"],
-        json_data : { data:treeDataProvider },
-        
+        json_data : { data:treeDataProvider, correct_state: false },
         core : { animation:0 },
         themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
             //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
