@@ -9,5 +9,12 @@ var SpecRunnerUtils = {
     },
     getTestPath: function(path) {
         return SpecRunnerUtils.getTestRoot() + path;
+    },
+    getBracketsSourceRoot: function() {
+        var path = window.location.href;
+        path = path.substr("file://".length).split("/");
+        path = path.slice(0, length - 2);
+        path.push("src");
+        return path.join("/");
     }
 };
