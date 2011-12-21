@@ -41,6 +41,17 @@ brackets.showModalDialog = function(id, title, message, callback) {
         dlg.modal(true).hide();
     });
     
+    // Enter/Return handler for the primary button
+    $(document).on("keyup.modal", function(e) {
+        if (e.keyCode === 13) {
+            var primaryBtn = dlg.find(".primary");
+            if (primaryBtn) {
+                result.resolve(primaryBtn.attr("data-button-id"));
+                dlg.modal(true).hide();
+            }
+        }
+    });
+    
     // Run the dialog
     dlg.modal(
         { backdrop: "static" 
