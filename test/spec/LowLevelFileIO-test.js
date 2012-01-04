@@ -68,30 +68,6 @@ describe("LowLevelFileIO", function() {
             });
         });
 		
-		it("should handle files names with special characters", function(){
-            brackets.fs.readdir(baseDir + "/special_char_files/", function(err, contents) {
-                error = err;
-                content = contents;
-                complete = true;
-            });
-            
-            waitsFor(function() { return complete }, 1000);
-            
-            runs(function() {
-                expect(error).toBeFalsy();
-				
-                // Look for known files
-                expect(content.indexOf("file_with_quotes_'_\".txt")).not.toBe(-1);
-				
-				// OS X replaces "/" with ":" . TODO: will likely have to modify this test for Windows
-                expect(content.indexOf("file_with_slashes_:_\\.txt")).not.toBe(-1);
-                expect(content.indexOf("Icon\r")).not.toBe(-1);
-				
-              
-            });
-			
-		});
-
         it ("should return an error if the directory doesn't exist", function() {
             brackets.fs.readdir("/This/directory/doesnt/exist", function(err, contents) {
                 error = err;
