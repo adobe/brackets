@@ -123,7 +123,8 @@ NativeFileSystem.Entry = function( fullPath, isDirectory) {
 
 
 
-/** class: FileEntry
+/**
+ * This interface represents a file on a file system.
  *
  * @param {string} name
  * @constructor
@@ -136,8 +137,7 @@ NativeFileSystem.FileEntry = function( name ) {
 
 };
 
-/** createWriter
- *
+/**
  * Creates a new FileWriter associated with the file that this FileEntry represents.
  *
  * @param {function(_FileWriter)} successCallback
@@ -157,9 +157,13 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
 
         // initialize file length
         // TODO (jasonsj): handle async
+        var self = this;
+
         brackets.fs.readFile( fileEntry.fullPath, "utf8", function(err, contents) {
+            self._err = err;
+
             if ( contents )
-                this._length = contents.length;
+                self._length = contents.length;
         });
     };
 
@@ -231,10 +235,26 @@ NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, e
     _FileWriter.prototype.truncate = function( size ) {
     };
 
-    successCallback( new _FileWriter() );
+    var fileWriter = new _FileWriter();
+
+    if ( fileWriter._err && ( errorCallback !== undefined ) ) {
+        errorCallback( NativeFileSystem._nativeToFileError( fileWriter._err ) );
+    }
+    else if ( successCallback !== undefined ) {
+        successCallback( fileWriter );
+    }
 };
 
-
+/**
+ * This interface extends the FileException interface described in to add
+ * several new error codes. Any errors that need to be reported synchronously,
+ * including all that occur during use of the synchronous filesystem methods,
+ * are reported using the FileException exception.
+ *
+ * @param {number} code The code attribute, on getting, must return one of the
+ * constants of the FileException exception, which must be the most appropriate
+ * code from the table below.
+ */
 NativeFileSystem.FileException = function ( code ){
     this.code = code || 0;
 };
@@ -252,12 +272,12 @@ Object.defineProperties(NativeFileSystem.FileException,
     , QUOTA_EXCEEDED_ERR:           { value: 10, writable: false }
 });
 
-/** class: FileSaver
- * This interface provides methods to monitor the asynchronous writing of
- * blobs to disk using progress events and event handler attributes.
+/**
+ * This interface provides methods to monitor the asynchronous writing of blobs
+ * to disk using progress events and event handler attributes.
  *
  * This interface is specified to be used within the context of the global
- * object and within Web Workers.
+ * object (Window) and within Web Workers.
  *
  * @param {Blob} data
  * @constructor
@@ -307,8 +327,7 @@ NativeFileSystem.FileSaver.prototype.abort = function() {
     return err;
 };
 
-/** file
- *
+/**
  * Obtains the File objecte for a FileEntry object
  *
  * @param {function} successCallback
@@ -328,7 +347,8 @@ NativeFileSystem.FileEntry.prototype.createfileerror = function( successCallback
 };
 */
 
-/** class: DirectoryEntry
+/**
+ * This interface represents a directory on a file system.
  *
  * @constructor
  * @param {string} name
@@ -339,7 +359,6 @@ NativeFileSystem.DirectoryEntry = function( name ) {
 
     // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
-    // IMPLEMENT LATERvoid            getFile (DOMString path, optional Flags options, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
     // IMPLEMENT LATERvoid            getDirectory (DOMString path, optional Flags options, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
     // IMPLEMENT LATERvoid            removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
 };

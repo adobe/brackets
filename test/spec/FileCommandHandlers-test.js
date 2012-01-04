@@ -1,4 +1,5 @@
-if (window.opener) { // (function(){
+// FIXME (jasonsj): these tests are ommitted when launching in the main app window
+if (window.opener) {
 
 describe("FileCommandHandlers", function() {
 
@@ -17,6 +18,10 @@ describe("FileCommandHandlers", function() {
         });
         waitsFor(function() { return isReady; }, 5000);
     });
+
+    // TODO (jasonsj): test Commands.FILE_NEW. Current implementation of
+    // ProjectManager.createNewItem() is tightly coupled to jstree UI and
+    // events.
 
     describe("Close File", function() {
         it("should complete without error if no files are open", function() {
@@ -203,4 +208,4 @@ describe("FileCommandHandlers", function() {
 
     // TODO (jasonsj): experiment with mocks instead of real UI
 });
-} // })();
+}
