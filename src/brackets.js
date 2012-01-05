@@ -100,6 +100,18 @@ $(document).ready(function() {
         $("#btn-open-project").click(function() {
             ProjectManager.openProject();
         });
+		
+		// TODO TY: should this code live here?
+		$("#open-files-disclosure-arrow").click(function(){
+			$(this).toggleClass( "disclosure-arrow-closed");
+			$("#open-files-container").toggle();
+		});
+		
+		$("#project-files-disclosure-arrow").click(function(){
+			$(this).toggleClass( "disclosure-arrow-closed");
+			$("#project-files-container").toggle();
+		});
+		
     }
  
     function initMenus() {

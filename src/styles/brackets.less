@@ -160,6 +160,54 @@ body {
 	}
 }
 
+#project-file-area {
+	.vbox;
+	.box-flex(1);
+	margin: 5px;
+
+	.file-area-title {
+		font-weight: bold;
+		vertical-align: middle;		
+	}
+}
+
+#open-files-container {
+	.box-flex(0);
+	margin: 0;
+  	padding: 0;
+	overflow: auto;
+	
+	> ul {
+		list-style-type: none;
+		margin-top: 5px;
+		
+		.clicked {
+			background-color: #0065BE;
+			background-repeat: repeat-x;
+			background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
+		}
+
+		> li {
+			padding-top: 4px;
+			padding-bottom: 4px;
+			
+			> a {
+				color: black;
+				text-decoration: none;
+			}
+		} 
+		
+		> li:hover {
+			background: #E7F4F9;
+		}
+	}
+	
+	> hr {
+		margin: 0 px;
+		height: 2 px;
+	}
+}
+
 #project-files-container {
 	.box-flex(1);
 	margin: 0;
@@ -170,3 +218,45 @@ body {
 		margin-top: 5px;
 	}
 }
+
+.closed-file-area {
+	height: 18 px;
+}
+
+
+/* Ty question, should this be moved inside open-files-container */
+.disclosure-arrow-opened {
+	background-image: url("styles/images/jsTreeSprites.png");
+	background-repeat: no-repeat;
+	background-color: transparent;
+	
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	vertical-align: middle;
+	background-position: -18px 0px;
+}
+
+.disclosure-arrow-closed {
+	.disclosure-arrow-opened;
+	background-position: 0px 0px;
+}
+
+
+.close-file-icon {
+	background-image: url("styles/images/jsTreeSprites.png");
+	background-repeat: no-repeat;
+	background-color: transparent;
+	
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	vertical-align: middle;
+	background-position: -18px -54px;
+}
+
+
+.close-file-hidden {
+	display: none; 
+}
+
