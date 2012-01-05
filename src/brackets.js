@@ -20,12 +20,15 @@ define(function(require, exports, module) {
     // Define core brackets namespace
     brackets = window.brackets || {};
     
-    // TODO: Get rid of these. They are a temporary fix to get unit testing working.
-    brackets.test = {};
-    brackets.test.ProjectManager = ProjectManager;
-    brackets.test.FileCommandHandlers = FileCommandHandlers;
-    brackets.test.Commands = Commands;
-    brackets.test.CommandManager = require("CommandManager");
+    // TODO: Make sure the "test" object is not included in final builds
+    // All modules that need to be tested from the context of the application 
+    // need to be added to this object.
+    brackets.test = 
+        { ProjectManager        : ProjectManager
+        , FileCommandHandlers   : FileCommandHandlers
+        , Commands              : Commands
+        , CommandManager        : require("CommandManager")
+        };
 
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
 

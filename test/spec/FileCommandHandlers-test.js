@@ -1,9 +1,9 @@
 define(function(require, exports, module) {   
     
     // Load dependent modules
-    var CommandManager      = require("CommandManager")
-    ,   Commands            = require("Commands")
-    ,   FileCommandHandlers = require("FileCommandHandlers")
+    var CommandManager      // loaded from brackets.test
+    ,   Commands            // loaded from brackets.test
+    ,   FileCommandHandlers // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
     
@@ -20,7 +20,7 @@ define(function(require, exports, module) {
             // TODO: this will only work if run from the main Brackets window (not from jasmine.sh)
             this.app = window.opener;
             
-            // TODO: Remove these hard-coded references
+            // Load module instances from brackets.test
             CommandManager = this.app.brackets.test.CommandManager;
             Commands = this.app.brackets.test.Commands;
             FileCommandHandlers = this.app.brackets.test.FileCommandHandlers;

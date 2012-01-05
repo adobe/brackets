@@ -1,6 +1,6 @@
 define(function(require, exports, module) {
     // Load dependent modules
-    var ProjectManager      // TODO: Fix this! = require("ProjectManager")
+    var ProjectManager      // Load from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js")
     ;
     
@@ -11,7 +11,10 @@ define(function(require, exports, module) {
 
         beforeEach(function() {
             this.app = window.opener;
-            ProjectManager = this.app.brackets.test.ProjectManager; // TODO: Remove this
+            
+            // Load module instances from brackets.test
+            ProjectManager = this.app.brackets.test.ProjectManager; 
+            
             this.app.location.reload();
             this.testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
             var isReady = false;
