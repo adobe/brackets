@@ -138,6 +138,8 @@ body {
 	.vbox;
 	.box-flex(1);
 	
+	/* We need to hack the internal layout of the various CodeMirror elements in order to work
+	   with our flexbox-based layout. This isn't ideal. */
 	.CodeMirror {
 		.hbox;
 		.box-flex(1);
@@ -147,6 +149,8 @@ body {
 		-moz-box-direction: reverse;
 		box-direction: reverse;
 		
+		/* Hack to get rid of space at the right introduced by the invisible text field wrapper.
+		   TODO: find out from Marijn why it has a 3px width in the first place. */
 		:first-child {
 			width: 0 !important;
 		}
