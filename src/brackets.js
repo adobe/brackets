@@ -77,7 +77,16 @@ brackets.showModalDialog = function(id, title, message, callback) {
 
 $(document).ready(function() {
 
-    var editor = CodeMirror($('#editor').get(0));
+    var editorElt = $('#editor')
+    ,   editor = CodeMirror(editorElt.get(0));
+    
+    // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
+    // We need to do this programmatically.
+    $(window).resize(function() {
+        $('.CodeMirror-scroll', editorElt)
+            .height(editorElt.height());
+        editor.refresh();
+    });
     
     initProject();
     initMenus();

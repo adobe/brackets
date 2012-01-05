@@ -139,12 +139,26 @@ body {
 	.box-flex(1);
 	
 	.CodeMirror {
-		.vbox;
+		.hbox;
 		.box-flex(1);
+		
+		/* Hack to make the scrollbar go to the right. */
+		-webkit-box-direction: reverse;
+		-moz-box-direction: reverse;
+		box-direction: reverse;
+		
+		:first-child {
+			width: 0 !important;
+		}
 	}
 	.CodeMirror-scroll {
 		.box;
 		.box-flex(1);
+		height: auto;
+	}
+	.CodeMirror-scrollbar {
+		.box;
+		float: none;
 	}
 	.CodeMirror-lines {
 		padding: @base-padding;
