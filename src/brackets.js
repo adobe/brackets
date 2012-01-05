@@ -30,18 +30,18 @@ brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
 brackets.showModalDialog = function(id, title, message, callback) {
     var result = $.Deferred();
     var dlg = $("#" + id);
-    
+
     // Set title and message
     $(".dialog-title", dlg).html(title);
     $(".dialog-message", dlg).html(message);
-    
+
     // Click handler for buttons
     dlg.on("click", ".dialog-button", function(e) {
         result.resolve($(this).attr("data-button-id"));
         dlg.modal(true).hide();
     });
-    
-    // Enter/Return handler for the primary button. Need to 
+
+    // Enter/Return handler for the primary button. Need to
     // add both keydown and keyup handlers here to make sure
     // the enter key was pressed while the dialog was showing.
     // Otherwise, if a keydown or keypress from somewhere else
@@ -61,16 +61,16 @@ brackets.showModalDialog = function(id, title, message, callback) {
         }
         enterKeyPressed = false;
     });
-    
-    
+
+
     // Run the dialog
     dlg.modal(
-        { backdrop: "static" 
+        { backdrop: "static"
         , show: true
         }
     ).on("hide", function(e) {
         // Remove all handlers in the .modal namespace
-        $(document).off(".modal"); 
+        $(document).off(".modal");
     });
     return result;
 };
@@ -78,13 +78,13 @@ brackets.showModalDialog = function(id, title, message, callback) {
 $(document).ready(function() {
 
     var editor = CodeMirror($('#editor').get(0));
-    
+
     initProject();
     initMenus();
     initCommandHandlers();
     initKeyBindings();
-    
-    function initProject() {    
+
+    function initProject() {
         // Load a default project into the tree
         if (brackets.inBrowser) {
             // In browser: dummy folder tree (hardcoded in ProjectManager)
@@ -95,13 +95,13 @@ $(document).ready(function() {
             var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
             ProjectManager.loadProject(bracketsSrc);
         }
-    
+
         // Open project button
         $("#btn-open-project").click(function() {
             ProjectManager.openProject();
         });
     }
- 
+
     function initMenus() {
         // Implements the File menu items
         $("#menu-file-new").click(function() {
@@ -116,7 +116,7 @@ $(document).ready(function() {
         $("#menu-file-save").click(function() {
             CommandManager.execute(Commands.FILE_SAVE);
         });
-    
+
         // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
         var testWindow = null;
         $("#menu-runtests").click(function(){
@@ -125,20 +125,20 @@ $(document).ready(function() {
                     testWindow.location.reload();
                 } catch(e) {
                     testWindow = null;  // the window was probably closed
-                } 
+                }
             }
-        
+
             if (testWindow === null) {
                 testWindow = window.open("../test/SpecRunner.html");
                 testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
             }
         });
     }
-    
-    function initCommandHandlers() {    
+
+    function initCommandHandlers() {
         FileCommandHandlers.init(editor, $("#main-toolbar .title"));
     }
-    
+
     function initKeyBindings() {
         // Register keymaps and install the keyboard handler
         // TODO: show keyboard equivalents in the menus
@@ -149,7 +149,7 @@ $(document).ready(function() {
             }
         );
         KeyBindingManager.installKeymap(_globalKeymap);
-    
+
         $(document.body).keydown(function(event) {
             var keyDescriptor = [];
             if (event.metaKey || event.ctrlKey) {
@@ -167,4 +167,10 @@ $(document).ready(function() {
             }
         });
     }
+});
+
+// var PersistenceManager = require("PersistenceManager");
+
+$(window).unload(function () {
+    PersistenceManager.save();
 });

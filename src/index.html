@@ -10,17 +10,18 @@
 	<!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->
 	<link rel="stylesheet/less" href="styles/bootstrap.less">
 	<script src="thirdparty/less-1.1.5.min.js"></script>
-	
+
 	<script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
 	<link rel="stylesheet" href="thirdparty/CodeMirror2/lib/codemirror.css">
 	<script src="thirdparty/CodeMirror2/mode/javascript/javascript.js"></script>
-	
+
 	<script src="thirdparty/jquery-1.7.min.js"></script>
 	<script src="widgets/bootstrap-dropdown.js"></script>
 	<script src="widgets/bootstrap-modal.js"></script>
 	<script src="thirdparty/jstree_pre1.0_fix_1/jquery.jstree.js"></script>
-	
-	<script src="NativeFileSystem.js"></script>	
+
+	<script src="NativeFileSystem.js"></script>
+	<script src="PersistenceManager.js"></script>
 	<script src="CommandManager.js"></script>
 	<script src="Commands.js"></script>
 	<script src="FileCommandHandlers.js"></script>
@@ -52,7 +53,7 @@
           </ul>
       </div>
     </div>
-    
+
 	<!-- Main UI -->
 	<div class="main-view">
 		<div class="sidebar">
@@ -70,7 +71,7 @@
 		<div class="content">
 			<div id="main-toolbar" class="toolbar">
 				<div class="buttons">
-	<!--		
+	<!--
 					<input class="resume" type="button" value="Pause"/>
 					<input class="resume" type="button" value="Resume"/>
 					<input class="new" type="button" value="New"/>
@@ -79,11 +80,11 @@
 	-->
 				</div>
 				<div class="title">Untitled</div>
-			</div>			
+			</div>
 			<div id="editor"></div>
 		</div>
 	</div>
-	
+
 	<!-- Modal Windows -->
 	<div id="error-dialog" class="modal hide fade">
 		<div class="modal-header">
@@ -95,7 +96,7 @@
 		</div>
 		<div class="modal-footer">
 			<a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
-		</div>		
+		</div>
 	</div>
 	<div id="save-close-dialog" class="modal hide fade">
 		<div class="modal-header">
@@ -110,7 +111,7 @@
 			<!-- TODO: switch buttons on Windows -->
 			<a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
 			<a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
-		</div>		
+		</div>
 	</div>
 </body>
 </html>

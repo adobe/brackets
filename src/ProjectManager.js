@@ -4,6 +4,12 @@
 
 var ProjectManager = {};
 
+ProjectManager._save = function() {
+    console.log("ProjectManager save()");
+};
+
+// var PersistenceManager = require("PersistenceManager"); // TODO (jasonsj)
+PersistenceManager.addSaveParticipant(ProjectManager._save, ProjectManager);
 
 /**
  * Returns the root folder of the currently loaded project, or null if no project is open (during
