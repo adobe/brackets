@@ -1,9 +1,9 @@
 # input filenames 
-BRACKETS_APP_LESS = ./brackets-app.less
+BRACKETS_LESS = ../brackets.less
 
 # output filenames
-BRACKETS_APP = ./brackets-app.css
-BRACKETS_APP_MIN = ./brackets-app.min.css
+BRACKETS_CSS = ../brackets.css
+BRACKETS_CSS_MIN = ../brackets.min.css
 
 DATE=$(shell DATE)
 LESS_COMPRESSOR ?= `which lessc`
@@ -11,10 +11,10 @@ WATCHR ?= `which watchr`
 
 build:
 	@@if test ! -z ${LESS_COMPRESSOR}; then \
-		sed -e 's/@DATE/'"${DATE}"'/' <${BRACKETS_APP_LESS} >${BRACKETS_APP_LESS}.tmp; \
-		lessc ${BRACKETS_APP_LESS}.tmp > ${BRACKETS_APP}; \
-		lessc ${BRACKETS_APP_LESS}.tmp > ${BRACKETS_APP_MIN} --compress; \
-		rm -f ${BRACKETS_APP_LESS}.tmp; \
+		sed -e 's/@DATE/'"${DATE}"'/' <${BRACKETS_LESS} >${BRACKETS_LESS}.tmp; \
+		lessc ${BRACKETS_LESS}.tmp > ${BRACKETS_CSS}; \
+		lessc ${BRACKETS_LESS}.tmp > ${BRACKETS_CSS_MIN} --compress; \
+		rm -f ${BRACKETS_LESS}.tmp; \
 		echo "brackets-app css successfully built! - `date`"; \
 	else \
 		echo "You must have the LESS compiler installed in order to build Bootstrap."; \
