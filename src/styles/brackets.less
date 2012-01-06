@@ -166,7 +166,7 @@ body {
 	margin: 5px 0px 5px 0px;
 	
 	.project-file-header-area {
-		padding: 4px 4px 0px 0px;
+		padding: 4px 4px 2px 0px;
 		
 		span {
 			font-weight: bold;
@@ -199,7 +199,7 @@ body {
 		a {
 			color: black;
 			text-decoration: none;
-			margin-left: 2px;
+			margin-left: 26px;
 		}
 		
 		li {
@@ -254,19 +254,17 @@ body {
 }
 
 .disclosure-arrow-closed {
-	.disclosure-arrow-opened;
+	.jsTreeSprite;
 	display: inline-block;
 	background-position: 0px 0px;
 }
 
-// hidden by default. Should show on rollover
-.close-file-rollover-icon {
+.close-file-icon {
 	margin: 0px 0px 0px 2px;
 	.jsTreeSprite;
 	display: inline-block;
-	visibility:hidden;
+	position: absolute;
 	background-position: -@jsTreeSpriteSize (-3*@jsTreeSpriteSize);
 }
-
 
 

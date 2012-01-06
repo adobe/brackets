@@ -101,15 +101,28 @@ $(document).ready(function() {
             ProjectManager.openProject();
         });
 		
-		// TODO TY: should this code live here?
+		// Handle toggling top level disclosure arrows of file list area
 		$("#open-files-disclosure-arrow").click(function(){
 			$(this).toggleClass( "disclosure-arrow-closed");
 			$("#open-files-container").toggle();
 		});
-		
 		$("#project-files-disclosure-arrow").click(function(){
 			$(this).toggleClass( "disclosure-arrow-closed");
 			$("#project-files-container").toggle();
+		});
+		
+		// Display close "x" icon when user hovers over working set file
+		$(".working-set-list-item").hover(
+			function() {
+				$(this).prepend("<div class=\"close-file-icon\"></div>");
+			},
+			function() {
+				$(this).children(".close-file-icon").remove();
+			}
+		);
+		
+		$(".close-file-icon").click( function() {
+			// close file
 		});
 		
     }
