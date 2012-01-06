@@ -7,7 +7,6 @@
  *
  */
 define(function(require, exports, module) {
-    var exports = {}; // TODO (jasonsj): remove
     var callbacks = [];
 
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
@@ -116,9 +115,8 @@ define(function(require, exports, module) {
         persistentStorage.setItem( PREFERENCES_KEY, JSON.stringify( prefStorage ) );
     }
 
+    // Public API
     exports.getPluginPreferences = getPluginPreferences;
     exports.addSaveParticipant = addSaveParticipant;
     exports.save = save;
-
-    return exports; // TODO (jasonsj): remove
 });
