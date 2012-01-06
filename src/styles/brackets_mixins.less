@@ -1,39 +1,39 @@
-/* Useful mixins */
+/* Brackets mixins */
 
 .box {
-	display: -webkit-box;
-	display: -moz-box;
-	display: box;	
+    display: -webkit-box;
+    display: -moz-box;
+    display: box;
 }
 .hbox {
-	.box;
-	-webkit-box-orient: horizontal;
-	-moz-box-orient: horizontal;
-	box-orient: horizontal;
+    .box;
+    -webkit-box-orient: horizontal;
+    -moz-box-orient: horizontal;
+    box-orient: horizontal;
 }
 .vbox {
-	.box;
-	-webkit-box-orient: vertical;
-	-moz-box-orient: vertical;
-	box-orient: vertical;
+    .box;
+    -webkit-box-orient: vertical;
+    -moz-box-orient: vertical;
+    box-orient: vertical;
 }
 .box-flex(@ratio) {
-	-webkit-box-flex: @ratio;
-	-moz-box-flex: @ratio;
-	box-flex: @ratio;
+    -webkit-box-flex: @ratio;
+    -moz-box-flex: @ratio;
+    box-flex: @ratio;
 }
 .box-pack(@pack) {
-	-webkit-box-pack: @pack;
-	-moz-box-pack: @pack;
-	box-pack: @pack;
+    -webkit-box-pack: @pack;
+    -moz-box-pack: @pack;
+    box-pack: @pack;
 }
 .box-align(@align) {
-	-webkit-box-align: @align;
-	-moz-box-align: @align;
-	box-align: @align;
+    -webkit-box-align: @align;
+    -moz-box-align: @align;
+    box-align: @align;
 }
 .sane-box-model {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
 }

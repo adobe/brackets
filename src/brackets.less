@@ -11,24 +11,24 @@
 /* General styles for Brackets elements */
 
 .panel {
-	.vbox;
-	.box-flex(1);
-	
-	padding: 0;
-	margin: 0;
-	background: #d8e0e8;
-	border-right: 1px solid #aaa;
+    .vbox;
+    .box-flex(1);
+
+    padding: 0;
+    margin: 0;
+    background: #d8e0e8;
+    border-right: 1px solid #aaa;
 }
 
 .toolbar {
-	.hbox;
-	.box-align(center);
-	
-	height: 23px;
-	padding: @base-padding;
-	border-bottom: 1px solid #aaa;
-	#gradient > .vertical(#eee, #ccc);
-	.box-shadow(0 1px 3px 0 rgba(0, 0, 0, 0.3));
+    .hbox;
+    .box-align(center);
+
+    height: 23px;
+    padding: @base-padding;
+    border-bottom: 1px solid #aaa;
+    #gradient > .vertical(#eee, #ccc);
+    .box-shadow(0 1px 3px 0 rgba(0, 0, 0, 0.3));
 }
 
 .modal-footer .btn.left {
@@ -38,93 +38,92 @@
 /* Overall layout */
 
 html, body {
-	height: 100%;
-	overflow: auto;
+    height: 100%;
+    overflow: auto;
 }
 
 body {
-	.vbox;
+    .vbox;
 
-	.topbar {
-		position: static;
-	}
+    .topbar {
+        position: static;
+    }
 }
 
 .topbar-inner {
-	/* We don't want to use the default .container in here, so we need to .clearfix the children. */
-	.clearfix;
-	
-	.brand {
-		.sane-box-model;
-		margin-left: 0;
-		width: 200px;
-		padding-left: @base-padding;
-		padding-right: @base-padding;
-	}
+    /* We don't want to use the default .container in here, so we need to .clearfix the children. */
+    .clearfix;
+
+    .brand {
+        .sane-box-model;
+        margin-left: 0;
+        width: 200px;
+        padding-left: @base-padding;
+        padding-right: @base-padding;
+    }
 }
 
 .main-view {
-	.hbox;
-	.box-flex(1);
-		
-	.sidebar {
-		.vbox;
-		width: 200px;
-	}
+    .hbox;
+    .box-flex(1);
 
-	.content {
-		.vbox;
-		.box-flex(1);
-	}
+    .sidebar {
+        .vbox;
+        width: 200px;
+    }
+
+    .content {
+        .vbox;
+        .box-flex(1);
+    }
 }
 
-/* #main-toolbar { */
 .toolbar {
-	/* make sure the shadow goes above other items */
-	z-index: 1;
-	.title {
-		font-size: 1.2em;
-		font-weight: bold;
-		text-shadow: 0 1px #fff;		
-	}
-	.buttons {
-		float: right;		
-	}
+    /* make sure the shadow goes above other items */
+    z-index: 1;
+    .title {
+        font-size: 1.2em;
+        font-weight: bold;
+        text-shadow: 0 1px #fff;        
+    }
+    .buttons {
+        float: right;       
+    }
 }
 
 #editor {
-	.vbox;
-	.box-flex(1);
-	
-	.CodeMirror {
-		.vbox;
-		.box-flex(1);
-	}
-	.CodeMirror-scroll {
-		.box;
-		.box-flex(1);
-	}
-	.CodeMirror-lines {
-		padding: @base-padding;
-	}
+    .vbox;
+    .box-flex(1);
+
+    .CodeMirror {
+        .vbox;
+        .box-flex(1);
+    }
+    .CodeMirror-scroll {
+        .box;
+        .box-flex(1);
+    }
+    .CodeMirror-lines {
+        padding: @base-padding;
+    }
 }
 
 /* Project panel */
 
 #projects .toolbar {
-	.picker {
-		.box;
-		.box-flex(1);
-	}
+    .picker {
+        .box;
+        .box-flex(1);
+    }
 }
 
 #project-files-container {
-	.box-flex(1);
-	margin: 0;
-	padding: 0;
-	overflow: auto; /* show scrollbars */
-	
-	> ul {
-		margin-top: 5px;
-	}
+    .box-flex(1);
+    margin: 0;
+    padding: 0;
+    overflow: auto; /* show scrollbars */
+
+    > ul {
+        margin-top: 5px;
+    }
 }

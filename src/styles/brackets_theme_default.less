@@ -1,23 +1,25 @@
 /*
-   Theme definition -- Override this to create a theme, and
-   add variables / mixins for UI styling that we want to be able to change
-   in a theme.
-
-   Throughout the rest of the LESS files we should _only_ use color
-   variable names that are on the LHS of the list below. So, if we
-   need a new color for some UI element, we should add a variable
-   in this file.
-
-   The general idea is that, in any theme, these variables will be ordered 
-   either from light->dark or dark->light:
-
-     base4, base3, ..., base1, base0, base01, ... base03, base04
-
-   We use, e.g., "04" because we can't use negatives, and want base0 
-   in the middle. That way, if we want a dark theme instead of a light
-   theme, all we need to do is reverse the order of the colors.
-
-*/
+ * Brackets Default Theme
+ *
+ * Defines all the variables that one can configure in a theme. This should
+ * contain all variables / mixins for UI styling that we want to be able to change
+ * in a theme.
+ *
+ * Throughout the rest of the LESS files we should _only_ use color
+ * variable names that are on the LHS of the list below. So, if we
+ * need a new color for some UI element, we should add a variable
+ * in this file.
+ *
+ * The general idea is that, in any theme, these variables will be ordered 
+ * either from light->dark or dark->light:
+ *
+ *   base4, base3, ..., base1, base0, base01, ... base03, base04
+ *
+ * We use, e.g., "04" because we can't use negatives, and want base0 
+ * in the middle. That way, if we want a dark theme instead of a light
+ * theme, all we need to do is reverse the order of the colors.
+ *
+ */
 
 /* overall colors */
 
@@ -63,13 +65,13 @@
 /* Mixins for UI elements that can be styled */
 
 .code-font() {
-	color: @accent-none;
-	font-size: 12pt;
-	font-family: InconsolataMedium;
-	text-shadow: @base04 1px 1px 0px;
+    color: @accent-none;
+    font-size: 12pt;
+    font-family: InconsolataMedium;
+    text-shadow: @base04 1px 1px 0px;
 }
 
 .code-cursor() {
-	background-color: fadeout(@blue, 50%);
-	border: none !important;
+    background-color: fadeout(@blue, 50%);
+    border: none !important;
 }
