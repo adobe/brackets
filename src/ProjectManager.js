@@ -33,6 +33,10 @@ define(function(require, exports, module) {
      */
     var _projectTree = null;
 
+    /**
+     * @private
+     * Preferences callback. Saves current project path.
+     */
     function save( storage ) {
         storage.projectPath = _projectRoot.fullPath;
     };
