@@ -22,7 +22,9 @@ define(function(require, exports, module) {
     
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application 
-    // need to be added to this object.
+    // must to be added to this object. The unit tests cannot just pull
+    // in the modules since they would run in context of the unit test window,
+    // and would not have access to the app html/css.
     brackets.test = 
         { ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
