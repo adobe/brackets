@@ -11,6 +11,7 @@ define(function(require, exports, module) {
 
     // Load dependent modules
     var ProjectManager          = require("ProjectManager")
+    ,   EditorManager           = require("EditorManager")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
