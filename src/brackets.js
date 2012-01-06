@@ -77,15 +77,23 @@ brackets.showModalDialog = function(id, title, message, callback) {
 
 $(document).ready(function() {
 
+    // TODO: horizontal scrollbar isn't staying stable in editor--it changes as you scroll.
     var editorElt = $('#editor')
     ,   editor = CodeMirror(editorElt.get(0));
     
     // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
     // We need to do this programmatically.
+    var timeout = null;
     $(window).resize(function() {
+        // Don't refresh every single time.
+        if (!timeout) {
+            timeout = setTimeout(function() {
+                editor.refresh();
+                timeout = null;
+            }, 100);
+        }
         $('.CodeMirror-scroll', editorElt)
             .height(editorElt.height());
-        editor.refresh();
     });
     
     initProject();
