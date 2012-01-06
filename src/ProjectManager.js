@@ -4,12 +4,33 @@
 
 var ProjectManager = {};
 
-ProjectManager._save = function() {
-    console.log("ProjectManager save()");
+// Plug
+ProjectManager._save = function( storage ) {
+    storage.projectPath = ProjectManager._projectRoot.fullPath;
 };
 
-// var PersistenceManager = require("PersistenceManager"); // TODO (jasonsj)
-PersistenceManager.addSaveParticipant(ProjectManager._save, ProjectManager);
+/**
+ * Preferences initializer
+ */
+ProjectManager.getDefaultPreferences = function() {
+    var loadedPath = window.location.pathname;
+    var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+    var defaults =
+        { projectPath: bracketsSrc /* initialze to brackets source */
+        };
+
+    return defaults;
+}
+
+/**
+ * Plugin identifier
+ */
+ProjectManager.getPluginId = function() {
+    return "com.adobe.brackets.ProjectManager";
+}
+
+//var PersistenceManager = require("PersistenceManager"); // TODO (jasonsj)
+PersistenceManager.addSaveParticipant(ProjectManager, ProjectManager._save);
 
 /**
  * Returns the root folder of the currently loaded project, or null if no project is open (during
@@ -62,6 +83,17 @@ ProjectManager.openProject = function() {
  * @param {string} rootPath  Absolute path to the root folder of the project.
  */
 ProjectManager.loadProject = function(rootPath) {
+    if (rootPath === null || rootPath === undefined) {
+        // Load the last known project into the tree
+        var prefs = PersistenceManager.getPluginPreferences(ProjectManager);
+        rootPath = prefs.projectPath;
+
+        if (brackets.inBrowser) {
+            // In browser: dummy folder tree (hardcoded in ProjectManager)
+           rootPath = "DummyProject";
+        }
+    }
+
     // Set title
     var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
     $("#project-title").html(projectName);

@@ -85,16 +85,7 @@ $(document).ready(function() {
     initKeyBindings();
 
     function initProject() {
-        // Load a default project into the tree
-        if (brackets.inBrowser) {
-            // In browser: dummy folder tree (hardcoded in ProjectManager)
-            ProjectManager.loadProject("DummyProject");
-        } else {
-            // In app shell: load Brackets itself
-            var loadedPath = window.location.pathname;
-            var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-            ProjectManager.loadProject(bracketsSrc);
-        }
+        ProjectManager.loadProject();
 
         // Open project button
         $("#btn-open-project").click(function() {
