@@ -192,38 +192,30 @@ body {
 	
 	ul {
 		list-style-type: none;
-		margin-bottom: 0px;
-		margin-left: 0px;
-		margin-right: 0px;
-		margin-top: 5px;
+		margin: 5px 0px 0px 0px;
 		
 		a {
 			color: black;
 			text-decoration: none;
-			margin-left: 30px;
+			margin-left: 2px;
 		}
 		
 		li {
-			padding-top: 4px;
-			padding-bottom: 4px;
-			padding-left: 2px;
+			padding: 4px 0px 4px 2px;
 			
 			&:hover {
 				background: #E7F4F9;
+				.close-file-rollover-icon { visibility: visible; }
 			}
 			
 		} 
-		
-		
 		
 		.clicked {
 			background-color: #0065BE;
 			background-repeat: repeat-x;
 			background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
 		
-			a {
-				color: white;
-			}
+			a { color: white; }
 		}
 	}
 	
@@ -232,57 +224,47 @@ body {
 
 #project-files-container {
 	.box-flex(1);
-	margin: 0px;
+	margin: 0px 0px 0px 8px;
   	padding: 0;
 	overflow: auto; /* show scrollbars */
 	
-	ul {
-		margin-top: 5px;
-	}
+	ul { margin-top: 5px; }
 }
 
-.closed-file-area {
-	height: @jsTreeSpriteSize;
-}
+/** Classes for icons from jsTreeSprites.png 
+*/
 
 .jsTreeSprite {
 	background-image: url("styles/images/jsTreeSprites.png");
 	background-repeat: no-repeat;
 	background-color: transparent;
-
+	vertical-align: middle;
+	width: @jsTreeSpriteSize;
+	height: @jsTreeSpriteSize;
 }
 
 @jsTreeSpriteSize: 18px;
 
-/* Ty question, should this be moved inside open-files-container */
 .disclosure-arrow-opened {
 	.jsTreeSprite;
-	
 	display: inline-block;
-	width: @jsTreeSpriteSize;
-	height: @jsTreeSpriteSize;
-	vertical-align: middle;
 	background-position: -@jsTreeSpriteSize 0px;
 }
 
 .disclosure-arrow-closed {
 	.disclosure-arrow-opened;
+	display: inline-block;
 	background-position: 0px 0px;
 }
 
-
-.close-file-icon {
+// hidden by default. Should show on rollover
+.close-file-rollover-icon {
+	margin: 0px 0px 0px 2px;
 	.jsTreeSprite;
-	
 	display: inline-block;
-	width: @jsTreeSpriteSize;
-	height: @jsTreeSpriteSize;
-	vertical-align: middle;
+	visibility:hidden;
 	background-position: -@jsTreeSpriteSize (-3*@jsTreeSpriteSize);
 }
 
 
-.close-file-hidden {
-	display: none; 
-}
 
