@@ -3,20 +3,45 @@
  */
 
 // TODO: break out the definition of brackets into a separate module from the application controller logic
+define(function(require, exports, module) {
+    // Load dependent non-module scripts
+    require("thirdparty/CodeMirror2/mode/javascript/javascript");
+    require("widgets/bootstrap-dropdown");
+    require("widgets/bootstrap-modal");
 
-// Define core brackets namespace
-brackets = window.brackets || {};
+    // Load dependent modules
+    var ProjectManager          = require("ProjectManager")
+    ,   FileCommandHandlers     = require("FileCommandHandlers")
+    ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
+    ,   KeyMap                  = require("KeyBindingManager").KeyMap
+    ,   Commands                = require("Commands")
+    ;
 
-brackets.inBrowser = !brackets.hasOwnProperty("fs");
+    // Define core brackets namespace
+    brackets = window.brackets || {};
+    
+    // TODO: Make sure the "test" object is not included in final builds
+    // All modules that need to be tested from the context of the application 
+    // must to be added to this object. The unit tests cannot just pull
+    // in the modules since they would run in context of the unit test window,
+    // and would not have access to the app html/css.
+    brackets.test = 
+        { ProjectManager        : ProjectManager
+        , FileCommandHandlers   : FileCommandHandlers
+        , Commands              : Commands
+        , CommandManager        : require("CommandManager")
+        };
 
-brackets.DIALOG_BTN_CANCEL = "cancel";
-brackets.DIALOG_BTN_OK = "ok";
-brackets.DIALOG_BTN_DONTSAVE = "dontsave";
+    brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
-brackets.DIALOG_ID_ERROR = "error-dialog";
-brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
+    brackets.DIALOG_BTN_CANCEL = "cancel";
+    brackets.DIALOG_BTN_OK = "ok";
+    brackets.DIALOG_BTN_DONTSAVE = "dontsave";
 
-/**
+    brackets.DIALOG_ID_ERROR = "error-dialog";
+    brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
+
+    /**
  * General purpose modal dialog. Assumes that the HTML for the dialog contains elements with "title"
  * and "message" classes, as well as a number of elements with "dialog-button" class, each of which has
  * a "data-button-id".
@@ -27,7 +52,7 @@ brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
  * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
  *     is dismissed.
  */
-brackets.showModalDialog = function(id, title, message, callback) {
+    brackets.showModalDialog = function(id, title, message, callback) {
     var result = $.Deferred();
     var dlg = $("#" + id);
     
@@ -73,9 +98,9 @@ brackets.showModalDialog = function(id, title, message, callback) {
         $(document).off(".modal"); 
     });
     return result;
-};
+    };
 
-$(document).ready(function() {
+    $(document).ready(function() {
 
     var editor = CodeMirror($('#editor').get(0));
     
@@ -179,4 +204,5 @@ $(document).ready(function() {
             }
         });
     }
+    });
 });
