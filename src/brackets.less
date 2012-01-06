@@ -1,64 +1,12 @@
 /*!
- * Brackets-App
+ * Brackets
  *
  * TODO: Copyright Notice
  *
  * Date: @DATE
  */
 
-@import "styles/brackets-shared.less";
-
-/* Useful mixins */
-
-.box {
-	display: -webkit-box;
-	display: -moz-box;
-	display: box;	
-}
-.hbox {
-	.box;
-	-webkit-box-orient: horizontal;
-	-moz-box-orient: horizontal;
-	box-orient: horizontal;
-}
-.vbox {
-	.box;
-	-webkit-box-orient: vertical;
-	-moz-box-orient: vertical;
-	box-orient: vertical;
-}
-.box-flex(@ratio) {
-	-webkit-box-flex: @ratio;
-	-moz-box-flex: @ratio;
-	box-flex: @ratio;
-}
-.box-pack(@pack) {
-	-webkit-box-pack: @pack;
-	-moz-box-pack: @pack;
-	box-pack: @pack;
-}
-.box-align(@align) {
-	-webkit-box-align: @align;
-	-moz-box-align: @align;
-	box-align: @align;
-}
-
-.sane-box-model {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-}
-
-
-/* Variables */
-
-/* All paddings, gutters, etc. should be multiples of this */
-@base-padding: 10px;
-
-/* Path prefix for all images used in our CSS. (Note: unlike a normal CSS file, in runtime-processed
-   LESS, image URLs are relative to the .html file, NOT to the .less file) */
-@img: "styles/images";
-
+@import "styles/brackets_shared.less";
 
 /* General styles for Brackets elements */
 

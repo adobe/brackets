@@ -1,0 +1,38 @@
+/* 
+   Colors
+
+   Based on a de-saturated modification of Solarized
+     http://ethanschoonover.com/solarized
+
+   Note: These are general purpose colors that can be used in defining
+   themes. However, these variable names should _not_ be used outside
+   of theme definitions (i.e. should not be used in regular definitions
+   of UI elements). All UI elements should use color variables that
+   have a LHS name in the default theme.
+
+*/
+
+@color-step-size: 10%;
+
+@dark4:     #000000;
+@dark3:     lighten(@dark4, @color-step-size);
+@dark2:     lighten(@dark3, @color-step-size);
+@dark1:     lighten(@dark2, @color-step-size);
+
+@base:      #808080;
+@basedark:  darken(@base, @color-step-size);
+@baselight: lighten(@base, @color-step-size);
+
+@light4:    #ffffff;
+@light3:    darken(@light4, @color-step-size);
+@light2:    darken(@light3, @color-step-size);
+@light1:    darken(@light2, @color-step-size);
+
+@yellow:    #b58900;
+@orange:    #cb4b16;
+@red:       #dc322f;
+@magenta:   #d33682;
+@violet:    #6c71c4;
+@blue:      #268bd2;
+@cyan:      #2aa198;
+@green:     #859900;

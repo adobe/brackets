@@ -1,0 +1,75 @@
+/*
+   Theme definition -- Override this to create a theme, and
+   add variables / mixins for UI styling that we want to be able to change
+   in a theme.
+
+   Throughout the rest of the LESS files we should _only_ use color
+   variable names that are on the LHS of the list below. So, if we
+   need a new color for some UI element, we should add a variable
+   in this file.
+
+   The general idea is that, in any theme, these variables will be ordered 
+   either from light->dark or dark->light:
+
+     base4, base3, ..., base1, base0, base01, ... base03, base04
+
+   We use, e.g., "04" because we can't use negatives, and want base0 
+   in the middle. That way, if we want a dark theme instead of a light
+   theme, all we need to do is reverse the order of the colors.
+
+*/
+
+/* overall colors */
+
+@base4: @dark4;
+@base3: @dark3;
+@base2: @dark2;
+
+@base1: @basedark;
+@base0: @base;
+@base01: @baselight;
+
+@base02: @light1;
+@base03: @light2;
+@base04: @light3;
+
+/* font accent colors */
+
+@accent-none: @base1;  // default color when there is no accent
+@accent-keyword: @blue;
+@accent-atom: @accent-none;
+@accent-number: @accent-none;
+@accent-def: @green;
+@accent-variable: @accent-none;
+@accent-variable-2: @accent-none;
+@accent-variable-3: @accent-none;
+@accent-property: @accent-none;
+@accent-operator: @accent-none;
+@accent-comment: @base01;
+@accent-string: @orange;
+@accent-string-2: @orange;
+@accent-meta: @violet;
+@accent-error: @red;
+@accent-qualifier: @blue;
+@accent-builtin: @blue;
+@accent-bracket: @accent-none;
+@accent-tag: @green;
+@accent-attribute: @green;
+@accent-header: @magenta;
+@accent-quote: @accent-none;
+@accent-hr: @accent-none;
+@accent-link: @accent-none;
+
+/* Mixins for UI elements that can be styled */
+
+.code-font() {
+	color: @accent-none;
+	font-size: 12pt;
+	font-family: InconsolataMedium;
+	text-shadow: @base04 1px 1px 0px;
+}
+
+.code-cursor() {
+	background-color: fadeout(@blue, 50%);
+	border: none !important;
+}

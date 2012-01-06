@@ -1,0 +1,22 @@
+// Bootstrap @ v.1.4.0
+@import "bootstrap/bootstrap.less";
+
+// Brackets-specific variables, mixins and overrides
+@import "brackets_variables.less";
+@import "brackets_mixins.less";
+@import "brackets_patterns_override.less";
+
+// Brackets-specific default font and color definitions
+@import "brackets_fonts.less";
+@import "brackets_colors.less";
+
+// Default theme -- all UI styling comes from variables in a theme
+// Themes can rely on variables defined above
+@import "brackets_theme_default.less";
+
+// Codemirror styling and overrides
+@import "thirdparty/CodeMirror2/lib/codemirror.css";
+@import "brackets_codemirror_override.less";
+
+// styling for file tree
+@import "jsTreeTheme.less";
