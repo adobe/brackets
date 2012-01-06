@@ -6,8 +6,7 @@
  * PersistenceManager
  *
  */
- var PersistenceManager = (function() { // TODO (jasonsj): remove
-//define(function(require, exports, module) {
+define(function(require, exports, module) {
     var exports = {}; // TODO (jasonsj): remove
     var callbacks = [];
 
@@ -122,5 +121,4 @@
     exports.save = save;
 
     return exports; // TODO (jasonsj): remove
-//});
-})();
+});
