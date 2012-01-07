@@ -18,6 +18,8 @@ define(function(require, exports, module) {
     var _editor, _title, _currentFilePath, _currentTitlePath,
         _isDirty = false,
         _savedUndoPosition = 0;
+    
+    var _ignoreEditorChanges = false;
 
     function init(editor, title) {
         _editor = editor;
@@ -46,6 +48,11 @@ define(function(require, exports, module) {
     };
 
     function updateDirty() {
+        // Don't send out spurious dirty-bit notifications while populating editor with the contents
+        // of a newly-opened file, or when clearing editor while closing a file.
+        if (_ignoreEditorChanges)
+            return;
+        
         // If we've undone past the undo position at the last save, and there is no redo stack,
         // then we can never get back to a non-dirty state.
         var historySize = _editor.historySize();
@@ -56,6 +63,8 @@ define(function(require, exports, module) {
         if (_isDirty != newIsDirty) {
             _isDirty = newIsDirty;
             updateTitle();
+            
+            DocumentManager.temp_updateDirty(_isDirty);
         }
     }
 
@@ -144,7 +153,11 @@ define(function(require, exports, module) {
                 _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
                 // TODO: move to EditorManager listener
+                _ignoreEditorChanges = true;
                 _editor.setValue(event.target.result);
+                _ignoreEditorChanges = false;
+                
+                DocumentManager.showInEditor(fileEntry);
 
                 // Make sure we can't undo back to the previous content.
                 _editor.clearHistory();
@@ -154,7 +167,6 @@ define(function(require, exports, module) {
                 updateDirty();
 
                 result.resolve();
-                DocumentManager.showInEditor(fileEntry);
             };
 
             reader.onerror = function(event) {
@@ -273,7 +285,10 @@ define(function(require, exports, module) {
         // TODO: When we implement multiple files being open, this will probably change to just
         // dispose of the editor for the current file (and will later change again if we choose to
         // limit the number of open editors).
+        _ignoreEditorChanges = true;
         _editor.setValue("");
+        _ignoreEditorChanges = false;
+        
         _editor.clearHistory();
         _currentFilePath = _currentTitlePath = null;
         _savedUndoPosition = 0;

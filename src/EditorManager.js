@@ -24,9 +24,11 @@ define(function(require, exports, module) {
     
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         console.log("Working set ++ " + addedDoc);
+        console.log("  set: " + DocumentManager.getWorkingSet().join());
     });
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
         console.log("Working set -- " + removedDoc);
+        console.log("  set: " + DocumentManager.getWorkingSet().join());
     });
     
     $(DocumentManager).on("dirtyFlagChange", function(event, removedDoc) {

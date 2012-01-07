@@ -51,7 +51,7 @@ define(function(require, exports, module) {
      * @private
      * @see DocumentManager.getCurrentDocument()
      */
-    var _currentDocument = [];
+    var _currentDocument = null;
     
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
@@ -158,6 +158,7 @@ define(function(require, exports, module) {
         if (_currentDocument == null)
             return;
         
+        // Change model & dispatch event
         _currentDocument = null;
         $(exports).triggerHandler("currentDocumentChange");
         // this event triggers EditorManager to actually clear the editor UI
@@ -191,13 +192,29 @@ define(function(require, exports, module) {
         }
         
         // Remove closed doc from working set, if it was in there
-        _removeFromWorkingSet(_currentDocument);
+        //_removeFromWorkingSet(_currentDocument);
+        // FIXME: Don't do this yet, since FileCommentHandlers issues a close any time you navigate
+        // to a new editor. This would limit the working set to a max length of 1, which is not
+        // super useful for testing.
         
         // Switch editor to next document (or blank it out)
         if (nextDocument)
             showInEditor(nextDocument.file);
         else
             _clearEditor();
+    }
+    
+    
+    function temp_updateDirty(isCurrentDocDirty) {
+        if (_currentDocument == null)
+            throw new Error("Dirty bit cannot update when there is no current document!");
+        
+        // Change dirty bit & dispatch event
+        _currentDocument.isDirty = isCurrentDocDirty;
+        $(exports).triggerHandler("dirtyFlagChange", _currentDocument);
+        
+        // If file just became dirty, add it to working set (if not already there)
+        _addToWorkingSet(_currentDocument);
     }
     
     
@@ -208,5 +225,6 @@ define(function(require, exports, module) {
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
     exports.closeCurrentDocument = closeCurrentDocument;
+    exports.temp_updateDirty = temp_updateDirty;
     
 });

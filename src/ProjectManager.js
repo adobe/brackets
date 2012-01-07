@@ -38,8 +38,8 @@ define(function(require, exports, module) {
         return (absPath.indexOf(rootPath) == 0);
     }
     /**
-     * If absPath lies within the project, returns a project-relative path. If absPath lies outside
-     * the project, returns absPath unmodified.
+     * If absPath lies within the project, returns a project-relative path. Else returns absPath
+     * unmodified.
      * FIXME: Does not support paths containing ".."
      */
     function makeProjectRelativeIfPossible(absPath) {
