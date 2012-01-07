@@ -158,6 +158,7 @@ define(function(require, exports, module) {
                 _ignoreEditorChanges = false;
                 
                 DocumentManager.showInEditor(fileEntry);
+                updateTitle();
 
                 // Make sure we can't undo back to the previous content.
                 _editor.clearHistory();
