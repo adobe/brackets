@@ -3,37 +3,24 @@
  *
  * TODO: Copyright Notice
  *
+ * This file first imports all of the shared LESS/CSS, and then defines 
+ * version-specific layout (e.g. layout for the App shell, or layout for
+ * the In-Browser version on Firefox).
+ *
+ * Going forward, we may have different versions of this file for different
+ * Versions (e.g. App, In-Browser, etc.)
+ *
+ * Anything that is general/reusable should be pushed up into a LESS file
+ * in the "styles" directory. See "brackets_shared.less" for the organization
+ * 
  * Date: @DATE
  */
 
+/* IMPORTANT: importing brackets_shared should be the first step in this file
+ * This is so that imported CSS files (NOT LESS files) end up in the
+ * right place
+ */
 @import "styles/brackets_shared.less";
-
-/* General styles for Brackets elements */
-
-.panel {
-    .vbox;
-    .box-flex(1);
-
-    padding: 0;
-    margin: 0;
-    background: #d8e0e8;
-    border-right: 1px solid #aaa;
-}
-
-.toolbar {
-    .hbox;
-    .box-align(center);
-
-    height: 23px;
-    padding: @base-padding;
-    border-bottom: 1px solid #aaa;
-    #gradient > .vertical(#eee, #ccc);
-    .box-shadow(0 1px 3px 0 rgba(0, 0, 0, 0.3));
-}
-
-.modal-footer .btn.left {
-    float: left;
-}
 
 /* Overall layout */
 
@@ -51,7 +38,8 @@ body {
 }
 
 .topbar-inner {
-    /* We don't want to use the default .container in here, so we need to .clearfix the children. */
+    /* We don't want to use the default .container in here, 
+       so we need to .clearfix the children. */
     .clearfix;
 
     .brand {
@@ -84,7 +72,7 @@ body {
     .title {
         font-size: 1.2em;
         font-weight: bold;
-        text-shadow: 0 1px #fff;        
+        text-shadow: 0 1px @bc-white;        
     }
     .buttons {
         float: right;       
