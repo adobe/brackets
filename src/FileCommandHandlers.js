@@ -1,19 +1,24 @@
 /*
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
-
-/**
- * Handlers for commands related to file handling (opening, saving, etc.)
- */
-var FileCommandHandlers = (function() {
-    // TODO: remove this and use the real exports variable when we switch to modules.
-    var exports = {};
-
+define(function(require, exports, module) {
+    // Load dependent modules
+    var CommandManager      = require("CommandManager")
+    ,   Commands            = require("Commands")
+    ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   ProjectManager      = require("ProjectManager")
+    ,   Strings             = require("strings");
+    ;
+     
+    /**
+     * Handlers for commands related to file handling (opening, saving, etc.)
+     */
+      
     var _editor, _title, _currentFilePath, _currentTitlePath,
         _isDirty = false,
         _savedUndoPosition = 0;
 
-    exports.init = function init(editor, title) {
+    function init(editor, title) {
         _editor = editor;
         _title = title;
 
@@ -99,7 +104,7 @@ var FileCommandHandlers = (function() {
         if (!fullPath) {
             // Prompt the user with a dialog
             // TODO: we're relying on this to not be asynchronous--is that safe?
-            NativeFileSystem.showOpenDialog(false, false, brackets.strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath,
+            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath,
                 ["htm", "html", "js", "css"], function(files) {
                     if (files.length > 0) {
                         result = doOpen(files[0]);
@@ -234,8 +239,8 @@ var FileCommandHandlers = (function() {
         if (_currentFilePath && _isDirty) {
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
-                , brackets.strings.SAVE_CLOSE_TITLE
-                , brackets.strings.format(brackets.strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
+                , Strings.SAVE_CLOSE_TITLE
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -287,9 +292,9 @@ var FileCommandHandlers = (function() {
     function showFileOpenError(code, path) {
         brackets.showModalDialog(
               brackets.DIALOG_ID_ERROR
-            , brackets.strings.ERROR_OPENING_FILE_TITLE
-            , brackets.strings.format(
-                    brackets.strings.ERROR_OPENING_FILE
+            , Strings.ERROR_OPENING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_OPENING_FILE
                   , path
                   , getErrorString(code))
         );
@@ -298,9 +303,9 @@ var FileCommandHandlers = (function() {
     function showSaveFileError(code, path) {
         brackets.showModalDialog(
               brackets.DIALOG_ID_ERROR
-            , brackets.strings.ERROR_SAVING_FILE_TITLE
-            , brackets.strings.format(
-                    brackets.strings.ERROR_SAVING_FILE
+            , Strings.ERROR_SAVING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_SAVING_FILE
                   , path
                   , getErrorString(code))
         );
@@ -312,17 +317,18 @@ var FileCommandHandlers = (function() {
         var result;
 
         if (code == FileError.NOT_FOUND_ERR)
-            result = brackets.strings.NOT_FOUND_ERR;
+            result = Strings.NOT_FOUND_ERR;
         else if (code == FileError.NOT_READABLE_ERR)
-            result = brackets.strings.NOT_READABLE_ERR;
+            result = Strings.NOT_READABLE_ERR;
         else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = brackets.strings.NO_MODIFICATION_ALLOWED_ERR;
+            result = Strings.NO_MODIFICATION_ALLOWED_ERR;
         else
-            result = brackets.strings.format(brackets.strings.GENERIC_ERROR, code);
+            result = Strings.format(Strings.GENERIC_ERROR, code);
 
         return result;
     }
 
-    return exports;
-})();
+    // Define public API
+    exports.init = init;
+});
 
