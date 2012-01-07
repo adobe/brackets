@@ -140,26 +140,6 @@ body {
 	.vbox;
 	.box-flex(1);
 	
-	/* We need to hack the internal layout of the various CodeMirror elements in order to work
-	   with our flexbox-based layout. This isn't ideal. */
-	.CodeMirror {
-		.hbox;
-		.box-flex(1);
-	}
-	.CodeMirror-scroll {
-		.box;
-		.box-flex(1);
-		height: auto;
-	}
-	.CodeMirror-scrollbar {
-		.box;
-		float: none;
-
-		/* Hack to make the scrollbar go to the right. */
-		-webkit-box-ordinal-group: 2;
-		-moz-box-ordinal-group: 2;
-		box-ordinal-group: 2;
-	}
 	.CodeMirror-lines {
 		padding: @base-padding;
 	}

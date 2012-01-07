@@ -109,7 +109,7 @@ define(function(require, exports, module) {
         // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
         // We need to do this programmatically.
         var timeout = null;
-        $(window).resize(function() {
+        function updateEditorSize() {
             // Don't refresh every single time.
             if (!timeout) {
                 timeout = setTimeout(function() {
@@ -119,7 +119,9 @@ define(function(require, exports, module) {
             }
             $('.CodeMirror-scroll', editorElt)
                 .height(editorElt.height());
-        });
+        }
+        updateEditorSize();
+        $(window).resize(updateEditorSize);
     
         initProject();
         initMenus();
