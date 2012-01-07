@@ -145,17 +145,6 @@ body {
 	.CodeMirror {
 		.hbox;
 		.box-flex(1);
-		
-		/* Hack to make the scrollbar go to the right. */
-		-webkit-box-direction: reverse;
-		-moz-box-direction: reverse;
-		box-direction: reverse;
-		
-		/* Hack to get rid of space at the right introduced by the invisible text field wrapper.
-		   TODO: find out from Marijn why it has a 3px width in the first place. */
-		> :first-child {
-			width: 0 !important;
-		}
 	}
 	.CodeMirror-scroll {
 		.box;
@@ -165,6 +154,11 @@ body {
 	.CodeMirror-scrollbar {
 		.box;
 		float: none;
+
+		/* Hack to make the scrollbar go to the right. */
+		-webkit-box-ordinal-group: 2;
+		-moz-box-ordinal-group: 2;
+		box-ordinal-group: 2;
 	}
 	.CodeMirror-lines {
 		padding: @base-padding;
