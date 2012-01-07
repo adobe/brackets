@@ -21,23 +21,15 @@
 
   <script type="text/javascript" src="lib/jasmine-core/jasmine.js"></script>
   <script type="text/javascript" src="lib/jasmine-core/jasmine-html.js"></script>
-  <script type="text/javascript" src="lib/jasmine-jquery-1.3.1.js"></script>
+  <script type="text/javascript" src="lib/jasmine-jquery-1.3.1.js"></script>    
 
-  <!-- include spec files here... -->
-  <script type="text/javascript" src="spec/SpecRunnerUtils.js"></script>
-  <script type="text/javascript" src="spec/Editor-test.js"></script>
-  <script type="text/javascript" src="spec/NativeFileSystem-test.js"></script>
-  <script type="text/javascript" src="spec/LowLevelFileIO-test.js"></script>
-  <script type="text/javascript" src="spec/FileCommandHandlers-test.js"></script>
-  <script type="text/javascript" src="spec/ProjectManager-test.js"></script>
-
-  <!-- include source files here... -->
-  <script type="text/javascript" src="../src/thirdparty/CodeMirror2/lib/CodeMirror.js"></script>
-  <script type="text/javascript" src="../src/thirdparty/CodeMirror2/mode/javascript/javascript.js"></script>
+  <!-- Pre-load third party scripts that cannot be async loaded. -->
   <script type="text/javascript" src="../src/thirdparty/jquery-1.7.min.js"></script>
+  <script type="text/javascript" src="../src/thirdparty/CodeMirror2/lib/codemirror.js"></script>
   <script type="text/javascript" src="../src/thirdparty/less-1.1.5.min.js"></script>
-  <script type="text/javascript" src="../src/NativeFileSystem.js"></script>
-
+  <!-- All other scripts are loaded through require. -->  
+  <script type="text/javascript" src="../src/thirdparty/require.js" data-main="SpecRunner"></script>
+    
   <script type="text/javascript">
     (function() {
       var jasmineEnv = jasmine.getEnv();
