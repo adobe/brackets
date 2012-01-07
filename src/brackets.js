@@ -3,9 +3,34 @@
  */
 
 // TODO: break out the definition of brackets into a separate module from the application controller logic
+define(function(require, exports, module) {
+    // Load dependent non-module scripts
+    require("thirdparty/CodeMirror2/mode/javascript/javascript");
+    require("widgets/bootstrap-dropdown");
+    require("widgets/bootstrap-modal");
+
+    // Load dependent modules
+    var ProjectManager          = require("ProjectManager")
+    ,   FileCommandHandlers     = require("FileCommandHandlers")
+    ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
+    ,   KeyMap                  = require("KeyBindingManager").KeyMap
+    ,   Commands                = require("Commands")
+    ;
 
 // Define core brackets namespace
 brackets = window.brackets || {};
+
+    // TODO: Make sure the "test" object is not included in final builds
+    // All modules that need to be tested from the context of the application 
+    // must to be added to this object. The unit tests cannot just pull
+    // in the modules since they would run in context of the unit test window,
+    // and would not have access to the app html/css.
+    brackets.test = 
+        { ProjectManager        : ProjectManager
+        , FileCommandHandlers   : FileCommandHandlers
+        , Commands              : Commands
+        , CommandManager        : require("CommandManager")
+        };
 
 brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
@@ -192,4 +217,5 @@ $(document).ready(function() {
             }
         });
     }
+});
 });
