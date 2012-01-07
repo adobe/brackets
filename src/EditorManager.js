@@ -3,8 +3,6 @@
  */
 define(function(require, exports, module) {
     
-    console.log("Begin initializing EditorManager");
-    
     // Load dependent modules
     var DocumentManager     = require("DocumentManager")
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
@@ -16,8 +14,6 @@ define(function(require, exports, module) {
     
     function _onCurrentDocumentChange(event) {
         console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
-        console.log("file is: "+DocumentManager.getCurrentDocument().file);
-        console.log("dirty?: "+DocumentManager.getCurrentDocument().isDirty);
     }
     
     // DEBUG
@@ -26,9 +22,18 @@ define(function(require, exports, module) {
         //DocumentManager.showInEditor();
     }, 10000);
     
+    $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
+        console.log("Working set ++ " + addedDoc);
+    });
+    $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
+        console.log("Working set -- " + removedDoc);
+    });
+    
+    $(DocumentManager).on("dirtyFlagChange", function(event, removedDoc) {
+        console.log("Dirty flag change: " + removedDoc);
+    });
+    
     // No public API for now
     //exports.foo = foo;
-    
-    console.log("Done initializing EditorManager");
     
 });

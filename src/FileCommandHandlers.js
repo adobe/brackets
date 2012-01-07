@@ -7,6 +7,7 @@ define(function(require, exports, module) {
     ,   Commands            = require("Commands")
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   ProjectManager      = require("ProjectManager")
+    ,   DocumentManager     = require("DocumentManager")
     ,   Strings             = require("strings");
     ;
      
@@ -140,18 +141,9 @@ define(function(require, exports, module) {
 
                 // In the main toolbar, show the project-relative path (if the file is inside the current project)
                 // or the full absolute path (if it's not in the project).
-                var projectRootPath = ProjectManager.getProjectRoot().fullPath;
-                if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
-                    projectRootPath += "/";
-                }
-                if (fullPath.indexOf(projectRootPath) == 0) {
-                    _currentTitlePath = fullPath.slice(projectRootPath.length);
-                    if (_currentTitlePath.charAt(0) == '/') {
-                        _currentTitlePath = _currentTitlePath.slice(1);
-                    }
-                }
+                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
-                // TODO: have a real controller object for the editor
+                // TODO: move to EditorManager listener
                 _editor.setValue(event.target.result);
 
                 // Make sure we can't undo back to the previous content.
@@ -162,6 +154,7 @@ define(function(require, exports, module) {
                 updateDirty();
 
                 result.resolve();
+                DocumentManager.showInEditor(fileEntry);
             };
 
             reader.onerror = function(event) {
@@ -287,6 +280,8 @@ define(function(require, exports, module) {
         _isDirty = false;
         updateTitle();
         _editor.focus();
+        
+        DocumentManager.closeCurrentDocument();
     }
 
     function showFileOpenError(code, path) {

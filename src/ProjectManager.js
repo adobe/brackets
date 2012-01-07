@@ -25,13 +25,43 @@ define(function(require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
-
+    
+    /**
+     * Returns true if absPath lies within the project, false otherwise.
+     * FIXME: Does not support paths containing ".."
+     */
+    function isWithinProject(absPath) {
+        var rootPath = _projectRoot.fullPath;
+        if (rootPath.charAt(rootPath.length - 1) != "/") {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
+            rootPath += "/";
+        }
+        return (absPath.indexOf(rootPath) == 0);
+    }
+    /**
+     * If absPath lies within the project, returns a project-relative path. If absPath lies outside
+     * the project, returns absPath unmodified.
+     * FIXME: Does not support paths containing ".."
+     */
+    function makeProjectRelativeIfPossible(absPath) {
+        if (isWithinProject(absPath)) {
+            var relPath = absPath.slice(_projectRoot.fullPath.length);
+            if (relPath.charAt(0) == '/') {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
+                relPath = relPath.slice(1);
+            }
+            return relPath;
+        }
+        return absPath;
+    }
+    
+    
     /**
      * @private
      * Reference to the tree control
+     * @type {jQueryObject}
      */
     var _projectTree = null;
 
+    
     /**
      * Displays a browser dialog where the user can choose a folder to load.
      * (If the user cancels the dialog, nothing more happens).
@@ -170,7 +200,7 @@ define(function(require, exports, module) {
                 selectionEntry = null;
             }
             */
-            // FIXME (jasonsj): hackish way to get parent directory
+            // FIXME (jasonsj): hackish way to get parent directory; replace with Entry.getParent() when available
             var filePath = selectionEntry.fullPath;
             selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
         }
@@ -368,6 +398,8 @@ define(function(require, exports, module) {
     
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
+    exports.isWithinProject  = isWithinProject;
+    exports.makeProjectRelativeIfPossible  = makeProjectRelativeIfPossible;
     exports.openProject     = openProject;
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
