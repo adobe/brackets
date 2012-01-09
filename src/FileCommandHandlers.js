@@ -151,6 +151,9 @@ define(function(require, exports, module) {
                     }
                 }
 
+                var EditorUtils = require("EditorUtils");
+                EditorUtils.setModeFromFileExtension(_editor, _currentFilePath);
+
                 // TODO: have a real controller object for the editor
                 _editor.setValue(event.target.result);
 
