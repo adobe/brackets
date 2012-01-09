@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
 /**
@@ -22,9 +22,9 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Retrieves preference object for the specified plugin.
+     * Retrieves preference object for the specified client.
      *
-     * @param {Plugin} plugin
+     * @param {string}  unique identifier clientID
      * @return {object} preference
      */
     function getPreferences( clientID ) {
@@ -55,8 +55,19 @@ define(function(require, exports, module) {
         var clientPrefs = getPreferences( clientID );
 
         // if clientPrefs is undefined, try defaults
-        if ( ( clientPrefs === undefined ) && ( JSON.stringify( defaults ) ) ) {
-            clientPrefs = defaults;
+        if ( clientPrefs === undefined ) {
+            if ( JSON.stringify( defaults ) ) {
+                // use defaults if it is a valid JSON object
+                clientPrefs = defaults;
+            }
+            else {
+                // use empty defaults if JSON validation fails
+                clientPrefs = {};
+            }
+
+            // save defaults in-memory, storage
+            prefStorage[ clientID ] = clientPrefs;
+            saveToPersistentStorage();
         }
 
         var callbackData = { clientID: clientID
@@ -65,10 +76,6 @@ define(function(require, exports, module) {
 
         // add to callbacks list
         callbacks.push( callbackData );
-
-        // save in-memory and initialize persistent storage
-        prefStorage[ clientID ] = clientPrefs;
-        saveToPersistentStorage();
     }
 
     /**
@@ -89,7 +96,7 @@ define(function(require, exports, module) {
                 data.callback.call( data.instance, storage );
             }
             catch ( e ) {
-                console.log( "PersistenceManager.save(): Failed to save data for plugin " + data.plugin.getPluginId() );
+                console.log( "PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID );
             }
 
             // save plugin preferences
