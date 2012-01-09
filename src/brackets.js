@@ -163,7 +163,7 @@ define(function(require, exports, module) {
     
             // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
             var testWindow = null;
-            $("#menu-runtests").click(function(){
+            $("#menu-debug-runtests").click(function(){
                 if (!(testWindow === null)) {
                     try {
                         testWindow.location.reload();
@@ -177,6 +177,11 @@ define(function(require, exports, module) {
                     testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
                 }
             });
+            
+            // Other debug menu items
+            $("#menu-debug-wordwrap").click(function() {
+                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
+            });           
         }
     
         function initCommandHandlers() {    
