@@ -7,7 +7,7 @@ define(function(require, exports, module) {
 
     // Load dependent modules
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
-    ,   PersistenceManager  = require("PersistenceManager")
+    ,   PreferencesManager  = require("PreferencesManager")
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
@@ -37,29 +37,15 @@ define(function(require, exports, module) {
      * @private
      * Preferences callback. Saves current project path.
      */
-    function save( storage ) {
-        storage.projectPath = _projectRoot.fullPath;
-    };
-
-    /**
-     * Preferences initializer
-     */
-    function getDefaultPreferences() {
-        var loadedPath = window.location.pathname;
-        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-        var defaults =
-            { projectPath: bracketsSrc /* initialze to brackets source */
-            };
-
-        return defaults;
+    function savePreferences( storage ) {
+        storage.projectPath         = _projectRoot.fullPath;
+        storage.projectTreeState    = "";   /* TODO (jasonsj): jstree state*/
     }
 
     /**
-     * Plugin identifier
+     * Unique PreferencesManager clientID
      */
-    function getPluginId() {
-        return "com.adobe.brackets.ProjectManager";
-    }
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
 
     /**
      * Displays a browser dialog where the user can choose a folder to load.
@@ -94,7 +80,7 @@ define(function(require, exports, module) {
     function loadProject(rootPath) {
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
-            var prefs = PersistenceManager.getPluginPreferences(this);
+            var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
             rootPath = prefs.projectPath;
 
             if (brackets.inBrowser) {
@@ -163,7 +149,7 @@ define(function(require, exports, module) {
         if (selected)
             return selected.data("entry");
         return null;
-    };
+    }
 
     /**
      * Create a new item in the project tree.
@@ -411,9 +397,13 @@ define(function(require, exports, module) {
     exports.loadProject             = loadProject;
     exports.getSelectedItem         = getSelectedItem;
     exports.createNewItem           = createNewItem
-    exports.getPluginId             = getPluginId
-    exports.getDefaultPreferences   = getDefaultPreferences;
 
     // Register save callback
-    PersistenceManager.addSaveParticipant(this, save);
+    var loadedPath = window.location.pathname;
+    var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+    var defaults =
+        { projectPath:      bracketsSrc /* initialze to brackets source */
+        , projectTreeState: ""          /* TODO (jasonsj): jstree state */
+        };
+    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, savePreferences, this, defaults);
 });

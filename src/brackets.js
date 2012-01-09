@@ -10,7 +10,7 @@ define(function(require, exports, module) {
     require("widgets/bootstrap-modal");
 
     // Load dependent modules
-    var PersistenceManager      = require("PersistenceManager")
+    var PreferencesManager      = require("PreferencesManager")
     ,   ProjectManager          = require("ProjectManager")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
@@ -187,6 +187,6 @@ define(function(require, exports, module) {
     });
 
     $(window).unload(function () {
-        PersistenceManager.save();
+        PreferencesManager.savePreferences();
     });
 });

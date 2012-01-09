@@ -3,7 +3,7 @@
  */
 
 /**
- * PersistenceManager
+ * PreferencesManager
  *
  */
 define(function(require, exports, module) {
@@ -27,33 +27,12 @@ define(function(require, exports, module) {
      * @param {Plugin} plugin
      * @return {object} preference
      */
-    function getPluginPreferences( plugin ) {
-        if ( ( !plugin || !plugin.getPluginId ) ) {
-            throw new Error("Invalid plugin");
+    function getPreferences( clientID ) {
+        if ( ( clientID === undefined ) || ( clientID == null ) ) {
+            throw new Error("Invalid clientID");
         }
 
-        var pluginPrefs = prefStorage[ plugin.getPluginId() ];
-
-        if ( !pluginPrefs ) {
-            // create empty preferences
-            pluginPrefs = {};
-
-            if ( plugin.getDefaultPreferences ) {
-                // use the plugin's default preferences
-                var defaults = plugin.getDefaultPreferences();
-
-                // validate JSON object
-                if ( JSON.stringify( defaults ) ) {
-                    pluginPrefs = defaults;
-                }
-            }
-
-            // save in-memory and initialize persistent storage
-            prefStorage[ plugin.getPluginId() ] = pluginPrefs;
-            saveToPersistentStorage();
-        }
-
-        return pluginPrefs;
+        return prefStorage[ clientID ];
     }
 
     /**
@@ -62,49 +41,59 @@ define(function(require, exports, module) {
      * persist data (e.g. preferences or current state) as valid JSON values
      * to the storage argument.
      *
+     * @param {string}   unique identifier clientID for this client
      * @param {function} callback function
-     * @param {object}   callback object
+     * @param {object}   optional "this" object for the callback
+     * @param {object}   optional default preferences object for this client
      */
-    function addSaveParticipant( plugin, callback, callbackObject ) {
+    function addPreferencesClient( clientID, callback, instance, defaults ) {
         if ( typeof callback !== "function" ) {
             throw new Error("Invalid arguments");
         }
 
-        var callbackData = { plugin: plugin
-                           , callback: callback
-                           , callbackObject: callbackObject
-                           , storage: getPluginPreferences( plugin ) };
+        // attempt to load existing preferences
+        var clientPrefs = getPreferences( clientID );
 
+        // if clientPrefs is undefined, try defaults
+        if ( ( clientPrefs === undefined ) && ( JSON.stringify( defaults ) ) ) {
+            clientPrefs = defaults;
+        }
+
+        var callbackData = { clientID: clientID
+                           , callback: callback
+                           , instance: instance };
+
+        // add to callbacks list
         callbacks.push( callbackData );
+
+        // save in-memory and initialize persistent storage
+        prefStorage[ clientID ] = clientPrefs;
+        saveToPersistentStorage();
     }
 
     /**
-     * Save all participants
+     * Save all participants.
      */
-    function save() {
+    function savePreferences() {
         var max = callbacks.length
-        ,   data;
+        ,   data
+        ,   storage;
 
         // iterate over all save participants
         for( var i = 0; i < max; i++ ) {
             data = callbacks[i];
-
-            var callbackObject = data.callbackObject;
-
-            // use the Plugin for thisArg if a callbackObject wasn't specified
-            if ( callbackObject === undefined )
-                callbackObject = data.plugin;
+            storage = prefStorage[ data.clientID ];
 
             // fire callback with thisArg and preference storage
             try {
-                data.callback.call( callbackObject, data.storage );
+                data.callback.call( data.instance, storage );
             }
             catch ( e ) {
                 console.log( "PersistenceManager.save(): Failed to save data for plugin " + data.plugin.getPluginId() );
             }
 
             // save plugin preferences
-            prefStorage[ data.plugin.getPluginId() ] = data.storage;
+            prefStorage[ data.clientID ] = storage;
         }
 
         saveToPersistentStorage();
@@ -116,7 +105,7 @@ define(function(require, exports, module) {
     }
 
     // Public API
-    exports.getPluginPreferences = getPluginPreferences;
-    exports.addSaveParticipant = addSaveParticipant;
-    exports.save = save;
+    exports.getPreferences          = getPreferences;
+    exports.addPreferencesClient    = addPreferencesClient;
+    exports.savePreferences         = savePreferences;
 });
