@@ -13,6 +13,21 @@ define(function(require, exports, module) {
     ,   Strings             = require("strings")
     ;
 
+    /*
+     * jsTree localStorage plugin
+     */
+    (function ($) {
+        $.jstree.plugin("localStorage", {
+            __init : function () {
+                console.log("hello world");
+            },
+            defaults : {
+            },
+            _fn : {
+            }
+        });
+    })(jQuery);
+
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
@@ -375,7 +390,7 @@ define(function(require, exports, module) {
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
         _projectTree = projectTreeContainer.jstree({
-            plugins : ["ui", "themes", "json_data", "crrm"],
+            plugins : ["ui", "themes", "json_data", "crrm", "localStorage"],
             json_data : { data:treeDataProvider, correct_state: false },
             core : { animation:0 },
             themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
