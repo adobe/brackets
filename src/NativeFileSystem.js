@@ -13,8 +13,9 @@ define(function(require, exports, module) {
          * @param {bool} chooseDirectories
          * @param {string} title
          * @param {string} initialPath
-         * @param {string[]} fileTypes
-         * @param {function} resultCallback
+         * @param {Array.<string>} fileTypes
+         * @param {function(...)} successCallback
+         * @param {function(...)} errorCallback
          * @constructor
          */
         showOpenDialog: function (  allowMultipleSelection,
@@ -44,8 +45,8 @@ define(function(require, exports, module) {
         /** requestNativeFileSystem
          *
          * @param {string} path
-         * @param {function} successCallback
-         * @param {function} errorCallback
+         * @param {function(...)} successCallback
+         * @param {function(...)} errorCallback
          */
         requestNativeFileSystem: function( path, successCallback, errorCallback ){
             brackets.fs.stat(path, function( err, data ){
@@ -333,8 +334,8 @@ define(function(require, exports, module) {
     /**
      * Obtains the File objecte for a FileEntry object
      *
-     * @param {function} successCallback
-     * @param {function} errorCallback
+     * @param {function(...)} successCallback
+     * @param {function(...)} errorCallback
      */
     NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
         var newFile = new NativeFileSystem.File( this );
@@ -463,9 +464,9 @@ define(function(require, exports, module) {
 
     /** readEntries
      *
-     * @param {function} successCallback
-     * @param {function} errorCallback
-     * @returns {Entry[]}
+     * @param {function(...)} successCallback
+     * @param {function(...)} errorCallback
+     * @returns {Array.<Entry>}
      */
     NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
         var rootPath = this._directory.fullPath;
