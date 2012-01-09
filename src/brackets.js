@@ -103,7 +103,7 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        var editor = CodeMirror($('#editor').get(0));
+        var editor = EditorManager._constructEditor( $('#editor') );
     
         initProject();
         initMenus();

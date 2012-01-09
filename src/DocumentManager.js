@@ -205,7 +205,7 @@ define(function(require, exports, module) {
     }
     
     
-    function temp_updateDirty(isCurrentDocDirty) {
+    function setDocumentIsDirty(isCurrentDocDirty) {
         if (_currentDocument == null)
             throw new Error("Dirty bit cannot update when there is no current document!");
         
@@ -225,6 +225,6 @@ define(function(require, exports, module) {
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
     exports.closeCurrentDocument = closeCurrentDocument;
-    exports.temp_updateDirty = temp_updateDirty;
+    exports.setDocumentIsDirty = setDocumentIsDirty;
     
 });

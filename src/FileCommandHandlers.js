@@ -8,6 +8,7 @@ define(function(require, exports, module) {
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   ProjectManager      = require("ProjectManager")
     ,   DocumentManager     = require("DocumentManager")
+    ,   EditorManager       = require("EditorManager")
     ,   Strings             = require("strings");
     ;
      
@@ -15,19 +16,11 @@ define(function(require, exports, module) {
      * Handlers for commands related to file handling (opening, saving, etc.)
      */
       
-    var _editor, _title, _currentFilePath, _currentTitlePath,
-        _isDirty = false,
-        _savedUndoPosition = 0;
+    var _title, _currentFilePath, _currentTitlePath,
+        _isDirty = false;
     
-    var _ignoreEditorChanges = false;
-
     function init(editor, title) {
-        _editor = editor;
         _title = title;
-
-        _editor.setOption("onChange", function() {
-            updateDirty();
-        });
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
@@ -37,35 +30,17 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
-    };
-
-    exports.getEditor = function getEditor() {
-        return _editor;
+        
+        $(DocumentManager).on("dirtyFlagChange", updateDirty);
     };
 
     exports.isDirty = function isDirty() {
         return _isDirty;
     };
 
-    function updateDirty() {
-        // Don't send out spurious dirty-bit notifications while populating editor with the contents
-        // of a newly-opened file, or when clearing editor while closing a file.
-        if (_ignoreEditorChanges)
-            return;
-        
-        // If we've undone past the undo position at the last save, and there is no redo stack,
-        // then we can never get back to a non-dirty state.
-        var historySize = _editor.historySize();
-        if (historySize.undo < _savedUndoPosition && historySize.redo == 0) {
-            _savedUndoPosition = -1;
-        }
-        var newIsDirty = (_editor.historySize().undo != _savedUndoPosition);
-        if (_isDirty != newIsDirty) {
-            _isDirty = newIsDirty;
-            updateTitle();
-            
-            DocumentManager.temp_updateDirty(_isDirty);
-        }
+    function updateDirty(event, changedDoc) {
+        _isDirty = changedDoc.isDirty;
+        updateTitle();
     }
 
     function updateTitle() {
@@ -104,7 +79,7 @@ define(function(require, exports, module) {
             result = doOpenWithOptionalPath(fullPath);
         }
         result.always(function() {
-            _editor.focus();
+            EditorManager.focusEditor();
         });
         return result;
     }
@@ -153,19 +128,11 @@ define(function(require, exports, module) {
                 _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
                 // TODO: move to EditorManager listener
-                _ignoreEditorChanges = true;
-                _editor.setValue(event.target.result);
-                _ignoreEditorChanges = false;
-                
+                EditorManager.showOrCreateEditor(fileEntry, event.target.result);
                 DocumentManager.showInEditor(fileEntry);
+                DocumentManager.setDocumentIsDirty(false);
+                
                 updateTitle();
-
-                // Make sure we can't undo back to the previous content.
-                _editor.clearHistory();
-
-                // This should be 0, but just to be safe...
-                _savedUndoPosition = _editor.historySize().undo;
-                updateDirty();
 
                 result.resolve();
             };
@@ -213,8 +180,7 @@ define(function(require, exports, module) {
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        _savedUndoPosition = _editor.historySize().undo;
-                        updateDirty();
+                        EditorManager.markCurrentEditorClean();
                         result.resolve();
                     }
                     writer.onerror = function(event) {
@@ -223,7 +189,7 @@ define(function(require, exports, module) {
                     }
 
                     // TODO (jasonsj): Blob instead of string
-                    writer.write(_editor.getValue());
+                    writer.write( EditorManager.getEditorContents() );
                 },
                 function(event) {
                     showSaveFileError(event.target.error.code, _currentFilePath);
@@ -235,7 +201,7 @@ define(function(require, exports, module) {
             result.resolve();
         }
         result.always(function() {
-            _editor.focus();
+            EditorManager.focusEditor();
         });
         return result;
     }
@@ -271,12 +237,12 @@ define(function(require, exports, module) {
                 }
             });
             result.always(function() {
-                _editor.focus();
+                EditorManager.focusEditor();
             });
         }
         else {
             doClose();
-            _editor.focus();
+            EditorManager.focusEditor();
             result.resolve();
         }
         return result;
@@ -286,18 +252,15 @@ define(function(require, exports, module) {
         // TODO: When we implement multiple files being open, this will probably change to just
         // dispose of the editor for the current file (and will later change again if we choose to
         // limit the number of open editors).
-        _ignoreEditorChanges = true;
-        _editor.setValue("");
-        _ignoreEditorChanges = false;
-        
-        _editor.clearHistory();
-        _currentFilePath = _currentTitlePath = null;
-        _savedUndoPosition = 0;
-        _isDirty = false;
-        updateTitle();
-        _editor.focus();
-        
+        EditorManager.showNoEditor();
+        DocumentManager.setDocumentIsDirty(false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
         DocumentManager.closeCurrentDocument();
+        
+        _currentFilePath = _currentTitlePath = null;
+        // _isDirty = false;
+        updateTitle();
+        EditorManager.focusEditor();
+        
     }
 
     function showFileOpenError(code, path) {
