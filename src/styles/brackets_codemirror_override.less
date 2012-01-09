@@ -1,6 +1,17 @@
 /* Brackets / CodeMirror Code Formatting */
 
-.content {
+
+body {
+    /* TODO: Setting code backround color should probably be deeper in the 
+             DOM hierarchy than "body". Right now there's a bug that if you 
+             change the background color of .content (probably the right place)
+             then selection gets drawn underneath the color, so you can't see
+             the selection.
+             
+             This is due to the fact that the div containing the selection is
+             absolutely positioned with a z-order of -1, and so is drawn
+             below EVERYTHING else that doesn't have a "position" property.
+    */
     background-color: @background-color-3;
 }
 
