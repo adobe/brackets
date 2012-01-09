@@ -36,7 +36,7 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Registers a save participant callback for a plugin. The callback is
+     * Registers a save participant callback for a client. The callback is
      * fired when Brackets quits (window.unload). When fired, callbacks may
      * persist data (e.g. preferences or current state) as valid JSON values
      * to the storage argument.
@@ -99,7 +99,7 @@ define(function(require, exports, module) {
                 console.log( "PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID );
             }
 
-            // save plugin preferences
+            // save client preferences
             prefStorage[ data.clientID ] = storage;
         }
 
