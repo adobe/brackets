@@ -7,11 +7,12 @@ define(function(require, exports, module) {
 
     // Load dependent modules
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   PreferencesManager  = require("PreferencesManager")
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
     ;
-    
+
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
@@ -31,6 +32,20 @@ define(function(require, exports, module) {
      * Reference to the tree control
      */
     var _projectTree = null;
+
+    /**
+     * @private
+     * Preferences callback. Saves current project path.
+     */
+    function savePreferences( storage ) {
+        storage.projectPath         = _projectRoot.fullPath;
+        storage.projectTreeState    = "";   /* TODO (jasonsj): jstree state*/
+    }
+
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
 
     /**
      * Displays a browser dialog where the user can choose a folder to load.
@@ -62,7 +77,18 @@ define(function(require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project.
      */
-     function loadProject(rootPath) {
+    function loadProject(rootPath) {
+        if (rootPath === null || rootPath === undefined) {
+            // Load the last known project into the tree
+            var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+            rootPath = prefs.projectPath;
+
+            if (brackets.inBrowser) {
+                // In browser: dummy folder tree (hardcoded in ProjectManager)
+               rootPath = "DummyProject";
+            }
+        }
+
         // Set title
         var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
         $("#project-title").html(projectName);
@@ -109,9 +135,8 @@ define(function(require, exports, module) {
                     );
                 }
             );
-
         }
-    };
+    }
 
     /**
      * Returns the FileEntry corresponding to the selected item, or null
@@ -124,7 +149,7 @@ define(function(require, exports, module) {
         if (selected)
             return selected.data("entry");
         return null;
-    };
+    }
 
     /**
      * Create a new item in the project tree.
@@ -365,11 +390,20 @@ define(function(require, exports, module) {
                 CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
         });
     };
-    
+
     // Define public API
-    exports.getProjectRoot  = getProjectRoot;
-    exports.openProject     = openProject;
-    exports.loadProject     = loadProject;
-    exports.getSelectedItem = getSelectedItem;
-    exports.createNewItem   = createNewItem;
+    exports.getProjectRoot          = getProjectRoot;
+    exports.openProject             = openProject;
+    exports.loadProject             = loadProject;
+    exports.getSelectedItem         = getSelectedItem;
+    exports.createNewItem           = createNewItem
+
+    // Register save callback
+    var loadedPath = window.location.pathname;
+    var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+    var defaults =
+        { projectPath:      bracketsSrc /* initialze to brackets source */
+        , projectTreeState: ""          /* TODO (jasonsj): jstree state */
+        };
+    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, savePreferences, this, defaults);
 });
