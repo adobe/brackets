@@ -14,9 +14,10 @@
     <script src="thirdparty/require.js" data-main="brackets"></script>
     
 	<!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->
-	<link rel="stylesheet/less" href="styles/bootstrap.less">
+    <link rel="stylesheet/less" href="brackets.less">
 	<script src="thirdparty/less-1.1.5.min.js"></script>
-	<link rel="stylesheet" href="thirdparty/CodeMirror2/lib/codemirror.css">
+    <!-- <link rel="stylesheet" href="brackets.min.css"> -->
+
 </head>
 <body>
 	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
@@ -83,9 +84,9 @@
 						</div>
 						<span>Project Files</span>
 					</div>
-					<div id="project-files-container">
-					    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
-					</div>
+				<div id="project-files-container">
+				    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
+				</div>
 					
 				</div>
 			</div>

@@ -1,0 +1,78 @@
+/*
+ * Brackets Default Theme
+ *
+ * Defines all the variables that one can configure in a theme. This should
+ * contain all variables / mixins for UI styling that we want to be able to 
+ * change in a theme.
+ *
+ * Throughout the rest of the LESS files we should _only_ use color
+ * variable names that are on the LHS of the list below. So, if we
+ * need a new color for some UI element, we should add a variable
+ * in this file.
+ */
+
+/* Overall Colors */
+
+/* 
+ * Background colors are ordered from least "intense" to most "intense"
+ * So, if the background is light, then @background-color-3 should be
+ * lightest, -2 should be darker, and -1 should be darker still.
+ *
+ * The opposite is true for a dark background -- background-color-3 should be
+ * the darkest, -2 should be lighter, and -1 should be lighter still.
+ */
+@background-color-1: darken(@bc-white, @bc-color-step-size*2);
+@background-color-2: darken(@bc-white, @bc-color-step-size);
+@background-color-3: @bc-white;
+
+/*
+ * @content-color-stronger should be should be further away from the
+ * background color than @content-color (i.e. more contrasty).
+ *
+ * @content-color-weaker should be closer to the background color
+ * than @content-color (i.e. less contrasty).
+ */
+@content-color: lighten(@bc-black, @bc-color-step-size*2);
+@content-color-stronger: @bc-black;
+@content-color-weaker: lighten(@bc-black, @bc-color-step-size*6);
+
+/* Code Styling */
+
+/* code accent colors */
+@accent-keyword: @bc-blue;
+@accent-atom: @content-color;
+@accent-number: @content-color;
+@accent-def: @bc-green;
+@accent-variable: @content-color;
+@accent-variable-2: @content-color;
+@accent-variable-3: @content-color;
+@accent-property: @content-color;
+@accent-operator: @content-color;
+@accent-comment: @content-color-weaker;
+@accent-string: @bc-orange;
+@accent-string-2: @bc-orange;
+@accent-meta: @bc-violet;
+@accent-error: @bc-red;
+@accent-qualifier: @bc-blue;
+@accent-builtin: @bc-blue;
+@accent-bracket: @content-color;
+@accent-tag: @bc-green;
+@accent-attribute: @bc-green;
+@accent-header: @bc-magenta;
+@accent-quote: @content-color;
+@accent-hr: @content-color;
+@accent-link: @content-color;
+
+.code-font() {
+    color: @content-color;
+    font-size: 15px;
+    font-family: InconsolataMedium;
+}
+
+.code-cursor() {
+    background-color: fadeout(@blue, 50%);
+    border: none !important;
+}
+
+/* Variables and Mixins for non-code UI elements that can be styled */
+

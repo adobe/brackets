@@ -1,0 +1,35 @@
+/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns) 
+ *
+ * This file should contain all _reusable_ UI elements / LESS definitions
+ * That is, things that will either a.) be used for more than one element or
+ * b.) exist in multiple versions of brackets (e.g. App, In-Browser, etc.)
+ *
+ * Note that if you want a UI element to be themeable, you should put the
+ * themeable part in "brakcets_theme_default" as variables/mixins.
+ *
+ */
+
+.panel {
+    .vbox;
+    .box-flex(1);
+
+    padding: 0;
+    margin: 0;
+    background: @bc-light-blue;
+    border-right: 1px solid @bc-gray;
+}
+
+.toolbar {
+    .hbox;
+    .box-align(center);
+
+    height: 23px;
+    padding: @base-padding;
+    border-bottom: 1px solid @bc-gray;
+    #gradient > .vertical(lighten(@bc-grey, @bc-color-step-size*6), lighten(@bc-grey, @bc-color-step-size*2));
+    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+}
+
+.modal-footer .btn.left {
+    float: left;
+}
