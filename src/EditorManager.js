@@ -23,20 +23,13 @@ define(function(require, exports, module) {
         console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
     }
     
-    // DEBUG
-    setTimeout(function() {
-        //var toOpen = NativeFileSystem.FileEntry("");
-        //DocumentManager.showInEditor();
-    }, 10000);
-    
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         console.log("Working set ++ " + addedDoc);
-        console.log("  set: " + DocumentManager.getWorkingSet().join());
+        //console.log("  set: " + DocumentManager.getWorkingSet().join());
 		
 		// Add new item to bottom of list
 		var newItem = $("<li id='" + addedDoc.file.fullPath + "' class='working-set-list-item'><a href='#'>" + addedDoc.file.name +  "</a></li>");
 		$("#open-files-container").children("ul").append(newItem);
-		
 		
 		// Show close icon on hover
 		newItem.hover(
@@ -56,16 +49,12 @@ define(function(require, exports, module) {
                     $(this).children(".close-file-icon").remove();
                 }
             );
-			
-            
-		
-		
     });
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
         console.log("Working set -- " + removedDoc);
-        console.log("  set: " + DocumentManager.getWorkingSet().join());
+        //console.log("  set: " + DocumentManager.getWorkingSet().join());
 		
-		
+		// FIXME doesn't work
 		$("#" + removedDoc.file.fullPath).remove();
     });
     
@@ -120,13 +109,13 @@ define(function(require, exports, module) {
         
         if (this._isDirty != newIsDirty) {
             this._isDirty = newIsDirty;
-            DocumentManager.setDocumentIsDirty(this._isDirty);
+            DocumentManager.setDocumentIsDirty(this.file, this._isDirty);
         }
     }
     
     Editor.prototype.markClean = function() {
         this._savedUndoPosition = this.editor.historySize().undo;
-        DocumentManager.setDocumentIsDirty(false);  // FIXME: tell it WHICH document
+        DocumentManager.setDocumentIsDirty(this.file, false);
     }
     
     Editor.prototype.initContent = function(text) {
@@ -143,16 +132,32 @@ define(function(require, exports, module) {
     }
     
     
-    function showOrCreateEditor(fileEntry, text) {
+    function showEditor(fileEntry) {
         var editorI = _findEditor(fileEntry);
-        if (editorI == -1) {
-            var newEditor = new Editor(fileEntry);
-            editorI = _editors.push(newEditor) - 1;
-            
-            newEditor.initContent(text);
-        }
-        var editor = _editors[editorI];
+        if (editorI == -1)
+            throw new Error("No editor exists for "+fileEntry+". Use createEditor().");
         
+        _showEditor( _editors[editorI] );
+        DocumentManager.showInEditor(fileEntry);
+    }
+    function createEditor(fileEntry, text) {
+        var editorI = _findEditor(fileEntry);
+        if (editorI != -1)
+            throw new Error("Editor already exists for "+fileEntry+". Use showEditor().");
+            
+        var newEditor = new Editor(fileEntry);
+        newEditor.initContent(text);
+        _editors.push(newEditor);
+        
+        _showEditor( newEditor );
+        DocumentManager.showInEditor(fileEntry);
+        
+        if (DocumentManager.getCurrentDocument().isDirty) {
+            console.log("#### This IS a case where we need to setDocumentIsDirty(false)");
+        }
+        // DocumentManager.setDocumentIsDirty(fileEntry, false);
+    }
+    function _showEditor(editor) {
         // Hide whatever was visible before
         if (_currentEditor == null) {
             $("#notEditor").css("display","none");
@@ -234,7 +239,8 @@ define(function(require, exports, module) {
     exports.setEditorArea = setEditorArea;
     exports.hasEditorFor = hasEditorFor;
     exports.getEditorContents = getEditorContents;
-    exports.showOrCreateEditor = showOrCreateEditor;
+    exports.showEditor = showEditor;
+    exports.createEditor = createEditor;
     exports.showNoEditor = showNoEditor;
     exports.destroyEditor = destroyEditor;
     exports.isEditorDirty = isEditorDirty;

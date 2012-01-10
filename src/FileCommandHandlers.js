@@ -17,7 +17,7 @@ define(function(require, exports, module) {
      */
       
     var _title, _currentFilePath, _currentTitlePath,
-        _isDirty = false;
+        _isDirty = false;   // FIXME: get rid of isDirty flag
     
     function init(title) {
         _title = title;
@@ -31,15 +31,38 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
         
-        $(DocumentManager).on("dirtyFlagChange", updateDirty);
+        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
+        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     };
 
-    function updateDirty(event, changedDoc) {
+    function handleCurrentDocumentChange(event) {
+        var newDocument = DocumentManager.getCurrentDocument();
+        
+        if (newDocument != null) {
+            var fullPath = newDocument.file.fullPath;
+    
+            _currentFilePath = _currentTitlePath = fullPath;
+            _isDirty = EditorManager.isEditorDirty(newDocument.file);
+
+            // In the main toolbar, show the project-relative path (if the file is inside the current project)
+            // or the full absolute path (if it's not in the project).
+            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            
+        } else {
+            _currentFilePath = _currentTitlePath = null;
+            _isDirty = false;
+        }
+        
+        // Update title text & "dirty dot" display
+        updateTitle();
+    }
+    
+    function handleDirtyChange(event, changedDoc) {
         if (changedDoc.file.fullPath == _currentFilePath) {
             _isDirty = changedDoc.isDirty;
             updateTitle();
         } else {
-            console.log("Rejected dirty change; current doc is "+_currentFilePath);
+            console.log("Rejected dirty change; current doc is "+_currentFilePath); // FIXME
         }
     }
 
@@ -116,22 +139,9 @@ define(function(require, exports, module) {
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        // FIXME: this is all pretty messy... clean it up
-        // File already open - don't need to load it
         if (EditorManager.hasEditorFor(fileEntry)) {
-            // FIXME: updating title should be driven by DocumentManager.currentDocument change?
-            _currentFilePath = _currentTitlePath = fullPath;
-
-            // In the main toolbar, show the project-relative path (if the file is inside the current project)
-            // or the full absolute path (if it's not in the project).
-            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
-            
-            EditorManager.showOrCreateEditor(fileEntry, null);
-            DocumentManager.showInEditor(fileEntry);
-            
-            _isDirty = EditorManager.isEditorDirty(fileEntry);
-            updateTitle();
-            
+            // File already open - don't need to load it
+            EditorManager.showEditor(fileEntry);
             result.resolve();
             
         } else {
@@ -140,19 +150,8 @@ define(function(require, exports, module) {
             // TODO: it's weird to have to construct a FileEntry just to get a File.
             fileEntry.file(function(file) {
                 reader.onload = function(event) {
-                    _currentFilePath = _currentTitlePath = fullPath;
 
-                    // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                    // or the full absolute path (if it's not in the project).
-                    _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
-
-                    // TODO: move to EditorManager listener
-                    EditorManager.showOrCreateEditor(fileEntry, event.target.result);
-                    DocumentManager.showInEditor(fileEntry);
-                    DocumentManager.setDocumentIsDirty(false);
-                    
-                    updateTitle();
-
+                    EditorManager.createEditor(fileEntry, event.target.result);
                     result.resolve();
                 };
 
@@ -270,15 +269,23 @@ define(function(require, exports, module) {
     }
 
     function doClose() {
-        // TODO: When we implement multiple files being open, this will probably change to just
-        // dispose of the editor for the current file (and will later change again if we choose to
-        // limit the number of open editors).
-        EditorManager.destroyEditor( new NativeFileSystem.FileEntry(_currentFilePath) );
-        DocumentManager.setDocumentIsDirty(false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+        var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
+        
+        DocumentManager.setDocumentIsDirty(fileEntry, false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+        
+        EditorManager.destroyEditor(fileEntry);
+        
+        // FIXME: 'closing' via the working-set "X" icon shouldn't call this (unless it happens to
+        // also be current doc)
         DocumentManager.closeCurrentDocument();
         
-        _currentFilePath = _currentTitlePath = null;
-        updateTitle();
+        // FIXME: EditorManager should listen for currentDocumentChange so we don't have to poke it manually
+        var nextDoc = DocumentManager.getCurrentDocument();
+        if (nextDoc)
+            EditorManager.showEditor(nextDoc.file);
+        
+        // _currentFilePath = _currentTitlePath = null;
+        // updateTitle();
         EditorManager.focusEditor();
     }
 

@@ -62,6 +62,8 @@ define(function(require, exports, module) {
         return _currentDocument;
     }
     
+    // FIXME: tree & working set selection must also listen to this!!
+    
     
     /**
      * @private
@@ -113,7 +115,7 @@ define(function(require, exports, module) {
     
     function _findInWorkingSet(fileEntry) {
         for (var i = 0; i < _workingSet.length; i++) {
-            if (_workingSet[i].file == fileEntry)
+            if (_workingSet[i].file.fullPath == fileEntry.fullPath)
                 return i;
         }
         return -1;
@@ -130,7 +132,7 @@ define(function(require, exports, module) {
      */
     function showInEditor(fileEntry) {
         // If this file is already in editor, do nothing
-        if (_currentDocument && _currentDocument.file == fileEntry)
+        if (_currentDocument && _currentDocument.file.fullPath == fileEntry.fullPath)
             return;
         
         var newDocument = new Document(fileEntry);
@@ -192,10 +194,7 @@ define(function(require, exports, module) {
         }
         
         // Remove closed doc from working set, if it was in there
-        //_removeFromWorkingSet(_currentDocument);
-        // FIXME: Don't do this yet, since FileCommentHandlers issues a close any time you navigate
-        // to a new editor. This would limit the working set to a max length of 1, which is not
-        // super useful for testing.
+        _removeFromWorkingSet(_currentDocument);
         
         // Switch editor to next document (or blank it out)
         if (nextDocument)
@@ -205,16 +204,25 @@ define(function(require, exports, module) {
     }
     
     
-    function setDocumentIsDirty(isCurrentDocDirty) {
-        if (_currentDocument == null)
-            throw new Error("Dirty bit cannot update when there is no current document!");
+    function setDocumentIsDirty(fileEntry, isDirty) {
+        var doc;
+        if (_currentDocument && _currentDocument.file.fullPath == fileEntry.fullPath) {
+            doc = _currentDocument;
+        } else {
+            var wsIndex = _findInWorkingSet(fileEntry);
+            if (wsIndex != -1)
+                doc = _workingSet[wsIndex];
+        }
+        
+        if (!doc)
+            throw new Error("Cannot set dirty bit for document that is not open: " + fileEntry);
         
         // Change dirty bit & dispatch event
-        _currentDocument.isDirty = isCurrentDocDirty;
-        $(exports).triggerHandler("dirtyFlagChange", _currentDocument);
+        doc.isDirty = isDirty;
+        $(exports).triggerHandler("dirtyFlagChange", doc);
         
         // If file just became dirty, add it to working set (if not already there)
-        _addToWorkingSet(_currentDocument);
+        _addToWorkingSet(doc);
     }
     
     
