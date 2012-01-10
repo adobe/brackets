@@ -1,48 +1,36 @@
 /* Brackets / CodeMirror Code Formatting */
 
-
-body {
-    /* TODO: Setting code backround color should probably be deeper in the 
-             DOM hierarchy than "body". Right now there's a bug that if you 
-             change the background color of .content (probably the right place)
-             then selection gets drawn underneath the color, so you can't see
-             the selection.
-             
-             This is due to the fact that the div containing the selection is
-             absolutely positioned with a z-order of -1, and so is drawn
-             below EVERYTHING else that doesn't have a "position" property.
-    */
+.CodeMirror-scroll {
     background-color: @background-color-3;
-}
-
-.CodeMirror {
     .code-font();
 }
 
-.cm-s-default span.cm-keyword {color: @accent-keyword;}
-.cm-s-default span.cm-atom {color: @accent-atom;}
-.cm-s-default span.cm-number {color: @accent-number;}
-.cm-s-default span.cm-def {color: @accent-def;}
-.cm-s-default span.cm-variable {color: @accent-variable;}
-.cm-s-default span.cm-variable-2 {color: @accent-variable-2;}
-.cm-s-default span.cm-variable-3 {color: @accent-variable-3;}
-.cm-s-default span.cm-property {color: @accent-property;}
-.cm-s-default span.cm-operator {color: @accent-operator;}
-.cm-s-default span.cm-comment {color: @accent-comment;}
-.cm-s-default span.cm-string {color: @accent-string;}
-.cm-s-default span.cm-string-2 {color: @accent-string-2;}
-.cm-s-default span.cm-meta {color: @accent-meta;}
-.cm-s-default span.cm-error {color: @accent-error;}
-.cm-s-default span.cm-qualifier {color: @accent-qualifier;}
-.cm-s-default span.cm-builtin {color: @accent-builtin;}
-.cm-s-default span.cm-bracket {color: @accent-bracket;}
-.cm-s-default span.cm-tag {color: @accent-tag;}
-.cm-s-default span.cm-attribute {color: @accent-attribute;}
-.cm-s-default span.cm-header {color: @accent-header;}
-.cm-s-default span.cm-quote {color: @accent-quote;}
-.cm-s-default span.cm-hr {color: @accent-hr;}
-.cm-s-default span.cm-link {color: @accent-link;}
+.cm-s-default {
+    .CodeMirror-cursor {
+        .code-cursor();
+    }
 
-.cm-s-default .CodeMirror-cursor {
-    .code-cursor()
+    span.cm-keyword {color: @accent-keyword;}
+    span.cm-atom {color: @accent-atom;}
+    span.cm-number {color: @accent-number;}
+    span.cm-def {color: @accent-def;}
+    span.cm-variable {color: @accent-variable;}
+    span.cm-variable-2 {color: @accent-variable-2;}
+    span.cm-variable-3 {color: @accent-variable-3;}
+    span.cm-property {color: @accent-property;}
+    span.cm-operator {color: @accent-operator;}
+    span.cm-comment {color: @accent-comment;}
+    span.cm-string {color: @accent-string;}
+    span.cm-string-2 {color: @accent-string-2;}
+    span.cm-meta {color: @accent-meta;}
+    span.cm-error {color: @accent-error;}
+    span.cm-qualifier {color: @accent-qualifier;}
+    span.cm-builtin {color: @accent-builtin;}
+    span.cm-bracket {color: @accent-bracket;}
+    span.cm-tag {color: @accent-tag;}
+    span.cm-attribute {color: @accent-attribute;}
+    span.cm-header {color: @accent-header;}
+    span.cm-quote {color: @accent-quote;}
+    span.cm-hr {color: @accent-hr;}
+    span.cm-link {color: @accent-link;}
 }
