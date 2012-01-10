@@ -103,7 +103,7 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        var editor = EditorManager._constructEditor( $('#editor') );
+        EditorManager.setEditorArea( $('#editorHolder') );
     
         initProject();
         initMenus();
@@ -177,7 +177,7 @@ define(function(require, exports, module) {
         }
     
         function initCommandHandlers() {    
-            FileCommandHandlers.init(editor, $("#main-toolbar .title"));
+            FileCommandHandlers.init( $("#main-toolbar .title") );
         }
     
         function initKeyBindings() {

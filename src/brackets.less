@@ -79,7 +79,7 @@ body {
     }
 }
 
-#editor {
+#editorHolder {
     .vbox;
     .box-flex(1);
 
@@ -94,7 +94,26 @@ body {
     .CodeMirror-lines {
         padding: @base-padding;
     }
+    
+    /* Placeholder shown when there is no editor open */
+    #notEditor {
+        .box-flex(1);
+        .vbox;
+        .box-pack(center);
+        .box-align(center);
+        background-color: @background-color-2;
+        
+        #notEditorContent {
+            color: @background-color-1;
+            font-size: 350px;
+            line-height: normal;
+            margin-top: -0.25em;
+            text-shadow: 0 1px @bc-black;
+            opacity: 0.30;
+        }
+    }
 }
+
 
 /* Project panel */
 

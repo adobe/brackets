@@ -19,7 +19,7 @@ define(function(require, exports, module) {
     var _title, _currentFilePath, _currentTitlePath,
         _isDirty = false;
     
-    function init(editor, title) {
+    function init(title) {
         _title = title;
 
         // Register global commands
@@ -253,11 +253,11 @@ define(function(require, exports, module) {
         // dispose of the editor for the current file (and will later change again if we choose to
         // limit the number of open editors).
         EditorManager.showNoEditor();
+        // EditorManager.destroyEditor( new NativeFileSystem.FileEntry(_currentFilePath) );
         DocumentManager.setDocumentIsDirty(false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
         DocumentManager.closeCurrentDocument();
         
         _currentFilePath = _currentTitlePath = null;
-        // _isDirty = false;
         updateTitle();
         EditorManager.focusEditor();
         
