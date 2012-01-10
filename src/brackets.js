@@ -61,10 +61,16 @@ define(function(require, exports, module) {
         $(".dialog-title", dlg).html(title);
         $(".dialog-message", dlg).html(message);
 
+        function dismissDialog(buttonId) {
+            dlg.on("hidden", function func() {
+                result.resolve(buttonId);
+                dlg.off("hidden", func);
+            });
+            dlg.modal(true).hide();
+        }
         // Click handler for buttons
         dlg.on("click", ".dialog-button", function(e) {
-            result.resolve($(this).attr("data-button-id"));
-            dlg.modal(true).hide();
+            dismissDialog($(this).attr("data-button-id"));
         });
 
         // Enter/Return handler for the primary button. Need to
@@ -81,8 +87,7 @@ define(function(require, exports, module) {
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
-                    result.resolve(primaryBtn.attr("data-button-id"));
-                    dlg.modal(true).hide();
+                    dismissDialog(primaryBtn.attr("data-button-id"));
                 }
             }
             enterKeyPressed = false;
@@ -94,7 +99,7 @@ define(function(require, exports, module) {
             { backdrop: "static"
             , show: true
             }
-        ).on("hide", function(e) {
+        ).on("hidden", function(e) {
             // Remove all handlers in the .modal namespace
             $(document).off(".modal");
         });
