@@ -103,7 +103,6 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        // TODO: horizontal scrollbar isn't staying stable in editor--it changes as you scroll.
         var editorElt = $('#editor')
         ,   editor = CodeMirror(editorElt.get(0));
     
