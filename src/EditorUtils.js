@@ -7,6 +7,8 @@
  */
 define(function(require, exports, module) {
 
+    require("thirdparty/path-utils/path-utils.min");
+
     /**
      * Change the current mode of the editor based on file extension 
      * @param {object} editor  An instance of a CodeMirror editor
@@ -34,7 +36,6 @@ define(function(require, exports, module) {
      * @param {string} fileUrl  A cannonical file URL to extract the extension from
      */
     function _getMimeTypeFromFileExtensions( fileUrl ) {
-        require("thirdparty/path-utils/path-utils.min");
         var ext = PathUtils.filenameExtension( fileUrl );
         //incase the arg is just the ext
         if( !ext )
@@ -51,27 +52,16 @@ define(function(require, exports, module) {
             return "application/json";
 
         case "css":
-        case "less":
             return "text/css";
+
+        case "less":
+            return "text/less";
 
         case "html":
         case "htm":
         case "shtml":
         case "shtm":
             return "text/html";
-
-        case "xml":
-            return "application/xml";
-
-        case "aspx":
-            return "application/x-aspx";
-
-        case "ejs":
-            return "application/x-ejs";
-
-        case "jsp":
-        case "jst":
-            return "application/x-jsp";
 
         default:
             console.log("Called EditorUtils.js _getMimeTypeFromFileExtensions with an unhandled file extension: " + ext);
@@ -95,6 +85,9 @@ define(function(require, exports, module) {
             require("thirdparty/CodeMirror2/mode/css/css");
             break;
 
+        case "text/less":
+            require("thirdparty/CodeMirror2/mode/less/less");
+
         case "text/html":
             _loadModeForMimeType("application/xml");
             _loadModeForMimeType("text/javascript");
@@ -104,13 +97,6 @@ define(function(require, exports, module) {
 
         case "application/xml":
             require("thirdparty/CodeMirror2/mode/xml/xml");
-            break;
-
-        case "application/x-aspx":
-        case "application/x-ejs":
-        case "application/x-jsp":
-            _loadModeForMimeType("text/html");
-            require("thirdparty/CodeMirror2/mode/htmlembedded/htmlembedded");
             break;
 
         default:
