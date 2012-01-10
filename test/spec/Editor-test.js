@@ -1,5 +1,7 @@
 define(function(require, exports, module) {
     
+    var EditorUtils = require("EditorUtils");
+
     describe("Editor", function(){
         var content = 'Brackets is going to be awesome!\n';
 
@@ -27,23 +29,26 @@ define(function(require, exports, module) {
             describe("Modes", function() {
                 it("should switch to the HTML mode for files ending in .html", function() {
                     // verify editor content
-                    var EditorUtils = require("EditorUtils");
                     EditorUtils.setModeFromFileExtension(myCodeMirror, "file:///only/testing/the/path.html");
-                    expect(myCodeMirror.getOption("mode")).toEqual("text/html");
+                    expect(myCodeMirror.getOption("mode")).toEqual("htmlmixed");
                 });
                 
                 it("should switch modes even if the url has a query string", function() {
                     // verify editor content
-                    var EditorUtils = require("EditorUtils");
                     EditorUtils.setModeFromFileExtension(myCodeMirror, "http://only.org/testing/the/path.css?v=2");
-                    expect(myCodeMirror.getOption("mode")).toEqual("text/css");
+                    expect(myCodeMirror.getOption("mode")).toEqual("css");
                 });
                 
                 it("should accecpt just a file name too", function() {
                     // verify editor content
-                    var EditorUtils = require("EditorUtils");
                     EditorUtils.setModeFromFileExtension(myCodeMirror, "path.js");
-                    expect(myCodeMirror.getOption("mode")).toEqual("text/javascript");
+                    expect(myCodeMirror.getOption("mode")).toEqual("javascript");
+                });
+
+                it("should default to plaintext for unknown file extensions", function() {
+                    // verify editor content
+                    EditorUtils.setModeFromFileExtension(myCodeMirror, "test.foo");
+                    expect(myCodeMirror.getOption("mode")).toEqual("");
                 });
             });
         });

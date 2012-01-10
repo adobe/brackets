@@ -7,7 +7,8 @@ define(function(require, exports, module) {
     ,   Commands            = require("Commands")
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   ProjectManager      = require("ProjectManager")
-    ,   Strings             = require("strings");
+    ,   Strings             = require("strings")
+    ,   EditorUtils         = require("EditorUtils")
     ;
      
     /**
@@ -151,7 +152,6 @@ define(function(require, exports, module) {
                     }
                 }
 
-                var EditorUtils = require("EditorUtils");
                 EditorUtils.setModeFromFileExtension(_editor, _currentFilePath);
 
                 // TODO: have a real controller object for the editor
