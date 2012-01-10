@@ -190,6 +190,16 @@ body {
 	height: @jsTreeSpriteSize;
 }
 
+.bracketSprite {
+	background-image: url("styles/images/bracketsSprites.png");
+	background-repeat: no-repeat;
+	background-color: transparent;
+	vertical-align: middle;
+	width: @jsTreeSpriteSize;
+	height: @jsTreeSpriteSize;
+}
+
+
 @jsTreeSpriteSize: 18px;
 
 .disclosure-arrow-opened {
@@ -206,8 +216,15 @@ body {
 
 .close-file-icon {
 	margin: 0px 0px 0px 2px;
-	.jsTreeSprite;
+	.bracketSprite;
 	display: inline-block;
 	position: absolute;
-	background-position: -@jsTreeSpriteSize (-3*@jsTreeSpriteSize);
+	background-position: 0px 0px;
+	
+	.dirty {
+		background-position: -@jsTreeSpriteSize 0;
+	}
 }
+
+
+

@@ -34,7 +34,11 @@ define(function(require, exports, module) {
 		// Show close icon on hover
 		newItem.hover(
                 function() {
-					var closeItem = $("<div class=\"close-file-icon\"></div>");
+					var closeItemClass = "close-file-icon";
+					if( addedDoc.isDirty )
+						  closeItemClass += " dirty";
+						  
+					var closeItem = $("<div class= '" + closeItemClass + "'></div>");
                     $(this).prepend(closeItem);
 					
 					// Handle clicking on close icon
@@ -64,6 +68,8 @@ define(function(require, exports, module) {
     
     $(DocumentManager).on("dirtyFlagChange", function(event, doc ) {
         console.log("Dirty flag change: " + doc);
+		
+		$("#" + doc.file.fullPath).find(".close-file-icon");
     });
     
     // No public API for now
