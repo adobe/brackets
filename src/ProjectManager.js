@@ -144,10 +144,10 @@ define(function(require, exports, module) {
     };
 
     /**
-     * Returns the FileEntry corresponding to the selected item, or null
+     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
      * if no item is selected.
      *
-     * @return {string}
+     * @return {?Entry}
      */
     function getSelectedItem() {
         var selected = _projectTree.jstree("get_selected");

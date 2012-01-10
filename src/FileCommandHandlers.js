@@ -8,6 +8,7 @@ define(function(require, exports, module) {
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   ProjectManager      = require("ProjectManager")
     ,   DocumentManager     = require("DocumentManager")
+    ,   EditorManager       = require("EditorManager")
     ,   Strings             = require("strings");
     ;
      
@@ -15,19 +16,11 @@ define(function(require, exports, module) {
      * Handlers for commands related to file handling (opening, saving, etc.)
      */
       
-    var _editor, _title, _currentFilePath, _currentTitlePath,
-        _isDirty = false,
-        _savedUndoPosition = 0;
+    var _title, _currentFilePath, _currentTitlePath,
+        _isDirty = false;   // FIXME: get rid of isDirty flag
     
-    var _ignoreEditorChanges = false;
-
-    function init(editor, title) {
-        _editor = editor;
+    function init(title) {
         _title = title;
-
-        _editor.setOption("onChange", function() {
-            updateDirty();
-        });
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
@@ -37,34 +30,39 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
-    };
-
-    exports.getEditor = function getEditor() {
-        return _editor;
-    };
-
-    exports.isDirty = function isDirty() {
-        return _isDirty;
-    };
-
-    function updateDirty() {
-        // Don't send out spurious dirty-bit notifications while populating editor with the contents
-        // of a newly-opened file, or when clearing editor while closing a file.
-        if (_ignoreEditorChanges)
-            return;
         
-        // If we've undone past the undo position at the last save, and there is no redo stack,
-        // then we can never get back to a non-dirty state.
-        var historySize = _editor.historySize();
-        if (historySize.undo < _savedUndoPosition && historySize.redo == 0) {
-            _savedUndoPosition = -1;
-        }
-        var newIsDirty = (_editor.historySize().undo != _savedUndoPosition);
-        if (_isDirty != newIsDirty) {
-            _isDirty = newIsDirty;
-            updateTitle();
+        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
+        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
+    };
+
+    function handleCurrentDocumentChange(event) {
+        var newDocument = DocumentManager.getCurrentDocument();
+        
+        if (newDocument != null) {
+            var fullPath = newDocument.file.fullPath;
+    
+            _currentFilePath = _currentTitlePath = fullPath;
+            _isDirty = EditorManager.isEditorDirty(newDocument.file);
+
+            // In the main toolbar, show the project-relative path (if the file is inside the current project)
+            // or the full absolute path (if it's not in the project).
+            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
             
-            DocumentManager.temp_updateDirty(_isDirty);
+        } else {
+            _currentFilePath = _currentTitlePath = null;
+            _isDirty = false;
+        }
+        
+        // Update title text & "dirty dot" display
+        updateTitle();
+    }
+    
+    function handleDirtyChange(event, changedDoc) {
+        if (changedDoc.file.fullPath == _currentFilePath) {
+            _isDirty = changedDoc.isDirty;
+            updateTitle();
+        } else {
+            console.log("Rejected dirty change; current doc is "+_currentFilePath); // FIXME
         }
     }
 
@@ -72,7 +70,7 @@ define(function(require, exports, module) {
         _title.text(
             _currentTitlePath
                 ? (_currentTitlePath + (_isDirty ? " \u2022" : ""))
-                : "Untitled"
+                : ""
         );
     }
 
@@ -83,28 +81,28 @@ define(function(require, exports, module) {
         // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
         // we can remove this here.
         var result;
-        if (_currentFilePath) {
-            result = new $.Deferred();
-            CommandManager
-                .execute(Commands.FILE_CLOSE)
-                .done(function() {
-                    doOpenWithOptionalPath(fullPath)
-                        .done(function() {
-                            result.resolve();
-                        })
-                        .fail(function() {
-                            result.reject();
-                        });
-                })
-                .fail(function() {
-                    result.reject();
-                });
-        }
-        else {
+        // if (_currentFilePath) {
+            // result = new $.Deferred();
+            // CommandManager
+                // .execute(Commands.FILE_CLOSE)
+                // .done(function() {
+                    // doOpenWithOptionalPath(fullPath)
+                        // .done(function() {
+                            // result.resolve();
+                        // })
+                        // .fail(function() {
+                            // result.reject();
+                        // });
+                // })
+                // .fail(function() {
+                    // result.reject();
+                // });
+        // }
+        // else {
             result = doOpenWithOptionalPath(fullPath);
-        }
+        // }
         result.always(function() {
-            _editor.focus();
+            EditorManager.focusEditor();
         });
         return result;
     }
@@ -136,51 +134,39 @@ define(function(require, exports, module) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
-
-        var reader = new NativeFileSystem.FileReader();
-
+        
         // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        // TODO: it's weird to have to construct a FileEntry just to get a File.
-        fileEntry.file(function(file) {
-            reader.onload = function(event) {
-                _currentFilePath = _currentTitlePath = fullPath;
+        if (EditorManager.hasEditorFor(fileEntry)) {
+            // File already open - don't need to load it
+            EditorManager.showEditor(fileEntry);
+            result.resolve();
+            
+        } else {
+            var reader = new NativeFileSystem.FileReader();
 
-                // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                // or the full absolute path (if it's not in the project).
-                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            // TODO: it's weird to have to construct a FileEntry just to get a File.
+            fileEntry.file(function(file) {
+                reader.onload = function(event) {
 
-                // TODO: move to EditorManager listener
-                _ignoreEditorChanges = true;
-                _editor.setValue(event.target.result);
-                _ignoreEditorChanges = false;
-                
-                DocumentManager.showInEditor(fileEntry);
-                updateTitle();
+                    EditorManager.createEditor(fileEntry, event.target.result);
+                    result.resolve();
+                };
 
-                // Make sure we can't undo back to the previous content.
-                _editor.clearHistory();
+                reader.onerror = function(event) {
+                    showFileOpenError(event.target.error.code, fullPath);
+                    result.reject();
+                }
 
-                // This should be 0, but just to be safe...
-                _savedUndoPosition = _editor.historySize().undo;
-                updateDirty();
-
-                result.resolve();
-            };
-
-            reader.onerror = function(event) {
+                reader.readAsText(file, "utf8");
+            },
+            function fileEntry_onerror(event) {
                 showFileOpenError(event.target.error.code, fullPath);
                 result.reject();
-            }
-
-            reader.readAsText(file, "utf8");
-        },
-        function fileEntry_onerror(event) {
-            showFileOpenError(event.target.error.code, fullPath);
-            result.reject();
-        });
+            });
+        }
 
         return result;
     }
@@ -213,8 +199,7 @@ define(function(require, exports, module) {
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        _savedUndoPosition = _editor.historySize().undo;
-                        updateDirty();
+                        EditorManager.markEditorClean(fileEntry);
                         result.resolve();
                     }
                     writer.onerror = function(event) {
@@ -223,7 +208,7 @@ define(function(require, exports, module) {
                     }
 
                     // TODO (jasonsj): Blob instead of string
-                    writer.write(_editor.getValue());
+                    writer.write( EditorManager.getEditorContents(fileEntry) );
                 },
                 function(event) {
                     showSaveFileError(event.target.error.code, _currentFilePath);
@@ -235,12 +220,13 @@ define(function(require, exports, module) {
             result.resolve();
         }
         result.always(function() {
-            _editor.focus();
+            EditorManager.focusEditor();
         });
         return result;
     }
 
     function handleFileClose() {
+        // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {
             brackets.showModalDialog(
@@ -271,33 +257,36 @@ define(function(require, exports, module) {
                 }
             });
             result.always(function() {
-                _editor.focus();
+                EditorManager.focusEditor();
             });
         }
         else {
             doClose();
-            _editor.focus();
+            EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
 
     function doClose() {
-        // TODO: When we implement multiple files being open, this will probably change to just
-        // dispose of the editor for the current file (and will later change again if we choose to
-        // limit the number of open editors).
-        _ignoreEditorChanges = true;
-        _editor.setValue("");
-        _ignoreEditorChanges = false;
+        var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
         
-        _editor.clearHistory();
-        _currentFilePath = _currentTitlePath = null;
-        _savedUndoPosition = 0;
-        _isDirty = false;
-        updateTitle();
-        _editor.focus();
+        DocumentManager.setDocumentIsDirty(fileEntry, false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
         
+        EditorManager.destroyEditor(fileEntry);
+        
+        // FIXME: 'closing' via the working-set "X" icon shouldn't call this (unless it happens to
+        // also be current doc)
         DocumentManager.closeCurrentDocument();
+        
+        // FIXME: EditorManager should listen for currentDocumentChange so we don't have to poke it manually
+        var nextDoc = DocumentManager.getCurrentDocument();
+        if (nextDoc)
+            EditorManager.showEditor(nextDoc.file);
+        
+        // _currentFilePath = _currentTitlePath = null;
+        // updateTitle();
+        EditorManager.focusEditor();
     }
 
     function showFileOpenError(code, path) {

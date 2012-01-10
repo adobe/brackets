@@ -103,7 +103,7 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        var editor = CodeMirror($('#editor').get(0));
+        EditorManager.setEditorArea( $('#editorHolder') );
     
         initProject();
         initMenus();
@@ -122,6 +122,11 @@ define(function(require, exports, module) {
                 ProjectManager.loadProject(bracketsSrc);
             }
     
+            // Open project button
+            $("#btn-open-project").click(function() {
+                ProjectManager.openProject();
+            });
+
             // Handle toggling top level disclosure arrows of file list area
             $("#open-files-disclosure-arrow").click(function(){
                 $(this).toggleClass( "disclosure-arrow-closed");
@@ -177,7 +182,7 @@ define(function(require, exports, module) {
         }
     
         function initCommandHandlers() {    
-            FileCommandHandlers.init(editor, $("#main-toolbar .title"));
+            FileCommandHandlers.init( $("#main-toolbar .title") );
         }
     
         function initKeyBindings() {
