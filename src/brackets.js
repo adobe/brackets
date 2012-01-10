@@ -122,6 +122,11 @@ define(function(require, exports, module) {
                 ProjectManager.loadProject(bracketsSrc);
             }
     
+            // Open project button
+            $("#btn-open-project").click(function() {
+                ProjectManager.openProject();
+            });
+
             // Handle toggling top level disclosure arrows of file list area
             $("#open-files-disclosure-arrow").click(function(){
                 $(this).toggleClass( "disclosure-arrow-closed");

@@ -71,7 +71,7 @@ define(function(require, exports, module) {
     /** @type {number} */
     Editor.prototype._savedUndoPosition = 0;
     /** @type {boolean} */
-    Editor.prototype._isDirty = false;  // TODO: store only on the document?
+    Editor.prototype._isDirty = false;  // FIXME: store only on the document?  we're maintaining this in two places right now!
     
     Editor.prototype._updateDirty = function() {
         // Don't send out spurious dirty-bit notifications while populating editor with the contents
@@ -171,22 +171,43 @@ define(function(require, exports, module) {
             _currentEditor.editor.focus();
     }
     
-    function getEditorContents() {
-        return _currentEditor.editor.getValue()
+    function hasEditorFor(fileEntry) {
+        return _findEditor(fileEntry) != -1;
     }
     
-    function markCurrentEditorClean() {
-        _currentEditor.markClean();
+    function getEditorContents(fileEntry) {
+        var editorI = _findEditor(fileEntry);
+        if (editorI == -1)
+            throw new Error("No editor exists for "+fileEntry);
+        
+        return _editors[editorI].editor.getValue()
+    }
+    
+    function isEditorDirty(fileEntry) {
+        var editorI = _findEditor(fileEntry);
+        if (editorI == -1)
+            throw new Error("No editor exists for "+fileEntry);
+        
+        return _editors[editorI]._isDirty;
+    }
+    function markEditorClean(fileEntry) {
+        var editorI = _findEditor(fileEntry);
+        if (editorI == -1)
+            throw new Error("No editor exists for "+fileEntry);
+        
+        _editors[editorI].markClean();
     }
     
     
     // Define public API
     exports.setEditorArea = setEditorArea;
-    exports.markCurrentEditorClean = markCurrentEditorClean;
+    exports.hasEditorFor = hasEditorFor;
     exports.getEditorContents = getEditorContents;
     exports.showOrCreateEditor = showOrCreateEditor;
     exports.showNoEditor = showNoEditor;
     exports.destroyEditor = destroyEditor;
+    exports.isEditorDirty = isEditorDirty;
+    exports.markEditorClean = markEditorClean;
     exports.focusEditor = focusEditor;
     
 });

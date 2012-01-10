@@ -34,20 +34,20 @@ define(function(require, exports, module) {
         $(DocumentManager).on("dirtyFlagChange", updateDirty);
     };
 
-    exports.isDirty = function isDirty() {
-        return _isDirty;
-    };
-
     function updateDirty(event, changedDoc) {
-        _isDirty = changedDoc.isDirty;
-        updateTitle();
+        if (changedDoc.file.fullPath == _currentFilePath) {
+            _isDirty = changedDoc.isDirty;
+            updateTitle();
+        } else {
+            console.log("Rejected dirty change; current doc is "+_currentFilePath);
+        }
     }
 
     function updateTitle() {
         _title.text(
             _currentTitlePath
                 ? (_currentTitlePath + (_isDirty ? " \u2022" : ""))
-                : "Untitled"
+                : ""
         );
     }
 
@@ -58,26 +58,26 @@ define(function(require, exports, module) {
         // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
         // we can remove this here.
         var result;
-        if (_currentFilePath) {
-            result = new $.Deferred();
-            CommandManager
-                .execute(Commands.FILE_CLOSE)
-                .done(function() {
-                    doOpenWithOptionalPath(fullPath)
-                        .done(function() {
-                            result.resolve();
-                        })
-                        .fail(function() {
-                            result.reject();
-                        });
-                })
-                .fail(function() {
-                    result.reject();
-                });
-        }
-        else {
+        // if (_currentFilePath) {
+            // result = new $.Deferred();
+            // CommandManager
+                // .execute(Commands.FILE_CLOSE)
+                // .done(function() {
+                    // doOpenWithOptionalPath(fullPath)
+                        // .done(function() {
+                            // result.resolve();
+                        // })
+                        // .fail(function() {
+                            // result.reject();
+                        // });
+                // })
+                // .fail(function() {
+                    // result.reject();
+                // });
+        // }
+        // else {
             result = doOpenWithOptionalPath(fullPath);
-        }
+        // }
         result.always(function() {
             EditorManager.focusEditor();
         });
@@ -111,43 +111,63 @@ define(function(require, exports, module) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
-
-        var reader = new NativeFileSystem.FileReader();
-
+        
         // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        // TODO: it's weird to have to construct a FileEntry just to get a File.
-        fileEntry.file(function(file) {
-            reader.onload = function(event) {
-                _currentFilePath = _currentTitlePath = fullPath;
+        // FIXME: this is all pretty messy... clean it up
+        // File already open - don't need to load it
+        if (EditorManager.hasEditorFor(fileEntry)) {
+            // FIXME: updating title should be driven by DocumentManager.currentDocument change?
+            _currentFilePath = _currentTitlePath = fullPath;
 
-                // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                // or the full absolute path (if it's not in the project).
-                _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            // In the main toolbar, show the project-relative path (if the file is inside the current project)
+            // or the full absolute path (if it's not in the project).
+            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            
+            EditorManager.showOrCreateEditor(fileEntry, null);
+            DocumentManager.showInEditor(fileEntry);
+            
+            _isDirty = EditorManager.isEditorDirty(fileEntry);
+            updateTitle();
+            
+            result.resolve();
+            
+        } else {
+            var reader = new NativeFileSystem.FileReader();
 
-                // TODO: move to EditorManager listener
-                EditorManager.showOrCreateEditor(fileEntry, event.target.result);
-                DocumentManager.showInEditor(fileEntry);
-                DocumentManager.setDocumentIsDirty(false);
-                
-                updateTitle();
+            // TODO: it's weird to have to construct a FileEntry just to get a File.
+            fileEntry.file(function(file) {
+                reader.onload = function(event) {
+                    _currentFilePath = _currentTitlePath = fullPath;
 
-                result.resolve();
-            };
+                    // In the main toolbar, show the project-relative path (if the file is inside the current project)
+                    // or the full absolute path (if it's not in the project).
+                    _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
 
-            reader.onerror = function(event) {
+                    // TODO: move to EditorManager listener
+                    EditorManager.showOrCreateEditor(fileEntry, event.target.result);
+                    DocumentManager.showInEditor(fileEntry);
+                    DocumentManager.setDocumentIsDirty(false);
+                    
+                    updateTitle();
+
+                    result.resolve();
+                };
+
+                reader.onerror = function(event) {
+                    showFileOpenError(event.target.error.code, fullPath);
+                    result.reject();
+                }
+
+                reader.readAsText(file, "utf8");
+            },
+            function fileEntry_onerror(event) {
                 showFileOpenError(event.target.error.code, fullPath);
                 result.reject();
-            }
-
-            reader.readAsText(file, "utf8");
-        },
-        function fileEntry_onerror(event) {
-            showFileOpenError(event.target.error.code, fullPath);
-            result.reject();
-        });
+            });
+        }
 
         return result;
     }
@@ -180,7 +200,7 @@ define(function(require, exports, module) {
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        EditorManager.markCurrentEditorClean();
+                        EditorManager.markEditorClean(fileEntry);
                         result.resolve();
                     }
                     writer.onerror = function(event) {
@@ -189,7 +209,7 @@ define(function(require, exports, module) {
                     }
 
                     // TODO (jasonsj): Blob instead of string
-                    writer.write( EditorManager.getEditorContents() );
+                    writer.write( EditorManager.getEditorContents(fileEntry) );
                 },
                 function(event) {
                     showSaveFileError(event.target.error.code, _currentFilePath);
@@ -207,6 +227,7 @@ define(function(require, exports, module) {
     }
 
     function handleFileClose() {
+        // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {
             brackets.showModalDialog(
@@ -252,15 +273,13 @@ define(function(require, exports, module) {
         // TODO: When we implement multiple files being open, this will probably change to just
         // dispose of the editor for the current file (and will later change again if we choose to
         // limit the number of open editors).
-        EditorManager.showNoEditor();
-        // EditorManager.destroyEditor( new NativeFileSystem.FileEntry(_currentFilePath) );
+        EditorManager.destroyEditor( new NativeFileSystem.FileEntry(_currentFilePath) );
         DocumentManager.setDocumentIsDirty(false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
         DocumentManager.closeCurrentDocument();
         
         _currentFilePath = _currentTitlePath = null;
         updateTitle();
         EditorManager.focusEditor();
-        
     }
 
     function showFileOpenError(code, path) {
