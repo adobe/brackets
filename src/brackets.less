@@ -1,0 +1,109 @@
+/*!
+ * Brackets
+ *
+ * TODO: Copyright Notice
+ *
+ * This file first imports all of the shared LESS/CSS, and then defines 
+ * version-specific layout (e.g. layout for the App shell, or layout for
+ * the In-Browser version on Firefox).
+ *
+ * Going forward, we may have different versions of this file for different
+ * Versions (e.g. App, In-Browser, etc.)
+ *
+ * Anything that is general/reusable should be pushed up into a LESS file
+ * in the "styles" directory. See "brackets_shared.less" for the organization
+ * 
+ * Date: @DATE
+ */
+
+/* IMPORTANT: importing brackets_shared should be the first step in this file
+ * This is so that imported CSS files (NOT LESS files) end up in the
+ * right place
+ */
+@import "styles/brackets_shared.less";
+
+/* Overall layout */
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    .vbox;
+
+    .topbar {
+        position: static;
+    }
+}
+
+.topbar-inner {
+    /* We don't want to use the default .container in here, 
+       so we need to .clearfix the children. */
+    .clearfix;
+
+    .brand {
+        .sane-box-model;
+        margin-left: 0;
+        width: 200px;
+        padding-left: @base-padding;
+        padding-right: @base-padding;
+    }
+}
+
+.main-view {
+    .hbox;
+    .box-flex(1);
+
+    .sidebar {
+        .vbox;
+        width: 200px;
+    }
+
+    .content {
+        .vbox;
+        .box-flex(1);
+    }
+}
+
+.toolbar {
+    /* make sure the shadow goes above other items */
+    z-index: 1;
+    .title {
+        font-size: 1.2em;
+        font-weight: bold;
+        text-shadow: 0 1px @bc-white;        
+    }
+    .buttons {
+        float: right;       
+    }
+}
+
+#editor {
+    .vbox;
+    .box-flex(1);
+
+    .CodeMirror-lines {
+        padding: @base-padding;
+    }
+}
+
+/* Project panel */
+
+#projects .toolbar {
+    .picker {
+        .box;
+        .box-flex(1);
+    }
+}
+
+#project-files-container {
+    .box-flex(1);
+    margin: 0;
+    padding: 0;
+    overflow: auto; /* show scrollbars */
+
+    > ul {
+        margin-top: 5px;
+    }
+}
