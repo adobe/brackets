@@ -431,7 +431,7 @@ define(function(require, exports, module) {
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
         _projectTree = projectTreeContainer.jstree({
-            plugins : ["ui", "themes", "json_data", "crrm", "localStorage"],
+            plugins : ["ui", "themes", "json_data", "crrm"],
             json_data : { data:treeDataProvider, correct_state: false },
             core : { animation:0 },
             themes : { theme:"brackets", url:"styles/jsTreeTheme.css", dots:false, icons:false },
