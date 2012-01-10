@@ -15,12 +15,10 @@ define(function(require, exports, module) {
      * @return {string} Formatted string
      */
     function format(str) {
-        var args = arguments;
+        // arguments[0] is the base string, so we need to adjust index values here
+        var args = [].slice.call(arguments, 1);
         return str.replace(/{(\d+)}/g, function(match, num) {
-            // args[0] is the string, so we need to adjust index values here
-            // "num" is a string
-            var i = Number(num);
-            return typeof args[i + 1] !== 'undefined' ? args[i + 1] : match;
+            return typeof args[num] !== 'undefined' ? args[num] : match;
         });
     }
 
