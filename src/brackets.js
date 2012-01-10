@@ -5,7 +5,6 @@
 // TODO: break out the definition of brackets into a separate module from the application controller logic
 define(function(require, exports, module) {
     // Load dependent non-module scripts
-    require("thirdparty/CodeMirror2/mode/javascript/javascript");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
 
