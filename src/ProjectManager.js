@@ -13,21 +13,6 @@ define(function(require, exports, module) {
     ,   Strings             = require("strings")
     ;
 
-    /*
-     * jsTree localStorage plugin
-     */
-    (function ($) {
-        $.jstree.plugin("localStorage", {
-            __init : function () {
-                console.log("hello world");
-            },
-            defaults : {
-            },
-            _fn : {
-            }
-        });
-    })(jQuery);
-
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
@@ -50,11 +35,56 @@ define(function(require, exports, module) {
 
     /**
      * @private
+     * Used to initialize jstree state
+     */
+    var _projectInitialLoad =
+        { previous : []
+        , id : 0
+        , fullPathToIdMap : {}
+        };
+
+    /**
+     * @private
      * Preferences callback. Saves current project path.
      */
     function savePreferences( storage ) {
-        storage.projectPath         = _projectRoot.fullPath;
-        storage.projectTreeState    = "";   /* TODO (jasonsj): jstree state*/
+        // save the current project
+        storage.projectPath = _projectRoot.fullPath;
+
+        // save jstree state
+        var openNodes = []
+        ,   projectPathLength = _projectRoot.fullPath.length + 1
+        ,   entry
+        ,   fullPath
+        ,   shortPath
+        ,   depth;
+
+        // Query open nodes by class selector
+        $(".jstree-open").each( function ( index ) {
+            entry = $( this ).data("entry");
+
+            if ( entry.fullPath ) {
+                fullPath = entry.fullPath;
+
+                // Truncate project path prefix
+                shortPath = fullPath.slice( projectPathLength );
+
+                // Determine depth of the node by counting path separators.
+                // Children at the root have depth of zero.
+                // TODO (jasonsj): PATH_SEPARATOR per native OS
+                depth = shortPath.split("/").length - 1;
+
+                // Map tree depth to list of open nodes
+                if ( openNodes[ depth ] === undefined ) {
+                    openNodes[ depth ] = [];
+                }
+
+                openNodes[ depth ].push( fullPath );
+            }
+        });
+
+        // Store the open nodes by their full path and persist to storage
+        storage.projectTreeState = openNodes;
     }
 
     /**
@@ -93,10 +123,15 @@ define(function(require, exports, module) {
      * @param {string} rootPath  Absolute path to the root folder of the project.
      */
     function loadProject(rootPath) {
+        // reset tree node id's
+        _projectInitialLoad.id = 0;
+
+        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
-            var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
             rootPath = prefs.projectPath;
+            _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
                 // In browser: dummy folder tree (hardcoded in ProjectManager)
@@ -356,21 +391,27 @@ define(function(require, exports, module) {
      * @return {Array} jsTree node data: array of JSON objects
      */
     function _convertEntriesToJSON(entries) {
-        var jsonEntryList = [];
+        var jsonEntryList = []
+        ,   entry;
+
         for (var entryI in entries) {
-            var entry = entries[entryI];
+            entry = entries[entryI];
 
             var jsonEntry = {
                 data: entry.name,
+                attr: { id: "node" + _projectInitialLoad.id++ },
                 metadata: { entry: entry }
             };
             if (entry.isDirectory) {
                 jsonEntry.children = [];
                 jsonEntry.state = "closed";
             }
-            // For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data
 
+            // For more info on jsTree's JSON format see: http://www.jstree.com/documentation/json_data
             jsonEntryList.push(jsonEntry);
+
+            // Map path to ID to initialize loaded and opened states
+            _projectInitialLoad.fullPathToIdMap[entry.fullPath] = jsonEntry.attr.id;
         }
         return jsonEntryList;
     }
@@ -403,6 +444,25 @@ define(function(require, exports, module) {
             var entry = data.rslt.obj.data("entry");
             if (entry.isFile)
                 CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
+        })
+        .bind("reopen.jstree", function(event, data) {
+            // This handler fires for the initial load and subsequent
+            // reload_nodes events. For each depth level of the tree, we open
+            // the saved nodes by a fullPath lookup.
+            if ( _projectInitialLoad.previous.length > 0 ) {
+                // load previously open nodes by increasing depth
+                var toOpenPaths = _projectInitialLoad.previous.shift()
+                ,   toOpenIds   = [];
+
+                // use path to lookup ID
+                $.each( toOpenPaths, function(index, value) {
+                    toOpenIds.push(_projectInitialLoad.fullPathToIdMap[value]);
+                });
+
+                // specify nodes to open and load
+                data.inst.data.core.to_open = toOpenIds;
+                _projectTree.jstree("reload_nodes", false);
+            }
         });
     };
 
