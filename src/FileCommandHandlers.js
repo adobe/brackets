@@ -9,6 +9,7 @@ define(function(require, exports, module) {
     ,   ProjectManager      = require("ProjectManager")
     ,   DocumentManager     = require("DocumentManager")
     ,   EditorManager       = require("EditorManager")
+    ,   EditorUtils         = require("EditorUtils")
     ,   Strings             = require("strings");
     ;
      
@@ -128,6 +129,7 @@ define(function(require, exports, module) {
                 reader.onload = function(event) {
                     // Create a new editor initialized with the file's content, and bind it to a Document
                     var newEditor = EditorManager.createEditor(event.target.result);
+                    EditorUtils.setModeFromFileExtension(newEditor, fullPath);
                     document = new DocumentManager.Document(fileEntry, newEditor);
                     
                     // Switch to new document in the UI

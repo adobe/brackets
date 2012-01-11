@@ -93,6 +93,26 @@ define(function(require, exports, module) {
     function createEditor(text) {
         var editor = CodeMirror(_editorHolder.get(0));
         
+        // Apply NJ's editor-resizing fix
+        // FIXME: is it bad to resize ALL editors, even invisible ones?
+        // FIXME: remove listener when editor is destroyed
+        var _resizeTimeout = null;
+        $(window).resize(_updateEditorSize);
+        
+        function _updateEditorSize() {
+            // Don't refresh every single time.
+            if (!_resizeTimeout) {
+                _resizeTimeout = setTimeout(function() {
+                    editor.refresh();
+                    _resizeTimeout = null;
+                }, 100);
+            }
+            $('.CodeMirror-scroll', _editorHolder)
+                .height(_editorHolder.height());
+        }
+        _updateEditorSize();
+        
+        
         // Initially populate with text. This will send a spurious change event, but that's ok
         // because no one's listening yet (and we clear the undo stack below)
         editor.setValue(text);

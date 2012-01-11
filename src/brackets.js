@@ -5,28 +5,28 @@
 // TODO: break out the definition of brackets into a separate module from the application controller logic
 define(function(require, exports, module) {
     // Load dependent non-module scripts
-    require("thirdparty/CodeMirror2/mode/javascript/javascript");
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
 
     // Load dependent modules
-    var ProjectManager          = require("ProjectManager")
+    var PreferencesManager      = require("PreferencesManager")
+    ,   ProjectManager          = require("ProjectManager")
     ,   EditorManager           = require("EditorManager")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
     ,   Commands                = require("Commands")
     ;
-    
+
     // Define core brackets namespace
     brackets = window.brackets || {};
-    
+
     // TODO: Make sure the "test" object is not included in final builds
-    // All modules that need to be tested from the context of the application 
+    // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
-    brackets.test = 
+    brackets.test =
         { ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
         , Commands              : Commands
@@ -56,18 +56,18 @@ define(function(require, exports, module) {
     brackets.showModalDialog = function(id, title, message, callback) {
         var result = $.Deferred();
         var dlg = $("#" + id);
-    
+
         // Set title and message
         $(".dialog-title", dlg).html(title);
         $(".dialog-message", dlg).html(message);
-    
+
         // Click handler for buttons
         dlg.on("click", ".dialog-button", function(e) {
             result.resolve($(this).attr("data-button-id"));
             dlg.modal(true).hide();
         });
-    
-        // Enter/Return handler for the primary button. Need to 
+
+        // Enter/Return handler for the primary button. Need to
         // add both keydown and keyup handlers here to make sure
         // the enter key was pressed while the dialog was showing.
         // Otherwise, if a keydown or keypress from somewhere else
@@ -87,16 +87,16 @@ define(function(require, exports, module) {
             }
             enterKeyPressed = false;
         });
-    
-    
+
+
         // Run the dialog
         dlg.modal(
-            { backdrop: "static" 
+            { backdrop: "static"
             , show: true
             }
         ).on("hide", function(e) {
             // Remove all handlers in the .modal namespace
-            $(document).off(".modal"); 
+            $(document).off(".modal");
         });
         return result;
     };
@@ -109,19 +109,10 @@ define(function(require, exports, module) {
         initMenus();
         initCommandHandlers();
         initKeyBindings();
-    
-        function initProject() {    
-            // Load a default project into the tree
-            if (brackets.inBrowser) {
-                // In browser: dummy folder tree (hardcoded in ProjectManager)
-                ProjectManager.loadProject("DummyProject");
-            } else {
-                // In app shell: load Brackets itself
-                var loadedPath = window.location.pathname;
-                var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-                ProjectManager.loadProject(bracketsSrc);
-            }
-    
+
+        function initProject() {
+            ProjectManager.loadProject();
+
             // Open project button
             $("#btn-open-project").click(function() {
                 ProjectManager.openProject();
@@ -147,7 +138,7 @@ define(function(require, exports, module) {
             });
 		
         }
- 
+
         function initMenus() {
             // Implements the File menu items
             $("#menu-file-new").click(function() {
@@ -162,29 +153,34 @@ define(function(require, exports, module) {
             $("#menu-file-save").click(function() {
                 CommandManager.execute(Commands.FILE_SAVE);
             });
-    
+
             // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
             var testWindow = null;
-            $("#menu-runtests").click(function(){
+            $("#menu-debug-runtests").click(function(){
                 if (!(testWindow === null)) {
                     try {
                         testWindow.location.reload();
                     } catch(e) {
                         testWindow = null;  // the window was probably closed
-                    } 
+                    }
                 }
-        
+
                 if (testWindow === null) {
                     testWindow = window.open("../test/SpecRunner.html");
                     testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
                 }
             });
+            
+            // Other debug menu items
+            $("#menu-debug-wordwrap").click(function() {
+                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
+            });           
         }
-    
-        function initCommandHandlers() {    
+
+        function initCommandHandlers() {
             FileCommandHandlers.init( $("#main-toolbar .title") );
         }
-    
+
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
             // TODO: show keyboard equivalents in the menus
@@ -195,7 +191,7 @@ define(function(require, exports, module) {
                 }
             );
             KeyBindingManager.installKeymap(_globalKeymap);
-    
+
             $(document.body).keydown(function(event) {
                 var keyDescriptor = [];
                 if (event.metaKey || event.ctrlKey) {
@@ -213,5 +209,9 @@ define(function(require, exports, module) {
                 }
             });
         }
+    });
+
+    $(window).unload(function () {
+        PreferencesManager.savePreferences();
     });
 });
