@@ -12,7 +12,6 @@ define(function(require, exports, module) {
     var PreferencesManager      = require("PreferencesManager")
     ,   ProjectManager          = require("ProjectManager")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
-    ,   DebugCommandHandlers    = require("DebugCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
     ,   Commands                = require("Commands")
@@ -183,7 +182,6 @@ define(function(require, exports, module) {
 
         function initCommandHandlers() {
             FileCommandHandlers.init(editor, $("#main-toolbar .title"));
-            DebugCommandHandlers.init(editor);
         }
 
         function initKeyBindings() {
@@ -193,8 +191,6 @@ define(function(require, exports, module) {
                 { "Ctrl-O": Commands.FILE_OPEN
                 , "Ctrl-S": Commands.FILE_SAVE
                 , "Ctrl-W": Commands.FILE_CLOSE
-                , "Ctrl-F": Commands.DEBUG_FIND
-                , "Ctrl-G": Commands.DEBUG_FINDNEXT
                 }
             );
             KeyBindingManager.installKeymap(_globalKeymap);

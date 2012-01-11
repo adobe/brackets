@@ -10,8 +10,5 @@ define(function(require, exports, module) {
     exports.FILE_NEW    = "file.new";
     exports.FILE_SAVE   = "file.save";
     exports.FILE_CLOSE  = "file.close";
-  
-    exports.DEBUG_FIND  = "debug.find";
-    exports.DEBUG_FINDNEXT = "debug.findnext";
 });
 
