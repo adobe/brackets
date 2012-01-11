@@ -61,14 +61,13 @@ define(function(require, exports, module) {
         $(".dialog-message", dlg).html(message);
 
         function dismissDialog(buttonId) {
-            dlg.on("hidden", function func() {
+            dlg.one("hidden", function func() {
                 result.resolve(buttonId);
-                dlg.off("hidden", func);
             });
             dlg.modal(true).hide();
         }
         // Click handler for buttons
-        dlg.on("click", ".dialog-button", function(e) {
+        dlg.one("click", ".dialog-button", function(e) {
             dismissDialog($(this).attr("data-button-id"));
         });
 
@@ -98,7 +97,7 @@ define(function(require, exports, module) {
             { backdrop: "static"
             , show: true
             }
-        ).on("hidden", function(e) {
+        ).on("hide", function(e) {
             // Remove all handlers in the .modal namespace
             $(document).off(".modal");
         });
