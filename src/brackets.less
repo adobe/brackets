@@ -68,7 +68,7 @@ body {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 1;
+    z-index: 2;
     .title {
         font-size: 1.2em;
         font-weight: bold;
@@ -106,4 +106,37 @@ body {
     > ul {
         margin-top: 5px;
     }
+}
+
+/* Styles for the search dialog--this is temporary, only for debugging */
+
+.CodeMirror-dialog {
+  position: relative;
+}
+
+.CodeMirror-dialog > div {
+  font-family: sans-serif;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: @background-color-2;
+  color: @content-color;
+  border-bottom: 1px solid @bc-gray;
+  .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+  z-index: 1;
+  padding: .5em .8em;
+  overflow: hidden;
+}
+
+.CodeMirror-dialog input {
+  font-family: sans-serif;
+  border: 1px solid @content-color-weaker;
+  outline: none;
+  background: @background-color-3;
+  width: 20em;
+  margin: .3em .3em;
+  color: inherit;
+}
+
+.CodeMirror-searching {
+  background-color: inherit;
 }
