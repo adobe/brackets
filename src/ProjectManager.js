@@ -393,7 +393,16 @@ define(function(require, exports, module) {
             var entry = data.rslt.obj.data("entry");
             if (entry.isFile)
                 CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
-        });
+        })
+		
+		// JUST TESTING TY
+		/*.bind("dblclick.jstree", function(event) {
+			var node = $(event.target).closest("li");
+			var data = node.data("entry");
+            var entry = node.data("entry");
+            if (entry.isFile)
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
+        });*/
     };
     
     // Define public API

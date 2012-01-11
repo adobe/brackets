@@ -88,7 +88,7 @@ define(function(require, exports, module) {
         // TODO: return a clone to prevent meddling?
     }
     
-    function _addToWorkingSet(document) {
+    function addToWorkingSet(document) {
         // If doc is already in working set, do nothing
         if (_findInWorkingSet(document.file) != -1)
             return;
@@ -140,7 +140,7 @@ define(function(require, exports, module) {
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
         if (! ProjectManager.isWithinProject(fileEntry.fullPath)) {
-           _addToWorkingSet(newDocument);
+           addToWorkingSet(newDocument);
         }
         
         // Make it the current document
@@ -202,6 +202,18 @@ define(function(require, exports, module) {
         else
             _clearEditor();
     }
+	
+	function closeDocument(fileEntry){
+		// TODO TY: does this work?
+		if( _currentDocument.file == fileEntry){
+			closeCurrentDocument();
+		}
+		else {
+			var wsIndex = _findInWorkingSet(_currentDocument.file);
+			 _removeFromWorkingSet(_currentDocument);
+		}
+		
+	}
     
     
     function setDocumentIsDirty(fileEntry, isDirty) {
@@ -222,7 +234,7 @@ define(function(require, exports, module) {
         $(exports).triggerHandler("dirtyFlagChange", doc);
         
         // If file just became dirty, add it to working set (if not already there)
-        _addToWorkingSet(doc);
+        addToWorkingSet(doc);
     }
     
     
@@ -234,5 +246,6 @@ define(function(require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.closeCurrentDocument = closeCurrentDocument;
     exports.setDocumentIsDirty = setDocumentIsDirty;
+	exports.addToWorkingSet = addToWorkingSet;
     
 });

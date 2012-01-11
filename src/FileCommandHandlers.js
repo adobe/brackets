@@ -24,12 +24,14 @@ define(function(require, exports, module) {
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
+		CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWoringSet);
         // TODO: For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
+		
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
@@ -73,6 +75,11 @@ define(function(require, exports, module) {
                 : ""
         );
     }
+	
+	function handleFileAddToWoringSet(fullPath){
+		handleFileOpen(fullPath);
+		DocumentManager.addToWorkingSet(fullPath);
+	}
 
     function handleFileOpen(fullPath) {
         // TODO: In the future, when we implement multiple open files, we won't close the previous file when opening
@@ -242,7 +249,7 @@ define(function(require, exports, module) {
                         CommandManager
                             .execute(Commands.FILE_SAVE)
                             .done(function() {
-                                doClose();
+                                doCloseWithOptionalPath();
                                 result.resolve();
                             })
                             .fail(function() {
@@ -251,7 +258,7 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose();
+                        doCloseWithOptionalPath();
                         result.resolve();
                     }
                 }
@@ -261,32 +268,50 @@ define(function(require, exports, module) {
             });
         }
         else {
-            doClose();
+            doCloseWithOptionalPath();
             EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
+	
+	function doCloseWithOptionalPath(fullPath) {
+		var result;
+		if (!fullPath) {
+			// default to the file the editor is showing
+			fullPath = _currentFilePath;
+		}
+		else {
+			result = doClose(fullPath);
+		}
+        if (!result)
+            result = (new $.Deferred()).reject();
+        return result;
+		
+	}
 
-    function doClose() {
-        var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
+    function doClose(fullPath) {
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
         
-        DocumentManager.setDocumentIsDirty(fileEntry, false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+        DocumentManager.setDocumentIsDirty(fileEntry, false);  // although old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
         
         EditorManager.destroyEditor(fileEntry);
         
         // FIXME: 'closing' via the working-set "X" icon shouldn't call this (unless it happens to
         // also be current doc)
-        DocumentManager.closeCurrentDocument();
+        DocumentManager.closeDocument( fileEntry );
         
         // FIXME: EditorManager should listen for currentDocumentChange so we don't have to poke it manually
-        var nextDoc = DocumentManager.getCurrentDocument();
-        if (nextDoc)
-            EditorManager.showEditor(nextDoc.file);
+		if( DocumentManager.getCurrentDocument().file.fullPath == fullPath ) {
+	        var nextDoc = DocumentManager.getCurrentDocument();
+	        if (nextDoc)
+	            EditorManager.showEditor(nextDoc.file);
         
-        // _currentFilePath = _currentTitlePath = null;
-        // updateTitle();
-        EditorManager.focusEditor();
+	        // _currentFilePath = _currentTitlePath = null;
+	        // updateTitle();
+	        EditorManager.focusEditor();
+		}
+        
     }
 
     function showFileOpenError(code, path) {
