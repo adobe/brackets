@@ -169,6 +169,8 @@ body {
 		li {
 			padding: 4px 0px 4px 2px;
 			
+			position: relative; // so that children can be positioned absolute
+			
 			&:hover {
 				background: #E7F4F9;
 				.close-file-rollover-icon { visibility: visible; }
@@ -233,15 +235,20 @@ body {
 	background-position: 0px 0px;
 }
 
-.close-file-icon {
+.file-status-icon {
 	margin: 0px 0px 0px 2px;
 	.bracketSprite;
 	display: inline-block;
 	position: absolute;
-	background-position: 0px 0px;
+	left: 0px;
+	top: 3px;
 	
-	.dirty {
+	&.dirty {
 		background-position: -@jsTreeSpriteSize 0;
+	}
+	
+	&.canClose {
+		background-position: 0px 0px;
 	}
 }
 

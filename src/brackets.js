@@ -12,6 +12,7 @@ define(function(require, exports, module) {
     // Load dependent modules
     var ProjectManager          = require("ProjectManager")
     ,   EditorManager           = require("EditorManager")
+	,   WorkingSetView          = require("WorkingSetView")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
@@ -135,14 +136,14 @@ define(function(require, exports, module) {
             // Display close "x" icon when user hovers over working set file
             $(".working-set-list-item").hover(
                 function() {
-                    $(this).prepend("<div class=\"close-file-icon\"></div>");
+                    $(this).prepend("<div class=\"file-status-icon\"></div>");
                 },
                 function() {
-                    $(this).children(".close-file-icon").remove();
+                    $(this).children(".file-status-icon").remove();
                 }
             );
 		
-            $(".close-file-icon").click( function() {
+            $(".file-status-icon").click( function() {
                 // close file
             });
 		

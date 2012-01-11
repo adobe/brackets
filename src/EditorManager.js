@@ -27,45 +27,17 @@ define(function(require, exports, module) {
         console.log("Working set ++ " + addedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
 		
-		// Add new item to bottom of list
-		var newItem = $("<li id='" + addedDoc.file.fullPath + "' class='working-set-list-item'><a href='#'>" + addedDoc.file.name +  "</a></li>");
-		$("#open-files-container").children("ul").append(newItem);
-		
-		// Show close icon on hover
-		newItem.hover(
-                function() {
-					var closeItemClass = "close-file-icon";
-					if( addedDoc.isDirty )
-						  closeItemClass += " dirty";
-						  
-					var closeItem = $("<div class= '" + closeItemClass + "'></div>");
-                    $(this).prepend(closeItem);
-					
-					// Handle clicking on close icon
-		            $(".close-file-icon").click( function() {
-		                // close file
-						console.log("closed clicked");
-						
-		            });
-					
-                },
-                function() {
-                    $(this).children(".close-file-icon").remove();
-                }
-            );
     });
+	
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
         console.log("Working set -- " + removedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
 		
-		// FIXME doesn't work
-		$("#" + removedDoc.file.fullPath).remove();
     });
     
     $(DocumentManager).on("dirtyFlagChange", function(event, doc ) {
         console.log("Dirty flag change: " + doc);
 		
-		$("#" + doc.file.fullPath).find(".close-file-icon");
     });
     
     
