@@ -172,12 +172,6 @@ define(function(require, exports, module) {
             $("#menu-debug-wordwrap").click(function() {
                 editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
             });     
-            $("#menu-debug-find").click(function() {
-                CommandManager.execute(Commands.DEBUG_FIND);
-            });
-            $("#menu-debug-findnext").click(function() {
-                CommandManager.execute(Commands.DEBUG_FINDNEXT);
-            });
         }
 
         function initCommandHandlers() {
