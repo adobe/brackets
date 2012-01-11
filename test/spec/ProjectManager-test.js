@@ -1,9 +1,10 @@
 define(function(require, exports, module) {
     // Load dependent modules
     var ProjectManager      // Load from brackets.test
+    ,   PreferencesManager  // Load from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js")
     ;
-    
+
     // FIXME (jasonsj): these tests are ommitted when launching in the main app window
     if (window.opener) { // (function(){
 
@@ -11,10 +12,16 @@ define(function(require, exports, module) {
 
         beforeEach(function() {
             this.app = window.opener;
-            
+
             // Load module instances from brackets.test
-            ProjectManager = this.app.brackets.test.ProjectManager; 
-            
+            ProjectManager = this.app.brackets.test.ProjectManager;
+            PreferencesManager = this.app.brackets.test.PreferencesManager;
+
+            // Swap persistent storage implementation
+            this.persistentStorage = PreferencesManager._getStorage();
+            sessionStorage.clear();
+            PreferencesManager._setStorage( sessionStorage );
+
             this.app.location.reload();
             this.testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
             var isReady = false;
@@ -22,6 +29,11 @@ define(function(require, exports, module) {
                 isReady = true;
             });
             waitsFor(function() { return isReady; }, 5000);
+        });
+
+        afterEach(function() {
+            // restore persistent storage
+            PreferencesManager._setStorage( this.persistentStorage );
         });
 
         describe("createNewItem", function() {
