@@ -46,6 +46,8 @@ define(function(require, exports, module) {
     exports.INVALID_FILENAME_TITLE            = "Invalid file name";
     exports.INVALID_FILENAME_MESSAGE          = "Filenames cannot contain the following characters: /?*:;{}<>\\|";
     exports.FILE_ALREADY_EXISTS               = "The file \"{0}\" already exists.";
+    exports.ERROR_CREATING_FILE_TITLE         = "Error creating file";
+    exports.ERROR_CREATING_FILE               = "An error occurred when trying to create the file \"{0}\". {1}"
 
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
