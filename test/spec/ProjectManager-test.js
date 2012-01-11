@@ -17,10 +17,8 @@ define(function(require, exports, module) {
             ProjectManager = this.app.brackets.test.ProjectManager;
             PreferencesManager = this.app.brackets.test.PreferencesManager;
 
-            // Swap persistent storage implementation
-            this.persistentStorage = PreferencesManager._getStorage();
-            sessionStorage.clear();
-            PreferencesManager._setStorage( sessionStorage );
+            // Temporarily use test key in the main app window
+            PreferencesManager._setStorageKey( PreferencesManager._TEST_PREFERENCES_KEY );
 
             this.app.location.reload();
             this.testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
@@ -32,8 +30,8 @@ define(function(require, exports, module) {
         });
 
         afterEach(function() {
-            // restore persistent storage
-            PreferencesManager._setStorage( this.persistentStorage );
+            // restore main app window preferences key
+            PreferencesManager._setStorageKey( PreferencesManager.PREFERENCES_KEY );
         });
 
         describe("createNewItem", function() {

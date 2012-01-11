@@ -71,7 +71,6 @@ define(function(require, exports, module) {
 
                 // Determine depth of the node by counting path separators.
                 // Children at the root have depth of zero.
-                // TODO (jasonsj): PATH_SEPARATOR per native OS
                 depth = shortPath.split("/").length - 1;
 
                 // Map tree depth to list of open nodes

@@ -7,7 +7,9 @@ define(function(require, exports, module) {
     // Utility dependency
     require("spec/SpecRunnerUtils.js");
 
-    // FIXME (jasonsj): PreferencesManager mock persistent storage
+    // Unique key for unit testing
+    var PreferencesManager = require("PreferencesManager");
+    PreferencesManager._setStorageKey( PreferencesManager._TEST_PREFERENCES_KEY );
 
     // Load test specs
     require("spec/Editor-test.js");

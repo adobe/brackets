@@ -7,13 +7,17 @@
  *
  */
 define(function(require, exports, module) {
-    var PREFERENCES_KEY = "com.adobe.brackets.preferences";
+    var PREFERENCES_KEY = "com.adobe.brackets.preferences"
+    ,   TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences";
 
-    var callbacks           = {}
+    // Private Properties
+    var preferencesKey      = PREFERENCES_KEY
+    ,   callbacks           = {}
+    ,   prefStorage         = {}
     ,   persistentStorage;
 
-    // TODO (jasonsj): interface for different storage (localStorage vs. hosted)
-    _setStorage( localStorage );
+    // Use localStorage by default
+    _initStorage( localStorage );
 
     /**
      * Retrieves preference object for the specified client.
@@ -105,22 +109,29 @@ define(function(require, exports, module) {
      */
     function saveToPersistentStorage() {
         // save all preferences
-        persistentStorage.setItem( PREFERENCES_KEY, JSON.stringify( prefStorage ) );
+        persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
+    }
+
+    function _setStorageKey( key ) {
+        preferencesKey = key;
+
+        // re-init in-memory prefs when changing keys
+        _initStorage( persistentStorage );
     }
 
     /**
      * @private
-     * Initialize persistent storage implementation. Also used for unit tests.
-     * TODO (jasonsj): expose for other persistent storage implementations.
+     * Initialize persistent storage implementation
      */
-    function _setStorage( storage ) {
-        persistentStorage   = storage;
-        prefStorage         = JSON.parse( persistentStorage.getItem( PREFERENCES_KEY ) );
+    function _initStorage( storage ) {
+        persistentStorage = storage;
+
+        prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
 
         if ( !prefStorage ) {
             // initialize empty preferences
             prefStorage = {};
-            persistentStorage.setItem( PREFERENCES_KEY, JSON.stringify( prefStorage ) );
+            persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
         }
     }
 
@@ -138,7 +149,9 @@ define(function(require, exports, module) {
     exports.savePreferences         = savePreferences;
 
     // Internal Use Only
-    exports._getStorage              = _getStorage;
-    exports._setStorage              = _setStorage;
-    exports._PREFERENCES_KEY         = PREFERENCES_KEY;
+    exports._setStorageKey          = _setStorageKey;
+    exports._getStorage             = _getStorage;
+    exports._initStorage            = _initStorage;
+    exports._PREFERENCES_KEY        = PREFERENCES_KEY;
+    exports._TEST_PREFERENCES_KEY   = TEST_PREFERENCES_KEY;
 });
