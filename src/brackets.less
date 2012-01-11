@@ -27,6 +27,16 @@
 html, body {
     height: 100%;
     overflow: hidden;
+    
+    /* Turn off selection for UI elements */
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    
+    /* And make sure we get a pointer cursor even over text */
+    cursor: default;
 }
 
 body {
