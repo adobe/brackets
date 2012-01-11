@@ -15,9 +15,13 @@ define(function(require, exports, module) {
     /**
      * Handlers for commands related to file handling (opening, saving, etc.)
      */
-      
-    var _title, _currentFilePath, _currentTitlePath,
-        _isDirty = false;   // FIXME: get rid of isDirty flag
+    
+    /** @type {jQueryObject} */
+    var _title;
+    /** @type {string} */
+    var _currentFilePath;  // TODO: eliminate this and just use getCurrentDocument().file.fullPath
+    /** @type {string} */
+    var _currentTitlePath;
     
     function init(title) {
         _title = title;
@@ -42,7 +46,6 @@ define(function(require, exports, module) {
             var fullPath = newDocument.file.fullPath;
     
             _currentFilePath = _currentTitlePath = fullPath;
-            _isDirty = EditorManager.isEditorDirty(newDocument.file);
 
             // In the main toolbar, show the project-relative path (if the file is inside the current project)
             // or the full absolute path (if it's not in the project).
@@ -50,7 +53,6 @@ define(function(require, exports, module) {
             
         } else {
             _currentFilePath = _currentTitlePath = null;
-            _isDirty = false;
         }
         
         // Update title text & "dirty dot" display
@@ -59,48 +61,21 @@ define(function(require, exports, module) {
     
     function handleDirtyChange(event, changedDoc) {
         if (changedDoc.file.fullPath == _currentFilePath) {
-            _isDirty = changedDoc.isDirty;
             updateTitle();
-        } else {
-            console.log("Rejected dirty change; current doc is "+_currentFilePath); // FIXME
         }
     }
 
     function updateTitle() {
-        _title.text(
-            _currentTitlePath
-                ? (_currentTitlePath + (_isDirty ? " \u2022" : ""))
-                : ""
-        );
+        var currentDoc = DocumentManager.getCurrentDocument();
+        if (currentDoc) {
+            _title.text( _currentTitlePath + (currentDoc.isDirty ? " \u2022" : "") );
+        } else {
+            _title.text("");
+        }
     }
 
     function handleFileOpen(fullPath) {
-        // TODO: In the future, when we implement multiple open files, we won't close the previous file when opening
-        // a new one. However, for now, since we only support a single open document, I'm pretending as if we're
-        // closing the existing file first. This is so that I can put the code that checks for an unsaved file and
-        // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
-        // we can remove this here.
-        var result;
-        // if (_currentFilePath) {
-            // result = new $.Deferred();
-            // CommandManager
-                // .execute(Commands.FILE_CLOSE)
-                // .done(function() {
-                    // doOpenWithOptionalPath(fullPath)
-                        // .done(function() {
-                            // result.resolve();
-                        // })
-                        // .fail(function() {
-                            // result.reject();
-                        // });
-                // })
-                // .fail(function() {
-                    // result.reject();
-                // });
-        // }
-        // else {
-            result = doOpenWithOptionalPath(fullPath);
-        // }
+        var result = doOpenWithOptionalPath(fullPath);
         result.always(function() {
             EditorManager.focusEditor();
         });
@@ -139,19 +114,24 @@ define(function(require, exports, module) {
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        if (EditorManager.hasEditorFor(fileEntry)) {
-            // File already open - don't need to load it
-            EditorManager.showEditor(fileEntry);
+        var document = DocumentManager.getDocument(fileEntry);
+        if (document != null) {
+            // File already open - don't need to load it, just switch to it in the UI
+            DocumentManager.showInEditor(document);
             result.resolve();
             
         } else {
+            // File wasn't open before, so we must load its contents into a new document
             var reader = new NativeFileSystem.FileReader();
 
-            // TODO: it's weird to have to construct a FileEntry just to get a File.
             fileEntry.file(function(file) {
                 reader.onload = function(event) {
-
-                    EditorManager.createEditor(fileEntry, event.target.result);
+                    // Create a new editor initialized with the file's content, and bind it to a Document
+                    var newEditor = EditorManager.createEditor(event.target.result);
+                    document = new DocumentManager.Document(fileEntry, newEditor);
+                    
+                    // Switch to new document in the UI
+                    DocumentManager.showInEditor(document);
                     result.resolve();
                 };
 
@@ -191,7 +171,8 @@ define(function(require, exports, module) {
     
     function handleFileSave() {
         var result = new $.Deferred();
-        if (_currentFilePath && _isDirty) {
+        var docToSave = DocumentManager.getCurrentDocument();
+        if (docToSave && docToSave.isDirty) {
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
             var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
@@ -199,7 +180,7 @@ define(function(require, exports, module) {
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        EditorManager.markEditorClean(fileEntry);
+                        docToSave.markClean();
                         result.resolve();
                     }
                     writer.onerror = function(event) {
@@ -208,7 +189,7 @@ define(function(require, exports, module) {
                     }
 
                     // TODO (jasonsj): Blob instead of string
-                    writer.write( EditorManager.getEditorContents(fileEntry) );
+                    writer.write( docToSave.getText() );
                 },
                 function(event) {
                     showSaveFileError(event.target.error.code, _currentFilePath);
@@ -228,7 +209,8 @@ define(function(require, exports, module) {
     function handleFileClose() {
         // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
-        if (_currentFilePath && _isDirty) {
+        var docToClose = DocumentManager.getCurrentDocument();
+        if (docToClose && docToClose.isDirty) {
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
@@ -271,21 +253,15 @@ define(function(require, exports, module) {
     function doClose() {
         var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
         
-        DocumentManager.setDocumentIsDirty(fileEntry, false);  // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+        var docToClose = DocumentManager.getCurrentDocument();
         
-        EditorManager.destroyEditor(fileEntry);
+        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+        // TODO: can this be removed?
+        docToClose.markClean();
         
-        // FIXME: 'closing' via the working-set "X" icon shouldn't call this (unless it happens to
-        // also be current doc)
-        DocumentManager.closeCurrentDocument();
+        // This selects a different document if the working set has any other options
+        DocumentManager.closeDocument(docToClose);
         
-        // FIXME: EditorManager should listen for currentDocumentChange so we don't have to poke it manually
-        var nextDoc = DocumentManager.getCurrentDocument();
-        if (nextDoc)
-            EditorManager.showEditor(nextDoc.file);
-        
-        // _currentFilePath = _currentTitlePath = null;
-        // updateTitle();
         EditorManager.focusEditor();
     }
 
