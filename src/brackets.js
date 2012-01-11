@@ -103,7 +103,7 @@ define(function(require, exports, module) {
     $(document).ready(function() {
 
         var editorElt = $('#editor')
-        ,   editor = CodeMirror(editorElt.get(0));
+        ,   editor = CodeMirror(editorElt.get(0), { indentUnit : 4 });
     
         // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
         // We need to do this programmatically.
