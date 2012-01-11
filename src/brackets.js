@@ -103,8 +103,26 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        var editor = CodeMirror($('#editor').get(0));
-
+        var editorElt = $('#editor')
+        ,   editor = CodeMirror(editorElt.get(0));
+    
+        // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
+        // We need to do this programmatically.
+        var timeout = null;
+        function updateEditorSize() {
+            // Don't refresh every single time.
+            if (!timeout) {
+                timeout = setTimeout(function() {
+                    editor.refresh();
+                    timeout = null;
+                }, 100);
+            }
+            $('.CodeMirror-scroll', editorElt)
+                .height(editorElt.height());
+        }
+        updateEditorSize();
+        $(window).resize(updateEditorSize);
+    
         initProject();
         initMenus();
         initCommandHandlers();
@@ -136,7 +154,7 @@ define(function(require, exports, module) {
 
             // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
             var testWindow = null;
-            $("#menu-runtests").click(function(){
+            $("#menu-debug-runtests").click(function(){
                 if (!(testWindow === null)) {
                     try {
                         testWindow.location.reload();
