@@ -1,6 +1,12 @@
 /*
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
+ 
+ /**
+ * The WorkingSetView generates the UI for the list of the files user is editing. The UI allows the user to see what
+ * files are open/dirty and allows them to close editors and specify the current editor. WorkingSetView relies 
+ * on the EditorManger for it's model.
+ */
 define(function(require, exports, module) {
     
     // Load dependent modules
@@ -46,39 +52,48 @@ define(function(require, exports, module) {
 	 */
 	var _DOCUMENT_KEY = "document";
 	
-	function _addDoc( doc ) {
+	/** Adds a document to the list in the same order it appears in the dat model
+	 * TODO Ty: only insert at end of list right now. Make order sensitive
+	 * @param {!Document} doc 
+	 */
+	function _addDoc(doc) {
 		var curDoc = DocumentManager.getCurrentDocument();
 		
 		// Add new item to bottom of list
-		var link = $("<a></a>").attr( "href", "#" ).text( doc.file.name );
-		var newItem = $("<li></li>").append( link );
+		var link = $("<a></a>").attr("href", "#").text(doc.file.name);
+		var newItem = $("<li></li>").append(link);
 		
 		// TODO: Ask NJ which way is better
 		//var newItem = $("<li class='working-set-list-item'><a href='#'>" + doc.file.name +  "</a></li>");
 		
-		
+		// Link the list item with the document data
 		newItem.data( _DOCUMENT_KEY, doc );
-
+		
 		$("#open-files-container").children("ul").append(newItem);
 		
+		// Update the listItem's apperance
+		_updateFileStatusIcon(newItem, doc.isDirty, false);
+		_updateListItemSelection(newItem, curDoc);
+		
+		// Click handler
 		newItem.click( function() { 
 			_openDoc( doc );
 		});
 		
-		_updateFileStatusIcon( newItem, doc.isDirty, false);
-		_updateListItemSelection(newItem, curDoc);
-				
+		// Hover handler		
 		newItem.hover(
 			// hover in
-	        function() {
-				_updateFileStatusIcon( $(this), doc.isDirty, true);	
-	        },
+	        function() { _updateFileStatusIcon($(this), doc.isDirty, true); },
 			// hover out
-	        function() {
-				_updateFileStatusIcon( $(this), doc.isDirty, false);    
-	        }
+	        function() { _updateFileStatusIcon($(this), doc.isDirty, false);}
 	    );
 	}
+	
+	/** Updates the appearance of the list element based on the parameters provided
+	 * @param {!HTMLLIElement} listElement
+	 * @param {bool} isDirty 
+	 * @param {bool} canClose
+	 */
 	
     function _updateFileStatusIcon(listElement, isDirty, canClose) {
        var found = listElement.find(".file-status-icon");
@@ -97,8 +112,8 @@ define(function(require, exports, module) {
            listElement.prepend(fileStatusIcon);
 			   
 		   fileStatusIcon.click( function() {
-			   var doc = listElement.data( _DOCUMENT_KEY )
-			   CommandManager.execute(Commands.FILE_CLOSE, doc );
+			   var doc = listElement.data(_DOCUMENT_KEY)
+			   CommandManager.execute(Commands.FILE_CLOSE, doc);
 		   });
        }
 
@@ -110,45 +125,44 @@ define(function(require, exports, module) {
    }
    
    function _currentDocumentChange(){
- 	   var listItem = _findListItemFromDocument(  );
- 	   if(listItem){
- 		   listItem.addClass("selected");
- 	   }
    	
-	   var curDoc = DocumentManager.getCurrentDocument();
-	   if( curDoc ){
-		   var items = $("#open-files-container").children("ul").children();
-		   items.each( function( i ){
-			   var listItem = $(this);
-			   
-			   _updateListItemSelection(listItem, curDoc );
-		   }); 
-	   }
+	   _updateListSelection( DocumentManager.getCurrentDocument() );
 	
    }
    
-   function _updateListItemSelection(listItem, curDoc ){
-	   if(listItem.data( _DOCUMENT_KEY ) === curDoc)
+   function _updateListSelection(curDoc){
+	   // Iterate through working set list and update the selection on each
+	   if(curDoc){
+		   var items = $("#open-files-container").children("ul").children();
+		   items.each( function(i){
+			   var listItem = $(this);
+			   
+			   _updateListItemSelection(listItem, curDoc);
+		   }); 
+	   }
+   }
+   
+   function _updateListItemSelection(listItem, curDoc){
+	   if(listItem.data(_DOCUMENT_KEY ) === curDoc)
 		   listItem.addClass("selected");
 	    else
 		   listItem.removeClass("selected");
    }
    
-   function _openDoc( doc ) {
+   function _openDoc(doc) {
 	   CommandManager.execute(Commands.FILE_OPEN, doc.file.fullPath);
-          
     }
 	  
-   function _closeDoc( doc ) {
-	   CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath );
+   function _closeDoc(doc) {
+	   CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
    }
 	   
-   function _findListItemFromDocument( doc ) {
+   function _findListItemFromDocument(doc) {
 	   var result = null;
 	   
-	   if( doc ){
+	   if(doc){
 		   var items = $("#open-files-container").children("ul").children();
-		   items.each( function( i ){
+		   items.each( function(i){
 			   var listItem = $(this);
 			   if(listItem.data( _DOCUMENT_KEY ) === doc){
 				   result = listItem;
@@ -160,14 +174,14 @@ define(function(require, exports, module) {
 	   return result;
    }
 	
-	function _removeDoc( doc ) {		
- 	   var listItem = _findListItemFromDocument( doc );
+	function _removeDoc(doc) {		
+ 	   var listItem = _findListItemFromDocument(doc);
  	   if(listItem){
  		   listItem.remove();
  	   }
 	}
 	
-	function _dirtyFlagChanged( doc ){
+	function _dirtyFlagChanged(doc){
 		$("#" + doc.file.fullPath).find(".file-status-icon");
 	}
 	
