@@ -212,6 +212,9 @@ define(function(require, exports, module) {
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
+
+        if (! ProjectManager.isWithinProject(document.file.fullPath)) {
+           addToWorkingSet(document);
         }
         
         // Make it the current document
@@ -219,6 +222,7 @@ define(function(require, exports, module) {
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
     }
+    
     
     /**
      * 
