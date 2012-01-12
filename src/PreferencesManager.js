@@ -41,10 +41,10 @@ define(function(require, exports, module) {
      * persist data (e.g. preferences or current state) as valid JSON values
      * to the storage argument.
      *
-     * @param {string}   unique identifier clientID for this client
-     * @param {function} callback function
-     * @param {object}   optional "this" object for the callback
-     * @param {object}   optional default preferences object for this client
+     * @param {string}          unique identifier clientID for this client
+     * @param {function(...)}   callback function
+     * @param {object}          optional "this" object for the callback
+     * @param {object}          optional default preferences object for this client
      */
     function addPreferencesClient( clientID, callback, instance, defaults ) {
         if ( typeof callback !== "function" ) {
