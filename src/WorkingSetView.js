@@ -49,12 +49,30 @@ define(function(require, exports, module) {
      */
     var _DOCUMENT_KEY = "document";
      
-    /** Adds a document to the list in the same order it appears in the dat model
-     * TODO Ty: only insert at end of list right now. Make order sensitive
-     * @private
-     * @param {!Document} doc 
-     */
+
     function _handleDocumentAdded(doc) {
+        _createNewListItem(doc);
+    }
+	
+	/** Deletes all the list items in the view and rebuilds them from the working set model
+	 * @private
+	 */
+	function _rebuildWorkingSet(){
+		$("#open-files-container").children("ul").children().remove();
+		
+		var workingSet = $(DocumentManager.getWorkingSet());
+        workingSet.each( function(i){
+            var doc = $(this);
+			_createNewListItem(doc[0]);
+		});
+	}
+	
+	/** Builds the UI for a new list item and inserts in into the end of the list
+	 * @private
+	 * @param {Document} document
+	 * @return {HTMLLIElement} newListItem
+	 */
+	function _createNewListItem(doc){
         var curDoc = DocumentManager.getCurrentDocument();
          
         // Add new item to bottom of list
@@ -66,6 +84,9 @@ define(function(require, exports, module) {
          
         // Link the list item with the document data
         newItem.data( _DOCUMENT_KEY, doc );
+		
+		// Find out where in the list the newItem should appear
+		var workingSet = DocumentManager.getWorkingSet();
          
         $("#open-files-container").children("ul").append(newItem);
          
@@ -75,7 +96,7 @@ define(function(require, exports, module) {
          
         // Click handler
         newItem.click( function() { 
-            _openDoc( doc );
+			_openDoc( doc );
         });
          
         // Hover handler        
@@ -85,7 +106,9 @@ define(function(require, exports, module) {
             // hover out
             function() { _updateFileStatusIcon($(this), doc.isDirty, false);}
         );
-    }
+	}
+	
+
      
     /** Updates the appearance of the list element based on the parameters provided
      * @private
