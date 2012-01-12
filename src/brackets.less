@@ -165,21 +165,23 @@ body {
 			
 			&:hover {
 				background: #E7F4F9;
-				.close-file-rollover-icon { visibility: visible; }
 			}
+			
+			
+			&.selected {
+				background-color: #0065BE;
+				background-repeat: repeat-x;
+				background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
+		
+				a { color: white; }
 			
 		} 
 		
-		.clicked {
-			background-color: #0065BE;
-			background-repeat: repeat-x;
-			background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
 		
-			a { color: white; }
+					
 		}
+		
 	}
-	
-	
 }
 
 #project-files-container {

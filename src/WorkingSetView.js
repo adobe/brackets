@@ -12,20 +12,17 @@ define(function(require, exports, module) {
     ;
 
     // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-	
-	
-    function _onCurrentDocumentChange(event) {
-        console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
-    }
+	$(DocumentManager).on("currentDocumentChange", function(event) {
+		console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
+		
+		_currentDocumentChange();
+	});
     
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         //console.log("Working set ++ " + addedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
 		
-		_addDoc( addedDoc )
-		
-		
+		_addDoc( addedDoc )	
     });
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
         console.log("Working set -- " + removedDoc);
@@ -40,9 +37,7 @@ define(function(require, exports, module) {
 		_dirtyFlagChanged( doc );
     });
 	
-	$(DocumentManager).on("currentDocumentChange", function(event, doc ) {
-		_currentDocumentChange( doc );
-	});
+	
 	
 	
 	
@@ -54,7 +49,7 @@ define(function(require, exports, module) {
 	function _addDoc( doc ) {
 		// Add new item to bottom of list
 		var link = $("<a></a>").attr( "href", "#" ).text( doc.file.name );
-		var newItem = $("<li></li>").addClass("working-set-list-item").append( link );
+		var newItem = $("<li></li>").append( link );
 		
 		// TODO: Ask NJ which way is better
 		//var newItem = $("<li class='working-set-list-item'><a href='#'>" + doc.file.name +  "</a></li>");
@@ -100,7 +95,7 @@ define(function(require, exports, module) {
 			   
 		   fileStatusIcon.click( function() {
 			   var doc = listElement.data( _DOCUMENT_KEY )
-			   CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath );
+			   CommandManager.execute(Commands.FILE_CLOSE, doc );
 		   });
        }
 
@@ -111,12 +106,25 @@ define(function(require, exports, module) {
        }
    }
    
-   function _currentDocumentChange( doc ){
- 	   var listItem = _findListItemFromDocument( doc );
+   function _currentDocumentChange(){
+ 	   var listItem = _findListItemFromDocument(  );
  	   if(listItem){
- 		   //listItem.addClass
+ 		   listItem.addClass("selected");
  	   }
    	
+	   var curDoc = DocumentManager.getCurrentDocument();
+	   if( curDoc ){
+		   var items = $("#open-files-container").children("ul").children();
+		   items.each( function( i ){
+			   var listItem = $(this);
+			   
+			   if(listItem.data( _DOCUMENT_KEY ) === curDoc)
+				   listItem.addClass("selected");
+			    else
+				   listItem.removeClass("selected");
+		   }); 
+	   }
+	
    }
    
    function _openDoc( doc ) {

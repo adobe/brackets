@@ -215,15 +215,18 @@ define(function(require, exports, module) {
         return result;
     }
 
-    function handleFileClose() {
+    function handleFileClose( doc ) {
         // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
-        var docToClose = DocumentManager.getCurrentDocument();
-        if (docToClose && docToClose.isDirty) {
+		
+		// Default to current document if doc is null
+        var docToClose = !doc ? DocumentManager.getCurrentDocument() : doc;
+        
+		if (docToClose && docToClose.isDirty) {
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
-                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, ProjectManager.makeProjectRelativeIfPossible(docToClose.file.fullPath) )
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -233,7 +236,7 @@ define(function(require, exports, module) {
                         CommandManager
                             .execute(Commands.FILE_SAVE)
                             .done(function() {
-                                doCloseWithOptionalPath();
+                                doClose(docToClose);
                                 result.resolve();
                             })
                             .fail(function() {
@@ -242,7 +245,7 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doCloseWithOptionalPath();
+                        doClose(docToClose);
                         result.resolve();
                     }
                 }
@@ -252,39 +255,21 @@ define(function(require, exports, module) {
             });
         }
         else {
-            doCloseWithOptionalPath();
+            doClose(docToClose);
             EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
-	
-	function doCloseWithOptionalPath(fullPath) {
-		var result;
-		if (!fullPath) {
-			// default to the file the editor is showing
-			fullPath = _currentFilePath;
-		}
-		
-		result = doClose(fullPath);
 
-        if (!result)
-            result = (new $.Deferred()).reject();
-        return result;
-		
-	}
-
-    function doClose() {
-        var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
-        
-        var docToClose = DocumentManager.getCurrentDocument();
+    function doClose(doc) {        
         
         // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
         // TODO: can this be removed?
-        docToClose.markClean();
+        doc.markClean();
         
         // This selects a different document if the working set has any other options
-        DocumentManager.closeDocument(docToClose);
+        DocumentManager.closeDocument(doc);
         
         EditorManager.focusEditor();
     }
