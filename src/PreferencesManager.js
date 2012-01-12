@@ -13,14 +13,14 @@ define(function(require, exports, module) {
     // Private Properties
     var preferencesKey      = PREFERENCES_KEY
     ,   callbacks           = {}
-    ,   prefStorage         = {}
+    ,   prefStorage
     ,   persistentStorage;
 
     // Use localStorage by default
     _initStorage( localStorage );
 
     /**
-     * Retrieves preference object for the specified client.
+     * Retrieves a copy of the client's preferences object.
      *
      * @param {string}  unique identifier clientID
      * @return {object} preference
@@ -30,7 +30,13 @@ define(function(require, exports, module) {
             throw new Error("Invalid clientID");
         }
 
-        return prefStorage[ clientID ];
+        var prefs = prefStorage[ clientID ];
+
+        if ( prefs === undefined )
+            return undefined;
+
+        // create a deep copy to return to the client
+        return JSON.parse( JSON.stringify( prefs ) );
     }
 
     /**
@@ -86,7 +92,7 @@ define(function(require, exports, module) {
         // iterate over all preference clients
         $.each( callbacks, function( index, value ) {
             data = callbacks[ index ];
-            storage = prefStorage[ data.clientID ];
+            storage = getPreferences( data.clientID );
 
             // fire callback with thisArg and preference storage
             try {
@@ -96,8 +102,10 @@ define(function(require, exports, module) {
                 console.log( "PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID );
             }
 
-            // save client preferences
-            prefStorage[ data.clientID ] = storage;
+            // only save preferences that can be serialized with JSON
+            if ( JSON.stringify( storage )) {
+                prefStorage[ data.clientID ] = storage;
+            }
         });
 
         saveToPersistentStorage();
@@ -125,14 +133,25 @@ define(function(require, exports, module) {
      */
     function _initStorage( storage ) {
         persistentStorage = storage;
-
         prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
 
+        // initialize empty preferences if none were found in storage
         if ( !prefStorage ) {
-            // initialize empty preferences
-            prefStorage = {};
-            persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
+            _reset();
         }
+    }
+
+    /**
+     * @private
+     * Reset preferences and callbacks
+     */
+    function _reset() {
+        callbacks = {};
+        prefStorage = {};
+
+        // Note that storage.clear() is not used. Production and unit test code
+        // both rely on the same backing storage but unique item keys.
+        persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
     }
 
     /**
@@ -149,6 +168,7 @@ define(function(require, exports, module) {
     exports.savePreferences         = savePreferences;
 
     // Internal Use Only
+    exports._reset                  = _reset;
     exports._setStorageKey          = _setStorageKey;
     exports._getStorage             = _getStorage;
     exports._initStorage            = _initStorage;
