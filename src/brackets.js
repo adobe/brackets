@@ -61,7 +61,7 @@ define(function(require, exports, module) {
         $(".dialog-message", dlg).html(message);
 
         function dismissDialog(buttonId) {
-            dlg.one("hidden", function func() {
+            dlg.one("hidden", function() {
                 result.resolve(buttonId);
             });
             dlg.modal(true).hide();
