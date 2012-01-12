@@ -60,10 +60,15 @@ define(function(require, exports, module) {
         $(".dialog-title", dlg).html(title);
         $(".dialog-message", dlg).html(message);
 
-        // Click handler for buttons
-        dlg.on("click", ".dialog-button", function(e) {
-            result.resolve($(this).attr("data-button-id"));
+        function dismissDialog(buttonId) {
+            dlg.one("hidden", function() {
+                result.resolve(buttonId);
+            });
             dlg.modal(true).hide();
+        }
+        // Click handler for buttons
+        dlg.one("click", ".dialog-button", function(e) {
+            dismissDialog($(this).attr("data-button-id"));
         });
 
         // Enter/Return handler for the primary button. Need to
@@ -80,8 +85,7 @@ define(function(require, exports, module) {
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
-                    result.resolve(primaryBtn.attr("data-button-id"));
-                    dlg.modal(true).hide();
+                    dismissDialog(primaryBtn.attr("data-button-id"));
                 }
             }
             enterKeyPressed = false;
