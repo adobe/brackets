@@ -481,7 +481,6 @@ define(function(require, exports, module) {
             if (entry.isFile)
                 CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
         })
-        })
         .bind("reopen.jstree", function(event, data) {
             // This handler fires for the initial load and subsequent
             // reload_nodes events. For each depth level of the tree, we open
