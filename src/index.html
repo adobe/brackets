@@ -23,24 +23,30 @@
 	<!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
 	     due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
 
-	<!-- Top bar for menus -->
-	<div class="topbar" data-dropdown="dropdown">
-      <div class="topbar-inner">
-          <a class="brand" href="#">Brackets</a>
-          <ul class="nav">
-            <li class="dropdown">
-				<a href="#" class="dropdown-toggle">File</a>
-				<ul class="dropdown-menu">
-					<li><a href="#" id="menu-file-new">New</a></li>
-					<li><a href="#" id="menu-file-open">Open</a></li>
-					<li><a href="#" id="menu-file-close">Close</a></li>
-					<li><a href="#" id="menu-file-save">Save</a></li>
-					<li><a href="#" id="menu-file-quit">Quit</a></li>
-				</ul>
-			</li>
-			<li><a href="#" id="menu-runtests">Run Tests</a></li>
-          </ul>
-      </div>
+    <!-- Top bar for menus -->
+    <div class="topbar" data-dropdown="dropdown">
+        <div class="topbar-inner">
+            <a class="brand" href="#">Brackets</a>
+            <ul class="nav">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">File</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="menu-file-new">New</a></li>
+                        <li><a href="#" id="menu-file-open">Open</a></li>
+                        <li><a href="#" id="menu-file-close">Close</a></li>
+                        <li><a href="#" id="menu-file-save">Save</a></li>
+                        <li><a href="#" id="menu-file-quit">Quit</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle">Debug</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="menu-debug-runtests">Run Tests</a></li>
+                        <li><a href="#" id="menu-debug-wordwrap">Toggle Word Wrap</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
     
 	<!-- Main UI -->
