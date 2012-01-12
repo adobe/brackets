@@ -288,17 +288,7 @@ define(function(require, exports, module) {
         EditorManager.destroyEditor(document._editor);
     }
 	
-	function closeDocument(fileEntry){
-		// TODO TY: does this work?
-		if( _currentDocument.file == fileEntry){
-			closeCurrentDocument();
-		}
-		else {
-			var wsIndex = _findInWorkingSet(_currentDocument.file);
-			 _removeFromWorkingSet(_currentDocument);
-		}
-		
-	}
+
     
     function _documentDirtyChanged(doc) {
         // Dispatch event
