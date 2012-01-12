@@ -124,20 +124,12 @@ define(function(require, exports, module) {
                 $(this).toggleClass( "disclosure-arrow-closed");
                 $("#open-files-container").toggle();
             });
-            // Display close "x" icon when user hovers over working set file
-            $(".working-set-list-item").hover(
-                function() {
-                    $(this).prepend("<div class=\"file-status-icon\"></div>");
-                },
-                function() {
-                    $(this).children(".file-status-icon").remove();
-                }
-            );
-		
-            $(".file-status-icon").click( function() {
-                // close file
+            $("#project-files-disclosure-arrow").click(function(){
+                $(this).toggleClass( "disclosure-arrow-closed");
+                $("#project-files-container").toggle();
             });
-		
+			
+       
         }
 
         function initMenus() {

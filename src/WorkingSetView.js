@@ -20,7 +20,7 @@ define(function(require, exports, module) {
     }
     
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
-        console.log("Working set ++ " + addedDoc);
+        //console.log("Working set ++ " + addedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
 		
 		_addDoc( addedDoc )
@@ -39,6 +39,12 @@ define(function(require, exports, module) {
 		
 		_dirtyFlagChanged( doc );
     });
+	
+	$(DocumentManager).on("currentDocumentChange", function(event, doc ) {
+		_currentDocumentChange( doc );
+	});
+	
+	
 	
 	/** Each list item in the working set stores a references to the related document in the list item's data.  
 	 *  Use listIem.data( _DOCUMENT_KEY ) to get the document reference
@@ -105,6 +111,14 @@ define(function(require, exports, module) {
        }
    }
    
+   function _currentDocumentChange( doc ){
+ 	   var listItem = _findListItemFromDocument( doc );
+ 	   if(listItem){
+ 		   //listItem.addClass
+ 	   }
+   	
+   }
+   
    function _openDoc( doc ) {
 	   CommandManager.execute(Commands.FILE_OPEN, doc.file.fullPath);
           
@@ -115,19 +129,25 @@ define(function(require, exports, module) {
    }
 	   
    function _findListItemFromDocument( doc ) {
+	   var result = null;
+	   
 	   if( doc ){
-		   $("#open-files-container").children().forEach( function( element, index, array ){
-			   if(element.data( _DOCUMENT_KEY ) === doc)
-			   	return element;
+		   var items = $("#open-files-container").children("ul").children();
+		   items.each( function( i ){
+			   var listItem = $(this);
+			   if(listItem.data( _DOCUMENT_KEY ) === doc){
+				   result = listItem;
+				   return false; // breaks each
+			   }
 		   }); 
 	   }
 	   
-	   return null;
+	   return result;
    }
 	
 	function _removeDoc( doc ) {		
- 	   var listIem = _findListItemFromDocument( doc );
- 	   if(listIem){
+ 	   var listItem = _findListItemFromDocument( doc );
+ 	   if(listItem){
  		   listItem.remove();
  	   }
 	}

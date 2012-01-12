@@ -265,9 +265,9 @@ define(function(require, exports, module) {
 			// default to the file the editor is showing
 			fullPath = _currentFilePath;
 		}
-		else {
-			result = doClose(fullPath);
-		}
+		
+		result = doClose(fullPath);
+
         if (!result)
             result = (new $.Deferred()).reject();
         return result;

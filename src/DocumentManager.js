@@ -316,10 +316,6 @@ define(function(require, exports, module) {
     exports.getDocument = getDocument;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
-    exports.closeCurrentDocument = closeCurrentDocument;
-    exports.setDocumentIsDirty = setDocumentIsDirty;
-    exports.closeCurrentDocument = closeCurrentDocument;
-    exports.setDocumentIsDirty = setDocumentIsDirty;
 	exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
     
