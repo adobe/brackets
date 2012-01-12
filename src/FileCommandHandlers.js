@@ -215,18 +215,37 @@ define(function(require, exports, module) {
         return result;
     }
 
+	/** Closes the specified document. Assumes the current document if doc is null. 
+	 * Prompts user about saving file if document is dirty
+	 * @param {?Document} doc 
+	 */
     function handleFileClose( doc ) {
+		
+		// utility function for handleFileClose
+		function doClose(doc) {      
+	        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+	        // TODO: can this be removed?
+	        doc.markClean();
+        
+	        // This selects a different document if the working set has any other options
+	        DocumentManager.closeDocument(doc);
+        
+	        EditorManager.focusEditor();
+	    }
+		
+		
         // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
 		
 		// Default to current document if doc is null
-        var docToClose = !doc ? DocumentManager.getCurrentDocument() : doc;
+		if(!doc)
+        	doc =  DocumentManager.getCurrentDocument();
         
-		if (docToClose && docToClose.isDirty) {
+		if (doc.isDirty) {
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
-                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, ProjectManager.makeProjectRelativeIfPossible(docToClose.file.fullPath) )
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) )
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -236,7 +255,7 @@ define(function(require, exports, module) {
                         CommandManager
                             .execute(Commands.FILE_SAVE)
                             .done(function() {
-                                doClose(docToClose);
+                                doClose(doc);
                                 result.resolve();
                             })
                             .fail(function() {
@@ -245,7 +264,7 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose(docToClose);
+                        doClose(doc);
                         result.resolve();
                     }
                 }
@@ -255,24 +274,15 @@ define(function(require, exports, module) {
             });
         }
         else {
-            doClose(docToClose);
+			// Doc is not dirty, just close
+            doClose(doc);
             EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
 
-    function doClose(doc) {        
-        
-        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
-        // TODO: can this be removed?
-        doc.markClean();
-        
-        // This selects a different document if the working set has any other options
-        DocumentManager.closeDocument(doc);
-        
-        EditorManager.focusEditor();
-    }
+	
 
 
     function showFileOpenError(code, path) {

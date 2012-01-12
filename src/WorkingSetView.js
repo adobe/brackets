@@ -47,6 +47,8 @@ define(function(require, exports, module) {
 	var _DOCUMENT_KEY = "document";
 	
 	function _addDoc( doc ) {
+		var curDoc = DocumentManager.getCurrentDocument();
+		
 		// Add new item to bottom of list
 		var link = $("<a></a>").attr( "href", "#" ).text( doc.file.name );
 		var newItem = $("<li></li>").append( link );
@@ -54,9 +56,9 @@ define(function(require, exports, module) {
 		// TODO: Ask NJ which way is better
 		//var newItem = $("<li class='working-set-list-item'><a href='#'>" + doc.file.name +  "</a></li>");
 		
+		
 		newItem.data( _DOCUMENT_KEY, doc );
 
-		
 		$("#open-files-container").children("ul").append(newItem);
 		
 		newItem.click( function() { 
@@ -64,6 +66,7 @@ define(function(require, exports, module) {
 		});
 		
 		_updateFileStatusIcon( newItem, doc.isDirty, false);
+		_updateListItemSelection(newItem, curDoc);
 				
 		newItem.hover(
 			// hover in
@@ -118,13 +121,17 @@ define(function(require, exports, module) {
 		   items.each( function( i ){
 			   var listItem = $(this);
 			   
-			   if(listItem.data( _DOCUMENT_KEY ) === curDoc)
-				   listItem.addClass("selected");
-			    else
-				   listItem.removeClass("selected");
+			   _updateListItemSelection(listItem, curDoc );
 		   }); 
 	   }
 	
+   }
+   
+   function _updateListItemSelection(listItem, curDoc ){
+	   if(listItem.data( _DOCUMENT_KEY ) === curDoc)
+		   listItem.addClass("selected");
+	    else
+		   listItem.removeClass("selected");
    }
    
    function _openDoc( doc ) {
