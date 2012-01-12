@@ -42,6 +42,9 @@ html, body {
 
 body {
     .vbox;
+    
+    /* This appears to be necessary in Firefox when body is set to display: box. */
+    width: 100%;
 
     .topbar {
         position: static;
