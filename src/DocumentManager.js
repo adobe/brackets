@@ -8,11 +8,22 @@
  * in the working set. It also encapsulates the editor widget for each file, which in turn controls
  * each file's contents and undo history. (This it is not a perfectly clean, headless model, but that's
  * unavoidable because the document state is tied up in the CodeMirror UI).
+ *
+ * This module dispatches several events:
+ *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
+ *      Document whose flag changed.
+ *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
+ *    - workingSetAdd -- When a Document is added to the working set (see getWorkingSet()). The 2nd arg
+ *      to the listener is the added Document.
+ *    - workingSetRemove -- When a Document is removed from the working set (see getWorkingSet()). The
+ *      2nd arg to the listener is the removed Document.
+ *
+ * These are jQuery events, so to listen for them you do something like this:
+ *    $(DocumentManager).on("eventname", handler);
  */
 define(function(require, exports, module) {
 
     var ProjectManager     = require("ProjectManager")
-    ,   EditorManager      = require("EditorManager")
     ;
 
     /**
@@ -25,7 +36,7 @@ define(function(require, exports, module) {
      *          with the file's contents.
      */
     function Document(file, editor) {
-        if (!(this instanceof Document)) { // ERROR: constructor called without 'new'
+        if (!(this instanceof Document)) { // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
         if (getDocument(file) != null) {
@@ -55,16 +66,15 @@ define(function(require, exports, module) {
     
     /**
      * Whether this document has unsaved changes or not.
-     *
-     * To listen for changes to this flag, in *ANY* document: $(DocumentManager).on("dirtyFlagChange", handler);
-     * The 2nd arg to the listener is the Document whose isDirty flag changed.
-     *
+     * When this changes on any Document, DocumentManager dispatches a "dirtyFlagChange" event.
      * @type {boolean}
      */
     Document.prototype.isDirty = false;
     
     /**
      * @private
+     * NOTE: this is a little unclean. EditorManager accesses this field even though it is marked private. No one
+     * other than DocumentManager and EditorManager should use this.
      * @type {!CodeMirror}
      */
     Document.prototype._editor = null;
@@ -113,7 +123,7 @@ define(function(require, exports, module) {
     
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
-     * To listen for changes: $(DocumentManager).on("currentDocumentChange", handler);
+     * When this changes, DocumentManager dispatches a "currentDocumentChange" event.
      * @return {?Document}
      */
     function getCurrentDocument() {
@@ -149,9 +159,9 @@ define(function(require, exports, module) {
     /**
      * Returns an ordered list of items in the working set. May be 0-length, but never null.
      *
-     * To listen for additions to this list: $(DocumentManager).on("workingSetAdd", handler);
-     * To listen for removals from this list: $(DocumentManager).on("workingSetRemove", handler);
-     * In both cases, the 2nd arg to the listener is the Document that was added/removed.
+     * When a Document is added this list, DocumentManager dispatches a "workingSetAdd" event.
+     * When a Document is removed from list, DocumentManager dispatches a "workingSetRemove" event.
+     * To listen for ALL changes to this list, you must listen for both events.
      *
      * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
      * (yet) change this collection on their own.
@@ -248,9 +258,9 @@ define(function(require, exports, module) {
      * set is empty after closing this file, then the editor area will go blank instead).
      */
     function closeDocument(document) {
-        // If this was the current document shown in the editor UI, switch to a different
-        // document (or none if working set has no other options)
-        if (_currentDocument && _currentDocument == document) {
+        // If this was the current document shown in the editor UI, we're going to switch to a
+        // different document (or none if working set has no other options)
+        if (_currentDocument == document) {
             var wsIndex = _findInWorkingSet(document.file);
             
             // Decide which doc to show in editor after this one
@@ -260,7 +270,7 @@ define(function(require, exports, module) {
                 if (_workingSet.length > 0) {
                     nextDocument = _workingSet[ _workingSet.length  - 1 ];
                 }
-                // else: leave nextDocument null; editor will be blank
+                // else: leave nextDocument null; editor area will be blank
             } else {
                 // If doc was in working set, use item next to it (below if possible)
                 if (wsIndex < _workingSet.length - 1) {
@@ -268,9 +278,9 @@ define(function(require, exports, module) {
                 } else if (wsIndex > 0) {
                     nextDocument = _workingSet[wsIndex - 1];
                 }
-                // else: leave nextDocument null; editor will be blank
+                // else: leave nextDocument null; editor area will be blank
             }
-        
+            
             // Switch editor to next document (or blank it out)
             if (nextDocument)
                 showInEditor(nextDocument);
@@ -280,12 +290,12 @@ define(function(require, exports, module) {
         // (Now we're guaranteed that the current document is not the one we're closing)
         
         // Remove closed doc from working set, if it was in there
+        // This happens regardless of whether the document being closed was the current one or not
         _removeFromWorkingSet(document);
         
-        // Clean up the UI
-        // TODO: it'd be cleaner to decouple this so we just dispatch a 'documentDisposed' event
-        // that EditorManager listens for...
-        EditorManager.destroyEditor(document._editor);
+        // Note: EditorManager will dispose the closed document's now-unneeded editor either in
+        // response to the editor-swap call above, or the _removeFromWorkingSet() call, depending on
+        // circumstances. See notes in EditorManager for more.
     }
 	
 
