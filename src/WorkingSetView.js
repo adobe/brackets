@@ -24,15 +24,15 @@ define(function(require, exports, module) {
     });
      
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
-        //console.log("Working set ++ " + addedDoc);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
+        console.log("Working set ++ " + addedDoc);
+        console.log("  set: " + DocumentManager.getWorkingSet().join());
          
         _handleDocumentAdded( addedDoc )    
     });
      
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
         console.log("Working set -- " + removedDoc);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
+        console.log("  set: " + DocumentManager.getWorkingSet().join());
          
         _handleDocumentRemoved( removedDoc );
     });
@@ -217,8 +217,5 @@ define(function(require, exports, module) {
         $("#" + doc.file.fullPath).find(".file-status-icon");
     }
      
-    function _rebuild() {
-     
-    }
      
 });
