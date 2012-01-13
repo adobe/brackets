@@ -104,11 +104,11 @@ define(function(require, exports, module) {
             this.isDirty = newIsDirty;
             
             // Dispatch event
-            $(exports).triggerHandler("dirtyFlagChange", doc);
+            $(exports).triggerHandler("dirtyFlagChange", this);
             
             // If file just became dirty, add it to working set (if not already there)
             if (newIsDirty)
-                addToWorkingSet(doc);
+                addToWorkingSet(this);
         }
     }
     
