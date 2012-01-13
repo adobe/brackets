@@ -18,7 +18,7 @@ define(function(require, exports, module) {
             PreferencesManager = this.app.brackets.test.PreferencesManager;
 
             // Temporarily use test key in the main app window
-            PreferencesManager._setStorageKey( PreferencesManager._TEST_PREFERENCES_KEY );
+            this.oldKey = PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
 
             this.app.location.reload();
             this.testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
@@ -31,7 +31,7 @@ define(function(require, exports, module) {
 
         afterEach(function() {
             // restore main app window preferences key
-            PreferencesManager._setStorageKey( PreferencesManager.PREFERENCES_KEY );
+            PreferencesManager._setStorageKey( this.oldKey );
         });
 
         describe("createNewItem", function() {

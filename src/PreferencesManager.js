@@ -7,8 +7,7 @@
  *
  */
 define(function(require, exports, module) {
-    var PREFERENCES_KEY = "com.adobe.brackets.preferences"
-    ,   TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences";
+    var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 
     // Private Properties
     var preferencesKey      = PREFERENCES_KEY
@@ -120,11 +119,23 @@ define(function(require, exports, module) {
         persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
     }
 
+    /**
+     * @private
+     * Redirects preference storage to another key in persistent storage. 
+     * Allows unit test preferences to be stored in the same mechanism as
+     * production preferences without clobbering.
+     * 
+     * @return {string} Previous key
+     */
     function _setStorageKey( key ) {
+        var oldKey = preferencesKey;
+
         preferencesKey = key;
 
         // re-init in-memory prefs when changing keys
         _initStorage( persistentStorage );
+
+        return oldKey;
     }
 
     /**
@@ -154,14 +165,6 @@ define(function(require, exports, module) {
         persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
     }
 
-    /**
-     * @private
-     * Accessor to persistent storage implementation.
-     */
-    function _getStorage( storage ) {
-        return persistentStorage;
-    }
-
     // Public API
     exports.getPreferences          = getPreferences;
     exports.addPreferencesClient    = addPreferencesClient;
@@ -170,8 +173,5 @@ define(function(require, exports, module) {
     // Internal Use Only
     exports._reset                  = _reset;
     exports._setStorageKey          = _setStorageKey;
-    exports._getStorage             = _getStorage;
-    exports._initStorage            = _initStorage;
     exports._PREFERENCES_KEY        = PREFERENCES_KEY;
-    exports._TEST_PREFERENCES_KEY   = TEST_PREFERENCES_KEY;
 });

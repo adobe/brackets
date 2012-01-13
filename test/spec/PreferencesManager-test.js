@@ -15,25 +15,6 @@ define(function(require, exports, module) {
             PreferencesManager._reset();
         });
 
-        function initTestPreferences( data, newStorage ) {
-            // mock persistent preference data to load
-            var prefs = {};
-            prefs[ CLIENT_ID ] = data;
-
-            var storage = PreferencesManager._getStorage();
-            storage.setItem( PreferencesManager._TEST_PREFERENCES_KEY, JSON.stringify( prefs ) );
-
-            // init storage, update in-memory data
-            PreferencesManager._initStorage( storage );
-        };
-
-        it("should load preferences from storage", function() {
-            initTestPreferences( { test: "dummy data" } );
-
-            var actual = PreferencesManager.getPreferences( CLIENT_ID );
-            expect( actual.test ).toBe( "dummy data" );
-        });
-
         it("should register clients", function() {
             var pass1 = false
             ,   pass2 = false;
