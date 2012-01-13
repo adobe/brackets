@@ -32,71 +32,76 @@ define(function(require, exports, module) {
                 isReady = true;
             });
             waitsFor(function() { return isReady; }, 5000);
-        });
-
-    describe("WorkingSetView", function(){
-
-		it("should add a list item when a file is dirtied", function() {			
+			
 			var didOpen = false, gotError = false;
 
 			// Open a directory
 			ProjectManager.loadProject(this.testPath);
 			
-			// open file
-            runs(function() {
-                CommandManager.execute(Commands.FILE_OPEN, this.testPath + "/file_one.txt")
-                    .done(function() { didOpen = true; })
-                    .fail(function() { gotError = true; });
-            });
-            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
+			var openAndMakeDirty = function (path){
+				// open file
+	            runs(function() {
+	                CommandManager.execute(Commands.FILE_OPEN, path)
+	                    .done(function() { didOpen = true; })
+	                    .fail(function() { gotError = true; });
+	            });
+	            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
 
-			// change editor content to make doc dirty
-            runs(function() {
-                var editor = DocumentManager.getCurrentDocument()._editor;
-                editor.setValue("dirty document");
-                expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
-            });
-																			
-			// check if file is added to work set and dirty icon is present
+				// change editor content to make doc dirty
+	            runs(function() {
+	                var editor = DocumentManager.getCurrentDocument()._editor;
+	                editor.setValue("dirty document");
+	                expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+	            });
+			
+			};
+			
+			openAndMakeDirty(this.testPath + "/file_one.js");
+			openAndMakeDirty(this.testPath + "/file_two.js");
+			
+        });
+
+    describe("WorkingSetView", function(){
+
+		it("should add a list item when a file is dirtied", function() {			
+			// check if files are added to work set and dirty icons are present
 			runs(function() {
 				var listItems = this.app.$("#open-files-container").children("ul").children();
-				expect( listItems.length ).toBe(1);
-				expect( listItems.find("a").text() == "file_one.txt" ).toBeTruthy();
-				expect( listItems.find(".file-status-icon").length).toBe(1);
+				expect( listItems.length ).toBe(2);
+				expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
+				expect( listItems.find(".file-status-icon").length).toBe(2);
 			});
 			
 		});
 		
-		// depends on previous test
-		// it("should remove a list item when a file is closed", function() {
-		// 			
-		// 			
-		// 			
-		// 			// close the document
-		//             runs(function() {
-		//                 CommandManager.execute(Commands.FILE_CLOSE)
-		//                     .done(function() { didClose = true; })
-		//                     .fail(function() { gotError = true; });
-		//             });
-		// 			
-		// 			// check there are no list items
-		// 			runs(function() {
-		// 				var listItems = this.app.$("#open-files-container").children("ul").children();
-		// 				expect( listItems.length ).toBe(0);
-		// 			});
-		// 			
-		// 			
-		// 						
+		it("should remove a list item when a file is closed", function() {
+			var editor = DocumentManager.getCurrentDocument()._editor;
+			editor.undo(); // undoes doc dirty so we can close file without dialog
+           
+			// close the document
+	        runs(function() {
+	            CommandManager.execute(Commands.FILE_CLOSE)
+	                .done(function() { didClose = true; })
+	                .fail(function() { gotError = true; });
+	        });
+					
+			// check there are no list items
+			runs(function() {
+				var listItems = this.app.$("#open-files-container").children("ul").children();
+				expect( listItems.length ).toBe(1);
+			});
+									
+		});
+		
+		// TODO: need message to send from to cause rebuild		
+		// it("should rebuild the ui from the model correctly", function() {
+		// 				
 		// 		});
 		
-		// 		
-		// 		it("should rebuild the ui from the model correctly", function() {
-		// 			
-		// 		});
-		// 		
-		// 		it("should close a file when the user clicks the close button", function() {
-		// 			
-		// 		});
+		
+		it("should close a file when the user clicks the close button", function() {
+							
+		});
 		// 		
 		// 		it("should make a file that is clicked the current one in the editor", function() {
 		// 			
