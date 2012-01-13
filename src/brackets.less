@@ -27,14 +27,32 @@
 html, body {
     height: 100%;
     overflow: hidden;
+    
+    /* Turn off selection for UI elements */
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+    
+    /* And make sure we get a pointer cursor even over text */
+    cursor: default;
 }
 
 body {
     .vbox;
+    
+    /* This appears to be necessary in Firefox when body is set to display: box. */
+    width: 100%;
 
     .topbar {
         position: static;
     }
+}
+
+a, img {
+    -webkit-user-drag: none;
 }
 
 .topbar-inner {
@@ -68,7 +86,7 @@ body {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 1;
+    z-index: 2;
     .title {
         font-size: 1.2em;
         font-weight: bold;
@@ -161,23 +179,27 @@ body {
 		li {
 			padding: 4px 0px 4px 2px;
 			
+			position: relative; // so that children can be positioned absolute
+			
 			&:hover {
 				background: #E7F4F9;
-				.close-file-rollover-icon { visibility: visible; }
 			}
+			
+			
+			&.selected {
+				background-color: #0065BE;
+				background-repeat: repeat-x;
+				background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
+		
+				a { color: white; }
 			
 		} 
 		
-		.clicked {
-			background-color: #0065BE;
-			background-repeat: repeat-x;
-			background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
 		
-			a { color: white; }
+					
 		}
+		
 	}
-	
-	
 }
 
 #project-files-container {
@@ -201,6 +223,16 @@ body {
 	height: @jsTreeSpriteSize;
 }
 
+.bracketSprite {
+	background-image: url("styles/images/bracketsSprites.png");
+	background-repeat: no-repeat;
+	background-color: transparent;
+	vertical-align: middle;
+	width: @jsTreeSpriteSize;
+	height: @jsTreeSpriteSize;
+}
+
+
 @jsTreeSpriteSize: 18px;
 
 .disclosure-arrow-opened {
@@ -215,10 +247,55 @@ body {
 	background-position: 0px 0px;
 }
 
-.close-file-icon {
+.file-status-icon {
 	margin: 0px 0px 0px 2px;
-	.jsTreeSprite;
+	.bracketSprite;
 	display: inline-block;
 	position: absolute;
-	background-position: -@jsTreeSpriteSize (-3*@jsTreeSpriteSize);
+	left: 0px;
+	top: 3px;
+	
+	&.dirty {
+		background-position: -@jsTreeSpriteSize 0;
+	}
+	
+	&.canClose {
+		background-position: 0px 0px;
+	}
+}
+
+
+
+
+/* Styles for the search dialog--this is temporary, only for debugging */
+
+.CodeMirror-dialog {
+  position: relative;
+}
+
+.CodeMirror-dialog > div {
+  font-family: sans-serif;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  background: @background-color-2;
+  color: @content-color;
+  border-bottom: 1px solid @bc-gray;
+  .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+  z-index: 1;
+  padding: .5em .8em;
+  overflow: hidden;
+}
+
+.CodeMirror-dialog input {
+  font-family: sans-serif;
+  border: 1px solid @content-color-weaker;
+  outline: none;
+  background: @background-color-3;
+  width: 20em;
+  margin: .3em .3em;
+  color: inherit;
+}
+
+.CodeMirror-searching {
+  background-color: inherit;
 }

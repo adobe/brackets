@@ -13,6 +13,7 @@ define(function(require, exports, module) {
     ,   ProjectManager          = require("ProjectManager")
     ,   DocumentManager          = require("DocumentManager")
     ,   EditorManager           = require("EditorManager")
+	,   WorkingSetView          = require("WorkingSetView")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
@@ -63,10 +64,15 @@ define(function(require, exports, module) {
         $(".dialog-title", dlg).html(title);
         $(".dialog-message", dlg).html(message);
 
-        // Click handler for buttons
-        dlg.on("click", ".dialog-button", function(e) {
-            result.resolve($(this).attr("data-button-id"));
+        function dismissDialog(buttonId) {
+            dlg.one("hidden", function() {
+                result.resolve(buttonId);
+            });
             dlg.modal(true).hide();
+        }
+        // Click handler for buttons
+        dlg.one("click", ".dialog-button", function(e) {
+            dismissDialog($(this).attr("data-button-id"));
         });
 
         // Enter/Return handler for the primary button. Need to
@@ -83,8 +89,7 @@ define(function(require, exports, module) {
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
-                    result.resolve(primaryBtn.attr("data-button-id"));
-                    dlg.modal(true).hide();
+                    dismissDialog(primaryBtn.attr("data-button-id"));
                 }
             }
             enterKeyPressed = false;
@@ -125,20 +130,12 @@ define(function(require, exports, module) {
                 $(this).toggleClass( "disclosure-arrow-closed");
                 $("#open-files-container").toggle();
             });
-            // Display close "x" icon when user hovers over working set file
-            $(".working-set-list-item").hover(
-                function() {
-                    $(this).prepend("<div class=\"close-file-icon\"></div>");
-                },
-                function() {
-                    $(this).children(".close-file-icon").remove();
-                }
-            );
-		
-            $(".close-file-icon").click( function() {
-                // close file
+            $("#project-files-disclosure-arrow").click(function(){
+                $(this).toggleClass( "disclosure-arrow-closed");
+                $("#project-files-container").toggle();
             });
-		
+			
+       
         }
 
         function initMenus() {
@@ -176,7 +173,7 @@ define(function(require, exports, module) {
             // Other debug menu items
             $("#menu-debug-wordwrap").click(function() {
                 editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
-            });           
+            });     
         }
 
         function initCommandHandlers() {

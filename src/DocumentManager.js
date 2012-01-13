@@ -163,7 +163,7 @@ define(function(require, exports, module) {
         // TODO: return a clone to prevent meddling?
     }
     
-    function _addToWorkingSet(document) {
+    function addToWorkingSet(document) {
         // If doc is already in working set, do nothing
         if (_findInWorkingSet(document.file) != -1)
             return;
@@ -212,8 +212,9 @@ define(function(require, exports, module) {
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
+
         if (! ProjectManager.isWithinProject(document.file.fullPath)) {
-           _addToWorkingSet(document);
+           addToWorkingSet(document);
         }
         
         // Make it the current document
@@ -221,6 +222,7 @@ define(function(require, exports, module) {
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
     }
+    
     
     /**
      * 
@@ -285,13 +287,15 @@ define(function(require, exports, module) {
         // that EditorManager listens for...
         EditorManager.destroyEditor(document._editor);
     }
+	
+
     
     function _documentDirtyChanged(doc) {
         // Dispatch event
         $(exports).triggerHandler("dirtyFlagChange", doc);
         
         // If file just became dirty, add it to working set (if not already there)
-        _addToWorkingSet(doc);
+        addToWorkingSet(doc);
     }
     
     
@@ -302,6 +306,7 @@ define(function(require, exports, module) {
     exports.getDocument = getDocument;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
+	exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
     
 });

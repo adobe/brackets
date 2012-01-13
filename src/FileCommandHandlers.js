@@ -29,12 +29,14 @@ define(function(require, exports, module) {
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
+		CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWoringSet);
         // TODO: For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
+		
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
@@ -74,6 +76,11 @@ define(function(require, exports, module) {
             _title.text("");
         }
     }
+	
+	function handleFileAddToWoringSet(fullPath){
+		handleFileOpen(fullPath);
+		DocumentManager.addToWorkingSet(fullPath);
+	}
 
     function handleFileOpen(fullPath) {
         var result = doOpenWithOptionalPath(fullPath);
@@ -208,15 +215,37 @@ define(function(require, exports, module) {
         return result;
     }
 
-    function handleFileClose() {
+	/** Closes the specified document. Assumes the current document if doc is null. 
+	 * Prompts user about saving file if document is dirty
+	 * @param {?Document} doc 
+	 */
+    function handleFileClose( doc ) {
+		
+		// utility function for handleFileClose
+		function doClose(doc) {      
+	        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+	        // TODO: can this be removed?
+	        doc.markClean();
+        
+	        // This selects a different document if the working set has any other options
+	        DocumentManager.closeDocument(doc);
+        
+	        EditorManager.focusEditor();
+	    }
+		
+		
         // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
-        var docToClose = DocumentManager.getCurrentDocument();
-        if (docToClose && docToClose.isDirty) {
+		
+		// Default to current document if doc is null
+		if(!doc)
+        	doc =  DocumentManager.getCurrentDocument();
+        
+		if (doc.isDirty) {
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
-                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) )
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -226,7 +255,7 @@ define(function(require, exports, module) {
                         CommandManager
                             .execute(Commands.FILE_SAVE)
                             .done(function() {
-                                doClose();
+                                doClose(doc);
                                 result.resolve();
                             })
                             .fail(function() {
@@ -235,7 +264,7 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose();
+                        doClose(doc);
                         result.resolve();
                     }
                 }
@@ -245,27 +274,16 @@ define(function(require, exports, module) {
             });
         }
         else {
-            doClose();
+			// Doc is not dirty, just close
+            doClose(doc);
             EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
 
-    function doClose() {
-        var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
-        
-        var docToClose = DocumentManager.getCurrentDocument();
-        
-        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
-        // TODO: can this be removed?
-        docToClose.markClean();
-        
-        // This selects a different document if the working set has any other options
-        DocumentManager.closeDocument(docToClose);
-        
-        EditorManager.focusEditor();
-    }
+	
+
 
     function showFileOpenError(code, path) {
         brackets.showModalDialog(
