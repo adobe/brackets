@@ -299,12 +299,18 @@ define(function(require, exports, module) {
                                 )
                             );
                         }
-                        // TODO (jasonsj): proper message for each error.code
-                        /*
-                        else if ( error.code == FileError ) {
-
+                        else {
+                            var errString = error.code == FileError.NO_MODIFICATION_ALLOWED_ERR ? 
+                                             Strings.NO_MODIFICATION_ALLOWED_ERR :
+                                             Strings.format(String.GENERIC_ERROR, error.code)
+                            var errMsg = Strings.format(Strings.ERROR_CREATING_FILE, data.rslt.name, errString);
+                          
+                            brackets.showModalDialog(
+                                  brackets.DIALOG_ID_ERROR
+                                , Strings.ERROR_CREATING_FILE_TITLE
+                                , errMsg
+                            );
                         }
-                        */
 
                         errorCleanup();
                     }
