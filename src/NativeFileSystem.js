@@ -197,15 +197,14 @@ define(function(require, exports, module) {
             var self = this;
 
             brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
-                var fileError = null;
 
                 if ( ( err != brackets.fs.NO_ERROR ) && self.onerror ) {
                     fileError = NativeFileSystem._nativeToFileError( err );
 
-                    // TODO (jasonsj): set readonly FileSaver.error attribute
-                    // self._error = fileError;
+                    var fakeEvent = { target : self };
+                    self.error = NativeFileSystem._nativeToFileError(err);
 
-                    self.onerror ( fileError );
+                    self.onerror ( fakeEvent );
 
                     // TODO (jasonsj): partial write, update length and position
                 }
@@ -577,7 +576,7 @@ define(function(require, exports, module) {
             // The target for this event is the FileReader and the data/err result is stored in the FileReader
             fakeEvent.target = this;
             this.result = data;
-            this.error = NativeFileSystem._nativeToFileError(err);;
+            this.error = NativeFileSystem._nativeToFileError(err);
 
             if( err ){
                 this.readyState = this.DONE;

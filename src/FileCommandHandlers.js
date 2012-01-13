@@ -203,6 +203,15 @@ define(function(require, exports, module) {
     function handleFileSave() {
         var result = new $.Deferred();
         if (_currentFilePath && _isDirty) {
+            //setup our resolve and reject handlers
+            result.done( function fileSaved() { 
+                _savedUndoPosition = _editor.historySize().undo;
+                updateDirty();
+            });
+
+            result.fail( function fileError(event) { 
+                showSaveFileError(event.target.error.code, _currentFilePath);
+            });
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
             var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
@@ -210,21 +219,17 @@ define(function(require, exports, module) {
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        _savedUndoPosition = _editor.historySize().undo;
-                        updateDirty();
                         result.resolve();
                     }
                     writer.onerror = function(event) {
-                        showSaveFileError(event.target.error.code, _currentFilePath);
-                        result.reject();
+                        result.reject(event);
                     }
 
                     // TODO (jasonsj): Blob instead of string
                     writer.write(_editor.getValue());
                 },
                 function(event) {
-                    showSaveFileError(event.target.error.code, _currentFilePath);
-                    result.reject();
+                    result.reject(event);
                 }
             );
         }
