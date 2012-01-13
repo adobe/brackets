@@ -34,7 +34,7 @@ define(function(require, exports, module) {
         console.log("Working set -- " + removedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
          
-            umentRemoved( removedDoc );
+        _handleDocumentRemoved( removedDoc );
     });
      
     $(DocumentManager).on("dirtyFlagChange", function(event, doc ) {
@@ -203,7 +203,7 @@ define(function(require, exports, module) {
            }); 
        }
         
-       return null;      
+       return result;      
    }
      
     function _handleDocumentRemoved(doc) {        
