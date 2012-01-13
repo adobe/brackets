@@ -11,6 +11,7 @@ define(function(require, exports, module) {
     // Load dependent modules
     var PreferencesManager      = require("PreferencesManager")
     ,   ProjectManager          = require("ProjectManager")
+    ,   DocumentManager          = require("DocumentManager")
     ,   EditorManager           = require("EditorManager")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
@@ -29,6 +30,7 @@ define(function(require, exports, module) {
     brackets.test =
         { ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
+        , DocumentManager       : DocumentManager
         , Commands              : Commands
         , CommandManager        : require("CommandManager")
         };
