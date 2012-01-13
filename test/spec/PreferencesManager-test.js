@@ -92,31 +92,71 @@ define(function(require, exports, module) {
             expect( prefs.prop ).toEqual( "default value" );
         });
 
-        it("should throw an error when the client is not found", function() {
-            var pass = false;
-
-            try {
-                PreferencesManager.getPreferences( CLIENT_ID );
-            }
-            catch ( err ) {
-                pass = true;
-            }
-
+        it("should return undefined prefs for unregistered clients", function() {
+            var pass = ( undefined === PreferencesManager.getPreferences( CLIENT_ID ) );
             expect( pass ).toBeTruthy();
         });
 
         it("should fail when storing an invalid JSON object", function() {
+            // define a callback that stores a function value
             function callback( storage ) {
                 storage.badJSON = function(){};
             };
 
-            // register listener twice
             PreferencesManager.addPreferencesClient( CLIENT_ID, callback );
             PreferencesManager.savePreferences();
 
+            // get prefs and confirm badJSON was never persisted
             var actual = PreferencesManager.getPreferences( CLIENT_ID );
-
+            
             expect( actual.badJSON ).toEqual( undefined );
+        });
+
+        it("should only write to preferences during save", function() {
+            var fooUndefined = false
+            ,   fooValue     = null;
+
+            function callback( storage ) {
+                // storage.foo should not exist
+                if ( storage.foo === undefined ) {
+                    fooUndefined = true;
+                }
+                else {
+                    // record previous value of foo
+                    fooUndefined = false;
+                    fooValue = storage.foo;
+                }
+
+                storage.foo = "callback";
+            };
+
+            PreferencesManager.addPreferencesClient( CLIENT_ID, callback );
+
+            // try to modify preferences outside of savePreferences
+            var before = PreferencesManager.getPreferences( CLIENT_ID );
+            before.foo = "before";
+
+            // storage.foo = "callback"
+            PreferencesManager.savePreferences();
+
+            var after1 = PreferencesManager.getPreferences( CLIENT_ID );
+
+            expect( fooUndefined ).toBeTruthy();
+            expect( fooValue ).toEqual( null );
+            expect( after1.foo ).toEqual( "callback" );
+
+            // try to modify preferences copy from getPreferences()
+            after1.foo = "after";
+
+            // save again, storage.foo = "callback"
+            PreferencesManager.savePreferences();
+
+            var after2 = PreferencesManager.getPreferences( CLIENT_ID );
+
+            // foo should still be callback, after1.foo = "after" as no effect
+            expect( fooUndefined ).toBeFalsy();
+            expect( fooValue ).toEqual( "callback" );
+            expect( after2.foo ).toEqual( "callback" );
         });
     });
 });
