@@ -5,33 +5,20 @@ define(function(require, exports, module) {
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js")
     ;
 
-    // FIXME (jasonsj): these tests are ommitted when launching in the main app window
-    if (window.opener) { // (function(){
-
     describe("ProjectManager", function() {
 
+        var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
+
         beforeEach(function() {
-            this.app = window.opener;
-
-            // Load module instances from brackets.test
-            ProjectManager = this.app.brackets.test.ProjectManager;
-            PreferencesManager = this.app.brackets.test.PreferencesManager;
-
-            // Temporarily use test key in the main app window
-            this.oldKey = PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
-
-            this.app.location.reload();
-            this.testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
-            var isReady = false;
-            $(this.app.document).ready(function() {
-                isReady = true;
+            SpecRunnerUtils.beforeTestWindow( this, function( testWindow ) {
+                // Load module instances from brackets.test
+                ProjectManager = testWindow.brackets.test.ProjectManager;
+                PreferencesManager = testWindow.brackets.test.PreferencesManager;
             });
-            waitsFor(function() { return isReady; }, 5000);
         });
 
         afterEach(function() {
-            // restore main app window preferences key
-            PreferencesManager._setStorageKey( this.oldKey );
+            SpecRunnerUtils.afterTestWindow();
         });
 
         describe("createNewItem", function() {
@@ -39,21 +26,18 @@ define(function(require, exports, module) {
             it("should create a new file with a given name", function() {
                 var didCreate = false, gotError = false;
 
-                runs(function() {
-                    ProjectManager.loadProject(this.testPath);
-                });
-                waitsFor(function() { return ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+                SpecRunnerUtils.loadProject( testPath );
 
                 runs(function() {
                     // skip rename
-                    ProjectManager.createNewItem(this.testPath, "Untitled.js", true)
+                    ProjectManager.createNewItem(testPath, "Untitled.js", true)
                         .done(function() { didCreate = true; })
                         .fail(function() { gotError = true; });
                 });
                 waitsFor(function() { return didCreate && !gotError; }, "ProjectManager.createNewItem() timeout", 1000);
 
                 var error, stat, complete = false;
-                var filePath = this.testPath + "/Untitled.js";
+                var filePath = testPath + "/Untitled.js";
                 runs(function() {
                     brackets.fs.stat(filePath, function(err, _stat) {
                         error = err;
@@ -87,14 +71,11 @@ define(function(require, exports, module) {
             it("should fail when a file already exists", function() {
                 var didCreate = false, gotError = false;
 
-                runs(function() {
-                    ProjectManager.loadProject(this.testPath);
-                });
-                waitsFor(function() { return ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+                SpecRunnerUtils.loadProject( testPath );
 
                 runs(function() {
                     // skip rename
-                    ProjectManager.createNewItem(this.testPath, "file.js", true)
+                    ProjectManager.createNewItem(testPath, "file.js", true)
                         .done(function() { didCreate = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -109,14 +90,11 @@ define(function(require, exports, module) {
             it("should fail when a file name matches a directory that already exists", function() {
                 var didCreate = false, gotError = false;
 
-                runs(function() {
-                    ProjectManager.loadProject(this.testPath);
-                });
-                waitsFor(function() { return ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+                SpecRunnerUtils.loadProject( testPath );
 
                 runs(function() {
                     // skip rename
-                    ProjectManager.createNewItem(this.testPath, "directory", true)
+                    ProjectManager.createNewItem(testPath, "directory", true)
                         .done(function() { didCreate = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -134,10 +112,7 @@ define(function(require, exports, module) {
                 var len = chars.length;
                 var charAt, didCreate, gotError;
 
-                runs(function() {
-                    ProjectManager.loadProject(this.testPath);
-                });
-                waitsFor(function() { return ProjectManager.getProjectRoot() }, "loadProject() timeout", 1000);
+                SpecRunnerUtils.loadProject( testPath );
 
                 for (i = 0; i < len; i++) {
                     didCreate = false;
@@ -146,7 +121,7 @@ define(function(require, exports, module) {
 
                     runs(function() {
                         // skip rename
-                        ProjectManager.createNewItem(this.testPath, "file" + charAt + ".js", true)
+                        ProjectManager.createNewItem(testPath, "file" + charAt + ".js", true)
                             .done(function() { didCreate = true; })
                             .fail(function() { gotError = true; });
                     });
@@ -161,6 +136,4 @@ define(function(require, exports, module) {
         });
 
     });
-
-    }
 });

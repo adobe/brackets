@@ -7,31 +7,25 @@ define(function(require, exports, module) {
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
     
-    // FIXME (jasonsj): these tests are ommitted when launching in the main app window
-    if (window.opener) {
-
     describe("FileCommandHandlers", function() {
 
+        var testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files");
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
 
         beforeEach(function() {
-    //        this.app = window.open(SpecRunnerUtils.getBracketsSourceRoot() + "/index.html");
-            // TODO: this will only work if run from the main Brackets window (not from jasmine.sh)
-            this.app = window.opener;
-            
-            // Load module instances from brackets.test
-            CommandManager = this.app.brackets.test.CommandManager;
-            Commands = this.app.brackets.test.Commands;
-            FileCommandHandlers = this.app.brackets.test.FileCommandHandlers;
-            
-            this.app.location.reload();
-            this.testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files");
-            var isReady = false;
-            $(this.app.document).ready(function() {
-                isReady = true;
+            SpecRunnerUtils.beforeTestWindow( this, function( testWindow ) {
+                this.testWindow = testWindow;
+
+                // Load module instances from brackets.test
+                CommandManager = testWindow.brackets.test.CommandManager;
+                Commands = testWindow.brackets.test.Commands;
+                FileCommandHandlers = testWindow.brackets.test.FileCommandHandlers;
             });
-            waitsFor(function() { return isReady; }, 5000);
+        });
+
+        afterEach(function() {
+            SpecRunnerUtils.afterTestWindow();
         });
 
         // TODO (jasonsj): test Commands.FILE_NEW. Current implementation of
@@ -51,7 +45,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(this.app.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(this.testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
                 });
             });
 
@@ -59,7 +53,7 @@ define(function(require, exports, module) {
                 var didOpen = false, didClose = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, this.testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -74,7 +68,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(this.app.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(this.testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
                 });
             });
         });
@@ -84,7 +78,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, this.testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -99,7 +93,7 @@ define(function(require, exports, module) {
         describe("Save File", function() {
             it("should save changes", function() {
                 var didOpen = false, didSave = false, gotError = false;
-                var filePath = this.testPath + "/test.js";
+                var filePath = testPath + "/test.js";
                 var editor = FileCommandHandlers.getEditor();
 
                 runs(function() {
@@ -147,7 +141,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, this.testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -169,7 +163,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, this.testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -199,7 +193,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, this.testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -223,5 +217,4 @@ define(function(require, exports, module) {
 
         // TODO (jasonsj): experiment with mocks instead of real UI
     });
-    }
 });

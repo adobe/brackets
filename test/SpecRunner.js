@@ -9,7 +9,7 @@ define(function(require, exports, module) {
 
     // Unique key for unit testing
     var PreferencesManager = require("PreferencesManager");
-    PreferencesManager.setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
+    PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
 
     // Load test specs
     require("spec/Editor-test.js");
