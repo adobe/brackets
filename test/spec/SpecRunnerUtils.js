@@ -1,5 +1,7 @@
 define(function(require, exports, module) {
     
+    var TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences";
+
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
         var path = window.location.href;
@@ -20,6 +22,8 @@ define(function(require, exports, module) {
         path.push("src");
         return path.join("/");
     }
+
+    exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
     exports.getTestRoot             = getTestRoot;
     exports.getTestPath             = getTestPath;
