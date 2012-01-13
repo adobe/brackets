@@ -27,7 +27,11 @@ define(function(require, exports, module) {
             FileCommandHandlers = this.app.brackets.test.FileCommandHandlers;
             DocumentManager     = this.app.brackets.test.DocumentManager;
             
+            // FIXME: this does NOT actually reload the modules we saved off above. Reloading the
+            // Brackets window and waiting until it's done to re-fetch modules is exceedingly hard.
+            // TODO: fix this so tests don't have intertangled state. See issue #77.
             this.app.location.reload();
+            
             this.testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files");
             var isReady = false;
             $(this.app.document).ready(function() {
