@@ -33,6 +33,7 @@ define(function(require, exports, module) {
         , FileCommandHandlers   : FileCommandHandlers
         , DocumentManager       : DocumentManager
         , Commands              : Commands
+		, WorkingSetView		: WorkingSetView
         , CommandManager        : require("CommandManager")
         };
 
