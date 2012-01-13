@@ -75,8 +75,7 @@ define(function(require, exports, module) {
 		});
 		
 		it("should remove a list item when a file is closed", function() {
-			var editor = DocumentManager.getCurrentDocument()._editor;
-			editor.undo(); // undoes doc dirty so we can close file without dialog
+			DocumentManager.getCurrentDocument().markClean(); // so we can close without a save dialog
            
 			// close the document
 	        runs(function() {
@@ -100,7 +99,29 @@ define(function(require, exports, module) {
 		
 		
 		it("should close a file when the user clicks the close button", function() {
-							
+			
+			// make both docs clean
+			var docList = DocumentManager.getWorkingSet();
+			docList[0].markClean();
+			docList[1].markClean();
+			
+			// make the first one active
+			DocumentManager.showInEditor( docList[0]);
+			
+			// click on close icon of 2nd one
+			var listItems = this.app.$("#open-files-container").children("ul").children();
+			var closeIcon = $($(listItems[1]).find(".file-status-icon"));
+			//expect( closeIcon.toBe(1);
+			
+			// simulate click
+			closeIcon.trigger('click');
+			
+			var listItems = this.app.$("#open-files-container").children("ul").children();
+			expect( listItems.length ).toBe(1);
+			expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
+			
+			
+			
 		});
 		// 		
 		// 		it("should make a file that is clicked the current one in the editor", function() {
