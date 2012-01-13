@@ -209,8 +209,8 @@ define(function(require, exports, module) {
                 updateDirty();
             });
 
-            result.fail( function fileError(event) { 
-                showSaveFileError(event.target.error.code, _currentFilePath);
+            result.fail( function fileError(error) { 
+                showSaveFileError(error.code, _currentFilePath);
             });
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
@@ -221,15 +221,15 @@ define(function(require, exports, module) {
                     writer.onwriteend = function() {
                         result.resolve();
                     }
-                    writer.onerror = function(event) {
-                        result.reject(event);
+                    writer.onerror = function(error) {
+                        result.reject(error);
                     }
 
                     // TODO (jasonsj): Blob instead of string
                     writer.write(_editor.getValue());
                 },
-                function(event) {
-                    result.reject(event);
+                function(error) {
+                    result.reject(error);
                 }
             );
         }

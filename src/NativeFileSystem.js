@@ -201,10 +201,9 @@ define(function(require, exports, module) {
                 if ( ( err != brackets.fs.NO_ERROR ) && self.onerror ) {
                     fileError = NativeFileSystem._nativeToFileError( err );
 
-                    var fakeEvent = { target : self };
-                    self.error = NativeFileSystem._nativeToFileError(err);
-
-                    self.onerror ( fakeEvent );
+                    // TODO (jasonsj): set readonly FileSaver.error attribute
+                    // self._error = fileError;
+                    self.onerror ( fileError );
 
                     // TODO (jasonsj): partial write, update length and position
                 }
