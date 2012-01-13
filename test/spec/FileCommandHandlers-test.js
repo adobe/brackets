@@ -9,13 +9,15 @@ define(function(require, exports, module) {
     
     describe("FileCommandHandlers", function() {
 
-        var testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files");
+        var testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files")
+        ,   testWindow;
+
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
 
         beforeEach(function() {
-            SpecRunnerUtils.beforeTestWindow( this, function( testWindow ) {
-                this.testWindow = testWindow;
+            SpecRunnerUtils.beforeTestWindow( this, function( w ) {
+                testWindow = w;
 
                 // Load module instances from brackets.test
                 CommandManager = testWindow.brackets.test.CommandManager;
@@ -45,7 +47,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(this.testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
                 });
             });
 
@@ -68,7 +70,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(this.testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
                 });
             });
         });
