@@ -3,9 +3,13 @@
  */
 
 /**
- * EditorManager owns the UI for the editor area and working set list. This essentially mirrors
- * the model in DocumentManager, which maintains a list of 'open' documents  (the working set) and
- * a 'current document' (what is shown in the editor area).
+ * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
+ * property maintained by DocumentManager's model.
+ *
+ * Note that there is a little bit of unusual overlap between EditorManager and DocumentManager:
+ * because the Document state is actually stored in the CodeMirror editor UI, DocumentManager is
+ * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
+ * must have some knowledge about Document's internal state (we access its _editor property).
  */
 define(function(require, exports, module) {
     
@@ -19,14 +23,22 @@ define(function(require, exports, module) {
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(window).resize(_updateEditorSize);
     
+    
+    /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
+    
+    /** @type {CodeMirror} */
     var _currentEditor = null;
+    /** @type {Document} */
     var _currentEditorsDocument = null;
     
+    /** @type {number} Used by {@link _updateEditorSize()} */
     var _resizeTimeout = null;
+    /** @type {number} Used to determine if an editor missed any resizes while hidden */
     var _resizeCount = 0;
 
     
+    /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange(event) {
         var doc = DocumentManager.getCurrentDocument();
         
@@ -39,6 +51,7 @@ define(function(require, exports, module) {
         }
     }
     
+    /** Handles removals from DocumentManager's working set list */
     function _onWorkingSetRemove(event, removedDoc) {
         // There's one case where an editor should be disposed even though the current document
         // didn't change: removing a document from the working set (via the "X" button). (This may
@@ -63,7 +76,7 @@ define(function(require, exports, module) {
     /**
      * Designates the DOM node that will contain the currently active editor instance. EditorManager
      * will own the content of this DOM node.
-     * @param {jQueryObject} holder
+     * @param {!jQueryObject} holder
      */
     function setEditorArea(holder) {
         if (_currentEditor)
@@ -73,6 +86,13 @@ define(function(require, exports, module) {
     }
     
     
+    /**
+     * Creates a new CodeMirror editor instance containing the given text. The editor is not yet
+     * visible. This editor can be used to construct a Document, which in turn can be displayed
+     * in the main editor UI area.
+     * @param {!string} text
+     * @return {!CodeMirror}
+     */
     function createEditor(text) {
         var editor = CodeMirror(_editorHolder.get(0));
         
@@ -86,13 +106,17 @@ define(function(require, exports, module) {
         return editor;
     }
     
+    /**
+     * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in
+     * the working set). Otherwise does nothing.
+     * @param {!Document} document
+     */
     function _destroyEditorIfUnneeded(document) {
         var editor = document._editor;
         
         // If outgoing editor is no longer needed, dispose it
         if (! DocumentManager.getDocument(document.file)) {
-            console.log("DESTROYING editor for "+document);
-        
+            
             // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
             // is "Remove this from your tree to delete an editor instance."
             _editorHolder.get(0).removeChild( editor.getWrapperElement() );
@@ -106,6 +130,10 @@ define(function(require, exports, module) {
     }
     
     
+    /**
+     * Make the given document's editor visible in the UI, hiding whatever was visible before.
+     * @param {!Document} document
+     */
     function _showEditor(document) {
         // Hide whatever was visible before
         if (_currentEditor == null) {
@@ -128,6 +156,7 @@ define(function(require, exports, module) {
             $(_currentEditor.getWrapperElement()).data("resizeCount", _resizeCount);
         }
     }
+    /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor != null) {
             $(_currentEditor.getWrapperElement()).css("display","none");
@@ -141,7 +170,10 @@ define(function(require, exports, module) {
     }
     
     
-    // NJ's editor-resizing fix
+    /**
+     * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
+     * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
+     */
     function _updateEditorSize() {
         // Make sure we know to resize other (hidden) editors when swapping them in
         _resizeCount++;
@@ -159,6 +191,7 @@ define(function(require, exports, module) {
     }
     
     
+    /** Focus the currently visible editor. If no editor visible, does nothing. */
     function focusEditor() {
         if (_currentEditor != null)
             _currentEditor.focus();
