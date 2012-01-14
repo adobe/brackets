@@ -92,38 +92,39 @@ define(function(require, exports, module) {
 									
 		});
 		
-		// TODO: need message to send from to cause rebuild		
+		// TODO Ty: Can't write this test yet until Jason's persistant work is complete	
 		// it("should rebuild the ui from the model correctly", function() {
 		// 				
 		// 		});
 		
+		// TODO Ty: this doesn't work because I can't trigger events from Jasmine. Logged issue #85
+		// it("should close a file when the user clicks the close button", function() {
+		// 			
+		// 			// make both docs clean
+		// 			var docList = DocumentManager.getWorkingSet();
+		// 			docList[0].markClean();
+		// 			docList[1].markClean();
+		// 			
+		// 			// make the first one active
+		// 			DocumentManager.showInEditor( docList[0]);
+		// 			
+		// 			// click on close icon of 2nd one
+		// 			var listItems = this.app.$("#open-files-container").children("ul").children();
+		// 			var closeIcon = $($(listItems[1]).find(".file-status-icon"));
+		// 			//expect( closeIcon.toBe(1);
+		// 			
+		// 			// simulate click
+		// 			closeIcon.trigger('click');
+		// 			
+		// 			var listItems = this.app.$("#open-files-container").children("ul").children();
+		// 			expect( listItems.length ).toBe(1);
+		// 			expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
+		// 			
+		// 			
+		// 			
+		// 		});
 		
-		it("should close a file when the user clicks the close button", function() {
-			
-			// make both docs clean
-			var docList = DocumentManager.getWorkingSet();
-			docList[0].markClean();
-			docList[1].markClean();
-			
-			// make the first one active
-			DocumentManager.showInEditor( docList[0]);
-			
-			// click on close icon of 2nd one
-			var listItems = this.app.$("#open-files-container").children("ul").children();
-			var closeIcon = $($(listItems[1]).find(".file-status-icon"));
-			//expect( closeIcon.toBe(1);
-			
-			// simulate click
-			closeIcon.trigger('click');
-			
-			var listItems = this.app.$("#open-files-container").children("ul").children();
-			expect( listItems.length ).toBe(1);
-			expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
-			
-			
-			
-		});
-		// 		
+		// TODO Ty: blocked by issue #85
 		// 		it("should make a file that is clicked the current one in the editor", function() {
 		// 			
 		// 		});

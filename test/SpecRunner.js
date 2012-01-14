@@ -12,5 +12,7 @@ define(function(require, exports, module) {
     require("spec/NativeFileSystem-test.js");
     require("spec/LowLevelFileIO-test.js");
     require("spec/ProjectManager-test.js");
-    require("spec/FileCommandHandlers-test.js");
+	require("spec/WorkingSetView-test.js");
+	require("spec/FileCommandHandlers-test.js");
+	
 });

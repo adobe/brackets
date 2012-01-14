@@ -12,8 +12,8 @@ define(function(require, exports, module) {
     var DocumentManager     = require("DocumentManager")
     , CommandManager        = require("CommandManager")
     , Commands              = require("Commands")
-    , EditorManager        = require("EditorManager")
-    , NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    , EditorManager         = require("EditorManager")
+    , NativeFileSystem      = require("NativeFileSystem").NativeFileSystem
     ;
  
     // Initialize: register listeners
