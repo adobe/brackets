@@ -220,9 +220,9 @@ define(function(require, exports, module) {
 	 * @param {?Document} doc 
 	 */
     function handleFileClose( doc ) {
-		
-		// utility function for handleFileClose
-		function doClose(doc) {      
+        
+        // utility function for handleFileClose
+        function doClose(doc) {      
 	        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
 	        // TODO: can this be removed?
 	        doc.markClean();
@@ -232,14 +232,17 @@ define(function(require, exports, module) {
         
 	        EditorManager.focusEditor();
 	    }
-		
-		
+        
+        
         // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
-		
+        
 		// Default to current document if doc is null
-		if(!doc)
-        	doc =  DocumentManager.getCurrentDocument();
+        if (!doc)
+            doc =  DocumentManager.getCurrentDocument();
+        // No-op if called when nothing is open; TODO: should command be grayed out instead?
+        if (!doc)
+            return;
         
 		if (doc.isDirty) {
             brackets.showModalDialog(
