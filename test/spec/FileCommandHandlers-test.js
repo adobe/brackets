@@ -16,7 +16,7 @@ define(function(require, exports, module) {
         var TEST_JS_NEW_CONTENT = "hello world";
 
         beforeEach(function() {
-            SpecRunnerUtils.beforeTestWindow( this, function( w ) {
+            SpecRunnerUtils.createTestWindowAndRun( this, function( w ) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
@@ -27,7 +27,7 @@ define(function(require, exports, module) {
         });
 
         afterEach(function() {
-            SpecRunnerUtils.afterTestWindow();
+            SpecRunnerUtils.closeTestWindow();
         });
 
         // TODO (jasonsj): test Commands.FILE_NEW. Current implementation of

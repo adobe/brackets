@@ -10,7 +10,7 @@ define(function(require, exports, module) {
         var testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
 
         beforeEach(function() {
-            SpecRunnerUtils.beforeTestWindow( this, function( testWindow ) {
+            SpecRunnerUtils.createTestWindowAndRun( this, function( testWindow ) {
                 // Load module instances from brackets.test
                 ProjectManager = testWindow.brackets.test.ProjectManager;
                 PreferencesManager = testWindow.brackets.test.PreferencesManager;
@@ -18,7 +18,7 @@ define(function(require, exports, module) {
         });
 
         afterEach(function() {
-            SpecRunnerUtils.afterTestWindow();
+            SpecRunnerUtils.closeTestWindow();
         });
 
         describe("createNewItem", function() {
@@ -26,7 +26,7 @@ define(function(require, exports, module) {
             it("should create a new file with a given name", function() {
                 var didCreate = false, gotError = false;
 
-                SpecRunnerUtils.loadProject( testPath );
+                SpecRunnerUtils.loadProjectInTestWindow( testPath );
 
                 runs(function() {
                     // skip rename
@@ -71,7 +71,7 @@ define(function(require, exports, module) {
             it("should fail when a file already exists", function() {
                 var didCreate = false, gotError = false;
 
-                SpecRunnerUtils.loadProject( testPath );
+                SpecRunnerUtils.loadProjectInTestWindow( testPath );
 
                 runs(function() {
                     // skip rename
@@ -90,7 +90,7 @@ define(function(require, exports, module) {
             it("should fail when a file name matches a directory that already exists", function() {
                 var didCreate = false, gotError = false;
 
-                SpecRunnerUtils.loadProject( testPath );
+                SpecRunnerUtils.loadProjectInTestWindow( testPath );
 
                 runs(function() {
                     // skip rename
@@ -112,7 +112,7 @@ define(function(require, exports, module) {
                 var len = chars.length;
                 var charAt, didCreate, gotError;
 
-                SpecRunnerUtils.loadProject( testPath );
+                SpecRunnerUtils.loadProjectInTestWindow( testPath );
 
                 for (i = 0; i < len; i++) {
                     didCreate = false;

@@ -121,7 +121,7 @@ define(function(require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project.
      */
-    function loadProject(rootPath) {
+    function loadProject(rootPath, successCallback, errorCallback) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
@@ -162,7 +162,7 @@ define(function(require, exports, module) {
             ];
 
             // Show file list in UI synchronously
-            _renderTree(treeJSONData);
+            _renderTree(treeJSONData, successCallback);
 
         } else {
             // Point at a real folder structure on local disk
@@ -174,13 +174,14 @@ define(function(require, exports, module) {
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
-                    _renderTree(_treeDataProvider);
+                    _renderTree(_treeDataProvider, successCallback);
                 },
                 function(error) {
                     brackets.showModalDialog(
                           brackets.DIALOG_ID_ERROR
                         , Strings.ERROR_LOADING_PROJECT
-                        , Strings.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code)
+                        , Strings.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code
+                        , errorCallback)
                     );
                 }
             );
@@ -429,7 +430,7 @@ define(function(require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    function _renderTree(treeDataProvider) {
+    function _renderTree(treeDataProvider, successCallback) {
 
         var projectTreeContainer = $("#project-files-container");
 
@@ -467,6 +468,10 @@ define(function(require, exports, module) {
                 // specify nodes to open and load
                 data.inst.data.core.to_open = toOpenIds;
                 _projectTree.jstree("reload_nodes", false);
+            }
+
+            if ( successCallback && ( _projectInitialLoad.previous.length === 0 ) ) {
+                successCallback();
             }
         });
     };

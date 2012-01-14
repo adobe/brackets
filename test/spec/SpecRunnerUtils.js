@@ -24,7 +24,7 @@ define(function(require, exports, module) {
         return path.join("/");
     }
 
-    function beforeTestWindow(spec, callback) {
+    function createTestWindowAndRun(spec, callback) {
         var isReady = false;
 
         runs(function() {
@@ -41,14 +41,10 @@ define(function(require, exports, module) {
 
             // callback allows specs to query the testWindow before they run
             callback.call( spec, testWindow );
-
-            isReady = true;
         });
-
-        waitsFor(function() { return isReady; }, 5000); 
     }
 
-    function afterTestWindow() {
+    function closeTestWindow() {
         // debug-only to see testWindow state before closing
         // waits(500);
 
@@ -57,31 +53,18 @@ define(function(require, exports, module) {
         });
     }
 
-    function loadProject( path ) {
-        var isReady = false
-        ,   projectTreeContainer;
+    function loadProjectInTestWindow( path ) {
+        var isReady = false;
 
         runs(function() {
-            // find the project tree in the testWindow
-            projectTreeContainer = testWindow.$("#project-files-container");
-
             // begin loading project path
-            testWindow.brackets.test.ProjectManager.loadProject(path);
-        });
-
-        // wait for file system to finish loading
-        waitsFor(function() { 
-            return testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath === path;
-        }, "loadProject() timeout", 1000);
-
-        // listen for "loaded.jstree" to signal ready state
-        runs(function() {
-            projectTreeContainer.bind("loaded.jstree", function(event, data){
+            testWindow.brackets.test.ProjectManager.loadProject(path, function() {
                 isReady = true;
             });
         });
 
-        waitsFor(function() { return isReady; }, "jstree timeout", 1000);
+        // wait for file system to finish loading
+        waitsFor(function() { return isReady; }, "loadProject() timeout", 1000);
     }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
@@ -89,7 +72,7 @@ define(function(require, exports, module) {
     exports.getTestRoot             = getTestRoot;
     exports.getTestPath             = getTestPath;
     exports.getBracketsSourceRoot   = getBracketsSourceRoot;
-    exports.beforeTestWindow        = beforeTestWindow;
-    exports.afterTestWindow         = afterTestWindow;
-    exports.loadProject             = loadProject;
+    exports.createTestWindowAndRun  = createTestWindowAndRun;
+    exports.closeTestWindow         = closeTestWindow;
+    exports.loadProjectInTestWindow = loadProjectInTestWindow;
 });
