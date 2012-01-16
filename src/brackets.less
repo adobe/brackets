@@ -149,7 +149,7 @@ a, img {
     }
 
     hr {
-        margin: 0px 0px 0px 0px;
+        margin: 0;
         border: 1px;
         border-top-style: inset;
         border-right-style: none;
@@ -186,9 +186,7 @@ a, img {
             }
             
             &.selected {
-                background-color: #0065BE;
-                background-repeat: repeat-x;
-                background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
+                #gradient.vertical(#5fa3e0, #0065be);
         
                 a { color: white; }    
             }             

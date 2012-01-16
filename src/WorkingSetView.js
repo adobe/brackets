@@ -60,7 +60,7 @@ define(function(require, exports, module) {
     function _rebuildWorkingSet(){
         $("#open-files-container > ul").empty();
         
-        ocumentManager.getWorkingSet().forEach( function(item){
+        documentManager.getWorkingSet().forEach( function(item){
             _createNewListItem(item);
         });
     }
@@ -73,16 +73,14 @@ define(function(require, exports, module) {
     function _createNewListItem(doc){
         var curDoc = DocumentManager.getCurrentDocument();
          
-        // Add new item to bottom of list
-        var link = $("<a></a>").attr("href", "#").text(doc.file.name);
-        var newItem = $("<li></li>").append(link);
-         
-        // TODO: Ask NJ which way is better
-        //var newItem = $("<li class='working-set-list-item'><a href='#'>" + doc.file.name +  "</a></li>");
+        // Create new list item with a link
+        var newItem = $("<li></li>");
+        var link = $("<a href='#'></a>")
+        link.text(doc.file.name);
+        newItem.append(link);
          
         // Link the list item with the document data
         newItem.data( _DOCUMENT_KEY, doc );
-        
          
         $("#open-files-container > ul").append(newItem);
          
@@ -90,16 +88,12 @@ define(function(require, exports, module) {
         _updateFileStatusIcon(newItem, doc.isDirty, false);
         _updateListItemSelection(newItem, curDoc);
          
-        // Click handler
         newItem.click( function() { 
             _openDoc( doc );
         });
-         
-        // Hover handler        
+             
         newItem.hover(
-            // hover in
             function() { _updateFileStatusIcon($(this), doc.isDirty, true); },
-            // hover out
             function() { _updateFileStatusIcon($(this), doc.isDirty, false);}
         );
     }
@@ -113,20 +107,19 @@ define(function(require, exports, module) {
      * @param {bool} canClose
      */
     function _updateFileStatusIcon(listElement, isDirty, canClose) {
-       var found = listElement.find(".file-status-icon");
-       var fileStatusIcon = found.length != 0 ? $(found[0]) : null;
+       var fileStatusIcon = listElement.find(".file-status-icon");
        var showIcon = isDirty || canClose;
  
        // remove icon if its not needed
-       if (!showIcon && fileStatusIcon) {
+       if (!showIcon && fileStatusIcon.length != 0) {
            fileStatusIcon.remove();
            fileStatusIcon = null;
        } 
        // create icon if its needed and doesn't exist
-       else if (showIcon && !fileStatusIcon) {
-           fileStatusIcon = $("<div></div>");
-           fileStatusIcon.addClass("file-status-icon");
-           listElement.prepend(fileStatusIcon);
+       else if (showIcon && fileStatusIcon.length == 0) {
+           fileStatusIcon = $("<div></div>")
+               .addClass("file-status-icon")
+               .prepend(fileStatusIcon);
                
             // Icon click handler
             fileStatusIcon.click( function() {
@@ -163,9 +156,7 @@ define(function(require, exports, module) {
        // Iterate through working set list and update the selection on each
        if(curDoc){
            var items = $("#open-files-container > ul").children();
-           items.each( function(i){
-               var listItem = $(this);
-                
+           items.get().forEach( function(listItem){
                _updateListItemSelection(listItem, curDoc);
            }); 
        }
@@ -177,10 +168,7 @@ define(function(require, exports, module) {
     * @param {Document} curDoc 
     */
    function _updateListItemSelection(listItem, curDoc){
-       if(listItem.data(_DOCUMENT_KEY ) === curDoc)
-           listItem.addClass("selected");
-        else
-           listItem.removeClass("selected");
+       $(listItem).toggleClass("selected", ($(listItem).data(_DOCUMENT_KEY) === curDoc));
    }
     
    function _openDoc(doc) {
@@ -224,7 +212,7 @@ define(function(require, exports, module) {
     function _handleDirtyFlagChanged(doc){
         var listItem = _findListItemFromDocument(doc);
         if(listItem){
-            var canClose = $(listItem).find("canClose").length = 1;
+            var canClose = $(listItem).find("canClose").length == 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
         
