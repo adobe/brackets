@@ -94,6 +94,16 @@ define(function(require, exports, module) {
         });
         
         
+        it("should make a file that is clicked the current one in the editor", function() {
+            var $ = this.app.$;
+            var secondItem =  $($("#open-files-container > ul").children()[1]);
+            secondItem.trigger('click');
+            
+            var listItems = $("#open-files-container > ul").children();
+            expect( $(listItems[0]).hasClass("selected") ).not.toBeTruthy();
+            expect( $(listItems[1]).hasClass("selected") ).toBeTruthy();
+                           
+        });
         
         
         // TODO Ty: Can't write this test yet until Jason's persistant work is complete    
@@ -109,7 +119,7 @@ define(function(require, exports, module) {
             docList[1].markClean();
                             
             // make the first one active
-            DocumentManager.showInEditor( docList[0]);
+            DocumentManager.showInEditor(docList[0]);
                             
             // hover over and click on close icon of 2nd list item
             var secondItem =  $($("#open-files-container > ul").children()[1]);
@@ -137,9 +147,7 @@ define(function(require, exports, module) {
         });
         
         
-       it("should make a file that is clicked the current one in the editor", function() {
-                           
-       });
+
         
         
         
