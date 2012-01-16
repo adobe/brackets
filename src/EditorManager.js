@@ -34,8 +34,6 @@ define(function(require, exports, module) {
     
     /** @type {number} Used by {@link _updateEditorSize()} */
     var _resizeTimeout = null;
-    /** @type {number} Used to determine if an editor missed any resizes while hidden */
-    var _resizeCount = 0;
 
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -158,13 +156,10 @@ define(function(require, exports, module) {
         _currentEditor = document._editor;
         $(_currentEditor.getWrapperElement()).css("display", "");
         
-        // If window has been resized since last time editor was visible, kick it now
-        var editorResizeCount = $(_currentEditor.getWrapperElement()).data("resizeCount");
-        if (isNaN(editorResizeCount) || editorResizeCount < _resizeCount) {
-            $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-            _currentEditor.refresh();
-            $(_currentEditor.getWrapperElement()).data("resizeCount", _resizeCount);
-        }
+        // Window may have been resized since last time editor was visible, so kick it now
+        // (see _updateEditorSize() handler below)
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        _currentEditor.refresh();
     }
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
@@ -185,19 +180,16 @@ define(function(require, exports, module) {
      * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
      */
     function _updateEditorSize() {
-        // Make sure we know to resize other (hidden) editors when swapping them in
-        _resizeCount++;
-        
-        // Don't refresh every single time.
+        // Don't refresh every single time
         if (!_resizeTimeout) {
             _resizeTimeout = setTimeout(function() {
                 _currentEditor.refresh();
-                $(_currentEditor.getWrapperElement()).data("resizeCount", _resizeCount);
                 _resizeTimeout = null;
             }, 100);
         }
-        $('.CodeMirror-scroll', _editorHolder)
-            .height(_editorHolder.height());
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        
+        // (see also force-resize code in _showEditor() )
     }
     
     
