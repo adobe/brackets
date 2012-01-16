@@ -40,28 +40,28 @@
 
 /* code accent colors */
 @accent-keyword: @bc-blue;
-@accent-atom: @content-color;
-@accent-number: @content-color;
-@accent-def: @bc-green;
+@accent-atom: @bc-violet;
+@accent-number: @bc-violet;
+@accent-def: @bc-yellow;
 @accent-variable: @content-color;
 @accent-variable-2: @content-color;
 @accent-variable-3: @content-color;
 @accent-property: @content-color;
 @accent-operator: @content-color;
 @accent-comment: @content-color-weaker;
-@accent-string: @bc-orange;
-@accent-string-2: @bc-orange;
+@accent-string: @bc-green;
+@accent-string-2: @bc-green;
 @accent-meta: @bc-violet;
 @accent-error: @bc-red;
 @accent-qualifier: @bc-blue;
 @accent-builtin: @bc-blue;
 @accent-bracket: @content-color;
-@accent-tag: @bc-green;
-@accent-attribute: @bc-green;
+@accent-tag: @bc-blue;
+@accent-attribute: @bc-yellow;
 @accent-header: @bc-magenta;
-@accent-quote: @content-color;
-@accent-hr: @content-color;
-@accent-link: @content-color;
+@accent-quote: @bc-blue;
+@accent-hr: @bc-orange;
+@accent-link: @bc-violet;
 
 .code-font() {
     color: @content-color;
@@ -70,8 +70,13 @@
 }
 
 .code-cursor() {
-    background-color: fadeout(@blue, 50%);
-    border: none !important;
+    // to make a block cursor, use something like this:
+    // background-color: fadeout(@blue, 50%);
+    // border: none !important;
+
+    // to make an I-cursor, use something like this:
+    border-left: 1px solid black !important;
+
 }
 
 /* Variables and Mixins for non-code UI elements that can be styled */
