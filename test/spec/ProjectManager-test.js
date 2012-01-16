@@ -1,9 +1,10 @@
 define(function(require, exports, module) {
     // Load dependent modules
     var ProjectManager      // Load from brackets.test
+    ,   PreferencesManager  // Load from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js")
     ;
-    
+
     // FIXME (jasonsj): these tests are ommitted when launching in the main app window
     if (window.opener) { // (function(){
 
@@ -11,10 +12,14 @@ define(function(require, exports, module) {
 
         beforeEach(function() {
             this.app = window.opener;
-            
+
             // Load module instances from brackets.test
-            ProjectManager = this.app.brackets.test.ProjectManager; 
-            
+            ProjectManager = this.app.brackets.test.ProjectManager;
+            PreferencesManager = this.app.brackets.test.PreferencesManager;
+
+            // Temporarily use test key in the main app window
+            this.oldKey = PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
+
             this.app.location.reload();
             this.testPath = SpecRunnerUtils.getTestPath("/spec/ProjectManager-test-files");
             var isReady = false;
@@ -22,6 +27,11 @@ define(function(require, exports, module) {
                 isReady = true;
             });
             waitsFor(function() { return isReady; }, 5000);
+        });
+
+        afterEach(function() {
+            // restore main app window preferences key
+            PreferencesManager._setStorageKey( this.oldKey );
         });
 
         describe("createNewItem", function() {

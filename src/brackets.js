@@ -29,7 +29,8 @@ define(function(require, exports, module) {
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
     brackets.test =
-        { ProjectManager        : ProjectManager
+        { PreferencesManager    : PreferencesManager
+        , ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
         , DocumentManager       : DocumentManager
         , Commands              : Commands

@@ -94,7 +94,17 @@ define(function(require, exports, module) {
      * @return {!CodeMirror}
      */
     function createEditor(text) {
-        var editor = CodeMirror(_editorHolder.get(0));
+        var editor = CodeMirror(_editorHolder.get(0), {
+            indentUnit : 4,
+            extraKeys: {
+                "Tab" : function(instance) {
+                     if (instance.somethingSelected())
+                        CodeMirror.commands.indentMore(instance);
+                     else
+                        CodeMirror.commands.insertTab(instance);
+                }
+            }
+        });
         
         // Initially populate with text. This will send a spurious change event, but that's ok
         // because no one's listening yet (and we clear the undo stack below)
