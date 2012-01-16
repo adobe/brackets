@@ -118,8 +118,8 @@ define(function(require, exports, module) {
        // create icon if its needed and doesn't exist
        else if (showIcon && fileStatusIcon.length == 0) {
            fileStatusIcon = $("<div></div>")
-               .addClass("file-status-icon")
-               .prepend(fileStatusIcon);
+               .addClass("file-status-icon");
+           listElement.prepend(fileStatusIcon);
                
             // Icon click handler
             fileStatusIcon.click( function() {
@@ -130,23 +130,17 @@ define(function(require, exports, module) {
  
        // Set icon's class
        if (fileStatusIcon) {
-           if( isDirty){
-               fileStatusIcon.addClass("dirty");
-               if(canClose)
-                   fileStatusIcon.addClass("dirty canClose");
-                else
-                      fileStatusIcon.removeClass("canClose");
-           }
-           else{
-               fileStatusIcon.removeClass("dirty");
-               fileStatusIcon.addClass("canClose");
-           }
+           fileStatusIcon.toggleClass("dirty", isDirty);
+           fileStatusIcon.toggleClass("canClose", canClose);
+           
            
  
        }
    }
     
- 
+   /** 
+    * @private
+    */
    function _handleDocumentChanged(){
        _updateListSelection( DocumentManager.getCurrentDocument() );
    }
@@ -170,14 +164,22 @@ define(function(require, exports, module) {
    function _updateListItemSelection(listItem, curDoc){
        $(listItem).toggleClass("selected", ($(listItem).data(_DOCUMENT_KEY) === curDoc));
    }
-    
+   
+   /** 
+    * @private
+    * @param {Document} curDoc 
+    */
    function _openDoc(doc) {
        CommandManager.execute(Commands.FILE_OPEN, doc.file.fullPath);
     }
-       
-   function _closeDoc(doc) {
-       CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
-   }
+      
+    /** 
+     * @private
+     * @param {Document} curDoc 
+     */ 
+	 function _closeDoc(doc) {
+		 CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
+	 }
         
         
    /** Finds the listItem item assocated with the doc. Returns null if not found.
@@ -201,14 +203,22 @@ define(function(require, exports, module) {
         
        return result;      
    }
-     
-    function _handleDocumentRemoved(doc) {        
+
+   /** 
+    * @private
+    * @param {Document} curDoc 
+    */
+	function _handleDocumentRemoved(doc) {        
         var listItem = _findListItemFromDocument(doc);
         if(listItem){
             listItem.remove();
         }
     }
-     
+    
+    /** 
+     * @private
+     * @param {Document} curDoc 
+     */
     function _handleDirtyFlagChanged(doc){
         var listItem = _findListItemFromDocument(doc);
         if(listItem){
