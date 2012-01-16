@@ -196,8 +196,7 @@ define(function(require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var untitledFileName = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
-        return ProjectManager.createNewItem(baseDir, untitledFileName, false);
+        return ProjectManager.createNewItem(baseDir, "Untitled.js", false);
     }
     
     function handleFileSave() {
@@ -329,34 +328,6 @@ define(function(require, exports, module) {
             result = Strings.format(Strings.GENERIC_ERROR, code);
 
         return result;
-    }
-
-    /**
-     * @private
-     * Ensures the suggested file name doesn't already exit.
-     * @param {string} dir  The directory to use
-     * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
-     * @param {string} fileExt  The file extension
-     */
-    function _getUntitledFileSuggestion( dir, baseFileName, fileExt ) {
-        var suggestedName = baseFileName + fileExt;
-        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
-        var result = $.Deferred();
-        //In unique suggestion isn't found below the user can still just enter their own
-        for(  var i = 1 ; i <  100 ; i++ ) {
-            dirEntry.getFile( suggestedName, {}, function successCallback(entry){}, function errorCallback(error) {
-                if(  error.code !== FileError.PATH_EXISTS_ERR ) {
-                    //If the file can't be open for read use it as the suggestion. The error is probably because the
-                    //file doesn't exist. Other errors are better handled by the user when they confirm the name
-                    result.resolve();
-                }
-            });
-            if( result.isResolved() ) {
-                return suggestedName;
-            }
-            suggestedName = baseFileName + "-" + i + fileExt;
-        }
-    	return baseFileName + fileExt;
     }
 
     // Define public API
