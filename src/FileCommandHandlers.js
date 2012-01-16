@@ -329,7 +329,7 @@ define(function(require, exports, module) {
         else if (code == FileError.NOT_READABLE_ERR)
             result = Strings.NOT_READABLE_ERR;
         else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR;
+            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         else
             result = Strings.format(Strings.GENERIC_ERROR, code);
 
