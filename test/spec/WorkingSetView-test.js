@@ -64,7 +64,7 @@ define(function(require, exports, module) {
         it("should add a list item when a file is dirtied", function() {            
             // check if files are added to work set and dirty icons are present
             runs(function() {
-                var listItems = this.app.$("#open-files-container").children("ul").children();
+                var listItems = this.app.$("#open-files-container > ul").children();
                 expect( listItems.length ).toBe(2);
                 expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                 expect( listItems.find(".file-status-icon").length).toBe(2);
@@ -84,7 +84,7 @@ define(function(require, exports, module) {
                     
             // check there are no list items
             runs(function() {
-                var listItems = this.app.$("#open-files-container").children("ul").children();
+                var listItems = this.app.$("#open-files-container > ul").children();
                 expect( listItems.length ).toBe(1);
             });
                                     
@@ -93,9 +93,8 @@ define(function(require, exports, module) {
         // TODO Ty: Can't write this test yet until Jason's persistant work is complete    
         // it("should rebuild the ui from the model correctly", function() {
         //                 
-        //         });
+        // });
         
-        // TODO Ty: this doesn't work because I can't trigger events from Jasmine. Logged issue #85
         it("should close a file when the user clicks the close button", function() {
                             
                     // make both docs clean
@@ -107,14 +106,14 @@ define(function(require, exports, module) {
                     DocumentManager.showInEditor( docList[0]);
                             
                     // click on close icon of 2nd one
-                    var listItems = this.app.$("#open-files-container").children("ul").children();
+                    var listItems = this.app.$("#open-files-container > ul").children();
                     var closeIcon = this.app.$(this.app.$(listItems[1]).find(".file-status-icon"));
                     //expect( closeIcon.toBe(1);
                             
                     // simulate click
                     closeIcon.trigger('click');
                             
-                    var listItems = this.app.$("#open-files-container").children("ul").children();
+                    var listItems = this.app.$("#open-files-container > ul").children();
                     expect( listItems.length ).toBe(1);
                     expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                             
@@ -122,7 +121,7 @@ define(function(require, exports, module) {
                             
                 });
         
-        // TODO Ty: blocked by issue #85
+        // TODO Ty: 
         //         it("should make a file that is clicked the current one in the editor", function() {
         //             
         //         });

@@ -58,12 +58,10 @@ define(function(require, exports, module) {
      * @private
      */
     function _rebuildWorkingSet(){
-        $("#open-files-container").children("ul").children().remove();
+        $("#open-files-container > ul").empty();
         
-        var workingSet = $(DocumentManager.getWorkingSet());
-        workingSet.each( function(i){
-            var doc = $(this);
-            _createNewListItem(doc[0]);
+        ocumentManager.getWorkingSet().forEach( function(item){
+            _createNewListItem(item);
         });
     }
     
@@ -86,7 +84,7 @@ define(function(require, exports, module) {
         newItem.data( _DOCUMENT_KEY, doc );
         
          
-        $("#open-files-container").children("ul").append(newItem);
+        $("#open-files-container > ul").append(newItem);
          
         // Update the listItem's apperance
         _updateFileStatusIcon(newItem, doc.isDirty, false);
@@ -164,7 +162,7 @@ define(function(require, exports, module) {
    function _updateListSelection(curDoc){
        // Iterate through working set list and update the selection on each
        if(curDoc){
-           var items = $("#open-files-container").children("ul").children();
+           var items = $("#open-files-container > ul").children();
            items.each( function(i){
                var listItem = $(this);
                 
@@ -203,7 +201,7 @@ define(function(require, exports, module) {
        var result = null;
         
        if(doc){
-           var items = $("#open-files-container").children("ul").children();
+           var items = $("#open-files-container > ul").children();
            items.each( function(i){
                var listItem = $(this);
                if(listItem.data( _DOCUMENT_KEY ) === doc){
