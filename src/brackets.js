@@ -11,9 +11,9 @@ define(function(require, exports, module) {
     // Load dependent modules
     var PreferencesManager      = require("PreferencesManager")
     ,   ProjectManager          = require("ProjectManager")
-    ,   DocumentManager          = require("DocumentManager")
+    ,   DocumentManager         = require("DocumentManager")
     ,   EditorManager           = require("EditorManager")
-	,   WorkingSetView          = require("WorkingSetView")
+    ,   WorkingSetView          = require("WorkingSetView")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
@@ -34,7 +34,7 @@ define(function(require, exports, module) {
         , FileCommandHandlers   : FileCommandHandlers
         , DocumentManager       : DocumentManager
         , Commands              : Commands
-		, WorkingSetView		: WorkingSetView
+        , WorkingSetView        : WorkingSetView
         , CommandManager        : require("CommandManager")
         };
 
@@ -112,7 +112,7 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        EditorManager.setEditorArea( $('#editorHolder') );
+        EditorManager.setEditorHolder( $('#editorHolder') );
     
         initProject();
         initMenus();
@@ -173,9 +173,9 @@ define(function(require, exports, module) {
             });
             
             // Other debug menu items
-            $("#menu-debug-wordwrap").click(function() {
-                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
-            });     
+//            $("#menu-debug-wordwrap").click(function() {
+//                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
+//            });     
         }
 
         function initCommandHandlers() {

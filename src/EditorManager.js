@@ -15,7 +15,7 @@ define(function(require, exports, module) {
     
     // Load dependent modules
     var DocumentManager     = require("DocumentManager")
-    ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   EditorUtils         = require("EditorUtils")
     ;
     
     // Initialize: register listeners
@@ -34,8 +34,6 @@ define(function(require, exports, module) {
     
     /** @type {number} Used by {@link _updateEditorSize()} */
     var _resizeTimeout = null;
-    /** @type {number} Used to determine if an editor missed any resizes while hidden */
-    var _resizeCount = 0;
 
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
@@ -78,7 +76,7 @@ define(function(require, exports, module) {
      * will own the content of this DOM node.
      * @param {!jQueryObject} holder
      */
-    function setEditorArea(holder) {
+    function setEditorHolder(holder) {
         if (_currentEditor)
             throw new Error("Cannot change editor area after an editor has already been created!");
         
@@ -87,13 +85,14 @@ define(function(require, exports, module) {
     
     
     /**
-     * Creates a new CodeMirror editor instance containing the given text. The editor is not yet
-     * visible. This editor can be used to construct a Document, which in turn can be displayed
-     * in the main editor UI area.
-     * @param {!string} text
-     * @return {!CodeMirror}
+     * Creates a new CodeMirror editor instance containing the given text, and wraps it in a new
+     * Document tied to the given file. The editor is not yet visible; to display it in the main
+     * editor UI area, ask DocumentManager to make this the current document.
+     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @param {!string} text  The initial contents of the editor, i.e. the contents of the file.
+     * @return {!Document}
      */
-    function createEditor(text) {
+    function createDocumentAndEditor(fileEntry, text) {
         var editor = CodeMirror(_editorHolder.get(0), {
             indentUnit : 4,
             extraKeys: {
@@ -106,6 +105,9 @@ define(function(require, exports, module) {
             }
         });
         
+        // Set code-coloring mode
+        EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
+        
         // Initially populate with text. This will send a spurious change event, but that's ok
         // because no one's listening yet (and we clear the undo stack below)
         editor.setValue(text);
@@ -113,7 +115,8 @@ define(function(require, exports, module) {
         // Make sure we can't undo back to the empty state before setValue()
         editor.clearHistory();
         
-        return editor;
+        // Create the Document wrapping editor & binding it to a file
+        return new DocumentManager.Document(fileEntry, editor);
     }
     
     /**
@@ -125,11 +128,11 @@ define(function(require, exports, module) {
         var editor = document._editor;
         
         // If outgoing editor is no longer needed, dispose it
-        if (! DocumentManager.getDocument(document.file)) {
+        if (! DocumentManager.getDocumentForFile(document.file)) {
             
             // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
             // is "Remove this from your tree to delete an editor instance."
-            _editorHolder.get(0).removeChild( editor.getWrapperElement() );
+            $(editor.getWrapperElement()).remove();
             
             // Our callers should really ensure this, but just for safety...
             if (_currentEditor == editor) {
@@ -158,13 +161,10 @@ define(function(require, exports, module) {
         _currentEditor = document._editor;
         $(_currentEditor.getWrapperElement()).css("display", "");
         
-        // If window has been resized since last time editor was visible, kick it now
-        var editorResizeCount = $(_currentEditor.getWrapperElement()).data("resizeCount");
-        if (isNaN(editorResizeCount) || editorResizeCount < _resizeCount) {
-            $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-            _currentEditor.refresh();
-            $(_currentEditor.getWrapperElement()).data("resizeCount", _resizeCount);
-        }
+        // Window may have been resized since last time editor was visible, so kick it now
+        // (see _updateEditorSize() handler below)
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        _currentEditor.refresh();
     }
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
@@ -185,19 +185,16 @@ define(function(require, exports, module) {
      * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
      */
     function _updateEditorSize() {
-        // Make sure we know to resize other (hidden) editors when swapping them in
-        _resizeCount++;
-        
-        // Don't refresh every single time.
+        // Don't refresh every single time
         if (!_resizeTimeout) {
             _resizeTimeout = setTimeout(function() {
                 _currentEditor.refresh();
-                $(_currentEditor.getWrapperElement()).data("resizeCount", _resizeCount);
                 _resizeTimeout = null;
             }, 100);
         }
-        $('.CodeMirror-scroll', _editorHolder)
-            .height(_editorHolder.height());
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        
+        // (see also force-resize code in _showEditor() )
     }
     
     
@@ -209,8 +206,8 @@ define(function(require, exports, module) {
     
     
     // Define public API
-    exports.setEditorArea = setEditorArea;
-    exports.createEditor = createEditor;
+    exports.setEditorHolder = setEditorHolder;
+    exports.createDocumentAndEditor = createDocumentAndEditor;
     exports.focusEditor = focusEditor;
     
 });

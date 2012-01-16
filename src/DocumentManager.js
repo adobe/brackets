@@ -26,13 +26,12 @@
  */
 define(function(require, exports, module) {
 
-    var ProjectManager     = require("ProjectManager")
-    ;
+    var ProjectManager     = require("ProjectManager");
 
     /**
      * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
-     * file, so it IS safe to compare them with '=='.
+     * file, so it IS safe to compare them with '==' or '==='.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
      * @param {!CodeMirror} editor  The editor that will maintain the document state (current text
      *          and undo stack). It is assumed that the editor text has already been initialized
@@ -42,7 +41,7 @@ define(function(require, exports, module) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
-        if (getDocument(file) != null) {
+        if (getDocumentForFile(file) != null) {
             throw new Error("Creating a document + editor when one already exists, for: " + file);
         }
         
@@ -50,15 +49,8 @@ define(function(require, exports, module) {
         this._editor = editor;
         
         // Dirty-bit tracking
-        editor.setOption("onChange", $.proxy(this._updateDirty, this));
+        editor.setOption("onChange", this._updateDirty.bind(this));
         this._savedUndoPosition = editor.historySize().undo;   // should always be 0, but just to be safe...
-    }
-    
-    /**
-     * @return {string} The editor's current contents; may not be saved to disk yet.
-     */
-    Document.prototype.getText = function() {
-        return this._editor.getValue();
     }
     
     /**
@@ -78,15 +70,25 @@ define(function(require, exports, module) {
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
      * other than DocumentManager and EditorManager should access it.
+     * TODO: we should close on whether private fields are declared on the prototype like this (vs.
+     * just set in the constructor).
      * @type {!CodeMirror}
      */
     Document.prototype._editor = null;
     
     /**
      * @private
+     * TODO: we should close on whether private fields are declared on the prototype like this
      * @type {number}
      */
     Document.prototype._savedUndoPosition = 0;
+    
+    /**
+     * @return {string} The editor's current contents; may not be saved to disk yet.
+     */
+    Document.prototype.getText = function() {
+        return this._editor.getValue();
+    }
     
     /**
      * @private
@@ -147,7 +149,7 @@ define(function(require, exports, module) {
      * @param {!FileEntry} fileEntry
      * @return {?Document}
      */
-    function getDocument(fileEntry) {
+    function getDocumentForFile(fileEntry) {
         if (_currentDocument && _currentDocument.file.fullPath == fileEntry.fullPath)
             return _currentDocument;
         
@@ -239,7 +241,7 @@ define(function(require, exports, module) {
      */
     function showInEditor(document) {
         // If this file is already in editor, do nothing
-        if (_currentDocument && _currentDocument == document)
+        if (_currentDocument == document)
             return;
         
         // If file not within project tree, add it to working set right now (don't wait for it to
@@ -308,7 +310,9 @@ define(function(require, exports, module) {
             else
                 _clearEditor();
         }
+        
         // (Now we're guaranteed that the current document is not the one we're closing)
+        console.assert(_currentDocument != document);
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
@@ -324,10 +328,10 @@ define(function(require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
-    exports.getDocument = getDocument;
+    exports.getDocumentForFile = getDocumentForFile;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
-	exports.addToWorkingSet = addToWorkingSet;
+    exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
     
 });
