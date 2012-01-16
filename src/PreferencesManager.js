@@ -7,22 +7,19 @@
  *
  */
 define(function(require, exports, module) {
-    var callbacks = [];
-
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 
-    // TODO (jasonsj): interface for different storage (localStorage vs. hosted)
-    var persistentStorage = localStorage;
-    var prefStorage = JSON.parse( persistentStorage.getItem( PREFERENCES_KEY ) );
+    // Private Properties
+    var preferencesKey      = PREFERENCES_KEY
+    ,   callbacks           = {}
+    ,   prefStorage
+    ,   persistentStorage;
 
-    if ( !prefStorage ) {
-        // initialize empty preferences
-        prefStorage = {};
-        persistentStorage.setItem( PREFERENCES_KEY, JSON.stringify( prefStorage ) );
-    }
+    // Use localStorage by default
+    _initStorage( localStorage );
 
     /**
-     * Retrieves preference object for the specified client.
+     * Retrieves a copy of the client's preferences object.
      *
      * @param {string}  unique identifier clientID
      * @return {object} preference
@@ -32,7 +29,13 @@ define(function(require, exports, module) {
             throw new Error("Invalid clientID");
         }
 
-        return prefStorage[ clientID ];
+        var prefs = prefStorage[ clientID ];
+
+        if ( prefs === undefined )
+            return undefined;
+
+        // create a deep copy to return to the client
+        return JSON.parse( JSON.stringify( prefs ) );
     }
 
     /**
@@ -75,21 +78,20 @@ define(function(require, exports, module) {
                            , instance: instance };
 
         // add to callbacks list
-        callbacks.push( callbackData );
+        callbacks[ clientID ] = callbackData;
     }
 
     /**
      * Save all participants.
      */
     function savePreferences() {
-        var max = callbacks.length
-        ,   data
+        var data
         ,   storage;
 
-        // iterate over all save participants
-        for( var i = 0; i < max; i++ ) {
-            data = callbacks[i];
-            storage = prefStorage[ data.clientID ];
+        // iterate over all preference clients
+        $.each( callbacks, function( index, value ) {
+            data = callbacks[ index ];
+            storage = getPreferences( data.clientID );
 
             // fire callback with thisArg and preference storage
             try {
@@ -99,20 +101,77 @@ define(function(require, exports, module) {
                 console.log( "PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID );
             }
 
-            // save client preferences
-            prefStorage[ data.clientID ] = storage;
-        }
+            // only save preferences that can be serialized with JSON
+            if ( JSON.stringify( storage )) {
+                prefStorage[ data.clientID ] = storage;
+            }
+        });
 
         saveToPersistentStorage();
     }
 
+    /**
+     * Saves to persistent storage.
+     * TODO (jasonsj): local and/or hosted
+     */
     function saveToPersistentStorage() {
         // save all preferences
-        persistentStorage.setItem( PREFERENCES_KEY, JSON.stringify( prefStorage ) );
+        persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
+    }
+
+    /**
+     * @private
+     * Redirects preference storage to another key in persistent storage. 
+     * Allows unit test preferences to be stored in the same mechanism as
+     * production preferences without clobbering.
+     * 
+     * @return {string} Previous key
+     */
+    function _setStorageKey( key ) {
+        var oldKey = preferencesKey;
+
+        preferencesKey = key;
+
+        // re-init in-memory prefs when changing keys
+        _initStorage( persistentStorage );
+
+        return oldKey;
+    }
+
+    /**
+     * @private
+     * Initialize persistent storage implementation
+     */
+    function _initStorage( storage ) {
+        persistentStorage = storage;
+        prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
+
+        // initialize empty preferences if none were found in storage
+        if ( !prefStorage ) {
+            _reset();
+        }
+    }
+
+    /**
+     * @private
+     * Reset preferences and callbacks
+     */
+    function _reset() {
+        callbacks = {};
+        prefStorage = {};
+
+        // Note that storage.clear() is not used. Production and unit test code
+        // both rely on the same backing storage but unique item keys.
+        persistentStorage.setItem( preferencesKey, JSON.stringify( prefStorage ) );
     }
 
     // Public API
     exports.getPreferences          = getPreferences;
     exports.addPreferencesClient    = addPreferencesClient;
     exports.savePreferences         = savePreferences;
+
+    // Internal Use Only
+    exports._reset                  = _reset;
+    exports._setStorageKey          = _setStorageKey;
+    exports._PREFERENCES_KEY        = PREFERENCES_KEY;
 });
