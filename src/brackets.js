@@ -26,7 +26,8 @@ define(function(require, exports, module) {
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
     brackets.test =
-        { ProjectManager        : ProjectManager
+        { PreferencesManager    : PreferencesManager
+        , ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
         , Commands              : Commands
         , CommandManager        : require("CommandManager")
@@ -107,7 +108,17 @@ define(function(require, exports, module) {
     $(document).ready(function() {
 
         var editorElt = $('#editor')
-        ,   editor = CodeMirror(editorElt.get(0), { indentUnit : 4 });
+        ,   editor = CodeMirror(editorElt.get(0), {
+                indentUnit : 4, 
+                extraKeys: { 
+                    "Tab" : function(instance) {
+                         if (instance.somethingSelected())
+                            CodeMirror.commands.indentMore(instance);
+                         else
+                            CodeMirror.commands.insertTab(instance);
+                    }
+                }
+            });
     
         // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
         // We need to do this programmatically.

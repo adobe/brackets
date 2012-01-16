@@ -2,9 +2,9 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 define(function(require, exports, module) {
-    
+
     // TODO: Determine proper public/private API for this module, splitting into separate modules as needed
-    
+
     var NativeFileSystem = {
 
         /** showOpenDialog
@@ -107,6 +107,8 @@ define(function(require, exports, module) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
         // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
+
+        // TODO (jasonsj): PATH_SEPARATOR per native OS
         this.fullPath = fullPath;
 
         // Extract name from fullPath
@@ -654,7 +656,7 @@ define(function(require, exports, module) {
     NativeFileSystem.FileError = function( code ) {
         this.code = code || 0;
     };
-    
+
     // Define public API
     exports.NativeFileSystem = NativeFileSystem;
 });
