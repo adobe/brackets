@@ -173,9 +173,9 @@ define(function(require, exports, module) {
             });
             
             // Other debug menu items
-            $("#menu-debug-wordwrap").click(function() {
-                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
-            });     
+//            $("#menu-debug-wordwrap").click(function() {
+//                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
+//            });     
         }
 
         function initCommandHandlers() {
