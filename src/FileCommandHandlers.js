@@ -29,14 +29,14 @@ define(function(require, exports, module) {
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
-		CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWoringSet);
+        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
         // TODO: For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
-		
+        
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
@@ -76,11 +76,11 @@ define(function(require, exports, module) {
             _title.text("");
         }
     }
-	
-	function handleFileAddToWoringSet(fullPath){
-		handleFileOpen(fullPath);
-		DocumentManager.addToWorkingSet(fullPath);
-	}
+    
+    function handleFileAddToWorkingSet(fullPath){
+        handleFileOpen(fullPath);
+        DocumentManager.addToWorkingSet(fullPath);
+    }
 
     function handleFileOpen(fullPath) {
         var result = doOpenWithOptionalPath(fullPath);
@@ -215,40 +215,42 @@ define(function(require, exports, module) {
         return result;
     }
 
-	/** Closes the specified document. Assumes the current document if doc is null. 
-	 * Prompts user about saving file if document is dirty
-	 * @param {?Document} doc 
-	 */
+    /** Closes the specified document. Assumes the current document if doc is null. 
+     * Prompts user about saving file if document is dirty
+     * @param {?Document} doc 
+     */
     function handleFileClose( doc ) {
         
         // utility function for handleFileClose
         function doClose(doc) {      
-	        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
-	        // TODO: can this be removed?
-	        doc.markClean();
+            // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+            // TODO: can this be removed?
+            doc.markClean();
         
-	        // This selects a different document if the working set has any other options
-	        DocumentManager.closeDocument(doc);
+            // This selects a different document if the working set has any other options
+            DocumentManager.closeDocument(doc);
         
-	        EditorManager.focusEditor();
-	    }
+            EditorManager.focusEditor();
+        }
         
         
         // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
         
-		// Default to current document if doc is null
+        // Default to current document if doc is null
         if (!doc)
             doc =  DocumentManager.getCurrentDocument();
         // No-op if called when nothing is open; TODO: should command be grayed out instead?
         if (!doc)
             return;
         
-		if (doc.isDirty) {
+        if (doc.isDirty) {
+            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
+            
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
-                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) )
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename )
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -277,7 +279,7 @@ define(function(require, exports, module) {
             });
         }
         else {
-			// Doc is not dirty, just close
+            // Doc is not dirty, just close
             doClose(doc);
             EditorManager.focusEditor();
             result.resolve();
@@ -285,7 +287,7 @@ define(function(require, exports, module) {
         return result;
     }
 
-	
+    
 
 
     function showFileOpenError(code, path) {
