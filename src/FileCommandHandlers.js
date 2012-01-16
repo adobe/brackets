@@ -2,6 +2,8 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 define(function(require, exports, module) {
+    require("thirdparty/path-utils/path-utils.min");
+    
     // Load dependent modules
     var CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
