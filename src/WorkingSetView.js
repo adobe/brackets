@@ -53,26 +53,26 @@ define(function(require, exports, module) {
     function _handleDocumentAdded(doc) {
         _createNewListItem(doc);
     }
-	
-	/** Deletes all the list items in the view and rebuilds them from the working set model
-	 * @private
-	 */
-	function _rebuildWorkingSet(){
-		$("#open-files-container").children("ul").children().remove();
-		
-		var workingSet = $(DocumentManager.getWorkingSet());
+    
+    /** Deletes all the list items in the view and rebuilds them from the working set model
+     * @private
+     */
+    function _rebuildWorkingSet(){
+        $("#open-files-container").children("ul").children().remove();
+        
+        var workingSet = $(DocumentManager.getWorkingSet());
         workingSet.each( function(i){
             var doc = $(this);
-			_createNewListItem(doc[0]);
-		});
-	}
-	
-	/** Builds the UI for a new list item and inserts in into the end of the list
-	 * @private
-	 * @param {Document} document
-	 * @return {HTMLLIElement} newListItem
-	 */
-	function _createNewListItem(doc){
+            _createNewListItem(doc[0]);
+        });
+    }
+    
+    /** Builds the UI for a new list item and inserts in into the end of the list
+     * @private
+     * @param {Document} document
+     * @return {HTMLLIElement} newListItem
+     */
+    function _createNewListItem(doc){
         var curDoc = DocumentManager.getCurrentDocument();
          
         // Add new item to bottom of list
@@ -84,7 +84,7 @@ define(function(require, exports, module) {
          
         // Link the list item with the document data
         newItem.data( _DOCUMENT_KEY, doc );
-		
+        
          
         $("#open-files-container").children("ul").append(newItem);
          
@@ -94,7 +94,7 @@ define(function(require, exports, module) {
          
         // Click handler
         newItem.click( function() { 
-			_openDoc( doc );
+            _openDoc( doc );
         });
          
         // Hover handler        
@@ -104,8 +104,8 @@ define(function(require, exports, module) {
             // hover out
             function() { _updateFileStatusIcon($(this), doc.isDirty, false);}
         );
-	}
-	
+    }
+    
 
      
     /** Updates the appearance of the list element based on the parameters provided
@@ -226,10 +226,10 @@ define(function(require, exports, module) {
     function _handleDirtyFlagChanged(doc){
         var listItem = _findListItemFromDocument(doc);
         if(listItem){
-			var canClose = $(listItem).find("canClose").length = 1;
-			_updateFileStatusIcon(listItem, doc.isDirty, canClose);
-		}
-		
+            var canClose = $(listItem).find("canClose").length = 1;
+            _updateFileStatusIcon(listItem, doc.isDirty, canClose);
+        }
+        
     }
      
      

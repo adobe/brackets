@@ -135,74 +135,74 @@ a, img {
 }
 
 #project-file-area {
-	.vbox;
-	.box-flex(1);
-	margin: 5px 0px 5px 0px;
-	
-	.project-file-header-area {
-		padding: 4px 4px 2px 0px;
-		
-		span {
-			font-weight: bold;
-			vertical-align: middle;		
-		}
-	}
+    .vbox;
+    .box-flex(1);
+    margin: 5px 0px 5px 0px;
+    
+    .project-file-header-area {
+        padding: 4px 4px 2px 0px;
+        
+        span {
+            font-weight: bold;
+            vertical-align: middle;        
+        }
+    }
 
-	hr {
-		margin: 0px 0px 0px 0px;
-		border: 1px;
-		border-top-style: inset;
-		border-right-style: none;
-		border-bottom-style: inset;
-		border-left-style: none;
-	}
+    hr {
+        margin: 0px 0px 0px 0px;
+        border: 1px;
+        border-top-style: inset;
+        border-right-style: none;
+        border-bottom-style: inset;
+        border-left-style: none;
+    }
 }
 
 
 
 #open-files-container {
-	.box-flex(0);
-	margin: 0px;
-  	padding: 0px;
-	overflow: auto;
-	
-	ul {
-		list-style-type: none;
-		margin: 5px 0px 0px 0px;
-		
-		a {
-			color: black;
-			text-decoration: none;
-			margin-left: 26px;
-		}
-		
-		li {
-			padding: 4px 0px 4px 2px;
-			
-			position: relative; // so that children can be positioned absolute
-			
-			&:hover {
-				background: #E7F4F9;
-			}
-			
-			&.selected {
-				background-color: #0065BE;
-				background-repeat: repeat-x;
-				background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
-		
-				a { color: white; }	
-			} 			
-		}		
-	}
+    .box-flex(0);
+    margin: 0px;
+      padding: 0px;
+    overflow: auto;
+    
+    ul {
+        list-style-type: none;
+        margin: 5px 0px 0px 0px;
+        
+        a {
+            color: black;
+            text-decoration: none;
+            margin-left: 26px;
+        }
+        
+        li {
+            padding: 4px 0px 4px 2px;
+            
+            position: relative; // so that children can be positioned absolute
+            
+            &:hover {
+                background: #E7F4F9;
+            }
+            
+            &.selected {
+                background-color: #0065BE;
+                background-repeat: repeat-x;
+                background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
+        
+                a { color: white; }    
+            }             
+        }        
+    }
 }
 
 #project-files-container {
-	.box-flex(1);
-	margin: 0px 0px 0px 8px;
-  	padding: 0;
-	overflow: auto; /* show scrollbars */
-	
-	ul { margin-top: 5px; }
+    .box-flex(1);
+    margin: 0px 0px 0px 8px;
+      padding: 0;
+    overflow: auto; /* show scrollbars */
+    
+    ul { margin-top: 5px; }
 }
 
 @spriteSize18: 18px;
@@ -210,58 +210,58 @@ a, img {
 /** Classes for icons from jsTreeSprites.png 
 */
 .jsTreeSprite {
-	background-image: url("styles/images/jsTreeSprites.png");
-	background-repeat: no-repeat;
-	background-color: transparent;
-	vertical-align: middle;
-	width: @spriteSize18;
-	height: @spriteSize18;
+    background-image: url("styles/images/jsTreeSprites.png");
+    background-repeat: no-repeat;
+    background-color: transparent;
+    vertical-align: middle;
+    width: @spriteSize18;
+    height: @spriteSize18;
 }
 
 .disclosure-arrow-opened {
-	.jsTreeSprite;
-	display: inline-block;
-	background-position: -@spriteSize18 0px;
+    .jsTreeSprite;
+    display: inline-block;
+    background-position: -@spriteSize18 0px;
 }
 
 .disclosure-arrow-closed {
-	.jsTreeSprite;
-	display: inline-block;
-	background-position: 0px 0px;
+    .jsTreeSprite;
+    display: inline-block;
+    background-position: 0px 0px;
 }
 
 /** Classes for icons from bracketSprites.png 
 */
 
 .bracketSprite {
-	background-image: url("styles/images/bracketsSprites.png");
-	background-repeat: no-repeat;
-	background-color: transparent;
-	vertical-align: middle;
-	width: @spriteSize18;
-	height: @spriteSize18;
+    background-image: url("styles/images/bracketsSprites.png");
+    background-repeat: no-repeat;
+    background-color: transparent;
+    vertical-align: middle;
+    width: @spriteSize18;
+    height: @spriteSize18;
 }
 
 
 .file-status-icon {
-	margin: 0px 0px 0px 2px;
-	.bracketSprite;
-	display: inline-block;
-	position: absolute;
-	left: 0px;
-	top: 3px;
-	
-	&.dirty {
-		background-position: -@spriteSize18 0;
-		
-		&.canClose {
-			background-position: 0 0;
-		}
-	}
-	
-	&.canClose {
-		background-position: -36px 0px;
-	}
+    margin: 0px 0px 0px 2px;
+    .bracketSprite;
+    display: inline-block;
+    position: absolute;
+    left: 0px;
+    top: 3px;
+    
+    &.dirty {
+        background-position: -@spriteSize18 0;
+        
+        &.canClose {
+            background-position: 0 0;
+        }
+    }
+    
+    &.canClose {
+        background-position: -36px 0px;
+    }
 }
 
 
