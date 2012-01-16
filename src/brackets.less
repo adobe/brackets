@@ -244,7 +244,7 @@ a, img {
 
 
 .file-status-icon {
-    margin: 0px 0px 0px 2px;
+    margin: 0px 0px 0px 8px;
     .bracketSprite;
     display: inline-block;
     position: absolute;
@@ -252,15 +252,15 @@ a, img {
     top: 3px;
     
     &.dirty {
-        background-position: -@spriteSize18 0;
-        
-        &.canClose {
-            background-position: 0 0;
-        }
+        background-position: 0 0;
     }
     
     &.canClose {
-        background-position: -36px 0px;
+        background-position: -@spriteSize18 0;
+    }
+  
+    &.canClose:hover {
+        background-position: -@spriteSize18*2 0;
     }
 }
 

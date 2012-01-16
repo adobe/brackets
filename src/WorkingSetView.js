@@ -224,7 +224,7 @@ define(function(require, exports, module) {
     function _handleDirtyFlagChanged(doc){
         var listItem = _findListItemFromDocument(doc);
         if(listItem){
-            var canClose = $(listItem).find("canClose").length = 1;
+            var canClose = $(listItem).find("canClose").length == 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
         
