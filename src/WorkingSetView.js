@@ -4,7 +4,7 @@
   
  /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
- * The UI allows the user to see what files are open/dirty and allows them to close editors and specify the current editor.
+ * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  */
 define(function(require, exports, module) {
      
@@ -85,8 +85,6 @@ define(function(require, exports, module) {
         // Link the list item with the document data
         newItem.data( _DOCUMENT_KEY, doc );
 		
-		// Find out where in the list the newItem should appear
-		var workingSet = DocumentManager.getWorkingSet();
          
         $("#open-files-container").children("ul").append(newItem);
          
@@ -131,17 +129,29 @@ define(function(require, exports, module) {
            fileStatusIcon = $("<div></div>");
            fileStatusIcon.addClass("file-status-icon");
            listElement.prepend(fileStatusIcon);
-                
-           fileStatusIcon.click( function() {
-               var doc = listElement.data(_DOCUMENT_KEY)
-               CommandManager.execute(Commands.FILE_CLOSE, doc);
-           });
+               
+            // Icon click handler
+            fileStatusIcon.click( function() {
+                var doc = listElement.data(_DOCUMENT_KEY)
+                CommandManager.execute(Commands.FILE_CLOSE, doc);
+            });
        }
  
        // Set icon's class
        if (fileStatusIcon) {
-           fileStatusIcon.toggleClass("dirty", isDirty);
-           fileStatusIcon.toggleClass("canClose", canClose);
+           if( isDirty){
+               fileStatusIcon.addClass("dirty");
+               if(canClose)
+                   fileStatusIcon.addClass("dirty canClose");
+                else
+                      fileStatusIcon.removeClass("canClose");
+           }
+           else{
+               fileStatusIcon.removeClass("dirty");
+               fileStatusIcon.addClass("canClose");
+           }
+           
+ 
        }
    }
     
@@ -214,7 +224,12 @@ define(function(require, exports, module) {
     }
      
     function _handleDirtyFlagChanged(doc){
-        $("#" + doc.file.fullPath).find(".file-status-icon");
+        var listItem = _findListItemFromDocument(doc);
+        if(listItem){
+			var canClose = $(listItem).find("canClose").length = 1;
+			_updateFileStatusIcon(listItem, doc.isDirty, canClose);
+		}
+		
     }
      
      

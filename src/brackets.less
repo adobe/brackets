@@ -185,20 +185,14 @@ a, img {
 				background: #E7F4F9;
 			}
 			
-			
 			&.selected {
 				background-color: #0065BE;
 				background-repeat: repeat-x;
 				background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #5fa3e0), color-stop(100%, #0065be));
 		
-				a { color: white; }
-			
-		} 
-		
-		
-					
-		}
-		
+				a { color: white; }	
+			} 			
+		}		
 	}
 }
 
@@ -211,34 +205,23 @@ a, img {
 	ul { margin-top: 5px; }
 }
 
+@spriteSize18: 18px;
+
 /** Classes for icons from jsTreeSprites.png 
 */
-
 .jsTreeSprite {
 	background-image: url("styles/images/jsTreeSprites.png");
 	background-repeat: no-repeat;
 	background-color: transparent;
 	vertical-align: middle;
-	width: @jsTreeSpriteSize;
-	height: @jsTreeSpriteSize;
+	width: @spriteSize18;
+	height: @spriteSize18;
 }
-
-.bracketSprite {
-	background-image: url("styles/images/bracketsSprites.png");
-	background-repeat: no-repeat;
-	background-color: transparent;
-	vertical-align: middle;
-	width: @jsTreeSpriteSize;
-	height: @jsTreeSpriteSize;
-}
-
-
-@jsTreeSpriteSize: 18px;
 
 .disclosure-arrow-opened {
 	.jsTreeSprite;
 	display: inline-block;
-	background-position: -@jsTreeSpriteSize 0px;
+	background-position: -@spriteSize18 0px;
 }
 
 .disclosure-arrow-closed {
@@ -246,6 +229,19 @@ a, img {
 	display: inline-block;
 	background-position: 0px 0px;
 }
+
+/** Classes for icons from bracketSprites.png 
+*/
+
+.bracketSprite {
+	background-image: url("styles/images/bracketsSprites.png");
+	background-repeat: no-repeat;
+	background-color: transparent;
+	vertical-align: middle;
+	width: @spriteSize18;
+	height: @spriteSize18;
+}
+
 
 .file-status-icon {
 	margin: 0px 0px 0px 2px;
@@ -256,15 +252,17 @@ a, img {
 	top: 3px;
 	
 	&.dirty {
-		background-position: -@jsTreeSpriteSize 0;
+		background-position: -@spriteSize18 0;
+		
+		&.canClose {
+			background-position: 0 0;
+		}
 	}
 	
 	&.canClose {
-		background-position: 0px 0px;
+		background-position: -36px 0px;
 	}
 }
-
-
 
 
 /* Styles for the search dialog--this is temporary, only for debugging */
