@@ -4,7 +4,7 @@
   
  /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
- * The UI allows the user to see what files are open/dirty and allows them to close editors and specify the current editor.
+ * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  */
 define(function(require, exports, module) {
      
@@ -12,8 +12,8 @@ define(function(require, exports, module) {
     var DocumentManager     = require("DocumentManager")
     , CommandManager        = require("CommandManager")
     , Commands              = require("Commands")
-    , EditorManager        = require("EditorManager")
-    , NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    , EditorManager         = require("EditorManager")
+    , NativeFileSystem      = require("NativeFileSystem").NativeFileSystem
     ;
  
     // Initialize: register listeners
@@ -24,15 +24,15 @@ define(function(require, exports, module) {
     });
      
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
-        //console.log("Working set ++ " + addedDoc);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
+        console.log("Working set ++ " + addedDoc);
+        console.log("  set: " + DocumentManager.getWorkingSet().join());
          
         _handleDocumentAdded( addedDoc )    
     });
      
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
         console.log("Working set -- " + removedDoc);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
+        console.log("  set: " + DocumentManager.getWorkingSet().join());
          
         _handleDocumentRemoved( removedDoc );
     });
@@ -53,26 +53,24 @@ define(function(require, exports, module) {
     function _handleDocumentAdded(doc) {
         _createNewListItem(doc);
     }
-	
-	/** Deletes all the list items in the view and rebuilds them from the working set model
-	 * @private
-	 */
-	function _rebuildWorkingSet(){
-		$("#open-files-container").children("ul").children().remove();
-		
-		var workingSet = $(DocumentManager.getWorkingSet());
-        workingSet.each( function(i){
-            var doc = $(this);
-			_createNewListItem(doc[0]);
-		});
-	}
-	
-	/** Builds the UI for a new list item and inserts in into the end of the list
-	 * @private
-	 * @param {Document} document
-	 * @return {HTMLLIElement} newListItem
-	 */
-	function _createNewListItem(doc){
+    
+    /** Deletes all the list items in the view and rebuilds them from the working set model
+     * @private
+     */
+    function _rebuildWorkingSet(){
+        $("#open-files-container > ul").empty();
+        
+        ocumentManager.getWorkingSet().forEach( function(item){
+            _createNewListItem(item);
+        });
+    }
+    
+    /** Builds the UI for a new list item and inserts in into the end of the list
+     * @private
+     * @param {Document} document
+     * @return {HTMLLIElement} newListItem
+     */
+    function _createNewListItem(doc){
         var curDoc = DocumentManager.getCurrentDocument();
          
         // Add new item to bottom of list
@@ -84,11 +82,9 @@ define(function(require, exports, module) {
          
         // Link the list item with the document data
         newItem.data( _DOCUMENT_KEY, doc );
-		
-		// Find out where in the list the newItem should appear
-		var workingSet = DocumentManager.getWorkingSet();
+        
          
-        $("#open-files-container").children("ul").append(newItem);
+        $("#open-files-container > ul").append(newItem);
          
         // Update the listItem's apperance
         _updateFileStatusIcon(newItem, doc.isDirty, false);
@@ -96,7 +92,7 @@ define(function(require, exports, module) {
          
         // Click handler
         newItem.click( function() { 
-			_openDoc( doc );
+            _openDoc( doc );
         });
          
         // Hover handler        
@@ -106,8 +102,8 @@ define(function(require, exports, module) {
             // hover out
             function() { _updateFileStatusIcon($(this), doc.isDirty, false);}
         );
-	}
-	
+    }
+    
 
      
     /** Updates the appearance of the list element based on the parameters provided
@@ -131,17 +127,29 @@ define(function(require, exports, module) {
            fileStatusIcon = $("<div></div>");
            fileStatusIcon.addClass("file-status-icon");
            listElement.prepend(fileStatusIcon);
-                
-           fileStatusIcon.click( function() {
-               var doc = listElement.data(_DOCUMENT_KEY)
-               CommandManager.execute(Commands.FILE_CLOSE, doc);
-           });
+               
+            // Icon click handler
+            fileStatusIcon.click( function() {
+                var doc = listElement.data(_DOCUMENT_KEY)
+                CommandManager.execute(Commands.FILE_CLOSE, doc);
+            });
        }
  
        // Set icon's class
        if (fileStatusIcon) {
-           fileStatusIcon.toggleClass("dirty", isDirty);
-           fileStatusIcon.toggleClass("canClose", canClose);
+           if( isDirty){
+               fileStatusIcon.addClass("dirty");
+               if(canClose)
+                   fileStatusIcon.addClass("dirty canClose");
+                else
+                      fileStatusIcon.removeClass("canClose");
+           }
+           else{
+               fileStatusIcon.removeClass("dirty");
+               fileStatusIcon.addClass("canClose");
+           }
+           
+ 
        }
    }
     
@@ -154,7 +162,7 @@ define(function(require, exports, module) {
    function _updateListSelection(curDoc){
        // Iterate through working set list and update the selection on each
        if(curDoc){
-           var items = $("#open-files-container").children("ul").children();
+           var items = $("#open-files-container > ul").children();
            items.each( function(i){
                var listItem = $(this);
                 
@@ -193,7 +201,7 @@ define(function(require, exports, module) {
        var result = null;
         
        if(doc){
-           var items = $("#open-files-container").children("ul").children();
+           var items = $("#open-files-container > ul").children();
            items.each( function(i){
                var listItem = $(this);
                if(listItem.data( _DOCUMENT_KEY ) === doc){
@@ -214,11 +222,13 @@ define(function(require, exports, module) {
     }
      
     function _handleDirtyFlagChanged(doc){
-        $("#" + doc.file.fullPath).find(".file-status-icon");
+        var listItem = _findListItemFromDocument(doc);
+        if(listItem){
+            var canClose = $(listItem).find("canClose").length == 1;
+            _updateFileStatusIcon(listItem, doc.isDirty, canClose);
+        }
+        
     }
      
-    function _rebuild() {
-     
-    }
      
 });
