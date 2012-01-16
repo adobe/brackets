@@ -18,30 +18,32 @@ define(function(require, exports, module) {
  
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", function(event) {
-        console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
+        //console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
          
         _handleDocumentChanged();
     });
      
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
-        console.log("Working set ++ " + addedDoc);
-        console.log("  set: " + DocumentManager.getWorkingSet().join());
+        //console.log("Working set ++ " + addedDoc);
+        //console.log("  set: " + DocumentManager.getWorkingSet().join());
          
-        _handleDocumentAdded( addedDoc )    
+        _handleDocumentAdded( addedDoc );       
     });
      
     $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
-        console.log("Working set -- " + removedDoc);
-        console.log("  set: " + DocumentManager.getWorkingSet().join());
+        //console.log("Working set -- " + removedDoc);
+        //console.log("  set: " + DocumentManager.getWorkingSet().join());
          
         _handleDocumentRemoved( removedDoc );
     });
      
     $(DocumentManager).on("dirtyFlagChange", function(event, doc ) {
-        console.log("Dirty flag change: " + doc);
+        //console.log("Dirty flag change: " + doc);
          
         _handleDirtyFlagChanged( doc );
     });
+    
+    _hideShowOpenFileHeader();
      
  
     /** Each list item in the working set stores a references to the related document in the list item's data.  
@@ -52,6 +54,18 @@ define(function(require, exports, module) {
 
     function _handleDocumentAdded(doc) {
         _createNewListItem(doc);
+        _hideShowOpenFileHeader();   
+    }
+    
+    function _hideShowOpenFileHeader(){
+        if( DocumentManager.getWorkingSet().length == 0 ){
+            $("#open-files-header").hide();
+            $("#open-files-divider").hide();
+        }
+        else {
+            $("#open-files-header").show();
+            $("#open-files-divider").show();            
+        }
     }
     
     /** Deletes all the list items in the view and rebuilds them from the working set model
@@ -63,6 +77,8 @@ define(function(require, exports, module) {
         documentManager.getWorkingSet().forEach( function(item){
             _createNewListItem(item);
         });
+        
+        _hideShowOpenFileHeader();   
     }
     
     /** Builds the UI for a new list item and inserts in into the end of the list
@@ -74,13 +90,10 @@ define(function(require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
          
         // Create new list item with a link
-        var newItem = $("<li></li>");
-        var link = $("<a href='#'></a>")
-        link.text(doc.file.name);
-        newItem.append(link);
-         
-        // Link the list item with the document data
-        newItem.data( _DOCUMENT_KEY, doc );
+        var link = $("<a href='#'></a>").text(doc.file.name);
+        var newItem = $("<li></li>")
+            .append(link)
+            .data( _DOCUMENT_KEY, doc );
          
         $("#open-files-container > ul").append(newItem);
          
@@ -94,7 +107,7 @@ define(function(require, exports, module) {
              
         newItem.hover(
             function() { _updateFileStatusIcon($(this), doc.isDirty, true); },
-            function() { _updateFileStatusIcon($(this), doc.isDirty, false);}
+            function() { _updateFileStatusIcon($(this), doc.isDirty, false); }
         );
     }
     
@@ -177,9 +190,9 @@ define(function(require, exports, module) {
      * @private
      * @param {Document} curDoc 
      */ 
-	 function _closeDoc(doc) {
-		 CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
-	 }
+     function _closeDoc(doc) {
+         CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
+     }
         
         
    /** Finds the listItem item assocated with the doc. Returns null if not found.
@@ -192,7 +205,7 @@ define(function(require, exports, module) {
         
        if(doc){
            var items = $("#open-files-container > ul").children();
-           items.each( function(i){
+           items.each( function(){
                var listItem = $(this);
                if(listItem.data( _DOCUMENT_KEY ) === doc){
                    result = listItem;
@@ -208,11 +221,13 @@ define(function(require, exports, module) {
     * @private
     * @param {Document} curDoc 
     */
-	function _handleDocumentRemoved(doc) {        
+    function _handleDocumentRemoved(doc) {        
         var listItem = _findListItemFromDocument(doc);
         if(listItem){
             listItem.remove();
         }
+        
+        _hideShowOpenFileHeader();   
     }
     
     /** 
