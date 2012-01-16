@@ -112,7 +112,7 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        EditorManager.setEditorArea( $('#editorHolder') );
+        EditorManager.setEditorHolder( $('#editorHolder') );
     
         initProject();
         initMenus();

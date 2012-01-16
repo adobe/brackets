@@ -78,7 +78,7 @@ define(function(require, exports, module) {
      * will own the content of this DOM node.
      * @param {!jQueryObject} holder
      */
-    function setEditorArea(holder) {
+    function setEditorHolder(holder) {
         if (_currentEditor)
             throw new Error("Cannot change editor area after an editor has already been created!");
         
@@ -125,11 +125,11 @@ define(function(require, exports, module) {
         var editor = document._editor;
         
         // If outgoing editor is no longer needed, dispose it
-        if (! DocumentManager.getDocument(document.file)) {
+        if (! DocumentManager.getDocumentForFile(document.file)) {
             
             // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
             // is "Remove this from your tree to delete an editor instance."
-            _editorHolder.get(0).removeChild( editor.getWrapperElement() );
+            $(editor.getWrapperElement()).remove();
             
             // Our callers should really ensure this, but just for safety...
             if (_currentEditor == editor) {
@@ -209,7 +209,7 @@ define(function(require, exports, module) {
     
     
     // Define public API
-    exports.setEditorArea = setEditorArea;
+    exports.setEditorHolder = setEditorHolder;
     exports.createEditor = createEditor;
     exports.focusEditor = focusEditor;
     

@@ -122,7 +122,7 @@ define(function(require, exports, module) {
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        var document = DocumentManager.getDocument(fileEntry);
+        var document = DocumentManager.getDocumentForFile(fileEntry);
         if (document != null) {
             // File already open - don't need to load it, just switch to it in the UI
             DocumentManager.showInEditor(document);
