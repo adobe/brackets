@@ -68,9 +68,12 @@ define(function(require, exports, module) {
                 expect( listItems.length ).toBe(2);
                 expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                 expect( listItems.find(".file-status-icon").length).toBe(2);
+                
+                
             });
             
         });
+        
         
         it("should remove a list item when a file is closed", function() {
             DocumentManager.getCurrentDocument().markClean(); // so we can close without a save dialog
@@ -90,41 +93,53 @@ define(function(require, exports, module) {
                                     
         });
         
+        
+        
+        
         // TODO Ty: Can't write this test yet until Jason's persistant work is complete    
         // it("should rebuild the ui from the model correctly", function() {
         //                 
         // });
         
         it("should close a file when the user clicks the close button", function() {
+            var $ = this.app.$;
+                    
+            // make 2nd doc clean
+            var docList = DocumentManager.getWorkingSet();
+            docList[1].markClean();
                             
-                    // make both docs clean
-                    var docList = DocumentManager.getWorkingSet();
-                    docList[0].markClean();
-                    docList[1].markClean();
+            // make the first one active
+            DocumentManager.showInEditor( docList[0]);
                             
-                    // make the first one active
-                    DocumentManager.showInEditor( docList[0]);
+            // hover over and click on close icon of 2nd list item
+            var secondItem =  $($("#open-files-container > ul").children()[1]);
+            secondItem.trigger('mouseover');
+            var closeIcon = secondItem.find(".file-status-icon");
+            expect(closeIcon.length).toBe(1) ;
                             
-                    // click on close icon of 2nd one
-                    var listItems = this.app.$("#open-files-container > ul").children();
-                    var closeIcon = this.app.$(this.app.$(listItems[1]).find(".file-status-icon"));
-                    //expect( closeIcon.toBe(1);
+            // simulate click
+            closeIcon.trigger('click');
                             
-                    // simulate click
-                    closeIcon.trigger('click');
-                            
-                    var listItems = this.app.$("#open-files-container > ul").children();
-                    expect( listItems.length ).toBe(1);
-                    expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
+            var listItems = $("#open-files-container > ul").children();
+            expect( listItems.length ).toBe(1);
+            expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                             
                             
-                            
-                });
+        });
         
-        // TODO Ty: 
-        //         it("should make a file that is clicked the current one in the editor", function() {
-        //             
-        //         });
+        it("should remove dirty icon when file becomes clean", function() {  
+            // check that dirty icon is removed when docs are cleaned
+            var docList = DocumentManager.getWorkingSet();
+           docList[0].markClean();
+           var listItems = this.app.$("#open-files-container > ul").children();
+           expect( listItems.find(".file-status-icon dirty").length).toBe(0);
+            
+        });
+        
+        
+       it("should make a file that is clicked the current one in the editor", function() {
+                           
+       });
         
         
         
