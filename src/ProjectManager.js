@@ -14,6 +14,11 @@ define(function(require, exports, module) {
     ;
 
     /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
+
+    /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
      * @return {DirectoryEntry}
@@ -77,7 +82,7 @@ define(function(require, exports, module) {
      * @private
      * Preferences callback. Saves current project path.
      */
-    function savePreferences( storage ) {
+    function _savePreferences( storage ) {
         // save the current project
         storage.projectPath = _projectRoot.fullPath;
 
@@ -115,11 +120,6 @@ define(function(require, exports, module) {
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
     }
-
-    /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
 
     /**
      * Displays a browser dialog where the user can choose a folder to load.
@@ -525,5 +525,5 @@ define(function(require, exports, module) {
         { projectPath:      bracketsSrc /* initialze to brackets source */
         , projectTreeState: ""          /* TODO (jasonsj): jstree state */
         };
-    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, savePreferences, this, defaults);
+    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
 });

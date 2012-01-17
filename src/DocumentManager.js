@@ -29,6 +29,11 @@ define(function(require, exports, module) {
     var ProjectManager     = require("ProjectManager");
 
     /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.DocumentManager";
+
+    /**
      * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
@@ -323,7 +328,20 @@ define(function(require, exports, module) {
         // circumstances. See notes in EditorManager for more.
     }
     
-    
+    /**
+     * @private
+     * Preferences callback. Saves current project path.
+     */
+    function _savePreferences(storage) {
+        // save the working set file paths
+        var files = [];
+
+        $.each(_workingSet, function(index, value) {
+            files.push(value.file.fullPath);
+        });
+
+        storage.files = files;
+    }
     
     // Define public API
     exports.Document = Document;
@@ -333,5 +351,7 @@ define(function(require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
-    
+
+    // Register preferences callback
+    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
 });
