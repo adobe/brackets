@@ -19,7 +19,7 @@
   
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>
-
+    
     <!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="brackets.less">
     <script src="thirdparty/less-1.1.5.min.js"></script>
@@ -28,7 +28,7 @@
 </head>
 <body>
     <!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
-    due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
+         due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
 
     <!-- Top bar for menus -->
     <div class="topbar" data-dropdown="dropdown">
@@ -49,13 +49,13 @@
                     <a href="#" class="dropdown-toggle">Debug</a>
                     <ul class="dropdown-menu">
                         <li><a href="#" id="menu-debug-runtests">Run Tests</a></li>
-                        <li><a href="#" id="menu-debug-wordwrap">Toggle Word Wrap</a></li>
+                        <!--<li><a href="#" id="menu-debug-wordwrap">Toggle Word Wrap</a></li>-->
                     </ul>
                 </li>
             </ul>
         </div>
     </div>
-
+    
     <!-- Main UI -->
     <div class="main-view">
         <div class="sidebar">
@@ -65,55 +65,80 @@
                     <button id="btn-open-project" class="btn">Open</button>
                     <!-- <select class="picker"></select>  -->
                 </div>
+                
+                <div id="project-file-area">
+                    <div id="open-files-header" class="project-file-header-area">
+                        <span id="open-files-disclosure-arrow" class="disclosure-arrow-opened">
+                        </span>
+                        <span>Open Files</span>
+                    </div>    
+                    
+                    <div id="open-files-container">
+                        <!-- This will contain a dynamically generated <ul> at runtime -->
+                            <ul>
+                            </ul>
+                    </div>
+                    
+                    <div id="open-files-divider" class="file-list-divider"></div>
+
+                    <div id="project-files-header" class="project-file-header-area">
+                        <div id="project-files-disclosure-arrow" class="disclosure-arrow-opened">
+                        </div>
+                        <span>Project Files</span>
+                    </div>
                 <div id="project-files-container">
                     <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
-                    </div>
+                </div>
+                    
                 </div>
             </div>
-            <div class="content">
-                <div id="main-toolbar" class="toolbar">
-                    <div class="buttons">
-                        <!--		
-                        <input class="resume" type="button" value="Pause"/>
-                        <input class="resume" type="button" value="Resume"/>
-                        <input class="new" type="button" value="New"/>
-                        <input class="save" type="button" value="Save"/>
-                        <input class="settings" type="button" value="Settings"/>
-                        -->
-                    </div>
-                    <div class="title">Untitled</div>
-                </div>			
-                <div id="editor"></div>
+        </div>
+        <div class="content">
+            <div id="main-toolbar" class="toolbar">
+                <div class="buttons">
+    <!--        
+                    <input class="resume" type="button" value="Pause"/>
+                    <input class="resume" type="button" value="Resume"/>
+                    <input class="new" type="button" value="New"/>
+                    <input class="save" type="button" value="Save"/>
+                    <input class="settings" type="button" value="Settings"/>
+    -->
+                </div>
+                <div class="title"></div>
+            </div>            
+            <div id="editorHolder">
+                <div id="notEditor"><div id="notEditorContent">{&nbsp;&nbsp;}</div></div>
             </div>
         </div>
-
-        <!-- Modal Windows -->
-        <div id="error-dialog" class="modal hide fade">
-            <div class="modal-header">
-                <a href="#" class="close">&times;</a>
-                <h3 class="dialog-title">Error</h3>
-            </div>
-            <div class="modal-body">
-                <p class="dialog-message">Message goes here</p>
-            </div>
-            <div class="modal-footer">
-                <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
-            </div>		
+    </div>
+    
+    <!-- Modal Windows -->
+    <div id="error-dialog" class="modal hide fade">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h3 class="dialog-title">Error</h3>
         </div>
-        <div id="save-close-dialog" class="modal hide fade">
-            <div class="modal-header">
-                <a href="#" class="close">&times;</a>
-                <h3 class="dialog-title">Save Changes</h3>
-            </div>
-            <div class="modal-body">
-                <p class="dialog-message">Message goes here</p>
-            </div>
-            <div class="modal-footer">
-                <a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
-                <!-- TODO: switch buttons on Windows -->
-                <a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
-                <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
-            </div>		
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
         </div>
-    </body>
-    </html>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
+        </div>        
+    </div>
+    <div id="save-close-dialog" class="modal hide fade">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h3 class="dialog-title">Save Changes</h3>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
+            <!-- TODO: switch buttons on Windows -->
+            <a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
+        </div>        
+    </div>
+</body>
+</html>

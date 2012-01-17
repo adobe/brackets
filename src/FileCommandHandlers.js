@@ -2,100 +2,91 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 define(function(require, exports, module) {
+    require("thirdparty/path-utils/path-utils.min");
+    
     // Load dependent modules
     var CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   ProjectManager      = require("ProjectManager")
-    ,   Strings             = require("strings")
-    ,   EditorUtils         = require("EditorUtils")
+    ,   DocumentManager     = require("DocumentManager")
+    ,   EditorManager       = require("EditorManager")
+    ,   Strings             = require("strings");
     ;
      
     /**
      * Handlers for commands related to file handling (opening, saving, etc.)
      */
-      
-    var _editor, _title, _currentFilePath, _currentTitlePath,
-        _isDirty = false,
-        _savedUndoPosition = 0;
-
-    function init(editor, title) {
-        _editor = editor;
+    
+    /** @type {jQueryObject} */
+    var _title;
+    /** @type {string} */
+    var _currentFilePath;  // TODO: eliminate this and just use getCurrentDocument().file.fullPath
+    /** @type {string} */
+    var _currentTitlePath;
+    
+    function init(title) {
         _title = title;
-
-        _editor.setOption("onChange", function() {
-            updateDirty();
-        });
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
+        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
         // TODO: For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
+        
+        
+        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
+        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     };
 
-    exports.getEditor = function getEditor() {
-        return _editor;
-    };
+    function handleCurrentDocumentChange(event) {
+        var newDocument = DocumentManager.getCurrentDocument();
+        
+        if (newDocument != null) {
+            var fullPath = newDocument.file.fullPath;
+    
+            _currentFilePath = _currentTitlePath = fullPath;
 
-    exports.isDirty = function isDirty() {
-        return _isDirty;
-    };
-
-    function updateDirty() {
-        // If we've undone past the undo position at the last save, and there is no redo stack,
-        // then we can never get back to a non-dirty state.
-        var historySize = _editor.historySize();
-        if (historySize.undo < _savedUndoPosition && historySize.redo == 0) {
-            _savedUndoPosition = -1;
+            // In the main toolbar, show the project-relative path (if the file is inside the current project)
+            // or the full absolute path (if it's not in the project).
+            _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
+            
+        } else {
+            _currentFilePath = _currentTitlePath = null;
         }
-        var newIsDirty = (_editor.historySize().undo != _savedUndoPosition);
-        if (_isDirty != newIsDirty) {
-            _isDirty = newIsDirty;
+        
+        // Update title text & "dirty dot" display
+        updateTitle();
+    }
+    
+    function handleDirtyChange(event, changedDoc) {
+        if (changedDoc.file.fullPath == _currentFilePath) {
             updateTitle();
         }
     }
 
     function updateTitle() {
-        _title.text(
-            _currentTitlePath
-                ? (_currentTitlePath + (_isDirty ? " \u2022" : ""))
-                : "Untitled"
-        );
+        var currentDoc = DocumentManager.getCurrentDocument();
+        if (currentDoc) {
+            _title.text( _currentTitlePath + (currentDoc.isDirty ? " \u2022" : "") );
+        } else {
+            _title.text("");
+        }
+    }
+    
+    function handleFileAddToWorkingSet(fullPath){
+        handleFileOpen(fullPath);
+        DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
     }
 
     function handleFileOpen(fullPath) {
-        // TODO: In the future, when we implement multiple open files, we won't close the previous file when opening
-        // a new one. However, for now, since we only support a single open document, I'm pretending as if we're
-        // closing the existing file first. This is so that I can put the code that checks for an unsaved file and
-        // prompts the user to save it in the close command, where it belongs. When we implement multiple open files,
-        // we can remove this here.
-        var result;
-        if (_currentFilePath) {
-            result = new $.Deferred();
-            CommandManager
-                .execute(Commands.FILE_CLOSE)
-                .done(function() {
-                    doOpenWithOptionalPath(fullPath)
-                        .done(function() {
-                            result.resolve();
-                        })
-                        .fail(function() {
-                            result.reject();
-                        });
-                })
-                .fail(function() {
-                    result.reject();
-                });
-        }
-        else {
-            result = doOpenWithOptionalPath(fullPath);
-        }
+        var result = doOpenWithOptionalPath(fullPath);
         result.always(function() {
-            _editor.focus();
+            EditorManager.focusEditor();
         });
         return result;
     }
@@ -127,57 +118,43 @@ define(function(require, exports, module) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
-
-        var reader = new NativeFileSystem.FileReader();
-
+        
         // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        // TODO: it's weird to have to construct a FileEntry just to get a File.
-        fileEntry.file(function(file) {
-            reader.onload = function(event) {
-                _currentFilePath = _currentTitlePath = fullPath;
+        var document = DocumentManager.getDocumentForFile(fileEntry);
+        if (document != null) {
+            // File already open - don't need to load it, just switch to it in the UI
+            DocumentManager.showInEditor(document);
+            result.resolve();
+            
+        } else {
+            // File wasn't open before, so we must load its contents into a new document
+            var reader = new NativeFileSystem.FileReader();
 
-                // In the main toolbar, show the project-relative path (if the file is inside the current project)
-                // or the full absolute path (if it's not in the project).
-                var projectRootPath = ProjectManager.getProjectRoot().fullPath;
-                if (projectRootPath.length > 0 && projectRootPath.charAt(projectRootPath.length - 1) != "/") {
-                    projectRootPath += "/";
+            fileEntry.file(function(file) {
+                reader.onload = function(event) {
+                    // Create a new editor initialized with the file's content, and bind it to a Document
+                    document = EditorManager.createDocumentAndEditor(fileEntry, event.target.result);
+                    
+                    // Switch to new document in the UI
+                    DocumentManager.showInEditor(document);
+                    result.resolve();
+                };
+
+                reader.onerror = function(event) {
+                    showFileOpenError(event.target.error.code, fullPath);
+                    result.reject();
                 }
-                if (fullPath.indexOf(projectRootPath) == 0) {
-                    _currentTitlePath = fullPath.slice(projectRootPath.length);
-                    if (_currentTitlePath.charAt(0) == '/') {
-                        _currentTitlePath = _currentTitlePath.slice(1);
-                    }
-                }
 
-                EditorUtils.setModeFromFileExtension(_editor, _currentFilePath);
-
-                // TODO: have a real controller object for the editor
-                _editor.setValue(event.target.result);
-
-                // Make sure we can't undo back to the previous content.
-                _editor.clearHistory();
-
-                // This should be 0, but just to be safe...
-                _savedUndoPosition = _editor.historySize().undo;
-                updateDirty();
-
-                result.resolve();
-            };
-
-            reader.onerror = function(event) {
+                reader.readAsText(file, "utf8");
+            },
+            function fileEntry_onerror(event) {
                 showFileOpenError(event.target.error.code, fullPath);
                 result.reject();
-            }
-
-            reader.readAsText(file, "utf8");
-        },
-        function fileEntry_onerror(event) {
-            showFileOpenError(event.target.error.code, fullPath);
-            result.reject();
-        });
+            });
+        }
 
         return result;
     }
@@ -202,16 +179,17 @@ define(function(require, exports, module) {
     
     function handleFileSave() {
         var result = new $.Deferred();
-        if (_currentFilePath && _isDirty) {
+        var docToSave = DocumentManager.getCurrentDocument();
+        if (docToSave && docToSave.isDirty) {
             //setup our resolve and reject handlers
             result.done( function fileSaved() { 
-                _savedUndoPosition = _editor.historySize().undo;
-                updateDirty();
+                docToSave.markClean();
             });
 
             result.fail( function fileError(error) { 
                 showSaveFileError(error.code, _currentFilePath);
             });
+
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
             var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
@@ -226,7 +204,7 @@ define(function(require, exports, module) {
                     }
 
                     // TODO (jasonsj): Blob instead of string
-                    writer.write(_editor.getValue());
+                    writer.write( docToSave.getText() );
                 },
                 function(error) {
                     result.reject(error);
@@ -237,18 +215,47 @@ define(function(require, exports, module) {
             result.resolve();
         }
         result.always(function() {
-            _editor.focus();
+            EditorManager.focusEditor();
         });
         return result;
     }
 
-    function handleFileClose() {
+    /** Closes the specified document. Assumes the current document if doc is null. 
+     * Prompts user about saving file if document is dirty
+     * @param {?Document} doc 
+     */
+    function handleFileClose( doc ) {
+        
+        // utility function for handleFileClose
+        function doClose(doc) {      
+            // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+            // TODO: can this be removed?
+            doc.markClean();
+        
+            // This selects a different document if the working set has any other options
+            DocumentManager.closeDocument(doc);
+        
+            EditorManager.focusEditor();
+        }
+        
+        
+        // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
-        if (_currentFilePath && _isDirty) {
+        
+        // Default to current document if doc is null
+        if (!doc)
+            doc =  DocumentManager.getCurrentDocument();
+        // No-op if called when nothing is open; TODO: should command be grayed out instead?
+        if (!doc)
+            return;
+        
+        if (doc.isDirty) {
+            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
+            
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
-                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, _currentTitlePath)
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename )
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -258,7 +265,7 @@ define(function(require, exports, module) {
                         CommandManager
                             .execute(Commands.FILE_SAVE)
                             .done(function() {
-                                doClose();
+                                doClose(doc);
                                 result.resolve();
                             })
                             .fail(function() {
@@ -267,35 +274,26 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose();
+                        doClose(doc);
                         result.resolve();
                     }
                 }
             });
             result.always(function() {
-                _editor.focus();
+                EditorManager.focusEditor();
             });
         }
         else {
-            doClose();
-            _editor.focus();
+            // Doc is not dirty, just close
+            doClose(doc);
+            EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
 
-    function doClose() {
-        // TODO: When we implement multiple files being open, this will probably change to just
-        // dispose of the editor for the current file (and will later change again if we choose to
-        // limit the number of open editors).
-        _editor.setValue("");
-        _editor.clearHistory();
-        _currentFilePath = _currentTitlePath = null;
-        _savedUndoPosition = 0;
-        _isDirty = false;
-        updateTitle();
-        _editor.focus();
-    }
+    
+
 
     function showFileOpenError(code, path) {
         brackets.showModalDialog(

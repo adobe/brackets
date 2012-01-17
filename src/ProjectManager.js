@@ -26,13 +26,43 @@ define(function(require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
-
+    
+    /**
+     * Returns true if absPath lies within the project, false otherwise.
+     * FIXME: Does not support paths containing ".."
+     */
+    function isWithinProject(absPath) {
+        var rootPath = _projectRoot.fullPath;
+        if (rootPath.charAt(rootPath.length - 1) != "/") {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
+            rootPath += "/";
+        }
+        return (absPath.indexOf(rootPath) == 0);
+    }
+    /**
+     * If absPath lies within the project, returns a project-relative path. Else returns absPath
+     * unmodified.
+     * FIXME: Does not support paths containing ".."
+     */
+    function makeProjectRelativeIfPossible(absPath) {
+        if (isWithinProject(absPath)) {
+            var relPath = absPath.slice(_projectRoot.fullPath.length);
+            if (relPath.charAt(0) == '/') {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
+                relPath = relPath.slice(1);
+            }
+            return relPath;
+        }
+        return absPath;
+    }
+    
+    
     /**
      * @private
      * Reference to the tree control
+     * @type {jQueryObject}
      */
     var _projectTree = null;
 
+    
     /**
      * @private
      * Used to initialize jstree state
@@ -195,10 +225,10 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Returns the FileEntry corresponding to the selected item, or null
+     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
      * if no item is selected.
      *
-     * @return {string}
+     * @return {?Entry}
      */
     function getSelectedItem() {
         var selected = _projectTree.jstree("get_selected");
@@ -251,7 +281,7 @@ define(function(require, exports, module) {
                 selectionEntry = null;
             }
             */
-            // FIXME (jasonsj): hackish way to get parent directory
+            // FIXME (jasonsj): hackish way to get parent directory; replace with Entry.getParent() when available
             var filePath = selectionEntry.fullPath;
             selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
         }
@@ -478,19 +508,25 @@ define(function(require, exports, module) {
                 data.inst.data.core.to_open = toOpenIds;
                 _projectTree.jstree("reload_nodes", false);
             }
-
             if ( _projectInitialLoad.previous.length === 0 ) {
                 result.resolve();
             }
+        })
+        .bind("dblclick.jstree", function(event) {
+            var entry = $(event.target).closest("li").data("entry");
+            if (entry.isFile)
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
         });
     };
 
     // Define public API
-    exports.getProjectRoot          = getProjectRoot;
-    exports.openProject             = openProject;
-    exports.loadProject             = loadProject;
-    exports.getSelectedItem         = getSelectedItem;
-    exports.createNewItem           = createNewItem
+    exports.getProjectRoot  = getProjectRoot;
+    exports.isWithinProject = isWithinProject;
+    exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
+    exports.openProject     = openProject;
+    exports.loadProject     = loadProject;
+    exports.getSelectedItem = getSelectedItem;
+    exports.createNewItem   = createNewItem;
 
     // Register save callback
     var loadedPath = window.location.pathname;

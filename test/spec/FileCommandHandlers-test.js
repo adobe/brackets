@@ -4,6 +4,7 @@ define(function(require, exports, module) {
     var CommandManager      // loaded from brackets.test
     ,   Commands            // loaded from brackets.test
     ,   FileCommandHandlers // loaded from brackets.test
+    ,   DocumentManager     // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
     
@@ -20,9 +21,10 @@ define(function(require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                CommandManager = testWindow.brackets.test.CommandManager;
-                Commands = testWindow.brackets.test.Commands;
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
                 FileCommandHandlers = testWindow.brackets.test.FileCommandHandlers;
+				DocumentManager     = this.app.brackets.test.DocumentManager;
             });
         });
 
@@ -47,7 +49,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
                 });
             });
 
@@ -70,7 +72,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(testWindow.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(testWindow.$("#main-toolbar .title").text()).toBe("");
                 });
             });
         });
@@ -87,7 +89,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didOpen && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(FileCommandHandlers.getEditor().getValue()).toBe(TEST_JS_CONTENT);
+                    expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
                 });
             });
         });
@@ -96,7 +98,7 @@ define(function(require, exports, module) {
             it("should save changes", function() {
                 var didOpen = false, didSave = false, gotError = false;
                 var filePath = testPath + "/test.js";
-                var editor = FileCommandHandlers.getEditor();
+                var editor = DocumentManager.getCurrentDocument()._editor;
 
                 runs(function() {
                     CommandManager.execute(Commands.FILE_OPEN, filePath)
@@ -133,6 +135,9 @@ define(function(require, exports, module) {
                 // reset file contents
                 runs(function() {
                     brackets.fs.writeFile(filePath, TEST_JS_CONTENT, "utf8");
+                    
+                    // needed to reset UI/DocumentManager state for next set of tests - see isue #77
+                    CommandManager.execute(Commands.FILE_CLOSE);
                 });
             });
         });
@@ -151,13 +156,13 @@ define(function(require, exports, module) {
 
                 runs(function() {
                     // change editor content, followed by undo
-                    var editor = FileCommandHandlers.getEditor();
+                    var editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
                     editor.undo();
-
-                    // verify FileCommandHandler dirty status
+                    
+                    // verify Document dirty status
                     expect(editor.getValue()).toBe(TEST_JS_CONTENT);
-                    expect(FileCommandHandlers.isDirty()).toBe(false);
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                 });
             });
 
@@ -173,12 +178,12 @@ define(function(require, exports, module) {
 
                 runs(function() {
                     // change editor content
-                    var editor = FileCommandHandlers.getEditor();
+                    var editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
-                    // verify FileCommandHandler dirty status
+                    // verify Document dirty status
                     expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(FileCommandHandlers.isDirty()).toBe(true);
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
 
                     // FIXME (jasonsj): Even with the main app window reloaded, and
                     // proper jasmine async handling, some state is being held.
@@ -203,16 +208,16 @@ define(function(require, exports, module) {
 
                 runs(function() {
                     // change editor content, followed by undo and redo
-                    var editor = FileCommandHandlers.getEditor();
+                    var editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
                     editor.undo();
                     expect(editor.getValue()).toBe(TEST_JS_CONTENT);
 
-                    // verify FileCommandHandler dirty status
+                    // verify Document dirty status
                     editor.redo();
                     expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(FileCommandHandlers.isDirty()).toBe(true);
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
                 });
             });
         });
