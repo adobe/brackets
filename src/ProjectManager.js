@@ -120,12 +120,16 @@ define(function(require, exports, module) {
      * user choose a folder.
      *
      * @param {string} rootPath  Absolute path to the root folder of the project.
+     * @return {Deferred} A $.Deferred() object that will be resolved when the
+     *  project is loaded and tree is rendered, or rejected if the project path
+     *  fails to load.
      */
-    function loadProject(rootPath, successCallback, errorCallback) {
+    function loadProject(rootPath) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID)
+        ,   result = new $.Deferred();
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
@@ -162,7 +166,7 @@ define(function(require, exports, module) {
             ];
 
             // Show file list in UI synchronously
-            _renderTree(treeJSONData, successCallback);
+            _renderTree(treeJSONData, result);
 
         } else {
             // Point at a real folder structure on local disk
@@ -174,18 +178,20 @@ define(function(require, exports, module) {
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
-                    _renderTree(_treeDataProvider, successCallback);
+                    _renderTree(_treeDataProvider, result);
                 },
                 function(error) {
                     brackets.showModalDialog(
                           brackets.DIALOG_ID_ERROR
                         , Strings.ERROR_LOADING_PROJECT
                         , Strings.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code
-                        , errorCallback)
+                        , function() { result.reject(); })
                     );
                 }
             );
         }
+
+        return result;
     }
 
     /**
@@ -430,7 +436,7 @@ define(function(require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    function _renderTree(treeDataProvider, successCallback) {
+    function _renderTree(treeDataProvider, result) {
 
         var projectTreeContainer = $("#project-files-container");
 
@@ -470,8 +476,8 @@ define(function(require, exports, module) {
                 _projectTree.jstree("reload_nodes", false);
             }
 
-            if ( successCallback && ( _projectInitialLoad.previous.length === 0 ) ) {
-                successCallback();
+            if ( _projectInitialLoad.previous.length === 0 ) {
+                result.resolve();
             }
         });
     };

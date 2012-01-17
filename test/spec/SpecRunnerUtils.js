@@ -58,7 +58,8 @@ define(function(require, exports, module) {
 
         runs(function() {
             // begin loading project path
-            testWindow.brackets.test.ProjectManager.loadProject(path, function() {
+            var result = testWindow.brackets.test.ProjectManager.loadProject(path);
+            result.done(function () {
                 isReady = true;
             });
         });
