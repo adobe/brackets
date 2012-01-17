@@ -68,8 +68,6 @@ define(function(require, exports, module) {
                 expect( listItems.length ).toBe(2);
                 expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                 expect( listItems.find(".file-status-icon").length).toBe(2);
-                
-                
             });
             
         });
@@ -79,12 +77,13 @@ define(function(require, exports, module) {
             DocumentManager.getCurrentDocument().markClean(); // so we can close without a save dialog
            
             // close the document
+            var didClose = false, gotError = false;
             runs(function() {
                 CommandManager.execute(Commands.FILE_CLOSE)
                     .done(function() { didClose = true; })
                     .fail(function() { gotError = true; });
             });
-			waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
+            waitsFor(function() { return didClose && !gotError; }, "FILE_OPEN on file timeout", 1000);
                     
             // check there are no list items
             runs(function() {
@@ -129,13 +128,13 @@ define(function(require, exports, module) {
             expect(closeIcon.length).toBe(1) ;
                             
             // simulate click
-			var didClose = false;
-		    $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
-		        didClose = true;
-		    });
-			
+            var didClose = false;
+            $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
+                didClose = true;
+            });
+            
             closeIcon.trigger('click');
-			waitsFor(function() { return didClose; }, "click on working set close icon timeout", 1000);
+            waitsFor(function() { return didClose; }, "click on working set close icon timeout", 1000);
                             
             var listItems = $("#open-files-container > ul").children();
             expect( listItems.length ).toBe(1);

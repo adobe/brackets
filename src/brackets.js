@@ -136,7 +136,6 @@ define(function(require, exports, module) {
                 $(this).toggleClass( "disclosure-arrow-closed");
                 $("#project-files-container").toggle();
             });
-			
        
         }
 

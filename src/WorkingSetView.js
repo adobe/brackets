@@ -9,7 +9,6 @@
 define(function(require, exports, module) {
 
     // Load dependent modules
-	// Load dependent modules
     var DocumentManager     = require("DocumentManager")
     , CommandManager        = require("CommandManager")
     , Commands              = require("Commands")
@@ -90,8 +89,8 @@ define(function(require, exports, module) {
         // Create new list item with a link
         var link = $("<a href='#'></a>").text(doc.file.name);
         var newItem = $("<li></li>")
-	        .append(link)
-	        .data(_DOCUMENT_KEY, doc);
+            .append(link)
+            .data(_DOCUMENT_KEY, doc);
 
         $("#open-files-container > ul").append(newItem);
 
@@ -133,11 +132,11 @@ define(function(require, exports, module) {
         // create icon if its needed and doesn't exist
         else if (showIcon && fileStatusIcon.length == 0) {
             fileStatusIcon = $("<div class='file-status-icon'></div>")
-	            .prependTo(fileStatusIcon)
-	            .click(function() {
-	                var doc = listElement.data(_DOCUMENT_KEY);
-	                CommandManager.execute(Commands.FILE_CLOSE, doc);
-	            });
+                .prependTo(listElement)
+                .click(function() {
+                    var doc = listElement.data(_DOCUMENT_KEY);
+                    CommandManager.execute(Commands.FILE_CLOSE, doc);
+                });
         }
 
         // Set icon's class
