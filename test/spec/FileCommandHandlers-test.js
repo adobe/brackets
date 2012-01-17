@@ -4,6 +4,7 @@ define(function(require, exports, module) {
     var CommandManager      // loaded from brackets.test
     ,   Commands            // loaded from brackets.test
     ,   FileCommandHandlers // loaded from brackets.test
+    ,   DocumentManager     // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
     
@@ -21,11 +22,16 @@ define(function(require, exports, module) {
             this.app = window.opener;
             
             // Load module instances from brackets.test
-            CommandManager = this.app.brackets.test.CommandManager;
-            Commands = this.app.brackets.test.Commands;
+            CommandManager      = this.app.brackets.test.CommandManager;
+            Commands            = this.app.brackets.test.Commands;
             FileCommandHandlers = this.app.brackets.test.FileCommandHandlers;
+            DocumentManager     = this.app.brackets.test.DocumentManager;
             
+            // FIXME: this does NOT actually reload the modules we saved off above. Reloading the
+            // Brackets window and waiting until it's done to re-fetch modules is exceedingly hard.
+            // TODO: fix this so tests don't have intertangled state. See issue #77.
             this.app.location.reload();
+            
             this.testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files");
             var isReady = false;
             $(this.app.document).ready(function() {
@@ -51,7 +57,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(this.app.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(this.app.$("#main-toolbar .title").text()).toBe("");
                 });
             });
 
@@ -74,7 +80,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didClose && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(this.app.$("#main-toolbar .title").text()).toBe("Untitled");
+                    expect(this.app.$("#main-toolbar .title").text()).toBe("");
                 });
             });
         });
@@ -91,7 +97,7 @@ define(function(require, exports, module) {
                 waitsFor(function() { return didOpen && !gotError; }, 1000);
 
                 runs(function() {
-                    expect(FileCommandHandlers.getEditor().getValue()).toBe(TEST_JS_CONTENT);
+                    expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
                 });
             });
         });
@@ -100,7 +106,7 @@ define(function(require, exports, module) {
             it("should save changes", function() {
                 var didOpen = false, didSave = false, gotError = false;
                 var filePath = this.testPath + "/test.js";
-                var editor = FileCommandHandlers.getEditor();
+                var editor = DocumentManager.getCurrentDocument()._editor;
 
                 runs(function() {
                     CommandManager.execute(Commands.FILE_OPEN, filePath)
@@ -137,6 +143,9 @@ define(function(require, exports, module) {
                 // reset file contents
                 runs(function() {
                     brackets.fs.writeFile(filePath, TEST_JS_CONTENT, "utf8");
+                    
+                    // needed to reset UI/DocumentManager state for next set of tests - see isue #77
+                    CommandManager.execute(Commands.FILE_CLOSE);
                 });
             });
         });
@@ -155,13 +164,13 @@ define(function(require, exports, module) {
 
                 runs(function() {
                     // change editor content, followed by undo
-                    var editor = FileCommandHandlers.getEditor();
+                    var editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
                     editor.undo();
-
-                    // verify FileCommandHandler dirty status
+                    
+                    // verify Document dirty status
                     expect(editor.getValue()).toBe(TEST_JS_CONTENT);
-                    expect(FileCommandHandlers.isDirty()).toBe(false);
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                 });
             });
 
@@ -177,12 +186,12 @@ define(function(require, exports, module) {
 
                 runs(function() {
                     // change editor content
-                    var editor = FileCommandHandlers.getEditor();
+                    var editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
-                    // verify FileCommandHandler dirty status
+                    // verify Document dirty status
                     expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(FileCommandHandlers.isDirty()).toBe(true);
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
 
                     // FIXME (jasonsj): Even with the main app window reloaded, and
                     // proper jasmine async handling, some state is being held.
@@ -207,16 +216,16 @@ define(function(require, exports, module) {
 
                 runs(function() {
                     // change editor content, followed by undo and redo
-                    var editor = FileCommandHandlers.getEditor();
+                    var editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
                     editor.undo();
                     expect(editor.getValue()).toBe(TEST_JS_CONTENT);
 
-                    // verify FileCommandHandler dirty status
+                    // verify Document dirty status
                     editor.redo();
                     expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(FileCommandHandlers.isDirty()).toBe(true);
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
                 });
             });
         });
