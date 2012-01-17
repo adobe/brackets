@@ -6,7 +6,6 @@ define(function(require, exports, module) {
     ,   FileCommandHandlers // loaded from brackets.test
     ,   DocumentManager     // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
-    ;
     
     describe("FileCommandHandlers", function() {
 
@@ -98,7 +97,7 @@ define(function(require, exports, module) {
             it("should save changes", function() {
                 var didOpen     = false
                 ,   didSave     = false
-                ,   gotError    = false;
+                ,   gotError    = false
                 ,   filePath    = testPath + "/test.js"
                 ,   editor;
 

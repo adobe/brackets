@@ -12,12 +12,12 @@ define(function(require, exports, module) {
     PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
 
     // Load test specs
-    require("spec/Editor-test.js");
-    require("spec/NativeFileSystem-test.js");
     require("spec/LowLevelFileIO-test.js");
+    require("spec/FileCommandHandlers-test.js");
+    require("spec/NativeFileSystem-test.js");
+    require("spec/PreferencesManager-test.js");
+    require("spec/Editor-test.js");
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
-    require("spec/FileCommandHandlers-test.js");
-    require("spec/PreferencesManager-test.js");
 
 });

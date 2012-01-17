@@ -4,55 +4,56 @@ define(function(require, exports, module) {
     var CommandManager      // loaded from brackets.test
     ,   Commands            // loaded from brackets.test
     ,   DocumentManager     // loaded from brackets.test
-    ,   ProjectManager        // loaded from brackets.test
+    ,   ProjectManager      // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
-    
-    var testWindow;
-
-    beforeEach(function() {
-        SpecRunnerUtils.createTestWindowAndRun( this, function( w ) {
-            testWindow = w;
-
-            // Load module instances from brackets.test
-            CommandManager      = testWindow.brackets.test.CommandManager;
-            Commands            = testWindow.brackets.test.Commands;
-            DocumentManager     = testWindow.brackets.test.DocumentManager;
-            ProjectManager      = testWindow.brackets.test.ProjectManager;   
-
-            // Open a directory
-            ProjectManager.loadProject(this.testPath);
-        });
-        
-        var didOpen = false, gotError = false;
-        
-        var openAndMakeDirty = function (path){
-            // open file
-            runs(function() {
-                CommandManager.execute(Commands.FILE_OPEN, path)
-                    .done(function() { didOpen = true; })
-                    .fail(function() { gotError = true; });
-            });
-            waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
-
-            // change editor content to make doc dirty
-            runs(function() {
-                var editor = DocumentManager.getCurrentDocument()._editor;
-                editor.setValue("dirty document");
-                expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
-            });
-        
-        };
-        
-        openAndMakeDirty(this.testPath + "/file_one.js");
-        openAndMakeDirty(this.testPath + "/file_two.js");
-    });
-
-    afterEach(function() {
-        SpecRunnerUtils.closeTestWindow();
-    });
 
     describe("WorkingSetView", function(){
+    
+        var testPath = SpecRunnerUtils.getTestPath("/spec/WorkingSetView-test-files")
+        ,   testWindow;
+
+        beforeEach(function() {
+            SpecRunnerUtils.createTestWindowAndRun( this, function( w ) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
+                DocumentManager     = testWindow.brackets.test.DocumentManager;
+                ProjectManager      = testWindow.brackets.test.ProjectManager;   
+
+                // Open a directory
+                ProjectManager.loadProject(testPath);
+            });
+            
+            var didOpen = false, gotError = false;
+            
+            var openAndMakeDirty = function (path){
+                // open file
+                runs(function() {
+                    CommandManager.execute(Commands.FILE_OPEN, path)
+                        .done(function() { didOpen = true; })
+                        .fail(function() { gotError = true; });
+                });
+                waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
+
+                // change editor content to make doc dirty
+                runs(function() {
+                    var editor = DocumentManager.getCurrentDocument()._editor;
+                    editor.setValue("dirty document");
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+                });
+            
+            };
+            
+            openAndMakeDirty(testPath + "/file_one.js");
+            openAndMakeDirty(testPath + "/file_two.js");
+        });
+
+        afterEach(function() {
+            SpecRunnerUtils.closeTestWindow();
+        });
 
         it("should add a list item when a file is dirtied", function() {            
             // check if files are added to work set and dirty icons are present
