@@ -469,6 +469,15 @@ define(function(require, exports, module) {
                 _projectTree.jstree("reload_nodes", false);
             }
         });
+        
+        // jstree has a default event handler for dblclick that attempts to clear the
+        // global window selection (presumably because it doesn't want text within the tree
+        // to be selected). This ends up messing up CodeMirror, and we don't need this anyway
+        // since we've turned off user selection of UI text globally. So we just unbind it.
+        // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
+        projectTreeContainer.bind("init.jstree", function() {
+            projectTreeContainer.unbind("dblclick.jstree");
+        });
     };
 
     // Define public API
