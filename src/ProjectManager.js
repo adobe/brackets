@@ -400,6 +400,9 @@ define(function(require, exports, module) {
         dirEntry.createReader().readEntries(
             function(entries) {
                 var subtreeJSON = _convertEntriesToJSON(entries);
+                //If the list is empty, add an empty object so the loading message goes away
+                if( subtreeJSON.length === 0 )
+                    subtreeJSON.push({});
                 jsTreeCallback(subtreeJSON);
             },
             function(error) {

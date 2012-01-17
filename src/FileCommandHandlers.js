@@ -181,6 +181,15 @@ define(function(require, exports, module) {
         var result = new $.Deferred();
         var docToSave = DocumentManager.getCurrentDocument();
         if (docToSave && docToSave.isDirty) {
+            //setup our resolve and reject handlers
+            result.done( function fileSaved() { 
+                docToSave.markClean();
+            });
+
+            result.fail( function fileError(error) { 
+                showSaveFileError(error.code, _currentFilePath);
+            });
+
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
             // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
             var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
@@ -188,20 +197,17 @@ define(function(require, exports, module) {
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        docToSave.markClean();
                         result.resolve();
                     }
-                    writer.onerror = function(event) {
-                        showSaveFileError(event.target.error.code, _currentFilePath);
-                        result.reject();
+                    writer.onerror = function(error) {
+                        result.reject(error);
                     }
 
                     // TODO (jasonsj): Blob instead of string
                     writer.write( docToSave.getText() );
                 },
-                function(event) {
-                    showSaveFileError(event.target.error.code, _currentFilePath);
-                    result.reject();
+                function(error) {
+                    result.reject(error);
                 }
             );
         }
@@ -321,7 +327,7 @@ define(function(require, exports, module) {
         else if (code == FileError.NOT_READABLE_ERR)
             result = Strings.NOT_READABLE_ERR;
         else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR;
+            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         else
             result = Strings.format(Strings.GENERIC_ERROR, code);
 
