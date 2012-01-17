@@ -326,22 +326,7 @@ define(function(require, exports, module) {
 
         var renameInput = _projectTree.find(".jstree-rename-input");
 
-        var defferedInputupdate;
-        if( !skipRename ) {
-            defferedInputupdate = _updateRenameFileSuggestion( selectionEntry, initialName, renameInput );
-        }
-
-        renameInput.on("mousedown", function(event) {
-            if(  defferedInputupdate ) {
-                defferedInputupdate.reject();
-            }
-        });
-
         renameInput.on("keydown", function(event) {
-            if(  defferedInputupdate ) {
-                defferedInputupdate.reject();
-            }
-
             // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
             if (event.keyCode == 27) {
                 escapeKeyPressed = true;
@@ -485,55 +470,6 @@ define(function(require, exports, module) {
             }
         });
     };
-
-    /**
-     * @private
-     * Updates the rename filename suggestion edit input to a unique filename
-     * @param {object} dirEntry  NativeFileSystem.DirectoryEntry, the directory to name into
-     * @param {string} fileName  The filename to make unique
-     * @param {object} renameInput  The jQuery object for the input value to rename
-     */
-    function _updateRenameFileSuggestion( dirEntry, fileName, renameInput) {
-        var result = new $.Deferred();
-
-        var splitStr = fileName.split(".", 2);
-        var baseFileName = splitStr[0];
-        if( !baseFileName ) {
-            //nothing to do
-            return result;
-        }
-        var fileExt = splitStr[1] ||  "";
-
-        result.progress( function attemptNewName( suggestedName, nextIndexToUse ) {
-            if( nextIndexToUse > 99 ) {
-                //we've tried this enough
-                result.reject();
-                return;
-            }
-
-            //check this name
-            dirEntry.getFile( suggestedName
-                            , {}
-                            , function successCallback(entry){
-                                //file exists, notify to the next progress
-                                result.notify(baseFileName + "-" + nextIndexToUse + "." +  fileExt , nextIndexToUse + 1);
-                                }
-                             , function errorCallback(error) {
-                                //most likely error is FNF, user is better equiped to handle the rest
-                                result.resolve(suggestedName);
-                                }
-                            );
-        });
-
-        result.done( function setSuggestedName(  suggestedName ) {
-            renameInput.val(suggestedName);
-        });
-
-        //kick it off
-        result.notify(fileName, 1);
-
-        return result;
-    }
 
     // Define public API
     exports.getProjectRoot          = getProjectRoot;
