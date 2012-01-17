@@ -197,12 +197,12 @@ define(function(require, exports, module) {
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
         var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
-		var createWithSuggestedName = function ( suggestedName ) {
-			ProjectManager.createNewItem(baseDir, suggestedName, false).pipe( deferred.resolve, deferred.reject, deferred.notify );
-		};
-		
-		deferred.done( createWithSuggestedName );
-		deferred.fail( function createWithDefault() { createWithSuggestedName( "Untitled.js" ); } );
+        var createWithSuggestedName = function ( suggestedName ) {
+            ProjectManager.createNewItem(baseDir, suggestedName, false).pipe( deferred.resolve, deferred.reject, deferred.notify );
+        };
+
+        deferred.done( createWithSuggestedName );
+        deferred.fail( function createWithDefault() { createWithSuggestedName( "Untitled.js" ); } );
         return deferred;
     }
     
