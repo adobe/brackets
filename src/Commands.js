@@ -10,5 +10,6 @@ define(function(require, exports, module) {
     exports.FILE_NEW    = "file.new";
     exports.FILE_SAVE   = "file.save";
     exports.FILE_CLOSE  = "file.close";
+    exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
 });
 
