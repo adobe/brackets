@@ -61,8 +61,12 @@
         <div class="sidebar">
             <div id="projects" class="panel">
                 <div id="project-toolbar" class="toolbar">
-                    <span id="project-title" class="title"></span>
-                    <button id="btn-open-project" class="btn">Open</button>
+                    <div class="title-wrapper">
+                        <div id="project-title" class="title"></div>
+                    </div>
+                    <div class="buttons">
+                        <button id="btn-open-project" class="btn">Open</button>
+                    </div>
                     <!-- <select class="picker"></select>  -->
                 </div>
                 <div id="project-files-container">
@@ -72,16 +76,9 @@
             </div>
             <div class="content">
                 <div id="main-toolbar" class="toolbar">
-                    <div class="buttons">
-                        <!--		
-                        <input class="resume" type="button" value="Pause"/>
-                        <input class="resume" type="button" value="Resume"/>
-                        <input class="new" type="button" value="New"/>
-                        <input class="save" type="button" value="Save"/>
-                        <input class="settings" type="button" value="Settings"/>
-                        -->
+                    <div class="title-wrapper">
+                        <div class="title">Untitled</div>
                     </div>
-                    <div class="title">Untitled</div>
                 </div>			
                 <div id="editor"></div>
             </div>
