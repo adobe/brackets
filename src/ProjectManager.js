@@ -498,16 +498,14 @@ define(function(require, exports, module) {
                 data.inst.data.core.to_open = toOpenIds;
                 _projectTree.jstree("reload_nodes", false);
             }
-        });
-
-		// JUST TESTING TREE DOUBLE-CLICK TY
-		/*.bind("dblclick.jstree", function(event) {
-			var node = $(event.target).closest("li");
-			var data = node.data("entry");
+        })
+        .bind("dblclick.jstree", function(event) {
+            var node = $(event.target).closest("li");
+            var data = node.data("entry");
             var entry = node.data("entry");
             if (entry.isFile)
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
-        });*/
+        });
     };
 
     // Define public API

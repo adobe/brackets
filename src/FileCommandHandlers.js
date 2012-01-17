@@ -80,7 +80,7 @@ define(function(require, exports, module) {
     
     function handleFileAddToWorkingSet(fullPath){
         handleFileOpen(fullPath);
-        DocumentManager.addToWorkingSet(fullPath);
+        DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
     }
 
     function handleFileOpen(fullPath) {
