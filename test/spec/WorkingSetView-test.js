@@ -84,6 +84,7 @@ define(function(require, exports, module) {
                     .done(function() { didClose = true; })
                     .fail(function() { gotError = true; });
             });
+			waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
                     
             // check there are no list items
             runs(function() {
@@ -128,7 +129,13 @@ define(function(require, exports, module) {
             expect(closeIcon.length).toBe(1) ;
                             
             // simulate click
+			var didClose = false;
+		    $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
+		        didClose = true;
+		    });
+			
             closeIcon.trigger('click');
+			waitsFor(function() { return didClose; }, "click on working set close icon timeout", 1000);
                             
             var listItems = $("#open-files-container > ul").children();
             expect( listItems.length ).toBe(1);
@@ -143,14 +150,10 @@ define(function(require, exports, module) {
            docList[0].markClean();
            var listItems = this.app.$("#open-files-container > ul").children();
            expect( listItems.find(".file-status-icon dirty").length).toBe(0);
-            
-        });
-        
-        
+           
 
-        
-        
-        
         });
+            
+    });
     }    
 });
