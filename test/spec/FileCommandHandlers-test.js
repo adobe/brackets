@@ -23,7 +23,7 @@ define(function(require, exports, module) {
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
                 FileCommandHandlers = testWindow.brackets.test.FileCommandHandlers;
-				DocumentManager     = testWindow.brackets.test.DocumentManager;
+                DocumentManager     = testWindow.brackets.test.DocumentManager;
             });
         });
 

@@ -24,7 +24,7 @@ define(function(require, exports, module) {
                 ProjectManager      = testWindow.brackets.test.ProjectManager;   
 
                 // Open a directory
-                ProjectManager.loadProject(testPath);
+                SpecRunnerUtils.loadProjectInTestWindow( testPath );
             });
             
             var didOpen = false, gotError = false;
