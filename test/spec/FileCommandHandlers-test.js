@@ -24,7 +24,7 @@ define(function(require, exports, module) {
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
                 FileCommandHandlers = testWindow.brackets.test.FileCommandHandlers;
-				DocumentManager     = this.app.brackets.test.DocumentManager;
+				DocumentManager     = testWindow.brackets.test.DocumentManager;
             });
         });
 
@@ -96,9 +96,11 @@ define(function(require, exports, module) {
 
         describe("Save File", function() {
             it("should save changes", function() {
-                var didOpen = false, didSave = false, gotError = false;
-                var filePath = testPath + "/test.js";
-                var editor = DocumentManager.getCurrentDocument()._editor;
+                var didOpen     = false
+                ,   didSave     = false
+                ,   gotError    = false;
+                ,   filePath    = testPath + "/test.js"
+                ,   editor;
 
                 runs(function() {
                     CommandManager.execute(Commands.FILE_OPEN, filePath)
@@ -109,6 +111,7 @@ define(function(require, exports, module) {
 
                 // modify and save
                 runs(function() {
+                    editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
                     CommandManager.execute(Commands.FILE_SAVE, filePath)
