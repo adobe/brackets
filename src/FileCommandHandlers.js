@@ -371,7 +371,7 @@ define(function(require, exports, module) {
         });
 
         //kick it off
-        result.notify(fileName, 1);
+        result.notify(baseFileName + fileExt , 1);
 
         return result;
     }
