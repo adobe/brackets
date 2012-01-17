@@ -26,7 +26,8 @@
  */
 define(function(require, exports, module) {
 
-    var ProjectManager     = require("ProjectManager");
+    var ProjectManager     = require("ProjectManager")
+    ,   PreferencesManager = require("PreferencesManager");
 
     /**
      * Unique PreferencesManager clientID
