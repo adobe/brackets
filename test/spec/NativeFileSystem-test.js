@@ -228,7 +228,8 @@ define(function(require, exports, module) {
         describe("Writing", function() {
 
             beforeEach( function() {
-                var nfs = null;
+                var nfs = null
+                ,   chmodDone = false;
 
                 runs(function() {
                     NativeFileSystem.requestNativeFileSystem( this.path, function( fs ) {
@@ -247,11 +248,17 @@ define(function(require, exports, module) {
                         _err = err;
                         chmodDone = true;
                     });
+                    brackets.fs.chmod(this.path + "/cant_write_here.txt", 0444, function(err) {
+                        _err = err;
+                        chmodDone = true;
+                    });
                 });
                 waitsFor( function() { return chmodDone && ( _err === brackets.fs.NO_ERROR ) }, 1000);
             });
 
             afterEach( function() {
+                var chmodDone = false;
+
                 // restore permissions for git
                 runs(function() {
                     brackets.fs.chmod(this.path + "/cant_read_here.txt", 0777, function(err) {
@@ -454,7 +461,6 @@ define(function(require, exports, module) {
             });
 
             it("should report an error when writing to a file that cannot be read", function() {
-                var chmodDone = false;
                 var complete = false;
                 var error = null;
 
@@ -475,6 +481,40 @@ define(function(require, exports, module) {
                     expect(complete).toBeFalsy();
                     expect(error.code).toBe(FileError.NOT_READABLE_ERR);
                 });
+            });
+
+            it("should report an error when writing to a file that cannot be written", function() {
+                var writeComplete = false;
+                var error = null;
+
+                runs(function() {
+                    var successCallback = function( entry ) {
+                        entry.createWriter( function ( fileWriter ) {
+                            fileWriter.onwriteend = function( e ) {
+                                writeComplete = true;
+                            };
+                            fileWriter.onerror = function( err ) {
+                                writeComplete = true;
+                                error = err;
+                            };
+
+                            // TODO (jasonsj): BlobBulder
+                            fileWriter.write( "FileWriter.write" );
+                        });
+                    }
+                    var errorCallback = function() {
+                        writeComplete = true;
+                    };
+
+                    this.nfs.getFile( "cant_write_here.txt", { create: false }, successCallback, errorCallback );
+                });
+
+                // fileWriter.onerror handler should be invoked for read only files
+                waitsFor( function() { 
+                    return writeComplete 
+                        && error
+                        && ( error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ); 
+                    }, 1000 );
             });
 
             xit("should append to existing files", function() {
