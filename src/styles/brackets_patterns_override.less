@@ -5,7 +5,7 @@
  * b.) exist in multiple versions of brackets (e.g. App, In-Browser, etc.)
  *
  * Note that if you want a UI element to be themeable, you should put the
- * themeable part in "brakcets_theme_default" as variables/mixins.
+ * themeable part in "brackets_theme_default" as variables/mixins.
  *
  */
 
@@ -31,6 +31,15 @@
     .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
 }
 
+
+/* Dialog-related styles */
+
 .modal-footer .btn.left {
     float: left;
+}
+
+.modal-body ul {
+    /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
+       since they have heavy padding instead. */
+    margin-bottom: 0;
 }

@@ -51,6 +51,7 @@ define(function(require, exports, module) {
 
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
+    exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";
 
     exports.OPEN_FILE                         = "Open File";
 });

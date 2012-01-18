@@ -56,7 +56,7 @@ define(function(require, exports, module) {
      * @param {string} title The title of the error dialog. Can contain HTML markup.
      * @param {string} message The message to display in the error dialog. Can contain HTML markup.
      * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
-     *     is dismissed.
+     *     is dismissed. Never rejected.
      */
     brackets.showModalDialog = function(id, title, message, callback) {
         var result = $.Deferred();
@@ -154,6 +154,9 @@ define(function(require, exports, module) {
             $("#menu-file-save").click(function() {
                 CommandManager.execute(Commands.FILE_SAVE);
             });
+            $("#menu-file-quit").click(function() {
+                doQuit();
+            });
 
             // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
             var testWindow = null;
@@ -211,7 +214,21 @@ define(function(require, exports, module) {
             });
         }
     });
+    
 
+    function doQuit() {
+        var closeAllResult = CommandManager.execute(Commands.FILE_CLOSE_ALL);
+        
+        closeAllResult
+        .done(function() {
+            //window.close();
+            console.log("TODO: window.close()!");
+        })
+        .fail(function() {
+            // don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+        });
+    }
+    
     $(window).unload(function () {
         PreferencesManager.savePreferences();
     });

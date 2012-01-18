@@ -35,6 +35,7 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
+        CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
 		
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
@@ -176,13 +177,14 @@ define(function(require, exports, module) {
     }
     
     function handleFileSave() {
+        return doSave( DocumentManager.getCurrentDocument() );
+    }
+    function doSave(docToSave) {
         var result = new $.Deferred();
-        var docToSave = DocumentManager.getCurrentDocument();
+        
         if (docToSave && docToSave.isDirty) {
-            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-            var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
-
+            var fileEntry = docToSave.file;
+            
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
@@ -190,7 +192,7 @@ define(function(require, exports, module) {
                         result.resolve();
                     }
                     writer.onerror = function(event) {
-                        showSaveFileError(event.target.error.code, _currentFilePath);
+                        showSaveFileError(event.target.error.code, fileEntry.fullPath);
                         result.reject();
                     }
 
@@ -198,7 +200,7 @@ define(function(require, exports, module) {
                     writer.write( docToSave.getText() );
                 },
                 function(event) {
-                    showSaveFileError(event.target.error.code, _currentFilePath);
+                    showSaveFileError(event.target.error.code, fileEntry.fullPath);
                     result.reject();
                 }
             );
@@ -211,27 +213,27 @@ define(function(require, exports, module) {
         });
         return result;
     }
+    
+    function saveAll() {
+        var saveResults = [];
+        
+        DocumentManager.getWorkingSet().forEach(function(doc) {  //TODO: or just use for..in?
+            saveResults.push( doSave(doc) );
+        });
+        
+        // $.when() is sort of crappy: it won't accept an array as an arg, and it seems to insist
+        // on receiving Deferreds even though it should work fine given Promises too... ugh
+        var overallResult = $.when.apply($, saveResults);
+        
+        return overallResult; //NOTE: this returns a Promise, NOT a Deferred (which is actually more correct)
+    }
+    
 
 	/** Closes the specified document. Assumes the current document if doc is null. 
 	 * Prompts user about saving file if document is dirty
 	 * @param {?Document} doc 
 	 */
     function handleFileClose( doc ) {
-        
-        // utility function for handleFileClose
-        function doClose(doc) {      
-	        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
-	        // TODO: can this be removed?
-	        doc.markClean();
-        
-	        // This selects a different document if the working set has any other options
-	        DocumentManager.closeDocument(doc);
-        
-	        EditorManager.focusEditor();
-	    }
-        
-        
-        // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
         
 		// Default to current document if doc is null
@@ -252,10 +254,9 @@ define(function(require, exports, module) {
                 }
                 else {
                     if (id === brackets.DIALOG_BTN_OK) {
-                        CommandManager
-                            .execute(Commands.FILE_SAVE)
+                        doSave(doc)
                             .done(function() {
-                                doClose(doc);
+                                _doClose(doc);
                                 result.resolve();
                             })
                             .fail(function() {
@@ -264,7 +265,7 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose(doc);
+                        _doClose(doc);
                         result.resolve();
                     }
                 }
@@ -275,10 +276,99 @@ define(function(require, exports, module) {
         }
         else {
 			// Doc is not dirty, just close
-            doClose(doc);
+            _doClose(doc);
             EditorManager.focusEditor();
             result.resolve();
         }
+        return result;
+    }
+    
+    /** Closes the given document, removing it from working set & editor UI */
+    function _doClose(doc) {      
+        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
+        // TODO: can this be removed?
+        doc.markClean();
+    
+        // This selects a different document if the working set has any other options
+        DocumentManager.closeDocument(doc);
+    
+        EditorManager.focusEditor();
+    }
+    
+    
+    function handleFileCloseAll() {
+        
+        function doCloseAll() {
+            // FIXME: inefficient, lots of UI churn for individual notifications!
+            var allDocs = DocumentManager.getWorkingSet().slice(0);
+            if (allDocs.indexOf(DocumentManager.getCurrentDocument()) == -1)
+                allDocs.push(DocumentManager.getCurrentDocument());
+            
+            for (var i=0; i < allDocs.length; i++) {
+                _doClose( allDocs[i] );
+            }
+        }
+        
+        var result = new $.Deferred();
+        
+        var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
+            return doc.isDirty;
+        } );
+        
+        if (unsavedDocs.length == 0) {
+            console.log("ZERO UNSAVED...");
+            
+            doCloseAll();
+            result.resolve();
+            
+        } else if (unsavedDocs.length == 1) {
+            console.log("SINGLE UNSAVED...");
+            
+            handleFileClose( unsavedDocs[0] ).done( function() {
+                doCloseAll();
+                result.resolve();
+            }).fail( function() {
+                result.reject();
+            });
+            
+        } else {
+            console.log("MULTIPLE UNSAVED...");
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
+            
+            message += "<ul>";
+            unsavedDocs.forEach(function(doc) {  //TODO: or just use for..in?
+                message += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
+            });
+            message += "</ul>";
+            
+            brackets.showModalDialog(
+                  brackets.DIALOG_ID_SAVE_CLOSE
+                , Strings.SAVE_CLOSE_TITLE
+                , message
+            ).done(function(id) {
+                if (id === brackets.DIALOG_BTN_CANCEL) {
+                    result.reject();
+                }
+                else {
+                    if (id === brackets.DIALOG_BTN_OK) {
+                        console.log("SAVE ALL, then CLOSE ALL");
+                        saveAll().done( function() {
+                            doCloseAll();
+                            result.resolve();
+                        }).fail( function() {
+                            result.reject();
+                        });
+                    }
+                    else {
+                        // This is the "Don't Save" case--we can just go ahead and close the file.
+                        console.log("DISCARD ALL, then CLOSE ALL");
+                        doCloseAll();
+                        result.resolve();
+                    }
+                }
+            });
+        }
+        
         return result;
     }
 
