@@ -11,6 +11,9 @@ define(function(require, exports, module) {
     // Load dependent modules
     var PreferencesManager      = require("PreferencesManager")
     ,   ProjectManager          = require("ProjectManager")
+    ,   DocumentManager         = require("DocumentManager")
+    ,   EditorManager           = require("EditorManager")
+    ,   WorkingSetView          = require("WorkingSetView")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
@@ -29,7 +32,9 @@ define(function(require, exports, module) {
         { PreferencesManager    : PreferencesManager
         , ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
+        , DocumentManager       : DocumentManager
         , Commands              : Commands
+        , WorkingSetView        : WorkingSetView
         , CommandManager        : require("CommandManager")
         };
 
@@ -107,35 +112,7 @@ define(function(require, exports, module) {
 
     $(document).ready(function() {
 
-        var editorElt = $('#editor')
-        ,   editor = CodeMirror(editorElt.get(0), {
-                indentUnit : 4, 
-                extraKeys: { 
-                    "Tab" : function(instance) {
-                         if (instance.somethingSelected())
-                            CodeMirror.commands.indentMore(instance);
-                         else
-                            CodeMirror.commands.insertTab(instance);
-                    }
-                }
-            });
-    
-        // CodeMirror expects to be resized by having its inner "CodeMirror-scroll" area be resized.
-        // We need to do this programmatically.
-        var timeout = null;
-        function updateEditorSize() {
-            // Don't refresh every single time.
-            if (!timeout) {
-                timeout = setTimeout(function() {
-                    editor.refresh();
-                    timeout = null;
-                }, 100);
-            }
-            $('.CodeMirror-scroll', editorElt)
-                .height(editorElt.height());
-        }
-        updateEditorSize();
-        $(window).resize(updateEditorSize);
+        EditorManager.setEditorHolder( $('#editorHolder') );
     
         initProject();
         initMenus();
@@ -149,6 +126,17 @@ define(function(require, exports, module) {
             $("#btn-open-project").click(function() {
                 ProjectManager.openProject();
             });
+
+            // Handle toggling top level disclosure arrows of file list area
+            $("#open-files-disclosure-arrow").click(function(){
+                $(this).toggleClass( "disclosure-arrow-closed");
+                $("#open-files-container").toggle();
+            });
+            $("#project-files-disclosure-arrow").click(function(){
+                $(this).toggleClass( "disclosure-arrow-closed");
+                $("#project-files-container").toggle();
+            });
+       
         }
 
         function initMenus() {
@@ -184,13 +172,13 @@ define(function(require, exports, module) {
             });
             
             // Other debug menu items
-            $("#menu-debug-wordwrap").click(function() {
-                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
-            });     
+//            $("#menu-debug-wordwrap").click(function() {
+//                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
+//            });     
         }
 
         function initCommandHandlers() {
-            FileCommandHandlers.init(editor, $("#main-toolbar .title"));
+            FileCommandHandlers.init( $("#main-toolbar .title") );
         }
 
         function initKeyBindings() {

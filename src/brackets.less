@@ -89,14 +89,33 @@ a, img {
     z-index: 2;
 }
 
-#editor {
+#editorHolder {
     .vbox;
     .box-flex(1);
 
     .CodeMirror-lines {
         padding: @base-padding;
     }
+    
+    /* Placeholder shown when there is no editor open */
+    #notEditor {
+        .box-flex(1);
+        .vbox;
+        .box-pack(center);
+        .box-align(center);
+        background-color: @background-color-2;
+        
+        #notEditorContent {
+            color: @background-color-1;
+            font-size: 350px;
+            line-height: normal;
+            margin-top: -0.25em;
+            text-shadow: 0 1px @bc-black;
+            opacity: 0.30;
+        }
+    }
 }
+
 
 /* Project panel */
 
@@ -107,16 +126,132 @@ a, img {
     }
 }
 
-#project-files-container {
+#project-file-area {
+    .vbox;
     .box-flex(1);
-    margin: 0;
-    padding: 0;
-    overflow: auto; /* show scrollbars */
+    margin: 5px 0px 5px 0px;
+    
+    .project-file-header-area {
+        padding: 4px 4px 2px 0px;
+        
+        span {
+            font-weight: bold;
+            vertical-align: middle;        
+        }
+    }
 
-    > ul {
-        margin-top: 5px;
+    .file-list-divider {
+        border-bottom: 1px solid #9a9a9a;  
+        box-shadow: 0px 1px #eeeeee;
+    }
+    
+    
+}
+
+
+
+#open-files-container {
+    .box-flex(0);
+    margin: 0px;
+    padding: 0px;
+    overflow: auto;
+    
+    ul {
+        list-style-type: none;
+        margin: 0;
+        
+        a {
+            color: black;
+            text-decoration: none;
+            margin-left: 26px;
+        }
+        
+        li {
+            padding: 2px 0px 2px 2px;
+            
+            position: relative; // so that children can be positioned absolute
+            
+            &:hover {
+                background: #E7F4F9;
+            }
+            
+            &.selected {
+                #gradient.vertical(#5fa3e0, #0065be);
+        
+                a { color: white; }    
+            }             
+        }        
     }
 }
+
+#project-files-container {
+    .box-flex(1);
+    margin: 0px 0px 0px 8px;
+    padding: 0;
+    overflow: auto; /* show scrollbars */
+    
+    ul { margin-top: 0; }
+}
+
+@spriteSize18: 18px;
+
+/** Classes for icons from jsTreeSprites.png 
+*/
+.jsTreeSprite {
+    background-image: url("styles/images/jsTreeSprites.png");
+    background-repeat: no-repeat;
+    background-color: transparent;
+    vertical-align: middle;
+    width: @spriteSize18;
+    height: @spriteSize18;
+}
+
+.disclosure-arrow-opened {
+    .jsTreeSprite;
+    display: inline-block;
+    background-position: -@spriteSize18 0px;
+}
+
+.disclosure-arrow-closed {
+    .jsTreeSprite;
+    display: inline-block;
+    background-position: 0px 0px;
+}
+
+/** Classes for icons from bracketSprites.png 
+*/
+
+.bracketSprite {
+    background-image: url("styles/images/bracketsSprites.png");
+    background-repeat: no-repeat;
+    background-color: transparent;
+    vertical-align: middle;
+    width: @spriteSize18;
+    height: @spriteSize18;
+}
+
+
+.file-status-icon {
+    margin: 0px 0px 0px 10px;
+    .bracketSprite;
+    display: inline-block;
+    position: absolute;
+    left: 0px;
+    top: 1px;
+    
+    &.dirty {
+        background-position: 0 0;
+    }
+    
+    &.canClose {
+        background-position: -@spriteSize18 0;
+    }
+  
+    &.canClose:hover {
+        background-position: -@spriteSize18*2 0;
+    }
+}
+
 
 /* Styles for the search dialog--this is temporary, only for debugging */
 

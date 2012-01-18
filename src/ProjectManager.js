@@ -26,13 +26,43 @@ define(function(require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
-
+    
+    /**
+     * Returns true if absPath lies within the project, false otherwise.
+     * FIXME: Does not support paths containing ".."
+     */
+    function isWithinProject(absPath) {
+        var rootPath = _projectRoot.fullPath;
+        if (rootPath.charAt(rootPath.length - 1) != "/") {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
+            rootPath += "/";
+        }
+        return (absPath.indexOf(rootPath) == 0);
+    }
+    /**
+     * If absPath lies within the project, returns a project-relative path. Else returns absPath
+     * unmodified.
+     * FIXME: Does not support paths containing ".."
+     */
+    function makeProjectRelativeIfPossible(absPath) {
+        if (isWithinProject(absPath)) {
+            var relPath = absPath.slice(_projectRoot.fullPath.length);
+            if (relPath.charAt(0) == '/') {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
+                relPath = relPath.slice(1);
+            }
+            return relPath;
+        }
+        return absPath;
+    }
+    
+    
     /**
      * @private
      * Reference to the tree control
+     * @type {jQueryObject}
      */
     var _projectTree = null;
 
+    
     /**
      * @private
      * Used to initialize jstree state
@@ -120,12 +150,16 @@ define(function(require, exports, module) {
      * user choose a folder.
      *
      * @param {string} rootPath  Absolute path to the root folder of the project.
+     * @return {Deferred} A $.Deferred() object that will be resolved when the
+     *  project is loaded and tree is rendered, or rejected if the project path
+     *  fails to load.
      */
     function loadProject(rootPath) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID)
+        ,   result = new $.Deferred();
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
@@ -162,7 +196,7 @@ define(function(require, exports, module) {
             ];
 
             // Show file list in UI synchronously
-            _renderTree(treeJSONData);
+            _renderTree(treeJSONData, result);
 
         } else {
             // Point at a real folder structure on local disk
@@ -174,24 +208,27 @@ define(function(require, exports, module) {
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
-                    _renderTree(_treeDataProvider);
+                    _renderTree(_treeDataProvider, result);
                 },
                 function(error) {
                     brackets.showModalDialog(
                           brackets.DIALOG_ID_ERROR
                         , Strings.ERROR_LOADING_PROJECT
-                        , Strings.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code)
+                        , Strings.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code
+                        , function() { result.reject(); })
                     );
                 }
             );
         }
+
+        return result;
     }
 
     /**
-     * Returns the FileEntry corresponding to the selected item, or null
+     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
      * if no item is selected.
      *
-     * @return {string}
+     * @return {?Entry}
      */
     function getSelectedItem() {
         var selected = _projectTree.jstree("get_selected");
@@ -244,7 +281,7 @@ define(function(require, exports, module) {
                 selectionEntry = null;
             }
             */
-            // FIXME (jasonsj): hackish way to get parent directory
+            // FIXME (jasonsj): hackish way to get parent directory; replace with Entry.getParent() when available
             var filePath = selectionEntry.fullPath;
             selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
         }
@@ -370,6 +407,9 @@ define(function(require, exports, module) {
         dirEntry.createReader().readEntries(
             function(entries) {
                 var subtreeJSON = _convertEntriesToJSON(entries);
+                //If the list is empty, add an empty object so the loading message goes away
+                if( subtreeJSON.length === 0 )
+                    subtreeJSON.push({});
                 jsTreeCallback(subtreeJSON);
             },
             function(error) {
@@ -429,7 +469,7 @@ define(function(require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    function _renderTree(treeDataProvider) {
+    function _renderTree(treeDataProvider, result) {
 
         var projectTreeContainer = $("#project-files-container");
 
@@ -468,15 +508,25 @@ define(function(require, exports, module) {
                 data.inst.data.core.to_open = toOpenIds;
                 _projectTree.jstree("reload_nodes", false);
             }
+            if ( _projectInitialLoad.previous.length === 0 ) {
+                result.resolve();
+            }
+        })
+        .bind("dblclick.jstree", function(event) {
+            var entry = $(event.target).closest("li").data("entry");
+            if (entry.isFile)
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
         });
     };
 
     // Define public API
-    exports.getProjectRoot          = getProjectRoot;
-    exports.openProject             = openProject;
-    exports.loadProject             = loadProject;
-    exports.getSelectedItem         = getSelectedItem;
-    exports.createNewItem           = createNewItem
+    exports.getProjectRoot  = getProjectRoot;
+    exports.isWithinProject = isWithinProject;
+    exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
+    exports.openProject     = openProject;
+    exports.loadProject     = loadProject;
+    exports.getSelectedItem = getSelectedItem;
+    exports.createNewItem   = createNewItem;
 
     // Register save callback
     var loadedPath = window.location.pathname;
