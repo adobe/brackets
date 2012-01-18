@@ -242,6 +242,16 @@ define(function(require, exports, module) {
      * @param {?Document} doc 
      */
     function handleFileClose( doc ) {
+        
+        // utility function for handleFileClose: closes document & removes from working set
+        function doClose(doc) {
+            // This selects a different document if the working set has any other options
+            DocumentManager.closeDocument(doc);
+        
+            EditorManager.focusEditor();
+        }
+        
+        
         var result = new $.Deferred();
         
         // Default to current document if doc is null
@@ -266,7 +276,7 @@ define(function(require, exports, module) {
                     if (id === brackets.DIALOG_BTN_OK) {
                         doSave(doc)
                             .done(function() {
-                                _doClose(doc);
+                                doClose(doc);
                                 result.resolve();
                             })
                             .fail(function() {
@@ -275,7 +285,7 @@ define(function(require, exports, module) {
                     }
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
-                        _doClose(doc);
+                        doClose(doc);
                         result.resolve();
                     }
                 }
@@ -286,39 +296,14 @@ define(function(require, exports, module) {
         }
         else {
             // Doc is not dirty, just close
-            _doClose(doc);
+            doClose(doc);
             EditorManager.focusEditor();
             result.resolve();
         }
         return result;
     }
     
-    /** Closes the given document, removing it from working set & editor UI */
-    function _doClose(doc) {      
-        // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
-        // TODO: can this be removed?
-        doc.markClean();
-    
-        // This selects a different document if the working set has any other options
-        DocumentManager.closeDocument(doc);
-    
-        EditorManager.focusEditor();
-    }
-    
-    
     function handleFileCloseAll() {
-        
-        function doCloseAll() {
-            // FIXME: inefficient, lots of UI churn for individual notifications!
-            var allDocs = DocumentManager.getWorkingSet().slice(0);
-            if (allDocs.indexOf(DocumentManager.getCurrentDocument()) == -1)
-                allDocs.push(DocumentManager.getCurrentDocument());
-            
-            for (var i=0; i < allDocs.length; i++) {
-                _doClose( allDocs[i] );
-            }
-        }
-        
         var result = new $.Deferred();
         
         var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
@@ -328,14 +313,14 @@ define(function(require, exports, module) {
         if (unsavedDocs.length == 0) {
             console.log("ZERO UNSAVED...");
             
-            doCloseAll();
+            DocumentManager.closeAll();
             result.resolve();
             
         } else if (unsavedDocs.length == 1) {
             console.log("SINGLE UNSAVED...");
             
             handleFileClose( unsavedDocs[0] ).done( function() {
-                doCloseAll();
+                DocumentManager.closeAll();
                 result.resolve();
             }).fail( function() {
                 result.reject();
@@ -363,7 +348,7 @@ define(function(require, exports, module) {
                     if (id === brackets.DIALOG_BTN_OK) {
                         console.log("SAVE ALL, then CLOSE ALL");
                         saveAll().done( function() {
-                            doCloseAll();
+                            DocumentManager.closeAll();
                             result.resolve();
                         }).fail( function() {
                             result.reject();
@@ -372,7 +357,7 @@ define(function(require, exports, module) {
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
                         console.log("DISCARD ALL, then CLOSE ALL");
-                        doCloseAll();
+                        DocumentManager.closeAll();
                         result.resolve();
                     }
                 }
