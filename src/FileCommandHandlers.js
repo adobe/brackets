@@ -173,8 +173,14 @@ define(function(require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        // TODO: Use a unique name like Untitled-1, Untitled-2, etc.
-        return ProjectManager.createNewItem(baseDir, "Untitled.js", false);
+        var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
+        var createWithSuggestedName = function ( suggestedName ) {
+            ProjectManager.createNewItem(baseDir, suggestedName, false).pipe( deferred.resolve, deferred.reject, deferred.notify );
+        };
+
+        deferred.done( createWithSuggestedName );
+        deferred.fail( function createWithDefault() { createWithSuggestedName( "Untitled.js" ); } );
+        return deferred;
     }
     
     function handleFileSave() {
@@ -330,6 +336,45 @@ define(function(require, exports, module) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         else
             result = Strings.format(Strings.GENERIC_ERROR, code);
+
+        return result;
+    }
+
+    /**
+     * @private
+     * Ensures the suggested file name doesn't already exit.
+     * @param {string} dir  The directory to use
+     * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
+     * @param {string} fileExt  The file extension
+     */
+    function _getUntitledFileSuggestion( dir, baseFileName, fileExt ) {
+        var result = new $.Deferred();
+        var suggestedName = baseFileName + fileExt;
+        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
+
+        result.progress( function attemptNewName( suggestedName, nextIndexToUse ) {
+            if( nextIndexToUse > 99 ) {
+                //we've tried this enough
+                result.reject();
+                return;
+            }
+
+            //check this name
+            dirEntry.getFile( suggestedName
+                            , {}
+                            , function successCallback(entry){
+                                //file exists, notify to the next progress
+                                result.notify(baseFileName + "-" + nextIndexToUse + fileExt , nextIndexToUse + 1);
+                                }
+                             , function errorCallback(error) {
+                                //most likely error is FNF, user is better equiped to handle the rest
+                                result.resolve(suggestedName);
+                                }
+                            );
+        });
+
+        //kick it off
+        result.notify(baseFileName + fileExt , 1);
 
         return result;
     }
