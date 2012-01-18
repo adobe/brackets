@@ -11,7 +11,32 @@ define(function(require, exports, module) {
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
+    ,   DocumentManager     = require("DocumentManager")
     ;
+    
+    // Initialize: register listeners
+    $(DocumentManager).on("currentDocumentChange",
+    function(event, eventTarget) {
+        // Deselect if command didn't come from ProjectManager
+        if(!eventTarget || eventTarget != "ProjectManager")
+            _projectTree.jstree("deselect_all");
+        
+        var node = null;
+        if(eventTarget == "menu"){
+            
+            $(".jstree-open").each( function ( index ) {
+                entry = $(this).data("entry");
+                
+                var curDoc = DocumentManager.getCurrentDocument();
+                
+                if( entry.fullPath == curDoc.fullPath)
+                    node = $(this);
+            });
+            
+            _projectTree.jstree( "select_node", node);
+            
+        }
+    });
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
@@ -464,6 +489,7 @@ define(function(require, exports, module) {
      */
     function _renderTree(treeDataProvider) {
 
+
         var projectTreeContainer = $("#project-files-container");
 
         // Instantiate tree widget
@@ -481,7 +507,7 @@ define(function(require, exports, module) {
         .bind("select_node.jstree", function(event, data) {
             var entry = data.rslt.obj.data("entry");
             if (entry.isFile)
-                CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: entry.fullPath, commandTarget: "ProjectManager"});
         })
         .bind("reopen.jstree", function(event, data) {
             // This handler fires for the initial load and subsequent
@@ -505,7 +531,7 @@ define(function(require, exports, module) {
         .bind("dblclick.jstree", function(event) {
             var entry = $(event.target).closest("li").data("entry");
             if (entry.isFile)
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: entry.fullPath});
         });
     };
 

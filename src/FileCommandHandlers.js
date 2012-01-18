@@ -78,20 +78,26 @@ define(function(require, exports, module) {
         }
     }
     
-    function handleFileAddToWorkingSet(fullPath){
-        handleFileOpen(fullPath);
+    function handleFileAddToWorkingSet(commandData){
+        handleFileOpen(commandData);
         DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
     }
 
-    function handleFileOpen(fullPath) {
-        var result = doOpenWithOptionalPath(fullPath);
+    function handleFileOpen(commandData) {
+        var fullPath = null, commandContext = null;
+        if( commandData ){
+            fullPath = commandData.fullPath;    
+            commandContext = commandData.commandContext;
+        }
+        
+        var result = doOpenWithOptionalPath(fullPath, commandContext);
         result.always(function() {
             EditorManager.focusEditor();
         });
         return result;
     }
 
-    function doOpenWithOptionalPath(fullPath) {
+    function doOpenWithOptionalPath(fullPath, commandContext) {
         var result;
         if (!fullPath) {
             // Prompt the user with a dialog
@@ -105,14 +111,14 @@ define(function(require, exports, module) {
                 });
         }
         else {
-            result = doOpen(fullPath);
+            result = doOpen(fullPath, commandContext);
         }
         if (!result)
             result = (new $.Deferred()).reject();
         return result;
     }
 
-    function doOpen(fullPath) {
+    function doOpen(fullPath, callingModule) {
         var result = new $.Deferred();
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
@@ -126,7 +132,7 @@ define(function(require, exports, module) {
         var document = DocumentManager.getDocumentForFile(fileEntry);
         if (document != null) {
             // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(document);
+            DocumentManager.showInEditor(document, callingModule);
             result.resolve();
             
         } else {
@@ -139,7 +145,7 @@ define(function(require, exports, module) {
                     document = EditorManager.createDocumentAndEditor(fileEntry, event.target.result);
                     
                     // Switch to new document in the UI
-                    DocumentManager.showInEditor(document);
+                    DocumentManager.showInEditor(document, callingModule);
                     result.resolve();
                 };
 

@@ -239,7 +239,7 @@ define(function(require, exports, module) {
      * @param {!Document} document  The document whose editor should be shown. May or may not
      *      already be in the working set.
      */
-    function showInEditor(document) {
+    function showInEditor(document, callingModule) {
         // If this file is already in editor, do nothing
         if (_currentDocument == document)
             return;
@@ -252,7 +252,7 @@ define(function(require, exports, module) {
         
         // Make it the current document
         _currentDocument = document;
-        $(exports).triggerHandler("currentDocumentChange");
+        $(exports).triggerHandler("currentDocumentChange", callingModule);
         // (this event triggers EditorManager to actually switch editors in the UI)
     }
     

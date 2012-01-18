@@ -18,9 +18,9 @@ define(function(require, exports, module) {
 
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange",
-    function(event) {
+    function(event, eventTarget) {
         //console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
-        _handleDocumentChanged();
+        _handleDocumentChanged(eventTarget);
     });
 
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
@@ -135,7 +135,7 @@ define(function(require, exports, module) {
                 .prependTo(listElement)
                 .click(function() {
                     var doc = listElement.data(_DOCUMENT_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, doc);
+                    CommandManager.execute(Commands.FILE_CLOSE, {document: doc});
                 });
         }
 
@@ -150,18 +150,20 @@ define(function(require, exports, module) {
     /** 
     * @private
     */
-    function _handleDocumentChanged() {
-        _updateListSelection(DocumentManager.getCurrentDocument());
+    function _handleDocumentChanged(eventTarget) {
+        if(eventTarget == "ProjectManager")
+            _updateListSelection(null);
+        else
+            _updateListSelection(DocumentManager.getCurrentDocument());
     }
 
 
     function _updateListSelection(curDoc) {
         // Iterate through working set list and update the selection on each
-        if (curDoc) {
-            var items = $("#open-files-container > ul").children().each(function() {
-                _updateListItemSelection(this, curDoc);
-            });
-        }
+        var items = $("#open-files-container > ul").children().each(function() {
+        _updateListItemSelection(this, curDoc);
+    });
+
     }
 
     /** Updates the appearance of the list element based on the parameters provided.
@@ -178,7 +180,7 @@ define(function(require, exports, module) {
     * @param {Document} curDoc 
     */
     function _openDoc(doc) {
-        CommandManager.execute(Commands.FILE_OPEN, doc.file.fullPath);
+        CommandManager.execute(Commands.FILE_OPEN, {fullPath: doc.file.fullPath, commandTarget: "WorkingSetView"});
     }
 
     /** 
@@ -186,7 +188,7 @@ define(function(require, exports, module) {
      * @param {Document} curDoc 
      */
     function _closeDoc(doc) {
-        CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
+        CommandManager.execute(Commands.FILE_CLOSE, {fullPath: doc.file.fullPath});
     }
 
 
