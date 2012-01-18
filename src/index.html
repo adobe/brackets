@@ -6,17 +6,17 @@
 <head>
     <meta charset="utf-8">
     <title>Brackets</title>
-
+    
     <!-- Pre-load third party scripts that cannot be async loaded. -->
     <script src="thirdparty/jquery-1.7.min.js"></script>
     <script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
-  
+    
     <!-- CodeMirror search support, currently for debugging only -->
     <link rel="stylesheet" href="thirdparty/CodeMirror2/lib/util/dialog.css">
     <script src="thirdparty/CodeMirror2/lib/util/dialog.js"></script>
     <script src="thirdparty/CodeMirror2/lib/util/searchcursor.js"></script>
     <script src="thirdparty/CodeMirror2/lib/util/search.js"></script>
-  
+    
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>
     
@@ -28,7 +28,7 @@
 </head>
 <body>
     <!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
-         due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
+    due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
 
     <!-- Top bar for menus -->
     <div class="topbar" data-dropdown="dropdown">
@@ -55,63 +55,61 @@
             </ul>
         </div>
     </div>
-    
+
     <!-- Main UI -->
     <div class="main-view">
         <div class="sidebar">
             <div id="projects" class="panel">
                 <div id="project-toolbar" class="toolbar">
-                    <span id="project-title" class="title"></span>
-                    <button id="btn-open-project" class="btn">Open</button>
+                    <div class="title-wrapper">
+                        <div id="project-title" class="title"></div>
+                    </div>
+                    <div class="buttons">
+                        <button id="btn-open-project" class="btn">Open</button>
+                    </div>
                     <!-- <select class="picker"></select>  -->
                 </div>
                 
                 <div id="project-file-area">
                     <div id="open-files-header" class="project-file-header-area">
-                        <span id="open-files-disclosure-arrow" class="disclosure-arrow-opened">
-                        </span>
+                        <span id="open-files-disclosure-arrow" class="disclosure-arrow-opened"></span>
                         <span>Open Files</span>
-                    </div>    
+                    </div>   
                     
                     <div id="open-files-container">
                         <!-- This will contain a dynamically generated <ul> at runtime -->
-                            <ul>
-                            </ul>
+                        <ul>
+                        </ul>
                     </div>
                     
                     <div id="open-files-divider" class="file-list-divider"></div>
-
+                    
                     <div id="project-files-header" class="project-file-header-area">
                         <div id="project-files-disclosure-arrow" class="disclosure-arrow-opened">
                         </div>
                         <span>Project Files</span>
                     </div>
-                <div id="project-files-container">
+                    <div id="project-files-container">
                     <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
-                </div>
+                    </div>
                     
                 </div>
             </div>
         </div>
         <div class="content">
             <div id="main-toolbar" class="toolbar">
-                <div class="buttons">
-    <!--        
-                    <input class="resume" type="button" value="Pause"/>
-                    <input class="resume" type="button" value="Resume"/>
-                    <input class="new" type="button" value="New"/>
-                    <input class="save" type="button" value="Save"/>
-                    <input class="settings" type="button" value="Settings"/>
-    -->
+                <div class="title-wrapper">
+                    <div class="title"></div>
                 </div>
-                <div class="title"></div>
-            </div>            
+            </div>
             <div id="editorHolder">
-                <div id="notEditor"><div id="notEditorContent">{&nbsp;&nbsp;}</div></div>
+                <div id="notEditor">
+                    <div id="notEditorContent">{&nbsp;&nbsp;}</div>
+                </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Windows -->
     <div id="error-dialog" class="modal hide fade">
         <div class="modal-header">
@@ -123,7 +121,7 @@
         </div>
         <div class="modal-footer">
             <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
-        </div>        
+        </div>
     </div>
     <div id="save-close-dialog" class="modal hide fade">
         <div class="modal-header">
@@ -138,7 +136,7 @@
             <!-- TODO: switch buttons on Windows -->
             <a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
             <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
-        </div>        
+        </div>
     </div>
 </body>
 </html>
