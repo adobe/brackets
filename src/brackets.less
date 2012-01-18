@@ -161,8 +161,11 @@ a, img {
 #open-files-container {
     .box-flex(0);
     margin: 0px;
-      padding: 0px;
-    overflow: auto;
+    padding: 0px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 200px; // TODO: it would be nicer to have this be 50%, but that doesn't seem to work
+
     
     ul {
         list-style-type: none;
@@ -195,8 +198,9 @@ a, img {
 #project-files-container {
     .box-flex(1);
     margin: 0px 0px 0px 8px;
-      padding: 0;
-    overflow: auto; /* show scrollbars */
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
     
     ul { margin-top: 0; }
 }
@@ -240,7 +244,7 @@ a, img {
 
 
 .file-status-icon {
-    margin: 0px 0px 0px 8px;
+    margin: 0px 0px 0px 10px;
     .bracketSprite;
     display: inline-block;
     position: absolute;

@@ -2,6 +2,8 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 define(function(require, exports, module) {
+    require("thirdparty/path-utils/path-utils.min");
+    
     // Load dependent modules
     var CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
@@ -28,7 +30,7 @@ define(function(require, exports, module) {
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
-		CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWoringSet);
+        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
         // TODO: For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
@@ -36,7 +38,7 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-		
+        
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
@@ -76,11 +78,11 @@ define(function(require, exports, module) {
             _title.text("");
         }
     }
-	
-	function handleFileAddToWoringSet(fullPath){
-		handleFileOpen(fullPath);
-		DocumentManager.addToWorkingSet(fullPath);
-	}
+    
+    function handleFileAddToWorkingSet(fullPath){
+        handleFileOpen(fullPath);
+        DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
+    }
 
     function handleFileOpen(fullPath) {
         var result = doOpenWithOptionalPath(fullPath);
@@ -185,23 +187,29 @@ define(function(require, exports, module) {
         if (docToSave && docToSave.isDirty) {
             var fileEntry = docToSave.file;
             
+            //setup our resolve and reject handlers
+            result.done( function fileSaved() { 
+                docToSave.markClean();
+            });
+
+            result.fail( function fileError(error) { 
+                showSaveFileError(error.code, fileEntry.fullPath);
+            });
+
             fileEntry.createWriter(
                 function(writer) {
                     writer.onwriteend = function() {
-                        docToSave.markClean();
                         result.resolve();
                     }
-                    writer.onerror = function(event) {
-                        showSaveFileError(event.target.error.code, fileEntry.fullPath);
-                        result.reject();
+                    writer.onerror = function(error) {
+                        result.reject(error);
                     }
 
                     // TODO (jasonsj): Blob instead of string
                     writer.write( docToSave.getText() );
                 },
-                function(event) {
-                    showSaveFileError(event.target.error.code, fileEntry.fullPath);
-                    result.reject();
+                function(error) {
+                    result.reject(error);
                 }
             );
         }
@@ -229,25 +237,27 @@ define(function(require, exports, module) {
     }
     
 
-	/** Closes the specified document. Assumes the current document if doc is null. 
-	 * Prompts user about saving file if document is dirty
-	 * @param {?Document} doc 
-	 */
+    /** Closes the specified document. Assumes the current document if doc is null. 
+     * Prompts user about saving file if document is dirty
+     * @param {?Document} doc 
+     */
     function handleFileClose( doc ) {
         var result = new $.Deferred();
         
-		// Default to current document if doc is null
+        // Default to current document if doc is null
         if (!doc)
             doc =  DocumentManager.getCurrentDocument();
         // No-op if called when nothing is open; TODO: should command be grayed out instead?
         if (!doc)
             return;
         
-		if (doc.isDirty) {
+        if (doc.isDirty) {
+            var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
+            
             brackets.showModalDialog(
                   brackets.DIALOG_ID_SAVE_CLOSE
                 , Strings.SAVE_CLOSE_TITLE
-                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) )
+                , Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename )
             ).done(function(id) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -275,7 +285,7 @@ define(function(require, exports, module) {
             });
         }
         else {
-			// Doc is not dirty, just close
+            // Doc is not dirty, just close
             _doClose(doc);
             EditorManager.focusEditor();
             result.resolve();
@@ -372,7 +382,7 @@ define(function(require, exports, module) {
         return result;
     }
 
-	
+    
 
 
     function showFileOpenError(code, path) {
@@ -407,7 +417,7 @@ define(function(require, exports, module) {
         else if (code == FileError.NOT_READABLE_ERR)
             result = Strings.NOT_READABLE_ERR;
         else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR;
+            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         else
             result = Strings.format(Strings.GENERIC_ERROR, code);
 

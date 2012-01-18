@@ -31,6 +31,7 @@ define(function(require, exports, module) {
     exports.NOT_FOUND_ERR                     = "The file could not be found.";
     exports.NOT_READABLE_ERR                  = "The file could not be read.";
     exports.NO_MODIFICATION_ALLOWED_ERR       = "The target directory cannot be modified.";
+    exports.NO_MODIFICATION_ALLOWED_ERR_FILE  = "The permissions do not allow you to make modifications.";
 
     // Project error strings
     exports.ERROR_LOADING_PROJECT             = "Error loading project";

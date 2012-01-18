@@ -72,15 +72,18 @@ define(function(require, exports, module) {
             
         });
         
+        
         it("should remove a list item when a file is closed", function() {
             DocumentManager.getCurrentDocument().markClean(); // so we can close without a save dialog
            
             // close the document
+            var didClose = false, gotError = false;
             runs(function() {
                 CommandManager.execute(Commands.FILE_CLOSE)
                     .done(function() { didClose = true; })
                     .fail(function() { gotError = true; });
             });
+            waitsFor(function() { return didClose && !gotError; }, "FILE_OPEN on file timeout", 1000);
                     
             // check there are no list items
             runs(function() {
@@ -90,44 +93,66 @@ define(function(require, exports, module) {
                                     
         });
         
+        
+        it("should make a file that is clicked the current one in the editor", function() {
+            var $ = this.app.$;
+            var secondItem =  $($("#open-files-container > ul").children()[1]);
+            secondItem.trigger('click');
+            
+            var listItems = $("#open-files-container > ul").children();
+            expect( $(listItems[0]).hasClass("selected") ).not.toBeTruthy();
+            expect( $(listItems[1]).hasClass("selected") ).toBeTruthy();
+                           
+        });
+        
+        
         // TODO Ty: Can't write this test yet until Jason's persistant work is complete    
         // it("should rebuild the ui from the model correctly", function() {
         //                 
         // });
         
         it("should close a file when the user clicks the close button", function() {
+            var $ = this.app.$;
+                    
+            // make 2nd doc clean
+            var docList = DocumentManager.getWorkingSet();
+            docList[1].markClean();
                             
-                    // make both docs clean
-                    var docList = DocumentManager.getWorkingSet();
-                    docList[0].markClean();
-                    docList[1].markClean();
+            // make the first one active
+            DocumentManager.showInEditor(docList[0]);
                             
-                    // make the first one active
-                    DocumentManager.showInEditor( docList[0]);
+            // hover over and click on close icon of 2nd list item
+            var secondItem =  $($("#open-files-container > ul").children()[1]);
+            secondItem.trigger('mouseover');
+            var closeIcon = secondItem.find(".file-status-icon");
+            expect(closeIcon.length).toBe(1) ;
                             
-                    // click on close icon of 2nd one
-                    var listItems = this.app.$("#open-files-container > ul").children();
-                    var closeIcon = this.app.$(this.app.$(listItems[1]).find(".file-status-icon"));
-                    //expect( closeIcon.toBe(1);
+            // simulate click
+            var didClose = false;
+            $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
+                didClose = true;
+            });
+            
+            closeIcon.trigger('click');
+            waitsFor(function() { return didClose; }, "click on working set close icon timeout", 1000);
                             
-                    // simulate click
-                    closeIcon.trigger('click');
-                            
-                    var listItems = this.app.$("#open-files-container > ul").children();
-                    expect( listItems.length ).toBe(1);
-                    expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
+            var listItems = $("#open-files-container > ul").children();
+            expect( listItems.length ).toBe(1);
+            expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                             
                             
-                            
-                });
-        
-        // TODO Ty: 
-        //         it("should make a file that is clicked the current one in the editor", function() {
-        //             
-        //         });
-        
-        
-        
         });
+        
+        it("should remove dirty icon when file becomes clean", function() {  
+            // check that dirty icon is removed when docs are cleaned
+            var docList = DocumentManager.getWorkingSet();
+           docList[0].markClean();
+           var listItems = this.app.$("#open-files-container > ul").children();
+           expect( listItems.find(".file-status-icon dirty").length).toBe(0);
+           
+
+        });
+            
+    });
     }    
 });
