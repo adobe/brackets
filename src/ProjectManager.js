@@ -514,8 +514,10 @@ define(function(require, exports, module) {
         })
         .bind("dblclick.jstree", function(event) {
             var entry = $(event.target).closest("li").data("entry");
-            if (entry.isFile)
+            if (entry.isFile) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
+                EditorManager.focusEditor();
+			}
         });
     };
 
