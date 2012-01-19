@@ -205,9 +205,15 @@ define(function(require, exports, module) {
      * @param {!Document} document
      */
     function addToWorkingSet(document) {
-        // If doc is already in working set, do nothing
-        if (_findInWorkingSet(document.file) != -1)
-            return;
+        // If doc is already in working set, don't add it again, but change document
+		// selection context to the WorkingSetView if necessary
+        if (_findInWorkingSet(document.file) != -1){
+			if( _currentDocumentSelectionContext != "WorkingSetView" ){
+				_currentDocumentSelectionContext = "WorkingSetView";
+				$(exports).triggerHandler("currentDocumentSelectionContextChanged");	
+			}
+			return;
+        }
         
         // Add
         _workingSet.push(document);
@@ -256,8 +262,8 @@ define(function(require, exports, module) {
      */
     function showInEditor(document, callingModule) {
 		
-		if( _findInWorkingSet(document.file))
-			callingModule = "WorkingSetView";
+		//if( _findInWorkingSet(document.file))
+		//	callingModule = "WorkingSetView";
 		
 		if(_currentDocumentSelectionContext !=callingModule){
 			_currentDocumentSelectionContext = callingModule;
