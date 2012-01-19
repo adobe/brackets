@@ -516,8 +516,9 @@ define(function(require, exports, module) {
             var entry = $(event.target).closest("li").data("entry");
             if (entry.isFile) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
+                // jstree dblclick handling seems to steal focus from editor, so set focus again
                 EditorManager.focusEditor();
-			}
+            }
         });
     };
 
