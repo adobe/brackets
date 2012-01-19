@@ -216,9 +216,7 @@ define(function(require, exports, module) {
     
 
     function doQuit() {
-        var closeAllResult = CommandManager.execute(Commands.FILE_CLOSE_ALL);
-        
-        closeAllResult
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, false)
         .done(function() {
             //window.close();
             console.log("TODO: window.close()!");

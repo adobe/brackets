@@ -332,7 +332,7 @@ define(function(require, exports, module) {
         // individual notifications, and ensuring we don't switch editors while closing...
         
         var allDocs = _workingSet.slice(0);  //slice() to clone
-        if (allDocs.indexOf(_currentDocument) == -1)
+        if (_currentDocument != null && allDocs.indexOf(_currentDocument) == -1)
             allDocs.push(_currentDocument);
         
         for (var i=0; i < allDocs.length; i++) {

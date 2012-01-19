@@ -241,14 +241,16 @@ define(function(require, exports, module) {
      * Prompts user about saving file if document is dirty
      * @param {?Document} doc 
      */
-    function handleFileClose( doc ) {
+    function handleFileClose( doc, promptOnly ) {
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(doc) {
-            // This selects a different document if the working set has any other options
-            DocumentManager.closeDocument(doc);
-        
-            EditorManager.focusEditor();
+            if (!promptOnly) {
+                // This selects a different document if the working set has any other options
+                DocumentManager.closeDocument(doc);
+            
+                EditorManager.focusEditor();
+            }
         }
         
         
@@ -303,7 +305,13 @@ define(function(require, exports, module) {
         return result;
     }
     
-    function handleFileCloseAll() {
+    function handleFileCloseAll(promptOnly) {
+        // utility function: if we're not in promptOnly mode, close all open documents
+        function doCloseAll() {
+            if (!promptOnly)
+                DocumentManager.closeAll();
+        }
+        
         var result = new $.Deferred();
         
         var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
@@ -313,14 +321,15 @@ define(function(require, exports, module) {
         if (unsavedDocs.length == 0) {
             console.log("ZERO UNSAVED...");
             
-            DocumentManager.closeAll();
+            doCloseAll();
             result.resolve();
             
         } else if (unsavedDocs.length == 1) {
             console.log("SINGLE UNSAVED...");
             
-            handleFileClose( unsavedDocs[0] ).done( function() {
-                DocumentManager.closeAll();
+            handleFileClose( unsavedDocs[0], promptOnly ).done( function() {
+                // still need to close any other, non-unsaved documents
+                doCloseAll();
                 result.resolve();
             }).fail( function() {
                 result.reject();
@@ -348,7 +357,7 @@ define(function(require, exports, module) {
                     if (id === brackets.DIALOG_BTN_OK) {
                         console.log("SAVE ALL, then CLOSE ALL");
                         saveAll().done( function() {
-                            DocumentManager.closeAll();
+                            doCloseAll();
                             result.resolve();
                         }).fail( function() {
                             result.reject();
@@ -357,7 +366,7 @@ define(function(require, exports, module) {
                     else {
                         // This is the "Don't Save" case--we can just go ahead and close the file.
                         console.log("DISCARD ALL, then CLOSE ALL");
-                        DocumentManager.closeAll();
+                        doCloseAll();
                         result.resolve();
                     }
                 }

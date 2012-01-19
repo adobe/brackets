@@ -8,6 +8,7 @@ define(function(require, exports, module) {
     // Load dependent modules
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   PreferencesManager  = require("PreferencesManager")
+    ,   DocumentManager     = require("DocumentManager")
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
@@ -126,13 +127,22 @@ define(function(require, exports, module) {
      * (If the user cancels the dialog, nothing more happens).
      */
     function openProject() {
-        if (!brackets.inBrowser) {
+        // Confirm any unsaved changes first. We run the command in "prompt-only" mode, meaning it won't
+        // actually close any documents even on success; we'll do that manually after the user also oks
+        //the folder-browse dialog.
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, true)
+        .done(function() {
             // Pop up a folder browse dialog
             NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
                 function(files) {
                     // If length == 0, user canceled the dialog; length should never be > 1
-                    if (files.length > 0)
+                    if (files.length > 0) {
+                        // Actually close all the old files now that we know for sure we're proceeding
+                        DocumentManager.closeAll();
+                        
+                        // Load the new project into the folder tree
                         loadProject( files[0] );
+                    }
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -142,7 +152,10 @@ define(function(require, exports, module) {
                     );
                 }
             );
-        }
+        })
+        .fail(function() {
+            // don't open new project: user canceled (or we failed to save its unsaved changes)
+        });
     }
 
     /**
