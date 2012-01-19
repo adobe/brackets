@@ -29,6 +29,27 @@
     border-bottom: 1px solid @bc-gray;
     #gradient > .vertical(lighten(@bc-grey, @bc-color-step-size*6), lighten(@bc-grey, @bc-color-step-size*2));
     .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+
+    .title-wrapper {
+        /* This is necessary because text-overflow: ellipsis doesn't work when it's set
+           directly on a flexing box in Chrome currently. */
+        .box-flex(1);
+    }
+    .title {
+        font-size: 1.2em;
+        font-weight: bold;
+        text-shadow: 0 1px @bc-white;        
+
+        white-space: nowrap;
+        overflow: hidden;
+        -ms-text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+        text-overflow: ellipsis;
+    }
+    .buttons {
+        .hbox;
+        margin-left: 4px;
+    }
 }
 
 .modal-footer .btn.left {
