@@ -39,7 +39,7 @@ define(function(require, exports, module) {
             var openAndMakeDirty = function (path){
                 // open file
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, path)
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: path})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });

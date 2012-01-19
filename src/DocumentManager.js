@@ -159,6 +159,21 @@ define(function(require, exports, module) {
         
         return null;
     }
+	
+    /**
+     * @private
+     * @see DocumentManager.currentDocumentSelectionContext()
+     */
+    var _currentDocumentSelectionContext = "ProjectManager";
+	
+    /**
+     * TODO Ty
+	 * returns either "WorkingSetView" or "ProjectManager"
+     * @return {?Document}
+     */
+    function getCurrentDocumentSelectionContext() {
+        return _currentDocumentSelectionContext;
+    }
     
     
     /**
@@ -240,9 +255,19 @@ define(function(require, exports, module) {
      *      already be in the working set.
      */
     function showInEditor(document, callingModule) {
+		
+		if( _findInWorkingSet(document.file))
+			callingModule = "WorkingSetView";
+		
+		if(_currentDocumentSelectionContext !=callingModule){
+			_currentDocumentSelectionContext = callingModule;
+			$(exports).triggerHandler("currentDocumentSelectionContextChanged");	
+		}
+		
+		
         // If this file is already in editor, do nothing
         if (_currentDocument == document)
-            return;
+        	return;
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
@@ -252,7 +277,7 @@ define(function(require, exports, module) {
         
         // Make it the current document
         _currentDocument = document;
-        $(exports).triggerHandler("currentDocumentChange", callingModule);
+        $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
     }
     
@@ -329,6 +354,7 @@ define(function(require, exports, module) {
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForFile = getDocumentForFile;
+	exports.getCurrentDocumentSelectionContext = getCurrentDocumentSelectionContext;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;

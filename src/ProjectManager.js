@@ -14,30 +14,29 @@ define(function(require, exports, module) {
     ,   DocumentManager     = require("DocumentManager")
     ;
     
-    // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange",
-    function(event, eventTarget) {
-        // Deselect if command didn't come from ProjectManager
-        if(!eventTarget || eventTarget != "ProjectManager")
-            _projectTree.jstree("deselect_all");
+    $(DocumentManager).on("currentDocumentSelectionContextChanged", function(event) {
+		if(DocumentManager.getCurrentDocumentSelectionContext() == "ProjectManager"){
+	        // var node = null;
+	        //         if(eventTarget == "menu"){
+	        //             
+	        //             $(".jstree-open").each( function ( index ) {
+	        //                 entry = $(this).data("entry");
+	        //                 
+	        //                 var curDoc = DocumentManager.getCurrentDocument();
+	        //                 
+	        //                 if( entry.fullPath == curDoc.fullPath)
+	        //                     node = $(this);
+	        //             });
+	        //             
+	        //             _projectTree.jstree( "select_node", node);
+	        //             
+	        //         }
+		}
+		else
+			_projectTree.jstree("deselect_all");
         
-        var node = null;
-        if(eventTarget == "menu"){
-            
-            $(".jstree-open").each( function ( index ) {
-                entry = $(this).data("entry");
-                
-                var curDoc = DocumentManager.getCurrentDocument();
-                
-                if( entry.fullPath == curDoc.fullPath)
-                    node = $(this);
-            });
-            
-            _projectTree.jstree( "select_node", node);
-            
-        }
     });
-
+	
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).

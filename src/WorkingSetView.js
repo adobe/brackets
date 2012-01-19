@@ -22,6 +22,12 @@ define(function(require, exports, module) {
         //console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
         _handleDocumentChanged(eventTarget);
     });
+	
+    $(DocumentManager).on("currentDocumentSelectionContextChanged",
+    function(event, eventTarget) {
+        _handlecurDocSelectionContextChanged();
+    });
+	
 
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         //console.log("Working set ++ " + addedDoc);
@@ -150,19 +156,29 @@ define(function(require, exports, module) {
     /** 
     * @private
     */
-    function _handleDocumentChanged(eventTarget) {
-        if(eventTarget == "ProjectManager")
-            _updateListSelection(null);
-        else
-            _updateListSelection(DocumentManager.getCurrentDocument());
+    function _handleDocumentChanged() {
+       _updateListSelection();
     }
+	
+    /** 
+    * @private
+    */
+	function _handlecurDocSelectionContextChanged(){
+		_updateListSelection();
+	}
 
 
-    function _updateListSelection(curDoc) {
+    function _updateListSelection() {
+		var curDoc;
+		if(DocumentManager.getCurrentDocumentSelectionContext() == "WorkingSetView")
+			curDoc = DocumentManager.getCurrentDocument();
+		else
+			curDoc = null;
+			
         // Iterate through working set list and update the selection on each
         var items = $("#open-files-container > ul").children().each(function() {
-        _updateListItemSelection(this, curDoc);
-    });
+	        _updateListItemSelection(this, curDoc);
+	    });
 
     }
 
