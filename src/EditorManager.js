@@ -126,9 +126,6 @@ define(function(require, exports, module) {
 
         fileEntry.file(function(file) {
             reader.onload = function(event) {
-                // FIXME (jasonsj): remove
-                console.log("create code mirror");
-
                 var editor = CodeMirror(_editorHolder.get(0), {
                     indentUnit : 4,
                     extraKeys: {

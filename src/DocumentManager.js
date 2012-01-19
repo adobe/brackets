@@ -386,14 +386,14 @@ define(function(require, exports, module) {
         //                 e.g. A file to restore no longer exists. Should we silently ignore
         //                 it or let the user be notified when they attempt to open the Document?
         var result = (function() {
-            var deferred    = new $.Deferred();
-            var fileCount   = prefs.files.length
-            ,   i           = 0;
+            var deferred        = new $.Deferred();
+            var fileCount       = prefs.files.length
+            ,   responseCount   = 0;
 
             function next() {
-                i++;
+                responseCount++;
 
-                if (i == fileCount) {
+                if (responseCount == fileCount) {
                     deferred.resolve();
                 }
             };
@@ -443,7 +443,6 @@ define(function(require, exports, module) {
             }
 
             if (activeDoc != null) {
-                console.log(activeDoc.file.fullPath);
                 showInEditor(activeDoc);
             }
         });
