@@ -43,7 +43,7 @@ define(function(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     };
 
-    function handleCurrentDocumentChange(event) {
+    function handleCurrentDocumentChange() {
         var newDocument = DocumentManager.getCurrentDocument();
         
         if (newDocument != null) {
@@ -239,7 +239,12 @@ define(function(require, exports, module) {
      * Prompts user about saving file if document is dirty
      * @param {?Document} doc 
      */
-    function handleFileClose( doc ) {
+    function handleFileClose( commandData ) {
+		var doc = null;
+		
+		if(commandData)
+			doc = commandData.doc;
+		
         
         // utility function for handleFileClose
         function doClose(doc) {      

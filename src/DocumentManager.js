@@ -169,7 +169,7 @@ define(function(require, exports, module) {
     /**
      * TODO Ty
 	 * returns either "WorkingSetView" or "ProjectManager"
-     * @return {?Document}
+     * @return {!String}
      */
     function getCurrentDocumentSelectionContext() {
         return _currentDocumentSelectionContext;

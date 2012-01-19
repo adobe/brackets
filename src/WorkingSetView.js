@@ -18,9 +18,9 @@ define(function(require, exports, module) {
 
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange",
-    function(event, eventTarget) {
+    function(event) {
         //console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
-        _handleDocumentChanged(eventTarget);
+        _handleDocumentChanged();
     });
 	
     $(DocumentManager).on("currentDocumentSelectionContextChanged",
@@ -167,7 +167,9 @@ define(function(require, exports, module) {
 		_updateListSelection();
 	}
 
-
+    /** 
+    * @private
+    */
     function _updateListSelection() {
 		var curDoc;
 		if(DocumentManager.getCurrentDocumentSelectionContext() == "WorkingSetView")
