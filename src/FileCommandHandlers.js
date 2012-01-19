@@ -133,7 +133,8 @@ define(function(require, exports, module) {
         } else {
             var docResult = EditorManager.createDocumentAndEditor(fileEntry);
 
-            docResult.done(function() {
+            docResult.done(function(doc) {
+                DocumentManager.showInEditor(doc);
                 result.resolve();
             });
             

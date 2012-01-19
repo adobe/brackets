@@ -347,12 +347,14 @@ define(function(require, exports, module) {
      */
     function _savePreferences(storage) {
         // save the working set file paths
-        var files = []
-        ,   isActive = false;
+        var files       = []
+        ,   isActive    = false
+        ,   workingSet  = getWorkingSet()
+        ,   currentDoc  = getCurrentDocument();
 
-        $.each(getWorkingSet(), function(index, value) {
+        workingSet.forEach(function(value, index) {
             // flag the currently active editor
-            isActive = (value === getCurrentDocument());
+            isActive = (value === currentDoc);
 
             files.push({
                 file: value.file.fullPath,
@@ -368,7 +370,6 @@ define(function(require, exports, module) {
      * Initializes the working set.
      */
     function _init() {
-        // TODO (jasonsj): check for project manager init?
         var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
 
         if (prefs.files === undefined) {
@@ -381,6 +382,8 @@ define(function(require, exports, module) {
 
         // in parallel, check if files exist
         // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
+        //                 e.g. A file to restore no longer exists. Should we silently ignore
+        //                 it or let the user be notified when they attempt to open the Document?
         var result = (function() {
             var deferred    = new $.Deferred();
             var fileCount   = prefs.files.length
@@ -394,7 +397,7 @@ define(function(require, exports, module) {
                 }
             };
 
-            $.each(prefs.files, function(index, value) {
+            prefs.files.forEach(function(value, index) {
                 // check if the file still exists
                 projectRoot.getFile(value.file, {}
                     , function(fileEntry) {
@@ -422,7 +425,7 @@ define(function(require, exports, module) {
             ,   doc;
 
             // Add all existing files to the working set
-            $.each(filesToOpen, function(index, value) {
+            filesToOpen.forEach(function(value, index) {
                 if (value) {
                     doc = new Document(value);
                     addToWorkingSet(doc);
@@ -438,8 +441,10 @@ define(function(require, exports, module) {
                 activeDoc = _workingSet[0];
             }
 
-            if (activeDoc != null)
+            if (activeDoc != null) {
+                console.log(activeDoc.file.fullPath);
                 showInEditor(activeDoc);
+            }
         });
     }
 

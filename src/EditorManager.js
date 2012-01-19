@@ -191,9 +191,9 @@ define(function(require, exports, module) {
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
 
-        // Create editor if necessary
+        // Lazily create editor for Documents that were restored on-init
         if (document._editor === null) {
-            var editorResult = _createEditor(document.fileEntry, text);
+            var editorResult = _createEditor(document.file);
 
             editorResult.done(function(editor) {
                 document._editor = editor;
