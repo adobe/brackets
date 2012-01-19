@@ -39,9 +39,10 @@ define(function(require, exports, module) {
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!CodeMirror} editor  The editor that will maintain the document state (current text
+     * @param {!CodeMirror} editor  Optional. The editor that will maintain the document state (current text
      *          and undo stack). It is assumed that the editor text has already been initialized
-     *          with the file's contents.
+     *          with the file's contents. The editor may be null when the working set is restored
+     *          at initialization.
      */
     function Document(file, editor) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
@@ -343,7 +344,7 @@ define(function(require, exports, module) {
     
     /**
      * @private
-     * Preferences callback. Saves current project path.
+     * Preferences callback. Saves the document file paths for the working set.
      */
     function _savePreferences(storage) {
         // save the working set file paths

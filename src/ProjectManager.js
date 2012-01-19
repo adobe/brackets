@@ -1,6 +1,18 @@
 /*
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
+
+/**
+ * ProjectManager is the model for the set of currently open project. It is responsible for
+ * creating and updating the project tree when projects are opened and when changes occur to
+ * the file tree.
+ *
+ * This module dispatches 1 event:
+ *    - initializeComplete -- When the ProjectManager initializes at application start-up.
+ *
+ * These are jQuery events, so to listen for them you do something like this:
+ *    $(ProjectManager).on("eventname", handler);
+ */
 define(function(require, exports, module) {
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
@@ -546,12 +558,14 @@ define(function(require, exports, module) {
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
 
-    // Register save callback
-    var loadedPath = window.location.pathname;
-    var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-    var defaults =
-        { projectPath:      bracketsSrc /* initialze to brackets source */
-        , projectTreeState: ""          /* TODO (jasonsj): jstree state */
-        };
-    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+    // Initialize now
+    (function() {
+        var loadedPath = window.location.pathname;
+        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+        var defaults =
+            { projectPath:      bracketsSrc /* initialze to brackets source */
+            , projectTreeState: ""          /* TODO (jasonsj): jstree state */
+            };
+        PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+    })();
 });

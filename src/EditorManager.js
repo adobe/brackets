@@ -86,12 +86,13 @@ define(function(require, exports, module) {
     
     
     /**
-     * Creates a new CodeMirror editor instance containing the given text, and wraps it in a new
-     * Document tied to the given file. The editor is not yet visible; to display it in the main
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry and wraps it in a new Document tied to the given 
+     * file. The editor is not yet visible; to display it in the main
      * editor UI area, ask DocumentManager to make this the current document.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!string} text  The initial contents of the editor, i.e. the contents of the file.
-     * @return {!Document}
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the fileEntry, or rejected if the file can not be read.
      */
     function createDocumentAndEditor(fileEntry) {
         var result          = new $.Deferred()
@@ -110,6 +111,15 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry and wraps it in a new Document tied to the given 
+     * file. The editor is not yet visible; to display it in the main
+     * editor UI area, ask DocumentManager to make this the current document.
+     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  editor for the fileEntry, or rejected if the file can not be read.
+     */
     function _createEditor(fileEntry) {
         var result = new $.Deferred()
         ,   reader = new NativeFileSystem.FileReader();
@@ -179,7 +189,8 @@ define(function(require, exports, module) {
     
     
     /**
-     * Make the given document's editor visible in the UI, hiding whatever was visible before.
+     * Make the given document's editor visible in the UI, hiding whatever was
+     * visible before. Creates a new editor if none is assigned.
      * @param {!Document} document
      */
     function _showEditor(document) {
