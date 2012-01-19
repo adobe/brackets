@@ -79,8 +79,9 @@ define(function(require, exports, module) {
     }
     
     function handleFileAddToWorkingSet(fullPath){
-        handleFileOpen(fullPath);
-        DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
+        handleFileOpen(fullPath).done(function() {
+            DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
+        });
     }
 
     function handleFileOpen(fullPath) {
@@ -130,28 +131,14 @@ define(function(require, exports, module) {
             result.resolve();
             
         } else {
-            // File wasn't open before, so we must load its contents into a new document
-            var reader = new NativeFileSystem.FileReader();
+            var docResult = EditorManager.createDocumentAndEditor(fileEntry);
 
-            fileEntry.file(function(file) {
-                reader.onload = function(event) {
-                    // Create a new editor initialized with the file's content, and bind it to a Document
-                    document = EditorManager.createDocumentAndEditor(fileEntry, event.target.result);
-                    
-                    // Switch to new document in the UI
-                    DocumentManager.showInEditor(document);
-                    result.resolve();
-                };
-
-                reader.onerror = function(event) {
-                    showFileOpenError(event.target.error.code, fullPath);
-                    result.reject();
-                }
-
-                reader.readAsText(file, "utf8");
-            },
-            function fileEntry_onerror(event) {
-                showFileOpenError(event.target.error.code, fullPath);
+            docResult.done(function() {
+                result.resolve();
+            });
+            
+            docResult.fail(function(error) {
+                showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }

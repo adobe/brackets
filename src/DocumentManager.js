@@ -26,8 +26,8 @@
  */
 define(function(require, exports, module) {
 
-    var ProjectManager     = require("ProjectManager")
-    ,   PreferencesManager = require("PreferencesManager");
+    var ProjectManager      = require("ProjectManager")
+    ,   PreferencesManager  = require("PreferencesManager");
 
     /**
      * Unique PreferencesManager clientID
@@ -52,11 +52,7 @@ define(function(require, exports, module) {
         }
         
         this.file = file;
-        this._editor = editor;
-        
-        // Dirty-bit tracking
-        editor.setOption("onChange", this._updateDirty.bind(this));
-        this._savedUndoPosition = editor.historySize().undo;   // should always be 0, but just to be safe...
+        this._setEditor(editor);
     }
     
     /**
@@ -81,6 +77,22 @@ define(function(require, exports, module) {
      * @type {!CodeMirror}
      */
     Document.prototype._editor = null;
+
+    /**
+     * @private
+     * Initialize the editor instance for this file.
+     */
+    Document.prototype._setEditor = function(editor) {
+        if (editor === undefined) {
+            return;
+        }
+        
+        this._editor = editor;
+        
+        // Dirty-bit tracking
+        editor.setOption("onChange", this._updateDirty.bind(this));
+        this._savedUndoPosition = editor.historySize().undo;   // should always be 0, but just to be safe...
+    }
     
     /**
      * @private
@@ -335,15 +347,102 @@ define(function(require, exports, module) {
      */
     function _savePreferences(storage) {
         // save the working set file paths
-        var files = [];
+        var files = []
+        ,   isActive = false;
 
-        $.each(_workingSet, function(index, value) {
-            files.push(value.file.fullPath);
+        $.each(getWorkingSet(), function(index, value) {
+            // flag the currently active editor
+            isActive = (value === getCurrentDocument());
+
+            files.push({
+                file: value.file.fullPath,
+                active: isActive
+            });
         });
 
         storage.files = files;
     }
     
+    /**
+     * @private
+     * Initializes the working set.
+     */
+    function _init() {
+        // TODO (jasonsj): check for project manager init?
+        var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+
+        if (prefs.files === undefined) {
+            return;
+        }
+
+        var projectRoot = ProjectManager.getProjectRoot()
+        ,   filesToOpen = []
+        ,   activeFile;
+
+        // in parallel, check if files exist
+        // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
+        var result = (function() {
+            var deferred    = new $.Deferred();
+            var fileCount   = prefs.files.length
+            ,   i           = 0;
+
+            function next() {
+                i++;
+
+                if (i == fileCount) {
+                    deferred.resolve();
+                }
+            };
+
+            $.each(prefs.files, function(index, value) {
+                // check if the file still exists
+                projectRoot.getFile(value.file, {}
+                    , function(fileEntry) {
+                        // maintain original sequence
+                        filesToOpen[index] = fileEntry;
+
+                        if (value.active) {
+                            activeFile = fileEntry;
+                        }
+
+                        next();
+                    }
+                    , function(error) {
+                        filesToOpen[index] = null;
+                        next();
+                    }
+                );
+            });
+
+            return deferred;
+        })();
+
+        result.done(function() {
+            var activeDoc
+            ,   doc;
+
+            // Add all existing files to the working set
+            $.each(filesToOpen, function(index, value) {
+                if (value) {
+                    doc = new Document(value);
+                    addToWorkingSet(doc);
+
+                    if (value === activeFile) {
+                        activeDoc = doc;
+                    }
+                }
+            });
+
+            // Initialize the active editor
+            if (activeDoc === null) {
+                activeDoc = _workingSet[0];
+            }
+
+            if (activeDoc != null)
+                showInEditor(activeDoc);
+        });
+    }
+
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
@@ -352,7 +451,13 @@ define(function(require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
+    
 
     // Register preferences callback
     PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
+
+    // Initialize after ProjectManager is loaded
+    $(ProjectManager).on("initializeComplete", function(event, projectRoot) {
+        _init();
+    });
 });

@@ -14,7 +14,8 @@
 define(function(require, exports, module) {
     
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager")
+    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   DocumentManager     = require("DocumentManager")
     ,   EditorUtils         = require("EditorUtils")
     ;
     
@@ -92,31 +93,65 @@ define(function(require, exports, module) {
      * @param {!string} text  The initial contents of the editor, i.e. the contents of the file.
      * @return {!Document}
      */
-    function createDocumentAndEditor(fileEntry, text) {
-        var editor = CodeMirror(_editorHolder.get(0), {
-            indentUnit : 4,
-            extraKeys: {
-                "Tab" : function(instance) {
-                     if (instance.somethingSelected())
-                        CodeMirror.commands.indentMore(instance);
-                     else
-                        CodeMirror.commands.insertTab(instance);
-                }
-            }
+    function createDocumentAndEditor(fileEntry) {
+        var result          = new $.Deferred()
+        ,   editorResult    = _createEditor(fileEntry);
+
+        editorResult.done(function(editor) {
+            // Create the Document wrapping editor & binding it to a file
+            var doc = new DocumentManager.Document(fileEntry, editor);
+            result.resolve(doc);
         });
-        
-        // Set code-coloring mode
-        EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
-        
-        // Initially populate with text. This will send a spurious change event, but that's ok
-        // because no one's listening yet (and we clear the undo stack below)
-        editor.setValue(text);
-        
-        // Make sure we can't undo back to the empty state before setValue()
-        editor.clearHistory();
-        
-        // Create the Document wrapping editor & binding it to a file
-        return new DocumentManager.Document(fileEntry, editor);
+
+        editorResult.fail(function(error) {
+            result.reject(error);
+        });
+
+        return result;
+    }
+
+    function _createEditor(fileEntry) {
+        var result = new $.Deferred()
+        ,   reader = new NativeFileSystem.FileReader();
+
+        fileEntry.file(function(file) {
+            reader.onload = function(event) {
+                // FIXME (jasonsj): remove
+                console.log("create code mirror");
+
+                var editor = CodeMirror(_editorHolder.get(0), {
+                    indentUnit : 4,
+                    extraKeys: {
+                        "Tab" : function(instance) {
+                             if (instance.somethingSelected())
+                                CodeMirror.commands.indentMore(instance);
+                             else
+                                CodeMirror.commands.insertTab(instance);
+                        }
+                    }
+                });
+                
+                // Set code-coloring mode
+                EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
+                
+                // Initially populate with text. This will send a spurious change event, but that's ok
+                // because no one's listening yet (and we clear the undo stack below)
+                editor.setValue(event.target.result);
+                
+                // Make sure we can't undo back to the empty state before setValue()
+                editor.clearHistory();
+
+                result.resolve(editor);
+            };
+
+            reader.onerror = function(event) {
+                result.reject(event.target.error);
+            };
+
+            reader.readAsText(file, "utf8");
+        });
+
+        return result;
     }
     
     /**
@@ -155,10 +190,32 @@ define(function(require, exports, module) {
             $(_currentEditor.getWrapperElement()).css("display","none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
-        
+
+        // Create editor if necessary
+        if (document._editor === null) {
+            var editorResult = _createEditor(document.fileEntry, text);
+
+            editorResult.done(function(editor) {
+                document._editor = editor;
+                _doShow(document);
+            });
+            editorResult.fail(function(error) {
+                // TODO (jasonsj): error dialog
+            });
+        }
+        else {
+            _doShow(document);
+        }
+    }
+
+    /**
+     * @private
+     */
+    function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
         _currentEditor = document._editor;
+
         $(_currentEditor.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
@@ -166,6 +223,7 @@ define(function(require, exports, module) {
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
         _currentEditor.refresh();
     }
+
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor != null) {

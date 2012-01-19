@@ -159,11 +159,16 @@ define(function(require, exports, module) {
         _projectInitialLoad.id = 0;
 
         var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID)
-        ,   result = new $.Deferred();
+        ,   result = new $.Deferred()
+        ,   resultRenderTree
+        ,   triggerInitEvent = true;
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
             rootPath = prefs.projectPath;
+            triggerInitEvent = true;
+
+            // TODO (jasonsj): handle missing paths, see issue #100
             _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
@@ -195,8 +200,8 @@ define(function(require, exports, module) {
                 { data: "file_2" }
             ];
 
-            // Show file list in UI synchronously
-            _renderTree(treeJSONData, result);
+            // Show file list in UI
+            resultRenderTree = _renderTree(treeJSONData, result);
 
         } else {
             // Point at a real folder structure on local disk
@@ -208,7 +213,7 @@ define(function(require, exports, module) {
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
-                    _renderTree(_treeDataProvider, result);
+                    resultRenderTree = _renderTree(_treeDataProvider);
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -220,6 +225,17 @@ define(function(require, exports, module) {
                 }
             );
         }
+
+        resultRenderTree.done(function () {
+            result.resolve();
+
+            if (triggerInitEvent) {
+                $(exports).triggerHandler("initializeComplete", _projectRoot);
+            }
+        });
+        resultRenderTree.fail(function () {
+            result.reject();
+        });
 
         return result;
     }
@@ -469,9 +485,9 @@ define(function(require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    function _renderTree(treeDataProvider, result) {
-
-        var projectTreeContainer = $("#project-files-container");
+    function _renderTree(treeDataProvider) {
+        var projectTreeContainer = $("#project-files-container")
+        ,   result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -517,6 +533,8 @@ define(function(require, exports, module) {
             if (entry.isFile)
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
         });
+
+        return result;
     };
 
     // Define public API

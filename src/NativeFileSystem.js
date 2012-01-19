@@ -387,8 +387,11 @@ define(function(require, exports, module) {
      * @param {function(number)} errorCallback
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
-        // TODO (jasonsj): handle absolute paths
-        var fileFullPath = this.fullPath + "/" + path;
+        var fileFullPath = path;
+        
+        // assume relative paths are project-root relative
+        if (path.charAt(0) !== '/') 
+            fileFullPath = this.fullPath + "/" + path;
 
         var createFileEntry = function () {
             if ( successCallback ) {
