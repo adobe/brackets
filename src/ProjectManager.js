@@ -173,7 +173,7 @@ define(function(require, exports, module) {
         var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID)
         ,   result = new $.Deferred()
         ,   resultRenderTree
-        ,   triggerInitEvent = true;
+        ,   triggerInitEvent = false;
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree

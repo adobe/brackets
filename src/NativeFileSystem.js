@@ -389,7 +389,7 @@ define(function(require, exports, module) {
     NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
         var fileFullPath = path;
         
-        // assume relative paths are project-root relative
+        // assume relative paths are relative to this directory
         if (path.charAt(0) !== '/') 
             fileFullPath = this.fullPath + "/" + path;
 

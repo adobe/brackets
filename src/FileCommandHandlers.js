@@ -79,8 +79,8 @@ define(function(require, exports, module) {
     }
     
     function handleFileAddToWorkingSet(fullPath){
-        handleFileOpen(fullPath).done(function() {
-            DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
+        handleFileOpen(fullPath).done(function(doc) {
+            DocumentManager.addToWorkingSet(doc);
         });
     }
 
@@ -92,6 +92,13 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     * Creates a document and editor for the specified file path. If no path
+     * is specified, a file prompt is provided for input.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
     function doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
@@ -113,6 +120,12 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     * Creates a document and editor for the specified file path.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
     function doOpen(fullPath) {
         var result = new $.Deferred();
         if (!fullPath) {
@@ -124,18 +137,18 @@ define(function(require, exports, module) {
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        var document = DocumentManager.getDocumentForFile(fileEntry);
-        if (document != null) {
+        var doc = DocumentManager.getDocumentForFile(fileEntry);
+        if (doc != null) {
             // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(document);
-            result.resolve();
+            DocumentManager.showInEditor(doc);
+            result.resolve(doc);
             
         } else {
             var docResult = EditorManager.createDocumentAndEditor(fileEntry);
 
             docResult.done(function(doc) {
                 DocumentManager.showInEditor(doc);
-                result.resolve();
+                result.resolve(doc);
             });
             
             docResult.fail(function(error) {

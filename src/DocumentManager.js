@@ -26,7 +26,8 @@
  */
 define(function(require, exports, module) {
 
-    var ProjectManager      = require("ProjectManager")
+    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   ProjectManager      = require("ProjectManager")
     ,   PreferencesManager  = require("PreferencesManager");
 
     /**
@@ -106,13 +107,22 @@ define(function(require, exports, module) {
      * @return {string} The editor's current contents; may not be saved to disk yet.
      */
     Document.prototype.getText = function() {
-        return this._editor.getValue();
+        if (this._editor) {
+            return this._editor.getValue();
+        }
+        
+        // TODO (jasonsj): is it worth adding an async call to readAsText()?
+        return "";
     }
     
     /**
      * @private
      */
     Document.prototype._updateDirty = function() {
+        if (this._editor == null) {
+            return;
+        }
+
         // If we've undone past the undo position at the last save, and there is no redo stack,
         // then we can never get back to a non-dirty state.
         var historySize = this._editor.historySize();
@@ -135,6 +145,10 @@ define(function(require, exports, module) {
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
     Document.prototype.markClean = function() {
+        if (this._editor == null) {
+            return;
+        }
+        
         this._savedUndoPosition = this._editor.historySize().undo;
         this._updateDirty();
     }
@@ -287,6 +301,30 @@ define(function(require, exports, module) {
         // (this event triggers EditorManager to actually clear the editor UI)
     }
     
+    /**
+     * Asynchronously reads a file as UTF-8 encoded text.
+     * @return {Deferred} a jQuery Deferred that will be resolved with the 
+     *  file text content for the fileEntry, or rejected with a FileError if
+     *  the file can not be read.
+     */
+    function readAsText(fileEntry) {
+        var result = new $.Deferred()
+        ,   reader = new NativeFileSystem.FileReader();
+
+        fileEntry.file(function(file) {
+            reader.onload = function(event) {
+                result.resolve(event.target.result);
+            };
+
+            reader.onerror = function(event) {
+                result.reject(event.target.error);
+            };
+
+            reader.readAsText(file, "utf8");
+        });
+
+        return result;
+    }
     
     /**
      * Closes the given document (which may or may not be the current document in the editor UI, and
@@ -439,7 +477,11 @@ define(function(require, exports, module) {
 
             // Initialize the active editor
             if (activeDoc === null) {
-                activeDoc = _workingSet[0];
+                var workingSet = getWorkingSet();
+
+                if (workingSet.length > 0) {
+                    activeDoc = _workingSet[0];   
+                }
             }
 
             if (activeDoc != null) {
@@ -456,7 +498,7 @@ define(function(require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
-    
+    exports.readAsText = readAsText;
 
     // Register preferences callback
     PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);

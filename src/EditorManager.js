@@ -14,8 +14,7 @@
 define(function(require, exports, module) {
     
     // Load dependent modules
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
-    ,   DocumentManager     = require("DocumentManager")
+    var DocumentManager     = require("DocumentManager")
     ,   EditorUtils         = require("EditorUtils")
     ;
     
@@ -122,40 +121,35 @@ define(function(require, exports, module) {
      */
     function _createEditor(fileEntry) {
         var result = new $.Deferred()
-        ,   reader = new NativeFileSystem.FileReader();
+        ,   reader = DocumentManager.readAsText(fileEntry);
 
-        fileEntry.file(function(file) {
-            reader.onload = function(event) {
-                var editor = CodeMirror(_editorHolder.get(0), {
-                    indentUnit : 4,
-                    extraKeys: {
-                        "Tab" : function(instance) {
-                             if (instance.somethingSelected())
-                                CodeMirror.commands.indentMore(instance);
-                             else
-                                CodeMirror.commands.insertTab(instance);
-                        }
+        reader.done(function(text) {
+            var editor = CodeMirror(_editorHolder.get(0), {
+                indentUnit : 4,
+                extraKeys: {
+                    "Tab" : function(instance) {
+                         if (instance.somethingSelected())
+                            CodeMirror.commands.indentMore(instance);
+                         else
+                            CodeMirror.commands.insertTab(instance);
                     }
-                });
-                
-                // Set code-coloring mode
-                EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
-                
-                // Initially populate with text. This will send a spurious change event, but that's ok
-                // because no one's listening yet (and we clear the undo stack below)
-                editor.setValue(event.target.result);
-                
-                // Make sure we can't undo back to the empty state before setValue()
-                editor.clearHistory();
+                }
+            });
+            
+            // Set code-coloring mode
+            EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
+            
+            // Initially populate with text. This will send a spurious change event, but that's ok
+            // because no one's listening yet (and we clear the undo stack below)
+            editor.setValue(text);
+            
+            // Make sure we can't undo back to the empty state before setValue()
+            editor.clearHistory();
 
-                result.resolve(editor);
-            };
-
-            reader.onerror = function(event) {
-                result.reject(event.target.error);
-            };
-
-            reader.readAsText(file, "utf8");
+            result.resolve(editor);
+        });
+        reader.fail(function(error) {
+            result.reject(error);
         });
 
         return result;
@@ -168,6 +162,10 @@ define(function(require, exports, module) {
      */
     function _destroyEditorIfUnneeded(document) {
         var editor = document._editor;
+
+        if (editor === null) {
+            return;
+        }
         
         // If outgoing editor is no longer needed, dispose it
         if (! DocumentManager.getDocumentForFile(document.file)) {
