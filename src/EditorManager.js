@@ -92,65 +92,25 @@ define(function(require, exports, module) {
      * @param {!string} text  The initial contents of the editor, i.e. the contents of the file.
      * @return {!Document}
      */
-    function createDocumentAndEditor(fileEntry, text) {        
+    function createDocumentAndEditor(fileEntry, text) {
         var editor = CodeMirror(_editorHolder.get(0), {
             indentUnit : 4,
             extraKeys: {
-                "Tab" : function(instance) {
-                    // Tab key handling is done as follows:
-                    // 1. If the selection is before any text, indent the text to the "proper" place,
-                    //    and position the cursor before the first non-space character.
-                    // 2. If the selection is after the first non-space character, and is not an 
-                    //    insertion point, indent the entire line(s).
-                    // 3. If the selection is after the first non-space character, and is an 
-                    //    insertion point, insert a tab character or the appropriate number 
-                    //    of spaces to pad to the nearest tab boundary.
-                    var from = instance.getCursor(true),
-                        to = instance.getCursor(false),
-                        line = instance.getLine(from.line),
-                        beforeText = false;
-                    
-
-                    if (from.line === to.line) {
-                        if (line.search(/\S/) > to.ch)
-                            beforeText = true;
-                    }
-
-                    if (beforeText) {
-                        CodeMirror.commands.indentAuto(instance);
-                    } 
-                    else if (instance.somethingSelected()) {
-                        CodeMirror.commands.indentMore(instance);
-                    }
-                    else {
-                        if (instance.getOption("indentWithTabs")) {
-                            CodeMirror.commands.insertTab(instance);
-                        } else {
-                            var ins, numSpaces = instance.getOption("tabSize");
-
-                            numSpaces -= to.ch % numSpaces;
-                            ins = new Array(numSpaces + 1).join(" ");
-                            // Wrap in an operation?
-                            instance.replaceSelection(ins);
-                            var cursor = instance.getCursor(false);
-                            instance.setSelection(cursor, cursor);
-                        }
-                    }
-                },
+                "Tab" : _handleTabKey,
                 "Left" : function(instance) {
-                    if (!_handleSoftTab(instance, -1, "moveH"))
+                    if (!_handleSoftTabNavigation(instance, -1, "moveH"))
                         CodeMirror.commands.goCharLeft(instance);
                 },
                 "Right" : function(instance) {
-                    if (!_handleSoftTab(instance, 1, "moveH"))
+                    if (!_handleSoftTabNavigation(instance, 1, "moveH"))
                         CodeMirror.commands.goCharRight(instance);
                 },
                 "Backspace" : function(instance) {
-                    if (!_handleSoftTab(instance, -1, "deleteH"))
+                    if (!_handleSoftTabNavigation(instance, -1, "deleteH"))
                         CodeMirror.commands.delCharLeft(instance);
                 },
                 "Delete" : function(instance) {
-                    if (!_handleSoftTab(instance, 1, "deleteH"))
+                    if (!_handleSoftTabNavigation(instance, 1, "deleteH"))
                         CodeMirror.commands.delCharRight(instance);
                 }
             }
@@ -172,13 +132,62 @@ define(function(require, exports, module) {
 
     /**
      * @private
+     * Handle Tab key press.
+     * @param {!CodeMirror} instance CodeMirror instance.
+     */
+    function _handleTabKey(instance) {
+        // Tab key handling is done as follows:
+        // 1. If the selection is before any text, indent the text to the "proper" place,
+        //    and the indentation is to the left of the proper indentation then indent it
+        //    to the proper place. Otherwise, add another tab. In either case, move the 
+        //    insertion point to the beginning of the text.
+        // 2. If the selection is after the first non-space character, and is not an 
+        //    insertion point, indent the entire line(s).
+        // 3. If the selection is after the first non-space character, and is an 
+        //    insertion point, insert a tab character or the appropriate number 
+        //    of spaces to pad to the nearest tab boundary.
+        var from = instance.getCursor(true),
+            to = instance.getCursor(false),
+            line = instance.getLine(from.line),
+            indentAuto = false;
+        
+        if (from.line === to.line) {
+            if (line.search(/\S/) > to.ch || to.ch === 0)
+                indentAuto = true;
+        }
+
+        if (indentAuto) {
+            CodeMirror.commands.indentAuto(instance);
+        } 
+        else if (instance.somethingSelected()) {
+            CodeMirror.commands.indentMore(instance);
+        }
+        else {
+            if (instance.getOption("indentWithTabs")) {
+                CodeMirror.commands.insertTab(instance);
+            } else {
+                var ins, numSpaces = instance.getOption("tabSize");
+
+                numSpaces -= to.ch % numSpaces;
+                ins = new Array(numSpaces + 1).join(" ");
+                // Wrap in an operation?
+                instance.replaceSelection(ins);
+                var cursor = instance.getCursor(false);
+                instance.setSelection(cursor);
+            }
+        }
+        
+    }
+    
+    /**
+     * @private
      * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
      * @param {!CodeMirror} instance CodeMirror instance 
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
      * @param {function} functionName name of the CodeMirror function to call
      * @return {boolean} true if key was handled
      */  
-    function _handleSoftTab(instance, direction, functionName) {
+    function _handleSoftTabNavigation(instance, direction, functionName) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
             var cursor = instance.getCursor(),
@@ -197,14 +206,14 @@ define(function(require, exports, module) {
                     handled = true;
                 }
             } else {
-                if (!jump) // On tab boundary, jump by full tab amount
-                    jump = tabSize;
-
-                if (cursor.ch < jump) // Don't jump beyond start of line
-                    jump = cursor.ch;
-                    
-                if (!jump) // At beginning of line
+                // Quick exit if we are at the beginning of the line
+                if (cursor.ch === 0)
                     return false;
+                
+                // If we are on the tab boundary, jump by the full amount, 
+                // but not beyond the start of the line.
+                if (jump === 0)
+                    jump = tabSize;
 
                 // Search backwards to the first non-space character
                 var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
