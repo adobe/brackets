@@ -4,7 +4,7 @@ define(function(require, exports, module) {
     var CommandManager      // loaded from brackets.test
     ,   Commands            // loaded from brackets.test
     ,   DocumentManager     // loaded from brackets.test
-    ,   ProjectManager      // loaded from brackets.test
+    ,   FileViewController  // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
 
@@ -21,7 +21,7 @@ define(function(require, exports, module) {
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
-                ProjectManager      = testWindow.brackets.test.ProjectManager;   
+                FileViewController  = testWindow.brackets.test.FileViewController;   
 
                 // Open a directory
                 SpecRunnerUtils.loadProjectInTestWindow( testPath );
@@ -32,7 +32,7 @@ define(function(require, exports, module) {
             var openAndMakeDirty = function (path){
                 // open file
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: path})
+                    FileViewController.openAndSelect( fullPath )
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });

@@ -15,6 +15,7 @@ define(function(require, exports, module) {
     ,   EditorManager           = require("EditorManager")
     ,   WorkingSetView          = require("WorkingSetView")
     ,   FileCommandHandlers     = require("FileCommandHandlers")
+    ,   FileViewController      = require("FileViewController")
     ,   KeyBindingManager       = require("KeyBindingManager").KeyBindingManager
     ,   KeyMap                  = require("KeyBindingManager").KeyMap
     ,   Commands                = require("Commands")

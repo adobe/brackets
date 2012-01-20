@@ -79,7 +79,7 @@ define(function(require, exports, module) {
     }
     
     function handleFileAddToWorkingSet(commandData){
-        handleFileOpen(commandData);
+        handleFileOpen(commandData)
         DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
     }
 

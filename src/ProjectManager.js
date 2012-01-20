@@ -16,22 +16,22 @@ define(function(require, exports, module) {
     ;
     
     $(FileViewController).on("documentSelectionChange", function(event) {
-		if(FileViewController.getCurrentDocumentSelectionContext() == "ProjectManager"){
-	        // var node = null;
-	        //         if(eventTarget == "menu"){
-	        //             
-	        //             $(".jstree-open").each( function ( index ) {
-	        //                 entry = $(this).data("entry");
-	        //                 
-	        //                 var curDoc = DocumentManager.getCurrentDocument();
-	        //                 
-	        //                 if( entry.fullPath == curDoc.fullPath)
-	        //                     node = $(this);
-	        //             });
-	        //             
-	        //             _projectTree.jstree( "select_node", node);
-	        //             
-	        //         }
+		if(FileViewController.getFileSelectionFocus() != "WorkingSetView"){
+	        var node = null;
+
+                
+                $(".jstree-open").each( function ( index ) {
+                    entry = $(this).data("entry");
+                    
+                    var curDoc = DocumentManager.getCurrentDocument();
+                    
+                    if( entry.fullPath == curDoc.fullPath)
+                        node = $(this);
+                });
+                
+                _projectTree.jstree( "select_node", node);
+                
+
 		}
 		else
 			_projectTree.jstree("deselect_all");
@@ -514,7 +514,7 @@ define(function(require, exports, module) {
         .bind("select_node.jstree", function(event, data) {
             var entry = data.rslt.obj.data("entry");
             if (entry.isFile)
-                FileViewController.openDocument(entry.fullPath, "ProjectManager");
+                FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
         })
         .bind("reopen.jstree", function(event, data) {
             // This handler fires for the initial load and subsequent
