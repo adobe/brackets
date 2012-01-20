@@ -33,6 +33,7 @@ define(function(require, exports, module) {
         { PreferencesManager    : PreferencesManager
         , ProjectManager        : ProjectManager
         , FileCommandHandlers   : FileCommandHandlers
+        , FileViewController    : FileViewController
         , DocumentManager       : DocumentManager
         , Commands              : Commands
         , WorkingSetView        : WorkingSetView

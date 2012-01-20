@@ -32,11 +32,11 @@ define(function(require, exports, module) {
             var openAndMakeDirty = function (path){
                 // open file
                 runs(function() {
-                    FileViewController.openAndSelect( fullPath )
+                    FileViewController.openAndSelectDocument( path, "ProjectManager" )
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
-                //waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
+                waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
 
                 // change editor content to make doc dirty
                 runs(function() {
