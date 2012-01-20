@@ -161,7 +161,7 @@ define(function(require, exports, module) {
         
         return null;
     }
-	
+    
     /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
      * editing" means either the file is in the working set, and/or the file is currently open in
      * the editor UI.
@@ -209,7 +209,7 @@ define(function(require, exports, module) {
     function addToWorkingSet(document) {
         // If doc is already in working set, don't add it again
         if (findInWorkingSet(document.file.fullPath) != -1){
-			return;
+            return;
         }
         
         // Add
@@ -259,10 +259,10 @@ define(function(require, exports, module) {
      *      already be in the working set.
      */
     function showInEditor(document) {
-		
+        
         // If this file is already in editor, do nothing
         if (_currentDocument == document)
-        	return;
+            return;
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)

@@ -117,7 +117,7 @@ define(function(require, exports, module) {
     }
 
     function doOpen(fullPath) {
-		
+        
         var result = new $.Deferred();
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
@@ -233,10 +233,10 @@ define(function(require, exports, module) {
      * @param {?Document} doc 
      */
     function handleFileClose( commandData ) {
-		var doc = null;
-		if(commandData)
-			doc = commandData.doc;
-		
+        var doc = null;
+        if(commandData)
+            doc = commandData.doc;
+        
         
         // utility function for handleFileClose
         function doClose(doc) {      
