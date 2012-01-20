@@ -148,28 +148,28 @@ define(function(require, exports, module) {
     }
 
 
-	
+    
     /** 
     * @private
     */
-	function _handleDocumentSelectionChange(){
-		_updateListSelection();
-	}
+    function _handleDocumentSelectionChange(){
+        _updateListSelection();
+    }
 
     /** 
     * @private
     */
     function _updateListSelection() {
-		var doc;
-		if(FileViewController.getFileSelectionFocus() == "WorkingSetView")
-			doc = DocumentManager.getCurrentDocument();
-		else
-			doc = null;
-			
+        var doc;
+        if(FileViewController.getFileSelectionFocus() == "WorkingSetView")
+            doc = DocumentManager.getCurrentDocument();
+        else
+            doc = null;
+            
         // Iterate through working set list and update the selection on each
         var items = $("#open-files-container > ul").children().each(function() {
-	        _updateListItemSelection(this, doc);
-	    });
+            _updateListItemSelection(this, doc);
+        });
 
     }
 

@@ -16,8 +16,8 @@ define(function(require, exports, module) {
     ;
     
     $(FileViewController).on("documentSelectionFocusChange", function(event) {
-		if(FileViewController.getFileSelectionFocus() != "WorkingSetView"){
-	        var node = null;
+        if(FileViewController.getFileSelectionFocus() != "WorkingSetView"){
+            var node = null;
 
                 var curDoc = DocumentManager.getCurrentDocument();
                 $(".jstree-open").each( function ( index ) {
@@ -30,12 +30,12 @@ define(function(require, exports, module) {
                 ;
                 
 
-		}
-		else
-			_projectTree.jstree("deselect_all");
+        }
+        else
+            _projectTree.jstree("deselect_all");
         
     });
-	
+    
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
