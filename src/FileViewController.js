@@ -17,13 +17,13 @@
      */
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         _fileSelectionFocus = "WorkingSetView";
-        $(exports).triggerHandler("documentSelectionChange"); 
+        $(exports).triggerHandler("documentSelectionFocusChange"); 
     });
 
 
     $(DocumentManager).on("currentDocumentChange",
     function(event) {
-        $(exports).triggerHandler("documentSelectionChange"); 
+        $(exports).triggerHandler("documentSelectionFocusChange"); 
     });
 
     function addToWorkingSetAndSelect(fullPath) {
@@ -33,7 +33,9 @@
 
     /* Opens a document if not open and selects the file in the UI corresponding to
      * fileSelectionFocus
-     *
+     * @param {!fullPath}
+     * @param {string}
+     * @returns {!Deferred}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         
@@ -41,7 +43,7 @@
 
         var doc = DocumentManager.getDocumentForPath(fullPath);
         if(doc != null ) {
-            $(exports).triggerHandler("documentSelectionChange");  
+            $(exports).triggerHandler("documentSelectionFocusChange");  
             DocumentManager.showInEditor(doc);
 
             return (new $.Deferred()).resolve();

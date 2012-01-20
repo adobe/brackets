@@ -35,7 +35,7 @@ define(function(require, exports, module) {
         _handleDirtyFlagChanged(doc);
     });
 
-    $(FileViewController).on("documentSelectionChange",
+    $(FileViewController).on("documentSelectionFocusChange",
     function(event, eventTarget) {
         _handleDocumentSelectionChange();
     });

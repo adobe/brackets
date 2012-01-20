@@ -36,7 +36,7 @@ define(function(require, exports, module) {
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
-                waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
+                //waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
 
                 // change editor content to make doc dirty
                 runs(function() {

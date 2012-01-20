@@ -15,7 +15,7 @@ define(function(require, exports, module) {
     ,   DocumentManager     = require("DocumentManager")
     ;
     
-    $(FileViewController).on("documentSelectionChange", function(event) {
+    $(FileViewController).on("documentSelectionFocusChange", function(event) {
 		if(FileViewController.getFileSelectionFocus() != "WorkingSetView"){
 	        var node = null;
 
