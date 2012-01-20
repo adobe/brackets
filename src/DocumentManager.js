@@ -155,7 +155,7 @@ define(function(require, exports, module) {
         if (_currentDocument && _currentDocument.file.fullPath == fileEntry.fullPath)
             return _currentDocument;
         
-        var wsIndex = _findInWorkingSet(fileEntry);
+        var wsIndex = findInWorkingSet(fileEntry.fullPath);
         if (wsIndex != -1)
             return _workingSet[wsIndex];
         
@@ -208,7 +208,7 @@ define(function(require, exports, module) {
      */
     function addToWorkingSet(document) {
         // If doc is already in working set, don't add it again
-        if (_findInWorkingSet(document.file) != -1){
+        if (findInWorkingSet(document.file.fullPath) != -1){
 			return;
         }
         
@@ -226,7 +226,7 @@ define(function(require, exports, module) {
      */
     function _removeFromWorkingSet(document) {
         // If doc isn't in working set, do nothing
-        var index = _findInWorkingSet(document.file);
+        var index = findInWorkingSet(document.file.fullPath);
         if (index == -1)
             return;
         
@@ -239,10 +239,11 @@ define(function(require, exports, module) {
     
     /**
      * @param {!FileEntry} fileEntry
+     * @returns {number} index
      */
-    function _findInWorkingSet(fileEntry) {
+    function findInWorkingSet(fullPath) {
         for (var i = 0; i < _workingSet.length; i++) {
-            if (_workingSet[i].file.fullPath == fileEntry.fullPath)
+            if (_workingSet[i].file.fullPath == fullPath)
                 return i;
         }
         return -1;
@@ -303,7 +304,7 @@ define(function(require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument == document) {
-            var wsIndex = _findInWorkingSet(document.file);
+            var wsIndex = findInWorkingSet(document.file.fullPath);
             
             // Decide which doc to show in editor after this one
             var nextDocument;
@@ -349,6 +350,7 @@ define(function(require, exports, module) {
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
+    exports.findInWorkingSet = findInWorkingSet;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;

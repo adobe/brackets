@@ -19,17 +19,15 @@ define(function(require, exports, module) {
 		if(FileViewController.getFileSelectionFocus() != "WorkingSetView"){
 	        var node = null;
 
-                
+                var curDoc = DocumentManager.getCurrentDocument();
                 $(".jstree-open").each( function ( index ) {
                     entry = $(this).data("entry");
                     
-                    var curDoc = DocumentManager.getCurrentDocument();
-                    
-                    if( entry.fullPath == curDoc.fullPath)
-                        node = $(this);
+                    if( entry.fullPath == curDoc.file.fullPath)
+                        _projectTree.jstree( "select_node", $(this), true);
                 });
                 
-                _projectTree.jstree( "select_node", node);
+                ;
                 
 
 		}
