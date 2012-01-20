@@ -8,7 +8,7 @@
 
     // Load dependent modules
     var DocumentManager     = require("DocumentManager")
-    ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ;
 
@@ -26,27 +26,31 @@
         $(exports).triggerHandler("documentSelectionChange"); 
     });
 
+    function addToWorkingSetAndSelect(fullPath) {
+        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
+        openAndSelectDocument(fullPath, "WorkingSetView");
+    }
+
     /* Opens a document if not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      *
      */
-    function openAndSelectDocument( fullPath, fileSelectionFocus ){
-
-        var changedDoc = !DocumentManager.getCurrentDocument() || DocumentManager.getCurrentDocument().file.fullPath != fullPath;
+    function openAndSelectDocument(fullPath, fileSelectionFocus) {
         
-        // chanage context before calling open so listeners to open can access the new context
         _fileSelectionFocus = fileSelectionFocus;
 
-        CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
-            .done(function() {
-                 
-                // FileViewController broadcasts documentSelectionChange on documentChanged.
-                // To avoid sending two messages, we only need to broadcast here when the
-                // document changes.
-                //if(!changedDoc)
-                    $(exports).triggerHandler("documentSelectionChange");    
-                
-            });
+        var doc = DocumentManager.getDocumentForPath(fullPath);
+        if(doc != null ) {
+            $(exports).triggerHandler("documentSelectionChange");  
+            DocumentManager.showInEditor(doc);
+
+            return (new $.Deferred()).resolve();
+        }  
+        else {
+            return CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
+        }
+        
+ 
     }
 
 
@@ -65,21 +69,11 @@
     }
 
 
-    function hold (){
-        // If doc is already in working set, don't add it again, but change document
-        // selection context to the WorkingSetView if necessary
-        if (_findInWorkingSet(document.file) != -1){
-            if( _fileSelectionFocus != "WorkingSetView" ){
-                _fileSelectionFocus = "WorkingSetView";
-                $(exports).triggerHandler("currentDocumentSelectionContextChanged");    
-            }
-            return;
-        }
-    }
 
         // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
+    exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
 
 
 });

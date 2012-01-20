@@ -26,7 +26,9 @@
  */
 define(function(require, exports, module) {
 
-    var ProjectManager     = require("ProjectManager");
+    var ProjectManager     = require("ProjectManager")
+    ,   NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ;
 
     /**
      * @constructor
@@ -160,6 +162,19 @@ define(function(require, exports, module) {
         return null;
     }
 	
+    /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
+     * editing" means either the file is in the working set, and/or the file is currently open in
+     * the editor UI.
+     * @param {!fullPath}
+     * @return {?Document}
+    */
+    function getDocumentForPath(fullPath){
+        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
+        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+
+        return getDocumentForFile(fileEntry);
+    }
 
     
     
@@ -332,6 +347,7 @@ define(function(require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
+    exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;

@@ -124,11 +124,7 @@ define(function(require, exports, module) {
             return result.reject();
         }
         
-        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-
-        var document = DocumentManager.getDocumentForFile(fileEntry);
+        var document = DocumentManager.getDocumentForPath(fullPath);
         if (document != null) {
             // File already open - don't need to load it, just switch to it in the UI
             DocumentManager.showInEditor(document);
@@ -137,6 +133,7 @@ define(function(require, exports, module) {
         } else {
             // File wasn't open before, so we must load its contents into a new document
             var reader = new NativeFileSystem.FileReader();
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
             fileEntry.file(function(file) {
                 reader.onload = function(event) {
