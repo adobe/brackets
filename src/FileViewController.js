@@ -33,17 +33,19 @@
 
     $(DocumentManager).on("currentDocumentChange",
     function(event) {
-        if(!_openAndSelectDocCalled){
-            // open file didn't come through openAndSelectDocument, so pick the best fileSelectionFocus
+
+        // if the cause of the doc chagne didn't come through 
+        // openAndSelectDocument, so pick the best fileSelectionFocus
+        if(!_curDocChangedDueToUs){
             var curDoc = DocumentManager.getCurrentDocument();
-            if(DocumentManager.findInWorkingSet(curDoc) != -1)
+            if(DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
                 _fileSelectionFocus = "WorkingSetView";
             else
                 _fileSelectionFocus = "ProjectManager";
         }
         
-
-        _openAndSelectDocCalled = false;
+        // reset since we have handled the doc change
+        _curDocChangedDueToUs = false;
 
         $(exports).triggerHandler("documentSelectionFocusChange"); 
     });
@@ -53,7 +55,7 @@
         openAndSelectDocument(fullPath, "WorkingSetView");
     }
 
-    var _openAndSelectDocCalled = false;
+    var _curDocChangedDueToUs = false;
 
     /* Opens a document if not open and selects the file in the UI corresponding to
      * fileSelectionFocus
@@ -62,14 +64,19 @@
      * @returns {!Deferred}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
-        _openAndSelectDocCalled = true;
+        
+        // Opening files are asynchronous and we want to know when this function caused a file
+        // to open in order to properly set the fileSelectionFocus, so _curDocChangedDueToUs is
+        // set to true here. The handler for currentDocumentChange well check this and reset it.
+        _curDocChangedDueToUs = true;
+
         _fileSelectionFocus = fileSelectionFocus;
 
         var doc = DocumentManager.getDocumentForPath(fullPath);
         if(doc != null ) {
             $(exports).triggerHandler("documentSelectionFocusChange");  
             DocumentManager.showInEditor(doc);
-            _openAndSelectDocCalled = false;
+            _curDocChangedDueToUs = false;
             return (new $.Deferred()).resolve();
         }  
         else {
