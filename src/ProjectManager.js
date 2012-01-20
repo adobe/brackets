@@ -539,9 +539,11 @@ define(function(require, exports, module) {
         .bind("dblclick.jstree", function(event) {
 
             var entry = $(event.target).closest("li").data("entry");
-            if (entry.isFile)
+            if (entry.isFile){
                 FileViewController.addToWorkingSetAndSelect( entry.fullPath);
-                
+				// jstree dblclick handling seems to steal focus from editor, so set focus again
+                EditorManager.focusEditor();
+			}
         });
     };
 
