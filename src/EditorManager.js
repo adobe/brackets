@@ -137,10 +137,10 @@ define(function(require, exports, module) {
      */
     function _handleTabKey(instance) {
         // Tab key handling is done as follows:
-        // 1. If the selection is before any text, indent the text to the "proper" place,
-        //    and the indentation is to the left of the proper indentation then indent it
-        //    to the proper place. Otherwise, add another tab. In either case, move the 
-        //    insertion point to the beginning of the text.
+        // 1. If the selection is before any text and the indentation is to the left of 
+        //    the proper indentation then indent it to the proper place. Otherwise,
+        //    add another tab. In either case, move the insertion point to the 
+        //    beginning of the text.
         // 2. If the selection is after the first non-space character, and is not an 
         //    insertion point, indent the entire line(s).
         // 3. If the selection is after the first non-space character, and is an 
@@ -170,13 +170,14 @@ define(function(require, exports, module) {
 
                 numSpaces -= to.ch % numSpaces;
                 ins = new Array(numSpaces + 1).join(" ");
-                // Wrap in an operation?
-                instance.replaceSelection(ins);
-                var cursor = instance.getCursor(false);
-                instance.setSelection(cursor);
+                
+                instance.operation(function() {
+                    instance.replaceSelection(ins);
+                    var cursor = instance.getCursor(false);
+                    instance.setSelection(cursor);
+                });
             }
-        }
-        
+        }       
     }
     
     /**
