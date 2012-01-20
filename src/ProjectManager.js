@@ -11,11 +11,12 @@ define(function(require, exports, module) {
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
+    ,   FileViewController  = require("FileViewController")
     ,   DocumentManager     = require("DocumentManager")
     ;
     
-    $(DocumentManager).on("currentDocumentSelectionContextChanged", function(event) {
-		if(DocumentManager.getCurrentDocumentSelectionContext() == "ProjectManager"){
+    $(FileViewController).on("documentSelectionChange", function(event) {
+		if(FileViewController.getCurrentDocumentSelectionContext() == "ProjectManager"){
 	        // var node = null;
 	        //         if(eventTarget == "menu"){
 	        //             
@@ -513,7 +514,7 @@ define(function(require, exports, module) {
         .bind("select_node.jstree", function(event, data) {
             var entry = data.rslt.obj.data("entry");
             if (entry.isFile)
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: entry.fullPath, commandTarget: "ProjectManager"});
+                FileViewController.openDocument(entry.fullPath, "ProjectManager");
         })
         .bind("reopen.jstree", function(event, data) {
             // This handler fires for the initial load and subsequent

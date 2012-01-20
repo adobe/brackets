@@ -13,22 +13,11 @@ define(function(require, exports, module) {
     , CommandManager        = require("CommandManager")
     , Commands              = require("Commands")
     , EditorManager         = require("EditorManager")
+    , FileViewController    = require("FileViewController")
     , NativeFileSystem      = require("NativeFileSystem").NativeFileSystem
     ;
 
     // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange",
-    function(event) {
-        //console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
-        _handleDocumentChanged();
-    });
-	
-    $(DocumentManager).on("currentDocumentSelectionContextChanged",
-    function(event, eventTarget) {
-        _handlecurDocSelectionContextChanged();
-    });
-	
-
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         //console.log("Working set ++ " + addedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
@@ -44,6 +33,11 @@ define(function(require, exports, module) {
     $(DocumentManager).on("dirtyFlagChange", function(event, doc) {
         //console.log("Dirty flag change: " + doc);
         _handleDirtyFlagChanged(doc);
+    });
+
+    $(FileViewController).on("documentSelectionChange",
+    function(event, eventTarget) {
+        _handleDocumentSelectionChange();
     });
 
     _hideShowOpenFileHeader();
@@ -105,7 +99,7 @@ define(function(require, exports, module) {
         _updateListItemSelection(newItem, curDoc);
 
         newItem.click(function() {
-            _openDoc(doc);
+           FileViewController.openDocument(doc.file.fullPath, "WorkingSetView");
         });
 
         newItem.hover(
@@ -153,17 +147,12 @@ define(function(require, exports, module) {
         }
     }
 
-    /** 
-    * @private
-    */
-    function _handleDocumentChanged() {
-       _updateListSelection();
-    }
+
 	
     /** 
     * @private
     */
-	function _handlecurDocSelectionContextChanged(){
+	function _handleDocumentSelectionChange(){
 		_updateListSelection();
 	}
 
@@ -171,15 +160,15 @@ define(function(require, exports, module) {
     * @private
     */
     function _updateListSelection() {
-		var curDoc;
-		if(DocumentManager.getCurrentDocumentSelectionContext() == "WorkingSetView")
-			curDoc = DocumentManager.getCurrentDocument();
+		var doc;
+		if(FileViewController.getCurrentDocumentSelectionContext() == "WorkingSetView")
+			doc = DocumentManager.getCurrentDocument();
 		else
-			curDoc = null;
+			doc = null;
 			
         // Iterate through working set list and update the selection on each
         var items = $("#open-files-container > ul").children().each(function() {
-	        _updateListItemSelection(this, curDoc);
+	        _updateListItemSelection(this, doc);
 	    });
 
     }
@@ -193,13 +182,6 @@ define(function(require, exports, module) {
         $(listItem).toggleClass("selected", ($(listItem).data(_DOCUMENT_KEY) === curDoc));
     }
 
-    /** 
-    * @private
-    * @param {Document} curDoc 
-    */
-    function _openDoc(doc) {
-        CommandManager.execute(Commands.FILE_OPEN, {fullPath: doc.file.fullPath, commandTarget: "WorkingSetView"});
-    }
 
     /** 
      * @private

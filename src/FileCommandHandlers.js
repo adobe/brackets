@@ -85,18 +85,17 @@ define(function(require, exports, module) {
 
     function handleFileOpen(commandData) {
         var fullPath = null;
-        if( commandData ){
+        if( commandData )
             fullPath = commandData.fullPath;    
-        }
         
-        var result = doOpenWithOptionalPath(fullPath, commandData);
+        var result = doOpenWithOptionalPath(fullPath);
         result.always(function() {
             EditorManager.focusEditor();
         });
         return result;
     }
 
-    function doOpenWithOptionalPath(fullPath, commandData) {
+    function doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
             // Prompt the user with a dialog
@@ -110,17 +109,14 @@ define(function(require, exports, module) {
                 });
         }
         else {
-            result = doOpen(fullPath, commandData);
+            result = doOpen(fullPath);
         }
         if (!result)
             result = (new $.Deferred()).reject();
         return result;
     }
 
-    function doOpen(fullPath, commandData) {
-		var commandTarget = null;
-		if(commandData)
-			commandTarget = commandData.commandTarget;
+    function doOpen(fullPath) {
 		
         var result = new $.Deferred();
         if (!fullPath) {
@@ -135,7 +131,7 @@ define(function(require, exports, module) {
         var document = DocumentManager.getDocumentForFile(fileEntry);
         if (document != null) {
             // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(document, commandTarget);
+            DocumentManager.showInEditor(document);
             result.resolve();
             
         } else {
@@ -148,7 +144,7 @@ define(function(require, exports, module) {
                     document = EditorManager.createDocumentAndEditor(fileEntry, event.target.result);
                     
                     // Switch to new document in the UI
-                    DocumentManager.showInEditor(document, commandTarget);
+                    DocumentManager.showInEditor(document);
                     result.resolve();
                 };
 
@@ -241,7 +237,6 @@ define(function(require, exports, module) {
      */
     function handleFileClose( commandData ) {
 		var doc = null;
-		
 		if(commandData)
 			doc = commandData.doc;
 		
