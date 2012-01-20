@@ -149,7 +149,8 @@ define(function(require, exports, module) {
         var from = instance.getCursor(true),
             to = instance.getCursor(false),
             line = instance.getLine(from.line),
-            indentAuto = false;
+            indentAuto = false,
+            insertTab = false;
         
         if (from.line === to.line) {
             if (line.search(/\S/) > to.ch || to.ch === 0)
@@ -157,12 +158,22 @@ define(function(require, exports, module) {
         }
 
         if (indentAuto) {
+            var currentWS = line.search(/\S/);
             CodeMirror.commands.indentAuto(instance);
+            // If the amount of whitespace didn't change, insert another tab
+            if (instance.getLine(from.line).search(/\S/) === currentWS) {
+                insertTab = true;
+                to.ch = 0;
+            }
         } 
         else if (instance.somethingSelected()) {
             CodeMirror.commands.indentMore(instance);
         }
         else {
+            insertTab = true;
+        }
+        
+        if (insertTab) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
@@ -170,12 +181,7 @@ define(function(require, exports, module) {
 
                 numSpaces -= to.ch % numSpaces;
                 ins = new Array(numSpaces + 1).join(" ");
-                
-                instance.operation(function() {
-                    instance.replaceSelection(ins);
-                    var cursor = instance.getCursor(false);
-                    instance.setSelection(cursor);
-                });
+                instance.replaceSelection(ins, "end");
             }
         }       
     }
