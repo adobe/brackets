@@ -38,10 +38,12 @@
         // openAndSelectDocument, so pick the best fileSelectionFocus
         if(!_curDocChangedDueToUs){
             var curDoc = DocumentManager.getCurrentDocument();
-            if(DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
-                _fileSelectionFocus = "WorkingSetView";
-            else
-                _fileSelectionFocus = "ProjectManager";
+            if(curDoc){
+                if(DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
+                    _fileSelectionFocus = "WorkingSetView";
+                else
+                    _fileSelectionFocus = "ProjectManager";
+            }
         }
         
         // reset since we have handled the doc change
