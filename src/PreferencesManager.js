@@ -173,5 +173,4 @@ define(function(require, exports, module) {
     // Internal Use Only
     exports._reset                  = _reset;
     exports._setStorageKey          = _setStorageKey;
-    exports._PREFERENCES_KEY        = PREFERENCES_KEY;
 });
