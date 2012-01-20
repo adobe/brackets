@@ -89,6 +89,26 @@ define(function(require, exports, module) {
     Document.prototype.getText = function() {
         return this._editor.getValue();
     }
+
+    Document.prototype.saveScrollPosition = function() {
+        // this terrible hack to get the scrollbar element is taken directly
+        // from codemirror.js lines 40-47 (which contains the comment "I've
+        // never seen more elegant code in my life.")
+        var scrollbar = this._editor.getWrapperElement().firstChild.nextSibling;
+        this._scrollPosition = scrollbar.scrollTop;
+    }
+
+    Document.prototype.restoreScrollPosition = function() {
+        // this terrible hack to get the scrollbar element is taken directly
+        // from codemirror.js lines 40-47 (which contains the comment "I've
+        // never seen more elegant code in my life.")
+        var scrollbar = this._editor.getWrapperElement().firstChild.nextSibling;
+        if (this._scrollPosition !== undefined) {
+            scrollbar.scrollTop = this._scrollPosition;
+        }
+    }
+
+    
     
     /**
      * @private
