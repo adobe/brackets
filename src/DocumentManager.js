@@ -74,6 +74,8 @@ define(function(require, exports, module) {
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
      * other than DocumentManager and EditorManager should access it.
+     * The editor may be null in the case that the document working set was
+     * restored from storage but an editor was not yet created.
      * TODO: we should close on whether private fields are declared on the prototype like this (vs.
      * just set in the constructor).
      * @type {!CodeMirror}
@@ -104,7 +106,9 @@ define(function(require, exports, module) {
     Document.prototype._savedUndoPosition = 0;
     
     /**
-     * @return {string} The editor's current contents; may not be saved to disk yet.
+     * @return {string} The editor's current contents; may not be saved to disk 
+     *  yet. Returns null if the file was not yet read and no editor was 
+     *  created.
      */
     Document.prototype.getText = function() {
         if (this._editor) {
@@ -112,7 +116,7 @@ define(function(require, exports, module) {
         }
         
         // TODO (jasonsj): is it worth adding an async call to readAsText()?
-        return "";
+        return null;
     }
     
     /**
@@ -148,7 +152,7 @@ define(function(require, exports, module) {
         if (this._editor == null) {
             return;
         }
-        
+
         this._savedUndoPosition = this._editor.historySize().undo;
         this._updateDirty();
     }

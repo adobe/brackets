@@ -16,6 +16,7 @@ define(function(require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("DocumentManager")
     ,   EditorUtils         = require("EditorUtils")
+    ,   Strings             = require("strings")
     ;
     
     // Initialize: register listeners
@@ -202,11 +203,17 @@ define(function(require, exports, module) {
             var editorResult = _createEditor(document.file);
 
             editorResult.done(function(editor) {
-                document._editor = editor;
+                document._setEditor(editor)
                 _doShow(document);
             });
             editorResult.fail(function(error) {
-                // TODO (jasonsj): error dialog
+                // Edge case where (a) file exists at launch, (b) editor not 
+                // yet opened, and (c) file is deleted or permissions are 
+                // modified outside of Brackets
+                showFileOpenError(error.code, document.file.fullPath).done(function() {
+                    DocumentManager.closeDocument(document);
+                    focusEditor();
+                });
             });
         }
         else {
@@ -267,11 +274,53 @@ define(function(require, exports, module) {
         if (_currentEditor != null)
             _currentEditor.focus();
     }
+
+
+    function showFileOpenError(code, path) {
+        return brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , Strings.ERROR_OPENING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_OPENING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+
+    function showSaveFileError(code, path) {
+        return brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , Strings.ERROR_SAVING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_SAVING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+
+    function getErrorString(code) {
+        // There are a few error codes that we have specific error messages for. The rest are
+        // displayed with a generic "(error N)" message.
+        var result;
+
+        if (code == FileError.NOT_FOUND_ERR)
+            result = Strings.NOT_FOUND_ERR;
+        else if (code == FileError.NOT_READABLE_ERR)
+            result = Strings.NOT_READABLE_ERR;
+        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
+            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
+        else
+            result = Strings.format(Strings.GENERIC_ERROR, code);
+
+        return result;
+    }
     
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
     exports.createDocumentAndEditor = createDocumentAndEditor;
     exports.focusEditor = focusEditor;
+    exports.showFileOpenError = showFileOpenError;
+    exports.showSaveFileError = showSaveFileError;
     
 });

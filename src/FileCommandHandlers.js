@@ -152,7 +152,7 @@ define(function(require, exports, module) {
             });
             
             docResult.fail(function(error) {
-                showFileOpenError(error.code, fullPath);
+                EditorManager.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -194,7 +194,7 @@ define(function(require, exports, module) {
             });
 
             result.fail( function fileError(error) { 
-                showSaveFileError(error.code, _currentFilePath);
+                EditorManager.showSaveFileError(error.code, _currentFilePath);
             });
 
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
@@ -296,48 +296,6 @@ define(function(require, exports, module) {
             EditorManager.focusEditor();
             result.resolve();
         }
-        return result;
-    }
-
-    
-
-
-    function showFileOpenError(code, path) {
-        brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_OPENING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_OPENING_FILE
-                  , path
-                  , getErrorString(code))
-        );
-    }
-
-    function showSaveFileError(code, path) {
-        brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_SAVING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_SAVING_FILE
-                  , path
-                  , getErrorString(code))
-        );
-    }
-
-    function getErrorString(code) {
-        // There are a few error codes that we have specific error messages for. The rest are
-        // displayed with a generic "(error N)" message.
-        var result;
-
-        if (code == FileError.NOT_FOUND_ERR)
-            result = Strings.NOT_FOUND_ERR;
-        else if (code == FileError.NOT_READABLE_ERR)
-            result = Strings.NOT_READABLE_ERR;
-        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
-        else
-            result = Strings.format(Strings.GENERIC_ERROR, code);
-
         return result;
     }
 
