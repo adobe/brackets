@@ -16,24 +16,24 @@ define(function(require, exports, module) {
     ;
     
     $(FileViewController).on("documentSelectionFocusChange", function(event) {
-        if(FileViewController.getFileSelectionFocus() != "WorkingSetView"){
-            var node = null;
-
-                var curDoc = DocumentManager.getCurrentDocument();
-                $(".jstree-open").each( function ( index ) {
-                    entry = $(this).data("entry");
-                    
-                    if( entry.fullPath == curDoc.file.fullPath)
-                        _projectTree.jstree( "select_node", $(this), true);
-                });
+        var curDoc = DocumentManager.getCurrentDocument();
+        if(curDoc !== null && FileViewController.getFileSelectionFocus() != "WorkingSetView"){
+            $("#project-files-container li").is( function ( index ) {
+                var entry = $(this).data("entry");
                 
-                ;
-                
-
+                if( entry && entry.fullPath == curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this)) ){
+                    //we don't want to trigger another selection change event, so manually deselect
+                    //and select without sending out notifications
+                    _projectTree.jstree("deselect_all");
+                    _projectTree.jstree("select_node", $(this), false);
+                    return true;
+                }
+                return false;
+            });
         }
-        else
+        else {
             _projectTree.jstree("deselect_all");
-        
+        }
     });
     
     /**

@@ -38,7 +38,7 @@
         // openAndSelectDocument, so pick the best fileSelectionFocus
         if(!_curDocChangedDueToUs){
             var curDoc = DocumentManager.getCurrentDocument();
-            if(DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
+            if(curDoc !== null && DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
                 _fileSelectionFocus = "WorkingSetView";
             else
                 _fileSelectionFocus = "ProjectManager";
