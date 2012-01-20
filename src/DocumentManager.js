@@ -91,6 +91,9 @@ define(function(require, exports, module) {
             return;
         }
         
+        // Editor can only be assigned once per Document
+        console.assert(this._editor === null);
+
         this._editor = editor;
         
         // Dirty-bit tracking
@@ -111,12 +114,9 @@ define(function(require, exports, module) {
      *  created.
      */
     Document.prototype.getText = function() {
-        if (this._editor) {
-            return this._editor.getValue();
-        }
-        
-        // TODO (jasonsj): is it worth adding an async call to readAsText()?
-        return null;
+        console.assert(this._editor != null);
+
+        return this._editor.getValue();
     }
     
     /**
@@ -149,7 +149,7 @@ define(function(require, exports, module) {
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
     Document.prototype.markClean = function() {
-        if (this._editor == null) {
+        if (this._editor === null) {
             return;
         }
 
@@ -480,12 +480,8 @@ define(function(require, exports, module) {
             });
 
             // Initialize the active editor
-            if (activeDoc === null) {
-                var workingSet = getWorkingSet();
-
-                if (workingSet.length > 0) {
-                    activeDoc = _workingSet[0];   
-                }
+            if(activeDoc == null && _workingSet.length > 0) {
+                activeDoc = _workingSet[0]
             }
 
             if (activeDoc != null) {
@@ -508,7 +504,7 @@ define(function(require, exports, module) {
     PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
 
     // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("initializeComplete", function(event, projectRoot) {
+    $(ProjectManager).on("isFirstProjectOpen", function(event, projectRoot) {
         _init();
     });
 });

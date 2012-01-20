@@ -11,6 +11,7 @@ define(function(require, exports, module) {
     ,   ProjectManager      = require("ProjectManager")
     ,   DocumentManager     = require("DocumentManager")
     ,   EditorManager       = require("EditorManager")
+    ,   EditorUtils         = require("EditorUtils")
     ,   Strings             = require("strings");
     ;
      
@@ -81,6 +82,8 @@ define(function(require, exports, module) {
     function handleFileAddToWorkingSet(fullPath){
         handleFileOpen(fullPath).done(function(doc) {
             DocumentManager.addToWorkingSet(doc);
+            // jstree dblclick handling seems to steal focus from editor, so set focus again
+            EditorManager.focusEditor();
         });
     }
 
@@ -94,8 +97,8 @@ define(function(require, exports, module) {
 
     /**
      * @private
-     * Creates a document and editor for the specified file path. If no path
-     * is specified, a file prompt is provided for input.
+     * Creates a document and displays an editor for the specified file path. 
+     * If no path is specified, a file prompt is provided for input.
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
@@ -122,7 +125,7 @@ define(function(require, exports, module) {
 
     /**
      * @private
-     * Creates a document and editor for the specified file path.
+     * Creates a document and displays an editor for the specified file path.
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
@@ -152,7 +155,7 @@ define(function(require, exports, module) {
             });
             
             docResult.fail(function(error) {
-                EditorManager.showFileOpenError(error.code, fullPath);
+                EditorUtils.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -194,7 +197,7 @@ define(function(require, exports, module) {
             });
 
             result.fail( function fileError(error) { 
-                EditorManager.showSaveFileError(error.code, _currentFilePath);
+                showSaveFileError(error.code, _currentFilePath);
             });
 
             // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
@@ -336,6 +339,17 @@ define(function(require, exports, module) {
         result.notify(baseFileName + fileExt , 1);
 
         return result;
+    }
+
+    function showSaveFileError(code, path) {
+        return brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , Strings.ERROR_SAVING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_SAVING_FILE
+                  , path
+                  , EditorUtils.getFileErrorString(code))
+        );
     }
 
     // Define public API

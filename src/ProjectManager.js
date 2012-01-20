@@ -8,7 +8,8 @@
  * the file tree.
  *
  * This module dispatches 1 event:
- *    - initializeComplete -- When the ProjectManager initializes at application start-up.
+ *    - isFirstProjectOpen -- When the ProjectManager initializes the first 
+ *                            project at application start-up.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -161,7 +162,8 @@ define(function(require, exports, module) {
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
-     * @param {string} rootPath  Absolute path to the root folder of the project.
+     * @param {string} rootPath  Absolute path to the root folder of the project. 
+     *  If rootPath is undefined or null, the last open project will be restored.
      * @return {Deferred} A $.Deferred() object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
@@ -173,12 +175,12 @@ define(function(require, exports, module) {
         var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID)
         ,   result = new $.Deferred()
         ,   resultRenderTree
-        ,   triggerInitEvent = false;
+        ,   isFirstProjectOpen = false;
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
             rootPath = prefs.projectPath;
-            triggerInitEvent = true;
+            isFirstProjectOpen = true;
 
             // TODO (jasonsj): handle missing paths, see issue #100
             _projectInitialLoad.previous = prefs.projectTreeState;
@@ -241,8 +243,8 @@ define(function(require, exports, module) {
         resultRenderTree.done(function () {
             result.resolve();
 
-            if (triggerInitEvent) {
-                $(exports).triggerHandler("initializeComplete", _projectRoot);
+            if (isFirstProjectOpen) {
+                $(exports).triggerHandler("isFirstProjectOpen", _projectRoot);
             }
         });
         resultRenderTree.fail(function () {
@@ -544,8 +546,6 @@ define(function(require, exports, module) {
             var entry = $(event.target).closest("li").data("entry");
             if (entry.isFile) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
-                // jstree dblclick handling seems to steal focus from editor, so set focus again
-                EditorManager.focusEditor();
             }
         });
 
