@@ -218,8 +218,7 @@ define(function(require, exports, module) {
     function doQuit() {
         CommandManager.execute(Commands.FILE_CLOSE_ALL, false)
         .done(function() {
-            //window.close();
-            console.log("TODO: window.close()!");
+            window.close();  // TODO: call a native API to quit the whole app
         })
         .fail(function() {
             // don't exit: user canceled (or asked us to save changes first, but we failed to do so)

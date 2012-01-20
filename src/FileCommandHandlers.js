@@ -222,6 +222,15 @@ define(function(require, exports, module) {
         return result;
     }
     
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If any ONE save operation fails, an error dialog is immediately
+     * shown and the promise fails.
+     * TODO: But subsequent save operations continue in the background, and if more fail the error
+     * dialogs will stack up on top of the old one.
+     *
+     * @return {$.Promise}
+     */
     function saveAll() {
         var saveResults = [];
         
@@ -229,17 +238,22 @@ define(function(require, exports, module) {
             saveResults.push( doSave(doc) );
         });
         
-        // $.when() is sort of crappy: it won't accept an array as an arg, and it seems to insist
-        // on receiving Deferreds even though it should work fine given Promises too... ugh
+        // Aggregate all the file-save Deferreds into one master
+        // (p.s., it would be nice if $.when() accepted an array instead of varargs, but oh well...)
         var overallResult = $.when.apply($, saveResults);
         
-        return overallResult; //NOTE: this returns a Promise, NOT a Deferred (which is actually more correct)
+        return overallResult;
     }
     
 
-    /** Closes the specified document. Assumes the current document if doc is null. 
-     * Prompts user about saving file if document is dirty
-     * @param {?Document} doc 
+    /**
+     * Closes the specified document. Prompts user about saving file if document is dirty.
+     *
+     * @param {?Document} doc  Document to close; assumes the current document if null.
+     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     *          actually close the document. This is useful when chaining file-close together with
+     *          other user prompts that may be cancelable.
+     * @return {$.Deferred}
      */
     function handleFileClose( doc, promptOnly ) {
         
@@ -305,6 +319,14 @@ define(function(require, exports, module) {
         return result;
     }
     
+    /**
+     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
+     * that unsaved changes are confirmed once, in bulk.
+     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     *          actually close any documents. This is useful when chaining close-all together with
+     *          other user prompts that may be cancelable.
+     * @return {$.Deferred}
+     */
     function handleFileCloseAll(promptOnly) {
         // utility function: if we're not in promptOnly mode, close all open documents
         function doCloseAll() {
@@ -319,14 +341,12 @@ define(function(require, exports, module) {
         } );
         
         if (unsavedDocs.length == 0) {
-            console.log("ZERO UNSAVED...");
-            
+            // No unsaved changes, so we can proceed without a prompt
             doCloseAll();
             result.resolve();
             
         } else if (unsavedDocs.length == 1) {
-            console.log("SINGLE UNSAVED...");
-            
+            // Only one unsaved file: show the usual single-file-close confirmation UI
             handleFileClose( unsavedDocs[0], promptOnly ).done( function() {
                 // still need to close any other, non-unsaved documents
                 doCloseAll();
@@ -336,11 +356,11 @@ define(function(require, exports, module) {
             });
             
         } else {
-            console.log("MULTIPLE UNSAVED...");
+            // Multiple unsaved files: show a single bulk prompt listing all files
             var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
             
             message += "<ul>";
-            unsavedDocs.forEach(function(doc) {  //TODO: or just use for..in?
+            unsavedDocs.forEach(function(doc) {
                 message += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
             });
             message += "</ul>";
@@ -355,7 +375,7 @@ define(function(require, exports, module) {
                 }
                 else {
                     if (id === brackets.DIALOG_BTN_OK) {
-                        console.log("SAVE ALL, then CLOSE ALL");
+                        // Save all unsaved files, then if that succeeds, close all
                         saveAll().done( function() {
                             doCloseAll();
                             result.resolve();
@@ -364,8 +384,7 @@ define(function(require, exports, module) {
                         });
                     }
                     else {
-                        // This is the "Don't Save" case--we can just go ahead and close the file.
-                        console.log("DISCARD ALL, then CLOSE ALL");
+                        // "Don't Save" case--we can just go ahead and close all  files.
                         doCloseAll();
                         result.resolve();
                     }
