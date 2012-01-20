@@ -252,6 +252,16 @@ a, img {
     }
 }
 
+/* This text is used to force the code editor's font to be loaded early on if it's a
+   web font. This is necessary in order for the editor's horizontal measurement of text
+   to work properly. 
+   In the future, when we allow the user to switch fonts, we'll need to make sure to 
+   update the font for this text item whenever the user switches. */
+.dummy-text {
+    position: fixed;
+    top: -10000px;
+    .code-font();
+}
 
 /* Styles for the search dialog--this is temporary, only for debugging */
 
