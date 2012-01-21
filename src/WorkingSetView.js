@@ -135,7 +135,7 @@ define(function(require, exports, module) {
                 .prependTo(listElement)
                 .click(function() {
                     var doc = listElement.data(_DOCUMENT_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, {document: doc});
+                    CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
                 });
         }
 
@@ -188,7 +188,7 @@ define(function(require, exports, module) {
      * @param {Document} curDoc 
      */
     function _closeDoc(doc) {
-        CommandManager.execute(Commands.FILE_CLOSE, {fullPath: doc.file.fullPath});
+        CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
     }
 
 
