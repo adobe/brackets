@@ -110,7 +110,7 @@ define(function(require, exports, module) {
                     
             // make 2nd doc clean
             var docList = DocumentManager.getWorkingSet();
-			docList[0].markClean();
+			docList[1].markClean();
                             
             // make the first one active
             DocumentManager.showInEditor(docList[0]);
@@ -132,7 +132,7 @@ define(function(require, exports, module) {
                             
             var listItems = $("#open-files-container > ul").children();
             expect( listItems.length ).toBe(1);
-            expect( listItems.find("a").get(0).text == "file_two.js" ).toBeTruthy();
+            expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
                             
                             
         });
