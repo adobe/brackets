@@ -11,7 +11,8 @@
  * - if user selects a file in WorkingSetView > select in WorkingSetView
  * - if user adds a file to the WorkingSetView > select in WorkingSetView
  * - if user selects a file in ProjectManager > select in ProjectManager
- * 
+ * - if user opens a file from places other than the WorkingSetView or ProjectManager > 
+ *       select file in WorkignSetView if it is open, otherwise select in ProjectManager
  */
 
  define(function(require, exports, module) {
@@ -36,7 +37,7 @@
 
         // if the cause of the doc chagne didn't come through 
         // openAndSelectDocument, so pick the best fileSelectionFocus
-        if(!_curDocChangedDueToUs){
+        if(!_curDocChangedDueToMe){
             var curDoc = DocumentManager.getCurrentDocument();
             if(curDoc){
                 if(DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
@@ -47,45 +48,58 @@
         }
         
         // reset since we have handled the doc change
-        _curDocChangedDueToUs = false;
+        _curDocChangedDueToMe = false;
 
         $(exports).triggerHandler("documentSelectionFocusChange"); 
     });
 
+    /** Opens the specified document if it's not already open, adds it to the working set,
+     * and selects it in the WorkingSetView
+     * @param {!fullPath}
+     */
     function addToWorkingSetAndSelect(fullPath) {
         CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
+
+        // This properly handles sending the right nofications in cases where the document
+        // is already the curruent one. In that case we will want to notify with
+        // documentSelectionFocusChange so the views change their selection
         openAndSelectDocument(fullPath, "WorkingSetView");
     }
 
-    var _curDocChangedDueToUs = false;
+    var _curDocChangedDueToMe = false;
 
-    /* Opens a document if not open and selects the file in the UI corresponding to
+    /** Opens a document if not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      * @param {!fullPath}
      * @param {string} - must be either "WorkingSetView" or "ProjectManager"
      * @returns {!Deferred}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
-        
+        var result;
         // Opening files are asynchronous and we want to know when this function caused a file
-        // to open in order to properly set the fileSelectionFocus, so _curDocChangedDueToUs is
+        // to open in order to properly set the fileSelectionFocus, so _curDocChangedDueToMe is
         // set to true here. The handler for currentDocumentChange well check this and reset it.
-        _curDocChangedDueToUs = true;
+        _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
 
-        var doc = DocumentManager.getDocumentForPath(fullPath);
-        if(doc != null ) {
+        // If fullPath corresonds to the current doc being viewed then opening the file won't
+        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // in this case to signify the selection focus has changed even though the current document has not.
+        if(DocumentManager.getCurrentDocument() == DocumentManager.getDocumentForPath(fullPath)) {
             $(exports).triggerHandler("documentSelectionFocusChange");  
             DocumentManager.showInEditor(doc);
-            _curDocChangedDueToUs = false;
-            return (new $.Deferred()).resolve();
+            result = (new $.Deferred()).resolve();
         }  
         else {
-            return CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
+            result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
+                
         }
         
- 
+        // clear after notification is done
+        result.always(_curDocChangedDueToMe = false);
+        
+        return result;
     }
 
 
