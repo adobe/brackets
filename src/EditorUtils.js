@@ -62,6 +62,36 @@ define(function(require, exports, module) {
         }
     }
 
+    function showFileOpenError(code, path) {
+        return brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , Strings.ERROR_OPENING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_OPENING_FILE
+                  , path
+                  , getErrorString(code))
+        );
+    }
+
+    function getFileErrorString(code) {
+        // There are a few error codes that we have specific error messages for. The rest are
+        // displayed with a generic "(error N)" message.
+        var result;
+
+        if (code == FileError.NOT_FOUND_ERR)
+            result = Strings.NOT_FOUND_ERR;
+        else if (code == FileError.NOT_READABLE_ERR)
+            result = Strings.NOT_READABLE_ERR;
+        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
+            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
+        else
+            result = Strings.format(Strings.GENERIC_ERROR, code);
+
+        return result;
+    }
+
     // Define public API
     exports.setModeFromFileExtension = setModeFromFileExtension;
+    exports.showFileOpenError        = showFileOpenError;
+    exports.getFileErrorString       = getFileErrorString;
 });
