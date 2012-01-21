@@ -322,6 +322,23 @@ define(function(require, exports, module) {
         // response to the editor-swap call above, or the _removeFromWorkingSet() call, depending on
         // circumstances. See notes in EditorManager for more.
     }
+
+    /**
+     * Equivalent to calling closeDocument() for all Documents. Same caveat: this discards any
+     * unsaved changes, so the UI should confirm with the user before calling this.
+     */
+    function closeAll() {
+        // TODO: could be more efficient by clearing working set in bulk instead of via
+        // individual notifications, and ensuring we don't switch editors while closing...
+        
+        var allDocs = _workingSet.slice(0);  //slice() to clone
+        if (_currentDocument != null && allDocs.indexOf(_currentDocument) == -1)
+            allDocs.push(_currentDocument);
+        
+        for (var i=0; i < allDocs.length; i++) {
+            closeDocument( allDocs[i] );
+        }
+    }
     
     
     
@@ -333,5 +350,6 @@ define(function(require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
+    exports.closeAll = closeAll;
     
 });
