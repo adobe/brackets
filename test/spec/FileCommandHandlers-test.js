@@ -137,9 +137,6 @@ define(function(require, exports, module) {
                 // reset file contents
                 runs(function() {
                     brackets.fs.writeFile(filePath, TEST_JS_CONTENT, "utf8");
-                    
-                    // needed to reset UI/DocumentManager state for next set of tests - see isue #77
-                    CommandManager.execute(Commands.FILE_CLOSE);
                 });
             });
         });
