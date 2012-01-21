@@ -12,5 +12,6 @@ define(function(require, exports, module) {
     exports.FILE_CLOSE  = "file.close";
     exports.FILE_CLOSE_ALL = "file.close_all";
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
+    exports.FILE_QUIT = "file.quit";
 });
 

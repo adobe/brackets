@@ -152,10 +152,8 @@ define(function(require, exports, module) {
                     );
                 }
             );
-        })
-        .fail(function() {
-            // don't open new project: user canceled (or we failed to save its unsaved changes)
         });
+        // if fail, don't open new project: user canceled (or we failed to save its unsaved changes)
     }
 
     /**

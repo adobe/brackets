@@ -154,7 +154,7 @@ define(function(require, exports, module) {
                 CommandManager.execute(Commands.FILE_SAVE);
             });
             $("#menu-file-quit").click(function() {
-                doQuit();
+                CommandManager.execute(Commands.FILE_QUIT);
             });
 
             // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
@@ -215,16 +215,6 @@ define(function(require, exports, module) {
     });
     
 
-    function doQuit() {
-        CommandManager.execute(Commands.FILE_CLOSE_ALL, false)
-        .done(function() {
-            window.close();  // TODO: call a native API to quit the whole app
-        })
-        .fail(function() {
-            // don't exit: user canceled (or asked us to save changes first, but we failed to do so)
-        });
-    }
-    
     $(window).unload(function () {
         PreferencesManager.savePreferences();
     });

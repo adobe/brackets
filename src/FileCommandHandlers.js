@@ -38,6 +38,7 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
@@ -184,9 +185,11 @@ define(function(require, exports, module) {
         return deferred;
     }
     
+    
     function handleFileSave() {
         return doSave( DocumentManager.getCurrentDocument() );
     }
+    
     function doSave(docToSave) {
         var result = new $.Deferred();
         
@@ -240,7 +243,7 @@ define(function(require, exports, module) {
     function saveAll() {
         var saveResults = [];
         
-        DocumentManager.getWorkingSet().forEach(function(doc) {  //TODO: or just use for..in?
+        DocumentManager.getWorkingSet().forEach(function(doc) {
             saveResults.push( doSave(doc) );
         });
         
@@ -294,22 +297,20 @@ define(function(require, exports, module) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
                 }
+                else if (id === brackets.DIALOG_BTN_OK) {
+                    doSave(doc)
+                        .done(function() {
+                            doClose(doc);
+                            result.resolve();
+                        })
+                        .fail(function() {
+                            result.reject();
+                        });
+                }
                 else {
-                    if (id === brackets.DIALOG_BTN_OK) {
-                        doSave(doc)
-                            .done(function() {
-                                doClose(doc);
-                                result.resolve();
-                            })
-                            .fail(function() {
-                                result.reject();
-                            });
-                    }
-                    else {
-                        // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose(doc);
-                        result.resolve();
-                    }
+                    // This is the "Don't Save" case--we can just go ahead and close the file.
+                    doClose(doc);
+                    result.resolve();
                 }
             });
             result.always(function() {
@@ -334,28 +335,20 @@ define(function(require, exports, module) {
      * @return {$.Deferred}
      */
     function handleFileCloseAll(promptOnly) {
-        // utility function: if we're not in promptOnly mode, close all open documents
-        function doCloseAll() {
-            if (!promptOnly)
-                DocumentManager.closeAll();
-        }
-        
         var result = new $.Deferred();
         
         var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
             return doc.isDirty;
-        } );
+        });
         
         if (unsavedDocs.length == 0) {
             // No unsaved changes, so we can proceed without a prompt
-            doCloseAll();
             result.resolve();
             
         } else if (unsavedDocs.length == 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
             handleFileClose( unsavedDocs[0], promptOnly ).done( function() {
                 // still need to close any other, non-unsaved documents
-                doCloseAll();
                 result.resolve();
             }).fail( function() {
                 result.reject();
@@ -379,26 +372,40 @@ define(function(require, exports, module) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
                 }
-                else {
-                    if (id === brackets.DIALOG_BTN_OK) {
-                        // Save all unsaved files, then if that succeeds, close all
-                        saveAll().done( function() {
-                            doCloseAll();
-                            result.resolve();
-                        }).fail( function() {
-                            result.reject();
-                        });
-                    }
-                    else {
-                        // "Don't Save" case--we can just go ahead and close all  files.
-                        doCloseAll();
+                else if (id === brackets.DIALOG_BTN_OK) {
+                    // Save all unsaved files, then if that succeeds, close all
+                    saveAll().done( function() {
                         result.resolve();
-                    }
+                    }).fail( function() {
+                        result.reject();
+                    });
+                }
+                else {
+                    // "Don't Save" case--we can just go ahead and close all  files.
+                    result.resolve();
                 }
             });
         }
         
+        // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
+        // NOTE: this still happens before any done() handlers added by our caller, because jQ
+        // guarantees that handlers run in the order they are added.
+        result.done(function() {
+            if (!promptOnly)
+                DocumentManager.closeAll();
+        });
+        
         return result;
+    }
+    
+    
+    /** Confirms any unsaved changes, then exits Brackets */
+    function handleFileQuit() {
+        handleFileCloseAll(false)
+        .done(function() {
+            window.close();  // TODO: call a native API to quit the whole app
+        });
+        // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
     
