@@ -9,6 +9,7 @@ define(function(require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   PreferencesManager  = require("PreferencesManager")
     ,   DocumentManager     = require("DocumentManager")
+    ,   EditorManager       = require("EditorManager")
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
