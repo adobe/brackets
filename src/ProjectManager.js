@@ -18,7 +18,7 @@ define(function(require, exports, module) {
     
     $(FileViewController).on("documentSelectionFocusChange", function(event) {
         var curDoc = DocumentManager.getCurrentDocument();
-        if(curDoc !== null && FileViewController.getFileSelectionFocus() != "WorkingSetView"){
+        if(curDoc !== null && FileViewController.getFileSelectionFocus() != FileViewController.WORKING_SET_VIEW){
             $("#project-files-container li").is( function ( index ) {
                 var entry = $(this).data("entry");
                 

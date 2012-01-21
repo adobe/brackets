@@ -32,7 +32,7 @@ define(function(require, exports, module) {
             var openAndMakeDirty = function (path){
                 // open file
                 runs(function() {
-                    FileViewController.openAndSelectDocument( path, "ProjectManager" )
+                    FileViewController.openAndSelectDocument( path, FileViewController.PROJECT_MANAGER )
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });

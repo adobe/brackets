@@ -99,7 +99,7 @@ define(function(require, exports, module) {
         _updateListItemSelection(newItem, curDoc);
 
         newItem.click(function() {
-           FileViewController.openAndSelectDocument(doc.file.fullPath, "WorkingSetView");
+           FileViewController.openAndSelectDocument(doc.file.fullPath, FileViewController.WORKING_SET_VIEW);
         });
 
         newItem.hover(
@@ -161,7 +161,7 @@ define(function(require, exports, module) {
     */
     function _updateListSelection() {
         var doc;
-        if(FileViewController.getFileSelectionFocus() == "WorkingSetView")
+        if(FileViewController.getFileSelectionFocus() == FileViewController.WORKING_SET_VIEW)
             doc = DocumentManager.getCurrentDocument();
         else
             doc = null;

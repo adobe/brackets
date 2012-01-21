@@ -27,7 +27,7 @@
      * is added to the working set
      */
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
-        _fileSelectionFocus = "WorkingSetView";
+        _fileSelectionFocus = WORKING_SET_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange"); 
     });
 
@@ -40,9 +40,9 @@
         if(!_curDocChangedDueToMe){
             var curDoc = DocumentManager.getCurrentDocument();
             if(curDoc !== null && DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
-                _fileSelectionFocus = "WorkingSetView";
+                _fileSelectionFocus = WORKING_SET_VIEW;
             else
-                _fileSelectionFocus = "ProjectManager";
+                _fileSelectionFocus = PROJECT_MANAGER;
         }
         
         // reset since we have handled the doc change
@@ -61,19 +61,31 @@
         // This properly handles sending the right nofications in cases where the document
         // is already the curruent one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        openAndSelectDocument(fullPath, "WorkingSetView");
+        openAndSelectDocument(fullPath, WORKING_SET_VIEW);
     }
 
+    var WORKING_SET_VIEW = "WorkingSetView";
+    var PROJECT_MANAGER = "ProjectManager";
+
+    /** Tracks whether a "currentDocumentChange" notification occured due to a call to 
+     * openAndSelectDocument.
+     * @see FileviewController.openAndSelectDocument
+     * @private 
+     */
     var _curDocChangedDueToMe = false;
 
     /** Opens a document if not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      * @param {!fullPath}
-     * @param {string} - must be either "WorkingSetView" or "ProjectManager"
+     * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
      * @returns {!Deferred}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         var result;
+
+        if(fileSelectionFocus != PROJECT_MANAGER && fileSelectionFocus != WORKING_SET_VIEW)
+            throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
+
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open in order to properly set the fileSelectionFocus, so _curDocChangedDueToMe is
         // set to true here. The handler for currentDocumentChange well check this and reset it.
@@ -86,7 +98,6 @@
         // in this case to signify the selection focus has changed even though the current document has not.
         if(DocumentManager.getCurrentDocument() == DocumentManager.getDocumentForPath(fullPath)) {
             $(exports).triggerHandler("documentSelectionFocusChange");  
-            DocumentManager.showInEditor(doc);
             result = (new $.Deferred()).resolve();
         }  
         else {
@@ -105,10 +116,10 @@
      * @private
      * @see FileViewController.getFileSelectionFocus()
      */
-    var _fileSelectionFocus = "ProjectManager";
+    var _fileSelectionFocus = PROJECT_MANAGER;
     
     /**
-     * returns either "WorkingSetView" or "ProjectManager"
+     * returns either WORKING_SET_VIEW or PROJECT_MANAGER
      * @return {!String}
      */
     function getFileSelectionFocus() {
@@ -121,6 +132,8 @@
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+    exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
+    exports.PROJECT_MANAGER = PROJECT_MANAGER;
 
 
 });
