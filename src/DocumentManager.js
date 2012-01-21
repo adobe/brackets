@@ -28,7 +28,9 @@ define(function(require, exports, module) {
 
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   ProjectManager      = require("ProjectManager")
-    ,   PreferencesManager  = require("PreferencesManager");
+    ,   PreferencesManager  = require("PreferencesManager")
+    ,   CommandManager      = require("CommandManager")
+    ,   Commands            = require("Commands");
 
     /**
      * Unique PreferencesManager clientID
@@ -502,7 +504,7 @@ define(function(require, exports, module) {
             }
 
             if (activeDoc != null) {
-                showInEditor(activeDoc);
+                CommandManager.execute(Commands.FILE_OPEN, activeDoc.file.fullPath);
             }
         });
     }
@@ -522,7 +524,7 @@ define(function(require, exports, module) {
     PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
 
     // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("isFirstProjectOpen", function(event, projectRoot) {
+    $(ProjectManager).on("initializeComplete", function(event, projectRoot) {
         _init();
     });
 });

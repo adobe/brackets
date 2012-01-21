@@ -8,7 +8,7 @@
  * the file tree.
  *
  * This module dispatches 1 event:
- *    - isFirstProjectOpen -- When the ProjectManager initializes the first 
+ *    - initializeComplete -- When the ProjectManager initializes the first 
  *                            project at application start-up.
  *
  * These are jQuery events, so to listen for them you do something like this:
@@ -255,7 +255,7 @@ define(function(require, exports, module) {
             result.resolve();
 
             if (isFirstProjectOpen) {
-                $(exports).triggerHandler("isFirstProjectOpen", _projectRoot);
+                $(exports).triggerHandler("initializeComplete", _projectRoot);
             }
         });
         resultRenderTree.fail(function () {
@@ -557,6 +557,8 @@ define(function(require, exports, module) {
             var entry = $(event.target).closest("li").data("entry");
             if (entry.isFile) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
+                // jstree dblclick handling seems to steal focus from editor, so set focus again
+                EditorManager.focusEditor();
             }
         });
 

@@ -84,8 +84,6 @@ define(function(require, exports, module) {
     function handleFileAddToWorkingSet(fullPath){
         handleFileOpen(fullPath).done(function(doc) {
             DocumentManager.addToWorkingSet(doc);
-            // jstree dblclick handling seems to steal focus from editor, so set focus again
-            EditorManager.focusEditor();
         });
     }
 
