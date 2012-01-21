@@ -96,8 +96,10 @@
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
-        if(DocumentManager.getCurrentDocument() == DocumentManager.getDocumentForPath(fullPath)) {
+        var doc = DocumentManager.getDocumentForPath(fullPath);
+        if(doc != null ) {
             $(exports).triggerHandler("documentSelectionFocusChange");  
+            DocumentManager.showInEditor(doc);
             result = (new $.Deferred()).resolve();
         }  
         else {
