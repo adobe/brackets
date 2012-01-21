@@ -38,6 +38,8 @@ define(function(require, exports, module) {
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
+        CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
@@ -187,22 +189,25 @@ define(function(require, exports, module) {
         return deferred;
     }
     
+    
     function handleFileSave() {
+        return doSave( DocumentManager.getCurrentDocument() );
+    }
+    
+    function doSave(docToSave) {
         var result = new $.Deferred();
-        var docToSave = DocumentManager.getCurrentDocument();
+        
         if (docToSave && docToSave.isDirty) {
+            var fileEntry = docToSave.file;
+            
             //setup our resolve and reject handlers
             result.done( function fileSaved() { 
                 docToSave.markClean();
             });
 
             result.fail( function fileError(error) { 
-                showSaveFileError(error.code, _currentFilePath);
+                showSaveFileError(error.code, fileEntry.fullPath);
             });
-
-            // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-            // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-            var fileEntry = new NativeFileSystem.FileEntry(_currentFilePath);
 
             fileEntry.createWriter(
                 function(writer) {
@@ -229,27 +234,53 @@ define(function(require, exports, module) {
         });
         return result;
     }
-
-    /** Closes the specified document. Assumes the current document if doc is null. 
-     * Prompts user about saving file if document is dirty
-     * @param {?Document} doc 
+    
+    /**
+     * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
+     * operations have been completed. If any ONE save operation fails, an error dialog is immediately
+     * shown and the promise fails.
+     * TODO: But subsequent save operations continue in the background, and if more fail the error
+     * dialogs will stack up on top of the old one.
+     *
+     * @return {$.Promise}
      */
-    function handleFileClose( doc ) {
+    function saveAll() {
+        var saveResults = [];
         
-        // utility function for handleFileClose
-        function doClose(doc) {      
-            // altho old doc is going away, we should fix its dirty bit in case anyone hangs onto a ref to it
-            // TODO: can this be removed?
-            doc.markClean();
+        DocumentManager.getWorkingSet().forEach(function(doc) {
+            saveResults.push( doSave(doc) );
+        });
         
-            // This selects a different document if the working set has any other options
-            DocumentManager.closeDocument(doc);
+        // Aggregate all the file-save Deferreds into one master
+        // (p.s., it would be nice if $.when() accepted an array instead of varargs, but oh well...)
+        var overallResult = $.when.apply($, saveResults);
         
-            EditorManager.focusEditor();
+        return overallResult;
+    }
+    
+
+    /**
+     * Closes the specified document. Prompts user about saving file if document is dirty.
+     *
+     * @param {?Document} doc  Document to close; assumes the current document if null.
+     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     *          actually close the document. This is useful when chaining file-close together with
+     *          other user prompts that may be cancelable.
+     * @return {$.Deferred}
+     */
+    function handleFileClose( doc, promptOnly ) {
+        
+        // utility function for handleFileClose: closes document & removes from working set
+        function doClose(doc) {
+            if (!promptOnly) {
+                // This selects a different document if the working set has any other options
+                DocumentManager.closeDocument(doc);
+            
+                EditorManager.focusEditor();
+            }
         }
         
         
-        // TODO: quit and open different project should show similar confirmation dialog
         var result = new $.Deferred();
         
         // Default to current document if doc is null
@@ -270,23 +301,20 @@ define(function(require, exports, module) {
                 if (id === brackets.DIALOG_BTN_CANCEL) {
                     result.reject();
                 }
+                else if (id === brackets.DIALOG_BTN_OK) {
+                    doSave(doc)
+                        .done(function() {
+                            doClose(doc);
+                            result.resolve();
+                        })
+                        .fail(function() {
+                            result.reject();
+                        });
+                }
                 else {
-                    if (id === brackets.DIALOG_BTN_OK) {
-                        CommandManager
-                            .execute(Commands.FILE_SAVE)
-                            .done(function() {
-                                doClose(doc);
-                                result.resolve();
-                            })
-                            .fail(function() {
-                                result.reject();
-                            });
-                    }
-                    else {
-                        // This is the "Don't Save" case--we can just go ahead and close the file.
-                        doClose(doc);
-                        result.resolve();
-                    }
+                    // This is the "Don't Save" case--we can just go ahead and close the file.
+                    doClose(doc);
+                    result.resolve();
                 }
             });
             result.always(function() {
@@ -300,6 +328,88 @@ define(function(require, exports, module) {
             result.resolve();
         }
         return result;
+    }
+    
+    /**
+     * Closes all open documents; equivalent to calling handleFileClose() for each document, except
+     * that unsaved changes are confirmed once, in bulk.
+     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     *          actually close any documents. This is useful when chaining close-all together with
+     *          other user prompts that may be cancelable.
+     * @return {$.Deferred}
+     */
+    function handleFileCloseAll(promptOnly) {
+        var result = new $.Deferred();
+        
+        var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
+            return doc.isDirty;
+        });
+        
+        if (unsavedDocs.length == 0) {
+            // No unsaved changes, so we can proceed without a prompt
+            result.resolve();
+            
+        } else if (unsavedDocs.length == 1) {
+            // Only one unsaved file: show the usual single-file-close confirmation UI
+            handleFileClose( unsavedDocs[0], promptOnly ).done( function() {
+                // still need to close any other, non-unsaved documents
+                result.resolve();
+            }).fail( function() {
+                result.reject();
+            });
+            
+        } else {
+            // Multiple unsaved files: show a single bulk prompt listing all files
+            var message = Strings.SAVE_CLOSE_MULTI_MESSAGE;
+            
+            message += "<ul>";
+            unsavedDocs.forEach(function(doc) {
+                message += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
+            });
+            message += "</ul>";
+            
+            brackets.showModalDialog(
+                  brackets.DIALOG_ID_SAVE_CLOSE
+                , Strings.SAVE_CLOSE_TITLE
+                , message
+            ).done(function(id) {
+                if (id === brackets.DIALOG_BTN_CANCEL) {
+                    result.reject();
+                }
+                else if (id === brackets.DIALOG_BTN_OK) {
+                    // Save all unsaved files, then if that succeeds, close all
+                    saveAll().done( function() {
+                        result.resolve();
+                    }).fail( function() {
+                        result.reject();
+                    });
+                }
+                else {
+                    // "Don't Save" case--we can just go ahead and close all  files.
+                    result.resolve();
+                }
+            });
+        }
+        
+        // If all the unsaved-changes confirmations pan out above, then go ahead & close all editors
+        // NOTE: this still happens before any done() handlers added by our caller, because jQ
+        // guarantees that handlers run in the order they are added.
+        result.done(function() {
+            if (!promptOnly)
+                DocumentManager.closeAll();
+        });
+        
+        return result;
+    }
+    
+    
+    /** Confirms any unsaved changes, then exits Brackets */
+    function handleFileQuit() {
+        handleFileCloseAll(false)
+        .done(function() {
+            window.close();  // TODO: call a native API to quit the whole app
+        });
+        // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
     /**
