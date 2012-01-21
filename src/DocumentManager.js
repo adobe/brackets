@@ -109,6 +109,13 @@ define(function(require, exports, module) {
      * @type {number}
      */
     Document.prototype._savedUndoPosition = 0;
+
+    /**
+     * @private
+     * Used to store the scrollbar position of the editor whenever the editor is hidden / shown
+     * @type {number}
+     */
+    Document.prototype._scrollPosition = 0;
     
     /**
      * @return {string} The editor's current contents; may not be saved to disk 
@@ -120,6 +127,41 @@ define(function(require, exports, module) {
 
         return this._editor.getValue();
     }
+
+    /**
+     * Saves the editor's scroll position. This should be called before hiding the
+     * editor. Hiding and then showing an editor causes the scrollbar's 'scrollTop'
+     * property to change to zero, which causes the editor's scroll position to
+     * be reset when 'refresh' is called on the editor.
+     *
+     * @see Document.restoreScrollPosition
+     * @see EditorManager._showEditor
+     */
+    Document.prototype.saveScrollPosition = function() {
+        // this terrible hack to get the scrollbar element is taken directly
+        // from codemirror.js lines 40-47 (which contains the comment "I've
+        // never seen more elegant code in my life.")
+        var scrollbar = this._editor.getWrapperElement().firstChild.nextSibling;
+        this._scrollPosition = scrollbar.scrollTop;
+    }
+
+    /**
+     * Restores an editor's scrolling position. This should be called after
+     * re-displaying an editor, but before calling 'refresh'.
+     *
+     * @see Document.saveScrollPosition
+     * @see EditorManager._showEditor
+     */
+    Document.prototype.restoreScrollPosition = function() {
+        // this terrible hack to get the scrollbar element is taken directly
+        // from codemirror.js lines 40-47 (which contains the comment "I've
+        // never seen more elegant code in my life.")
+        var scrollbar = this._editor.getWrapperElement().firstChild.nextSibling;
+        if (this._scrollPosition !== undefined) {
+            scrollbar.scrollTop = this._scrollPosition;
+        }
+    }
+
     
     /**
      * @private
