@@ -82,7 +82,7 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Save all participants.
+     * Save all preference clients.
      */
     function savePreferences() {
         var data
@@ -124,16 +124,29 @@ define(function(require, exports, module) {
      * Redirects preference storage to another key in persistent storage. 
      * Allows unit test preferences to be stored in the same mechanism as
      * production preferences without clobbering.
+     *
+     * @param {string} Item key for preferences
+     * @param {boolean} Flag to load this key the next time this module is initialized.
+     *  Clients must call this again for each PreferencesManager module initialization.
      * 
      * @return {string} Previous key
      */
-    function _setStorageKey( key ) {
+    function _setStorageKey( key, loadAgain ) {
+        // skip changes if using the same key
+        if (key === preferencesKey && !loadAgain) {
+            return;
+        }
+
         var oldKey = preferencesKey;
 
         preferencesKey = key;
 
         // re-init in-memory prefs when changing keys
         _initStorage( persistentStorage );
+
+        if (loadAgain === true) {
+            persistentStorage.setItem("key", key);
+        }
 
         return oldKey;
     }
@@ -144,7 +157,35 @@ define(function(require, exports, module) {
      */
     function _initStorage( storage ) {
         persistentStorage = storage;
-        prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
+
+        // clear out in-memory prefs
+        prefStorage = null;
+
+        var isUnitTest = (window && window.opener && window.opener.jasmine);
+
+        // Typical unit tests will always use empty preferences. 
+        // Preference-specific tests may use the storedKey to save preferences
+        // within the lifespan of a test (e.g. across multiple window launches)
+        if (isUnitTest) {
+            // check for stored key
+            var storedKey = persistentStorage.getItem("key");
+
+            if (storedKey != null) {
+                preferencesKey = storedKey;
+
+                // delete the stored key to restore the default behavior for the 
+                // next initialization
+                persistentStorage.removeItem("key");
+            }
+            else {
+                // unit test preferences should start out clean
+                prefStorage = {};
+            }
+        }
+
+        if (prefStorage == null) {
+            prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
+        }
 
         // initialize empty preferences if none were found in storage
         if ( !prefStorage ) {
