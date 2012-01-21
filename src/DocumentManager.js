@@ -26,16 +26,26 @@
  */
 define(function(require, exports, module) {
 
-    var ProjectManager     = require("ProjectManager");
+    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
+    ,   ProjectManager      = require("ProjectManager")
+    ,   PreferencesManager  = require("PreferencesManager")
+    ,   CommandManager      = require("CommandManager")
+    ,   Commands            = require("Commands");
+
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.DocumentManager";
 
     /**
      * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!CodeMirror} editor  The editor that will maintain the document state (current text
+     * @param {!CodeMirror} editor  Optional. The editor that will maintain the document state (current text
      *          and undo stack). It is assumed that the editor text has already been initialized
-     *          with the file's contents.
+     *          with the file's contents. The editor may be null when the working set is restored
+     *          at initialization.
      */
     function Document(file, editor) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
@@ -46,11 +56,7 @@ define(function(require, exports, module) {
         }
         
         this.file = file;
-        this._editor = editor;
-        
-        // Dirty-bit tracking
-        editor.setOption("onChange", this._updateDirty.bind(this));
-        this._savedUndoPosition = editor.historySize().undo;   // should always be 0, but just to be safe...
+        this._setEditor(editor);
     }
     
     /**
@@ -70,11 +76,32 @@ define(function(require, exports, module) {
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
      * other than DocumentManager and EditorManager should access it.
+     * The editor may be null in the case that the document working set was
+     * restored from storage but an editor was not yet created.
      * TODO: we should close on whether private fields are declared on the prototype like this (vs.
      * just set in the constructor).
      * @type {!CodeMirror}
      */
     Document.prototype._editor = null;
+
+    /**
+     * @private
+     * Initialize the editor instance for this file.
+     */
+    Document.prototype._setEditor = function(editor) {
+        if (editor === undefined) {
+            return;
+        }
+        
+        // Editor can only be assigned once per Document
+        console.assert(this._editor === null);
+
+        this._editor = editor;
+        
+        // Dirty-bit tracking
+        editor.setOption("onChange", this._updateDirty.bind(this));
+        this._savedUndoPosition = editor.historySize().undo;   // should always be 0, but just to be safe...
+    }
     
     /**
      * @private
@@ -84,9 +111,13 @@ define(function(require, exports, module) {
     Document.prototype._savedUndoPosition = 0;
     
     /**
-     * @return {string} The editor's current contents; may not be saved to disk yet.
+     * @return {string} The editor's current contents; may not be saved to disk 
+     *  yet. Returns null if the file was not yet read and no editor was 
+     *  created.
      */
     Document.prototype.getText = function() {
+        console.assert(this._editor != null);
+
         return this._editor.getValue();
     }
     
@@ -94,6 +125,10 @@ define(function(require, exports, module) {
      * @private
      */
     Document.prototype._updateDirty = function() {
+        if (this._editor == null) {
+            return;
+        }
+
         // If we've undone past the undo position at the last save, and there is no redo stack,
         // then we can never get back to a non-dirty state.
         var historySize = this._editor.historySize();
@@ -116,6 +151,10 @@ define(function(require, exports, module) {
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
     Document.prototype.markClean = function() {
+        if (this._editor === null) {
+            return;
+        }
+
         this._savedUndoPosition = this._editor.historySize().undo;
         this._updateDirty();
     }
@@ -268,6 +307,30 @@ define(function(require, exports, module) {
         // (this event triggers EditorManager to actually clear the editor UI)
     }
     
+    /**
+     * Asynchronously reads a file as UTF-8 encoded text.
+     * @return {Deferred} a jQuery Deferred that will be resolved with the 
+     *  file text content for the fileEntry, or rejected with a FileError if
+     *  the file can not be read.
+     */
+    function readAsText(fileEntry) {
+        var result = new $.Deferred()
+        ,   reader = new NativeFileSystem.FileReader();
+
+        fileEntry.file(function(file) {
+            reader.onload = function(event) {
+                result.resolve(event.target.result);
+            };
+
+            reader.onerror = function(event) {
+                result.reject(event.target.error);
+            };
+
+            reader.readAsText(file, "utf8");
+        });
+
+        return result;
+    }
     
     /**
      * Closes the given document (which may or may not be the current document in the editor UI, and
@@ -340,8 +403,112 @@ define(function(require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     * Preferences callback. Saves the document file paths for the working set.
+     */
+    function _savePreferences(storage) {
+        // save the working set file paths
+        var files       = []
+        ,   isActive    = false
+        ,   workingSet  = getWorkingSet()
+        ,   currentDoc  = getCurrentDocument();
+
+        workingSet.forEach(function(value, index) {
+            // flag the currently active editor
+            isActive = (value === currentDoc);
+
+            files.push({
+                file: value.file.fullPath,
+                active: isActive
+            });
+        });
+
+        storage.files = files;
+    }
     
-    
+    /**
+     * @private
+     * Initializes the working set.
+     */
+    function _init() {
+        var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+
+        if (prefs.files === undefined) {
+            return;
+        }
+
+        var projectRoot = ProjectManager.getProjectRoot()
+        ,   filesToOpen = []
+        ,   activeFile;
+
+        // in parallel, check if files exist
+        // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
+        //                 e.g. A file to restore no longer exists. Should we silently ignore
+        //                 it or let the user be notified when they attempt to open the Document?
+        var result = (function() {
+            var deferred        = new $.Deferred();
+            var fileCount       = prefs.files.length
+            ,   responseCount   = 0;
+
+            function next() {
+                responseCount++;
+
+                if (responseCount == fileCount) {
+                    deferred.resolve();
+                }
+            };
+
+            prefs.files.forEach(function(value, index) {
+                // check if the file still exists
+                projectRoot.getFile(value.file, {}
+                    , function(fileEntry) {
+                        // maintain original sequence
+                        filesToOpen[index] = fileEntry;
+
+                        if (value.active) {
+                            activeFile = fileEntry;
+                        }
+
+                        next();
+                    }
+                    , function(error) {
+                        filesToOpen[index] = null;
+                        next();
+                    }
+                );
+            });
+
+            return deferred;
+        })();
+
+        result.done(function() {
+            var activeDoc
+            ,   doc;
+
+            // Add all existing files to the working set
+            filesToOpen.forEach(function(value, index) {
+                if (value) {
+                    doc = new Document(value);
+                    addToWorkingSet(doc);
+
+                    if (value === activeFile) {
+                        activeDoc = doc;
+                    }
+                }
+            });
+
+            // Initialize the active editor
+            if(activeDoc == null && _workingSet.length > 0) {
+                activeDoc = _workingSet[0]
+            }
+
+            if (activeDoc != null) {
+                CommandManager.execute(Commands.FILE_OPEN, activeDoc.file.fullPath);
+            }
+        });
+    }
+
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
@@ -350,6 +517,14 @@ define(function(require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
+    exports.readAsText = readAsText;
     exports.closeAll = closeAll;
-    
+
+    // Register preferences callback
+    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
+
+    // Initialize after ProjectManager is loaded
+    $(ProjectManager).on("initializeComplete", function(event, projectRoot) {
+        _init();
+    });
 });

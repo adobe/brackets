@@ -11,6 +11,7 @@ define(function(require, exports, module) {
     ,   ProjectManager      = require("ProjectManager")
     ,   DocumentManager     = require("DocumentManager")
     ,   EditorManager       = require("EditorManager")
+    ,   EditorUtils         = require("EditorUtils")
     ,   Strings             = require("strings");
     ;
      
@@ -81,8 +82,9 @@ define(function(require, exports, module) {
     }
     
     function handleFileAddToWorkingSet(fullPath){
-        handleFileOpen(fullPath);
-        DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
+        handleFileOpen(fullPath).done(function(doc) {
+            DocumentManager.addToWorkingSet(doc);
+        });
     }
 
     function handleFileOpen(fullPath) {
@@ -93,6 +95,13 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     * Creates a document and displays an editor for the specified file path. 
+     * If no path is specified, a file prompt is provided for input.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
     function doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
@@ -114,6 +123,12 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     * Creates a document and displays an editor for the specified file path.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
     function doOpen(fullPath) {
         var result = new $.Deferred();
         if (!fullPath) {
@@ -125,35 +140,22 @@ define(function(require, exports, module) {
         // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
 
-        var document = DocumentManager.getDocumentForFile(fileEntry);
-        if (document != null) {
+        var doc = DocumentManager.getDocumentForFile(fileEntry);
+        if (doc != null) {
             // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(document);
-            result.resolve();
+            DocumentManager.showInEditor(doc);
+            result.resolve(doc);
             
         } else {
-            // File wasn't open before, so we must load its contents into a new document
-            var reader = new NativeFileSystem.FileReader();
+            var docResult = EditorManager.createDocumentAndEditor(fileEntry);
 
-            fileEntry.file(function(file) {
-                reader.onload = function(event) {
-                    // Create a new editor initialized with the file's content, and bind it to a Document
-                    document = EditorManager.createDocumentAndEditor(fileEntry, event.target.result);
-                    
-                    // Switch to new document in the UI
-                    DocumentManager.showInEditor(document);
-                    result.resolve();
-                };
-
-                reader.onerror = function(event) {
-                    showFileOpenError(event.target.error.code, fullPath);
-                    result.reject();
-                }
-
-                reader.readAsText(file, "utf8");
-            },
-            function fileEntry_onerror(event) {
-                showFileOpenError(event.target.error.code, fullPath);
+            docResult.done(function(doc) {
+                DocumentManager.showInEditor(doc);
+                result.resolve(doc);
+            });
+            
+            docResult.fail(function(error) {
+                EditorUtils.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -408,48 +410,6 @@ define(function(require, exports, module) {
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
-    
-
-
-    function showFileOpenError(code, path) {
-        brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_OPENING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_OPENING_FILE
-                  , path
-                  , getErrorString(code))
-        );
-    }
-
-    function showSaveFileError(code, path) {
-        brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_SAVING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_SAVING_FILE
-                  , path
-                  , getErrorString(code))
-        );
-    }
-
-    function getErrorString(code) {
-        // There are a few error codes that we have specific error messages for. The rest are
-        // displayed with a generic "(error N)" message.
-        var result;
-
-        if (code == FileError.NOT_FOUND_ERR)
-            result = Strings.NOT_FOUND_ERR;
-        else if (code == FileError.NOT_READABLE_ERR)
-            result = Strings.NOT_READABLE_ERR;
-        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
-        else
-            result = Strings.format(Strings.GENERIC_ERROR, code);
-
-        return result;
-    }
-
     /**
      * @private
      * Ensures the suggested file name doesn't already exit.
@@ -487,6 +447,17 @@ define(function(require, exports, module) {
         result.notify(baseFileName + fileExt , 1);
 
         return result;
+    }
+
+    function showSaveFileError(code, path) {
+        return brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , Strings.ERROR_SAVING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_SAVING_FILE
+                  , path
+                  , EditorUtils.getFileErrorString(code))
+        );
     }
 
     // Define public API
