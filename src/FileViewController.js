@@ -97,9 +97,8 @@
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var doc = DocumentManager.getDocumentForPath(fullPath);
-        if(doc != null ) {
+        if(DocumentManager.getCurrentDocument() == doc ) {
             $(exports).triggerHandler("documentSelectionFocusChange");  
-            DocumentManager.showInEditor(doc);
             result = (new $.Deferred()).resolve();
         }  
         else {
