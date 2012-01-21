@@ -271,6 +271,7 @@ define(function(require, exports, module) {
         if (_currentEditor == null) {
             $("#notEditor").css("display","none");
         } else {
+            // hiding and then showing an editor causes its scrollbar to reset to zero
             _currentEditorsDocument.saveScrollPosition();
             $(_currentEditor.getWrapperElement()).css("display","none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
@@ -281,7 +282,9 @@ define(function(require, exports, module) {
         _currentEditor = document._editor;
         $(_currentEditor.getWrapperElement()).css("display", "");
 
-        _currentEditorsDocument.restoreScrollPosition();        
+        // hiding and then showing an editor causes its scrollbar to reset to zero
+        _currentEditorsDocument.restoreScrollPosition();
+        
         // Window may have been resized since last time editor was visible, so kick it now
         // (see _updateEditorSize() handler below)
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
