@@ -1,6 +1,19 @@
 /*
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
+
+/**
+ * ProjectManager is the model for the set of currently open project. It is responsible for
+ * creating and updating the project tree when projects are opened and when changes occur to
+ * the file tree.
+ *
+ * This module dispatches 1 event:
+ *    - initializeComplete -- When the ProjectManager initializes the first 
+ *                            project at application start-up.
+ *
+ * These are jQuery events, so to listen for them you do something like this:
+ *    $(ProjectManager).on("eventname", handler);
+ */
 define(function(require, exports, module) {
     // Load dependent non-module scripts
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
@@ -8,6 +21,7 @@ define(function(require, exports, module) {
     // Load dependent modules
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem
     ,   PreferencesManager  = require("PreferencesManager")
+    ,   DocumentManager     = require("DocumentManager")
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
@@ -37,6 +51,11 @@ define(function(require, exports, module) {
         }
     });
     
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
+
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
      * startup, or running outside of app shell).
@@ -101,7 +120,7 @@ define(function(require, exports, module) {
      * @private
      * Preferences callback. Saves current project path.
      */
-    function savePreferences( storage ) {
+    function _savePreferences( storage ) {
         // save the current project
         storage.projectPath = _projectRoot.fullPath;
 
@@ -141,22 +160,26 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
-
-    /**
      * Displays a browser dialog where the user can choose a folder to load.
      * (If the user cancels the dialog, nothing more happens).
      */
     function openProject() {
-        if (!brackets.inBrowser) {
+        // Confirm any unsaved changes first. We run the command in "prompt-only" mode, meaning it won't
+        // actually close any documents even on success; we'll do that manually after the user also oks
+        //the folder-browse dialog.
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+        .done(function() {
             // Pop up a folder browse dialog
             NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
                 function(files) {
                     // If length == 0, user canceled the dialog; length should never be > 1
-                    if (files.length > 0)
+                    if (files.length > 0) {
+                        // Actually close all the old files now that we know for sure we're proceeding
+                        DocumentManager.closeAll();
+                        
+                        // Load the new project into the folder tree
                         loadProject( files[0] );
+                    }
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -166,14 +189,16 @@ define(function(require, exports, module) {
                     );
                 }
             );
-        }
+        });
+        // if fail, don't open new project: user canceled (or we failed to save its unsaved changes)
     }
 
     /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
-     * @param {string} rootPath  Absolute path to the root folder of the project.
+     * @param {string} rootPath  Absolute path to the root folder of the project. 
+     *  If rootPath is undefined or null, the last open project will be restored.
      * @return {Deferred} A $.Deferred() object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
@@ -183,11 +208,16 @@ define(function(require, exports, module) {
         _projectInitialLoad.id = 0;
 
         var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID)
-        ,   result = new $.Deferred();
+        ,   result = new $.Deferred()
+        ,   resultRenderTree
+        ,   isFirstProjectOpen = false;
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
             rootPath = prefs.projectPath;
+            isFirstProjectOpen = true;
+
+            // TODO (jasonsj): handle missing paths, see issue #100
             _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
@@ -219,8 +249,8 @@ define(function(require, exports, module) {
                 { data: "file_2" }
             ];
 
-            // Show file list in UI synchronously
-            _renderTree(treeJSONData, result);
+            // Show file list in UI
+            resultRenderTree = _renderTree(treeJSONData, result);
 
         } else {
             // Point at a real folder structure on local disk
@@ -232,7 +262,7 @@ define(function(require, exports, module) {
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
-                    _renderTree(_treeDataProvider, result);
+                    resultRenderTree = _renderTree(_treeDataProvider);
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -244,6 +274,17 @@ define(function(require, exports, module) {
                 }
             );
         }
+
+        resultRenderTree.done(function () {
+            result.resolve();
+
+            if (isFirstProjectOpen) {
+                $(exports).triggerHandler("initializeComplete", _projectRoot);
+            }
+        });
+        resultRenderTree.fail(function () {
+            result.reject();
+        });
 
         return result;
     }
@@ -493,10 +534,9 @@ define(function(require, exports, module) {
      * raw JSON data, or it could be a dataprovider function. See jsTree docs for details:
      * http://www.jstree.com/documentation/json_data
      */
-    function _renderTree(treeDataProvider, result) {
-
-
-        var projectTreeContainer = $("#project-files-container");
+    function _renderTree(treeDataProvider) {
+        var projectTreeContainer = $("#project-files-container")
+        ,   result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -542,10 +582,13 @@ define(function(require, exports, module) {
             var entry = $(event.target).closest("li").data("entry");
             if (entry.isFile){
                 FileViewController.addToWorkingSetAndSelect( entry.fullPath);
+                
                 // jstree dblclick handling seems to steal focus from editor, so set focus again
                 EditorManager.focusEditor();
             }
         });
+
+        return result;
     };
 
     // Define public API
@@ -557,12 +600,14 @@ define(function(require, exports, module) {
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
 
-    // Register save callback
-    var loadedPath = window.location.pathname;
-    var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-    var defaults =
-        { projectPath:      bracketsSrc /* initialze to brackets source */
-        , projectTreeState: ""          /* TODO (jasonsj): jstree state */
-        };
-    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, savePreferences, this, defaults);
+    // Initialize now
+    (function() {
+        var loadedPath = window.location.pathname;
+        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+        var defaults =
+            { projectPath:      bracketsSrc /* initialze to brackets source */
+            , projectTreeState: ""          /* TODO (jasonsj): jstree state */
+            };
+        PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+    })();
 });

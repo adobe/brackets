@@ -16,6 +16,7 @@ define(function(require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("DocumentManager")
     ,   EditorUtils         = require("EditorUtils")
+    ,   Strings             = require("strings")
     ;
     
     // Initialize: register listeners
@@ -85,49 +86,85 @@ define(function(require, exports, module) {
     
     
     /**
-     * Creates a new CodeMirror editor instance containing the given text, and wraps it in a new
-     * Document tied to the given file. The editor is not yet visible; to display it in the main
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry and wraps it in a new Document tied to the given 
+     * file. The editor is not yet visible; to display it in the main
      * editor UI area, ask DocumentManager to make this the current document.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!string} text  The initial contents of the editor, i.e. the contents of the file.
-     * @return {!Document}
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the fileEntry, or rejected if the file can not be read.
      */
-    function createDocumentAndEditor(fileEntry, text) {
-        var editor = CodeMirror(_editorHolder.get(0), {
-            indentUnit : 4,
-            extraKeys: {
-                "Tab" : _handleTabKey,
-                "Left" : function(instance) {
-                    if (!_handleSoftTabNavigation(instance, -1, "moveH"))
-                        CodeMirror.commands.goCharLeft(instance);
-                },
-                "Right" : function(instance) {
-                    if (!_handleSoftTabNavigation(instance, 1, "moveH"))
-                        CodeMirror.commands.goCharRight(instance);
-                },
-                "Backspace" : function(instance) {
-                    if (!_handleSoftTabNavigation(instance, -1, "deleteH"))
-                        CodeMirror.commands.delCharLeft(instance);
-                },
-                "Delete" : function(instance) {
-                    if (!_handleSoftTabNavigation(instance, 1, "deleteH"))
-                        CodeMirror.commands.delCharRight(instance);
-                }
-            }
+    function createDocumentAndEditor(fileEntry) {
+        var result          = new $.Deferred()
+        ,   editorResult    = _createEditor(fileEntry);
+
+        editorResult.done(function(editor) {
+            // Create the Document wrapping editor & binding it to a file
+            var doc = new DocumentManager.Document(fileEntry, editor);
+            result.resolve(doc);
         });
-        
-        // Set code-coloring mode
-        EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
-        
-        // Initially populate with text. This will send a spurious change event, but that's ok
-        // because no one's listening yet (and we clear the undo stack below)
-        editor.setValue(text);
-        
-        // Make sure we can't undo back to the empty state before setValue()
-        editor.clearHistory();
-        
-        // Create the Document wrapping editor & binding it to a file
-        return new DocumentManager.Document(fileEntry, editor);
+
+        editorResult.fail(function(error) {
+            result.reject(error);
+        });
+
+        return result;
+    }
+
+    /**
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry and wraps it in a new Document tied to the given 
+     * file. The editor is not yet visible; to display it in the main
+     * editor UI area, ask DocumentManager to make this the current document.
+     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  editor for the fileEntry, or rejected if the file can not be read.
+     */
+    function _createEditor(fileEntry) {
+        var result = new $.Deferred()
+        ,   reader = DocumentManager.readAsText(fileEntry);
+
+        reader.done(function(text) {
+            var editor = CodeMirror(_editorHolder.get(0), {
+                indentUnit : 4,
+                extraKeys: {
+                    "Tab"  : _handleTabKey,
+                    "Left" : function(instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "moveH"))
+                            CodeMirror.commands.goCharLeft(instance);
+                    },
+                    "Right" : function(instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "moveH"))
+                            CodeMirror.commands.goCharRight(instance);
+                    },
+                    "Backspace" : function(instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "deleteH"))
+                            CodeMirror.commands.delCharLeft(instance);
+                    },
+                    "Delete" : function(instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "deleteH"))
+                            CodeMirror.commands.delCharRight(instance);
+                    }
+                }
+            });
+            
+            // Set code-coloring mode
+            EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
+            
+            // Initially populate with text. This will send a spurious change event, but that's ok
+            // because no one's listening yet (and we clear the undo stack below)
+            editor.setValue(text);
+            
+            // Make sure we can't undo back to the empty state before setValue()
+            editor.clearHistory();
+
+            result.resolve(editor);
+        });
+        reader.fail(function(error) {
+            result.reject(error);
+        });
+
+        return result;
     }
 
     /**
@@ -245,6 +282,10 @@ define(function(require, exports, module) {
      */
     function _destroyEditorIfUnneeded(document) {
         var editor = document._editor;
+
+        if (editor === null) {
+            return;
+        }
         
         // If outgoing editor is no longer needed, dispose it
         if (! DocumentManager.getDocumentForFile(document.file)) {
@@ -263,7 +304,8 @@ define(function(require, exports, module) {
     
     
     /**
-     * Make the given document's editor visible in the UI, hiding whatever was visible before.
+     * Make the given document's editor visible in the UI, hiding whatever was
+     * visible before. Creates a new editor if none is assigned.
      * @param {!Document} document
      */
     function _showEditor(document) {
@@ -274,10 +316,38 @@ define(function(require, exports, module) {
             $(_currentEditor.getWrapperElement()).css("display","none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
-        
+
+        // Lazily create editor for Documents that were restored on-init
+        if (document._editor === null) {
+            var editorResult = _createEditor(document.file);
+
+            editorResult.done(function(editor) {
+                document._setEditor(editor)
+                _doShow(document);
+            });
+            editorResult.fail(function(error) {
+                // Edge case where (a) file exists at launch, (b) editor not 
+                // yet opened, and (c) file is deleted or permissions are 
+                // modified outside of Brackets
+                EditorUtils.showFileOpenError(error.code, document.file.fullPath).done(function() {
+                    DocumentManager.closeDocument(document);
+                    focusEditor();
+                });
+            });
+        }
+        else {
+            _doShow(document);
+        }
+    }
+
+    /**
+     * @private
+     */
+    function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
         _currentEditor = document._editor;
+
         $(_currentEditor.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
@@ -285,6 +355,7 @@ define(function(require, exports, module) {
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
         _currentEditor.refresh();
     }
+
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor != null) {
@@ -322,7 +393,6 @@ define(function(require, exports, module) {
         if (_currentEditor != null)
             _currentEditor.focus();
     }
-    
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
