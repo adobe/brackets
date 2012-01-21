@@ -85,7 +85,6 @@ define(function(require, exports, module) {
 
     /**
      * @private
-
      * Used to store the scrollbar position of the editor whenever the editor is hidden / shown
      * @type {number}
      */
