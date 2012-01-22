@@ -65,7 +65,8 @@ define(function(require, exports, module) {
         }
     }
 
-    /** Deletes all the list items in the view and rebuilds them from the working set model
+    /** 
+     * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
     function _rebuildWorkingSet() {
@@ -78,7 +79,8 @@ define(function(require, exports, module) {
         _hideShowOpenFileHeader();
     }
 
-    /** Builds the UI for a new list item and inserts in into the end of the list
+    /** 
+     * Builds the UI for a new list item and inserts in into the end of the list
      * @private
      * @param {Document} document
      * @return {HTMLLIElement} newListItem
@@ -114,7 +116,8 @@ define(function(require, exports, module) {
 
 
 
-    /** Updates the appearance of the list element based on the parameters provided
+    /** 
+     * Updates the appearance of the list element based on the parameters provided
      * @private
      * @param {!HTMLLIElement} listElement
      * @param {bool} isDirty 
@@ -173,7 +176,8 @@ define(function(require, exports, module) {
 
     }
 
-    /** Updates the appearance of the list element based on the parameters provided.
+    /** 
+     * Updates the appearance of the list element based on the parameters provided.
     * @private
     * @param {HTMLLIElement} listElement
     * @param {Document} curDoc 
@@ -192,7 +196,8 @@ define(function(require, exports, module) {
     }
 
 
-    /** Finds the listItem item assocated with the doc. Returns null if not found.
+    /** 
+     * Finds the listItem item assocated with the doc. Returns null if not found.
     * @private
     * @param {Document} curDoc 
     * @return {HTMLLIItem}
