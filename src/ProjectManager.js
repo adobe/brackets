@@ -578,17 +578,24 @@ define(function(require, exports, module) {
                 result.resolve();
             }
         })
-        .bind("dblclick.jstree", function(event) {
 
-            var entry = $(event.target).closest("li").data("entry");
-            if (entry.isFile){
-                FileViewController.addToWorkingSetAndSelect( entry.fullPath);
-                
-                // jstree dblclick handling seems to steal focus from editor, so set focus again
-                EditorManager.focusEditor();
-            }
+        // jstree has a default event handler for dblclick that attempts to clear the
+        // global window selection (presumably because it doesn't want text within the tree
+        // to be selected). This ends up messing up CodeMirror, and we don't need this anyway
+        // since we've turned off user selection of UI text globally. So we just unbind it,
+        // and add our own double-click handler here.
+        // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
+        _projectTree.bind("init.jstree", function() {
+            _projectTree
+                .unbind("dblclick.jstree")
+                .bind("dblclick.jstree", function(event) {
+                    var entry = $(event.target).closest("li").data("entry");
+                    if (entry.isFile){
+                        FileViewController.addToWorkingSetAndSelect(entry.fullPath);
+                    }
+                });
         });
-
+        
         return result;
     };
 
