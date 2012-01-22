@@ -25,7 +25,7 @@ define(function(require, exports, module) {
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
-    ,   EditorManager           = require("EditorManager")
+    ,   EditorManager       = require("EditorManager")
     ,   FileViewController  = require("FileViewController")
     ,   DocumentManager     = require("DocumentManager")
     ;
