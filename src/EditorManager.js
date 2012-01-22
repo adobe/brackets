@@ -38,7 +38,7 @@ define(function(require, exports, module) {
 
     
     /** Handles changes to DocumentManager.getCurrentDocument() */
-    function _onCurrentDocumentChange(event) {
+    function _onCurrentDocumentChange() {
         var doc = DocumentManager.getCurrentDocument();
         
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no

@@ -13,16 +13,11 @@ define(function(require, exports, module) {
     , CommandManager        = require("CommandManager")
     , Commands              = require("Commands")
     , EditorManager         = require("EditorManager")
+    , FileViewController    = require("FileViewController")
     , NativeFileSystem      = require("NativeFileSystem").NativeFileSystem
     ;
 
     // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange",
-    function(event) {
-        //console.log("Current document changed!  --> "+DocumentManager.getCurrentDocument());
-        _handleDocumentChanged();
-    });
-
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         //console.log("Working set ++ " + addedDoc);
         //console.log("  set: " + DocumentManager.getWorkingSet().join());
@@ -38,6 +33,11 @@ define(function(require, exports, module) {
     $(DocumentManager).on("dirtyFlagChange", function(event, doc) {
         //console.log("Dirty flag change: " + doc);
         _handleDirtyFlagChanged(doc);
+    });
+
+    $(FileViewController).on("documentSelectionFocusChange",
+    function(event, eventTarget) {
+        _handleDocumentSelectionChange();
     });
 
     _hideShowOpenFileHeader();
@@ -65,7 +65,8 @@ define(function(require, exports, module) {
         }
     }
 
-    /** Deletes all the list items in the view and rebuilds them from the working set model
+    /** 
+     * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
     function _rebuildWorkingSet() {
@@ -78,7 +79,8 @@ define(function(require, exports, module) {
         _hideShowOpenFileHeader();
     }
 
-    /** Builds the UI for a new list item and inserts in into the end of the list
+    /** 
+     * Builds the UI for a new list item and inserts in into the end of the list
      * @private
      * @param {Document} document
      * @return {HTMLLIElement} newListItem
@@ -99,7 +101,7 @@ define(function(require, exports, module) {
         _updateListItemSelection(newItem, curDoc);
 
         newItem.click(function() {
-            _openDoc(doc);
+           FileViewController.openAndSelectDocument(doc.file.fullPath, FileViewController.WORKING_SET_VIEW);
         });
 
         newItem.hover(
@@ -114,7 +116,8 @@ define(function(require, exports, module) {
 
 
 
-    /** Updates the appearance of the list element based on the parameters provided
+    /** 
+     * Updates the appearance of the list element based on the parameters provided
      * @private
      * @param {!HTMLLIElement} listElement
      * @param {bool} isDirty 
@@ -135,7 +138,7 @@ define(function(require, exports, module) {
                 .prependTo(listElement)
                 .click(function() {
                     var doc = listElement.data(_DOCUMENT_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, doc);
+                    CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
                 });
         }
 
@@ -147,24 +150,34 @@ define(function(require, exports, module) {
         }
     }
 
+
+    
     /** 
     * @private
     */
-    function _handleDocumentChanged() {
-        _updateListSelection(DocumentManager.getCurrentDocument());
+    function _handleDocumentSelectionChange(){
+        _updateListSelection();
     }
 
-
-    function _updateListSelection(curDoc) {
+    /** 
+    * @private
+    */
+    function _updateListSelection() {
+        var doc;
+        if(FileViewController.getFileSelectionFocus() == FileViewController.WORKING_SET_VIEW)
+            doc = DocumentManager.getCurrentDocument();
+        else
+            doc = null;
+            
         // Iterate through working set list and update the selection on each
-        if (curDoc) {
-            var items = $("#open-files-container > ul").children().each(function() {
-                _updateListItemSelection(this, curDoc);
-            });
-        }
+        var items = $("#open-files-container > ul").children().each(function() {
+            _updateListItemSelection(this, doc);
+        });
+
     }
 
-    /** Updates the appearance of the list element based on the parameters provided.
+    /** 
+     * Updates the appearance of the list element based on the parameters provided.
     * @private
     * @param {HTMLLIElement} listElement
     * @param {Document} curDoc 
@@ -173,24 +186,18 @@ define(function(require, exports, module) {
         $(listItem).toggleClass("selected", ($(listItem).data(_DOCUMENT_KEY) === curDoc));
     }
 
-    /** 
-    * @private
-    * @param {Document} curDoc 
-    */
-    function _openDoc(doc) {
-        CommandManager.execute(Commands.FILE_OPEN, doc.file.fullPath);
-    }
 
     /** 
      * @private
      * @param {Document} curDoc 
      */
     function _closeDoc(doc) {
-        CommandManager.execute(Commands.FILE_CLOSE, doc.file.fullPath);
+        CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
     }
 
 
-    /** Finds the listItem item assocated with the doc. Returns null if not found.
+    /** 
+     * Finds the listItem item assocated with the doc. Returns null if not found.
     * @private
     * @param {Document} curDoc 
     * @return {HTMLLIItem}
