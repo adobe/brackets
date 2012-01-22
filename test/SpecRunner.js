@@ -19,4 +19,8 @@ define(function(require, exports, module) {
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
 
+    // Clean up preferencesKey
+    $(window).unload(function () {
+        localStorage.removeItem("preferencesKey");
+    });
 });
