@@ -1,18 +1,19 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
 /**
  * Responsible for coordinating file seletion between views by permitting only one view
  * to show the current file selection at a time. Currently, only WorkingSetView and 
- * ProjectManager can show file selection and in general the WorkingSetView takes higher
+ * ProjectManager can show file selection. In general the WorkingSetView takes higher
  * priority until the user selects a file in the ProjectManager.
  *
- * - if user selects a file in WorkingSetView > select in WorkingSetView
- * - if user adds a file to the WorkingSetView > select in WorkingSetView
- * - if user selects a file in ProjectManager > select in ProjectManager
- * - if user opens a file from places other than the WorkingSetView or ProjectManager > 
- *       select file in WorkignSetView if it is open, otherwise select in ProjectManager
+ * Current file selection rules in views:
+ * - select a file in WorkingSetView > select in WorkingSetView
+ * - add a file to the WorkingSetView > select in WorkingSetView
+ * - select a file in ProjectManager > select in ProjectManager
+ * - open a file from places other than the WorkingSetView or ProjectManager > 
+ *       select file in WorkignSetView if its in the working set, otherwise select in ProjectManager
  */
 
  define(function(require, exports, module) {
@@ -23,8 +24,8 @@
     ,   Commands            = require("Commands")
     ;
 
-    /* Change the doc selection to the workign set when ever a new file
-     * is added to the working set
+    /** 
+     * Change the doc selection to the working set when ever a new file is added to the working set
      */
     $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
         _fileSelectionFocus = WORKING_SET_VIEW;
@@ -32,11 +33,12 @@
     });
 
 
-    $(DocumentManager).on("currentDocumentChange",
-    function(event) {
+    /** 
+      * Update the file selection focus when ever the current document changes
+      */
+    $(DocumentManager).on("currentDocumentChange", function(event) {
 
-        // if the cause of the doc chagne didn't come through 
-        // openAndSelectDocument, so pick the best fileSelectionFocus
+        // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if(!_curDocChangedDueToMe){
             var curDoc = DocumentManager.getCurrentDocument();
             if(curDoc !== null && DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
@@ -44,14 +46,12 @@
             else
                 _fileSelectionFocus = PROJECT_MANAGER;
         }
-        
-        // reset since we have handled the doc change
-        _curDocChangedDueToMe = false;
 
         $(exports).triggerHandler("documentSelectionFocusChange"); 
     });
 
-    /** Opens the specified document if it's not already open, adds it to the working set,
+    /** 
+     * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
      * @param {!fullPath}
      */
@@ -67,14 +67,16 @@
     var WORKING_SET_VIEW = "WorkingSetView";
     var PROJECT_MANAGER = "ProjectManager";
 
-    /** Tracks whether a "currentDocumentChange" notification occured due to a call to 
+    /** 
+     * Tracks whether a "currentDocumentChange" notification occured due to a call to 
      * openAndSelectDocument.
      * @see FileviewController.openAndSelectDocument
      * @private 
      */
     var _curDocChangedDueToMe = false;
 
-    /** Opens a document if not open and selects the file in the UI corresponding to
+    /** 
+     * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      * @param {!fullPath}
      * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
@@ -87,8 +89,8 @@
             throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
 
         // Opening files are asynchronous and we want to know when this function caused a file
-        // to open in order to properly set the fileSelectionFocus, so _curDocChangedDueToMe is
-        // set to true here. The handler for currentDocumentChange well check this and reset it.
+        // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
+        // and checked in the cyrrentDocumentChange handler
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
@@ -97,7 +99,8 @@
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
         var doc = DocumentManager.getDocumentForPath(fullPath);
-        if(DocumentManager.getCurrentDocument() == doc ) {
+        var curDoc = DocumentManager.getCurrentDocument();
+        if( curDoc && curDoc == doc) {
             $(exports).triggerHandler("documentSelectionFocusChange");  
             result = (new $.Deferred()).resolve();
         }  
@@ -107,7 +110,9 @@
         }
         
         // clear after notification is done
-        result.always(_curDocChangedDueToMe = false);
+        result.always( function() {
+            _curDocChangedDueToMe = false; 
+        });
         
         return result;
     }
@@ -129,7 +134,7 @@
 
 
 
-        // Define public API
+    // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
