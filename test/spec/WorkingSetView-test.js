@@ -102,7 +102,9 @@ define(function(require, exports, module) {
         it("should rebuild the ui from the model correctly", function() {
             // force the test window to initialize to unit test preferences
             // for just this test
-            SpecRunnerUtils.setTestPreferencesKey(testWindow, true);
+            runs(function() {
+                localStorage.setItem("doLoadPreferences", true);
+            });
 
             // close test window while working set has 2 files
             SpecRunnerUtils.closeTestWindow();
@@ -123,6 +125,8 @@ define(function(require, exports, module) {
 
                 // file_two.js should be active
                 expect( $(listItems[1]).hasClass("selected") ).toBeTruthy();
+
+                localStorage.removeItem("doLoadPreferences", true);
             });
         });
         

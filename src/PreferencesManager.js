@@ -10,10 +10,24 @@ define(function(require, exports, module) {
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 
     // Private Properties
-    var preferencesKey      = PREFERENCES_KEY
+    var preferencesKey
     ,   callbacks           = {}
     ,   prefStorage
-    ,   persistentStorage;
+    ,   persistentStorage
+    ,   doLoadPreferences   = false;
+
+    // check localStorage for a preferencesKey
+    preferencesKey = localStorage.getItem("preferencesKey");
+
+    if (!preferencesKey) {
+        // use default key if none is found
+        preferencesKey = PREFERENCES_KEY;
+        doLoadPreferences = true;
+    }
+    else {
+        // using a non-default key, check for additional settings
+        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
+    }
 
     // Use localStorage by default
     _initStorage( localStorage );
@@ -121,69 +135,12 @@ define(function(require, exports, module) {
 
     /**
      * @private
-     * Redirects preference storage to another key in persistent storage. 
-     * Allows unit test preferences to be stored in the same mechanism as
-     * production preferences without clobbering.
-     *
-     * @param {string} Item key for preferences
-     * @param {boolean} Flag to load this key the next time this module is initialized.
-     *  Clients must call this again for each PreferencesManager module initialization.
-     * 
-     * @return {string} Previous key
-     */
-    function _setStorageKey( key, loadAgain ) {
-        // skip changes if using the same key
-        if (key === preferencesKey && !loadAgain) {
-            return;
-        }
-
-        var oldKey = preferencesKey;
-
-        preferencesKey = key;
-
-        // re-init in-memory prefs when changing keys
-        _initStorage( persistentStorage );
-
-        if (loadAgain === true) {
-            persistentStorage.setItem("key", key);
-        }
-
-        return oldKey;
-    }
-
-    /**
-     * @private
      * Initialize persistent storage implementation
      */
     function _initStorage( storage ) {
         persistentStorage = storage;
 
-        // clear out in-memory prefs
-        prefStorage = null;
-
-        var isUnitTest = (window && window.opener && window.opener.jasmine);
-
-        // Typical unit tests will always use empty preferences. 
-        // Preference-specific tests may use the storedKey to save preferences
-        // within the lifespan of a test (e.g. across multiple window launches)
-        if (isUnitTest) {
-            // check for stored key
-            var storedKey = persistentStorage.getItem("key");
-
-            if (storedKey != null) {
-                preferencesKey = storedKey;
-
-                // delete the stored key to restore the default behavior for the 
-                // next initialization
-                persistentStorage.removeItem("key");
-            }
-            else {
-                // unit test preferences should start out clean
-                prefStorage = {};
-            }
-        }
-
-        if (prefStorage == null) {
+        if (doLoadPreferences) {
             prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
         }
 
@@ -213,5 +170,4 @@ define(function(require, exports, module) {
 
     // Internal Use Only
     exports._reset                  = _reset;
-    exports._setStorageKey          = _setStorageKey;
 });

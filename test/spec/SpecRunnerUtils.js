@@ -37,19 +37,8 @@ define(function(require, exports, module) {
         }, 5000); 
 
         runs(function() {
-            // all test windows should use unit test preferences
-            // unless we explicitly skip
-            setTestPreferencesKey(testWindow);
-
             // callback allows specs to query the testWindow before they run
             callback.call( spec, testWindow );
-        });
-    }
-
-    function setTestPreferencesKey(loadAgain) {
-        runs(function() {
-            var again = (loadAgain && true);
-            testWindow.brackets.test.PreferencesManager._setStorageKey( TEST_PREFERENCES_KEY, again );
         });
     }
 
@@ -85,5 +74,4 @@ define(function(require, exports, module) {
     exports.createTestWindowAndRun  = createTestWindowAndRun;
     exports.closeTestWindow         = closeTestWindow;
     exports.loadProjectInTestWindow = loadProjectInTestWindow;
-    exports.setTestPreferencesKey   = setTestPreferencesKey;
 });
