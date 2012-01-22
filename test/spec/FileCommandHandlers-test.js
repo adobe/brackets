@@ -56,7 +56,7 @@ define(function(require, exports, module) {
                 var didOpen = false, didClose = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -81,7 +81,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -102,7 +102,7 @@ define(function(require, exports, module) {
                 ,   editor;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, filePath)
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -113,7 +113,7 @@ define(function(require, exports, module) {
                     editor = DocumentManager.getCurrentDocument()._editor;
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
-                    CommandManager.execute(Commands.FILE_SAVE, filePath)
+                    CommandManager.execute(Commands.FILE_SAVE)
                         .done(function() { didSave = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -150,7 +150,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -172,7 +172,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -202,7 +202,7 @@ define(function(require, exports, module) {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, testPath + "/test.js")
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });

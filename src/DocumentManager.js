@@ -192,12 +192,27 @@ define(function(require, exports, module) {
         if (_currentDocument && _currentDocument.file.fullPath == fileEntry.fullPath)
             return _currentDocument;
         
-        var wsIndex = _findInWorkingSet(fileEntry);
+        var wsIndex = findInWorkingSet(fileEntry.fullPath);
         if (wsIndex != -1)
             return _workingSet[wsIndex];
         
         return null;
     }
+    
+    /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
+     * editing" means either the file is in the working set, and/or the file is currently open in
+     * the editor UI.
+     * @param {!fullPath}
+     * @return {?Document}
+    */
+    function getDocumentForPath(fullPath){
+        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
+        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+
+        return getDocumentForFile(fileEntry);
+    }
+
     
     
     /**
@@ -229,9 +244,10 @@ define(function(require, exports, module) {
      * @param {!Document} document
      */
     function addToWorkingSet(document) {
-        // If doc is already in working set, do nothing
-        if (_findInWorkingSet(document.file) != -1)
+        // If doc is already in working set, don't add it again
+        if (findInWorkingSet(document.file.fullPath) != -1){
             return;
+        }
         
         // Add
         _workingSet.push(document);
@@ -247,7 +263,7 @@ define(function(require, exports, module) {
      */
     function _removeFromWorkingSet(document) {
         // If doc isn't in working set, do nothing
-        var index = _findInWorkingSet(document.file);
+        var index = findInWorkingSet(document.file.fullPath);
         if (index == -1)
             return;
         
@@ -258,12 +274,15 @@ define(function(require, exports, module) {
         $(exports).triggerHandler("workingSetRemove", document);
     }
     
-    /**
-     * @param {!FileEntry} fileEntry
+    /** 
+      * Returns the index of the file matching fullPath in the working set. 
+      * Returns -1 if not found.
+      * @param {!string} fullPath
+      * @returns {number} index
      */
-    function _findInWorkingSet(fileEntry) {
+    function findInWorkingSet(fullPath) {
         for (var i = 0; i < _workingSet.length; i++) {
-            if (_workingSet[i].file.fullPath == fileEntry.fullPath)
+            if (_workingSet[i].file.fullPath == fullPath)
                 return i;
         }
         return -1;
@@ -279,6 +298,7 @@ define(function(require, exports, module) {
      *      already be in the working set.
      */
     function showInEditor(document) {
+        
         // If this file is already in editor, do nothing
         if (_currentDocument == document)
             return;
@@ -347,7 +367,7 @@ define(function(require, exports, module) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
         if (_currentDocument == document) {
-            var wsIndex = _findInWorkingSet(document.file);
+            var wsIndex = findInWorkingSet(document.file.fullPath);
             
             // Decide which doc to show in editor after this one
             var nextDocument;
@@ -504,7 +524,7 @@ define(function(require, exports, module) {
             }
 
             if (activeDoc != null) {
-                CommandManager.execute(Commands.FILE_OPEN, activeDoc.file.fullPath);
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
             }
         });
     }
@@ -512,7 +532,9 @@ define(function(require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
+    exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
+    exports.findInWorkingSet = findInWorkingSet;
     exports.getWorkingSet = getWorkingSet;
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;

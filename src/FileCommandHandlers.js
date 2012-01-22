@@ -46,7 +46,7 @@ define(function(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     };
 
-    function handleCurrentDocumentChange(event) {
+    function handleCurrentDocumentChange() {
         var newDocument = DocumentManager.getCurrentDocument();
         
         if (newDocument != null) {
@@ -81,13 +81,17 @@ define(function(require, exports, module) {
         }
     }
     
-    function handleFileAddToWorkingSet(fullPath){
-        handleFileOpen(fullPath).done(function(doc) {
+    function handleFileAddToWorkingSet(commandData){
+        handleFileOpen(commandData).done(function(doc) {
             DocumentManager.addToWorkingSet(doc);
         });
     }
 
-    function handleFileOpen(fullPath) {
+    function handleFileOpen(commandData) {
+        var fullPath = null;
+        if( commandData )
+            fullPath = commandData.fullPath;
+        
         var result = doOpenWithOptionalPath(fullPath);
         result.always(function() {
             EditorManager.focusEditor();
@@ -130,23 +134,22 @@ define(function(require, exports, module) {
      *  document for the specified file path, or rejected if the file can not be read.
      */
     function doOpen(fullPath) {
+        
         var result = new $.Deferred();
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
         
-        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-
-        var doc = DocumentManager.getDocumentForFile(fileEntry);
+        var doc = DocumentManager.getDocumentForPath(fullPath);
         if (doc != null) {
             // File already open - don't need to load it, just switch to it in the UI
             DocumentManager.showInEditor(doc);
             result.resolve(doc);
             
         } else {
+            // File wasn't open before, so we must create a new document for it
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
             var docResult = EditorManager.createDocumentAndEditor(fileEntry);
 
             docResult.done(function(doc) {
@@ -260,17 +263,20 @@ define(function(require, exports, module) {
     /**
      * Closes the specified document. Prompts user about saving file if document is dirty.
      *
-     * @param {?Document} doc  Document to close; assumes the current document if null.
+     * @param {?{doc: Document}} commandData  Document to close; assumes the current document if null.
      * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
      *          actually close the document. This is useful when chaining file-close together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
      */
-    function handleFileClose( doc, promptOnly ) {
+    function handleFileClose(commandData) {
+        var doc = null;
+        if(commandData)
+            doc = commandData.doc;
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(doc) {
-            if (!promptOnly) {
+            if (!commandData || !commandData.promptOnly) {
                 // This selects a different document if the working set has any other options
                 DocumentManager.closeDocument(doc);
             
@@ -331,12 +337,12 @@ define(function(require, exports, module) {
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
      */
-    function handleFileCloseAll(promptOnly) {
+    function handleFileCloseAll(commandData) {
         var result = new $.Deferred();
         
         var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
@@ -349,7 +355,8 @@ define(function(require, exports, module) {
             
         } else if (unsavedDocs.length == 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            handleFileClose( unsavedDocs[0], promptOnly ).done( function() {
+            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: promptOnly };
+            handleFileClose(fileCloseArgs).done( function() {
                 // still need to close any other, non-unsaved documents
                 result.resolve();
             }).fail( function() {
@@ -393,7 +400,7 @@ define(function(require, exports, module) {
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
         result.done(function() {
-            if (!promptOnly)
+            if (!commandData || !commandData.promptOnly)
                 DocumentManager.closeAll();
         });
         
@@ -403,7 +410,8 @@ define(function(require, exports, module) {
     
     /** Confirms any unsaved changes, then exits Brackets */
     function handleFileQuit() {
-        handleFileCloseAll(false)
+        var closeAllArgs = { promptOnly: false };
+        handleFileCloseAll(closeAllArgs)
         .done(function() {
             window.close();  // TODO: call a native API to quit the whole app
         });

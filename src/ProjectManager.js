@@ -26,8 +26,32 @@ define(function(require, exports, module) {
     ,   CommandManager      = require("CommandManager")
     ,   Commands            = require("Commands")
     ,   Strings             = require("strings")
+    ,   EditorManager       = require("EditorManager")
+    ,   FileViewController  = require("FileViewController")
+    ,   DocumentManager     = require("DocumentManager")
     ;
-
+    
+    $(FileViewController).on("documentSelectionFocusChange", function(event) {
+        var curDoc = DocumentManager.getCurrentDocument();
+        if(curDoc !== null && FileViewController.getFileSelectionFocus() != FileViewController.WORKING_SET_VIEW){
+            $("#project-files-container li").is( function ( index ) {
+                var entry = $(this).data("entry");
+                
+                if( entry && entry.fullPath == curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this)) ){
+                    //we don't want to trigger another selection change event, so manually deselect
+                    //and select without sending out notifications
+                    _projectTree.jstree("deselect_all");
+                    _projectTree.jstree("select_node", $(this), false);
+                    return true;
+                }
+                return false;
+            });
+        }
+        else {
+            _projectTree.jstree("deselect_all");
+        }
+    });
+    
     /**
      * Unique PreferencesManager clientID
      */
@@ -144,7 +168,7 @@ define(function(require, exports, module) {
         // Confirm any unsaved changes first. We run the command in "prompt-only" mode, meaning it won't
         // actually close any documents even on success; we'll do that manually after the user also oks
         //the folder-browse dialog.
-        CommandManager.execute(Commands.FILE_CLOSE_ALL, true)
+        CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
         .done(function() {
             // Pop up a folder browse dialog
             NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
@@ -530,7 +554,7 @@ define(function(require, exports, module) {
         .bind("select_node.jstree", function(event, data) {
             var entry = data.rslt.obj.data("entry");
             if (entry.isFile)
-                CommandManager.execute(Commands.FILE_OPEN, entry.fullPath);
+                FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
         })
         .bind("reopen.jstree", function(event, data) {
             // This handler fires for the initial load and subsequent
@@ -555,9 +579,11 @@ define(function(require, exports, module) {
             }
         })
         .bind("dblclick.jstree", function(event) {
+
             var entry = $(event.target).closest("li").data("entry");
-            if (entry.isFile) {
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, entry.fullPath);
+            if (entry.isFile){
+                FileViewController.addToWorkingSetAndSelect( entry.fullPath);
+                
                 // jstree dblclick handling seems to steal focus from editor, so set focus again
                 EditorManager.focusEditor();
             }

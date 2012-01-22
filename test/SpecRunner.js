@@ -11,7 +11,7 @@ define(function(require, exports, module) {
     var PreferencesManager = require("PreferencesManager");
     PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
 
-    // Load test specs
+     // Load test specs
     require("spec/LowLevelFileIO-test.js");
     require("spec/FileCommandHandlers-test.js");
     require("spec/NativeFileSystem-test.js");
