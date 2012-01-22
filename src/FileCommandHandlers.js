@@ -263,13 +263,13 @@ define(function(require, exports, module) {
     /**
      * Closes the specified document. Prompts user about saving file if document is dirty.
      *
-     * @param {?Document} doc  Document to close; assumes the current document if null.
+     * @param {?{doc: Document}} commandData  Document to close; assumes the current document if null.
      * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
      *          actually close the document. This is useful when chaining file-close together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
      */
-    function handleFileClose( commandData ) {
+    function handleFileClose(commandData) {
         var doc = null;
         if(commandData)
             doc = commandData.doc;
@@ -337,7 +337,7 @@ define(function(require, exports, module) {
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
@@ -400,7 +400,7 @@ define(function(require, exports, module) {
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
         result.done(function() {
-            if (!commandData.promptOnly)
+            if (!commandData || !commandData.promptOnly)
                 DocumentManager.closeAll();
         });
         

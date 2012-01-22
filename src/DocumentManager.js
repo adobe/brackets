@@ -274,9 +274,11 @@ define(function(require, exports, module) {
         $(exports).triggerHandler("workingSetRemove", document);
     }
     
-    /**
-     * @param {!FileEntry} fileEntry
-     * @returns {number} index
+    /** 
+      * Returns the index of the file matching fullPath in the working set. 
+      * Returns -1 if not found.
+      * @param {!string} fullPath
+      * @returns {number} index
      */
     function findInWorkingSet(fullPath) {
         for (var i = 0; i < _workingSet.length; i++) {
