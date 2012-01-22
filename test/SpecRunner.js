@@ -8,8 +8,7 @@ define(function(require, exports, module) {
     var SpecRunnerUtils = require("spec/SpecRunnerUtils.js");
 
     // Unique key for unit testing
-    var PreferencesManager = require("PreferencesManager");
-    PreferencesManager._setStorageKey( SpecRunnerUtils.TEST_PREFERENCES_KEY );
+    localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
      // Load test specs
     require("spec/LowLevelFileIO-test.js");
@@ -20,4 +19,8 @@ define(function(require, exports, module) {
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
 
+    // Clean up preferencesKey
+    $(window).unload(function () {
+        localStorage.removeItem("preferencesKey");
+    });
 });
