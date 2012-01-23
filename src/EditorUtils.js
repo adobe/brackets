@@ -13,6 +13,8 @@ define(function(require, exports, module) {
     require("thirdparty/CodeMirror2/mode/css/css");
     require("thirdparty/CodeMirror2/mode/less/less");
     require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
+    
+    var Strings = require("strings");
 
     /**
      * Change the current mode of the editor based on file extension 
