@@ -251,6 +251,17 @@ define(function(require, exports, module) {
             // Show file list in UI
             resultRenderTree = _renderTree(treeJSONData, result);
 
+            resultRenderTree.done(function () {
+                result.resolve();
+
+                if (isFirstProjectOpen) {
+                    $(exports).triggerHandler("initializeComplete", _projectRoot);
+                }
+            });
+            resultRenderTree.fail(function () {
+                result.reject();
+            });
+
         } else {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
@@ -262,6 +273,17 @@ define(function(require, exports, module) {
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
                     resultRenderTree = _renderTree(_treeDataProvider);
+
+                    resultRenderTree.done(function () {
+                        result.resolve();
+
+                        if (isFirstProjectOpen) {
+                            $(exports).triggerHandler("initializeComplete", _projectRoot);
+                        }
+                    });
+                    resultRenderTree.fail(function () {
+                        result.reject();
+                    });
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -273,17 +295,6 @@ define(function(require, exports, module) {
                 }
             );
         }
-
-        resultRenderTree.done(function () {
-            result.resolve();
-
-            if (isFirstProjectOpen) {
-                $(exports).triggerHandler("initializeComplete", _projectRoot);
-            }
-        });
-        resultRenderTree.fail(function () {
-            result.reject();
-        });
 
         return result;
     }
