@@ -610,6 +610,13 @@ define(function(require, exports, module) {
     (function() {
         var loadedPath = window.location.pathname;
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+        
+        // On Windows, when loading from a file, window.location.pathname has
+        // a leading '/'. Remove that here.
+        // TODO: Figure out a better way to handle this...
+        if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":")
+            bracketsSrc = bracketsSrc.substr(1);
+        
         var defaults =
             { projectPath:      bracketsSrc /* initialze to brackets source */
             , projectTreeState: ""          /* TODO (jasonsj): jstree state */
