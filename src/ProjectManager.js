@@ -251,6 +251,11 @@ define(function(require, exports, module) {
             // Show file list in UI
             resultRenderTree = _renderTree(treeJSONData, result);
 
+            // NOTE: These two functions contain duplicated code from the code
+            // below. However, this code will go away when we're no longer
+            // rendering a fake tree for the browser. So, this code isn't
+            // being refactored
+
             resultRenderTree.done(function () {
                 result.resolve();
 
@@ -261,6 +266,8 @@ define(function(require, exports, module) {
             resultRenderTree.fail(function () {
                 result.reject();
             });
+
+            // END duplicated code
 
         } else {
             // Point at a real folder structure on local disk
