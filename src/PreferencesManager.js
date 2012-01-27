@@ -10,10 +10,24 @@ define(function(require, exports, module) {
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 
     // Private Properties
-    var preferencesKey      = PREFERENCES_KEY
+    var preferencesKey
     ,   callbacks           = {}
     ,   prefStorage
-    ,   persistentStorage;
+    ,   persistentStorage
+    ,   doLoadPreferences   = false;
+
+    // check localStorage for a preferencesKey
+    preferencesKey = localStorage.getItem("preferencesKey");
+
+    if (!preferencesKey) {
+        // use default key if none is found
+        preferencesKey = PREFERENCES_KEY;
+        doLoadPreferences = true;
+    }
+    else {
+        // using a non-default key, check for additional settings
+        doLoadPreferences = !!(localStorage.getItem("doLoadPreferences"));
+    }
 
     // Use localStorage by default
     _initStorage( localStorage );
@@ -82,7 +96,7 @@ define(function(require, exports, module) {
     }
 
     /**
-     * Save all participants.
+     * Save all preference clients.
      */
     function savePreferences() {
         var data
@@ -121,30 +135,14 @@ define(function(require, exports, module) {
 
     /**
      * @private
-     * Redirects preference storage to another key in persistent storage. 
-     * Allows unit test preferences to be stored in the same mechanism as
-     * production preferences without clobbering.
-     * 
-     * @return {string} Previous key
-     */
-    function _setStorageKey( key ) {
-        var oldKey = preferencesKey;
-
-        preferencesKey = key;
-
-        // re-init in-memory prefs when changing keys
-        _initStorage( persistentStorage );
-
-        return oldKey;
-    }
-
-    /**
-     * @private
      * Initialize persistent storage implementation
      */
     function _initStorage( storage ) {
         persistentStorage = storage;
-        prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
+
+        if (doLoadPreferences) {
+            prefStorage = JSON.parse( persistentStorage.getItem( preferencesKey ) );
+        }
 
         // initialize empty preferences if none were found in storage
         if ( !prefStorage ) {
@@ -172,5 +170,4 @@ define(function(require, exports, module) {
 
     // Internal Use Only
     exports._reset                  = _reset;
-    exports._setStorageKey          = _setStorageKey;
 });
