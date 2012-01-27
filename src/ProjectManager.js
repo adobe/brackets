@@ -229,29 +229,8 @@ define(function(require, exports, module) {
         var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
         $("#project-title").html(projectName);
 
-        // Populate file tree
-        if (brackets.inBrowser) {
-            // Hardcoded dummy data for local testing, in jsTree JSON format
-            // (we leave _projectRoot null)
-            var subfolderInner = { data:"Folder_inner", children:[
-                { data: "subsubfile_1" }, { data: "subsubfile_2" }
-            ] };
-            var treeJSONData = [
-                { data: "Dummy tree content:" },
-                { data:"Folder_1", children:[
-                    { data: "subfile_1" }, { data: "subfile_2" }, { data: "subfile_3" }
-                ] },
-                { data:"Folder_2", children:[
-                    { data: "subfile_4" }, subfolderInner, { data: "subfile_5" }
-                ] },
-                { data: "file_1" },
-                { data: "file_2" }
-            ];
-
-            // Show file list in UI
-            resultRenderTree = _renderTree(treeJSONData, result);
-
-        } else {
+        // Populate file tree as long as we aren't running in the browser
+        if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function(rootEntry) {
@@ -262,6 +241,17 @@ define(function(require, exports, module) {
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
                     // immediate children, and so on.
                     resultRenderTree = _renderTree(_treeDataProvider);
+
+                    resultRenderTree.done(function () {
+                        result.resolve();
+
+                        if (isFirstProjectOpen) {
+                            $(exports).triggerHandler("initializeComplete", _projectRoot);
+                        }
+                    });
+                    resultRenderTree.fail(function () {
+                        result.reject();
+                    });
                 },
                 function(error) {
                     brackets.showModalDialog(
@@ -273,17 +263,6 @@ define(function(require, exports, module) {
                 }
             );
         }
-
-        resultRenderTree.done(function () {
-            result.resolve();
-
-            if (isFirstProjectOpen) {
-                $(exports).triggerHandler("initializeComplete", _projectRoot);
-            }
-        });
-        resultRenderTree.fail(function () {
-            result.reject();
-        });
 
         return result;
     }
