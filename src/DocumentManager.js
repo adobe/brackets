@@ -2,6 +2,9 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false */
+
 /**
  * DocumentManager is the model for the set of currently 'open' files and their contents. It controls
  * which file is currently shown in the editor, the dirty bit for all files, and the list of documents
