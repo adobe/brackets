@@ -229,47 +229,8 @@ define(function(require, exports, module) {
         var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
         $("#project-title").html(projectName);
 
-        // Populate file tree
-        if (brackets.inBrowser) {
-            // Hardcoded dummy data for local testing, in jsTree JSON format
-            // (we leave _projectRoot null)
-            var subfolderInner = { data:"Folder_inner", children:[
-                { data: "subsubfile_1" }, { data: "subsubfile_2" }
-            ] };
-            var treeJSONData = [
-                { data: "Dummy tree content:" },
-                { data:"Folder_1", children:[
-                    { data: "subfile_1" }, { data: "subfile_2" }, { data: "subfile_3" }
-                ] },
-                { data:"Folder_2", children:[
-                    { data: "subfile_4" }, subfolderInner, { data: "subfile_5" }
-                ] },
-                { data: "file_1" },
-                { data: "file_2" }
-            ];
-
-            // Show file list in UI
-            resultRenderTree = _renderTree(treeJSONData, result);
-
-            // NOTE: These two functions contain duplicated code from the code
-            // below. However, this code will go away when we're no longer
-            // rendering a fake tree for the browser. So, this code isn't
-            // being refactored
-
-            resultRenderTree.done(function () {
-                result.resolve();
-
-                if (isFirstProjectOpen) {
-                    $(exports).triggerHandler("initializeComplete", _projectRoot);
-                }
-            });
-            resultRenderTree.fail(function () {
-                result.reject();
-            });
-
-            // END duplicated code
-
-        } else {
+        // Populate file tree as long as we aren't running in the browser
+        if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function(rootEntry) {
