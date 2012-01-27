@@ -4,7 +4,7 @@ define(function(require, exports, module) {
     var CommandManager      // loaded from brackets.test
     ,   Commands            // loaded from brackets.test
     ,   DocumentManager     // loaded from brackets.test
-    ,   ProjectManager      // loaded from brackets.test
+    ,   FileViewController  // loaded from brackets.test
     ,   SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     ;
 
@@ -21,18 +21,18 @@ define(function(require, exports, module) {
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
-                ProjectManager      = testWindow.brackets.test.ProjectManager;   
+                FileViewController  = testWindow.brackets.test.FileViewController;   
 
                 // Open a directory
                 SpecRunnerUtils.loadProjectInTestWindow( testPath );
             });
-            
+
             var didOpen = false, gotError = false;
             
             var openAndMakeDirty = function (path){
                 // open file
                 runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, path)
+                    FileViewController.openAndSelectDocument( path, FileViewController.PROJECT_MANAGER )
                         .done(function() { didOpen = true; })
                         .fail(function() { gotError = true; });
                 });
@@ -99,18 +99,43 @@ define(function(require, exports, module) {
                            
         });
         
-        
-        // TODO Ty: Can't write this test yet until Jason's persistant work is complete    
-        // it("should rebuild the ui from the model correctly", function() {
-        //                 
-        // });
+        it("should rebuild the ui from the model correctly", function() {
+            // force the test window to initialize to unit test preferences
+            // for just this test
+            runs(function() {
+                localStorage.setItem("doLoadPreferences", true);
+            });
+
+            // close test window while working set has 2 files
+            SpecRunnerUtils.closeTestWindow();
+
+            // reopen without loading a project
+            SpecRunnerUtils.createTestWindowAndRun( this, function( w ) {
+                testWindow = w;
+            });
+
+            // files should be in the working set
+            runs(function(){
+                var listItems = testWindow.$("#open-files-container > ul").children();
+                expect( listItems.find("a").get(0).text == "file_one.js" ).toBeTruthy();
+                expect( listItems.find("a").get(1).text == "file_two.js" ).toBeTruthy();
+
+                // files should be clean
+                expect( listItems.find(".file-status-icon dirty").length).toBe(0);
+
+                // file_two.js should be active
+                expect( $(listItems[1]).hasClass("selected") ).toBeTruthy();
+
+                localStorage.removeItem("doLoadPreferences", true);
+            });
+        });
         
         it("should close a file when the user clicks the close button", function() {
             var $ = testWindow.$;
                     
             // make 2nd doc clean
             var docList = DocumentManager.getWorkingSet();
-            docList[1].markClean();
+			docList[1].markClean();
                             
             // make the first one active
             DocumentManager.showInEditor(docList[0]);

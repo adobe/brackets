@@ -11,6 +11,7 @@ define(function(require, exports, module) {
     ,   ProjectManager      = require("ProjectManager")
     ,   DocumentManager     = require("DocumentManager")
     ,   EditorManager       = require("EditorManager")
+    ,   EditorUtils         = require("EditorUtils")
     ,   Strings             = require("strings");
     ;
      
@@ -45,7 +46,7 @@ define(function(require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     };
 
-    function handleCurrentDocumentChange(event) {
+    function handleCurrentDocumentChange() {
         var newDocument = DocumentManager.getCurrentDocument();
         
         if (newDocument != null) {
@@ -80,12 +81,17 @@ define(function(require, exports, module) {
         }
     }
     
-    function handleFileAddToWorkingSet(fullPath){
-        handleFileOpen(fullPath);
-        DocumentManager.addToWorkingSet(DocumentManager.getCurrentDocument());
+    function handleFileAddToWorkingSet(commandData){
+        handleFileOpen(commandData).done(function(doc) {
+            DocumentManager.addToWorkingSet(doc);
+        });
     }
 
-    function handleFileOpen(fullPath) {
+    function handleFileOpen(commandData) {
+        var fullPath = null;
+        if( commandData )
+            fullPath = commandData.fullPath;
+        
         var result = doOpenWithOptionalPath(fullPath);
         result.always(function() {
             EditorManager.focusEditor();
@@ -93,6 +99,13 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     * Creates a document and displays an editor for the specified file path. 
+     * If no path is specified, a file prompt is provided for input.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
     function doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
@@ -114,46 +127,38 @@ define(function(require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     * Creates a document and displays an editor for the specified file path.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
     function doOpen(fullPath) {
+        
         var result = new $.Deferred();
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
         
-        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-
-        var document = DocumentManager.getDocumentForFile(fileEntry);
-        if (document != null) {
+        var doc = DocumentManager.getDocumentForPath(fullPath);
+        if (doc != null) {
             // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(document);
-            result.resolve();
+            DocumentManager.showInEditor(doc);
+            result.resolve(doc);
             
         } else {
-            // File wasn't open before, so we must load its contents into a new document
-            var reader = new NativeFileSystem.FileReader();
+            // File wasn't open before, so we must create a new document for it
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            var docResult = EditorManager.createDocumentAndEditor(fileEntry);
 
-            fileEntry.file(function(file) {
-                reader.onload = function(event) {
-                    // Create a new editor initialized with the file's content, and bind it to a Document
-                    document = EditorManager.createDocumentAndEditor(fileEntry, event.target.result);
-                    
-                    // Switch to new document in the UI
-                    DocumentManager.showInEditor(document);
-                    result.resolve();
-                };
-
-                reader.onerror = function(event) {
-                    showFileOpenError(event.target.error.code, fullPath);
-                    result.reject();
-                }
-
-                reader.readAsText(file, "utf8");
-            },
-            function fileEntry_onerror(event) {
-                showFileOpenError(event.target.error.code, fullPath);
+            docResult.done(function(doc) {
+                DocumentManager.showInEditor(doc);
+                result.resolve(doc);
+            });
+            
+            docResult.fail(function(error) {
+                EditorUtils.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -258,17 +263,20 @@ define(function(require, exports, module) {
     /**
      * Closes the specified document. Prompts user about saving file if document is dirty.
      *
-     * @param {?Document} doc  Document to close; assumes the current document if null.
+     * @param {?{doc: Document}} commandData  Document to close; assumes the current document if null.
      * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
      *          actually close the document. This is useful when chaining file-close together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
      */
-    function handleFileClose( doc, promptOnly ) {
+    function handleFileClose(commandData) {
+        var doc = null;
+        if(commandData)
+            doc = commandData.doc;
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(doc) {
-            if (!promptOnly) {
+            if (!commandData || !commandData.promptOnly) {
                 // This selects a different document if the working set has any other options
                 DocumentManager.closeDocument(doc);
             
@@ -329,12 +337,12 @@ define(function(require, exports, module) {
     /**
      * Closes all open documents; equivalent to calling handleFileClose() for each document, except
      * that unsaved changes are confirmed once, in bulk.
-     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
+     * @param {?{promptOnly: boolean}}  If true, only displays the relevant confirmation UI and does NOT
      *          actually close any documents. This is useful when chaining close-all together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
      */
-    function handleFileCloseAll(promptOnly) {
+    function handleFileCloseAll(commandData) {
         var result = new $.Deferred();
         
         var unsavedDocs = DocumentManager.getWorkingSet().filter( function(doc) {
@@ -347,7 +355,8 @@ define(function(require, exports, module) {
             
         } else if (unsavedDocs.length == 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            handleFileClose( unsavedDocs[0], promptOnly ).done( function() {
+            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: promptOnly };
+            handleFileClose(fileCloseArgs).done( function() {
                 // still need to close any other, non-unsaved documents
                 result.resolve();
             }).fail( function() {
@@ -391,7 +400,7 @@ define(function(require, exports, module) {
         // NOTE: this still happens before any done() handlers added by our caller, because jQ
         // guarantees that handlers run in the order they are added.
         result.done(function() {
-            if (!promptOnly)
+            if (!commandData || !commandData.promptOnly)
                 DocumentManager.closeAll();
         });
         
@@ -401,53 +410,12 @@ define(function(require, exports, module) {
     
     /** Confirms any unsaved changes, then exits Brackets */
     function handleFileQuit() {
-        handleFileCloseAll(false)
+        var closeAllArgs = { promptOnly: false };
+        handleFileCloseAll(closeAllArgs)
         .done(function() {
             window.close();  // TODO: call a native API to quit the whole app
         });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
-    }
-
-    
-
-
-    function showFileOpenError(code, path) {
-        brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_OPENING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_OPENING_FILE
-                  , path
-                  , getErrorString(code))
-        );
-    }
-
-    function showSaveFileError(code, path) {
-        brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_SAVING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_SAVING_FILE
-                  , path
-                  , getErrorString(code))
-        );
-    }
-
-    function getErrorString(code) {
-        // There are a few error codes that we have specific error messages for. The rest are
-        // displayed with a generic "(error N)" message.
-        var result;
-
-        if (code == FileError.NOT_FOUND_ERR)
-            result = Strings.NOT_FOUND_ERR;
-        else if (code == FileError.NOT_READABLE_ERR)
-            result = Strings.NOT_READABLE_ERR;
-        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
-        else
-            result = Strings.format(Strings.GENERIC_ERROR, code);
-
-        return result;
     }
 
     /**
@@ -487,6 +455,17 @@ define(function(require, exports, module) {
         result.notify(baseFileName + fileExt , 1);
 
         return result;
+    }
+
+    function showSaveFileError(code, path) {
+        return brackets.showModalDialog(
+              brackets.DIALOG_ID_ERROR
+            , Strings.ERROR_SAVING_FILE_TITLE
+            , Strings.format(
+                    Strings.ERROR_SAVING_FILE
+                  , path
+                  , EditorUtils.getFileErrorString(code))
+        );
     }
 
     // Define public API

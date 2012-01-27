@@ -31,14 +31,12 @@ define(function(require, exports, module) {
             testWindow = window.open( getBracketsSourceRoot() + "/index.html" );
         });
 
+        // FIXME (jasonsj): Need an event or something a little more reliable...
         waitsFor(function() {
             return testWindow.brackets && testWindow.brackets.test;
         }, 5000); 
 
         runs(function() {
-            // all test windows should use unit test preferences
-            testWindow.brackets.test.PreferencesManager._setStorageKey( TEST_PREFERENCES_KEY );
-
             // callback allows specs to query the testWindow before they run
             callback.call( spec, testWindow );
         });

@@ -387,8 +387,11 @@ define(function(require, exports, module) {
      * @param {function(number)} errorCallback
      */
     NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
-        // TODO (jasonsj): handle absolute paths
-        var fileFullPath = this.fullPath + "/" + path;
+        var fileFullPath = path;
+        
+        // assume relative paths are relative to this directory
+        if (path.charAt(0) !== '/') 
+            fileFullPath = this.fullPath + "/" + path;
 
         var createFileEntry = function () {
             if ( successCallback ) {
@@ -474,9 +477,9 @@ define(function(require, exports, module) {
             if( ! err ){
                 // Create entries for each name
                 var entries = [];
-    			var statErr;
-    			for( var i = 0; i < filelist.length; i++ ){
-    				var item = filelist[i];
+                var statErr;
+                for( var i = 0; i < filelist.length; i++ ){
+                    var item = filelist[i];
                     var itemFullPath = rootPath + "/" + item;
 
                     brackets.fs.stat( itemFullPath, function( statErr, statData) {
@@ -493,15 +496,15 @@ define(function(require, exports, module) {
 
                     });
 
-    				// exit loop if there is an error
-    				if( statErr )
-    					break;
+                    // exit loop if there is an error
+                    if( statErr )
+                        break;
                 }
 
-    			if( !statErr )
-    				successCallback( entries );
-    			else
-    				 errorCallback(NativeFileSystem._nativeToFileError(statErr));
+                if( !statErr )
+                    successCallback( entries );
+                else
+                     errorCallback(NativeFileSystem._nativeToFileError(statErr));
             }
             else if (errorCallback) {
                 errorCallback(NativeFileSystem._nativeToFileError(err));
