@@ -253,6 +253,7 @@ define(function (require, exports, module) {
                     $("#jslint-results").css("display", "none");
                     EditorManager.resizeEditor();
                 }
+                $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
             });
         }
 
