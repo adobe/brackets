@@ -86,16 +86,12 @@ a, img {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 2;
+    z-index: 20;
 }
 
 #editorHolder {
     .vbox;
     .box-flex(1);
-
-    .CodeMirror-lines {
-        padding: @base-padding;
-    }
     
     /* Placeholder shown when there is no editor open */
     #notEditor {
@@ -115,7 +111,31 @@ a, img {
         }
     }
 }
+    
+#jslint-results {
+    .box-flex(1);
+    .vbox;
+    height: 200px;
+    overflow-x: auto;
+    overflow-y: auto;
+    border-top-style: solid;
+    border-width: 1px;
+    border-color: lighten(@bc-grey, @bc-color-step-size*4);
+    
+    th {
+        #gradient > .vertical(lighten(@bc-grey, @bc-color-step-size*6), lighten(@bc-grey, @bc-color-step-size*2));
+    }
+    
+    tr.selected td {
+        background-color: @bc-light-blue;
+    }
+}
 
+#gold-star {
+    font-size: 1.2em;
+    color: lighten(@bc-yellow, @bc-color-step-size*2);
+    text-shadow: 0 -1px @bc-black;
+}
 
 /* Project panel */
 
@@ -277,6 +297,7 @@ a, img {
 
 .CodeMirror-dialog {
   position: relative;
+  z-index: 11;
 }
 
 .CodeMirror-dialog > div {

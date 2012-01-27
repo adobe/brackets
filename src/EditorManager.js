@@ -127,6 +127,7 @@ define(function(require, exports, module) {
         reader.done(function(text) {
             var editor = CodeMirror(_editorHolder.get(0), {
                 indentUnit : 4,
+                lineNumbers: true,
                 extraKeys: {
                     "Tab"  : _handleTabKey,
                     "Left" : function(instance) {
@@ -351,9 +352,7 @@ define(function(require, exports, module) {
         $(_currentEditor.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
-        // (see _updateEditorSize() handler below)
-        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-        _currentEditor.refresh();
+        resizeEditor();
     }
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
@@ -384,7 +383,7 @@ define(function(require, exports, module) {
         }
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
         
-        // (see also force-resize code in _showEditor() )
+        // (see also force-resize code in resizeEditor() )
     }
     
     
@@ -394,9 +393,16 @@ define(function(require, exports, module) {
             _currentEditor.focus();
     }
     
+    /** Resize the editor. This should only be called if the contents of the editor holder are changed. */
+    function resizeEditor() {
+        // (see _updateEditorSize() handler above)
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        _currentEditor.refresh();
+    }
+    
     // Define public API
     exports.setEditorHolder = setEditorHolder;
     exports.createDocumentAndEditor = createDocumentAndEditor;
     exports.focusEditor = focusEditor;
-    
+    exports.resizeEditor = resizeEditor;
 });

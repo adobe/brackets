@@ -15,6 +15,8 @@
  * This module dispatches several events:
  *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
  *      Document whose flag changed.
+ *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
+ *      Document that has been saved.
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *    - workingSetAdd -- When a Document is added to the working set (see getWorkingSet()). The 2nd arg
  *      to the listener is the added Document.
@@ -157,6 +159,9 @@ define(function(require, exports, module) {
 
         this._savedUndoPosition = this._editor.historySize().undo;
         this._updateDirty();
+        
+        // Dispatch event
+        $(exports).triggerHandler("documentSaved", this);
     }
     
     /* (pretty toString(), to aid debugging) */

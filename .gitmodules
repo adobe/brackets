@@ -4,3 +4,6 @@
 [submodule "src/thirdparty/path-utils"]
 	path = src/thirdparty/path-utils
 	url = git@github.com:jblas/path-utils.git
+[submodule "src/thirdparty/jslint"]
+	path = src/thirdparty/jslint
+	url = git@github.com:douglascrockford/JSLint.git
