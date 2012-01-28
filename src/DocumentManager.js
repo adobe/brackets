@@ -100,7 +100,7 @@ define(function(require, exports, module) {
         
         // Dirty-bit tracking
         editor.setOption("onChange", this._updateDirty.bind(this));
-        _isDirty = false;
+        this.isDirty = false;
     }
     
     /**
