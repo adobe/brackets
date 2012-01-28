@@ -99,7 +99,7 @@ define(function(require, exports, module) {
         this._editor = editor;
         
         // Dirty-bit tracking
-        editor.setOption("onChange", this._updateDirty.bind(this));
+        editor.setOption("onChange", this._handleEditorChange.bind(this));
         this.isDirty = false;
     }
     
@@ -109,8 +109,6 @@ define(function(require, exports, module) {
      *  created.
      */
     Document.prototype.getText = function() {
-        console.assert(this._editor != null);
-
         return this._editor.getValue();
     }
     
@@ -119,15 +117,13 @@ define(function(require, exports, module) {
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function(text) {
-        console.assert(this._editor != null);
-        
         this._editor.setValue(text);
     }
         
     /**
      * @private
      */
-    Document.prototype._updateDirty = function() {
+    Document.prototype._handleEditorChange = function() {
         if (this._editor == null) {
             return;
         }
@@ -136,13 +132,12 @@ define(function(require, exports, module) {
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
         this.isDirty = true;
-            
-        // Dispatch event
-        $(exports).triggerHandler("dirtyFlagChange", this);
-            
-        // If file just became dirty, add it to working set (if not already there)
-        if (!wasDirty)
+
+        // If file just became dirty, notify listeners, and add it to working set (if not already there)
+        if (!wasDirty) {
+            $(exports).triggerHandler("dirtyFlagChange", this);
             addToWorkingSet(this);
+        }
     }
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
