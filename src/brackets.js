@@ -167,8 +167,7 @@ define(function (require, exports, module) {
                 var result = JSLINT(text, null);
                 
                 if (!result) {
-                    var errorTable = $("<table class='zzebra-striped zcondensed-table'>")
-                                       .append("<thead><th>Line</th><th>Problem</th><th>Evidence</th></thead>")
+                    var errorTable = $("<table class='zebra-striped condensed-table'>")
                                        .append("<tbody>");
                     var selectedRow;
                     
@@ -194,7 +193,8 @@ define(function (require, exports, module) {
                         }
                     });
 
-                    $("#jslint-results").html("")
+                    $("#jslint-results .table-container")
+                        .empty()
                         .append(errorTable);
                     showJSLintResults(true);
                     $("#gold-star").css("display", "none");
