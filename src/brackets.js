@@ -299,13 +299,7 @@ define(function (require, exports, module) {
         $(DocumentManager).on("currentDocumentChange", function () {
             
             if (_enableJSLint) {
-                // Hide the JSLint results when changing current document
-                showJSLintResults(false);
-                $("#gold-star").css("display", "none");
-
-                if (_enableJSLint) {
-                    runJSLint();
-                }
+                runJSLint();
             }
         });
         
