@@ -207,7 +207,7 @@ define(function(require, exports, module) {
             
             //setup our resolve and reject handlers
             result.done( function fileSaved() { 
-                docToSave.markClean();
+                docToSave.notifySaved();
             });
 
             result.fail( function fileError(error) { 
