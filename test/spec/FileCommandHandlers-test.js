@@ -146,6 +146,10 @@ define(function(require, exports, module) {
 
         describe("Dirty File Handling", function() {
 
+            // This test is not currently valid. For issue 152, we have temporarily decided to make it so
+            // the file is always dirty as soon as you make a change, regardless of whether you undo back to
+            // its last saved state.
+/*
             it("should report not dirty after undo", function() {
                 var didOpen = false, gotError = false;
 
@@ -167,8 +171,8 @@ define(function(require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                 });
             });
-
-            it("should report dirty when modified", function() {
+*/
+            beforeEach(function() {
                 var didOpen = false, gotError = false;
 
                 runs(function() {
@@ -177,7 +181,15 @@ define(function(require, exports, module) {
                         .fail(function() { gotError = true; });
                 });
                 waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
+            });
 
+            it("should report clean immediately after opening a file", function() {
+                runs(function() {
+                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
+                });
+            });
+            
+            it("should report dirty when modified", function() {
                 runs(function() {
                     // change editor content
                     var editor = DocumentManager.getCurrentDocument()._editor;
@@ -199,15 +211,6 @@ define(function(require, exports, module) {
             });
 
             it("should report dirty after undo and redo", function() {
-                var didOpen = false, gotError = false;
-
-                runs(function() {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
-                        .done(function() { didOpen = true; })
-                        .fail(function() { gotError = true; });
-                });
-                waitsFor(function() { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
-
                 runs(function() {
                     // change editor content, followed by undo and redo
                     var editor = DocumentManager.getCurrentDocument()._editor;
@@ -220,6 +223,15 @@ define(function(require, exports, module) {
                     editor.redo();
                     expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+                });
+            });
+            
+            it("should report clean after being marked clean", function() {
+                runs(function() {
+                    var document = DocumentManager.getCurrentDocument();
+                    document.setText(TEST_JS_NEW_CONTENT);
+                    document.markClean();
+                    expect(document.isDirty).toBe(false);
                 });
             });
         });
