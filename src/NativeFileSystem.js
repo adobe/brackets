@@ -471,47 +471,44 @@ define(function(require, exports, module) {
      * @param {function(...)} errorCallback
      * @returns {Array.<Entry>}
      */
-    NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ){
+    // TODO: Parallelize the XHRs using something like Promises?
+    NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ) {
         var rootPath = this._directory.fullPath;
-        var jsonList = brackets.fs.readdir( rootPath, function( err, filelist ) {
-            if( ! err ){
-                // Create entries for each name
+        brackets.fs.readdir( rootPath, function( err, filelist ) {
+            if (!err) {
                 var entries = [];
-                var statErr;
-                for( var i = 0; i < filelist.length; i++ ){
+                var filelistIterator = function(i) {
                     var item = filelist[i];
                     var itemFullPath = rootPath + "/" + item;
-
                     brackets.fs.stat( itemFullPath, function( statErr, statData) {
+                        if (!statErr) {
 
-                        if( !statErr ){
-                            if( statData.isDirectory() )
+                            if (statData.isDirectory()) {
                                 entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
-                            else if( statData.isFile() )
+                            }
+                            else if (statData.isFile()) {
                                 entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
+                            }
+
+                            if (i < filelist.length-1) {
+                                filelistIterator(i+1);
+                            }
+                            else {
+                                successCallback(entries);
+                            }
                         }
                         else if (errorCallback) {
                             errorCallback(NativeFileSystem._nativeToFileError(statErr));
                         }
-
-                    });
-
-                    // exit loop if there is an error
-                    if( statErr )
-                        break;
+                    })
                 }
-
-                if( !statErr )
-                    successCallback( entries );
-                else
-                     errorCallback(NativeFileSystem._nativeToFileError(statErr));
+                filelistIterator(0);
             }
-            else if (errorCallback) {
+            else {
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
         });
     };
-
 
     /** class: FileReader
      *
