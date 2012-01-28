@@ -396,7 +396,10 @@ define(function(require, exports, module) {
             _currentEditor.focus();
     }
     
-    /** Resize the editor. This should only be called if the contents of the editor holder are changed. */
+    /** 
+     * Resize the editor. This should only be called if the contents of the editor holder are changed
+     * or if the height of the editor holder changes. 
+     */
     function resizeEditor() {
         // (see _updateEditorSize() handler above)
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
