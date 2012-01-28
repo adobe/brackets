@@ -142,6 +142,11 @@ define(function (require, exports, module) {
        
         }
         
+        function showJSLintResults(show) {
+            $("#jslint-results").css("display", (show ? "" : "none"));
+            EditorManager.resizeEditor();
+        }
+        
         function runJSLint() {
             var currentDoc = DocumentManager.getCurrentDocument();
             var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
@@ -190,15 +195,11 @@ define(function (require, exports, module) {
                     });
 
                     $("#jslint-results").html("")
-                        .append(errorTable)
-                        .css("display", "");
-                    
-                    // Force a resize of the editor to make sure the lint errors are shown.
-                    EditorManager.resizeEditor();
+                        .append(errorTable);
+                    showJSLintResults(true);
                     $("#gold-star").css("display", "none");
                 } else {
-                    $("#jslint-results").css("display", "none");
-                    EditorManager.resizeEditor();
+                    showJSLintResults(false);
                     $("#gold-star").css("display", "");
                 }
             }
@@ -250,8 +251,7 @@ define(function (require, exports, module) {
                     runJSLint();
                 } else {
                     $("#gold-star").css("display", "none");
-                    $("#jslint-results").css("display", "none");
-                    EditorManager.resizeEditor();
+                    showJSLintResults(false);
                 }
                 $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
             });
@@ -300,7 +300,7 @@ define(function (require, exports, module) {
             
             if (_enableJSLint) {
                 // Hide the JSLint results when changing current document
-                $("#jslint-results").css("display", "none");
+                showJSLintResults(false);
                 $("#gold-star").css("display", "none");
 
                 if (_enableJSLint) {
