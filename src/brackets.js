@@ -150,6 +150,8 @@ define(function (require, exports, module) {
         function runJSLint() {
             var currentDoc = DocumentManager.getCurrentDocument();
             var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
+            var showGoldStar = false;
+            
             if (/^(\.js|\.htm|\.html)$/i.test(ext)) {
                 var text = currentDoc.getText();
                 
@@ -197,12 +199,12 @@ define(function (require, exports, module) {
                         .empty()
                         .append(errorTable);
                     showJSLintResults(true);
-                    $("#gold-star").css("display", "none");
                 } else {
                     showJSLintResults(false);
-                    $("#gold-star").css("display", "");
+                    showGoldStar = true;
                 }
             }
+            $("#gold-star").css("display", showGoldStar ? "" : "none");
         }
         
         function initMenus() {
@@ -297,7 +299,6 @@ define(function (require, exports, module) {
         initKeyBindings();
         
         $(DocumentManager).on("currentDocumentChange", function () {
-            
             if (_enableJSLint) {
                 runJSLint();
             }
