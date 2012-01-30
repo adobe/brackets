@@ -71,7 +71,7 @@ define(function(require, exports, module) {
             , Strings.format(
                     Strings.ERROR_OPENING_FILE
                   , path
-                  , getErrorString(code))
+                  , getFileErrorString(code))
         );
     }
 
