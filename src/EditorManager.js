@@ -116,9 +116,7 @@ define(function(require, exports, module) {
 
     /**
      * Creates a new CodeMirror editor instance containing text from the 
-     * specified fileEntry and wraps it in a new Document tied to the given 
-     * file. The editor is not yet visible; to display it in the main
-     * editor UI area, ask DocumentManager to make this the current document.
+     * specified fileEntry. The editor is not yet visible.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  editor for the fileEntry, or rejected if the file can not be read.
@@ -380,8 +378,10 @@ define(function(require, exports, module) {
         // Don't refresh every single time
         if (!_resizeTimeout) {
             _resizeTimeout = setTimeout(function() {
-                _currentEditor.refresh();
                 _resizeTimeout = null;
+                
+                if (_currentEditor)
+                    _currentEditor.refresh();
             }, 100);
         }
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
