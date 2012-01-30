@@ -142,33 +142,13 @@ define(function (require, exports, module) {
        
         }
         
-        function showJSLintResults(show) {
-            var jslintResults = $("#jslint-results");
-            
-            if (show) {
-                jslintResults.show();
-            } else {
-                jslintResults.hide();
-            }
-            EditorManager.resizeEditor();
-        }
-        
-        function showGoldStar(show) {
-            var goldStar = $("#gold-star");
-            
-            if (show) {
-                goldStar.show();
-            } else {
-                goldStar.hide();
-            }
-        }
-        
         function runJSLint() {
             var currentDoc = DocumentManager.getCurrentDocument();
             var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
-            var goldStar = false;
+            var lintResults = $("#jslint-results");
+            var goldStar = $("#gold-star");
             
-            if (/^(\.js|\.htm|\.html)$/i.test(ext)) {
+            if (_enableJSLint && /^(\.js|\.htm|\.html)$/i.test(ext)) {
                 var text = currentDoc.getText();
                 
                 // If a line contains only whitespace, remove the whitespace
@@ -217,13 +197,20 @@ define(function (require, exports, module) {
                     $("#jslint-results .table-container")
                         .empty()
                         .append(errorTable);
-                    showJSLintResults(true);
+                    lintResults.show();
+                    goldStar.hide();
                 } else {
-                    showJSLintResults(false);
-                    goldStar = true;
+                    lintResults.hide();
+                    goldStar.show();
                 }
+            } else {
+                // JSLint is disabled or does not apply to the current file, hide
+                // both the results and the gold star
+                lintResults.hide();
+                goldStar.hide();
             }
-            showGoldStar(goldStar);
+            
+            EditorManager.resizeEditor();
         }
         
         function initMenus() {
@@ -268,12 +255,7 @@ define(function (require, exports, module) {
             
             $("#menu-debug-jslint").click(function () {
                 _enableJSLint = !_enableJSLint;
-                if (_enableJSLint) {
-                    runJSLint();
-                } else {
-                    showGoldStar(false);
-                    showJSLintResults(false);
-                }
+                runJSLint();
                 $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
             });
         }
@@ -318,13 +300,11 @@ define(function (require, exports, module) {
         initKeyBindings();
         
         $(DocumentManager).on("currentDocumentChange", function () {
-            if (_enableJSLint) {
-                runJSLint();
-            }
+            runJSLint();
         });
         
         $(DocumentManager).on("documentSaved", function (event, document) {
-            if (_enableJSLint && document === DocumentManager.getCurrentDocument()) {
+            if (document === DocumentManager.getCurrentDocument()) {
                 runJSLint();
             }
         });

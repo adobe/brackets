@@ -403,7 +403,8 @@ define(function(require, exports, module) {
     function resizeEditor() {
         // (see _updateEditorSize() handler above)
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-        _currentEditor.refresh();
+        if (_currentEditor)
+            _currentEditor.refresh();
     }
     
     // Define public API
