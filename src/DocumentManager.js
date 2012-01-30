@@ -2,6 +2,9 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false */
+
 /**
  * DocumentManager is the model for the set of currently 'open' files and their contents. It controls
  * which file is currently shown in the editor, the dirty bit for all files, and the list of documents
@@ -15,6 +18,8 @@
  * This module dispatches several events:
  *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
  *      Document whose flag changed.
+ *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
+ *      Document that has been saved.
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *    - workingSetAdd -- When a Document is added to the working set (see getWorkingSet()). The 2nd arg
  *      to the listener is the added Document.
@@ -99,53 +104,53 @@ define(function(require, exports, module) {
         this._editor = editor;
         
         // Dirty-bit tracking
-        editor.setOption("onChange", this._updateDirty.bind(this));
-        this._savedUndoPosition = editor.historySize().undo;   // should always be 0, but just to be safe...
+        editor.setOption("onChange", this._handleEditorChange.bind(this));
+        this.isDirty = false;
     }
     
     /**
-     * @private
-     * TODO: we should close on whether private fields are declared on the prototype like this
-     * @type {number}
-     */
-    Document.prototype._savedUndoPosition = 0;
-    
-    /**
-     * @return {string} The editor's current contents; may not be saved to disk 
+     * @return {string} The document's current contents; may not be saved to disk 
      *  yet. Returns null if the file was not yet read and no editor was 
      *  created.
      */
     Document.prototype.getText = function() {
-        console.assert(this._editor != null);
-
         return this._editor.getValue();
+    }
+    
+    /**
+     * Sets the contents of the document.
+     * @param {!string} text The text to replace the contents of the document with.
+     */
+    Document.prototype.setText = function(text) {
+        this._editor.setValue(text);
+    }
+    
+    /**
+     * Sets the cursor of the document.
+     * @param {number} line The 0 based line number.
+     * @param {number} char The 0 based character position.
+     */
+    Document.prototype.setCursor = function(line, char) {
+        this._editor.setCursor(line, char);
     }
     
     /**
      * @private
      */
-    Document.prototype._updateDirty = function() {
+    Document.prototype._handleEditorChange = function() {
         if (this._editor == null) {
             return;
         }
 
-        // If we've undone past the undo position at the last save, and there is no redo stack,
-        // then we can never get back to a non-dirty state.
-        var historySize = this._editor.historySize();
-        if (historySize.undo < this._savedUndoPosition && historySize.redo == 0) {
-            this._savedUndoPosition = -1;
-        }
-        var newIsDirty = (this._editor.historySize().undo != this._savedUndoPosition);
-        
-        if (this.isDirty != newIsDirty) {
-            this.isDirty = newIsDirty;
-            
-            // Dispatch event
+        // On any change, mark the file dirty. In the future, we should make it so that if you
+        // undo back to the last saved state, we mark the file clean.
+        var wasDirty = this.isDirty;
+        this.isDirty = true;
+
+        // If file just became dirty, notify listeners, and add it to working set (if not already there)
+        if (!wasDirty) {
             $(exports).triggerHandler("dirtyFlagChange", this);
-            
-            // If file just became dirty, add it to working set (if not already there)
-            if (newIsDirty)
-                addToWorkingSet(this);
+            addToWorkingSet(this);
         }
     }
     
@@ -155,8 +160,17 @@ define(function(require, exports, module) {
             return;
         }
 
-        this._savedUndoPosition = this._editor.historySize().undo;
-        this._updateDirty();
+        this.isDirty = false;
+        $(exports).triggerHandler("dirtyFlagChange", this);        
+    }
+    
+    /** 
+     * Called when the document is saved (which currently happens in FileCommandHandlers). Updates the
+     * dirty bit and notifies listeners of the save.
+     */
+    Document.prototype.notifySaved = function() {
+        this.markClean();        
+        $(exports).triggerHandler("documentSaved", this);
     }
     
     /* (pretty toString(), to aid debugging) */
