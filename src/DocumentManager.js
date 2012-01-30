@@ -124,7 +124,16 @@ define(function(require, exports, module) {
     Document.prototype.setText = function(text) {
         this._editor.setValue(text);
     }
-        
+    
+    /**
+     * Sets the cursor of the document.
+     * @param {number} line The 0 based line number.
+     * @param {number} char The 0 based character position.
+     */
+    Document.prototype.setCursor = function(line, char) {
+        this._editor.setCursor(line, char);
+    }
+    
     /**
      * @private
      */

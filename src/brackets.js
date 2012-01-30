@@ -143,14 +143,30 @@ define(function (require, exports, module) {
         }
         
         function showJSLintResults(show) {
-            $("#jslint-results").css("display", (show ? "" : "none"));
+            var jslintResults = $("#jslint-results");
+            
+            if (show) {
+                jslintResults.show();
+            } else {
+                jslintResults.hide();
+            }
             EditorManager.resizeEditor();
+        }
+        
+        function showGoldStar(show) {
+            var goldStar = $("#gold-star");
+            
+            if (show) {
+                goldStar.show();
+            } else {
+                goldStar.hide();
+            }
         }
         
         function runJSLint() {
             var currentDoc = DocumentManager.getCurrentDocument();
             var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
-            var showGoldStar = false;
+            var goldStar = false;
             
             if (/^(\.js|\.htm|\.html)$/i.test(ext)) {
                 var text = currentDoc.getText();
@@ -175,22 +191,25 @@ define(function (require, exports, module) {
                     
                     JSLINT.errors.forEach(function (item, i) {
                         if (item) {
-                            // Add row to error table
-                            var row = $("<tr>")
-                                    .append("<td>" + item.line + "</td>")
-                                    .append("<td>" + item.reason + "</td>")
-                                    .append("<td>" + (item.evidence || "") + "</td>")
-                                    .appendTo(errorTable);
+                            var makeCell = function (content) {
+                                return $("<td/>").text(content);
+                            };
                             
-                            row.click(function (e) {
+                            // Add row to error table
+                            var row = $("<tr/>")
+                                .append(makeCell(item.line))
+                                .append(makeCell(item.reason))
+                                .append(makeCell(item.evidence || ""))
+                                .appendTo(errorTable);
+                            
+                            row.click(function () {
                                 if (selectedRow) {
                                     selectedRow.removeClass("selected");
                                 }
                                 row.addClass("selected");
                                 selectedRow = row;
-                                var editor = currentDoc._editor;
-                                editor.setCursor(item.line - 1, item.character - 1);
-                                editor.focus();
+                                currentDoc.setCursor(item.line - 1, item.character - 1);
+                                EditorManager.focusEditor();
                             });
                         }
                     });
@@ -201,10 +220,10 @@ define(function (require, exports, module) {
                     showJSLintResults(true);
                 } else {
                     showJSLintResults(false);
-                    showGoldStar = true;
+                    goldStar = true;
                 }
             }
-            $("#gold-star").css("display", showGoldStar ? "" : "none");
+            showGoldStar(goldStar);
         }
         
         function initMenus() {
@@ -252,7 +271,7 @@ define(function (require, exports, module) {
                 if (_enableJSLint) {
                     runJSLint();
                 } else {
-                    $("#gold-star").css("display", "none");
+                    showGoldStar(false);
                     showJSLintResults(false);
                 }
                 $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
