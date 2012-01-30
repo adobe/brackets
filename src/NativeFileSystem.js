@@ -103,10 +103,9 @@ define(function(require, exports, module) {
      * @param {string} isFile
      * @constructor
      */
-    NativeFileSystem.Entry = function( fullPath, isDirectory) {
+    NativeFileSystem.Entry = function(fullPath, isDirectory) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
-        // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
 
         // TODO (jasonsj): PATH_SEPARATOR per native OS
         this.fullPath = fullPath;
@@ -119,6 +118,26 @@ define(function(require, exports, module) {
                 this.name = pathParts.pop();
         }
 
+        this.getMetadata = function(successCallBack, errorCallback) {
+            brackets.fs.stat(this.fullPath, function(err, stat){
+                if(err == brackets.fs.NO_ERROR){
+                    var metadata = new NativeFileSystem.Metadata(stat.mtime);
+                    successCallBack(metadata);
+                }
+                else {
+                    errorCallback(err);
+                }
+            });
+
+        };
+
+
+        // IMPLEMENT LATER copyTo(parent, newName, successCallBack, errorCallback)
+        // IMPLEMENT LATER getParent(successCallBack, errorCallback)
+        // IMPLEMENT LATER moveTo( parent, newName, successCallBack, errorCallback )
+        // IMPLEMENT LATER remove(successCallBack, errorCallback)
+        // IMPLEMENT LATER toURL() 
+
         // IMPLEMENT LATER var filesystem;
         // IMPLEMENT LATER void      moveTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
         // IMPLEMENT LATER void      copyTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
@@ -128,18 +147,35 @@ define(function(require, exports, module) {
     };
 
 
+    NativeFileSystem.Metadata = function(modificationTime) {
+        // TODO: make read only
+        this.modificationTime = modificationTime;
+    };
 
-    /**
+    // NativeFileSystem.Entry.prototype.getMetadata = function(successCallBack, errorCallback) {
+    //     brackets.fs.stat(this.fullPath, function(err, stat){
+    //         if(err == brackets.fs.NO_ERROR){
+    //             var metadata = new NativeFileSystem.Metadata(stat.mtime);
+    //             successCallBack(metadata);
+    //         }
+    //         else {
+    //             errorCallback(err);
+    //         }
+    //     });
+
+    // };
+
+
+    /** class: FileEntry
      * This interface represents a file on a file system.
      *
      * @param {string} name
      * @constructor
      * @extends {Entry}
      */
-    NativeFileSystem.FileEntry = function( name ) {
+    NativeFileSystem.FileEntry = function(name) {
+        this.prototype = new NativeFileSystem.Entry();
         NativeFileSystem.Entry.call(this, name, false);
-
-        // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
     };
 
@@ -149,7 +185,7 @@ define(function(require, exports, module) {
      * @param {function(_FileWriter)} successCallback
      * @param {function(FileError)} errorCallback
      */
-    NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
+    NativeFileSystem.FileEntry.prototype.createWriter = function(successCallback, errorCallback) {
         var fileEntry = this;
 
         // [NoInterfaceObject]
@@ -248,6 +284,8 @@ define(function(require, exports, module) {
             successCallback( fileWriter );
         }
     };
+
+
 
     /**
      * This interface extends the FileException interface described in to add
@@ -638,8 +676,24 @@ define(function(require, exports, module) {
         NativeFileSystem.Blob.call( this, entry.fullPath );
 
         // IMPLEMENT LATER get name() { return this.entry.name; }
-        // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
+
     };
+
+    NativeFileSystem.File.prototype.__defineGetter__("lastModifiedDate", function() {
+        var result = undefined;
+
+        brackets.fs.stat(this.fullPath, function(err, stat){
+            if(err == brackets.fs.NO_ERROR){
+                result = stat.mtime; 
+            }
+            else {
+                result = undefined;
+                throw new Error("Error occured calling ");  
+            }
+        });
+
+        return result;
+    });
 
 
     /** class: FileError
