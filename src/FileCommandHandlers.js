@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, undef: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets: false */
+/*global define: false, $: false, brackets: false, PathUtils: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -31,26 +31,15 @@ define(function (require, exports, module) {
     /** @type {string} */
     var _currentTitlePath;
     
-    function init(title) {
-        _title = title;
-
-        // Register global commands
-        CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
-        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-        // TODO: For now, hook up File > New to the "new in project" handler. Eventually
-        // File > New should open a new blank tab, and handleFileNewInProject should
-        // be called from a "+" button in the project
-        CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
-        CommandManager.register(Commands.FILE_SAVE, handleFileSave);
-        CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
-        CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-        CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
-        
-        
-        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
+    function updateTitle() {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        if (currentDoc) {
+            _title.text(_currentTitlePath + (currentDoc.isDirty ? " \u2022" : ""));
+        } else {
+            _title.text("");
+        }
     }
-
+    
     function handleCurrentDocumentChange() {
         var newDocument = DocumentManager.getCurrentDocument();
         
@@ -75,62 +64,6 @@ define(function (require, exports, module) {
         if (changedDoc.file.fullPath === _currentFilePath) {
             updateTitle();
         }
-    }
-
-    function updateTitle() {
-        var currentDoc = DocumentManager.getCurrentDocument();
-        if (currentDoc) {
-            _title.text(_currentTitlePath + (currentDoc.isDirty ? " \u2022" : ""));
-        } else {
-            _title.text("");
-        }
-    }
-    
-    function handleFileAddToWorkingSet(commandData) {
-        handleFileOpen(commandData).done(function (doc) {
-            DocumentManager.addToWorkingSet(doc);
-        });
-    }
-
-    function handleFileOpen(commandData) {
-        var fullPath = null;
-        if (commandData) {
-            fullPath = commandData.fullPath;
-        }
-        
-        var result = doOpenWithOptionalPath(fullPath);
-        result.always(function () {
-            EditorManager.focusEditor();
-        });
-        return result;
-    }
-
-    /**
-     * @private
-     * Creates a document and displays an editor for the specified file path. 
-     * If no path is specified, a file prompt is provided for input.
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
-     *  document for the specified file path, or rejected if the file can not be read.
-     */
-    function doOpenWithOptionalPath(fullPath) {
-        var result;
-        if (!fullPath) {
-            // Prompt the user with a dialog
-            // TODO: we're relying on this to not be asynchronous--is that safe?
-            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath,
-                ["htm", "html", "js", "css"], function (files) {
-                    if (files.length > 0) {
-                        result = doOpen(files[0]);
-                        return;
-                    }
-                });
-        } else {
-            result = doOpen(fullPath);
-        }
-        if (!result) {
-            result = (new $.Deferred()).reject();
-        }
-        return result;
     }
 
     /**
@@ -172,6 +105,93 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * @private
+     * Creates a document and displays an editor for the specified file path. 
+     * If no path is specified, a file prompt is provided for input.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the specified file path, or rejected if the file can not be read.
+     */
+    function doOpenWithOptionalPath(fullPath) {
+        var result;
+        if (!fullPath) {
+            // Prompt the user with a dialog
+            // TODO: we're relying on this to not be asynchronous--is that safe?
+            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath,
+                ["htm", "html", "js", "css"], function (files) {
+                    if (files.length > 0) {
+                        result = doOpen(files[0]);
+                        return;
+                    }
+                });
+        } else {
+            result = doOpen(fullPath);
+        }
+        if (!result) {
+            result = (new $.Deferred()).reject();
+        }
+        return result;
+    }
+
+    function handleFileOpen(commandData) {
+        var fullPath = null;
+        if (commandData) {
+            fullPath = commandData.fullPath;
+        }
+        
+        var result = doOpenWithOptionalPath(fullPath);
+        result.always(function () {
+            EditorManager.focusEditor();
+        });
+        return result;
+    }
+
+    function handleFileAddToWorkingSet(commandData) {
+        handleFileOpen(commandData).done(function (doc) {
+            DocumentManager.addToWorkingSet(doc);
+        });
+    }
+
+    /**
+     * @private
+     * Ensures the suggested file name doesn't already exit.
+     * @param {string} dir  The directory to use
+     * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
+     * @param {string} fileExt  The file extension
+     */
+    function _getUntitledFileSuggestion(dir, baseFileName, fileExt) {
+        var result = new $.Deferred();
+        var suggestedName = baseFileName + fileExt;
+        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
+
+        result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
+            if (nextIndexToUse > 99) {
+                //we've tried this enough
+                result.reject();
+                return;
+            }
+
+            //check this name
+            dirEntry.getFile(
+                suggestedName,
+                {},
+                function successCallback(entry) {
+                    //file exists, notify to the next progress
+                    result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
+                },
+                function errorCallback(error) {
+                    //most likely error is FNF, user is better equiped to handle the rest
+                    result.resolve(suggestedName);
+                }
+            );
+        });
+
+        //kick it off
+        result.notify(baseFileName + fileExt, 1);
+
+        return result;
+    }
+
     function handleFileNewInProject() {
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
@@ -197,9 +217,16 @@ define(function (require, exports, module) {
         return deferred;
     }
     
-    
-    function handleFileSave() {
-        return doSave(DocumentManager.getCurrentDocument());
+    function showSaveFileError(code, path) {
+        return brackets.showModalDialog(
+            brackets.DIALOG_ID_ERROR,
+            Strings.ERROR_SAVING_FILE_TITLE,
+            Strings.format(
+                Strings.ERROR_SAVING_FILE,
+                path,
+                EditorUtils.getFileErrorString(code)
+            )
+        );
     }
     
     function doSave(docToSave) {
@@ -240,6 +267,10 @@ define(function (require, exports, module) {
             EditorManager.focusEditor();
         });
         return result;
+    }
+    
+    function handleFileSave() {
+        return doSave(DocumentManager.getCurrentDocument());
     }
     
     /**
@@ -362,7 +393,7 @@ define(function (require, exports, module) {
             
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: promptOnly };
+            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: commandData.promptOnly };
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
                 result.resolve();
@@ -424,56 +455,24 @@ define(function (require, exports, module) {
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
-    /**
-     * @private
-     * Ensures the suggested file name doesn't already exit.
-     * @param {string} dir  The directory to use
-     * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
-     * @param {string} fileExt  The file extension
-     */
-    function _getUntitledFileSuggestion(dir, baseFileName, fileExt) {
-        var result = new $.Deferred();
-        var suggestedName = baseFileName + fileExt;
-        var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
+    function init(title) {
+        _title = title;
 
-        result.progress(function attemptNewName(suggestedName, nextIndexToUse) {
-            if (nextIndexToUse > 99) {
-                //we've tried this enough
-                result.reject();
-                return;
-            }
-
-            //check this name
-            dirEntry.getFile(
-                suggestedName,
-                {},
-                function successCallback(entry) {
-                    //file exists, notify to the next progress
-                    result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
-                },
-                function errorCallback(error) {
-                    //most likely error is FNF, user is better equiped to handle the rest
-                    result.resolve(suggestedName);
-                }
-            );
-        });
-
-        //kick it off
-        result.notify(baseFileName + fileExt, 1);
-
-        return result;
-    }
-
-    function showSaveFileError(code, path) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
-            Strings.ERROR_SAVING_FILE_TITLE,
-            Strings.format(
-                Strings.ERROR_SAVING_FILE,
-                path,
-                EditorUtils.getFileErrorString(code)
-            )
-        );
+        // Register global commands
+        CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
+        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+        // TODO: For now, hook up File > New to the "new in project" handler. Eventually
+        // File > New should open a new blank tab, and handleFileNewInProject should
+        // be called from a "+" button in the project
+        CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
+        CommandManager.register(Commands.FILE_SAVE, handleFileSave);
+        CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
+        CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
+        
+        
+        $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
+        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     }
 
     // Define public API
