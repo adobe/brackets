@@ -146,24 +146,13 @@ define(function(require, exports, module) {
         // IMPLEMENT LATER void      getParent (EntryCallback successCallback, optional ErrorCallback errorCallback);
     };
 
-
+    /**
+     * Stores information about a FileEntry
+    */
     NativeFileSystem.Metadata = function(modificationTime) {
-        // TODO: make read only
+        // modificationTime is read only
         this.modificationTime = modificationTime;
     };
-
-    // NativeFileSystem.Entry.prototype.getMetadata = function(successCallBack, errorCallback) {
-    //     brackets.fs.stat(this.fullPath, function(err, stat){
-    //         if(err == brackets.fs.NO_ERROR){
-    //             var metadata = new NativeFileSystem.Metadata(stat.mtime);
-    //             successCallBack(metadata);
-    //         }
-    //         else {
-    //             errorCallback(err);
-    //         }
-    //     });
-
-    // };
 
 
     /** class: FileEntry

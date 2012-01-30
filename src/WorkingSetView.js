@@ -101,18 +101,7 @@ define(function(require, exports, module) {
         _updateListItemSelection(newItem, curDoc);
 
         newItem.click(function() {
-           FileViewController.openAndSelectDocument(doc.file.fullPath, FileViewController.WORKING_SET_VIEW);
-
-           // TEST
-           doc.file.getMetadata(
-               function(metadata){
-                console.log(metadata.modificationTime);
-               },
-                function(err){
-                
-                });
-           
-            
+           FileViewController.openAndSelectDocument(doc.file.fullPath, FileViewController.WORKING_SET_VIEW);            
         });
 
         newItem.hover(
