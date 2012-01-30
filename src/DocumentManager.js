@@ -2,6 +2,9 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false */
+
 /**
  * DocumentManager is the model for the set of currently 'open' files and their contents. It controls
  * which file is currently shown in the editor, the dirty bit for all files, and the list of documents
@@ -15,6 +18,8 @@
  * This module dispatches several events:
  *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
  *      Document whose flag changed.
+ *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
+ *      Document that has been saved.
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *    - workingSetAdd -- When a Document is added to the working set (see getWorkingSet()). The 2nd arg
  *      to the listener is the added Document.
@@ -119,7 +124,16 @@ define(function(require, exports, module) {
     Document.prototype.setText = function(text) {
         this._editor.setValue(text);
     }
-        
+    
+    /**
+     * Sets the cursor of the document.
+     * @param {number} line The 0 based line number.
+     * @param {number} char The 0 based character position.
+     */
+    Document.prototype.setCursor = function(line, char) {
+        this._editor.setCursor(line, char);
+    }
+    
     /**
      * @private
      */
@@ -148,6 +162,15 @@ define(function(require, exports, module) {
 
         this.isDirty = false;
         $(exports).triggerHandler("dirtyFlagChange", this);        
+    }
+    
+    /** 
+     * Called when the document is saved (which currently happens in FileCommandHandlers). Updates the
+     * dirty bit and notifies listeners of the save.
+     */
+    Document.prototype.notifySaved = function() {
+        this.markClean();        
+        $(exports).triggerHandler("documentSaved", this);
     }
     
     /* (pretty toString(), to aid debugging) */
