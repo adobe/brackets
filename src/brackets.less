@@ -86,16 +86,12 @@ a, img {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 2;
+    z-index: 20;
 }
 
 #editorHolder {
     .vbox;
     .box-flex(1);
-
-    .CodeMirror-lines {
-        padding: @base-padding;
-    }
     
     /* Placeholder shown when there is no editor open */
     #notEditor {
@@ -115,7 +111,43 @@ a, img {
         }
     }
 }
+    
+#jslint-results {
+    display: none;
+    height: 200px;
+    border-top-style: solid;
+    border-width: 1px;
+    border-color: lighten(@bc-grey, @bc-color-step-size*4);
 
+    .toolbar {
+        height: auto;
+        padding-top: @base-padding / 2;
+        padding-bottom: @base-padding / 2;
+        font-size: 0.9em;
+        .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
+    }
+    
+    .table-container {
+        height: 170px;
+        overflow: auto;
+
+        td {
+            padding-left: @base-padding;
+            padding-right: @base-padding;
+        }
+        
+        tr.selected td {
+            background-color: @bc-light-blue;
+        }
+    }
+}
+
+#gold-star {
+    display: none;
+    font-size: 1.2em;
+    color: lighten(@bc-yellow, @bc-color-step-size*2);
+    text-shadow: 0 -1px @bc-black;
+}
 
 /* Project panel */
 
@@ -277,6 +309,7 @@ a, img {
 
 .CodeMirror-dialog {
   position: relative;
+  z-index: 11;
 }
 
 .CodeMirror-dialog > div {

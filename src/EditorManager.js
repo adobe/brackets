@@ -2,6 +2,9 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false */
+
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
  * property maintained by DocumentManager's model.
@@ -125,6 +128,7 @@ define(function(require, exports, module) {
         reader.done(function(text) {
             var editor = CodeMirror(_editorHolder.get(0), {
                 indentUnit : 4,
+                lineNumbers: true,
                 extraKeys: {
                     "Tab"  : _handleTabKey,
                     "Left" : function(instance) {
@@ -349,9 +353,7 @@ define(function(require, exports, module) {
         $(_currentEditor.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
-        // (see _updateEditorSize() handler below)
-        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-        _currentEditor.refresh();
+        resizeEditor();
     }
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
@@ -384,7 +386,7 @@ define(function(require, exports, module) {
         }
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
         
-        // (see also force-resize code in _showEditor() )
+        // (see also force-resize code in resizeEditor() )
     }
     
     
@@ -394,9 +396,20 @@ define(function(require, exports, module) {
             _currentEditor.focus();
     }
     
+    /** 
+     * Resize the editor. This should only be called if the contents of the editor holder are changed
+     * or if the height of the editor holder changes. 
+     */
+    function resizeEditor() {
+        // (see _updateEditorSize() handler above)
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        if (_currentEditor)
+            _currentEditor.refresh();
+    }
+    
     // Define public API
     exports.setEditorHolder = setEditorHolder;
     exports.createDocumentAndEditor = createDocumentAndEditor;
     exports.focusEditor = focusEditor;
-    
+    exports.resizeEditor = resizeEditor;
 });

@@ -1,6 +1,10 @@
 /*
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
+
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false */
+
 define(function(require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     
@@ -203,7 +207,7 @@ define(function(require, exports, module) {
             
             //setup our resolve and reject handlers
             result.done( function fileSaved() { 
-                docToSave.markClean();
+                docToSave.notifySaved();
             });
 
             result.fail( function fileError(error) { 

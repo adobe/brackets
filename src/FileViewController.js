@@ -2,6 +2,9 @@
  * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false */
+
 /**
  * Responsible for coordinating file seletion between views by permitting only one view
  * to show the current file selection at a time. Currently, only WorkingSetView and 
