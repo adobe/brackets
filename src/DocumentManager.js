@@ -167,7 +167,7 @@ define(function(require, exports, module) {
     }
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
-    Document.prototype.markClean = function() {
+    Document.prototype._markClean = function() {
         if (this._editor === null) {
             return;
         }
@@ -181,8 +181,23 @@ define(function(require, exports, module) {
      * dirty bit and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function() {
-        this.markClean();        
+        this._markClean();
         $(exports).triggerHandler("documentSaved", this);
+        
+        // TODO: this introduces two race conditions: (a) if user leaves app & returns before this
+        // async op finishes, we'll think file was modified externally when it wasn't; (b) if ext
+        // app overwrites file in between when we saved and when this op finishes, we'll miss the
+        // fact that it was modified externally
+        var thisDoc = this;
+        this.file.getMetadata(
+            function(metadata) {
+                thisDoc.diskTimestamp = metadata.modificationTime;
+                console.log("File "+thisDoc.file+" timestamp pushed out to "+thisDoc.diskTimestamp)
+            },
+            function(error) {
+                // FIXME: what to do here?
+            }
+        );
     }
     
     /* (pretty toString(), to aid debugging) */
@@ -262,6 +277,20 @@ define(function(require, exports, module) {
     function getWorkingSet() {
         return _workingSet;
         // TODO: return a clone to prevent meddling?
+    }
+    
+    /**
+     * Returns all documents that are open in editors: the union of the working set and the current
+     * document (which may not be in the working set if it is unmodified).
+     * @return {Array.<Document>}
+     */
+    function getAllOpenDocuments() {
+        var allDocs = _workingSet.slice(0);  //slice() to clone
+        
+        if (_currentDocument != null && allDocs.indexOf(_currentDocument) == -1)
+            allDocs.push(_currentDocument);
+        
+        return allDocs;
     }
     
     /**
@@ -449,9 +478,7 @@ define(function(require, exports, module) {
         // TODO: could be more efficient by clearing working set in bulk instead of via
         // individual notifications, and ensuring we don't switch editors while closing...
         
-        var allDocs = _workingSet.slice(0);  //slice() to clone
-        if (_currentDocument != null && allDocs.indexOf(_currentDocument) == -1)
-            allDocs.push(_currentDocument);
+        var allDocs = getAllOpenDocuments();
         
         for (var i=0; i < allDocs.length; i++) {
             closeDocument( allDocs[i] );
@@ -569,8 +596,9 @@ define(function(require, exports, module) {
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
-    exports.findInWorkingSet = findInWorkingSet;
     exports.getWorkingSet = getWorkingSet;
+    exports.findInWorkingSet = findInWorkingSet;
+    exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;

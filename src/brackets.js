@@ -5,7 +5,16 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, brackets: true, $: false, JSLINT: false, PathUtils: false */
 
-// TODO: break out the definition of brackets into a separate module from the application controller logic
+/**
+ * brackets is the root of the Brackets codebase. This file pulls in all other modules as
+ * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
+ * shortcuts to their Commands.
+ *
+ * TODO: break out the definition of brackets into a separate module from the application controller logic
+ *
+ * Unlike other modules, this one can be accessed without an explicit require() because it exposes
+ * a global object, window.brackets.
+ */
 define(function (require, exports, module) {
     'use strict';
     
@@ -23,6 +32,7 @@ define(function (require, exports, module) {
         WorkingSetView          = require("WorkingSetView"),
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
+        FileWatching            = require("FileWatching"),
         KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
         KeyMap                  = require("KeyBindingManager").KeyMap,
         Commands                = require("Commands"),
@@ -117,6 +127,7 @@ define(function (require, exports, module) {
         });
         return result;
     };
+
 
     $(document).ready(function () {
 
@@ -291,6 +302,18 @@ define(function (require, exports, module) {
                 }
             });
         }
+        
+        function initWindowListeners() {
+            // TODO: to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
+            $(window).focus(function () {
+                FileWatching.checkWorkingSet();
+            });
+            
+            $(window).unload(function () {
+                PreferencesManager.savePreferences();
+            });
+        }
+
 
         EditorManager.setEditorHolder($('#editorHolder'));
     
@@ -298,6 +321,8 @@ define(function (require, exports, module) {
         initMenus();
         initCommandHandlers();
         initKeyBindings();
+        initWindowListeners();
+        
         
         $(DocumentManager).on("currentDocumentChange", function () {
             runJSLint();
@@ -310,8 +335,4 @@ define(function (require, exports, module) {
         });
     });
     
-
-    $(window).unload(function () {
-        PreferencesManager.savePreferences();
-    });
 });
