@@ -252,7 +252,7 @@ define(function (require, exports, module) {
                 // }
 
                 // DONE is set regardless of error
-                this._readyState = NativeFileSystem.FileSaver.DONE;
+                self._readyState = NativeFileSystem.FileSaver.DONE;
                 
                 if (self.onwrite) {
                     // TODO (jasonsj): progressevent
