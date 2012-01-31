@@ -2,10 +2,11 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
+/*global define: false, brackets: true, FileError: false, InvalidateStateError: false */
 
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
 
     // TODO: Determine proper public/private API for this module, splitting into separate modules as needed
 
@@ -22,27 +23,28 @@ define(function(require, exports, module) {
          * @param {function(...)} errorCallback
          * @constructor
          */
-        showOpenDialog: function (  allowMultipleSelection,
-                                    chooseDirectories,
-                                    title,
-                                    initialPath,
-                                    fileTypes,
-                                    successCallback,
-                                    errorCallback )
-        {
-            if( !successCallback )
+        showOpenDialog: function (allowMultipleSelection,
+                                  chooseDirectories,
+                                  title,
+                                  initialPath,
+                                  fileTypes,
+                                  successCallback,
+                                  errorCallback) {
+            if (!successCallback) {
                 return;
+            }
 
-            var files = brackets.fs.showOpenDialog( allowMultipleSelection,
+            var files = brackets.fs.showOpenDialog(allowMultipleSelection,
                 chooseDirectories,
                 title,
                 initialPath,
                 fileTypes,
-                function( err, data ) {
-                    if( ! err )
-                        successCallback( data );
-                    else if (errorCallback)
+                function (err, data) {
+                    if (!err) {
+                        successCallback(data);
+                    } else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
+                    }
                 });
         },
 
@@ -52,19 +54,18 @@ define(function(require, exports, module) {
          * @param {function(...)} successCallback
          * @param {function(...)} errorCallback
          */
-        requestNativeFileSystem: function( path, successCallback, errorCallback ){
-            brackets.fs.stat(path, function( err, data ){
-                if( !err ){
-                    var root = new NativeFileSystem.DirectoryEntry( path );
-                    successCallback( root );
-                }
-                else if (errorCallback) {
+        requestNativeFileSystem: function (path, successCallback, errorCallback) {
+            brackets.fs.stat(path, function (err, data) {
+                if (!err) {
+                    var root = new NativeFileSystem.DirectoryEntry(path);
+                    successCallback(root);
+                } else if (errorCallback) {
                     errorCallback(NativeFileSystem._nativeToFileError(err));
                 }
             });
         },
 
-        _nativeToFileError: function(nativeErr) {
+        _nativeToFileError: function (nativeErr) {
             // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
             // not covered by other error codes.
             var error = FileError.SECURITY_ERR;
@@ -72,30 +73,30 @@ define(function(require, exports, module) {
             switch (nativeErr) {
                 // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
                 // since there aren't specific mappings for these.
-                case brackets.fs.ERR_UNKNOWN:
-                case brackets.fs.ERR_INVALID_PARAMS:
-                    error = FileError.SECURITY_ERR;
-                    break;
-                case brackets.fs.ERR_NOT_FOUND:
-                    error = FileError.NOT_FOUND_ERR;
-                    break;
-                case brackets.fs.ERR_CANT_READ:
-                    error = FileError.NOT_READABLE_ERR;
-                    break;
-                // It might seem like you should use FileError.ENCODING_ERR for this,
-                // but according to the spec that's for malformed URLs.
-                case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                    error = FileError.SECURITY_ERR;
-                    break;
-                case brackets.fs.ERR_CANT_WRITE:
-                    error = FileError.NO_MODIFICATION_ALLOWED_ERR;
-                    break;
-                case brackets.fs.ERR_OUT_OF_SPACE:
-                    error = FileError.QUOTA_EXCEEDED_ERR;
-                    break;
-                case brackets.fs.PATH_EXISTS_ERR:
-                    error = FileError.PATH_EXISTS_ERR;
-                    break;
+            case brackets.fs.ERR_UNKNOWN:
+            case brackets.fs.ERR_INVALID_PARAMS:
+                error = FileError.SECURITY_ERR;
+                break;
+            case brackets.fs.ERR_NOT_FOUND:
+                error = FileError.NOT_FOUND_ERR;
+                break;
+            case brackets.fs.ERR_CANT_READ:
+                error = FileError.NOT_READABLE_ERR;
+                break;
+            // It might seem like you should use FileError.ENCODING_ERR for this,
+            // but according to the spec that's for malformed URLs.
+            case brackets.fs.ERR_UNSUPPORTED_ENCODING:
+                error = FileError.SECURITY_ERR;
+                break;
+            case brackets.fs.ERR_CANT_WRITE:
+                error = FileError.NO_MODIFICATION_ALLOWED_ERR;
+                break;
+            case brackets.fs.ERR_OUT_OF_SPACE:
+                error = FileError.QUOTA_EXCEEDED_ERR;
+                break;
+            case brackets.fs.PATH_EXISTS_ERR:
+                error = FileError.PATH_EXISTS_ERR;
+                break;
             }
             return new NativeFileSystem.FileError(error);
         }
@@ -107,21 +108,40 @@ define(function(require, exports, module) {
      * @param {string} isFile
      * @constructor
      */
-    NativeFileSystem.Entry = function( fullPath, isDirectory) {
+    NativeFileSystem.Entry = function (fullPath, isDirectory) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
-        // IMPLEMENT LATER void      getMetadata (MetadataCallback successCallback, optional ErrorCallback errorCallback);
 
         // TODO (jasonsj): PATH_SEPARATOR per native OS
         this.fullPath = fullPath;
 
         // Extract name from fullPath
         this.name = null; // default if extraction fails
-        if( fullPath ){
-            var pathParts = fullPath.split( "/" );
-            if( pathParts.length > 0 )
+        if (fullPath) {
+            var pathParts = fullPath.split("/");
+            if (pathParts.length > 0) {
                 this.name = pathParts.pop();
+            }
         }
+
+        this.getMetadata = function (successCallBack, errorCallback) {
+            brackets.fs.stat(this.fullPath, function (err, stat) {
+                if (err === brackets.fs.NO_ERROR) {
+                    var metadata = new NativeFileSystem.Metadata(stat.mtime);
+                    successCallBack(metadata);
+                } else {
+                    errorCallback(err);
+                }
+            });
+
+        };
+
+
+        // IMPLEMENT LATER copyTo(parent, newName, successCallBack, errorCallback)
+        // IMPLEMENT LATER getParent(successCallBack, errorCallback)
+        // IMPLEMENT LATER moveTo(parent, newName, successCallBack, errorCallback)
+        // IMPLEMENT LATER remove(successCallBack, errorCallback)
+        // IMPLEMENT LATER toURL() 
 
         // IMPLEMENT LATER var filesystem;
         // IMPLEMENT LATER void      moveTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
@@ -131,37 +151,43 @@ define(function(require, exports, module) {
         // IMPLEMENT LATER void      getParent (EntryCallback successCallback, optional ErrorCallback errorCallback);
     };
 
-
-
     /**
+     * Stores information about a FileEntry
+    */
+    NativeFileSystem.Metadata = function (modificationTime) {
+        // modificationTime is read only
+        this.modificationTime = modificationTime;
+    };
+
+
+    /** class: FileEntry
      * This interface represents a file on a file system.
      *
      * @param {string} name
      * @constructor
      * @extends {Entry}
      */
-    NativeFileSystem.FileEntry = function( name ) {
+    NativeFileSystem.FileEntry = function (name) {
+        this.prototype = new NativeFileSystem.Entry();
         NativeFileSystem.Entry.call(this, name, false);
-
-        // TODO: make FileEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
 
     };
 
     /**
      * Creates a new FileWriter associated with the file that this FileEntry represents.
      *
-     * @param {function(_FileWriter)} successCallback
-     * @param {function(FileError)} errorCallback
+     * @param {function (FileWriter)} successCallback
+     * @param {function (FileError)} errorCallback
      */
-    NativeFileSystem.FileEntry.prototype.createWriter = function( successCallback, errorCallback ) {
+    NativeFileSystem.FileEntry.prototype.createWriter = function (successCallback, errorCallback) {
         var fileEntry = this;
 
         // [NoInterfaceObject]
         // interface FileWriter : FileSaver
-        var _FileWriter = function( data ) {
+        var FileWriter = function (data) {
             NativeFileSystem.FileSaver.call(this, data);
 
-            // _FileWriter private memeber vars
+            // FileWriter private memeber vars
             this._length = 0;
             this._position = 0;
 
@@ -169,89 +195,93 @@ define(function(require, exports, module) {
             // TODO (jasonsj): handle async
             var self = this;
 
-            brackets.fs.readFile( fileEntry.fullPath, "utf8", function(err, contents) {
+            brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
                 self._err = err;
 
-                if ( contents )
+                if (contents) {
                     self._length = contents.length;
+                }
             });
         };
 
-        _FileWriter.prototype.length = function( ) {
+        FileWriter.prototype.length = function () {
             return this._length;
         };
 
-        _FileWriter.prototype.position = function( ) {
+        FileWriter.prototype.position = function () {
             return this._position;
         };
 
         // TODO (jasonsj): handle Blob data instead of string
-        _FileWriter.prototype.write = function( data ) {
-            if ( data === undefined )
+        FileWriter.prototype.write = function (data) {
+            if (data === undefined) {
                 throw new Error();
+            }
 
-            if ( this.readyState === NativeFileSystem.FileSaver.WRITING )
-                throw new NativeFileSystem.FileException( NativeFileSystem.FileException.INVALID_STATE_ERR );
+            if (this.readyState === NativeFileSystem.FileSaver.WRITING) {
+                throw new NativeFileSystem.FileException(NativeFileSystem.FileException.INVALID_STATE_ERR);
+            }
 
             this._readyState = NativeFileSystem.FileSaver.WRITING;
 
-            if ( this.onwritestart ) {
+            if (this.onwritestart) {
                 // TODO (jasonsj): progressevent
                 this.onwritestart();
             }
 
             var self = this;
 
-            brackets.fs.writeFile( fileEntry.fullPath, data, "utf8", function( err ) {
+            brackets.fs.writeFile(fileEntry.fullPath, data, "utf8", function (err) {
 
-                if ( ( err != brackets.fs.NO_ERROR ) && self.onerror ) {
-                    fileError = NativeFileSystem._nativeToFileError( err );
+                if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
+                    var fileError = NativeFileSystem._nativeToFileError(err);
 
                     // TODO (jasonsj): set readonly FileSaver.error attribute
                     // self._error = fileError;
-                    self.onerror ( fileError );
+                    self.onerror(fileError);
 
                     // TODO (jasonsj): partial write, update length and position
                 }
-                else {
+                // else {
                     // TODO (jasonsj): After changing data argument to Blob, use
                     // Blob.size to update position and length upon successful
                     // completion of a write.
 
                     // self.position = ;
                     // self.length = ;
-                }
+                // }
 
                 // DONE is set regardless of error
                 this._readyState = NativeFileSystem.FileSaver.DONE;
-
-                if ( self.onwrite ) {
+                
+                if (self.onwrite) {
                     // TODO (jasonsj): progressevent
                     self.onwrite();
                 }
 
-                if ( self.onwriteend ) {
+                if (self.onwriteend) {
                     // TODO (jasonsj): progressevent
                     self.onwriteend();
                 }
             });
         };
 
-        _FileWriter.prototype.seek = function( offset ) {
+        FileWriter.prototype.seek = function (offset) {
         };
 
-        _FileWriter.prototype.truncate = function( size ) {
+        FileWriter.prototype.truncate = function (size) {
         };
 
-        var fileWriter = new _FileWriter();
+        var fileWriter = new FileWriter();
 
-        if ( fileWriter._err && ( errorCallback !== undefined ) ) {
-            errorCallback( NativeFileSystem._nativeToFileError( fileWriter._err ) );
-        }
-        else if ( successCallback !== undefined ) {
-            successCallback( fileWriter );
+        if (fileWriter._err && (errorCallback !== undefined)) {
+            errorCallback(NativeFileSystem._nativeToFileError(fileWriter._err));
+        } else if (successCallback !== undefined) {
+            successCallback(fileWriter);
         }
     };
+
+
 
     /**
      * This interface extends the FileException interface described in to add
@@ -263,22 +293,22 @@ define(function(require, exports, module) {
      * constants of the FileException exception, which must be the most appropriate
      * code from the table below.
      */
-    NativeFileSystem.FileException = function ( code ){
+    NativeFileSystem.FileException = function (code) {
         this.code = code || 0;
     };
 
     // FileException constants
     Object.defineProperties(NativeFileSystem.FileException,
-        { NOT_FOUND_ERR:                { value: 1, writable: false }
-        , SECURITY_ERR:                 { value: 2, writable: false }
-        , ABORT_ERR:                    { value: 3, writable: false }
-        , NOT_READABLE_ERR:             { value: 4, writable: false }
-        , ENCODING_ERR:                 { value: 5, writable: false }
-        , NO_MODIFICATION_ALLOWED_ERR:  { value: 6, writable: false }
-        , INVALID_STATE_ERR:            { value: 7, writable: false }
-        , SYNTAX_ERR:                   { value: 8, writable: false }
-        , QUOTA_EXCEEDED_ERR:           { value: 10, writable: false }
-    });
+        {   NOT_FOUND_ERR:                { value: 1, writable: false },
+            SECURITY_ERR:                 { value: 2, writable: false },
+            ABORT_ERR:                    { value: 3, writable: false },
+            NOT_READABLE_ERR:             { value: 4, writable: false },
+            ENCODING_ERR:                 { value: 5, writable: false },
+            NO_MODIFICATION_ALLOWED_ERR:  { value: 6, writable: false },
+            INVALID_STATE_ERR:            { value: 7, writable: false },
+            SYNTAX_ERR:                   { value: 8, writable: false },
+            QUOTA_EXCEEDED_ERR:           { value: 10, writable: false }
+            });
 
     /**
      * This interface provides methods to monitor the asynchronous writing of blobs
@@ -290,7 +320,7 @@ define(function(require, exports, module) {
      * @param {Blob} data
      * @constructor
      */
-    NativeFileSystem.FileSaver = function( data ) {
+    NativeFileSystem.FileSaver = function (data) {
         // FileSaver private member vars
         this._data = data;
         this._readyState = NativeFileSystem.FileSaver.INIT;
@@ -299,40 +329,39 @@ define(function(require, exports, module) {
 
     // FileSaver constants
     Object.defineProperties(NativeFileSystem.FileSaver,
-        { INIT:     { value: 1, writable: false }
-        , WRITING:  { value: 2, writable: false }
-        , DONE:     { value: 3, writable: false }
-    });
+        {   INIT:     { value: 1, writable: false },
+            WRITING:  { value: 2, writable: false },
+            DONE:     { value: 3, writable: false }
+            });
 
     // FileSaver methods
 
     /**
      *
      */
-    NativeFileSystem.FileSaver.prototype.readyState = function() {
+    NativeFileSystem.FileSaver.prototype.readyState = function () {
         return this._readyState;
-    }
+    };
 
     // TODO (jasonsj): http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
-    NativeFileSystem.FileSaver.prototype.abort = function() {
+    NativeFileSystem.FileSaver.prototype.abort = function () {
         // If readyState is DONE or INIT, terminate this overall series of steps without doing anything else..
-        if (_readyState == FileSaver.INIT || _readyState == FileSaver.DONE)
-        return;
+        if (this._readyState === NativeFileSystem.FileSaver.INIT || this._readyState === NativeFileSystem.FileSaver.DONE) {
+            return;
+        }
 
         // Terminate any steps having to do with writing a file.
 
         // Set the error attribute to a FileError object with the code ABORT_ERR.
-        _error = new NativeFileSystem.FileError(FileError.ABORT_ERR);
+        this._error = new NativeFileSystem.FileError(FileError.ABORT_ERR);
 
         // Set readyState to DONE.
-        _readyState = FileSaver.DONE;
+        this._readyState = NativeFileSystem.FileSaver.DONE;
 
         // Dispatch a progress event called abort
         // Dispatch a progress event called writeend
         // Stop dispatching any further progress events.
         // Terminate this overall set of steps.
-
-        return err;
     };
 
     /**
@@ -341,9 +370,9 @@ define(function(require, exports, module) {
      * @param {function(...)} successCallback
      * @param {function(...)} errorCallback
      */
-    NativeFileSystem.FileEntry.prototype.file = function( successCallback, errorCallback ){
-        var newFile = new NativeFileSystem.File( this );
-        successCallback( newFile );
+    NativeFileSystem.FileEntry.prototype.file = function (successCallback, errorCallback) {
+        var newFile = new NativeFileSystem.File(this);
+        successCallback(newFile);
 
         // TODO Ty: error handling
         // errorCallback
@@ -351,7 +380,7 @@ define(function(require, exports, module) {
 
     /*
     TODO Jason
-    NativeFileSystem.FileEntry.prototype.createfileerror = function( successCallback, errorCallback ){
+    NativeFileSystem.FileEntry.prototype.createfileerror = function (successCallback, errorCallback) {
     };
     */
 
@@ -362,7 +391,7 @@ define(function(require, exports, module) {
      * @param {string} name
      * @extends {Entry}
      */
-    NativeFileSystem.DirectoryEntry = function( name ) {
+    NativeFileSystem.DirectoryEntry = function (name) {
         NativeFileSystem.Entry.call(this, name, true);
 
         // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
@@ -372,7 +401,7 @@ define(function(require, exports, module) {
     };
 
 
-    NativeFileSystem.DirectoryEntry.prototype.createReader = function() {
+    NativeFileSystem.DirectoryEntry.prototype.createReader = function () {
         var dirReader = new NativeFileSystem.DirectoryReader();
         dirReader._directory = this;
 
@@ -387,46 +416,47 @@ define(function(require, exports, module) {
      *        to attempt to create a file whose immediate parent does not yet
      *        exist.
      * @param {Object.<string, boolean>} options
-     * @param {function(number)} successCallback
-     * @param {function(number)} errorCallback
+     * @param {function (number)} successCallback
+     * @param {function (number)} errorCallback
      */
-    NativeFileSystem.DirectoryEntry.prototype.getFile = function( path, options, successCallback, errorCallback ) {
+    NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
         var fileFullPath = path;
         
         // assume relative paths are relative to this directory
-        if (path.charAt(0) !== '/') 
+        if (path.charAt(0) !== '/') {
             fileFullPath = this.fullPath + "/" + path;
+        }
 
         var createFileEntry = function () {
-            if ( successCallback ) {
-                successCallback( new NativeFileSystem.FileEntry( fileFullPath ) );
+            if (successCallback) {
+                successCallback(new NativeFileSystem.FileEntry(fileFullPath));
             }
-        }
+        };
 
-        var createFileError = function ( err ) {
-            if ( errorCallback ) {
-                errorCallback( NativeFileSystem._nativeToFileError( err ) );
+        var createFileError = function (err) {
+            if (errorCallback) {
+                errorCallback(NativeFileSystem._nativeToFileError(err));
             }
-        }
+        };
 
         // Use stat() to check if file exists
-        brackets.fs.stat( fileFullPath, function( err, stats ) {
-            if ( ( err === brackets.fs.NO_ERROR ) ) {
+        brackets.fs.stat(fileFullPath, function (err, stats) {
+            if ((err === brackets.fs.NO_ERROR)) {
                 // NO_ERROR implies the path already exists
 
                 // throw error if the file the path is a directory
-                if ( stats.isDirectory() ) {
-                    if ( errorCallback ) {
-                        errorCallback( new NativeFileSystem.FileError( FileError.TYPE_MISMATCH_ERR ) );
+                if (stats.isDirectory()) {
+                    if (errorCallback) {
+                        errorCallback(new NativeFileSystem.FileError(FileError.TYPE_MISMATCH_ERR));
                     }
 
                     return;
                 }
 
                 // throw error if the file exists but create is exclusive
-                if ( options.create && options.exclusive ) {
-                    if ( errorCallback ) {
-                        errorCallback( new NativeFileSystem.FileError( FileError.PATH_EXISTS_ERR ) );
+                if (options.create && options.exclusive) {
+                    if (errorCallback) {
+                        errorCallback(new NativeFileSystem.FileError(FileError.PATH_EXISTS_ERR));
                     }
 
                     return;
@@ -435,28 +465,29 @@ define(function(require, exports, module) {
                 // Create a file entry for the existing file. If create == true,
                 // a file entry is created without error.
                 createFileEntry();
-            } else if ( err === brackets.fs.ERR_NOT_FOUND ) {
+            } else if (err === brackets.fs.ERR_NOT_FOUND) {
                 // ERR_NOT_FOUND implies we write a new, empty file
 
                 // create the file
-                if ( options.create ) {
-                    brackets.fs.writeFile( fileFullPath, "", "utf8", function( err ) {
-                        if ( err )
-                            createFileError( err );
-                        else
+                if (options.create) {
+                    brackets.fs.writeFile(fileFullPath, "", "utf8", function (err) {
+                        if (err) {
+                            createFileError(err);
+                        } else {
                             createFileEntry();
+                        }
                     });
 
                     return;
                 }
 
                 // throw error if file not found and the create == false
-                if ( errorCallback ) {
-                    errorCallback( new NativeFileSystem.FileError( FileError.NOT_FOUND_ERR ) );
+                if (errorCallback) {
+                    errorCallback(new NativeFileSystem.FileError(FileError.NOT_FOUND_ERR));
                 }
             } else {
                 // all other brackets.fs.stat() errors
-                createFileError( err );
+                createFileError(err);
             }
         });
     };
@@ -464,7 +495,7 @@ define(function(require, exports, module) {
 
     /** class: DirectoryReader
      */
-    NativeFileSystem.DirectoryReader = function() {
+    NativeFileSystem.DirectoryReader = function () {
 
     };
 
@@ -476,39 +507,35 @@ define(function(require, exports, module) {
      * @returns {Array.<Entry>}
      */
     // TODO: Parallelize the XHRs using something like Promises?
-    NativeFileSystem.DirectoryReader.prototype.readEntries = function( successCallback, errorCallback ) {
+    NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
         var rootPath = this._directory.fullPath;
-        brackets.fs.readdir( rootPath, function( err, filelist ) {
+        brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
                 var entries = [];
-                var filelistIterator = function(i) {
+                var filelistIterator = function (i) {
                     var item = filelist[i];
                     var itemFullPath = rootPath + "/" + item;
-                    brackets.fs.stat( itemFullPath, function( statErr, statData) {
+                    brackets.fs.stat(itemFullPath, function (statErr, statData) {
                         if (!statErr) {
 
                             if (statData.isDirectory()) {
-                                entries.push( new NativeFileSystem.DirectoryEntry( itemFullPath ) );
-                            }
-                            else if (statData.isFile()) {
-                                entries.push( new NativeFileSystem.FileEntry( itemFullPath ) );
+                                entries.push(new NativeFileSystem.DirectoryEntry(itemFullPath));
+                            } else if (statData.isFile()) {
+                                entries.push(new NativeFileSystem.FileEntry(itemFullPath));
                             }
 
-                            if (i < filelist.length-1) {
-                                filelistIterator(i+1);
-                            }
-                            else {
+                            if (i < filelist.length - 1) {
+                                filelistIterator(i + 1);
+                            } else {
                                 successCallback(entries);
                             }
-                        }
-                        else if (errorCallback) {
+                        } else if (errorCallback) {
                             errorCallback(NativeFileSystem._nativeToFileError(statErr));
                         }
-                    })
-                }
+                    });
+                };
                 filelistIterator(0);
-            }
-            else {
+            } else {
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
         });
@@ -518,7 +545,7 @@ define(function(require, exports, module) {
      *
      * @extends {EventTarget}
      */
-    NativeFileSystem.FileReader = function() {
+    NativeFileSystem.FileReader = function () {
         // Todo Ty: this classes should extend EventTarget
 
         // async read methods
@@ -556,40 +583,42 @@ define(function(require, exports, module) {
      * @param {Blob} blob
      * @param {string} encoding
      */
-    NativeFileSystem.FileReader.prototype.readAsText = function( blob, encoding) {
+    NativeFileSystem.FileReader.prototype.readAsText = function (blob, encoding) {
         var self = this;
 
-        if( !encoding )
+        if (!encoding) {
             encoding = "utf-8";
+        }
 
-        if( this.readyState == this.LOADING )
+        if (this.readyState === this.LOADING) {
             throw new InvalidateStateError();
+        }
 
         this.readyState = this.LOADING;
 
-        if( this.onloadstart )
+        if (this.onloadstart) {
             this.onloadstart(); // todo params
+        }
 
-        brackets.fs.readFile( blob._fullPath, encoding, function( err, data) {
+        brackets.fs.readFile(blob._fullPath, encoding, function (err, data) {
 
             // TODO: the event objects passed to these event handlers is fake and incomplete right now
             var fakeEvent =
-                { loaded: 0
-                , total: 0
-                };
+                {   loaded: 0,
+                    total: 0
+                    };
 
             // The target for this event is the FileReader and the data/err result is stored in the FileReader
             fakeEvent.target = this;
             this.result = data;
             this.error = NativeFileSystem._nativeToFileError(err);
 
-            if( err ){
+            if (err) {
                 this.readyState = this.DONE;
-                if( self.onerror ){
+                if (self.onerror) {
                     self.onerror(fakeEvent);
                 }
-            }
-            else{
+            } else {
                 this.readyState = this.DONE;
 
                 // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
@@ -597,18 +626,21 @@ define(function(require, exports, module) {
                 fakeEvent.loaded = 1;
                 fakeEvent.total = 1;
 
-                if( self.onprogress )
+                if (self.onprogress) {
                     self.onprogress(fakeEvent);
+                }
 
                 // TODO: this.onabort not currently supported since our native implementation doesn't support it
-                // if( self.onabort )
+                // if (self.onabort)
                 //    self.onabort(fakeEvent);
 
-                if( self.onload )
-                    self.onload( fakeEvent );
+                if (self.onload) {
+                    self.onload(fakeEvent);
+                }
 
-                if( self.onloadend )
+                if (self.onloadend) {
                     self.onloadend();
+                }
             }
 
         });
@@ -619,7 +651,7 @@ define(function(require, exports, module) {
      * @constructor
      * param {Entry} entry
      */
-    NativeFileSystem.Blob = function ( fullPath ){
+    NativeFileSystem.Blob = function (fullPath) {
         this._fullPath = fullPath;
 
         // IMPLEMENT LATER readonly attribute unsigned long long size;
@@ -638,12 +670,27 @@ define(function(require, exports, module) {
      * param {Entry} entry
      * @extends {Blob}
      */
-    NativeFileSystem.File = function ( entry ){
-        NativeFileSystem.Blob.call( this, entry.fullPath );
+    NativeFileSystem.File = function (entry) {
+        NativeFileSystem.Blob.call(this, entry.fullPath);
 
         // IMPLEMENT LATER get name() { return this.entry.name; }
-        // IMPLEMENT LATER get lastModifiedDate() { return } use stat to get mod date
+
     };
+
+    NativeFileSystem.File.prototype.__defineGetter__("lastModifiedDate", function () {
+        var result;
+
+        brackets.fs.stat(this.fullPath, function (err, stat) {
+            if (err === brackets.fs.NO_ERROR) {
+                result = stat.mtime;
+            } else {
+                result = undefined;
+                throw new Error("Error occured calling ");
+            }
+        });
+
+        return result;
+    });
 
 
     /** class: FileError
@@ -657,7 +704,7 @@ define(function(require, exports, module) {
      * @param {number} code The error code to return with this FileError. Must be
      * one of the codes defined in the FileError class.
      */
-    NativeFileSystem.FileError = function( code ) {
+    NativeFileSystem.FileError = function (code) {
         this.code = code || 0;
     };
 
