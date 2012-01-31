@@ -47,12 +47,14 @@ define(function(require, exports, module) {
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!CodeMirror} editor  Optional. The editor that will maintain the document state (current text
+     * @param {?CodeMirror} editor  Optional. The editor that will maintain the document state (current text
      *          and undo stack). It is assumed that the editor text has already been initialized
      *          with the file's contents. The editor may be null when the working set is restored
      *          at initialization.
+     * @param {?Date} initialTimestamp  Timestamp of file at the time we read its contents from disk.
+     *          Required if editor is passed.
      */
-    function Document(file, editor) {
+    function Document(file, editor, initialTimestamp) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
@@ -61,7 +63,9 @@ define(function(require, exports, module) {
         }
         
         this.file = file;
-        this._setEditor(editor);
+        
+        if (editor != null)
+            this._setEditor(editor, initialTimestamp);
     }
     
     /**
@@ -78,6 +82,13 @@ define(function(require, exports, module) {
     Document.prototype.isDirty = false;
     
     /**
+     * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
+     * it means the file was modified by an app other than Brackets.
+     * @type {!Date}
+     */
+    Document.prototype.diskTimestamp = null;
+    
+    /**
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
      * other than DocumentManager and EditorManager should access it.
@@ -92,16 +103,17 @@ define(function(require, exports, module) {
     /**
      * @private
      * Initialize the editor instance for this file.
+     * @param {!CodeMirror} editor
+     * @param {!Date} initialTimestamp
      */
-    Document.prototype._setEditor = function(editor) {
-        if (editor === undefined) {
-            return;
-        }
-        
+    Document.prototype._setEditor = function(editor, initialTimestamp) {
         // Editor can only be assigned once per Document
         console.assert(this._editor === null);
+        
+        console.log("Installed editor for "+this.file+" - TS = "+initialTimestamp)
 
         this._editor = editor;
+        this.diskTimestamp = initialTimestamp;
         
         // Dirty-bit tracking
         editor.setOption("onChange", this._handleEditorChange.bind(this));
@@ -344,7 +356,7 @@ define(function(require, exports, module) {
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @return {Deferred} a jQuery Deferred that will be resolved with the 
-     *  file text content for the fileEntry, or rejected with a FileError if
+     *  file's text content plus its timestamp, or rejected with a FileError if
      *  the file can not be read.
      */
     function readAsText(fileEntry) {
@@ -353,7 +365,16 @@ define(function(require, exports, module) {
 
         fileEntry.file(function(file) {
             reader.onload = function(event) {
-                result.resolve(event.target.result);
+                var text = event.target.result;
+                
+                fileEntry.getMetadata(
+                    function(metadata) {
+                        result.resolve(text, metadata.modificationTime);
+                    },
+                    function(error) {
+                        result.reject(error);
+                    }
+                );
             };
 
             reader.onerror = function(event) {
