@@ -571,7 +571,6 @@ define(function(require, exports, module) {
             this.onloadstart(); // todo params
 
         brackets.fs.readFile( blob._fullPath, encoding, function( err, data) {
-
             // TODO: the event objects passed to these event handlers is fake and incomplete right now
             var fakeEvent =
                 { loaded: 0
@@ -579,18 +578,18 @@ define(function(require, exports, module) {
                 };
 
             // The target for this event is the FileReader and the data/err result is stored in the FileReader
-            fakeEvent.target = this;
-            this.result = data;
-            this.error = NativeFileSystem._nativeToFileError(err);
+            fakeEvent.target = self;
+            self.result = data;
+            self.error = NativeFileSystem._nativeToFileError(err);
 
             if( err ){
-                this.readyState = this.DONE;
+                self.readyState = self.DONE;
                 if( self.onerror ){
                     self.onerror(fakeEvent);
                 }
             }
             else{
-                this.readyState = this.DONE;
+                self.readyState = self.DONE;
 
                 // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
                 // and since we read the file in one go, assume 100% after the first read
@@ -600,7 +599,7 @@ define(function(require, exports, module) {
                 if( self.onprogress )
                     self.onprogress(fakeEvent);
 
-                // TODO: this.onabort not currently supported since our native implementation doesn't support it
+                // TODO: onabort not currently supported since our native implementation doesn't support it
                 // if( self.onabort )
                 //    self.onabort(fakeEvent);
 
