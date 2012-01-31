@@ -175,49 +175,52 @@ define(function (require, exports, module) {
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
-        _projectTree = projectTreeContainer.jstree(
-            {
-                plugins : ["ui", "themes", "json_data", "crrm"],
-                json_data : { data: treeDataProvider, correct_state: false },
-                core : { animation: 0 },
-                themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
-                    //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
-                    // file because jsTree insists on loading one itself)
-                strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
-            }
-        ).bind(
-            "select_node.jstree",
-            function (event, data) {
-                var entry = data.rslt.obj.data("entry");
-                if (entry.isFile) {
-                    FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+        _projectTree = projectTreeContainer
+            .jstree(
+                {
+                    plugins : ["ui", "themes", "json_data", "crrm"],
+                    json_data : { data: treeDataProvider, correct_state: false },
+                    core : { animation: 0 },
+                    themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
+                        //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
+                        // file because jsTree insists on loading one itself)
+                    strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
                 }
-            }
-        ).bind(
-            "reopen.jstree",
-            function (event, data) {
-                // This handler fires for the initial load and subsequent
-                // reload_nodes events. For each depth level of the tree, we open
-                // the saved nodes by a fullPath lookup.
-                if (_projectInitialLoad.previous.length > 0) {
-                    // load previously open nodes by increasing depth
-                    var toOpenPaths = _projectInitialLoad.previous.shift(),
-                        toOpenIds   = [];
-    
-                    // use path to lookup ID
-                    $.each(toOpenPaths, function (index, value) {
-                        toOpenIds.push(_projectInitialLoad.fullPathToIdMap[value]);
-                    });
-    
-                    // specify nodes to open and load
-                    data.inst.data.core.to_open = toOpenIds;
-                    _projectTree.jstree("reload_nodes", false);
+            )
+            .bind(
+                "select_node.jstree",
+                function (event, data) {
+                    var entry = data.rslt.obj.data("entry");
+                    if (entry.isFile) {
+                        FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                    }
                 }
-                if (_projectInitialLoad.previous.length === 0) {
-                    result.resolve();
+            )
+            .bind(
+                "reopen.jstree",
+                function (event, data) {
+                    // This handler fires for the initial load and subsequent
+                    // reload_nodes events. For each depth level of the tree, we open
+                    // the saved nodes by a fullPath lookup.
+                    if (_projectInitialLoad.previous.length > 0) {
+                        // load previously open nodes by increasing depth
+                        var toOpenPaths = _projectInitialLoad.previous.shift(),
+                            toOpenIds   = [];
+        
+                        // use path to lookup ID
+                        $.each(toOpenPaths, function (index, value) {
+                            toOpenIds.push(_projectInitialLoad.fullPathToIdMap[value]);
+                        });
+        
+                        // specify nodes to open and load
+                        data.inst.data.core.to_open = toOpenIds;
+                        _projectTree.jstree("reload_nodes", false);
+                    }
+                    if (_projectInitialLoad.previous.length === 0) {
+                        result.resolve();
+                    }
                 }
-            }
-        );
+            );
 
         // jstree has a default event handler for dblclick that attempts to clear the
         // global window selection (presumably because it doesn't want text within the tree
