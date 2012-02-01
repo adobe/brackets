@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*global define: false */
 
 /**
  * PreferencesManager
@@ -16,7 +16,7 @@ define(function (require, exports, module) {
 
     // Private Properties
     var preferencesKey,
-        callbacks = {},
+        callbacks = [],
         prefStorage,
         persistentStorage,
         doLoadPreferences   = false;
@@ -90,31 +90,29 @@ define(function (require, exports, module) {
                              instance: instance };
 
         // add to callbacks list
-        callbacks[clientID] = callbackData;
+        callbacks.push(callbackData);
     }
 
     /**
      * Save all preference clients.
      */
     function savePreferences() {
-        var data,
-            storage;
+        var storage;
 
         // iterate over all preference clients
-        $.each(callbacks, function (index, value) {
-            data = callbacks[index];
-            storage = getPreferences(data.clientID);
+        callbacks.forEach(function (value, index) {
+            storage = getPreferences(value.clientID);
 
             // fire callback with thisArg and preference storage
             try {
-                data.callback.call(data.instance, storage);
+                value.callback.call(value.instance, storage);
             } catch (e) {
-                console.log("PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID);
+                console.log("PreferenceManager.savePreferences(): Failed to save data for clientID " + value.clientID);
             }
 
             // only save preferences that can be serialized with JSON
             if (JSON.stringify(storage)) {
-                prefStorage[data.clientID] = storage;
+                prefStorage[value.clientID] = storage;
             }
         });
 
@@ -126,7 +124,7 @@ define(function (require, exports, module) {
      * Reset preferences and callbacks
      */
     function _reset() {
-        callbacks = {};
+        callbacks = [];
         prefStorage = {};
 
         // Note that storage.clear() is not used. Production and unit test code
