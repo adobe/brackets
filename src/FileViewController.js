@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: false, _fileSelectionFocus: true, WORKING_SET_VIEW: false */
 
 /**
  * Responsible for coordinating file seletion between views by permitting only one view
@@ -19,39 +19,90 @@
  *       select file in WorkignSetView if its in the working set, otherwise select in ProjectManager
  */
 
- define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
 
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager")
-    ,   CommandManager      = require("CommandManager")
-    ,   Commands            = require("Commands")
-    ;
+    var DocumentManager     = require("DocumentManager"),
+        CommandManager      = require("CommandManager"),
+        Commands            = require("Commands");
 
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
+    $(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
         _fileSelectionFocus = WORKING_SET_VIEW;
-        $(exports).triggerHandler("documentSelectionFocusChange"); 
+        $(exports).triggerHandler("documentSelectionFocusChange");
     });
 
+    /** 
+     * Tracks whether a "currentDocumentChange" notification occured due to a call to 
+     * openAndSelectDocument.
+     * @see FileviewController.openAndSelectDocument
+     * @private 
+     */
+    var _curDocChangedDueToMe = false;
+    var WORKING_SET_VIEW = "WorkingSetView";
+    var PROJECT_MANAGER = "ProjectManager";
 
     /** 
       * Update the file selection focus when ever the current document changes
       */
-    $(DocumentManager).on("currentDocumentChange", function(event) {
+    $(DocumentManager).on("currentDocumentChange", function (event) {
 
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
-        if(!_curDocChangedDueToMe){
+        if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
-            if(curDoc !== null && DocumentManager.findInWorkingSet(curDoc.file.fullPath) != -1)
+            if (curDoc !== null && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
-            else
+            } else {
                 _fileSelectionFocus = PROJECT_MANAGER;
+            }
         }
 
-        $(exports).triggerHandler("documentSelectionFocusChange"); 
+        $(exports).triggerHandler("documentSelectionFocusChange");
     });
+
+    /** 
+     * Opens a document if it's not open and selects the file in the UI corresponding to
+     * fileSelectionFocus
+     * @param {!fullPath}
+     * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
+     * @returns {!Deferred}
+     */
+    function openAndSelectDocument(fullPath, fileSelectionFocus) {
+        var result;
+
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
+            throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
+        }
+
+        // Opening files are asynchronous and we want to know when this function caused a file
+        // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
+        // and checked in the cyrrentDocumentChange handler
+        _curDocChangedDueToMe = true;
+
+        _fileSelectionFocus = fileSelectionFocus;
+
+        // If fullPath corresonds to the current doc being viewed then opening the file won't
+        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // in this case to signify the selection focus has changed even though the current document has not.
+        var doc = DocumentManager.getDocumentForPath(fullPath);
+        var curDoc = DocumentManager.getCurrentDocument();
+        if (curDoc && curDoc === doc) {
+            $(exports).triggerHandler("documentSelectionFocusChange");
+            result = (new $.Deferred()).resolve();
+        } else {
+            result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
+        }
+        
+        // clear after notification is done
+        result.always(function () {
+            _curDocChangedDueToMe = false;
+        });
+        
+        return result;
+    }
 
     /** 
      * Opens the specified document if it's not already open, adds it to the working set,
@@ -66,60 +117,6 @@
         // documentSelectionFocusChange so the views change their selection
         openAndSelectDocument(fullPath, WORKING_SET_VIEW);
     }
-
-    var WORKING_SET_VIEW = "WorkingSetView";
-    var PROJECT_MANAGER = "ProjectManager";
-
-    /** 
-     * Tracks whether a "currentDocumentChange" notification occured due to a call to 
-     * openAndSelectDocument.
-     * @see FileviewController.openAndSelectDocument
-     * @private 
-     */
-    var _curDocChangedDueToMe = false;
-
-    /** 
-     * Opens a document if it's not open and selects the file in the UI corresponding to
-     * fileSelectionFocus
-     * @param {!fullPath}
-     * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
-     * @returns {!Deferred}
-     */
-    function openAndSelectDocument(fullPath, fileSelectionFocus) {
-        var result;
-
-        if(fileSelectionFocus != PROJECT_MANAGER && fileSelectionFocus != WORKING_SET_VIEW)
-            throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
-
-        // Opening files are asynchronous and we want to know when this function caused a file
-        // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
-        // and checked in the cyrrentDocumentChange handler
-        _curDocChangedDueToMe = true;
-
-        _fileSelectionFocus = fileSelectionFocus;
-
-        // If fullPath corresonds to the current doc being viewed then opening the file won't
-        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
-        // in this case to signify the selection focus has changed even though the current document has not.
-        var doc = DocumentManager.getDocumentForPath(fullPath);
-        var curDoc = DocumentManager.getCurrentDocument();
-        if( curDoc && curDoc == doc) {
-            $(exports).triggerHandler("documentSelectionFocusChange");  
-            result = (new $.Deferred()).resolve();
-        }  
-        else {
-            result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
-                
-        }
-        
-        // clear after notification is done
-        result.always( function() {
-            _curDocChangedDueToMe = false; 
-        });
-        
-        return result;
-    }
-
 
     /**
      * @private
