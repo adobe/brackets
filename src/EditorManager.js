@@ -32,144 +32,7 @@ define(function (require, exports, module) {
     
     /** @type {number} Used by {@link _updateEditorSize()} */
     var _resizeTimeout = null;
-
     
-    /** Handles changes to DocumentManager.getCurrentDocument() */
-    function _onCurrentDocumentChange() {
-        var doc = DocumentManager.getCurrentDocument();
-        
-        // Update the UI to show the right editor (or nothing), and also dispose old editor if no
-        // longer needed.
-        if (doc) {
-            _showEditor(doc);
-        } else {
-            _showNoEditor();
-        }
-    }
-    
-    /** Handles removals from DocumentManager's working set list */
-    function _onWorkingSetRemove(event, removedDoc) {
-        // There's one case where an editor should be disposed even though the current document
-        // didn't change: removing a document from the working set (via the "X" button). (This may
-        // also cover the case where the document WAS current, if the editor-swap happens before the
-        // removal from the working set.
-        _destroyEditorIfUnneeded(removedDoc);
-    }
-    // Note: there are several paths that can lead to an editor getting destroyed
-    //  - file was in working set, but not open; then closed (via working set "X" button)
-    //      --> handled by _onWorkingSetRemove()
-    //  - file was open, but not in working set; then navigated away from
-    //      --> handled by _onCurrentDocumentChange()
-    //  - file was open, but not in working set; then closed (via File > Close) (and thus implicitly
-    //    navigated away from)
-    //      --> handled by _onCurrentDocumentChange()
-    //  - file was open AND in working set; then closed (via File > Close OR working set "X" button)
-    //    (and thus implicitly navigated away from)
-    //      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
-    //      just as easily (depends on the order of events coming from DocumentManager)
-    
-    
-    /**
-     * Designates the DOM node that will contain the currently active editor instance. EditorManager
-     * will own the content of this DOM node.
-     * @param {!jQueryObject} holder
-     */
-    function setEditorHolder(holder) {
-        if (_currentEditor) {
-            throw new Error("Cannot change editor area after an editor has already been created!");
-        }
-        
-        _editorHolder = holder;
-    }
-    
-    
-    /**
-     * Creates a new CodeMirror editor instance containing text from the 
-     * specified fileEntry and wraps it in a new Document tied to the given 
-     * file. The editor is not yet visible; to display it in the main
-     * editor UI area, ask DocumentManager to make this the current document.
-     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
-     *  document for the fileEntry, or rejected if the file can not be read.
-     */
-    function createDocumentAndEditor(fileEntry) {
-        var result          = new $.Deferred(),
-            editorResult    = _createEditor(fileEntry);
-
-        editorResult.done(function (editor) {
-            // Create the Document wrapping editor & binding it to a file
-            var doc = new DocumentManager.Document(fileEntry, editor);
-            result.resolve(doc);
-        });
-
-        editorResult.fail(function (error) {
-            result.reject(error);
-        });
-
-        return result;
-    }
-
-    /**
-     * Creates a new CodeMirror editor instance containing text from the 
-     * specified fileEntry. The editor is not yet visible.
-     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
-     *  editor for the fileEntry, or rejected if the file can not be read.
-     */
-    function _createEditor(fileEntry) {
-        var result = new $.Deferred(),
-            reader = DocumentManager.readAsText(fileEntry);
-
-        reader.done(function (text) {
-            // NOTE: CodeMirror doesn't actually require calling 'new',
-            // but jslint does require it because of the capital 'C'
-            var editor = new CodeMirror(_editorHolder.get(0), {
-                indentUnit : 4,
-                lineNumbers: true,
-                extraKeys: {
-                    "Tab"  : _handleTabKey,
-                    "Left" : function (instance) {
-                        if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
-                            CodeMirror.commands.goCharLeft(instance);
-                        }
-                    },
-                    "Right" : function (instance) {
-                        if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
-                            CodeMirror.commands.goCharRight(instance);
-                        }
-                    },
-                    "Backspace" : function (instance) {
-                        if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
-                            CodeMirror.commands.delCharLeft(instance);
-                        }
-                    },
-                    "Delete" : function (instance) {
-                        if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
-                            CodeMirror.commands.delCharRight(instance);
-                        }
-                    }
-                }
-            });
-            
-            // Set code-coloring mode
-            EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
-            
-            // Initially populate with text. This will send a spurious change event, but that's ok
-            // because no one's listening yet (and we clear the undo stack below)
-            editor.setValue(text);
-            
-            // Make sure we can't undo back to the empty state before setValue()
-            editor.clearHistory();
-
-            result.resolve(editor);
-        });
-        reader.fail(function (error) {
-            result.reject(error);
-        });
-
-        return result;
-    }
-
     /**
      * @private
      * Handle Tab key press.
@@ -283,6 +146,67 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry. The editor is not yet visible.
+     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  editor for the fileEntry, or rejected if the file can not be read.
+     */
+    function _createEditor(fileEntry) {
+        var result = new $.Deferred(),
+            reader = DocumentManager.readAsText(fileEntry);
+
+        reader.done(function (text) {
+            // NOTE: CodeMirror doesn't actually require calling 'new',
+            // but jslint does require it because of the capital 'C'
+            var editor = new CodeMirror(_editorHolder.get(0), {
+                indentUnit : 4,
+                lineNumbers: true,
+                extraKeys: {
+                    "Tab"  : _handleTabKey,
+                    "Left" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
+                            CodeMirror.commands.goCharLeft(instance);
+                        }
+                    },
+                    "Right" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
+                            CodeMirror.commands.goCharRight(instance);
+                        }
+                    },
+                    "Backspace" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
+                            CodeMirror.commands.delCharLeft(instance);
+                        }
+                    },
+                    "Delete" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
+                            CodeMirror.commands.delCharRight(instance);
+                        }
+                    }
+                }
+            });
+            
+            // Set code-coloring mode
+            EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
+            
+            // Initially populate with text. This will send a spurious change event, but that's ok
+            // because no one's listening yet (and we clear the undo stack below)
+            editor.setValue(text);
+            
+            // Make sure we can't undo back to the empty state before setValue()
+            editor.clearHistory();
+
+            result.resolve(editor);
+        });
+        reader.fail(function (error) {
+            result.reject(error);
+        });
+
+        return result;
+    }
+    
+    /**
      * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in
      * the working set). Otherwise does nothing.
      * @param {!Document} document
@@ -308,8 +232,41 @@ define(function (require, exports, module) {
             }
         }
     }
+
+    /** Focus the currently visible editor. If no editor visible, does nothing. */
+    function focusEditor() {
+        if (_currentEditor) {
+            _currentEditor.focus();
+        }
+    }
     
+    /** 
+     * Resize the editor. This should only be called if the contents of the editor holder are changed
+     * or if the height of the editor holder changes. 
+     */
+    function resizeEditor() {
+        // (see _updateEditorSize() handler above)
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        if (_currentEditor) {
+            _currentEditor.refresh();
+        }
+    }
+
     
+    /**
+     * @private
+     */
+    function _doShow(document) {
+        // Show new editor
+        _currentEditorsDocument = document;
+        _currentEditor = document._editor;
+
+        $(_currentEditor.getWrapperElement()).css("display", "");
+        
+        // Window may have been resized since last time editor was visible, so kick it now
+        resizeEditor();
+    }
+
     /**
      * Make the given document's editor visible in the UI, hiding whatever was
      * visible before. Creates a new editor if none is assigned.
@@ -346,19 +303,6 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * @private
-     */
-    function _doShow(document) {
-        // Show new editor
-        _currentEditorsDocument = document;
-        _currentEditor = document._editor;
-
-        $(_currentEditor.getWrapperElement()).css("display", "");
-        
-        // Window may have been resized since last time editor was visible, so kick it now
-        resizeEditor();
-    }
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
@@ -372,8 +316,80 @@ define(function (require, exports, module) {
             $("#notEditor").css("display", "");
         }
     }
+
+    /** Handles changes to DocumentManager.getCurrentDocument() */
+    function _onCurrentDocumentChange() {
+        var doc = DocumentManager.getCurrentDocument();
+        
+        // Update the UI to show the right editor (or nothing), and also dispose old editor if no
+        // longer needed.
+        if (doc) {
+            _showEditor(doc);
+        } else {
+            _showNoEditor();
+        }
+    }
     
+    /** Handles removals from DocumentManager's working set list */
+    function _onWorkingSetRemove(event, removedDoc) {
+        // There's one case where an editor should be disposed even though the current document
+        // didn't change: removing a document from the working set (via the "X" button). (This may
+        // also cover the case where the document WAS current, if the editor-swap happens before the
+        // removal from the working set.
+        _destroyEditorIfUnneeded(removedDoc);
+    }
+    // Note: there are several paths that can lead to an editor getting destroyed
+    //  - file was in working set, but not open; then closed (via working set "X" button)
+    //      --> handled by _onWorkingSetRemove()
+    //  - file was open, but not in working set; then navigated away from
+    //      --> handled by _onCurrentDocumentChange()
+    //  - file was open, but not in working set; then closed (via File > Close) (and thus implicitly
+    //    navigated away from)
+    //      --> handled by _onCurrentDocumentChange()
+    //  - file was open AND in working set; then closed (via File > Close OR working set "X" button)
+    //    (and thus implicitly navigated away from)
+    //      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
+    //      just as easily (depends on the order of events coming from DocumentManager)
     
+    /**
+     * Designates the DOM node that will contain the currently active editor instance. EditorManager
+     * will own the content of this DOM node.
+     * @param {!jQueryObject} holder
+     */
+    function setEditorHolder(holder) {
+        if (_currentEditor) {
+            throw new Error("Cannot change editor area after an editor has already been created!");
+        }
+        
+        _editorHolder = holder;
+    }
+    
+    /**
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry and wraps it in a new Document tied to the given 
+     * file. The editor is not yet visible; to display it in the main
+     * editor UI area, ask DocumentManager to make this the current document.
+     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  document for the fileEntry, or rejected if the file can not be read.
+     */
+    function createDocumentAndEditor(fileEntry) {
+        var result          = new $.Deferred(),
+            editorResult    = _createEditor(fileEntry);
+
+        editorResult.done(function (editor) {
+            // Create the Document wrapping editor & binding it to a file
+            var doc = new DocumentManager.Document(fileEntry, editor);
+            result.resolve(doc);
+        });
+
+        editorResult.fail(function (error) {
+            result.reject(error);
+        });
+
+        return result;
+    }
+
     /**
      * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
      * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
@@ -394,31 +410,10 @@ define(function (require, exports, module) {
         // (see also force-resize code in resizeEditor() )
     }
     
-    
-    /** Focus the currently visible editor. If no editor visible, does nothing. */
-    function focusEditor() {
-        if (_currentEditor) {
-            _currentEditor.focus();
-        }
-    }
-    
-    /** 
-     * Resize the editor. This should only be called if the contents of the editor holder are changed
-     * or if the height of the editor holder changes. 
-     */
-    function resizeEditor() {
-        // (see _updateEditorSize() handler above)
-        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-        if (_currentEditor) {
-            _currentEditor.refresh();
-        }
-    }
-
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
     $(window).resize(_updateEditorSize);
-
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
