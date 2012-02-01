@@ -3,12 +3,13 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, PathUtils: false, FileError: false, brackets: false */
 
 /**
  * Set of utilites for working with the code editor
  */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
 
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/CodeMirror2/mode/xml/xml");
@@ -20,30 +21,22 @@ define(function(require, exports, module) {
     var Strings = require("strings");
 
     /**
-     * Change the current mode of the editor based on file extension 
-     * @param {object} editor  An instance of a CodeMirror editor
-     * @param {string} fileUrl  A cannonical file URL to extract the extension from
-     */
-    function setModeFromFileExtension( editor, fileUrl ) {
-        var mode = _getModeFromFileExtensions( fileUrl );
-        editor.setOption("mode", mode);
-    }
-
-    /**
      * @private
      * Given a file URL, determines the mode to use based
      * off the files extensions.
      * @param {string} fileUrl  A cannonical file URL to extract the extension from
      */
-    function _getModeFromFileExtensions( fileUrl ) {
-        var ext = PathUtils.filenameExtension( fileUrl );
+    function _getModeFromFileExtensions(fileUrl) {
+        var ext = PathUtils.filenameExtension(fileUrl);
         //incase the arg is just the ext
-        if( !ext )
-            ext = fileUrl; 
-        if( ext.charAt(0) == '.' )
+        if (!ext) {
+            ext = fileUrl;
+        }
+        if (ext.charAt(0) === '.') {
             ext = ext.substr(1);
+        }
 
-        switch( ext ) {
+        switch (ext) {
 
         case "js":
             return "javascript";
@@ -67,15 +60,14 @@ define(function(require, exports, module) {
         }
     }
 
-    function showFileOpenError(code, path) {
-        return brackets.showModalDialog(
-              brackets.DIALOG_ID_ERROR
-            , Strings.ERROR_OPENING_FILE_TITLE
-            , Strings.format(
-                    Strings.ERROR_OPENING_FILE
-                  , path
-                  , getFileErrorString(code))
-        );
+    /**
+     * Change the current mode of the editor based on file extension 
+     * @param {object} editor  An instance of a CodeMirror editor
+     * @param {string} fileUrl  A cannonical file URL to extract the extension from
+     */
+    function setModeFromFileExtension(editor, fileUrl) {
+        var mode = _getModeFromFileExtensions(fileUrl);
+        editor.setOption("mode", mode);
     }
 
     function getFileErrorString(code) {
@@ -83,16 +75,29 @@ define(function(require, exports, module) {
         // displayed with a generic "(error N)" message.
         var result;
 
-        if (code == FileError.NOT_FOUND_ERR)
+        if (code === FileError.NOT_FOUND_ERR) {
             result = Strings.NOT_FOUND_ERR;
-        else if (code == FileError.NOT_READABLE_ERR)
+        } else if (code === FileError.NOT_READABLE_ERR) {
             result = Strings.NOT_READABLE_ERR;
-        else if (code == FileError.NO_MODIFICATION_ALLOWED_ERR)
+        } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
-        else
+        } else {
             result = Strings.format(Strings.GENERIC_ERROR, code);
+        }
 
         return result;
+    }
+    
+    function showFileOpenError(code, path) {
+        return brackets.showModalDialog(
+            brackets.DIALOG_ID_ERROR,
+            Strings.ERROR_OPENING_FILE_TITLE,
+            Strings.format(
+                Strings.ERROR_OPENING_FILE,
+                path,
+                getFileErrorString(code)
+            )
+        );
     }
 
     // Define public API
