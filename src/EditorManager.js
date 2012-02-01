@@ -79,7 +79,7 @@ define(function (require, exports, module) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
-                var ins = "", numSpaces = instance.getOption("tabSize"), i;
+                var i, ins = "", numSpaces = instance.getOption("tabSize");
                 numSpaces -= to.ch % numSpaces;
                 for (i = 0; i < numSpaces + 1; i++) {
                     ins += " ";
