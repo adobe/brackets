@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, _fileSelectionFocus: true, WORKING_SET_VIEW: false */
+/*global define: false, $: false */
 
 /**
  * Responsible for coordinating file seletion between views by permitting only one view
@@ -28,14 +28,6 @@ define(function (require, exports, module) {
         Commands            = require("Commands");
 
     /** 
-     * Change the doc selection to the working set when ever a new file is added to the working set
-     */
-    $(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
-        _fileSelectionFocus = WORKING_SET_VIEW;
-        $(exports).triggerHandler("documentSelectionFocusChange");
-    });
-
-    /** 
      * Tracks whether a "currentDocumentChange" notification occured due to a call to 
      * openAndSelectDocument.
      * @see FileviewController.openAndSelectDocument
@@ -44,6 +36,20 @@ define(function (require, exports, module) {
     var _curDocChangedDueToMe = false;
     var WORKING_SET_VIEW = "WorkingSetView";
     var PROJECT_MANAGER = "ProjectManager";
+
+    /**
+     * @private
+     * @see FileViewController.getFileSelectionFocus()
+     */
+    var _fileSelectionFocus = PROJECT_MANAGER;
+    
+    /** 
+     * Change the doc selection to the working set when ever a new file is added to the working set
+     */
+    $(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
+        _fileSelectionFocus = WORKING_SET_VIEW;
+        $(exports).triggerHandler("documentSelectionFocusChange");
+    });
 
     /** 
       * Update the file selection focus when ever the current document changes
@@ -118,12 +124,6 @@ define(function (require, exports, module) {
         openAndSelectDocument(fullPath, WORKING_SET_VIEW);
     }
 
-    /**
-     * @private
-     * @see FileViewController.getFileSelectionFocus()
-     */
-    var _fileSelectionFocus = PROJECT_MANAGER;
-    
     /**
      * returns either WORKING_SET_VIEW or PROJECT_MANAGER
      * @return {!String}
