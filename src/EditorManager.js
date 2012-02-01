@@ -146,7 +146,10 @@ define(function(require, exports, module) {
                     "Delete" : function(instance) {
                         if (!_handleSoftTabNavigation(instance, 1, "deleteH"))
                             CodeMirror.commands.delCharRight(instance);
-                    }
+                    },
+                    "F3": "findNext", 
+                    "Shift-F3": "findPrev", 
+                    "Ctrl-H": "replace"
                 }
             });
             
