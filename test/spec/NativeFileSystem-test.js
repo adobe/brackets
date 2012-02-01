@@ -261,11 +261,11 @@ define(function (require, exports, module) {
 
                 // set read-only permissions
                 runs(function () {
-                    brackets.fs.chmod(this.path + "/cant_read_here.txt", parseInt(222, 8), function (err) {
+                    brackets.fs.chmod(this.path + "/cant_read_here.txt", parseInt("222", 8), function (err) {
                         _err = err;
                         chmodDone = true;
                     });
-                    brackets.fs.chmod(this.path + "/cant_write_here.txt", parseInt(444, 8), function (err) {
+                    brackets.fs.chmod(this.path + "/cant_write_here.txt", parseInt("444", 8), function (err) {
                         _err = err;
                         chmodDone = true;
                     });
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
 
                 // restore permissions for git
                 runs(function () {
-                    brackets.fs.chmod(this.path + "/cant_read_here.txt", parseInt(777, 8), function (err) {
+                    brackets.fs.chmod(this.path + "/cant_read_here.txt", parseInt("777", 8), function (err) {
                         _err = err;
                         chmodDone = true;
                     });

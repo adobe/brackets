@@ -34,7 +34,8 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var files = brackets.fs.showOpenDialog(allowMultipleSelection,
+            var files = brackets.fs.showOpenDialog(
+                allowMultipleSelection,
                 chooseDirectories,
                 title,
                 initialPath,
@@ -45,7 +46,8 @@ define(function (require, exports, module) {
                     } else if (errorCallback) {
                         errorCallback(NativeFileSystem._nativeToFileError(err));
                     }
-                });
+                }
+            );
         },
 
         /** requestNativeFileSystem
@@ -308,7 +310,8 @@ define(function (require, exports, module) {
             INVALID_STATE_ERR:            { value: 7, writable: false },
             SYNTAX_ERR:                   { value: 8, writable: false },
             QUOTA_EXCEEDED_ERR:           { value: 10, writable: false }
-            });
+            }
+        );
 
     /**
      * This interface provides methods to monitor the asynchronous writing of blobs
@@ -332,7 +335,8 @@ define(function (require, exports, module) {
         {   INIT:     { value: 1, writable: false },
             WRITING:  { value: 2, writable: false },
             DONE:     { value: 3, writable: false }
-            });
+            }
+        );
 
     // FileSaver methods
 
@@ -676,22 +680,6 @@ define(function (require, exports, module) {
         // IMPLEMENT LATER get name() { return this.entry.name; }
 
     };
-
-    NativeFileSystem.File.prototype.__defineGetter__("lastModifiedDate", function () {
-        var result;
-
-        brackets.fs.stat(this.fullPath, function (err, stat) {
-            if (err === brackets.fs.NO_ERROR) {
-                result = stat.mtime;
-            } else {
-                result = undefined;
-                throw new Error("Error occured calling ");
-            }
-        });
-
-        return result;
-    });
-
 
     /** class: FileError
      *
