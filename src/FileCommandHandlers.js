@@ -417,7 +417,7 @@ define(function(require, exports, module) {
         var closeAllArgs = { promptOnly: false };
         handleFileCloseAll(closeAllArgs)
         .done(function() {
-            window.close();  // TODO: call a native API to quit the whole app
+            brackets.QuitApplication();
         });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
