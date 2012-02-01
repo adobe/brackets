@@ -18,15 +18,44 @@ define(function(require, exports, module) {
         Strings             = require("strings");
 
     
-    // cases:
-    //  - file modified on disk, clean in editor -> silently refresh
-    //  - file modified on disk, dirty in editor -> prompt to reload(lose editor changes)/save(lose disk changes)
-    //  - file deleted on disk, clean in editor  -> silently close tab
-    //  - file deleted on disk, dirty in editor  -> prompt to close tab(lose editor changes)/save(recreate file on disk)
-    function checkWorkingSet() {
+    var _alreadyChecking = false;
+    
+    
+    /**
+     * Check to see whether any open files have been modified by an external app since the last time
+     * Brackets synced up with the copy on disk (either by loading or saving the file). For clean
+     * files, we silently upate the editor automatically. For files with unsaved changes, we prompt
+     * the user.
+     */
+    function checkOpenDocuments() {
         
-        console.log("-------------- CHECKING... -----------------")
+        // We can become "re-entrant" if the user leaves & then returns to Brackets before we're
+        // done -- easy if a confirmation dialog is open. This can cause various problems (including
+        // the dialog disappearing, due to a Bootstrap bug/quirk), so we want to avoid it.
+        // Downside: if we ever crash, flag will stay true and we'll never check again.
+        if (_alreadyChecking) {
+            return;
+        }
         
+        console.log("-------------- CHECKING... -----------------");
+        
+        _alreadyChecking = true;
+        
+        // This function proceeds in four phases:
+        //  1) Check all files for modifications
+        //  2) Refresh all editors that are clean (if file changed on disk)
+        //  3) Close all editors that are clean (if file deleted on disk)
+        //  4) Prompt about any editors that are dirty (if file changed/deleted on disk)
+        // Each phase fully completes (asynchronously) before the next one begins.
+        
+        // FIXME: like most of our file operations, this is probably full of race conditions where
+        // the user can go into the UI and break our state while we're still in mid-operation. We
+        // need a way to block user input while this is going on, at least in the browser-hosted
+        // version where APIs are truly aync.
+        
+        // FIXME: this can get essentially re-entered if the user leaves & returns to Brackets e.g.
+        // while a confirmation dialog is still open.
+
         var allDocs = DocumentManager.getAllOpenDocuments();
         
         var toRefresh = [];
@@ -52,7 +81,7 @@ define(function(require, exports, module) {
                     
                     nDocsChecked++;
                     if (nDocsChecked == allDocs.length)
-                        presentResult();
+                        processResult();
                 },
                 function (error) {
                     if (error == brackets.fs.ERR_NOT_FOUND) {
@@ -70,38 +99,84 @@ define(function(require, exports, module) {
                     }
                     
                     nDocsChecked++;
-                    if (nDocsChecked == allDocs.length)
-                        presentResult();
+                    if (nDocsChecked == allDocs.length) {
+                        processResult();
+                    }
                 }
             );
         });
         
-        function presentResult() {
-            if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                // TODO: list files and tell user to save or discard, then refresh
-                showError("Some files were changed outside of Brackets, <b>and also have unsaved changes</b> in Brackets. If you save "
-                    + "these files you will overwrite the changes on disk:<br><i>(Note: other files may be modified on disk but do not "
-                    + "have unsaved changes in Brackets. Refresh Brackets to see all changes).</i>",
-                    editConflicts.concat(deleteConflicts));
+        function processResult() {
+            if (toRefresh.length == 0) {
+                // If no docs to refresh, move right on to the next phase
+                closeDeletedDocs();
                 
-            } else if (toRefresh.length > 0 || toClose.length > 0) {
-                // Tell user to refresh
-                showError("Some open (but unmodified) files were changed outside of Brackets. Refresh Brackets or close and "
-                    + "reopen these files to see the changes:",
-                    toRefresh.concat(toClose));
+            } else {
+                // Refresh each doc in turn, and once all are (async) done, proceed to next phase
+                var nDocsRefreshed = 0;
+                
+                toRefresh.forEach(function (doc) {
+                    DocumentManager.readAsText(doc.file)
+                    .done(function (text, readTimestamp) {
+                    
+                        doc.refreshText(text, readTimestamp);
+                        nDocsChecked++;
+                    })
+                    .fail(function () {
+                       // FIXME: how to handle this?
+                    })
+                    .always(function() {
+                        nDocsChecked++;
+                        
+                        // Once we're done refreshing all the editors, move on
+                        if (nDocsChecked == toRefresh.length) {
+                            closeDeletedDocs();
+                        }
+                    });
+                });
+            }
+        }
+        
+        function closeDeletedDocs() {
+            toClose.forEach(function (doc) {
+                DocumentManager.closeDocument(doc);
+                // FIXME: remove from file tree view also
+            });
+            
+            // Closing editors is sync, so we can immediately move on to the final step
+            presentConflicts();
+        }
+        
+        function presentConflicts() {
+            if (editConflicts.length > 0 || deleteConflicts.length > 0) {
+                // FIXME: move strings to strings.js
+                // TODO: prompt once per file
+                showError("Some files with unsaved changes were modified outside of Brackets:"
+                    + formatFileList(editConflicts.concat(deleteConflicts))
+                    + "<br>To save your changes and overwrite the changes on disk, save each file."
+                    + "<br>To discard your changes and load the changes from disk, refresh Brackets."
+                )
+                .always(function () {
+                   _alreadyChecking = false; 
+                });
+                
+            } else {
+                _alreadyChecking = false;
             }
         }
     }
     
     
-    function showError(message, docs) {
-        
-        message += "<ul>";
+    function formatFileList(docs) {
+        // TODO: duplicates code in FileCommandHandlers.handleFileCloseAll()
+        var str = "<ul>";
         docs.forEach(function(doc) {
-            message += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
+            str += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
         });
-        message += "</ul>";
-        
+        str += "</ul>";
+        return str;
+    }
+    function showError(message) {
         return brackets.showModalDialog(
             brackets.DIALOG_ID_ERROR,
             "External Changes", message);
@@ -110,5 +185,5 @@ define(function(require, exports, module) {
     
 
     // Define public API
-    exports.checkWorkingSet  = checkWorkingSet;
+    exports.checkOpenDocuments = checkOpenDocuments;
 });

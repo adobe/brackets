@@ -306,7 +306,7 @@ define(function (require, exports, module) {
         function initWindowListeners() {
             // TODO: to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
-                FileWatching.checkWorkingSet();
+                FileWatching.checkOpenDocuments();
             });
             
             $(window).unload(function () {
