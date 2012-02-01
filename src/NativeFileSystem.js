@@ -300,8 +300,10 @@ define(function (require, exports, module) {
     };
 
     // FileException constants
-    Object.defineProperties(NativeFileSystem.FileException,
-        {   NOT_FOUND_ERR:                { value: 1, writable: false },
+    Object.defineProperties(
+        NativeFileSystem.FileException,
+        {
+            NOT_FOUND_ERR:                { value: 1, writable: false },
             SECURITY_ERR:                 { value: 2, writable: false },
             ABORT_ERR:                    { value: 3, writable: false },
             NOT_READABLE_ERR:             { value: 4, writable: false },
@@ -310,8 +312,8 @@ define(function (require, exports, module) {
             INVALID_STATE_ERR:            { value: 7, writable: false },
             SYNTAX_ERR:                   { value: 8, writable: false },
             QUOTA_EXCEEDED_ERR:           { value: 10, writable: false }
-            }
-        );
+        }
+    );
 
     /**
      * This interface provides methods to monitor the asynchronous writing of blobs
@@ -331,12 +333,14 @@ define(function (require, exports, module) {
     };
 
     // FileSaver constants
-    Object.defineProperties(NativeFileSystem.FileSaver,
-        {   INIT:     { value: 1, writable: false },
+    Object.defineProperties(
+        NativeFileSystem.FileSaver,
+        {
+            INIT:     { value: 1, writable: false },
             WRITING:  { value: 2, writable: false },
             DONE:     { value: 3, writable: false }
-            }
-        );
+        }
+    );
 
     // FileSaver methods
 
@@ -607,10 +611,10 @@ define(function (require, exports, module) {
         brackets.fs.readFile(blob._fullPath, encoding, function (err, data) {
 
             // TODO: the event objects passed to these event handlers is fake and incomplete right now
-            var fakeEvent =
-                {   loaded: 0,
-                    total: 0
-                    };
+            var fakeEvent = {
+                loaded: 0,
+                total: 0
+            };
 
             // The target for this event is the FileReader and the data/err result is stored in the FileReader
             fakeEvent.target = self;
