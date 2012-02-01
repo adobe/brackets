@@ -290,7 +290,7 @@ define(function (require, exports, module) {
     function _destroyEditorIfUnneeded(document) {
         var editor = document._editor;
 
-        if (editor === null) {
+        if (!editor) {
             return;
         }
         
@@ -317,7 +317,7 @@ define(function (require, exports, module) {
      */
     function _showEditor(document) {
         // Hide whatever was visible before
-        if (_currentEditor === null) {
+        if (!_currentEditor) {
             $("#notEditor").css("display", "none");
         } else {
             $(_currentEditor.getWrapperElement()).css("display", "none");
@@ -325,7 +325,7 @@ define(function (require, exports, module) {
         }
 
         // Lazily create editor for Documents that were restored on-init
-        if (document._editor === null) {
+        if (!document._editor) {
             var editorResult = _createEditor(document.file);
 
             editorResult.done(function (editor) {
@@ -362,7 +362,7 @@ define(function (require, exports, module) {
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor !== null) {
+        if (_currentEditor) {
             $(_currentEditor.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
@@ -397,7 +397,7 @@ define(function (require, exports, module) {
     
     /** Focus the currently visible editor. If no editor visible, does nothing. */
     function focusEditor() {
-        if (_currentEditor !== null) {
+        if (_currentEditor) {
             _currentEditor.focus();
         }
     }
