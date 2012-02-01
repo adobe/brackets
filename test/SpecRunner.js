@@ -1,9 +1,14 @@
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global require: false, define: false, $: false */
+
 // Set the baseUrl to brackets/src
 require.config({
     baseUrl: "../src"
 });
 
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
+    
     // Utility dependency
     var SpecRunnerUtils = require("spec/SpecRunnerUtils.js");
 
