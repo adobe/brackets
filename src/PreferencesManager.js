@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: false */
 
 /**
  * PreferencesManager
@@ -16,7 +16,7 @@ define(function (require, exports, module) {
 
     // Private Properties
     var preferencesKey,
-        callbacks = [],
+        callbacks = {}, /* associative array with clientID keys */
         prefStorage,
         persistentStorage,
         doLoadPreferences   = false;
@@ -90,29 +90,31 @@ define(function (require, exports, module) {
                              instance: instance };
 
         // add to callbacks list
-        callbacks.push(callbackData);
+        callbacks[clientID] = callbackData;
     }
 
     /**
      * Save all preference clients.
      */
     function savePreferences() {
-        var storage;
+        var data,
+            storage;
 
         // iterate over all preference clients
-        callbacks.forEach(function (value, index) {
-            storage = getPreferences(value.clientID);
+        $.each(callbacks, function (index, value) {
+            data = callbacks[index];
+            storage = getPreferences(data.clientID);
 
             // fire callback with thisArg and preference storage
             try {
-                value.callback.call(value.instance, storage);
+                data.callback.call(data.instance, storage);
             } catch (e) {
-                console.log("PreferenceManager.savePreferences(): Failed to save data for clientID " + value.clientID);
+                console.log("PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID);
             }
 
             // only save preferences that can be serialized with JSON
             if (JSON.stringify(storage)) {
-                prefStorage[value.clientID] = storage;
+                prefStorage[data.clientID] = storage;
             }
         });
 
@@ -124,7 +126,7 @@ define(function (require, exports, module) {
      * Reset preferences and callbacks
      */
     function _reset() {
-        callbacks = [];
+        callbacks = {};
         prefStorage = {};
 
         // Note that storage.clear() is not used. Production and unit test code
