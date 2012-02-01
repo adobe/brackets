@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: false, CodeMirror: false */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -14,19 +14,13 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
     
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager")
-    ,   EditorUtils         = require("EditorUtils")
-    ,   Strings             = require("strings")
-    ;
-    
-    // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(window).resize(_updateEditorSize);
-    
+    var DocumentManager     = require("DocumentManager"),
+        EditorUtils         = require("EditorUtils"),
+        Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -81,8 +75,9 @@ define(function(require, exports, module) {
      * @param {!jQueryObject} holder
      */
     function setEditorHolder(holder) {
-        if (_currentEditor)
+        if (_currentEditor) {
             throw new Error("Cannot change editor area after an editor has already been created!");
+        }
         
         _editorHolder = holder;
     }
@@ -98,16 +93,16 @@ define(function(require, exports, module) {
      *  document for the fileEntry, or rejected if the file can not be read.
      */
     function createDocumentAndEditor(fileEntry) {
-        var result          = new $.Deferred()
-        ,   editorResult    = _createEditor(fileEntry);
+        var result          = new $.Deferred(),
+            editorResult    = _createEditor(fileEntry);
 
-        editorResult.done(function(editor) {
+        editorResult.done(function (editor) {
             // Create the Document wrapping editor & binding it to a file
             var doc = new DocumentManager.Document(fileEntry, editor);
             result.resolve(doc);
         });
 
-        editorResult.fail(function(error) {
+        editorResult.fail(function (error) {
             result.reject(error);
         });
 
@@ -122,30 +117,36 @@ define(function(require, exports, module) {
      *  editor for the fileEntry, or rejected if the file can not be read.
      */
     function _createEditor(fileEntry) {
-        var result = new $.Deferred()
-        ,   reader = DocumentManager.readAsText(fileEntry);
+        var result = new $.Deferred(),
+            reader = DocumentManager.readAsText(fileEntry);
 
-        reader.done(function(text) {
-            var editor = CodeMirror(_editorHolder.get(0), {
+        reader.done(function (text) {
+            // NOTE: CodeMirror doesn't actually require calling 'new',
+            // but jslint does require it because of the capital 'C'
+            var editor = new CodeMirror(_editorHolder.get(0), {
                 indentUnit : 4,
                 lineNumbers: true,
                 extraKeys: {
                     "Tab"  : _handleTabKey,
-                    "Left" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, -1, "moveH"))
+                    "Left" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                             CodeMirror.commands.goCharLeft(instance);
+                        }
                     },
-                    "Right" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, 1, "moveH"))
+                    "Right" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
                             CodeMirror.commands.goCharRight(instance);
+                        }
                     },
-                    "Backspace" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, -1, "deleteH"))
+                    "Backspace" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
                             CodeMirror.commands.delCharLeft(instance);
+                        }
                     },
-                    "Delete" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, 1, "deleteH"))
+                    "Delete" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
                             CodeMirror.commands.delCharRight(instance);
+                        }
                     }
                 }
             });
@@ -162,7 +163,7 @@ define(function(require, exports, module) {
 
             result.resolve(editor);
         });
-        reader.fail(function(error) {
+        reader.fail(function (error) {
             result.reject(error);
         });
 
@@ -192,8 +193,9 @@ define(function(require, exports, module) {
             insertTab = false;
         
         if (from.line === to.line) {
-            if (line.search(/\S/) > to.ch || to.ch === 0)
+            if (line.search(/\S/) > to.ch || to.ch === 0) {
                 indentAuto = true;
+            }
         }
 
         if (indentAuto) {
@@ -204,11 +206,9 @@ define(function(require, exports, module) {
                 insertTab = true;
                 to.ch = 0;
             }
-        } 
-        else if (instance.somethingSelected()) {
+        } else if (instance.somethingSelected()) {
             CodeMirror.commands.indentMore(instance);
-        }
-        else {
+        } else {
             insertTab = true;
         }
         
@@ -216,13 +216,14 @@ define(function(require, exports, module) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
-                var ins, numSpaces = instance.getOption("tabSize");
-
+                var ins = "", numSpaces = instance.getOption("tabSize"), i;
                 numSpaces -= to.ch % numSpaces;
-                ins = new Array(numSpaces + 1).join(" ");
+                for (i = 0; i < numSpaces + 1; i++) {
+                    ins += " ";
+                }
                 instance.replaceSelection(ins, "end");
             }
-        }       
+        }
     }
     
     /**
@@ -232,7 +233,7 @@ define(function(require, exports, module) {
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
      * @param {function} functionName name of the CodeMirror function to call
      * @return {boolean} true if key was handled
-     */  
+     */
     function _handleSoftTabNavigation(instance, direction, functionName) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
@@ -241,31 +242,35 @@ define(function(require, exports, module) {
                 jump = cursor.ch % tabSize,
                 line = instance.getLine(cursor.line);
 
-            if (direction == 1) {
+            if (direction === 1) {
                 jump = tabSize - jump;
 
-                if (cursor.ch + jump > line.length) // Jump would go beyond current line
+                if (cursor.ch + jump > line.length) { // Jump would go beyond current line
                     return false;
+                }
 
-                if (line.substr(cursor.ch, jump).search(/\S/) == -1) {
+                if (line.substr(cursor.ch, jump).search(/\S/) === -1) {
                     instance[functionName](jump, "char");
                     handled = true;
                 }
             } else {
                 // Quick exit if we are at the beginning of the line
-                if (cursor.ch === 0)
+                if (cursor.ch === 0) {
                     return false;
+                }
                 
                 // If we are on the tab boundary, jump by the full amount, 
                 // but not beyond the start of the line.
-                if (jump === 0)
+                if (jump === 0) {
                     jump = tabSize;
+                }
 
                 // Search backwards to the first non-space character
                 var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
 
-                if (offset != -1) // Adjust to jump to first non-space character
+                if (offset !== -1) { // Adjust to jump to first non-space character
                     jump -= offset;
+                }
 
                 if (jump > 0) {
                     instance[functionName](-jump, "char");
@@ -290,14 +295,14 @@ define(function(require, exports, module) {
         }
         
         // If outgoing editor is no longer needed, dispose it
-        if (! DocumentManager.getDocumentForFile(document.file)) {
+        if (!DocumentManager.getDocumentForFile(document.file)) {
             
             // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
             // is "Remove this from your tree to delete an editor instance."
             $(editor.getWrapperElement()).remove();
             
             // Our callers should really ensure this, but just for safety...
-            if (_currentEditor == editor) {
+            if (_currentEditor === editor) {
                 _currentEditorsDocument = null;
                 _currentEditor = null;
             }
@@ -312,10 +317,10 @@ define(function(require, exports, module) {
      */
     function _showEditor(document) {
         // Hide whatever was visible before
-        if (_currentEditor == null) {
-            $("#notEditor").css("display","none");
+        if (_currentEditor === null) {
+            $("#notEditor").css("display", "none");
         } else {
-            $(_currentEditor.getWrapperElement()).css("display","none");
+            $(_currentEditor.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
 
@@ -323,21 +328,20 @@ define(function(require, exports, module) {
         if (document._editor === null) {
             var editorResult = _createEditor(document.file);
 
-            editorResult.done(function(editor) {
-                document._setEditor(editor)
+            editorResult.done(function (editor) {
+                document._setEditor(editor);
                 _doShow(document);
             });
-            editorResult.fail(function(error) {
+            editorResult.fail(function (error) {
                 // Edge case where (a) file exists at launch, (b) editor not 
                 // yet opened, and (c) file is deleted or permissions are 
                 // modified outside of Brackets
-                EditorUtils.showFileOpenError(error.code, document.file.fullPath).done(function() {
+                EditorUtils.showFileOpenError(error.code, document.file.fullPath).done(function () {
                     DocumentManager.closeDocument(document);
                     focusEditor();
                 });
             });
-        }
-        else {
+        } else {
             _doShow(document);
         }
     }
@@ -358,14 +362,14 @@ define(function(require, exports, module) {
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
-        if (_currentEditor != null) {
-            $(_currentEditor.getWrapperElement()).css("display","none");
+        if (_currentEditor !== null) {
+            $(_currentEditor.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
             _currentEditorsDocument = null;
             _currentEditor = null;
             
-            $("#notEditor").css("display","");
+            $("#notEditor").css("display", "");
         }
     }
     
@@ -377,11 +381,12 @@ define(function(require, exports, module) {
     function _updateEditorSize() {
         // Don't refresh every single time
         if (!_resizeTimeout) {
-            _resizeTimeout = setTimeout(function() {
+            _resizeTimeout = setTimeout(function () {
                 _resizeTimeout = null;
                 
-                if (_currentEditor)
+                if (_currentEditor) {
                     _currentEditor.refresh();
+                }
             }, 100);
         }
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
@@ -392,8 +397,9 @@ define(function(require, exports, module) {
     
     /** Focus the currently visible editor. If no editor visible, does nothing. */
     function focusEditor() {
-        if (_currentEditor != null)
+        if (_currentEditor !== null) {
             _currentEditor.focus();
+        }
     }
     
     /** 
@@ -403,9 +409,16 @@ define(function(require, exports, module) {
     function resizeEditor() {
         // (see _updateEditorSize() handler above)
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-        if (_currentEditor)
+        if (_currentEditor) {
             _currentEditor.refresh();
+        }
     }
+
+    // Initialize: register listeners
+    $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
+    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
+    $(window).resize(_updateEditorSize);
+
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
