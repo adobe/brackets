@@ -38,13 +38,14 @@ define(function (require, exports, module) {
 
         it("should assign 'this' object in callback", function () {
             var pass = false;
-            var thisObj = { prop : "value" };
+            var thisObj = {
+                prop : "value",
+                callback : function (storage) {
+                    pass = (this.prop === "value");
+                }
+            };
 
-            function callback(storage) {
-                pass = (this.prop === "value");
-            }
-
-            PreferencesManager.addPreferencesClient(CLIENT_ID, callback, thisObj);
+            PreferencesManager.addPreferencesClient(CLIENT_ID, thisObj.callback, thisObj);
             PreferencesManager.savePreferences();
 
             expect(pass).toBeTruthy();
