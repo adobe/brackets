@@ -379,7 +379,7 @@ define(function (require, exports, module) {
      * Initialize the editor instance for this file.
      */
     Document.prototype._setEditor = function (editor) {
-        if (editor === undefined) {
+        if (!editor) {
             return;
         }
         
