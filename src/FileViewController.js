@@ -25,6 +25,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("DocumentManager"),
         CommandManager      = require("CommandManager"),
+        EditorManager       = require("EditorManager"),
         Commands            = require("Commands");
 
     /** 
@@ -97,6 +98,8 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && curDoc === doc) {
             $(exports).triggerHandler("documentSelectionFocusChange");
+            // Ensure the editor has focus even though we didn't open a new file.
+            EditorManager.focusEditor();
             result = (new $.Deferred()).resolve();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
