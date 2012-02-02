@@ -213,6 +213,7 @@ define(function(require, exports, module) {
                         // Discard (load disk changes)
                         if (toClose) {
                             DocumentManager.closeDocument(doc);
+                            presentConflict(i + 1);
                         } else {
                             refreshDoc(doc)
                             .fail(function () {
