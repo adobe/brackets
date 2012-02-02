@@ -186,7 +186,8 @@ define(function (require, exports, module) {
                     },
                     "F3": "findNext",
                     "Shift-F3": "findPrev",
-                    "Ctrl-H": "replace"
+                    "Ctrl-H": "replace",
+                    "Shift-Delete": "cut"
                 }
             });
             
