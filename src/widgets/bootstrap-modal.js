@@ -144,11 +144,13 @@
   }
 
   function hideModal (that) {
-    this.$element
-      .hide()
-      .trigger('hidden')
-
+    this.$element.hide()
     backdrop.call(this)
+    
+    // pflynn: Moved this after the backdrop.call(). If the client code's 'hidden' event listener
+    // might try to open another dialog, we really want to be 100% finished with closing this one
+    // before we let that code run.
+    this.$element.trigger('hidden')
   }
 
   function backdrop ( callback ) {

@@ -139,13 +139,14 @@ define(function(require, exports, module) {
     
     /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
-     * will be marked clean with a new timestamp.
+     * will be marked clean with a new timestamp, and the undo/redo history is cleared.
      * @param {!string} text The text to replace the contents of the document with.
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function(text, newTimestamp) {
-        // TODO: what to do about Undo/Redo state here?
         this._editor.setValue(text);
+        this._editor.clearHistory();
+        
         this._markClean();
         this.diskTimestamp = newTimestamp;
     }

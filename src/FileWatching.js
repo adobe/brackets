@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -15,6 +15,8 @@ define(function(require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("ProjectManager"),
         DocumentManager     = require("DocumentManager"),
+        Commands            = require("Commands"),
+        CommandManager      = require("CommandManager"),
         Strings             = require("strings");
 
     
@@ -36,10 +38,9 @@ define(function(require, exports, module) {
         if (_alreadyChecking) {
             return;
         }
+        _alreadyChecking = true;
         
         console.log("-------------- CHECKING... -----------------");
-        
-        _alreadyChecking = true;
         
         // This function proceeds in four phases:
         //  1) Check all files for modifications
@@ -57,6 +58,11 @@ define(function(require, exports, module) {
         // while a confirmation dialog is still open.
 
         var allDocs = DocumentManager.getAllOpenDocuments();
+        
+        if (allDocs.length == 0) {
+            _alreadyChecking = false;
+            return;
+        }
         
         var toRefresh = [];
         var toClose = [];
@@ -81,7 +87,7 @@ define(function(require, exports, module) {
                     
                     nDocsChecked++;
                     if (nDocsChecked == allDocs.length)
-                        processResult();
+                        refreshChangedDocs();
                 },
                 function (error) {
                     if (error == brackets.fs.ERR_NOT_FOUND) {
@@ -100,13 +106,13 @@ define(function(require, exports, module) {
                     
                     nDocsChecked++;
                     if (nDocsChecked == allDocs.length) {
-                        processResult();
+                        refreshChangedDocs();
                     }
                 }
             );
         });
         
-        function processResult() {
+        function refreshChangedDocs() {
             if (toRefresh.length == 0) {
                 // If no docs to refresh, move right on to the next phase
                 closeDeletedDocs();
@@ -116,31 +122,35 @@ define(function(require, exports, module) {
                 var nDocsRefreshed = 0;
                 
                 toRefresh.forEach(function (doc) {
-                    DocumentManager.readAsText(doc.file)
-                    .done(function (text, readTimestamp) {
-                    
-                        doc.refreshText(text, readTimestamp);
-                        nDocsChecked++;
-                    })
+                    refreshDoc(doc)
                     .fail(function () {
                        // FIXME: how to handle this?
                     })
                     .always(function() {
-                        nDocsChecked++;
+                        nDocsRefreshed++;
                         
                         // Once we're done refreshing all the editors, move on
-                        if (nDocsChecked == toRefresh.length) {
+                        if (nDocsRefreshed == toRefresh.length) {
                             closeDeletedDocs();
                         }
                     });
                 });
             }
         }
+        function refreshDoc(doc) {
+            
+            var promise = DocumentManager.readAsText(doc.file);
+            
+            promise.done(function (text, readTimestamp) {
+                doc.refreshText(text, readTimestamp);
+            });
+            return promise;
+        }
         
         function closeDeletedDocs() {
             toClose.forEach(function (doc) {
                 DocumentManager.closeDocument(doc);
-                // FIXME: remove from file tree view also
+                // TODO: remove from file tree view also
             });
             
             // Closing editors is sync, so we can immediately move on to the final step
@@ -148,42 +158,81 @@ define(function(require, exports, module) {
         }
         
         function presentConflicts() {
-            if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                // FIXME: move strings to strings.js
-                // TODO: prompt once per file
-                showError("Some files with unsaved changes were modified outside of Brackets:"
-                    + formatFileList(editConflicts.concat(deleteConflicts))
-                    + "<br>To save your changes and overwrite the changes on disk, save each file."
-                    + "<br>To discard your changes and load the changes from disk, refresh Brackets."
-                )
-                .always(function () {
-                   _alreadyChecking = false; 
-                });
+            
+            function presentConflict(i) {
+                if (i >= editConflicts.length + deleteConflicts.length) {
+                    // We're done!
+                    _alreadyChecking = false;
+                    // TODO: need EditorManager.focusEditor() ?
+                    return;
+                }
                 
-            } else {
-                _alreadyChecking = false;
+                var message;
+                var doc;
+                var toClose;
+                
+                if (i < editConflicts.length) {
+                    // FIXME: move strings to strings.js
+                    toClose = false;
+                    doc = editConflicts[i];
+                    message =  Strings.format(
+                        "The following file was modified on disk, but also has unsaved changes in Brackets:"
+                        + "<br><b>{0}</b><br><br>"
+                        + "Do you want to save your changes and overwrite the version on disk, or discard "
+                        + "your changes and reload the new version from disk?",
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                    );
+                    // TODO: Or "Which set of changes do you want to keep? [Keep disk changes] [Keep editor changes]"
+                    
+                } else {
+                    toClose = true;
+                    doc = deleteConflicts[i - editConflicts.length];
+                    message =  Strings.format(
+                        "The following file was deleted on disk, but also has unsaved changes in Brackets:"
+                        + "<br><b>{0}</b><br><br>"
+                        + "Do you want to save your changes and recreate the file on disk, or discard "
+                        + "your changes and close the editor?",
+                        ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                    );
+                }
+                
+                brackets.showModalDialog(
+                    brackets.DIALOG_ID_EXT_CHANGES,
+                    "External Changes", message
+                )
+                .done(function (id) {
+                    if (id === brackets.DIALOG_BTN_OK) {
+                        // Save (overwrite disk changes)
+                        // FIXME: does not work if file no longer exists (deleteConflicts case)
+                        CommandManager.execute(Commands.FILE_SAVE, { doc: doc })
+                        .always(function () {
+                            presentConflict(i + 1);
+                        });
+                            
+                    } else {
+                        // Discard (load disk changes)
+                        if (toClose) {
+                            DocumentManager.closeDocument(doc);
+                        } else {
+                            refreshDoc(doc)
+                            .fail(function () {
+                               // FIXME: how to handle this?
+                            })
+                            .always(function() {
+                                presentConflict(i + 1);
+                            });
+                        }
+                    }
+                    
+                });
             }
+            
+            // Begin walking through the conflicts, one at a time
+            presentConflict(0);
         }
     }
     
     
-    function formatFileList(docs) {
-        // TODO: duplicates code in FileCommandHandlers.handleFileCloseAll()
-        var str = "<ul>";
-        docs.forEach(function(doc) {
-            str += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
-        });
-        str += "</ul>";
-        return str;
-    }
-    function showError(message) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
-            "External Changes", message);
-    }
-
-    
-
     // Define public API
     exports.checkOpenDocuments = checkOpenDocuments;
 });

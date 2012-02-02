@@ -138,7 +138,7 @@
             <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
         </div>
     </div>
-    <div id="save-close-dialog" class="modal hide fade">
+    <div id="save-close-dialog" class="modal hide ">
         <div class="modal-header">
             <a href="#" class="close">&times;</a>
             <h3 class="dialog-title">Save Changes</h3>
@@ -148,8 +148,20 @@
         </div>
         <div class="modal-footer">
             <a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
-            <!-- TODO: switch buttons on Windows -->
             <a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
+        </div>
+    </div>
+    <div id="ext-changes-dialog" class="modal hide">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h3 class="dialog-title">Title goes here</h3>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
             <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
         </div>
     </div>

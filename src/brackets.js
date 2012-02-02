@@ -65,6 +65,7 @@ define(function (require, exports, module) {
 
     brackets.DIALOG_ID_ERROR = "error-dialog";
     brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
+    brackets.DIALOG_ID_EXT_CHANGES = "ext-changes-dialog";
 
     /**
      * General purpose modal dialog. Assumes that the HTML for the dialog contains elements with "title"
