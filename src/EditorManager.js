@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: false, CodeMirror: false */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -14,19 +14,13 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
     
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager")
-    ,   EditorUtils         = require("EditorUtils")
-    ,   Strings             = require("strings")
-    ;
-    
-    // Initialize: register listeners
-    $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
-    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(window).resize(_updateEditorSize);
-    
+    var DocumentManager     = require("DocumentManager"),
+        EditorUtils         = require("EditorUtils"),
+        Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -38,8 +32,295 @@ define(function(require, exports, module) {
     
     /** @type {number} Used by {@link _updateEditorSize()} */
     var _resizeTimeout = null;
+    
+    /**
+     * @private
+     * Handle Tab key press.
+     * @param {!CodeMirror} instance CodeMirror instance.
+     */
+    function _handleTabKey(instance) {
+        // Tab key handling is done as follows:
+        // 1. If the selection is before any text and the indentation is to the left of 
+        //    the proper indentation then indent it to the proper place. Otherwise,
+        //    add another tab. In either case, move the insertion point to the 
+        //    beginning of the text.
+        // 2. If the selection is after the first non-space character, and is not an 
+        //    insertion point, indent the entire line(s).
+        // 3. If the selection is after the first non-space character, and is an 
+        //    insertion point, insert a tab character or the appropriate number 
+        //    of spaces to pad to the nearest tab boundary.
+        var from = instance.getCursor(true),
+            to = instance.getCursor(false),
+            line = instance.getLine(from.line),
+            indentAuto = false,
+            insertTab = false;
+        
+        if (from.line === to.line) {
+            if (line.search(/\S/) > to.ch || to.ch === 0) {
+                indentAuto = true;
+            }
+        }
+
+        if (indentAuto) {
+            var currentWS = line.search(/\S/);
+            CodeMirror.commands.indentAuto(instance);
+            // If the amount of whitespace didn't change, insert another tab
+            if (instance.getLine(from.line).search(/\S/) === currentWS) {
+                insertTab = true;
+                to.ch = 0;
+            }
+        } else if (instance.somethingSelected()) {
+            CodeMirror.commands.indentMore(instance);
+        } else {
+            insertTab = true;
+        }
+        
+        if (insertTab) {
+            if (instance.getOption("indentWithTabs")) {
+                CodeMirror.commands.insertTab(instance);
+            } else {
+                var i, ins = "", numSpaces = instance.getOption("tabSize");
+                numSpaces -= to.ch % numSpaces;
+                for (i = 0; i < numSpaces + 1; i++) {
+                    ins += " ";
+                }
+                instance.replaceSelection(ins, "end");
+            }
+        }
+    }
+    
+    /**
+     * @private
+     * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
+     * @param {!CodeMirror} instance CodeMirror instance 
+     * @param {number} direction Direction of movement: 1 for forward, -1 for backward
+     * @param {function} functionName name of the CodeMirror function to call
+     * @return {boolean} true if key was handled
+     */
+    function _handleSoftTabNavigation(instance, direction, functionName) {
+        var handled = false;
+        if (!instance.getOption("indentWithTabs")) {
+            var cursor = instance.getCursor(),
+                tabSize = instance.getOption("tabSize"),
+                jump = cursor.ch % tabSize,
+                line = instance.getLine(cursor.line);
+
+            if (direction === 1) {
+                jump = tabSize - jump;
+
+                if (cursor.ch + jump > line.length) { // Jump would go beyond current line
+                    return false;
+                }
+
+                if (line.substr(cursor.ch, jump).search(/\S/) === -1) {
+                    instance[functionName](jump, "char");
+                    handled = true;
+                }
+            } else {
+                // Quick exit if we are at the beginning of the line
+                if (cursor.ch === 0) {
+                    return false;
+                }
+                
+                // If we are on the tab boundary, jump by the full amount, 
+                // but not beyond the start of the line.
+                if (jump === 0) {
+                    jump = tabSize;
+                }
+
+                // Search backwards to the first non-space character
+                var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
+
+                if (offset !== -1) { // Adjust to jump to first non-space character
+                    jump -= offset;
+                }
+
+                if (jump > 0) {
+                    instance[functionName](-jump, "char");
+                    handled = true;
+                }
+            }
+        }
+
+        return handled;
+    }
+    
+    /**
+     * Creates a new CodeMirror editor instance containing text from the 
+     * specified fileEntry. The editor is not yet visible.
+     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     *  editor for the fileEntry, or rejected if the file can not be read.
+     */
+    function _createEditor(fileEntry) {
+        var result = new $.Deferred(),
+            reader = DocumentManager.readAsText(fileEntry);
+
+        reader.done(function (text) {
+            // NOTE: CodeMirror doesn't actually require calling 'new',
+            // but jslint does require it because of the capital 'C'
+            var editor = new CodeMirror(_editorHolder.get(0), {
+                indentUnit : 4,
+                lineNumbers: true,
+                extraKeys: {
+                    "Tab"  : _handleTabKey,
+                    "Left" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
+                            CodeMirror.commands.goCharLeft(instance);
+                        }
+                    },
+                    "Right" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
+                            CodeMirror.commands.goCharRight(instance);
+                        }
+                    },
+                    "Backspace" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
+                            CodeMirror.commands.delCharLeft(instance);
+                        }
+                    },
+                    "Delete" : function (instance) {
+                        if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
+                            CodeMirror.commands.delCharRight(instance);
+                        }
+                    },
+                    "F3": "findNext",
+                    "Shift-F3": "findPrev",
+                    "Ctrl-H": "replace",
+                    "Shift-Delete": "cut"
+                }
+            });
+            
+            // Set code-coloring mode
+            EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
+            
+            // Initially populate with text. This will send a spurious change event, but that's ok
+            // because no one's listening yet (and we clear the undo stack below)
+            editor.setValue(text);
+            
+            // Make sure we can't undo back to the empty state before setValue()
+            editor.clearHistory();
+
+            result.resolve(editor);
+        });
+        reader.fail(function (error) {
+            result.reject(error);
+        });
+
+        return result;
+    }
+    
+    /**
+     * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in
+     * the working set). Otherwise does nothing.
+     * @param {!Document} document
+     */
+    function _destroyEditorIfUnneeded(document) {
+        var editor = document._editor;
+
+        if (!editor) {
+            return;
+        }
+        
+        // If outgoing editor is no longer needed, dispose it
+        if (!DocumentManager.getDocumentForFile(document.file)) {
+            
+            // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
+            // is "Remove this from your tree to delete an editor instance."
+            $(editor.getWrapperElement()).remove();
+            
+            // Our callers should really ensure this, but just for safety...
+            if (_currentEditor === editor) {
+                _currentEditorsDocument = null;
+                _currentEditor = null;
+            }
+        }
+    }
+
+    /** Focus the currently visible editor. If no editor visible, does nothing. */
+    function focusEditor() {
+        if (_currentEditor) {
+            _currentEditor.focus();
+        }
+    }
+    
+    /** 
+     * Resize the editor. This should only be called if the contents of the editor holder are changed
+     * or if the height of the editor holder changes. 
+     */
+    function resizeEditor() {
+        // (see _updateEditorSize() handler above)
+        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
+        if (_currentEditor) {
+            _currentEditor.refresh();
+        }
+    }
 
     
+    /**
+     * @private
+     */
+    function _doShow(document) {
+        // Show new editor
+        _currentEditorsDocument = document;
+        _currentEditor = document._editor;
+
+        $(_currentEditor.getWrapperElement()).css("display", "");
+        
+        // Window may have been resized since last time editor was visible, so kick it now
+        resizeEditor();
+    }
+
+    /**
+     * Make the given document's editor visible in the UI, hiding whatever was
+     * visible before. Creates a new editor if none is assigned.
+     * @param {!Document} document
+     */
+    function _showEditor(document) {
+        // Hide whatever was visible before
+        if (!_currentEditor) {
+            $("#notEditor").css("display", "none");
+        } else {
+            $(_currentEditor.getWrapperElement()).css("display", "none");
+            _destroyEditorIfUnneeded(_currentEditorsDocument);
+        }
+
+        // Lazily create editor for Documents that were restored on-init
+        if (!document._editor) {
+            var editorResult = _createEditor(document.file);
+
+            editorResult.done(function (editor) {
+                document._setEditor(editor);
+                _doShow(document);
+            });
+            editorResult.fail(function (error) {
+                // Edge case where (a) file exists at launch, (b) editor not 
+                // yet opened, and (c) file is deleted or permissions are 
+                // modified outside of Brackets
+                EditorUtils.showFileOpenError(error.code, document.file.fullPath).done(function () {
+                    DocumentManager.closeDocument(document);
+                    focusEditor();
+                });
+            });
+        } else {
+            _doShow(document);
+        }
+    }
+
+
+    /** Hide the currently visible editor and show a placeholder UI in its place */
+    function _showNoEditor() {
+        if (_currentEditor) {
+            $(_currentEditor.getWrapperElement()).css("display", "none");
+            _destroyEditorIfUnneeded(_currentEditorsDocument);
+            
+            _currentEditorsDocument = null;
+            _currentEditor = null;
+            
+            $("#notEditor").css("display", "");
+        }
+    }
+
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
         var doc = DocumentManager.getCurrentDocument();
@@ -74,19 +355,18 @@ define(function(require, exports, module) {
     //      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
     //      just as easily (depends on the order of events coming from DocumentManager)
     
-    
     /**
      * Designates the DOM node that will contain the currently active editor instance. EditorManager
      * will own the content of this DOM node.
      * @param {!jQueryObject} holder
      */
     function setEditorHolder(holder) {
-        if (_currentEditor)
+        if (_currentEditor) {
             throw new Error("Cannot change editor area after an editor has already been created!");
+        }
         
         _editorHolder = holder;
     }
-    
     
     /**
      * Creates a new CodeMirror editor instance containing text from the 
@@ -98,282 +378,22 @@ define(function(require, exports, module) {
      *  document for the fileEntry, or rejected if the file can not be read.
      */
     function createDocumentAndEditor(fileEntry) {
-        var result          = new $.Deferred()
-        ,   editorResult    = _createEditor(fileEntry);
+        var result          = new $.Deferred(),
+            editorResult    = _createEditor(fileEntry);
 
-        editorResult.done(function(editor) {
+        editorResult.done(function (editor) {
             // Create the Document wrapping editor & binding it to a file
             var doc = new DocumentManager.Document(fileEntry, editor);
             result.resolve(doc);
         });
 
-        editorResult.fail(function(error) {
+        editorResult.fail(function (error) {
             result.reject(error);
         });
 
         return result;
     }
 
-    /**
-     * Creates a new CodeMirror editor instance containing text from the 
-     * specified fileEntry. The editor is not yet visible.
-     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
-     *  editor for the fileEntry, or rejected if the file can not be read.
-     */
-    function _createEditor(fileEntry) {
-        var result = new $.Deferred()
-        ,   reader = DocumentManager.readAsText(fileEntry);
-
-        reader.done(function(text) {
-            var editor = CodeMirror(_editorHolder.get(0), {
-                indentUnit : 4,
-                lineNumbers: true,
-                extraKeys: {
-                    "Tab"  : _handleTabKey,
-                    "Left" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, -1, "moveH"))
-                            CodeMirror.commands.goCharLeft(instance);
-                    },
-                    "Right" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, 1, "moveH"))
-                            CodeMirror.commands.goCharRight(instance);
-                    },
-                    "Backspace" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, -1, "deleteH"))
-                            CodeMirror.commands.delCharLeft(instance);
-                    },
-                    "Delete" : function(instance) {
-                        if (!_handleSoftTabNavigation(instance, 1, "deleteH"))
-                            CodeMirror.commands.delCharRight(instance);
-                    },
-                    "F3": "findNext", 
-                    "Shift-F3": "findPrev", 
-                    "Ctrl-H": "replace",
-                    "Shift-Delete": "cut"
-                }
-            });
-            
-            // Set code-coloring mode
-            EditorUtils.setModeFromFileExtension(editor, fileEntry.fullPath);
-            
-            // Initially populate with text. This will send a spurious change event, but that's ok
-            // because no one's listening yet (and we clear the undo stack below)
-            editor.setValue(text);
-            
-            // Make sure we can't undo back to the empty state before setValue()
-            editor.clearHistory();
-
-            result.resolve(editor);
-        });
-        reader.fail(function(error) {
-            result.reject(error);
-        });
-
-        return result;
-    }
-
-    /**
-     * @private
-     * Handle Tab key press.
-     * @param {!CodeMirror} instance CodeMirror instance.
-     */
-    function _handleTabKey(instance) {
-        // Tab key handling is done as follows:
-        // 1. If the selection is before any text and the indentation is to the left of 
-        //    the proper indentation then indent it to the proper place. Otherwise,
-        //    add another tab. In either case, move the insertion point to the 
-        //    beginning of the text.
-        // 2. If the selection is after the first non-space character, and is not an 
-        //    insertion point, indent the entire line(s).
-        // 3. If the selection is after the first non-space character, and is an 
-        //    insertion point, insert a tab character or the appropriate number 
-        //    of spaces to pad to the nearest tab boundary.
-        var from = instance.getCursor(true),
-            to = instance.getCursor(false),
-            line = instance.getLine(from.line),
-            indentAuto = false,
-            insertTab = false;
-        
-        if (from.line === to.line) {
-            if (line.search(/\S/) > to.ch || to.ch === 0)
-                indentAuto = true;
-        }
-
-        if (indentAuto) {
-            var currentWS = line.search(/\S/);
-            CodeMirror.commands.indentAuto(instance);
-            // If the amount of whitespace didn't change, insert another tab
-            if (instance.getLine(from.line).search(/\S/) === currentWS) {
-                insertTab = true;
-                to.ch = 0;
-            }
-        } 
-        else if (instance.somethingSelected()) {
-            CodeMirror.commands.indentMore(instance);
-        }
-        else {
-            insertTab = true;
-        }
-        
-        if (insertTab) {
-            if (instance.getOption("indentWithTabs")) {
-                CodeMirror.commands.insertTab(instance);
-            } else {
-                var ins, numSpaces = instance.getOption("tabSize");
-
-                numSpaces -= to.ch % numSpaces;
-                ins = new Array(numSpaces + 1).join(" ");
-                instance.replaceSelection(ins, "end");
-            }
-        }       
-    }
-    
-    /**
-     * @private
-     * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
-     * @param {!CodeMirror} instance CodeMirror instance 
-     * @param {number} direction Direction of movement: 1 for forward, -1 for backward
-     * @param {function} functionName name of the CodeMirror function to call
-     * @return {boolean} true if key was handled
-     */  
-    function _handleSoftTabNavigation(instance, direction, functionName) {
-        var handled = false;
-        if (!instance.getOption("indentWithTabs")) {
-            var cursor = instance.getCursor(),
-                tabSize = instance.getOption("tabSize"),
-                jump = cursor.ch % tabSize,
-                line = instance.getLine(cursor.line);
-
-            if (direction == 1) {
-                jump = tabSize - jump;
-
-                if (cursor.ch + jump > line.length) // Jump would go beyond current line
-                    return false;
-
-                if (line.substr(cursor.ch, jump).search(/\S/) == -1) {
-                    instance[functionName](jump, "char");
-                    handled = true;
-                }
-            } else {
-                // Quick exit if we are at the beginning of the line
-                if (cursor.ch === 0)
-                    return false;
-                
-                // If we are on the tab boundary, jump by the full amount, 
-                // but not beyond the start of the line.
-                if (jump === 0)
-                    jump = tabSize;
-
-                // Search backwards to the first non-space character
-                var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
-
-                if (offset != -1) // Adjust to jump to first non-space character
-                    jump -= offset;
-
-                if (jump > 0) {
-                    instance[functionName](-jump, "char");
-                    handled = true;
-                }
-            }
-        }
-
-        return handled;
-    }
-    
-    /**
-     * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in
-     * the working set). Otherwise does nothing.
-     * @param {!Document} document
-     */
-    function _destroyEditorIfUnneeded(document) {
-        var editor = document._editor;
-
-        if (editor === null) {
-            return;
-        }
-        
-        // If outgoing editor is no longer needed, dispose it
-        if (! DocumentManager.getDocumentForFile(document.file)) {
-            
-            // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
-            // is "Remove this from your tree to delete an editor instance."
-            $(editor.getWrapperElement()).remove();
-            
-            // Our callers should really ensure this, but just for safety...
-            if (_currentEditor == editor) {
-                _currentEditorsDocument = null;
-                _currentEditor = null;
-            }
-        }
-    }
-    
-    
-    /**
-     * Make the given document's editor visible in the UI, hiding whatever was
-     * visible before. Creates a new editor if none is assigned.
-     * @param {!Document} document
-     */
-    function _showEditor(document) {
-        // Hide whatever was visible before
-        if (_currentEditor == null) {
-            $("#notEditor").css("display","none");
-        } else {
-            $(_currentEditor.getWrapperElement()).css("display","none");
-            _destroyEditorIfUnneeded(_currentEditorsDocument);
-        }
-
-        // Lazily create editor for Documents that were restored on-init
-        if (document._editor === null) {
-            var editorResult = _createEditor(document.file);
-
-            editorResult.done(function(editor) {
-                document._setEditor(editor)
-                _doShow(document);
-            });
-            editorResult.fail(function(error) {
-                // Edge case where (a) file exists at launch, (b) editor not 
-                // yet opened, and (c) file is deleted or permissions are 
-                // modified outside of Brackets
-                EditorUtils.showFileOpenError(error.code, document.file.fullPath).done(function() {
-                    DocumentManager.closeDocument(document);
-                    focusEditor();
-                });
-            });
-        }
-        else {
-            _doShow(document);
-        }
-    }
-
-    /**
-     * @private
-     */
-    function _doShow(document) {
-        // Show new editor
-        _currentEditorsDocument = document;
-        _currentEditor = document._editor;
-
-        $(_currentEditor.getWrapperElement()).css("display", "");
-        
-        // Window may have been resized since last time editor was visible, so kick it now
-        resizeEditor();
-    }
-
-    /** Hide the currently visible editor and show a placeholder UI in its place */
-    function _showNoEditor() {
-        if (_currentEditor != null) {
-            $(_currentEditor.getWrapperElement()).css("display","none");
-            _destroyEditorIfUnneeded(_currentEditorsDocument);
-            
-            _currentEditorsDocument = null;
-            _currentEditor = null;
-            
-            $("#notEditor").css("display","");
-        }
-    }
-    
-    
     /**
      * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
      * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
@@ -381,11 +401,12 @@ define(function(require, exports, module) {
     function _updateEditorSize() {
         // Don't refresh every single time
         if (!_resizeTimeout) {
-            _resizeTimeout = setTimeout(function() {
+            _resizeTimeout = setTimeout(function () {
                 _resizeTimeout = null;
                 
-                if (_currentEditor)
+                if (_currentEditor) {
                     _currentEditor.refresh();
+                }
             }, 100);
         }
         $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
@@ -393,23 +414,10 @@ define(function(require, exports, module) {
         // (see also force-resize code in resizeEditor() )
     }
     
-    
-    /** Focus the currently visible editor. If no editor visible, does nothing. */
-    function focusEditor() {
-        if (_currentEditor != null)
-            _currentEditor.focus();
-    }
-    
-    /** 
-     * Resize the editor. This should only be called if the contents of the editor holder are changed
-     * or if the height of the editor holder changes. 
-     */
-    function resizeEditor() {
-        // (see _updateEditorSize() handler above)
-        $('.CodeMirror-scroll', _editorHolder).height(_editorHolder.height());
-        if (_currentEditor)
-            _currentEditor.refresh();
-    }
+    // Initialize: register listeners
+    $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
+    $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
+    $(window).resize(_updateEditorSize);
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
