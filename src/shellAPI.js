@@ -18,16 +18,16 @@ define(function (require, exports, module) {
 	/**
      * TODO comments
      */
-    function handleRequestClose () {
+    function handleRequestClose() {
         FileCommandHandlers.handleFileQuit();
-    };
+    }
 
     /**
      * TODO comments
      */
-    function handleRequestQuit () {
+    function handleRequestQuit() {
         FileCommandHandlers.handleFileQuit();
-    };
+    }
 
 
     exports.handleRequestClose = handleRequestClose;
