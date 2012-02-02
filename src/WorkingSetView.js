@@ -3,83 +3,81 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: true  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
 
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager")
-    , CommandManager        = require("CommandManager")
-    , Commands              = require("Commands")
-    , EditorManager         = require("EditorManager")
-    , FileViewController    = require("FileViewController")
-    , NativeFileSystem      = require("NativeFileSystem").NativeFileSystem
-    ;
-
-    // Initialize: register listeners
-    $(DocumentManager).on("workingSetAdd", function(event, addedDoc) {
-        //console.log("Working set ++ " + addedDoc);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
-        _handleDocumentAdded(addedDoc);
-    });
-
-    $(DocumentManager).on("workingSetRemove", function(event, removedDoc) {
-        //console.log("Working set -- " + removedDoc);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
-        _handleDocumentRemoved(removedDoc);
-    });
-
-    $(DocumentManager).on("dirtyFlagChange", function(event, doc) {
-        //console.log("Dirty flag change: " + doc);
-        _handleDirtyFlagChanged(doc);
-    });
-
-    $(FileViewController).on("documentSelectionFocusChange",
-    function(event, eventTarget) {
-        _handleDocumentSelectionChange();
-    });
-
-    _hideShowOpenFileHeader();
-
-
+    var DocumentManager       = require("DocumentManager"),
+        CommandManager        = require("CommandManager"),
+        Commands              = require("Commands"),
+        EditorManager         = require("EditorManager"),
+        FileViewController    = require("FileViewController"),
+        NativeFileSystem      = require("NativeFileSystem").NativeFileSystem;
+    
+    
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_DOCUMENT_KEY) to get the document reference
      */
     var _DOCUMENT_KEY = "document";
 
-
-    function _handleDocumentAdded(doc) {
-        _createNewListItem(doc);
-        _hideShowOpenFileHeader();
-    }
-
     function _hideShowOpenFileHeader() {
-        if (DocumentManager.getWorkingSet().length == 0) {
+        if (DocumentManager.getWorkingSet().length === 0) {
             $("#open-files-header").hide();
             $("#open-files-divider").hide();
-        }
-        else {
+        } else {
             $("#open-files-header").show();
             $("#open-files-divider").show();
         }
     }
-
+    
     /** 
-     * Deletes all the list items in the view and rebuilds them from the working set model
+     * Updates the appearance of the list element based on the parameters provided
      * @private
+     * @param {!HTMLLIElement} listElement
+     * @param {bool} isDirty 
+     * @param {bool} canClose
      */
-    function _rebuildWorkingSet() {
-        $("#open-files-container > ul").empty();
+    function _updateFileStatusIcon(listElement, isDirty, canClose) {
+        var fileStatusIcon = listElement.find(".file-status-icon");
+        var showIcon = isDirty || canClose;
 
-        documentManager.getWorkingSet().forEach(function(item) {
-            _createNewListItem(item);
-        });
+        // remove icon if its not needed
+        if (!showIcon && fileStatusIcon.length !== 0) {
+            fileStatusIcon.remove();
+            fileStatusIcon = null;
+            
+        // create icon if its needed and doesn't exist
+        } else if (showIcon && fileStatusIcon.length === 0) {
+            
+            fileStatusIcon = $("<div class='file-status-icon'></div>")
+                .prependTo(listElement)
+                .click(function () {
+                    var doc = listElement.data(_DOCUMENT_KEY);
+                    CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
+                });
+        }
 
-        _hideShowOpenFileHeader();
+        // Set icon's class
+        if (fileStatusIcon) {
+            fileStatusIcon.toggleClass("dirty", isDirty);
+            fileStatusIcon.toggleClass("canClose", canClose);
+        }
+    }
+    
+    /** 
+     * Updates the appearance of the list element based on the parameters provided.
+    * @private
+    * @param {HTMLLIElement} listElement
+    * @param {Document} curDoc 
+    */
+    function _updateListItemSelection(listItem, curDoc) {
+        $(listItem).toggleClass("selected", ($(listItem).data(_DOCUMENT_KEY) === curDoc));
     }
 
     /** 
@@ -103,91 +101,66 @@ define(function(require, exports, module) {
         _updateFileStatusIcon(newItem, doc.isDirty, false);
         _updateListItemSelection(newItem, curDoc);
 
-        newItem.click(function() {
-           FileViewController.openAndSelectDocument(doc.file.fullPath, FileViewController.WORKING_SET_VIEW);            
+        newItem.click(function () {
+            FileViewController.openAndSelectDocument(doc.file.fullPath, FileViewController.WORKING_SET_VIEW);
         });
 
         newItem.hover(
-        function() {
-            _updateFileStatusIcon($(this), doc.isDirty, true);
-        },
-        function() {
-            _updateFileStatusIcon($(this), doc.isDirty, false);
-        }
+            function () {
+                _updateFileStatusIcon($(this), doc.isDirty, true);
+            },
+            function () {
+                _updateFileStatusIcon($(this), doc.isDirty, false);
+            }
         );
     }
-
-
-
-    /** 
-     * Updates the appearance of the list element based on the parameters provided
-     * @private
-     * @param {!HTMLLIElement} listElement
-     * @param {bool} isDirty 
-     * @param {bool} canClose
-     */
-    function _updateFileStatusIcon(listElement, isDirty, canClose) {
-        var fileStatusIcon = listElement.find(".file-status-icon");
-        var showIcon = isDirty || canClose;
-
-        // remove icon if its not needed
-        if (!showIcon && fileStatusIcon.length != 0) {
-            fileStatusIcon.remove();
-            fileStatusIcon = null;
-        }
-        // create icon if its needed and doesn't exist
-        else if (showIcon && fileStatusIcon.length == 0) {
-            fileStatusIcon = $("<div class='file-status-icon'></div>")
-                .prependTo(listElement)
-                .click(function() {
-                    var doc = listElement.data(_DOCUMENT_KEY);
-                    CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
-                });
-        }
-
-        // Set icon's class
-        if (fileStatusIcon) {
-            fileStatusIcon.toggleClass("dirty", isDirty);
-            fileStatusIcon.toggleClass("canClose", canClose);
-
-        }
-    }
-
-
     
     /** 
-    * @private
-    */
-    function _handleDocumentSelectionChange(){
-        _updateListSelection();
-    }
+     * Deletes all the list items in the view and rebuilds them from the working set model
+     * @private
+     */
+    function _rebuildWorkingSet() {
+        $("#open-files-container > ul").empty();
 
-    /** 
+        DocumentManager.getWorkingSet().forEach(function (item) {
+            _createNewListItem(item);
+        });
+
+        _hideShowOpenFileHeader();
+    }
+    
+  /** 
     * @private
     */
     function _updateListSelection() {
         var doc;
-        if(FileViewController.getFileSelectionFocus() == FileViewController.WORKING_SET_VIEW)
+        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
             doc = DocumentManager.getCurrentDocument();
-        else
+        } else {
             doc = null;
+        }
             
         // Iterate through working set list and update the selection on each
-        var items = $("#open-files-container > ul").children().each(function() {
+        var items = $("#open-files-container > ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
-
     }
 
     /** 
-     * Updates the appearance of the list element based on the parameters provided.
     * @private
-    * @param {HTMLLIElement} listElement
-    * @param {Document} curDoc 
     */
-    function _updateListItemSelection(listItem, curDoc) {
-        $(listItem).toggleClass("selected", ($(listItem).data(_DOCUMENT_KEY) === curDoc));
+    function _handleDocumentAdded(doc) {
+        _createNewListItem(doc);
+        _hideShowOpenFileHeader();
     }
+    
+    /** 
+    * @private
+    */
+    function _handleDocumentSelectionChange() {
+        _updateListSelection();
+    }
+
 
 
     /** 
@@ -210,7 +183,7 @@ define(function(require, exports, module) {
 
         if (doc) {
             var items = $("#open-files-container > ul").children();
-            items.each(function() {
+            items.each(function () {
                 var listItem = $(this);
                 if (listItem.data(_DOCUMENT_KEY) === doc) {
                     result = listItem;
@@ -243,11 +216,35 @@ define(function(require, exports, module) {
     function _handleDirtyFlagChanged(doc) {
         var listItem = _findListItemFromDocument(doc);
         if (listItem) {
-            var canClose = $(listItem).find("canClose").length == 1;
+            var canClose = $(listItem).find("canClose").length === 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
 
     }
+    
+    // Initialize: register listeners
+    $(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
+        //console.log("Working set ++ " + addedDoc);
+        //console.log("  set: " + DocumentManager.getWorkingSet().join());
+        _handleDocumentAdded(addedDoc);
+    });
+
+    $(DocumentManager).on("workingSetRemove", function (event, removedDoc) {
+        //console.log("Working set -- " + removedDoc);
+        //console.log("  set: " + DocumentManager.getWorkingSet().join());
+        _handleDocumentRemoved(removedDoc);
+    });
+
+    $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
+        //console.log("Dirty flag change: " + doc);
+        _handleDirtyFlagChanged(doc);
+    });
+
+    $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
+        _handleDocumentSelectionChange();
+    });
+
+    _hideShowOpenFileHeader();
 
 
 });

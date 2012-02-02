@@ -19,51 +19,73 @@
   #BracketsCustom a:hover { color: #999999; }
   </style>
 
-  <script type="text/javascript" src="lib/jasmine-core/jasmine.js"></script>
-  <script type="text/javascript" src="lib/jasmine-core/jasmine-html.js"></script>
-  <script type="text/javascript" src="lib/jasmine-jquery-1.3.1.js"></script>    
+  <script src="lib/jasmine-core/jasmine.js"></script>
+  <script src="lib/jasmine-core/jasmine-html.js"></script>
+  <script src="lib/jasmine-jquery-1.3.1.js"></script>    
 
   <!-- Pre-load third party scripts that cannot be async loaded. -->
-  <script type="text/javascript" src="../src/thirdparty/jquery-1.7.min.js"></script>
-  <script type="text/javascript" src="../src/thirdparty/CodeMirror2/lib/codemirror.js"></script>
-  <script type="text/javascript" src="../src/thirdparty/less-1.1.5.min.js"></script>
+  <script src="../src/thirdparty/jquery-1.7.min.js"></script>
+  <script src="../src/thirdparty/CodeMirror2/lib/codemirror.js"></script>
+  <script src="../src/thirdparty/less-1.1.5.min.js"></script>
   <!-- All other scripts are loaded through require. -->  
-  <script type="text/javascript" src="../src/thirdparty/require.js" data-main="SpecRunner"></script>
+  <script src="../src/thirdparty/require.js" data-main="SpecRunner"></script>
     
   <script type="text/javascript">
-    (function() {
-      var jasmineEnv = jasmine.getEnv();
-      jasmineEnv.updateInterval = 1000;
-
-      var htmlReporter = new jasmine.HtmlReporter();
-
-      jasmineEnv.addReporter(htmlReporter);
-
-      jasmineEnv.specFilter = function(spec) {
-        return htmlReporter.specFilter(spec);
-      };
-
-      var currentWindowOnload = window.onload;
-
-      window.onload = function() {
-        if (currentWindowOnload) {
-          currentWindowOnload();
+    /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+    /*global jasmine: false */
+    (function () {
+        'use strict';
+        
+        var jasmineEnv = jasmine.getEnv();
+        jasmineEnv.updateInterval = 1000;
+        
+        var htmlReporter = new jasmine.HtmlReporter();
+        
+        jasmineEnv.addReporter(htmlReporter);
+        
+        jasmineEnv.specFilter = function (spec) {
+            return htmlReporter.specFilter(spec);
+        };
+        
+        var currentWindowOnload = window.onload;
+        
+        function execJasmine() {
+            jasmineEnv.execute();
         }
-        execJasmine();
-      };
+        
+        window.onload = function () {
+            if (currentWindowOnload) {
+                currentWindowOnload();
+            }
+            execJasmine();
+        };
 
-      function execJasmine() {
-        jasmineEnv.execute();
-      }
-
-    })();
+    }());
   </script>
 
 </head>
 
 <body>
-<div id="BracketsCustom">
-<a href="#" onclick="window.location.reload()">reload and re-run tests</a>
-</div>
+    
+  <div id="BracketsCustom">
+    <input id="BracketsReload" type="button" value="Reload and Re-run Tests"/>
+  </div>
+
+  <script type="text/javascript">
+    /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+    (function () {
+        'use strict';
+
+        // hook up events to elements after dom has been built
+        var reloadElement = document.getElementById("BracketsReload");
+        if (reloadElement) {
+            reloadElement.onclick = function () {
+                window.location.reload();
+            };
+        }
+
+    }());
+  </script>
+    
 </body>
 </html>
