@@ -3,13 +3,14 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: false */
 
  /**
   * Manages global application commands that can be called from menu items, key bindings, or subparts
   * of the application.
   */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
     
     var _commands = {};
 
@@ -41,13 +42,10 @@ define(function(require, exports, module) {
             var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
             if (result === undefined) {
                 return (new $.Deferred()).resolve();
-            }
-            else {
+            } else {
                 return result;
             }
-        }
-        else {
-            console.log("Attempted to call unregistered command: " + id);
+        } else {
             return (new $.Deferred()).reject();
         }
     }
