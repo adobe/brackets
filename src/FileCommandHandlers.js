@@ -359,7 +359,7 @@ define(function(require, exports, module) {
             
         } else if (unsavedDocs.length == 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: promptOnly };
+            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: commandData.promptOnly };
             handleFileClose(fileCloseArgs).done( function() {
                 // still need to close any other, non-unsaved documents
                 result.resolve();
@@ -417,7 +417,7 @@ define(function(require, exports, module) {
         var closeAllArgs = { promptOnly: false };
         handleFileCloseAll(closeAllArgs)
         .done(function() {
-            brackets.QuitApplication();
+            brackets.app.Quit();
         });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
@@ -474,5 +474,6 @@ define(function(require, exports, module) {
 
     // Define public API
     exports.init = init;
+    exports.handleFileQuit = handleFileQuit;
 });
 

@@ -118,6 +118,14 @@ define(function (require, exports, module) {
         return result;
     };
 
+    /** TODO comments
+     * probably move this to something like brackets.nativeCallbacks.handleRequestQuit
+     */
+    brackets.handleRequestQuit = function() {
+        FileCommandHandlers.handleFileQuit();
+    }
+
+
     $(document).ready(function () {
 
         var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
