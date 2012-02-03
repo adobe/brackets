@@ -145,33 +145,26 @@ define(function (require, exports, module) {
             var toClose;
             
             if (i < editConflicts.length) {
-                // FIXME: move strings to strings.js
                 toClose = false;
                 doc = editConflicts[i];
                 message =  Strings.format(
-                    "The following file was modified on disk, but also has unsaved changes in Brackets:"
-                        + "<br><b>{0}</b><br><br>"
-                        + "Do you want to save your changes and overwrite the version on disk, or discard "
-                        + "your changes and reload the new version from disk?",
+                    Strings.EXT_MODIFIED_MESSAGE,
                     ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                 );
-                // TODO: Or "Which set of changes do you want to keep? [Keep disk changes] [Keep editor changes]"
+                // FIXME: Or "Which set of changes do you want to keep? [Keep disk changes] [Keep editor changes]"
                 
             } else {
                 toClose = true;
                 doc = deleteConflicts[i - editConflicts.length];
                 message =  Strings.format(
-                    "The following file was deleted on disk, but also has unsaved changes in Brackets:"
-                        + "<br><b>{0}</b><br><br>"
-                        + "Do you want to save your changes and recreate the file on disk, or discard "
-                        + "your changes and close the editor?",
+                    Strings.EXT_DELETED_MESSAGE,
                     ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                 );
             }
             
             brackets.showModalDialog(
                 brackets.DIALOG_ID_EXT_CHANGES,
-                "External Changes",
+                Strings.EXT_MODIFIED_TITLE,
                 message
             )
                 .done(function (id) {

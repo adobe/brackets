@@ -58,6 +58,15 @@ define(function (require, exports, module) {
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";
-
+    exports.EXT_MODIFIED_TITLE                = "External Changes";
+    exports.EXT_MODIFIED_MESSAGE              = "The following file was modified on disk, but also has unsaved changes in Brackets:"
+                                                + "<br><b>{0}</b><br><br>"
+                                                + "Do you want to save your changes and overwrite the version on disk, or discard "
+                                                + "your changes and reload the new version from disk?";
+    exports.EXT_DELETED_MESSAGE               =  "The following file was deleted on disk, but also has unsaved changes in Brackets:"
+                                                + "<br><b>{0}</b><br><br>"
+                                                + "Do you want to save your changes and recreate the file on disk, or discard "
+                                                + "your changes and close the editor?";
+    
     exports.OPEN_FILE                         = "Open File";
 });
