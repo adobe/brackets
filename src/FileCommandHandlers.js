@@ -453,7 +453,7 @@ define(function (require, exports, module) {
         deferred.done(function () {
             //we don't need to handle the window close request anymore so 
             //remove our event handler
-            brackets.handleRequestCloseWindow = null;
+            brackets.shellAPI.handleRequestCloseWindow = null;
             PreferencesManager.savePreferences();
             window.close();
         });

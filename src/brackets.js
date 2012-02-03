@@ -27,9 +27,14 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyBindingManager").KeyMap,
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
+        
 
     // Define core brackets namespace
     brackets = window.brackets || {};
+
+    // TODO: make conditi
+    brackets.shellAPI             = require("shellAPI");
+    
 
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
@@ -116,17 +121,6 @@ define(function (require, exports, module) {
             $(document).off(".modal");
         });
         return result;
-    };
-
-    /** TODO comments
-     * probably move this to something like brackets.nativeCallbacks.handleRequestQuit
-     */
-    brackets.handleRequestQuit = function () {
-        CommandManager.execute(Commands.FILE_QUIT);
-    };
-    
-    brackets.handleRequestCloseWindow = function () {
-        CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
     };
 
 
@@ -326,4 +320,6 @@ define(function (require, exports, module) {
     $(window).unload(function () {
         PreferencesManager.savePreferences();
     });
+
+
 });
