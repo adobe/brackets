@@ -16,6 +16,8 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("ProjectManager"),
         DocumentManager     = require("DocumentManager"),
+        EditorManager       = require("EditorManager"),
+        EditorUtils         = require("EditorUtils"),
         Commands            = require("Commands"),
         CommandManager      = require("CommandManager"),
         Strings             = require("strings");
@@ -65,6 +67,7 @@ define(function (require, exports, module) {
                         }
                     } else {
                         // Some other error fetching metadata: treat as a real error
+                        console.log("Error checking modification status of " + doc.file.fullPath, error.code);
                         result.reject();
                     }
                     
@@ -87,9 +90,15 @@ define(function (require, exports, module) {
         promise.done(function (text, readTimestamp) {
             doc.refreshText(text, readTimestamp);
         });
+        promise.fail(function (error) {
+            console.log("Error reloading contents of " + doc.file.fullPath, error.code);
+            result.reject(error);
+        });
         return promise;
     }
     
+    // Runs all in parallel; rejects master Deferred as soon as any one fails, but others will
+    // continue running to completion.
     function refreshChangedDocs() {
         
         var result = new $.Deferred();
@@ -105,6 +114,8 @@ define(function (require, exports, module) {
             toRefresh.forEach(function (doc) {
                 refreshDoc(doc)
                     .fail(function () {
+                        // One or more files failed to refresh; so far we've logged each error
+                        // but not shown UI for it yet
                         result.reject();
                     })
                     .always(function () {
@@ -119,6 +130,18 @@ define(function (require, exports, module) {
         }
         
         return result;
+    }
+    
+    function showRefreshError(error, doc) {
+        return brackets.showModalDialog(
+            brackets.DIALOG_ID_ERROR,
+            Strings.ERROR_RELOADING_FILE_TITLE,
+            Strings.format(
+                Strings.ERROR_RELOADING_FILE,
+                doc.file.fullPath,
+                EditorUtils.getFileErrorString(error.code)
+            )
+        );
     }
     
     
@@ -141,57 +164,57 @@ define(function (require, exports, module) {
             }
             
             var message;
+            var dialogId;
             var doc;
             var toClose;
             
             if (i < editConflicts.length) {
                 toClose = false;
                 doc = editConflicts[i];
-                message =  Strings.format(
+                dialogId = brackets.DIALOG_ID_EXT_CHANGED;
+                message = Strings.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                 );
-                // FIXME: Or "Which set of changes do you want to keep? [Keep disk changes] [Keep editor changes]"
                 
             } else {
                 toClose = true;
                 doc = deleteConflicts[i - editConflicts.length];
-                message =  Strings.format(
+                dialogId = brackets.DIALOG_ID_EXT_DELETED;
+                message = Strings.format(
                     Strings.EXT_DELETED_MESSAGE,
                     ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                 );
             }
             
-            brackets.showModalDialog(
-                brackets.DIALOG_ID_EXT_CHANGES,
-                Strings.EXT_MODIFIED_TITLE,
-                message
-            )
+            brackets.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message)
                 .done(function (id) {
-                    if (id === brackets.DIALOG_BTN_OK) {
-                        // Save (overwrite disk changes)
-                        // FIXME: fails if file no longer exists (deleteConflicts case) due to
-                        //        brackets-app issue #42
-                        CommandManager.execute(Commands.FILE_SAVE, { doc: doc })
-                            .always(function () {
-                                presentConflict(i + 1);
-                            });
-                            // TODO: if save fails, it leaves up a dialog but we don't block for it
-                            
-                    } else {
-                        // Discard (load disk changes)
+                    if (id === brackets.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
+                            // Discard = close editor
                             DocumentManager.closeDocument(doc);
                             presentConflict(i + 1);
                         } else {
+                            // Discard = load changes from disk
                             refreshDoc(doc)
-                                .fail(function () {
-                                    result.reject();
-                                })
-                                .always(function () {
+                                .done(function () {
                                     presentConflict(i + 1);
+                                })
+                                .fail(function (error) {
+                                    // Unable to load changed version from disk - show error UI
+                                    showRefreshError(error, doc)
+                                        .always(function () {
+                                            // After user dismisses, move on to next conflict prompt
+                                            // (hence no result.reject() here - we're still going)
+                                            presentConflict(i + 1);
+                                        });
                                 });
                         }
+                        
+                    } else {
+                        // Cancel - if user doesn't save or close, we'll prompt again next time
+                        // window is reactivated.
+                        presentConflict(i + 1);
                     }
                 });
             
@@ -202,8 +225,6 @@ define(function (require, exports, module) {
         
         return result;
     }
-    
-    
     
     
     
@@ -248,30 +269,35 @@ define(function (require, exports, module) {
             .done(function () {
                 // 2) Refresh clean docs as needed
                 refreshChangedDocs()
-                    .done(function () {
+                    .always(function () {
                         // 3) Close clean docs as needed
                         // This phase completes synchronously
                         closeDeletedDocs();
                         
-                        // 4) Prompt for dirty editors
+                        // 4) Prompt for dirty editors (conflicts)
                         presentConflicts()
-                            .done(function () {
+                            .always(function () {
+                                // And we're done!
                                 _alreadyChecking = false;
-                                // TODO: need EditorManager.focusEditor() ?
-                            })
-                            .fail(function () {
-                               // FIXME: how to handle this?
-                               // FIXME: currently this is called only when a (discard-&-)refresh fails;
-                               // should we also call it when a save fails, and if so, how do we distinguish
-                               // the two cases?
+                                EditorManager.focusEditor();
+                                
+                                // (Any errors that ocurred during presentConflicts() show UI
+                                // immediately and then wait for dismissal, so there's no fail()
+                                // case to account for here)
                             });
-                    })
-                    .fail(function () {
-                        // FIXME: how to handle this?
                     });
+                    // Note: if any auto-reloads failed, we silently ignore (after logging to console)
+                    // and we still continue onto phase 4 and try to process those files anyway.
+                    // (We'll retry the auto-reloads next time window is activated... and evenually
+                    // we'll also be double checking before each Save).
                     
             }).fail(function () {
-                // FIXME: how to handle this?
+                // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
+                // (We'll retry next time window is activated... and evenually we'll also be double
+                // checking before each Save).
+                
+                // We can't go on without knowing which files are dirty, so bail now
+                _alreadyChecking = false;
             });
         
     }

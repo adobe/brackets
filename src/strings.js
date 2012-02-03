@@ -47,6 +47,8 @@ define(function (require, exports, module) {
     // File open/save error string
     exports.ERROR_OPENING_FILE_TITLE          = "Error opening file";
     exports.ERROR_OPENING_FILE                = "An error occurred when trying to open the file \"{0}\". {1}";
+    exports.ERROR_RELOADING_FILE_TITLE        = "Error reloading changes from disk";
+    exports.ERROR_RELOADING_FILE              = "An error occurred when trying to reload the file \"{0}\". {1}";
     exports.ERROR_SAVING_FILE_TITLE           = "Error saving file";
     exports.ERROR_SAVING_FILE                 = "An error occurred when trying to save the file \"{0}\". {1}";
     exports.INVALID_FILENAME_TITLE            = "Invalid file name";
@@ -59,14 +61,12 @@ define(function (require, exports, module) {
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";
     exports.EXT_MODIFIED_TITLE                = "External Changes";
-    exports.EXT_MODIFIED_MESSAGE              = "The following file was modified on disk, but also has unsaved changes in Brackets:"
-                                                + "<br><b>{0}</b><br><br>"
-                                                + "Do you want to save your changes and overwrite the version on disk, or discard "
-                                                + "your changes and reload the new version from disk?";
-    exports.EXT_DELETED_MESSAGE               =  "The following file was deleted on disk, but also has unsaved changes in Brackets:"
-                                                + "<br><b>{0}</b><br><br>"
-                                                + "Do you want to save your changes and recreate the file on disk, or discard "
-                                                + "your changes and close the editor?";
+    exports.EXT_MODIFIED_MESSAGE              = "<b>{0}</b> has been modified on disk, but also has unsaved changes in Brackets."
+                                                + "<br><br>"
+                                                + "Which version do you want to keep?";
+    exports.EXT_DELETED_MESSAGE               = "<b>{0}</b> has been deleted on disk, but has unsaved changes in Brackets."
+                                                + "<br><br>"
+                                                + "Do you want to keep your changes?";
     
     exports.OPEN_FILE                         = "Open File";
 });
