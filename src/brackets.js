@@ -141,6 +141,26 @@ define(function (require, exports, module) {
 
         var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
         
+        function initListeners() {
+            // Prevent unhandled drag and drop of files into the browser from replacing 
+            // the entire Brackets app. This doesn't prevent children from choosing to
+            // handle drops.
+            $(document.body)
+                .on("dragover", function (event) {
+                    if (event.originalEvent.dataTransfer.files) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        event.originalEvent.dataTransfer.dropEffect = "none";
+                    }
+                })
+                .on("drop", function (event) {
+                    if (event.originalEvent.dataTransfer.files) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                    }
+                });
+        }
+        
         function initProject() {
             ProjectManager.loadProject();
 
@@ -325,6 +345,7 @@ define(function (require, exports, module) {
 
         EditorManager.setEditorHolder($('#editorHolder'));
     
+        initListeners();
         initProject();
         initMenus();
         initCommandHandlers();
