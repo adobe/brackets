@@ -87,6 +87,12 @@ define(function (require, exports, module) {
             
             dlg.modal(true).hide();
         }
+        
+        function stopEvent(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
         // Click handler for buttons
         dlg.one("click", ".dialog-button", function (e) {
             dismissDialog($(this).attr("data-button-id"));
@@ -98,11 +104,13 @@ define(function (require, exports, module) {
         // Otherwise, if a keydown or keypress from somewhere else
         // triggered an alert, the keyup could immediately dismiss it.
         var enterKeyPressed = false;
-        $(document).on("keydown.modal", function (e) {
+        $(document.body).on("keydown.modal", function (e) {
+            stopEvent(e);
             if (e.keyCode === 13) {
                 enterKeyPressed = true;
             }
         }).on("keyup.modal", function (e) {
+            stopEvent(e);
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
@@ -114,12 +122,16 @@ define(function (require, exports, module) {
 
 
         // Run the dialog
+        var oldFocus = document.activeElement;
+        oldFocus.blur();
+        
         dlg.modal({
             backdrop: "static",
             show: true
         }).on("hide", function (e) {
             // Remove all handlers in the .modal namespace
-            $(document).off(".modal");
+            $(document.body).off(".modal");
+            oldFocus.focus();
         });
         return result;
     };
@@ -300,7 +312,7 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            $(document.body).keydown(function (event) {
+            $(document).keydown(function (event) {
                 var keyDescriptor = [];
                 if (event.metaKey || event.ctrlKey) {
                     keyDescriptor.push("Ctrl");
