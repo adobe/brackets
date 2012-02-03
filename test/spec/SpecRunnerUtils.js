@@ -53,6 +53,12 @@ define(function (require, exports, module) {
         // waits(500);
 
         runs(function () {
+            //we need to mark the documents as not dirty before we close
+            //or the window will stay open prompting to save
+            var workingSet = testWindow.brackets.test.DocumentManager.getWorkingSet();
+            workingSet.forEach(function markClean(ele, i, array) {
+                ele.markClean();
+            });
             testWindow.close();
         });
     }

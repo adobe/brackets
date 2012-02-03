@@ -121,9 +121,13 @@ define(function (require, exports, module) {
     /** TODO comments
      * probably move this to something like brackets.nativeCallbacks.handleRequestQuit
      */
-    brackets.handleRequestQuit = function() {
-        FileCommandHandlers.handleFileQuit();
-    }
+    brackets.handleRequestQuit = function () {
+        CommandManager.execute(Commands.FILE_QUIT);
+    };
+    
+    brackets.handleRequestCloseWindow = function () {
+        CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
+    };
 
 
     $(document).ready(function () {
