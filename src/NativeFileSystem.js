@@ -198,8 +198,8 @@ define(function (require, exports, module) {
             var self = this;
 
             brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
-                self._err = err;
-
+                // Ignore error. It's okay if the file doesn't exist yet.
+                
                 if (contents) {
                     self._length = contents.length;
                 }
