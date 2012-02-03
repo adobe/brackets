@@ -44,13 +44,6 @@ define(function (require, exports, module) {
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.DocumentManager";
     
     /**
-     * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
-     * it means the file was modified by an app other than Brackets.
-     * @type {!Date}
-     */
-    Document.prototype.diskTimestamp = null;
-    
-    /**
      * @private
      * @see DocumentManager.getCurrentDocument()
      */
@@ -112,8 +105,9 @@ define(function (require, exports, module) {
     function getAllOpenDocuments() {
         var allDocs = _workingSet.slice(0);  //slice() to clone
         
-        if (_currentDocument != null && allDocs.indexOf(_currentDocument) == -1)
+        if (_currentDocument && allDocs.indexOf(_currentDocument) === -1) {
             allDocs.push(_currentDocument);
+        }
         
         return allDocs;
     }
@@ -244,10 +238,10 @@ define(function (require, exports, module) {
                 var text = event.target.result;
                 
                 fileEntry.getMetadata(
-                    function(metadata) {
+                    function (metadata) {
                         result.resolve(text, metadata.modificationTime);
                     },
-                    function(error) {
+                    function (error) {
                         result.reject(error);
                     }
                 );
@@ -423,8 +417,6 @@ define(function (require, exports, module) {
         // Editor can only be assigned once per Document
         console.assert(this._editor === null);
         
-        console.log("Installed editor for "+this.file+" - TS = "+initialTimestamp)
-
         this._editor = editor;
         this.diskTimestamp = initialTimestamp;
         
@@ -456,13 +448,13 @@ define(function (require, exports, module) {
      * @param {!string} text The text to replace the contents of the document with.
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
-    Document.prototype.refreshText = function(text, newTimestamp) {
+    Document.prototype.refreshText = function (text, newTimestamp) {
         this._editor.setValue(text);
         this._editor.clearHistory();
         
         this._markClean();
         this.diskTimestamp = newTimestamp;
-    }
+    };
     
     /**
      * Sets the cursor position in the document.
@@ -517,11 +509,10 @@ define(function (require, exports, module) {
         // fact that it was modified externally
         var thisDoc = this;
         this.file.getMetadata(
-            function(metadata) {
+            function (metadata) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
-                console.log("File "+thisDoc.file+" timestamp pushed out to "+thisDoc.diskTimestamp)
             },
-            function(error) {
+            function (error) {
                 // FIXME: what to do here?
             }
         );
