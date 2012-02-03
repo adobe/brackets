@@ -152,7 +152,7 @@
     // before we let that code run.
     this.$element.trigger('hidden')
   }
-
+  
   function backdrop ( callback ) {
     var that = this
       , animate = this.$element.hasClass('fade') ? 'fade' : ''
