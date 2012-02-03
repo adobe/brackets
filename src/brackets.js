@@ -77,8 +77,14 @@ define(function (require, exports, module) {
 
         function dismissDialog(buttonId) {
             dlg.one("hidden", function () {
-                result.resolve(buttonId);
+                // Let call stack return before notifying that dialog has closed; this avoids issue #191
+                // if the handler we're triggering might show another dialog (as long as there's no
+                // fade-out animation)
+                setTimeout(function () {
+                    result.resolve(buttonId);
+                }, 0);
             });
+            
             dlg.modal(true).hide();
         }
         // Click handler for buttons
