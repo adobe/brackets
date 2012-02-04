@@ -524,26 +524,26 @@ define(function (require, exports, module) {
             if (!err) {
                 var entries = [];
                 var filelistIterator = function (i) {
-                    var item = filelist[i];
-                    var itemFullPath = rootPath + "/" + item;
-                    brackets.fs.stat(itemFullPath, function (statErr, statData) {
-                        if (!statErr) {
-
-                            if (statData.isDirectory()) {
-                                entries.push(new NativeFileSystem.DirectoryEntry(itemFullPath));
-                            } else if (statData.isFile()) {
-                                entries.push(new NativeFileSystem.FileEntry(itemFullPath));
-                            }
-
-                            if (i < filelist.length - 1) {
+                    if (i >= filelist.length) {
+                        successCallback(entries);
+                    } else {
+                        var item = filelist[i];
+                        var itemFullPath = rootPath + "/" + item;
+                        brackets.fs.stat(itemFullPath, function (statErr, statData) {
+                            if (!statErr) {
+    
+                                if (statData.isDirectory()) {
+                                    entries.push(new NativeFileSystem.DirectoryEntry(itemFullPath));
+                                } else if (statData.isFile()) {
+                                    entries.push(new NativeFileSystem.FileEntry(itemFullPath));
+                                }
+    
                                 filelistIterator(i + 1);
-                            } else {
-                                successCallback(entries);
+                            } else if (errorCallback) {
+                                errorCallback(NativeFileSystem._nativeToFileError(statErr));
                             }
-                        } else if (errorCallback) {
-                            errorCallback(NativeFileSystem._nativeToFileError(statErr));
-                        }
-                    });
+                        });
+                    }
                 };
                 filelistIterator(0);
             } else {

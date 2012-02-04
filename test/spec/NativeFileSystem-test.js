@@ -48,20 +48,20 @@ define(function (require, exports, module) {
 
             it("should read a directory from disk", function () {
                 var entries = null;
-                var readComplete = false;
+                var readComplete = false, gotError = false;
                 
                 function requestNativeFileSystemSuccessCB(nfs) {
                     var reader = nfs.createReader();
 
                     var successCallback = function (e) { entries = e; readComplete = true; };
-                    // TODO: not sure what parameters error callback will take because it's not implemented yet
-                    var errorCallback = function () { readComplete = true; };
+                    var errorCallback = function () { readComplete = true; gotError = true; };
 
                     reader.readEntries(successCallback, errorCallback);
 
                     waitsFor(function () { return readComplete; }, 1000);
 
                     runs(function () {
+                        expect(gotError).toBe(false);
                         expect(entries).toContainDirectoryWithName("dir1");
                         expect(entries).toContainFileWithName("file1");
                         expect(entries).not.toContainFileWithName("file2");
@@ -122,6 +122,29 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(entries).not.toBe(null);
                 });
+            });
+            
+            it("can read an empty folder", function () {
+                var entries = null;
+                var readComplete = false, gotError = false;
+                
+                function requestNativeFileSystemSuccessCB(nfs) {
+                    var reader = nfs.createReader();
+
+                    var successCallback = function (e) { entries = e; readComplete = true; };
+                    var errorCallback = function () { readComplete = true; gotError = true; };
+
+                    reader.readEntries(successCallback, errorCallback);
+
+                    waitsFor(function () { return readComplete; }, 1000);
+
+                    runs(function () {
+                        expect(gotError).toBe(false);
+                        expect(entries).toEqual([]);
+                    });
+                }
+                
+                var nfs = NativeFileSystem.requestNativeFileSystem(this.path + "/emptydir", requestNativeFileSystemSuccessCB);
             });
         });
 
