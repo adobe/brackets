@@ -89,12 +89,11 @@ define(function (require, exports, module) {
         }
         
         function stopEvent(e) {
-            // Don't stop the event if the target is inside the dialog
-            if ($.contains(dlg.get(0), e.target)) {
-                return;
+            // Stop the event if the target is not inside the dialog
+            if (!($.contains(dlg.get(0), e.target))) {
+                e.stopPropagation();
+                e.preventDefault();
             }
-            e.stopPropagation();
-            e.preventDefault();
         }
         
         // Enter/Return handler for the primary button. Need to
