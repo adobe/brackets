@@ -28,9 +28,20 @@ define(function (require, exports, module) {
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
 
-    // Define core brackets namespace
-    brackets = window.brackets || {};
-
+    // Define core brackets namespace if it isn't already defined
+    //
+    // We can't simply do 'brackets = {}' to define it in the global namespace because
+    // we're in "use strict" mode. Most likely, 'window' will always point to the global
+    // object when this code is running. However, in case it isn't (e.g. if we're running 
+    // inside Node for CI testing) we use this trick to get the global object.
+    //
+    // Taken from:
+    //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
+    var Fn = Function, global = (new Fn('return this'))();
+    if (!global.brackets) {
+        global.brackets = {};
+    }
+    
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
