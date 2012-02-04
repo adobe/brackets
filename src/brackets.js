@@ -28,9 +28,12 @@ define(function (require, exports, module) {
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
 
-    // Define core brackets namespace
-    brackets = window.brackets || {};
-
+    // Define core brackets namespace                                                                                                                         
+    if (!window.brackets) {
+        window.brackets = {};
+    }
+    var brackets = window.brackets;
+    
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
