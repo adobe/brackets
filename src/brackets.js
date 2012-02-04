@@ -87,22 +87,30 @@ define(function (require, exports, module) {
             
             dlg.modal(true).hide();
         }
-        // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            dismissDialog($(this).attr("data-button-id"));
-        });
-
+        
+        function stopEvent(e) {
+            // Stop the event if the target is not inside the dialog
+            if (!($.contains(dlg.get(0), e.target))) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+        
         // Enter/Return handler for the primary button. Need to
         // add both keydown and keyup handlers here to make sure
         // the enter key was pressed while the dialog was showing.
         // Otherwise, if a keydown or keypress from somewhere else
         // triggered an alert, the keyup could immediately dismiss it.
         var enterKeyPressed = false;
-        $(document).on("keydown.modal", function (e) {
+        
+        function keydownHandler(e) {
             if (e.keyCode === 13) {
                 enterKeyPressed = true;
             }
-        }).on("keyup.modal", function (e) {
+            stopEvent(e);
+        }
+        
+        function keyupHandler(e) {
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
@@ -110,16 +118,27 @@ define(function (require, exports, module) {
                 }
             }
             enterKeyPressed = false;
+            stopEvent(e);
+        }
+        
+        // These handlers are added at the capture phase to make sure we
+        // get first crack at the events. 
+        document.body.addEventListener("keydown", keydownHandler, true);
+        document.body.addEventListener("keyup", keyupHandler, true);
+        
+        // Click handler for buttons
+        dlg.one("click", ".dialog-button", function (e) {
+            dismissDialog($(this).attr("data-button-id"));
         });
-
 
         // Run the dialog
         dlg.modal({
             backdrop: "static",
             show: true
         }).on("hide", function (e) {
-            // Remove all handlers in the .modal namespace
-            $(document).off(".modal");
+            // Remove key event handlers
+            document.body.removeEventListener("keydown", keydownHandler, true);
+            document.body.removeEventListener("keyup", keyupHandler, true);
         });
         return result;
     };
