@@ -89,6 +89,10 @@ define(function (require, exports, module) {
         }
         
         function stopEvent(e) {
+            // Don't stop the event if the target is inside the dialog
+            if ($.contains(dlg.get(0), e.target)) {
+                return;
+            }
             e.stopPropagation();
             e.preventDefault();
         }
