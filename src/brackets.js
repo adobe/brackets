@@ -28,7 +28,7 @@ define(function (require, exports, module) {
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
 
-    // Define core brackets namespace                                                                                                                         
+    // Define core brackets namespace
     if (!window.brackets) {
         window.brackets = {};
     }
