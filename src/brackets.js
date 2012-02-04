@@ -30,10 +30,10 @@ define(function (require, exports, module) {
 
     // Define core brackets namespace if it isn't already defined
     //
-    // We can't simply refer do 'brackets = {}' to define it in the global namespace because
+    // We can't simply do 'brackets = {}' to define it in the global namespace because
     // we're in "use strict" mode. Most likely, 'window' will always point to the global
-    // object when this code is running. However, in case it isn't (e.g. running inside
-    // Node for CI testing) we use this trick to get the global object.
+    // object when this code is running. However, in case it isn't (e.g. if we're running 
+    // inside Node for CI testing) we use this trick to get the global object.
     //
     // Taken from:
     //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
