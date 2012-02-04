@@ -7,7 +7,11 @@
 
 /**
  * FileWatching is a set of utilities to help track external modifications to the files and folders
- * in Brackets' currently open project.
+ * in the currently open project.
+ *
+ * Currently, we look for external changes purely by checking file timestamps against the last-sync
+ * timestamp recorded on Document. Later, we will use actual native directory-watching callbacks
+ * instead.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -23,13 +27,34 @@ define(function (require, exports, module) {
         Strings             = require("strings");
 
     
+    /**
+     * Guard to prevent re-entrancy while syncOpenDocuments() is still in progress
+     * @type {boolean}
+     */
     var _alreadyChecking = false;
+    
+    /** @type {Array.<Document>} */
     var toRefresh;
+    /** @type {Array.<Document>} */
     var toClose;
+    /** @type {Array.<Document>} */
     var editConflicts;
+    /** @type {Array.<Document>} */
     var deleteConflicts;
     
     
+    /**
+     * Scans all the given Documents for changes on disk, and sorts them into four buckets,
+     * populating the corresponding arrays:
+     *  toRefresh       - changed on disk; unchanged within Brackets
+     *  toClose         - deleted on disk; unchanged within Brackets
+     *  editConflicts   - changed on disk; also dirty in Brackets
+     *  deleteConflicts - deleted on disk; also dirty in Brackets
+     *
+     * @param {!Array.<Document>} docs
+     * @return {$.Deferred}  Resolved when all scanning done, or rejected immediately if there's any
+     *      error while reading file timestamps. Errors are logged but no UI is shown.
+     */
     function findExternalChanges(docs) {
 
         toRefresh = [];
@@ -41,9 +66,11 @@ define(function (require, exports, module) {
         
         var result = new $.Deferred();
         
+        // Check all docs in parallel
         docs.forEach(function (doc) {
             doc.file.getMetadata(
                 function (metadata) {
+                    // Is file's timestamp newer than last sync time on the Document?
                     if (metadata.modificationTime > doc.diskTimestamp) {
                         if (doc.isDirty) {
                             editConflicts.push(doc);
@@ -82,7 +109,15 @@ define(function (require, exports, module) {
         return result;
     }
     
-    // TODO: move this into FileCommandHandlers as the impl of a Revert command?
+    
+    /**
+     * Reloads the Document's contents from disk, discarding any unsaved changes in the editor.
+     * TODO: move this into FileCommandHandlers as the impl of a Revert command?
+     *
+     * @param {!Document} doc
+     * @return {$.Deferred} Resolved after editor has been refreshed; rejected if unable to load the
+     *      file's new content. Errors are logged but no UI is shown.
+     */
     function refreshDoc(doc) {
         
         var promise = DocumentManager.readAsText(doc.file);
@@ -92,23 +127,27 @@ define(function (require, exports, module) {
         });
         promise.fail(function (error) {
             console.log("Error reloading contents of " + doc.file.fullPath, error.code);
-            result.reject(error);
         });
         return promise;
     }
     
-    // Runs all in parallel; rejects master Deferred as soon as any one fails, but others will
-    // continue running to completion.
+    /**
+     * Refreshes all the documents in "toRefresh" silently (no prompts). The operations are all run
+     * in parallel.
+     * @return {$.Deferred} Resolved after all refreshes done; rejected immediately if any one file
+     *      cannot be refreshed (but other refreshes will continue running to completion). Errors
+     *      are logged (by refreshDoc()) but no UI is shown.
+     */
     function refreshChangedDocs() {
         
         var result = new $.Deferred();
         
         if (toRefresh.length === 0) {
-            // If no docs to refresh, move right on to the next phase
+            // If no docs to refresh, signal done right away
             result.resolve();
             
         } else {
-            // Refresh each doc in turn, and once all are (async) done, proceed to next phase
+            // Refresh each doc in turn, and once all are (async) done, signal that we're done
             var nDocsRefreshed = 0;
             
             toRefresh.forEach(function (doc) {
@@ -132,6 +171,11 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * @param {FileError} error
+     * @param {!Document} doc
+     * @return {$.Deferred}
+     */
     function showRefreshError(error, doc) {
         return brackets.showModalDialog(
             brackets.DIALOG_ID_ERROR,
@@ -145,6 +189,9 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Closes all the documents in "toClose" silently (no prompts). Completes synchronously.
+     */
     function closeDeletedDocs() {
         toClose.forEach(function (doc) {
             DocumentManager.closeDocument(doc);
@@ -153,11 +200,20 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Walks through all the documents in "editConflicts" & "deleteConflicts" and prompts the user
+     * about each one. Processing is sequential: if the user chooses to refresh a document, the next
+     * prompt is not shown until after the refresh has completed.
+     *
+     * @return {$.Deferred} Resolved after all documents have been prompted and (if applicable)
+     *      refreshed (and any resulting error UI has been dismissed). Never rejected.
+     */
     function presentConflicts() {
         
         var result = new $.Deferred();
         
         function presentConflict(i) {
+            // If we're processed all the files, signal that we're done
             if (i >= editConflicts.length + deleteConflicts.length) {
                 result.resolve();
                 return;
@@ -168,6 +224,7 @@ define(function (require, exports, module) {
             var doc;
             var toClose;
             
+            // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
                 toClose = false;
                 doc = editConflicts[i];
@@ -191,11 +248,11 @@ define(function (require, exports, module) {
                 .done(function (id) {
                     if (id === brackets.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
-                            // Discard = close editor
+                            // Discard - close editor
                             DocumentManager.closeDocument(doc);
                             presentConflict(i + 1);
                         } else {
-                            // Discard = load changes from disk
+                            // Discard - load changes from disk
                             refreshDoc(doc)
                                 .done(function () {
                                     presentConflict(i + 1);
@@ -212,8 +269,8 @@ define(function (require, exports, module) {
                         }
                         
                     } else {
-                        // Cancel - if user doesn't save or close, we'll prompt again next time
-                        // window is reactivated.
+                        // Cancel - if user doesn't manually save or close, we'll prompt again next
+                        // time window is reactivated
                         presentConflict(i + 1);
                     }
                 });
@@ -237,9 +294,9 @@ define(function (require, exports, module) {
     function syncOpenDocuments() {
         
         // We can become "re-entrant" if the user leaves & then returns to Brackets before we're
-        // done -- easy if a confirmation dialog is open. This can cause various problems (including
-        // the dialog disappearing, due to a Bootstrap bug/quirk), so we want to avoid it.
-        // Downside: if we ever crash, flag will stay true and we'll never check again.
+        // done -- easy if a prompt dialog is open. This can cause various problems (including the
+        // dialog disappearing, due to a Bootstrap bug/quirk), so we want to avoid it.
+        // Downside: if we ever crash, flag will stay true and we'll never sync again.
         if (_alreadyChecking) {
             return;
         }
@@ -252,7 +309,7 @@ define(function (require, exports, module) {
         _alreadyChecking = true;
         
         
-        // This function proceeds in four phases:
+        // Syncing proceeds in four phases:
         //  1) Check all files for external modifications
         //  2) Refresh all editors that are clean (if file changed on disk)
         //  3) Close all editors that are clean (if file deleted on disk)
@@ -262,7 +319,7 @@ define(function (require, exports, module) {
         // TODO: like most of our file operations, this is probably full of race conditions where
         // the user can go into the UI and break our state while we're still in mid-operation. We
         // need a way to block user input while this is going on, at least in the browser-hosted
-        // version where APIs are truly aync.
+        // version where APIs are truly async.
 
         // 1) Check for external modifications
         findExternalChanges(allDocs)

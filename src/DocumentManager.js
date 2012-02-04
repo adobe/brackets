@@ -513,7 +513,7 @@ define(function (require, exports, module) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
             },
             function (error) {
-                // FIXME: what to do here?
+                console.log("Error updating timestamp after saving file: " + this.file.fullPath);
             }
         );
     };
