@@ -125,26 +125,73 @@ define(function (require, exports, module) {
             });
             
             it("can read an empty folder", function () {
+                // FIXME: (joelrbrandt) if we add NativeFileSystem commands to create a folder, we should
+                // change this test to simply create a new folder (rather than remove a placeholder, etc.)
                 var entries = null;
-                var readComplete = false, gotError = false;
+                var accessedFolder = false, placeholderDeleted = false, readComplete = false, gotErrorReadingContents = false, placeholderRecreated = false;
+
+                var dirPath = this.path + "/emptydir";
+                var placeholderPath = dirPath + "/placeholder";
                 
                 function requestNativeFileSystemSuccessCB(nfs) {
-                    var reader = nfs.createReader();
+                    accessedFolder = true;
+                
+                    function recreatePlaceholder(successCallback) {
+                        nfs.getFile("placeholder",
+                                    { create: true, exclusive: true },
+                                    function () { placeholderRecreated = true; },
+                                    function () { placeholderRecreated = false; });
+                    }
 
-                    var successCallback = function (e) { entries = e; readComplete = true; };
-                    var errorCallback = function () { readComplete = true; gotError = true; };
+                    function readDirectory() {
+                        var reader = nfs.createReader();
+                        var successCallback = function (e) {
+                            entries = e;
+                            readComplete = true;
+                            recreatePlaceholder();
+                        };
+                        var errorCallback = function () {
+                            readComplete = true;
+                            gotErrorReadingContents = true;
+                            recreatePlaceholder();
+                        };
+                        reader.readEntries(successCallback, errorCallback);
+                    }
 
-                    reader.readEntries(successCallback, errorCallback);
-
-                    waitsFor(function () { return readComplete; }, 1000);
-
-                    runs(function () {
-                        expect(gotError).toBe(false);
-                        expect(entries).toEqual([]);
-                    });
+                    
+                    function deletePlaceholder(successCallback) {
+                        // FIXME: (joelrbrandt) once NativeFileSystem has a delete/unlink, should use that
+                        brackets.fs.unlink(placeholderPath, function (err) {
+                            if (!err) {
+                                placeholderDeleted = true;
+                            }
+                            // Even if there was an error, we want to read the directory
+                            // because it could be that the placeholder is just missing.
+                            // If we continue, we'll create the placeholder and the test
+                            // will (maybe) pass next time
+                            readDirectory();
+                        });
+                    }
+                    
+                    deletePlaceholder(); // which calls readDirectory which calls recreatePlaceholder
+                            
                 }
                 
-                var nfs = NativeFileSystem.requestNativeFileSystem(this.path + "/emptydir", requestNativeFileSystemSuccessCB);
+                var nfs = NativeFileSystem.requestNativeFileSystem(
+                    dirPath,
+                    requestNativeFileSystemSuccessCB,
+                    function () { readComplete = true; }
+                );
+
+                waitsFor(function () { return readComplete; }, 1000);
+
+                runs(function () {
+                    expect(accessedFolder).toBe(true);
+                    expect(placeholderDeleted).toBe(true);
+                    expect(gotErrorReadingContents).toBe(false);
+                    expect(entries).toEqual([]);
+                    expect(placeholderRecreated).toBe(true);
+                });
             });
         });
 

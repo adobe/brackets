@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
-/*global define: false, brackets: true, FileError: false, InvalidateStateError: false */
+/*global $: false, define: false, brackets: true, FileError: false, InvalidateStateError: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -517,36 +517,47 @@ define(function (require, exports, module) {
      * @param {function(...)} errorCallback
      * @returns {Array.<Entry>}
      */
-    // TODO: Parallelize the XHRs using something like Promises?
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
         var rootPath = this._directory.fullPath;
         brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
-                var entries = [];
-                var filelistIterator = function (i) {
-                    if (i >= filelist.length) {
-                        successCallback(entries);
-                    } else {
-                        var item = filelist[i];
-                        var itemFullPath = rootPath + "/" + item;
-                        brackets.fs.stat(itemFullPath, function (statErr, statData) {
-                            if (!statErr) {
-    
-                                if (statData.isDirectory()) {
-                                    entries.push(new NativeFileSystem.DirectoryEntry(itemFullPath));
-                                } else if (statData.isFile()) {
-                                    entries.push(new NativeFileSystem.FileEntry(itemFullPath));
-                                }
-    
-                                filelistIterator(i + 1);
-                            } else if (errorCallback) {
-                                errorCallback(NativeFileSystem._nativeToFileError(statErr));
-                            }
-                        });
-                    }
+                var i, entries = [], d, deferreds = [];
+
+                // create the function that will be used to create inidividual functions
+                // for each deferred that add the entry in the right place in the entries array
+                var genAddToArrayFunction = function (a, i) {
+                    return function (v) { entries[i] = v; };
                 };
-                filelistIterator(0);
-            } else {
+
+                // the function that stats individual entires.
+                // takes the item's full path and the deferred to resolve with
+                var statEntry = function (itemFullPath, d) {
+                    brackets.fs.stat(itemFullPath, function (statErr, statData) {
+                        if (!statErr) {
+                            if (statData.isDirectory()) {
+                                d.resolve(new NativeFileSystem.DirectoryEntry(itemFullPath));
+                            } else if (statData.isFile()) {
+                                d.resolve(new NativeFileSystem.FileEntry(itemFullPath));
+                            }
+                        } else if (errorCallback) {
+                            d.reject(NativeFileSystem._nativeToFileError(statErr));
+                        }
+                    });
+                };
+                
+                // create all the deferreds, and start the work executing!
+                for (i = 0; i < filelist.length; i++) {
+                    d = new $.Deferred();
+                    d.done(genAddToArrayFunction(entries, i));
+                    deferreds.push(d);
+                    statEntry(rootPath + "/" + filelist[i], d);
+                }
+
+                // wait until they're all done or an error occurs.
+                $.when.apply(this, deferreds).then(function () { successCallback(entries); },
+                                                   function (err) { errorCallback(err); });
+
+            } else { // there was an error reading the initial directory
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
         });
