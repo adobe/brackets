@@ -18,6 +18,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
         EditorUtils         = require("EditorUtils"),
+        Async               = require("Async"),
         Strings             = require("strings");
     
     /**
@@ -228,6 +229,22 @@ define(function (require, exports, module) {
             )
         );
     }
+    function showMultipleSaveFileError(errors) {
+        var errorList = "<ul>";
+        errors.forEach(function (error) {
+           errorList += "<li>"+error.item.fullPath+": "+EditorUtils.getFileErrorString(error.error.code)+"</li>";
+        });
+        errorList += "</ul>";
+        
+        return brackets.showModalDialog(
+            brackets.DIALOG_ID_ERROR,
+            "Error saving file(s)",
+            Strings.format(
+                "Errors occurred when trying to save the file(s): {0}"
+                errorList 
+            )
+        );
+    }
     
     function doSave(docToSave) {
         var result = new $.Deferred();
@@ -235,29 +252,28 @@ define(function (require, exports, module) {
         if (docToSave && docToSave.isDirty) {
             var fileEntry = docToSave.file;
             
-            //setup our resolve and reject handlers
-            result.done(function fileSaved() {
-                docToSave.notifySaved();
-            });
-
-            result.fail(function fileError(error) {
-                showSaveFileError(error.code, fileEntry.fullPath);
-            });
-
+            function handleError(error) {
+                showSaveFileError(error.code, fileEntry.fullPath)
+                .always(function () {
+                    result.reject(error);
+                });
+            }
+            
             fileEntry.createWriter(
                 function (writer) {
                     writer.onwriteend = function () {
+                        docToSave.notifySaved();
                         result.resolve();
                     };
                     writer.onerror = function (error) {
-                        result.reject(error);
+                        handleError(error);
                     };
 
                     // TODO (jasonsj): Blob instead of string
                     writer.write(docToSave.getText());
                 },
                 function (error) {
-                    result.reject(error);
+                    handleError(error);
                 }
             );
         } else {
@@ -297,17 +313,23 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        var saveResults = [];
+        // Current way: doSave shows error UI & doesn't finish until its dismissed; forces us to save in seq (not in parallel)
+        return Async.doSequentially(DocumentManager.getWorkingSet(), doSave, false);
         
-        DocumentManager.getWorkingSet().forEach(function (doc) {
-            saveResults.push(doSave(doc));
-        });
-        
-        // Aggregate all the file-save Deferreds into one master
-        // (p.s., it would be nice if $.when() accepted an array instead of varargs, but oh well...)
-        var overallResult = $.when.apply($, saveResults);
-        
-        return overallResult;
+        // // Alternative:
+        // // (assumes doSave() merely returns errors; doesn't show UI)
+        // var errors = [];
+        // var result = new $.Deferred();
+        // Async.doInParallel_aggregateErrors(DocumentManager.getWorkingSet(), doSave)
+        // .done(function () {
+        //     result.resolve();
+        // })
+        // .fail(function (errors) {
+        //     showMultipleSaveFileError(errors)
+        //     .always(function () {
+        //         result.reject();
+        //     })
+        // });
     }
     
 
