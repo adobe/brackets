@@ -198,8 +198,11 @@ define(function (require, exports, module) {
             var self = this;
 
             brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
-                self._err = err;
-
+                // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
+                if (err !== brackets.fs.ERR_NOT_FOUND) {
+                    self._err = err;
+                }
+                
                 if (contents) {
                     self._length = contents.length;
                 }
