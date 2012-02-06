@@ -18,7 +18,8 @@ define(function (require, exports, module) {
         DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
         EditorUtils         = require("EditorUtils"),
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        PreferencesManager  = require("PreferencesManager");
     
     /**
      * Handlers for commands related to file handling (opening, saving, etc.)
@@ -446,10 +447,22 @@ define(function (require, exports, module) {
     }
     
     
-    /** Confirms any unsaved changes, then exits Brackets */
+    /** Confirms any unsaved changes, then closes the window */
+    function handleFileCloseWindow() {
+        var deferred = CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true });
+        deferred.done(function () {
+            //we don't need to handle the window close request anymore so 
+            //remove our event handler
+            brackets.shellAPI.handleRequestCloseWindow = null;
+            PreferencesManager.savePreferences();
+            window.close();
+        });
+        return deferred;
+    }
+    
+    /** Closes the window, then quits the app */
     function handleFileQuit() {
-        var closeAllArgs = { promptOnly: false };
-        handleFileCloseAll(closeAllArgs)
+        handleFileCloseWindow()
             .done(function () {
                 brackets.app.Quit();
             });
@@ -469,6 +482,7 @@ define(function (require, exports, module) {
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
         
         
@@ -478,6 +492,5 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.init = init;
-    exports.handleFileQuit = handleFileQuit;
 });
 

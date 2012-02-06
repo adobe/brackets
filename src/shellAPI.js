@@ -13,23 +13,23 @@ define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var FileCommandHandlers     = require("FileCommandHandlers");
+    var CommandManager     = require("CommandManager"),
+        Commands           = require("Commands");
 
 	/**
      * TODO comments
      */
-    function handleRequestClose() {
-        FileCommandHandlers.handleFileQuit();
+    function handleRequestCloseWindow() {
+        CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
     }
 
     /**
      * TODO comments
      */
     function handleRequestQuit() {
-        FileCommandHandlers.handleFileQuit();
+        CommandManager.execute(Commands.FILE_QUIT);
     }
 
-
-    exports.handleRequestClose = handleRequestClose;
+    exports.handleRequestCloseWindow = handleRequestCloseWindow;
     exports.handleRequestQuit = handleRequestQuit;
 });
