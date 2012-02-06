@@ -24,6 +24,7 @@ define(function (require, exports, module) {
         EditorUtils         = require("EditorUtils"),
         Commands            = require("Commands"),
         CommandManager      = require("CommandManager"),
+        Async               = require("Async"),
         Strings             = require("strings");
 
     
@@ -62,12 +63,9 @@ define(function (require, exports, module) {
         editConflicts = [];
         deleteConflicts = [];
     
-        var nDocsChecked = 0;
-        
-        var result = new $.Deferred();
-        
-        // Check all docs in parallel
-        docs.forEach(function (doc) {
+        function checkDoc(doc) {
+            var result = new $.Deferred();
+            
             doc.file.getMetadata(
                 function (metadata) {
                     // Is file's timestamp newer than last sync time on the Document?
@@ -79,10 +77,7 @@ define(function (require, exports, module) {
                         }
                     }
                     
-                    nDocsChecked++;
-                    if (nDocsChecked === docs.length) {
-                        result.resolve();
-                    }
+                    result.resolve();
                 },
                 function (error) {
                     // File has been deleted externally
@@ -92,21 +87,20 @@ define(function (require, exports, module) {
                         } else {
                             toClose.push(doc);
                         }
+                        result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
                         console.log("Error checking modification status of " + doc.file.fullPath, error.code);
                         result.reject();
                     }
-                    
-                    nDocsChecked++;
-                    if (nDocsChecked === docs.length) {
-                        result.resolve();
-                    }
                 }
             );
+            return result;
         });
         
-        return result;
+        // Check all docs in parallel
+        // (fail fast b/c we won't continue syncing if there was any error fetching timestamps)
+        return Async.doInParallel(docs, checkDoc, true);
     }
     
     
@@ -134,41 +128,12 @@ define(function (require, exports, module) {
     /**
      * Refreshes all the documents in "toRefresh" silently (no prompts). The operations are all run
      * in parallel.
-     * @return {$.Deferred} Resolved after all refreshes done; rejected immediately if any one file
-     *      cannot be refreshed (but other refreshes will continue running to completion). Errors
-     *      are logged (by refreshDoc()) but no UI is shown.
+     * @return {$.Deferred} Resolved/rejected after all refreshes done; will be rejected if any one
+     *      file's refresh failed. Errors are logged (by refreshDoc()) but no UI is shown.
      */
     function refreshChangedDocs() {
-        
-        var result = new $.Deferred();
-        
-        if (toRefresh.length === 0) {
-            // If no docs to refresh, signal done right away
-            result.resolve();
-            
-        } else {
-            // Refresh each doc in turn, and once all are (async) done, signal that we're done
-            var nDocsRefreshed = 0;
-            
-            toRefresh.forEach(function (doc) {
-                refreshDoc(doc)
-                    .fail(function () {
-                        // One or more files failed to refresh; so far we've logged each error
-                        // but not shown UI for it yet
-                        result.reject();
-                    })
-                    .always(function () {
-                        nDocsRefreshed++;
-                        
-                        // Once we're done refreshing all the editors, move on
-                        if (nDocsRefreshed === toRefresh.length) {
-                            result.resolve();
-                        }
-                    });
-            });
-        }
-        
-        return result;
+        // Refresh each doc in turn, and once all are (async) done, signal that we're done
+        return Async.doInParallel(toRefresh, refreshDoc, false);
     }
     
     /**
@@ -205,29 +170,24 @@ define(function (require, exports, module) {
      * about each one. Processing is sequential: if the user chooses to refresh a document, the next
      * prompt is not shown until after the refresh has completed.
      *
-     * @return {$.Deferred} Resolved after all documents have been prompted and (if applicable)
-     *      refreshed (and any resulting error UI has been dismissed). Never rejected.
+     * @return {$.Deferred} Resolved/rejected after all documents have been prompted and (if
+     *      applicable) refreshed (and any resulting error UI has been dismissed). Rejected if any
+     *      one refresh failed.
      */
     function presentConflicts() {
         
-        var result = new $.Deferred();
+        var allConflicts = editConflicts.concat(deleteConflicts);
         
-        function presentConflict(i) {
-            // If we're processed all the files, signal that we're done
-            if (i >= editConflicts.length + deleteConflicts.length) {
-                result.resolve();
-                return;
-            }
+        function presentConflict(doc, i) {
+            var result = new $.Deferred();
             
             var message;
             var dialogId;
-            var doc;
             var toClose;
             
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
                 toClose = false;
-                doc = editConflicts[i];
                 dialogId = brackets.DIALOG_ID_EXT_CHANGED;
                 message = Strings.format(
                     Strings.EXT_MODIFIED_MESSAGE,
@@ -236,7 +196,6 @@ define(function (require, exports, module) {
                 
             } else {
                 toClose = true;
-                doc = deleteConflicts[i - editConflicts.length];
                 dialogId = brackets.DIALOG_ID_EXT_DELETED;
                 message = Strings.format(
                     Strings.EXT_DELETED_MESSAGE,
@@ -250,20 +209,19 @@ define(function (require, exports, module) {
                         if (toClose) {
                             // Discard - close editor
                             DocumentManager.closeDocument(doc);
-                            presentConflict(i + 1);
+                            result.resolve();
                         } else {
                             // Discard - load changes from disk
                             refreshDoc(doc)
                                 .done(function () {
-                                    presentConflict(i + 1);
+                                    result.resolve();
                                 })
                                 .fail(function (error) {
                                     // Unable to load changed version from disk - show error UI
                                     showRefreshError(error, doc)
                                         .always(function () {
                                             // After user dismisses, move on to next conflict prompt
-                                            // (hence no result.reject() here - we're still going)
-                                            presentConflict(i + 1);
+                                            result.reject();
                                         });
                                 });
                         }
@@ -271,16 +229,15 @@ define(function (require, exports, module) {
                     } else {
                         // Cancel - if user doesn't manually save or close, we'll prompt again next
                         // time window is reactivated
-                        presentConflict(i + 1);
+                        result.resolve();
                     }
                 });
             
+            return result;
         }
         
         // Begin walking through the conflicts, one at a time
-        presentConflict(0);
-        
-        return result;
+        return Async.doSequentially(allConflicts, presentConflict, false);
     }
     
     
@@ -338,9 +295,8 @@ define(function (require, exports, module) {
                                 _alreadyChecking = false;
                                 EditorManager.focusEditor();
                                 
-                                // (Any errors that ocurred during presentConflicts() show UI
-                                // immediately and then wait for dismissal, so there's no fail()
-                                // case to account for here)
+                                // (Any errors that ocurred during presentConflicts() have already
+                                // shown UI & been dismissed, so there's no fail() processing here)
                             });
                     });
                     // Note: if any auto-reloads failed, we silently ignore (after logging to console)

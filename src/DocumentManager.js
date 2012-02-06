@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager"),
         PreferencesManager  = require("PreferencesManager"),
         CommandManager      = require("CommandManager"),
+        Async               = require("Async"),
         Commands            = require("Commands");
 
     /**
@@ -543,19 +544,9 @@ define(function (require, exports, module) {
         //                 e.g. A file to restore no longer exists. Should we silently ignore
         //                 it or let the user be notified when they attempt to open the Document?
         var result = (function () {
-            var deferred        = new $.Deferred();
-            var fileCount       = prefs.files.length,
-                responseCount   = 0;
-
-            function next() {
-                responseCount++;
-
-                if (responseCount === fileCount) {
-                    deferred.resolve();
-                }
-            }
-
-            prefs.files.forEach(function (value, index) {
+            function checkOneFile(value, index) {
+                var result = new $.Deferred();
+                
                 // check if the file still exists
                 projectRoot.getFile(value.file, {},
                     function (fileEntry) {
@@ -566,15 +557,17 @@ define(function (require, exports, module) {
                             activeFile = fileEntry;
                         }
 
-                        next();
+                        result.resolve();
                     },
                     function (error) {
                         filesToOpen[index] = null;
-                        next();
+                        result.reject();
                     });
+                
+                return result;
             });
 
-            return deferred;
+            return Async.doInParallel(prefs.files, checkOneFile, false);
         }());
 
         result.done(function () {
