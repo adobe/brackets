@@ -29,11 +29,18 @@ define(function (require, exports, module) {
         CommandManager          = require("CommandManager");
         
 
+    // Load native shell when brackets is run in a native shell rather than the browser
+    // TODO: load conditionally
+    brackets.shellAPI = require("shellAPI");
+
     // Define core brackets namespace
     brackets = window.brackets || {};
 
-    // TODO: make conditi
-    brackets.shellAPI             = require("shellAPI");
+    brackets.inBrowser = !brackets.hasOwnProperty("fs");
+
+
+        
+
     
 
     // TODO: Make sure the "test" object is not included in final builds
@@ -52,7 +59,7 @@ define(function (require, exports, module) {
         CommandManager          : require("CommandManager")
     };
 
-    brackets.inBrowser = !brackets.hasOwnProperty("fs");
+
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";

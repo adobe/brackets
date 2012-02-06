@@ -7,29 +7,20 @@
 
  /**
   * This is JavaScript API exposed to the native shell when Brackets is run in a native shell rather than a browser.
-  * This module is conditionally loaded only when the native shell is present an can be accessed via brackets.shellAPI
   */
 define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var CommandManager     = require("CommandManager"),
-        Commands           = require("Commands");
-
-	/**
-     * TODO comments
-     */
-    function handleRequestCloseWindow() {
-        CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
-    }
+    var CommandManager     = require("CommandManager");
 
     /**
-     * TODO comments
+     * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable
+     * calling Brackets commands from the native shell.
      */
-    function handleRequestQuit() {
-        CommandManager.execute(Commands.FILE_QUIT);
+    function executeCommand (eventName) {
+        CommandManager.execute(eventName);
     }
 
-    exports.handleRequestCloseWindow = handleRequestCloseWindow;
-    exports.handleRequestQuit = handleRequestQuit;
+    exports.executeCommand = executeCommand;
 });
