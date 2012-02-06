@@ -10,7 +10,7 @@ define(function (require, exports, module) {
         // On Windows, when loading from a file, window.location.href has
         // a leading '/'. Remove that here.
         // TODO: Figure out a better way to handle this...
-        if (path[0] === '/' && path[2] === ":") {
+        if (path.length > 3 && path[0] === '/' && path[2] === ":") {
             path = path.substr(1);
         }
         
