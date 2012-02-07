@@ -12,6 +12,11 @@ define(function (require, exports, module) {
 
     var NativeFileSystem = {
         
+        /** Amount of time we wait for async calls to return (in milliseconds)
+         * TODO: Not all async calls are wrapped with something that times out and calls the error callback
+         * @const
+         * @type {number}
+         */
         ASYNC_TIMEOUT: 2000,
         
         /** showOpenDialog
