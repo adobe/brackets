@@ -125,8 +125,13 @@ define(function (require, exports, module) {
             });
             
             it("can read an empty folder", function () {
-                // FIXME: (joelrbrandt) if we add NativeFileSystem commands to create a folder, we should
-                // change this test to simply create a new folder (rather than remove a placeholder, etc.)
+                // FIXME: (joelrbrandt) We need an empty folder for testing in this spec. Unfortunately, it's impossible
+                // to check an empty folder in to git, and we don't have low level fs calls to create an emtpy folder.
+                // So, for now, we have a folder called "emptydir" which contains a single 0-length file called
+                // "placeholder". We delete that file at the beginning of each test, and then recreate it at the end.
+                //
+                // If we add NativeFileSystem commands to create a folder, we should change this test to simply create
+                // a new folder (rather than remove a placeholder, etc.)
                 var entries = null;
                 var accessedFolder = false, placeholderDeleted = false, readComplete = false, gotErrorReadingContents = false, placeholderRecreated = false;
 
