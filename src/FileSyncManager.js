@@ -6,7 +6,7 @@
 /*global define, $, brackets, FileError */
 
 /**
- * FileWatching is a set of utilities to help track external modifications to the files and folders
+ * FileSyncManager is a set of utilities to help track external modifications to the files and folders
  * in the currently open project.
  *
  * Currently, we look for external changes purely by checking file timestamps against the last-sync

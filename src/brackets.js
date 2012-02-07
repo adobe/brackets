@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         WorkingSetView          = require("WorkingSetView"),
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
-        FileWatching            = require("FileWatching"),
+        FileSyncManager         = require("FileSyncManager"),
         KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
         KeyMap                  = require("KeyBindingManager").KeyMap,
         Commands                = require("Commands"),
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
         function initWindowListeners() {
             // TODO: to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
-                FileWatching.syncOpenDocuments();
+                FileSyncManager.syncOpenDocuments();
             });
             
             $(window).unload(function () {
