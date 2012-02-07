@@ -152,6 +152,7 @@ define(function (require, exports, module) {
         dlg.one("click", ".dialog-button", function (e) {
             brackets._dismissDialog(dlg, $(this).attr("data-button-id"));
         });
+
         // Run the dialog
         dlg.modal({
             backdrop: "static",
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
     };
 
 
-
+    // Main Brackets initialization
     $(document).ready(function () {
 
         var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
@@ -396,7 +397,6 @@ define(function (require, exports, module) {
         initCommandHandlers();
         initKeyBindings();
         initWindowListeners();
-        
         
         $(DocumentManager).on("currentDocumentChange", function () {
             runJSLint();
