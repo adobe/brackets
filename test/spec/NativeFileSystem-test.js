@@ -57,18 +57,18 @@ define(function (require, exports, module) {
                     var errorCallback = function () { readComplete = true; gotError = true; };
 
                     reader.readEntries(successCallback, errorCallback);
-
-                    waitsFor(function () { return readComplete; }, 1000);
-
-                    runs(function () {
-                        expect(gotError).toBe(false);
-                        expect(entries).toContainDirectoryWithName("dir1");
-                        expect(entries).toContainFileWithName("file1");
-                        expect(entries).not.toContainFileWithName("file2");
-                    });
                 }
                 
                 var nfs = NativeFileSystem.requestNativeFileSystem(this.path, requestNativeFileSystemSuccessCB);
+                
+                waitsFor(function () { return readComplete; }, 1000);
+
+                runs(function () {
+                    expect(gotError).toBe(false);
+                    expect(entries).toContainDirectoryWithName("dir1");
+                    expect(entries).toContainFileWithName("file1");
+                    expect(entries).not.toContainFileWithName("file2");
+                });
             });
 
             it("should return an error if the directory doesn't exist", function () {
