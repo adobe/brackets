@@ -28,13 +28,20 @@ define(function (require, exports, module) {
 
     
     /**
-     * Guard to prevent re-entrancy while syncOpenDocuments() is still in progress
+     * Guard to spot re-entrancy while syncOpenDocuments() is still in progress
      * @type {boolean}
      */
     var _alreadyChecking = false;
     
+    /**
+     * If true, we should bail from the syncOpenDocuments() process and then re-run it. See
+     * comments in syncOpenDocuments() for how this works.
+     * @type {boolean}
+     */
+    var _restartPending = false;
+    
     /** @type {Array.<Document>} */
-    var toRefresh;
+    var toReload;
     /** @type {Array.<Document>} */
     var toClose;
     /** @type {Array.<Document>} */
@@ -46,7 +53,7 @@ define(function (require, exports, module) {
     /**
      * Scans all the given Documents for changes on disk, and sorts them into four buckets,
      * populating the corresponding arrays:
-     *  toRefresh       - changed on disk; unchanged within Brackets
+     *  toReload        - changed on disk; unchanged within Brackets
      *  toClose         - deleted on disk; unchanged within Brackets
      *  editConflicts   - changed on disk; also dirty in Brackets
      *  deleteConflicts - deleted on disk; also dirty in Brackets
@@ -57,7 +64,7 @@ define(function (require, exports, module) {
      */
     function findExternalChanges(docs) {
 
-        toRefresh = [];
+        toReload = [];
         toClose = [];
         editConflicts = [];
         deleteConflicts = [];
@@ -70,12 +77,12 @@ define(function (require, exports, module) {
         docs.forEach(function (doc) {
             doc.file.getMetadata(
                 function (metadata) {
-                    // Is file's timestamp newer than last sync time on the Document?
-                    if (metadata.modificationTime > doc.diskTimestamp) {
+                    // Does file's timestamp differ from last sync time on the Document?
+                    if (metadata.modificationTime !== doc.diskTimestamp) {
                         if (doc.isDirty) {
                             editConflicts.push(doc);
                         } else {
-                            toRefresh.push(doc);
+                            toReload.push(doc);
                         }
                     }
                     
@@ -118,7 +125,7 @@ define(function (require, exports, module) {
      * @return {$.Deferred} Resolved after editor has been refreshed; rejected if unable to load the
      *      file's new content. Errors are logged but no UI is shown.
      */
-    function refreshDoc(doc) {
+    function reloadDoc(doc) {
         
         var promise = DocumentManager.readAsText(doc.file);
         
@@ -132,36 +139,36 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Refreshes all the documents in "toRefresh" silently (no prompts). The operations are all run
-     * in parallel.
-     * @return {$.Deferred} Resolved after all refreshes done; rejected immediately if any one file
-     *      cannot be refreshed (but other refreshes will continue running to completion). Errors
-     *      are logged (by refreshDoc()) but no UI is shown.
+     * Reloads all the documents in "toReload" from disk silently (no prompts). The operations are
+     * all run in parallel.
+     * @return {$.Deferred} Resolved after all reloads done; rejected immediately if any one file
+     *      cannot be reloads (but other reloads will continue running to completion). Errors
+     *      are logged (by reloadDoc()) but no UI is shown.
      */
-    function refreshChangedDocs() {
+    function reloadChangedDocs() {
         
         var result = new $.Deferred();
         
-        if (toRefresh.length === 0) {
-            // If no docs to refresh, signal done right away
+        if (toReload.length === 0) {
+            // If no docs to reload, signal done right away
             result.resolve();
             
         } else {
-            // Refresh each doc in turn, and once all are (async) done, signal that we're done
-            var nDocsRefreshed = 0;
+            // Reload each doc in turn, and once all are (async) done, signal that we're done
+            var nDocsReloaded = 0;
             
-            toRefresh.forEach(function (doc) {
-                refreshDoc(doc)
+            toReload.forEach(function (doc) {
+                reloadDoc(doc)
                     .fail(function () {
-                        // One or more files failed to refresh; so far we've logged each error
+                        // One or more docs failed to reload; so far we've logged each error
                         // but not shown UI for it yet
                         result.reject();
                     })
                     .always(function () {
-                        nDocsRefreshed++;
+                        nDocsReloaded++;
                         
-                        // Once we're done refreshing all the editors, move on
-                        if (nDocsRefreshed === toRefresh.length) {
+                        // Once we're done reloading all docs, move on
+                        if (nDocsReloaded === toReload.length) {
                             result.resolve();
                         }
                     });
@@ -176,7 +183,7 @@ define(function (require, exports, module) {
      * @param {!Document} doc
      * @return {$.Deferred}
      */
-    function showRefreshError(error, doc) {
+    function showReloadError(error, doc) {
         return brackets.showModalDialog(
             brackets.DIALOG_ID_ERROR,
             Strings.ERROR_RELOADING_FILE_TITLE,
@@ -202,19 +209,25 @@ define(function (require, exports, module) {
     
     /**
      * Walks through all the documents in "editConflicts" & "deleteConflicts" and prompts the user
-     * about each one. Processing is sequential: if the user chooses to refresh a document, the next
-     * prompt is not shown until after the refresh has completed.
+     * about each one. Processing is sequential: if the user chooses to reload a document, the next
+     * prompt is not shown until after the reload has completed.
      *
      * @return {$.Deferred} Resolved after all documents have been prompted and (if applicable)
-     *      refreshed (and any resulting error UI has been dismissed). Never rejected.
+     *      reloaded (and any resulting error UI has been dismissed). Never rejected.
      */
     function presentConflicts() {
         
         var result = new $.Deferred();
         
         function presentConflict(i) {
-            // If we're processed all the files, signal that we're done
+            // If we've processed all the files, signal that we're done
             if (i >= editConflicts.length + deleteConflicts.length) {
+                result.resolve();
+                return;
+            }
+            
+            // If window has been re-focused, bail now and restart the sync
+            if (_restartPending) {
                 result.resolve();
                 return;
             }
@@ -253,13 +266,13 @@ define(function (require, exports, module) {
                             presentConflict(i + 1);
                         } else {
                             // Discard - load changes from disk
-                            refreshDoc(doc)
+                            reloadDoc(doc)
                                 .done(function () {
                                     presentConflict(i + 1);
                                 })
                                 .fail(function (error) {
                                     // Unable to load changed version from disk - show error UI
-                                    showRefreshError(error, doc)
+                                    showReloadError(error, doc)
                                         .always(function () {
                                             // After user dismisses, move on to next conflict prompt
                                             // (hence no result.reject() here - we're still going)
@@ -271,6 +284,8 @@ define(function (require, exports, module) {
                     } else {
                         // Cancel - if user doesn't manually save or close, we'll prompt again next
                         // time window is reactivated
+                        // (or programmatically canceled due to _resetPending - we'll bail at start
+                        // of next go-around)
                         presentConflict(i + 1);
                     }
                 });
@@ -294,10 +309,18 @@ define(function (require, exports, module) {
     function syncOpenDocuments() {
         
         // We can become "re-entrant" if the user leaves & then returns to Brackets before we're
-        // done -- easy if a prompt dialog is open. This can cause various problems (including the
-        // dialog disappearing, due to a Bootstrap bug/quirk), so we want to avoid it.
-        // Downside: if we ever crash, flag will stay true and we'll never sync again.
+        // done -- easy if a prompt dialog is left open. Since the user may have left Brackets to
+        // revert some of the disk changes, etc. we want to cancel the current sync and immediately
+        // begin a new one. We let the orig sync run until the user-visible dialog phase, then
+        // bail; if we're already there we programmatically close the dialog to bail right away.
         if (_alreadyChecking) {
+            _restartPending = true;
+            
+            // Close dialog if it was open. This will 'unblock' presentConflict(), which bails back
+            // to us immediately upon seeing _restartPending. We then restart the sync - see below
+            brackets.cancelModalDialogIfOpen(brackets.DIALOG_ID_EXT_CHANGED);
+            brackets.cancelModalDialogIfOpen(brackets.DIALOG_ID_EXT_DELETED);
+            
             return;
         }
         
@@ -324,8 +347,8 @@ define(function (require, exports, module) {
         // 1) Check for external modifications
         findExternalChanges(allDocs)
             .done(function () {
-                // 2) Refresh clean docs as needed
-                refreshChangedDocs()
+                // 2) Reload clean docs as needed
+                reloadChangedDocs()
                     .always(function () {
                         // 3) Close clean docs as needed
                         // This phase completes synchronously
@@ -334,13 +357,20 @@ define(function (require, exports, module) {
                         // 4) Prompt for dirty editors (conflicts)
                         presentConflicts()
                             .always(function () {
-                                // And we're done!
-                                _alreadyChecking = false;
-                                EditorManager.focusEditor();
-                                
-                                // (Any errors that ocurred during presentConflicts() show UI
-                                // immediately and then wait for dismissal, so there's no fail()
-                                // case to account for here)
+                                if (_restartPending) {
+                                    // Restart the sync if needed
+                                    _restartPending = false;
+                                    _alreadyChecking = false;
+                                    syncOpenDocuments();
+                                } else {
+                                    // We're really done!
+                                    _alreadyChecking = false;
+                                    EditorManager.focusEditor();
+                                    
+                                    // (Any errors that ocurred during presentConflicts() show UI
+                                    // immediately and then wait for dismissal, so there's no fail()
+                                    // case to account for here)
+                                }
                             });
                     });
                     // Note: if any auto-reloads failed, we silently ignore (after logging to console)

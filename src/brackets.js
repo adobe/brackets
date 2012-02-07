@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
     brackets.DIALOG_BTN_DONTSAVE = "dontsave";
+    brackets.DIALOG_CANCELED = "_canceled";
 
     brackets.DIALOG_ID_ERROR = "error-dialog";
     brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
@@ -87,21 +88,20 @@ define(function (require, exports, module) {
         $(".dialog-title", dlg).html(title);
         $(".dialog-message", dlg).html(message);
 
-        function dismissDialog(buttonId) {
-            dlg.one("hidden", function () {
-                // Let call stack return before notifying that dialog has closed; this avoids issue #191
-                // if the handler we're triggering might show another dialog (as long as there's no
-                // fade-out animation)
-                setTimeout(function () {
-                    result.resolve(buttonId);
-                }, 0);
-            });
-            
-            dlg.modal(true).hide();
-        }
+        // Pipe dialog-closing notification back to client code
+        dlg.one("hidden", function () {
+            var buttonId = dlg.data("buttonId");
+            // Let call stack return before notifying that dialog has closed; this avoids issue #191
+            // if the handler we're triggering might show another dialog (as long as there's no
+            // fade-out animation)
+            setTimeout(function () {
+                result.resolve(buttonId);
+            }, 0);
+        });
+        
         // Click handler for buttons
         dlg.one("click", ".dialog-button", function (e) {
-            dismissDialog($(this).attr("data-button-id"));
+            brackets._dismissDialog(dlg, $(this).attr("data-button-id"));
         });
 
         // Enter/Return handler for the primary button. Need to
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
-                    dismissDialog(primaryBtn.attr("data-button-id"));
+                    brackets._dismissDialog(dlg, primaryBtn.attr("data-button-id"));
                 }
             }
             enterKeyPressed = false;
@@ -135,6 +135,23 @@ define(function (require, exports, module) {
         });
         return result;
     };
+    
+    /**
+     * If the dialog is visible, immediately closes it. The dialog callback will be called with the
+     * special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
+     */
+    brackets.cancelModalDialogIfOpen = function (id) {
+        var dlg = $("#" + id);
+        if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+            brackets._dismissDialog(dlg, brackets.DIALOG_CANCELED);
+        }
+    };
+    
+    brackets._dismissDialog = function (dlg, buttonId) {
+        dlg.data("buttonId", buttonId);
+        dlg.modal(true).hide();
+    };
+
 
 
     $(document).ready(function () {
