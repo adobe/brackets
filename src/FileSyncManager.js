@@ -75,42 +75,45 @@ define(function (require, exports, module) {
         
         // Check all docs in parallel
         docs.forEach(function (doc) {
-            doc.file.getMetadata(
-                function (metadata) {
-                    // Does file's timestamp differ from last sync time on the Document?
-                    if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
-                        if (doc.isDirty) {
-                            editConflicts.push(doc);
+            // Docs restored from last launch aren't really "open" yet, so skip those
+            if (doc.diskTimestamp) {
+                doc.file.getMetadata(
+                    function (metadata) {
+                        // Does file's timestamp differ from last sync time on the Document?
+                        if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
+                            if (doc.isDirty) {
+                                editConflicts.push(doc);
+                            } else {
+                                toReload.push(doc);
+                            }
+                        }
+                        
+                        nDocsChecked++;
+                        if (nDocsChecked === docs.length) {
+                            result.resolve();
+                        }
+                    },
+                    function (error) {
+                        // File has been deleted externally
+                        if (error.code === FileError.NOT_FOUND_ERR) {
+                            if (doc.isDirty) {
+                                deleteConflicts.push(doc);
+                            } else {
+                                toClose.push(doc);
+                            }
                         } else {
-                            toReload.push(doc);
+                            // Some other error fetching metadata: treat as a real error
+                            console.log("Error checking modification status of " + doc.file.fullPath, error.code);
+                            result.reject();
+                        }
+                        
+                        nDocsChecked++;
+                        if (nDocsChecked === docs.length) {
+                            result.resolve();
                         }
                     }
-                    
-                    nDocsChecked++;
-                    if (nDocsChecked === docs.length) {
-                        result.resolve();
-                    }
-                },
-                function (error) {
-                    // File has been deleted externally
-                    if (error.code === FileError.NOT_FOUND_ERR) {
-                        if (doc.isDirty) {
-                            deleteConflicts.push(doc);
-                        } else {
-                            toClose.push(doc);
-                        }
-                    } else {
-                        // Some other error fetching metadata: treat as a real error
-                        console.log("Error checking modification status of " + doc.file.fullPath, error.code);
-                        result.reject();
-                    }
-                    
-                    nDocsChecked++;
-                    if (nDocsChecked === docs.length) {
-                        result.resolve();
-                    }
-                }
-            );
+                );
+            }
         });
         
         return result;

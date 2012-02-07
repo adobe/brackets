@@ -391,7 +391,7 @@ define(function (require, exports, module) {
     /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
      * it means the file was modified by an app other than Brackets.
-     * @type {!Date}
+     * @type {?Date}
      */
     Document.prototype.diskTimestamp = null;
     
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
      * restored from storage but an editor was not yet created.
      * TODO: we should close on whether private fields are declared on the prototype like this (vs.
      * just set in the constructor).
-     * @type {!CodeMirror}
+     * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
 
