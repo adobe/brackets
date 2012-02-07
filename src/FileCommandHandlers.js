@@ -446,26 +446,62 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+    * @private - tracks our closing state if we get called again
+    */
+    var _closingWindow = false;
     
-    /** Confirms any unsaved changes, then closes the window */
-    function handleFileCloseWindow() {
+    /**
+    * @private
+    * Common implementation for close/quit/reload which all mostly
+    * the same except for the final step
+    */
+    function _handleCloseWindowCommon(commandData) {
+        if (_closingWindow) {
+            //if we get called back while we're closing, then just return
+            return (new $.Deferred()).resolved();
+        }
+        
+        //prevent the default action of closing the window until we can save all the files
+        if (commandData && commandData.evt && commandData.evt.cancelable) {
+            commandData.evt.preventDefault();
+        }
+
         var deferred = CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true });
         deferred.done(function () {
-            //we don't need to handle the window close request anymore so 
-            //remove our event handler
-            brackets.shellAPI.handleRequestCloseWindow = null;
+            _closingWindow = true;
             PreferencesManager.savePreferences();
+        });
+        return deferred;
+    }
+    
+    /** Confirms any unsaved changes, then closes the window */
+    function handleFileCloseWindow(commandData) {
+        var deferred = _handleCloseWindowCommon(commandData);
+        deferred.done(function closeWindow() {
             window.close();
         });
         return deferred;
     }
     
     /** Closes the window, then quits the app */
-    function handleFileQuit() {
-        handleFileCloseWindow()
-            .done(function () {
-                brackets.app.Quit();
-            });
+    function handleFileQuit(commandData) {
+        var deferred = _handleCloseWindowCommon(commandData);
+        deferred.done(function quitApp() {
+            window.close();
+            brackets.app.Quit();
+        });
+        return deferred;
+        // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+    }
+    
+     /** Does a full reload of the browser window */
+    function handleFileReload(commandData) {
+        var deferred = _handleCloseWindowCommon(commandData);
+        deferred.done(function reloadWindow() {
+            window.location.reload();
+        });
+        return deferred;
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
@@ -484,6 +520,7 @@ define(function (require, exports, module) {
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
         CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Commands.FILE_RELOAD, handleFileReload);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

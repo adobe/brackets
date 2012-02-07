@@ -16,8 +16,7 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var PreferencesManager      = require("PreferencesManager"),
-        ProjectManager          = require("ProjectManager"),
+    var ProjectManager          = require("ProjectManager"),
         DocumentManager         = require("DocumentManager"),
         EditorManager           = require("EditorManager"),
         WorkingSetView          = require("WorkingSetView"),
@@ -49,7 +48,7 @@ define(function (require, exports, module) {
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
     brackets.test = {
-        PreferencesManager      : PreferencesManager,
+        PreferencesManager      : require("PreferencesManager"),
         ProjectManager          : ProjectManager,
         FileCommandHandlers     : FileCommandHandlers,
         FileViewController      : FileViewController,
@@ -324,8 +323,9 @@ define(function (require, exports, module) {
     });
     
 
+    //If we hanve't caught the close yet, catch it now
     $(window).unload(function () {
-        PreferencesManager.savePreferences();
+        CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
     });
 
 

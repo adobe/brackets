@@ -18,8 +18,14 @@ define(function (require, exports, module) {
      * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable
      * calling Brackets commands from the native shell.
      */
-    function executeCommand (eventName) {
-        CommandManager.execute(eventName);
+    function executeCommand(eventName) {
+        var evt = document.createEvent("Event");
+        evt.initEvent(eventName, false, true);
+        
+        CommandManager.execute(eventName, {evt: evt});
+        
+        //return if default was prevented
+        return evt.defaultPrevented;
     }
 
     exports.executeCommand = executeCommand;
