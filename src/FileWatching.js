@@ -78,7 +78,7 @@ define(function (require, exports, module) {
             doc.file.getMetadata(
                 function (metadata) {
                     // Does file's timestamp differ from last sync time on the Document?
-                    if (metadata.modificationTime !== doc.diskTimestamp) {
+                    if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
                         if (doc.isDirty) {
                             editConflicts.push(doc);
                         } else {
