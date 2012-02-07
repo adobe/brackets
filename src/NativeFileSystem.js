@@ -75,9 +75,7 @@ define(function (require, exports, module) {
         },
 
         _nativeToFileError: function (nativeErr) {
-            // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
-            // not covered by other error codes. 
-            var error = FileError.SECURITY_ERR;
+            var error;
 
             switch (nativeErr) {
                 // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
@@ -537,8 +535,8 @@ define(function (require, exports, module) {
                 // This function is used to create individual functions for each deferred. 
                 // These generated functions will add the async result to the right place 
                 // in the entries array.
-                var genAddToArrayFunction = function (arr, i) {
-                    return function (value) { arr[i] = value; };
+                var genAddToEntriesArrayFunction = function (index) {
+                    return function (value) { entries[index] = value; };
                 };
 
                 // This function is called to initiate the stat on individual entires.
@@ -562,7 +560,7 @@ define(function (require, exports, module) {
                 // Create all the deferreds, and start the work executing!
                 for (i = 0; i < filelist.length; i++) {
                     d = new $.Deferred();
-                    d.done(genAddToArrayFunction(entries, i));
+                    d.done(genAddToEntriesArrayFunction(i));
                     deferreds.push(d);
                     statEntry(rootPath + "/" + filelist[i], d);
                 }
