@@ -11,7 +11,9 @@ define(function (require, exports, module) {
     // TODO: Determine proper public/private API for this module, splitting into separate modules as needed
 
     var NativeFileSystem = {
-
+        
+        ASYNC_TIMEOUT: 2000,
+        
         /** showOpenDialog
          *
          * @param {bool} allowMultipleSelection
@@ -69,7 +71,7 @@ define(function (require, exports, module) {
 
         _nativeToFileError: function (nativeErr) {
             // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
-            // not covered by other error codes.
+            // not covered by other error codes. 
             var error = FileError.SECURITY_ERR;
 
             switch (nativeErr) {
@@ -99,6 +101,10 @@ define(function (require, exports, module) {
             case brackets.fs.PATH_EXISTS_ERR:
                 error = FileError.PATH_EXISTS_ERR;
                 break;
+            default:
+                // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
+                // not covered by other error codes. 
+                error = FileError.SECURITY_ERR;
             }
             return new NativeFileSystem.FileError(error);
         }
@@ -523,29 +529,32 @@ define(function (require, exports, module) {
             if (!err) {
                 var i, entries = [], d, deferreds = [];
 
-                // create the function that will be used to create inidividual functions
-                // for each deferred that add the entry in the right place in the entries array
-                var genAddToArrayFunction = function (a, i) {
-                    return function (v) { entries[i] = v; };
+                // This function is used to create individual functions for each deferred. 
+                // These generated functions will add the async result to the right place 
+                // in the entries array.
+                var genAddToArrayFunction = function (arr, i) {
+                    return function (value) { arr[i] = value; };
                 };
 
-                // the function that stats individual entires.
-                // takes the item's full path and the deferred to resolve with
-                var statEntry = function (itemFullPath, d) {
+                // This function is called to initiate the stat on individual entires.
+                // Takes the item's full path and the deferred to resolve with.
+                var statEntry = function (itemFullPath, deferred) {
                     brackets.fs.stat(itemFullPath, function (statErr, statData) {
                         if (!statErr) {
                             if (statData.isDirectory()) {
-                                d.resolve(new NativeFileSystem.DirectoryEntry(itemFullPath));
+                                deferred.resolve(new NativeFileSystem.DirectoryEntry(itemFullPath));
                             } else if (statData.isFile()) {
-                                d.resolve(new NativeFileSystem.FileEntry(itemFullPath));
+                                deferred.resolve(new NativeFileSystem.FileEntry(itemFullPath));
+                            } else { // Whatever was returned is neither a file nor a dir, so don't include it.
+                                deferred.resolve(null);
                             }
-                        } else if (errorCallback) {
-                            d.reject(NativeFileSystem._nativeToFileError(statErr));
+                        } else {
+                            deferred.reject(NativeFileSystem._nativeToFileError(statErr));
                         }
                     });
                 };
                 
-                // create all the deferreds, and start the work executing!
+                // Create all the deferreds, and start the work executing!
                 for (i = 0; i < filelist.length; i++) {
                     d = new $.Deferred();
                     d.done(genAddToArrayFunction(entries, i));
@@ -553,11 +562,51 @@ define(function (require, exports, module) {
                     statEntry(rootPath + "/" + filelist[i], d);
                 }
 
-                // wait until they're all done or an error occurs.
-                $.when.apply(this, deferreds).then(function () { successCallback(entries); },
-                                                   function (err) { errorCallback(err); });
+                // FIXME: (joelrbrandt or pflynn) -- once we have an async library, it would be good
+                // to replace the code below with a library call.
+                
+                // Get a Promise that depennds on all the individual deferreds finishing.
+                var masterPromise = $.when.apply(this, deferreds);
+                
+                // We want the error callback to get called after some timeout (in case some deferreds don't return).
+                // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
+                var timeoutWrapper = new $.Deferred();
 
-            } else { // there was an error reading the initial directory
+                var timer = setTimeout(function () {
+                    // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
+                    // more fitting for a timeout.
+                    timeoutWrapper.reject(new NativeFileSystem.FileError(FileError.SECURITY_ERR));
+                }, NativeFileSystem.ASYNC_TIMEOUT);
+
+                masterPromise.always(function () {
+                    clearTimeout(timer); // clear timeout if the masterPromise finishes (with success or error)
+                });
+                
+                // When masterPromise finishes, we want the result to bubble up to timeoutWrapper
+                masterPromise.pipe(timeoutWrapper.resolve, timeoutWrapper.reject);
+                
+                // Add the callbacks to the top-level Promise. The top-level Promise is timeoutWrapper,
+                // which wraps masterPromise, which in turn wraps all the individual deferred objects.
+                timeoutWrapper.then(
+                    function () { // success
+                        // The entries array may have null values if stat returned things that were
+                        // neither a file nor a dir. So, we need to clean those out.
+                        var cleanedEntries = [], i;
+                        for (i = 0; i < entries.length; i++) {
+                            if (entries[i]) {
+                                cleanedEntries.push(entries[i]);
+                            }
+                        }
+                        successCallback(cleanedEntries);
+                    },
+                    function (err) { // error
+                        if (errorCallback) {
+                            errorCallback(err);
+                        }
+                    }
+                );
+
+            } else { // There was an error reading the initial directory.
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
         });
