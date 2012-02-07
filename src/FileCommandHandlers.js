@@ -488,7 +488,6 @@ define(function (require, exports, module) {
     function handleFileQuit(commandData) {
         var deferred = _handleCloseWindowCommon(commandData);
         deferred.done(function quitApp() {
-            window.close();
             brackets.app.Quit();
         });
         return deferred;
