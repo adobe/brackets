@@ -98,6 +98,21 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns all documents that are open in editors: the union of the working set and the current
+     * document (which may not be in the working set if it is unmodified).
+     * @return {Array.<Document>}
+     */
+    function getAllOpenDocuments() {
+        var allDocs = _workingSet.slice(0);  //slice() to clone
+        
+        if (_currentDocument && allDocs.indexOf(_currentDocument) === -1) {
+            allDocs.push(_currentDocument);
+        }
+        
+        return allDocs;
+    }
+    
+    /**
      * Adds the given document to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor.
      * @param {!Document} document
@@ -211,7 +226,7 @@ define(function (require, exports, module) {
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @return {Deferred} a jQuery Deferred that will be resolved with the 
-     *  file text content for the fileEntry, or rejected with a FileError if
+     *  file's text content plus its timestamp, or rejected with a FileError if
      *  the file can not be read.
      */
     function readAsText(fileEntry) {
@@ -220,7 +235,16 @@ define(function (require, exports, module) {
 
         fileEntry.file(function (file) {
             reader.onload = function (event) {
-                result.resolve(event.target.result);
+                var text = event.target.result;
+                
+                fileEntry.getMetadata(
+                    function (metadata) {
+                        result.resolve(text, metadata.modificationTime);
+                    },
+                    function (error) {
+                        result.reject(error);
+                    }
+                );
             };
 
             reader.onerror = function (event) {
@@ -296,10 +320,7 @@ define(function (require, exports, module) {
         // TODO: could be more efficient by clearing working set in bulk instead of via
         // individual notifications, and ensuring we don't switch editors while closing...
         
-        var allDocs = _workingSet.slice(0);  //slice() to clone
-        if (_currentDocument !== null && allDocs.indexOf(_currentDocument) === -1) {
-            allDocs.push(_currentDocument);
-        }
+        var allDocs = getAllOpenDocuments();
         
         allDocs.forEach(closeDocument);
     }
@@ -333,12 +354,14 @@ define(function (require, exports, module) {
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!CodeMirror} editor  Optional. The editor that will maintain the document state (current text
+     * @param {?CodeMirror} editor  Optional. The editor that will maintain the document state (current text
      *          and undo stack). It is assumed that the editor text has already been initialized
      *          with the file's contents. The editor may be null when the working set is restored
      *          at initialization.
+     * @param {?Date} initialTimestamp  Timestamp of file at the time we read its contents from disk.
+     *          Required if editor is passed.
      */
-    function Document(file, editor) {
+    function Document(file, editor, initialTimestamp) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
@@ -347,7 +370,10 @@ define(function (require, exports, module) {
         }
         
         this.file = file;
-        this._setEditor(editor);
+
+        if (editor) {
+            this._setEditor(editor, initialTimestamp);
+        }
     }
     /**
      * The FileEntry for the document being edited.
@@ -363,6 +389,13 @@ define(function (require, exports, module) {
     Document.prototype.isDirty = false;
     
     /**
+     * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
+     * it means the file was modified by an app other than Brackets.
+     * @type {?Date}
+     */
+    Document.prototype.diskTimestamp = null;
+    
+    /**
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
      * other than DocumentManager and EditorManager should access it.
@@ -370,23 +403,22 @@ define(function (require, exports, module) {
      * restored from storage but an editor was not yet created.
      * TODO: we should close on whether private fields are declared on the prototype like this (vs.
      * just set in the constructor).
-     * @type {!CodeMirror}
+     * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
 
     /**
      * @private
      * Initialize the editor instance for this file.
+     * @param {!CodeMirror} editor
+     * @param {!Date} initialTimestamp
      */
-    Document.prototype._setEditor = function (editor) {
-        if (!editor) {
-            return;
-        }
-        
+    Document.prototype._setEditor = function (editor, initialTimestamp) {
         // Editor can only be assigned once per Document
         console.assert(this._editor === null);
-
+        
         this._editor = editor;
+        this.diskTimestamp = initialTimestamp;
         
         // Dirty-bit tracking
         editor.setOption("onChange", this._handleEditorChange.bind(this));
@@ -403,7 +435,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the contents of the document.
+     * Sets the contents of the document. Treated as an edit.
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function (text) {
@@ -411,7 +443,21 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the cursor of the document.
+     * Sets the contents of the document. Treated as reloading the document from disk: the document
+     * will be marked clean with a new timestamp, and the undo/redo history is cleared.
+     * @param {!string} text The text to replace the contents of the document with.
+     * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
+     */
+    Document.prototype.refreshText = function (text, newTimestamp) {
+        this._editor.setValue(text);
+        this._editor.clearHistory();
+        
+        this._markClean();
+        this.diskTimestamp = newTimestamp;
+    };
+    
+    /**
+     * Sets the cursor position in the document.
      * @param {number} line The 0 based line number.
      * @param {number} char The 0 based character position.
      */
@@ -440,7 +486,7 @@ define(function (require, exports, module) {
     };
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
-    Document.prototype.markClean = function () {
+    Document.prototype._markClean = function () {
         if (this._editor === null) {
             return;
         }
@@ -454,8 +500,22 @@ define(function (require, exports, module) {
      * dirty bit and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function () {
-        this.markClean();
+        this._markClean();
         $(exports).triggerHandler("documentSaved", this);
+        
+        // TODO: this introduces two race conditions: (a) if user leaves app & returns before this
+        // async op finishes, we'll think file was modified externally when it wasn't; (b) if ext
+        // app overwrites file in between when we saved and when this op finishes, we'll miss the
+        // fact that it was modified externally
+        var thisDoc = this;
+        this.file.getMetadata(
+            function (metadata) {
+                thisDoc.diskTimestamp = metadata.modificationTime;
+            },
+            function (error) {
+                console.log("Error updating timestamp after saving file: " + this.file.fullPath);
+            }
+        );
     };
     
     /* (pretty toString(), to aid debugging) */
@@ -549,8 +609,9 @@ define(function (require, exports, module) {
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
-    exports.findInWorkingSet = findInWorkingSet;
     exports.getWorkingSet = getWorkingSet;
+    exports.findInWorkingSet = findInWorkingSet;
+    exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;

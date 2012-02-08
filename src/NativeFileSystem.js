@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $: false, define: false, brackets: true, FileError: false, InvalidateStateError: false */
+/*global $: false, define: false, brackets: false, FileError: false, InvalidateStateError: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
                     var metadata = new NativeFileSystem.Metadata(stat.mtime);
                     successCallBack(metadata);
                 } else {
-                    errorCallback(err);
+                    errorCallback(NativeFileSystem._nativeToFileError(err));
                 }
             });
 
