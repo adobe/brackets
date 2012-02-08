@@ -26,11 +26,6 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyBindingManager").KeyMap,
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
-        
-
-    // Load native shell when brackets is run in a native shell rather than the browser
-    // TODO: load conditionally
-    brackets.shellAPI = require("ShellAPI");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -45,6 +40,12 @@ define(function (require, exports, module) {
     if (!global.brackets) {
         global.brackets = {};
     }
+    
+    // Load native shell when brackets is run in a native shell rather than the browser
+    // TODO: load conditionally
+    brackets.shellAPI = require("ShellAPI");
+    
+    brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
