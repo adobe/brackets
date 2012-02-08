@@ -205,7 +205,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var document = DocumentManager.getCurrentDocument();
                     document.setText(TEST_JS_NEW_CONTENT);
-                    document.markClean();
+                    document._markClean();
                     expect(document.isDirty).toBe(false);
                 });
             });
