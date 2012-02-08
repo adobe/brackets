@@ -30,7 +30,7 @@ define(function (require, exports, module) {
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: load conditionally
-    brackets.shellAPI = require("shellAPI");
+    brackets.shellAPI = require("ShellAPI");
 
     // Define core brackets namespace if it isn't already defined
     //

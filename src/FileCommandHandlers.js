@@ -449,15 +449,15 @@ define(function (require, exports, module) {
     /**
     * @private - tracks our closing state if we get called again
     */
-    var _closingWindow = false;
+    var _windowGoingAway = false;
     
     /**
     * @private
     * Common implementation for close/quit/reload which all mostly
     * the same except for the final step
     */
-    function _handleCloseWindowCommon(commandData) {
-        if (_closingWindow) {
+    function _handleWindowGoingAway(commandData) {
+        if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
             return (new $.Deferred()).resolved();
         }
@@ -467,41 +467,34 @@ define(function (require, exports, module) {
             commandData.evt.preventDefault();
         }
 
-        var deferred = CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true });
-        deferred.done(function () {
-            _closingWindow = true;
-            PreferencesManager.savePreferences();
-        });
-        return deferred;
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+            .done(function () {
+                _windowGoingAway = true;
+                PreferencesManager.savePreferences();
+            });
     }
     
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
-        var deferred = _handleCloseWindowCommon(commandData);
-        deferred.done(function closeWindow() {
-            window.close();
-        });
-        return deferred;
+        return _handleWindowGoingAway(commandData)
+             .done(window.close);
     }
     
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
-        var deferred = _handleCloseWindowCommon(commandData);
-        deferred.done(function quitApp() {
-            brackets.app.Quit();
-        });
-        return deferred;
+        return _handleWindowGoingAway(commandData)
+            .done(function quitApp() {
+                if (brackets && brackets.app) {
+                    brackets.app.Quit();
+                }
+            });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
     
      /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
-        var deferred = _handleCloseWindowCommon(commandData);
-        deferred.done(function reloadWindow() {
-            window.location.reload();
-        });
-        return deferred;
-        // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+        return _handleWindowGoingAway(commandData)
+             .done(window.location.reload);
     }
 
     function init(title) {
