@@ -286,11 +286,6 @@ define(function (require, exports, module) {
             return;
         }
         
-        var allDocs = DocumentManager.getAllOpenDocuments();
-        if (allDocs.length === 0) {
-            return;
-        }
-        
         _alreadyChecking = true;
         
         
@@ -307,6 +302,8 @@ define(function (require, exports, module) {
         // version where APIs are truly async.
 
         // 1) Check for external modifications
+        var allDocs = DocumentManager.getAllOpenDocuments();
+        
         findExternalChanges(allDocs)
             .done(function () {
                 // 2) Reload clean docs as needed
