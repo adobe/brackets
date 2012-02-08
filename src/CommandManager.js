@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         var command = _commands[id];
         if (command) {
             var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
-            if (result === undefined) {
+            if (!result) {
                 return (new $.Deferred()).resolve();
             } else {
                 return result;
