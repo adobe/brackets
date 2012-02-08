@@ -269,8 +269,22 @@ define(function (require, exports, module) {
         return result;
     }
     
-    function handleFileSave() {
-        return doSave(DocumentManager.getCurrentDocument());
+    /**
+     * Saves the given file. If no file specified, assumes the current document.
+     * @param {?{doc: Document}} commandData  Document to close, or null
+     * @return {$.Deferred}
+     */
+    function handleFileSave(commandData) {
+        // Default to current document if doc is null
+        var doc = null;
+        if (commandData) {
+            doc = commandData.doc;
+        }
+        if (!doc) {
+            doc = DocumentManager.getCurrentDocument();
+        }
+        
+        return doSave(doc);
     }
     
     /**

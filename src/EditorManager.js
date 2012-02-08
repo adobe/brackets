@@ -149,14 +149,14 @@ define(function (require, exports, module) {
      * Creates a new CodeMirror editor instance containing text from the 
      * specified fileEntry. The editor is not yet visible.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
-     *  editor for the fileEntry, or rejected if the file can not be read.
+     * @return {Deferred} a jQuery Deferred that will be resolved with the new editor and
+     *      the file's timestamp at the time it was read, or rejected if the file cannot be read.
      */
     function _createEditor(fileEntry) {
         var result = new $.Deferred(),
             reader = DocumentManager.readAsText(fileEntry);
 
-        reader.done(function (text) {
+        reader.done(function (text, readTimestamp) {
             // NOTE: CodeMirror doesn't actually require calling 'new',
             // but jslint does require it because of the capital 'C'
             var editor = new CodeMirror(_editorHolder.get(0), {
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
             // Make sure we can't undo back to the empty state before setValue()
             editor.clearHistory();
 
-            result.resolve(editor);
+            result.resolve(editor, readTimestamp);
         });
         reader.fail(function (error) {
             result.reject(error);
@@ -289,8 +289,8 @@ define(function (require, exports, module) {
         if (!document._editor) {
             var editorResult = _createEditor(document.file);
 
-            editorResult.done(function (editor) {
-                document._setEditor(editor);
+            editorResult.done(function (editor, readTimestamp) {
+                document._setEditor(editor, readTimestamp);
                 _doShow(document);
             });
             editorResult.fail(function (error) {
@@ -381,9 +381,9 @@ define(function (require, exports, module) {
         var result          = new $.Deferred(),
             editorResult    = _createEditor(fileEntry);
 
-        editorResult.done(function (editor) {
+        editorResult.done(function (editor, readTimestamp) {
             // Create the Document wrapping editor & binding it to a file
-            var doc = new DocumentManager.Document(fileEntry, editor);
+            var doc = new DocumentManager.Document(fileEntry, editor, readTimestamp);
             result.resolve(doc);
         });
 
