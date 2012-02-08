@@ -60,7 +60,7 @@ define(function (require, exports, module) {
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
-            if (curDoc !== null && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
+            if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
                 _fileSelectionFocus = PROJECT_MANAGER;

@@ -330,7 +330,7 @@ define(function (require, exports, module) {
                     }
                 }
 
-                if (testWindow === null) {
+                if (!testWindow) {
                     testWindow = window.open("../test/SpecRunner.html");
                     testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
                 }
