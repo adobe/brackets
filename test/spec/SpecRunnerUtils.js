@@ -41,20 +41,11 @@ define(function (require, exports, module) {
     function closeTestWindow() {
         // debug-only to see testWindow state before closing
         // waits(500);
-        var testWindowClosed = false;
         
         runs(function () {
-            // unload callback
-            testWindow.$(testWindow).unload(function () {
-                testWindowClosed = true;
-            });
-            
             testWindow.close();
-            
             testWindow = null;
         });
-        
-        waitsFor(function () { return testWindowClosed; }, "testWindow.close()", 1000);
     }
 
     function createTestWindowAndRun(spec, callback) {
