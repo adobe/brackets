@@ -73,10 +73,18 @@ define(function (require, exports, module) {
         
         var result = new $.Deferred();
         
-        // Check all docs in parallel
-        docs.forEach(function (doc) {
-            // Docs restored from last launch aren't really "open" yet, so skip those
-            if (doc.diskTimestamp) {
+        // Docs restored from last launch aren't really "open" yet, so ignore those
+        docs = docs.filter(function (doc) {
+            return doc.diskTimestamp;  // i.e., if not null
+        });
+        
+        if (docs.length === 0) {
+            // If no truly open docs to scan, signal done right away
+            result.resolve();
+            
+        } else {
+            // Check all docs in parallel
+            docs.forEach(function (doc) {
                 doc.file.getMetadata(
                     function (metadata) {
                         // Does file's timestamp differ from last sync time on the Document?
@@ -113,8 +121,8 @@ define(function (require, exports, module) {
                         }
                     }
                 );
-            }
-        });
+            });
+        }
         
         return result;
     }
@@ -327,11 +335,6 @@ define(function (require, exports, module) {
             return;
         }
         
-        var allDocs = DocumentManager.getAllOpenDocuments();
-        if (allDocs.length === 0) {
-            return;
-        }
-        
         _alreadyChecking = true;
         
         
@@ -348,6 +351,8 @@ define(function (require, exports, module) {
         // version where APIs are truly async.
 
         // 1) Check for external modifications
+        var allDocs = DocumentManager.getAllOpenDocuments();
+        
         findExternalChanges(allDocs)
             .done(function () {
                 // 2) Reload clean docs as needed
