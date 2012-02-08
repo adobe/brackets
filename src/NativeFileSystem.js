@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
-/*global define: false, brackets: true, FileError: false, InvalidateStateError: false */
+/*global $: false, define: false, brackets: false, FileError: false, InvalidateStateError: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -11,7 +11,14 @@ define(function (require, exports, module) {
     // TODO: Determine proper public/private API for this module, splitting into separate modules as needed
 
     var NativeFileSystem = {
-
+        
+        /** Amount of time we wait for async calls to return (in milliseconds)
+         * TODO: Not all async calls are wrapped with something that times out and calls the error callback
+         * @const
+         * @type {number}
+         */
+        ASYNC_TIMEOUT: 2000,
+        
         /** showOpenDialog
          *
          * @param {bool} allowMultipleSelection
@@ -68,9 +75,7 @@ define(function (require, exports, module) {
         },
 
         _nativeToFileError: function (nativeErr) {
-            // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
-            // not covered by other error codes.
-            var error = FileError.SECURITY_ERR;
+            var error;
 
             switch (nativeErr) {
                 // We map ERR_UNKNOWN and ERR_INVALID_PARAMS to SECURITY_ERR,
@@ -99,6 +104,10 @@ define(function (require, exports, module) {
             case brackets.fs.PATH_EXISTS_ERR:
                 error = FileError.PATH_EXISTS_ERR;
                 break;
+            default:
+                // The HTML file spec says SECURITY_ERR is a catch-all to be used in situations
+                // not covered by other error codes. 
+                error = FileError.SECURITY_ERR;
             }
             return new NativeFileSystem.FileError(error);
         }
@@ -132,7 +141,7 @@ define(function (require, exports, module) {
                     var metadata = new NativeFileSystem.Metadata(stat.mtime);
                     successCallBack(metadata);
                 } else {
-                    errorCallback(err);
+                    errorCallback(NativeFileSystem._nativeToFileError(err));
                 }
             });
 
@@ -198,8 +207,11 @@ define(function (require, exports, module) {
             var self = this;
 
             brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
-                self._err = err;
-
+                // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
+                if (err !== brackets.fs.ERR_NOT_FOUND) {
+                    self._err = err;
+                }
+                
                 if (contents) {
                     self._length = contents.length;
                 }
@@ -514,36 +526,90 @@ define(function (require, exports, module) {
      * @param {function(...)} errorCallback
      * @returns {Array.<Entry>}
      */
-    // TODO: Parallelize the XHRs using something like Promises?
     NativeFileSystem.DirectoryReader.prototype.readEntries = function (successCallback, errorCallback) {
         var rootPath = this._directory.fullPath;
         brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
-                var entries = [];
-                var filelistIterator = function (i) {
-                    var item = filelist[i];
-                    var itemFullPath = rootPath + "/" + item;
+                var i, entries = [], d, deferreds = [];
+
+                // This function is used to create individual functions for each deferred. 
+                // These generated functions will add the async result to the right place 
+                // in the entries array.
+                var genAddToEntriesArrayFunction = function (index) {
+                    return function (value) { entries[index] = value; };
+                };
+
+                // This function is called to initiate the stat on individual entires.
+                // Takes the item's full path and the deferred to resolve with.
+                var statEntry = function (itemFullPath, deferred) {
                     brackets.fs.stat(itemFullPath, function (statErr, statData) {
                         if (!statErr) {
-
                             if (statData.isDirectory()) {
-                                entries.push(new NativeFileSystem.DirectoryEntry(itemFullPath));
+                                deferred.resolve(new NativeFileSystem.DirectoryEntry(itemFullPath));
                             } else if (statData.isFile()) {
-                                entries.push(new NativeFileSystem.FileEntry(itemFullPath));
+                                deferred.resolve(new NativeFileSystem.FileEntry(itemFullPath));
+                            } else { // Whatever was returned is neither a file nor a dir, so don't include it.
+                                deferred.resolve(null);
                             }
-
-                            if (i < filelist.length - 1) {
-                                filelistIterator(i + 1);
-                            } else {
-                                successCallback(entries);
-                            }
-                        } else if (errorCallback) {
-                            errorCallback(NativeFileSystem._nativeToFileError(statErr));
+                        } else {
+                            deferred.reject(NativeFileSystem._nativeToFileError(statErr));
                         }
                     });
                 };
-                filelistIterator(0);
-            } else {
+                
+                // Create all the deferreds, and start the work executing!
+                for (i = 0; i < filelist.length; i++) {
+                    d = new $.Deferred();
+                    d.done(genAddToEntriesArrayFunction(i));
+                    deferreds.push(d);
+                    statEntry(rootPath + "/" + filelist[i], d);
+                }
+
+                // FIXME: (joelrbrandt or pflynn) -- once we have an async library, it would be good
+                // to replace the code below with a library call.
+                
+                // Get a Promise that depennds on all the individual deferreds finishing.
+                var masterPromise = $.when.apply(this, deferreds);
+                
+                // We want the error callback to get called after some timeout (in case some deferreds don't return).
+                // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
+                var timeoutWrapper = new $.Deferred();
+
+                var timer = setTimeout(function () {
+                    // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
+                    // more fitting for a timeout.
+                    timeoutWrapper.reject(new NativeFileSystem.FileError(FileError.SECURITY_ERR));
+                }, NativeFileSystem.ASYNC_TIMEOUT);
+
+                masterPromise.always(function () {
+                    clearTimeout(timer); // clear timeout if the masterPromise finishes (with success or error)
+                });
+                
+                // When masterPromise finishes, we want the result to bubble up to timeoutWrapper
+                masterPromise.pipe(timeoutWrapper.resolve, timeoutWrapper.reject);
+                
+                // Add the callbacks to the top-level Promise. The top-level Promise is timeoutWrapper,
+                // which wraps masterPromise, which in turn wraps all the individual deferred objects.
+                timeoutWrapper.then(
+                    function () { // success
+                        // The entries array may have null values if stat returned things that were
+                        // neither a file nor a dir. So, we need to clean those out.
+                        var cleanedEntries = [], i;
+                        for (i = 0; i < entries.length; i++) {
+                            if (entries[i]) {
+                                cleanedEntries.push(entries[i]);
+                            }
+                        }
+                        successCallback(cleanedEntries);
+                    },
+                    function (err) { // error
+                        if (errorCallback) {
+                            errorCallback(err);
+                        }
+                    }
+                );
+
+            } else { // There was an error reading the initial directory.
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
         });
@@ -682,6 +748,7 @@ define(function (require, exports, module) {
         NativeFileSystem.Blob.call(this, entry.fullPath);
 
         // IMPLEMENT LATER get name() { return this.entry.name; }
+
     };
 
     /** class: FileError

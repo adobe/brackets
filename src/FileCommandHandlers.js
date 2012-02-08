@@ -281,8 +281,22 @@ define(function (require, exports, module) {
         return result;
     }
     
-    function handleFileSave() {
-        return doSave(DocumentManager.getCurrentDocument());
+    /**
+     * Saves the given file. If no file specified, assumes the current document.
+     * @param {?{doc: Document}} commandData  Document to close, or null
+     * @return {$.Deferred}
+     */
+    function handleFileSave(commandData) {
+        // Default to current document if doc is null
+        var doc = null;
+        if (commandData) {
+            doc = commandData.doc;
+        }
+        if (!doc) {
+            doc = DocumentManager.getCurrentDocument();
+        }
+        
+        return doSave(doc);
     }
     
     /**
@@ -457,27 +471,49 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+    * @private - tracks our closing state if we get called again
+    */
+    var _windowGoingAway = false;
+    
+    /**
+    * @private
+    * Common implementation for close/quit/reload which all mostly
+    * the same except for the final step
+    */
+    function _handleWindowGoingAway(commandData, postCloseHandler) {
+        if (_windowGoingAway) {
+            //if we get called back while we're closing, then just return
+            return (new $.Deferred()).resolved();
+        }
+        
+        //prevent the default action of closing the window until we can save all the files
+        if (commandData && commandData.evt && commandData.evt.cancelable) {
+            commandData.evt.preventDefault();
+        }
+
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
+            .done(function () {
+                _windowGoingAway = true;
+                PreferencesManager.savePreferences();
+            })
+            .done(postCloseHandler);
+    }
     
     /** Confirms any unsaved changes, then closes the window */
-    function handleFileCloseWindow() {
-        var deferred = CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true });
-        deferred.done(function () {
-            //we don't need to handle the window close request anymore so 
-            //remove our event handler
-            brackets.shellAPI.handleRequestCloseWindow = null;
-            PreferencesManager.savePreferences();
-            window.close();
-        });
-        return deferred;
+    function handleFileCloseWindow(commandData) {
+        return _handleWindowGoingAway(commandData, window.close);
     }
     
     /** Closes the window, then quits the app */
-    function handleFileQuit() {
-        handleFileCloseWindow()
-            .done(function () {
-                brackets.app.Quit();
-            });
+    function handleFileQuit(commandData) {
+        return _handleWindowGoingAway(commandData, brackets.app.quit);
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+    }
+    
+     /** Does a full reload of the browser window */
+    function handleFileReload(commandData) {
+        return _handleWindowGoingAway(commandData, window.location.reload);
     }
 
     function init(title) {
@@ -495,6 +531,7 @@ define(function (require, exports, module) {
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
         CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Commands.FILE_RELOAD, handleFileReload);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

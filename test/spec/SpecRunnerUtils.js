@@ -6,12 +6,23 @@ define(function (require, exports, module) {
     var TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences",
         testWindow;
 
+    function fixPath(path) {
+        // On Windows, when loading from a file, window.location.href has
+        // a leading '/'. Remove that here.
+        // TODO: Figure out a better way to handle this...
+        if (path.length > 3 && path[0] === '/' && path[2] === ":") {
+            path = path.substr(1);
+        }
+        
+        return path;
+    }
+    
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
         var path = window.location.href;
         path = path.substr("file://".length);
         path = path.substr(0, path.lastIndexOf("/"));
-
+        path = fixPath(path);
         return path;
     }
     
@@ -55,9 +66,13 @@ define(function (require, exports, module) {
         runs(function () {
             //we need to mark the documents as not dirty before we close
             //or the window will stay open prompting to save
-            var workingSet = testWindow.brackets.test.DocumentManager.getWorkingSet();
-            workingSet.forEach(function markClean(ele, i, array) {
-                ele.markClean();
+            var workingSet = testWindow.brackets.test.DocumentManager.getAllOpenDocuments();
+            workingSet.forEach(function resetDoc(ele, i, array) {
+                if (ele.isDirty) {
+                    //just refresh it back to it's current text. This will mark it
+                    //clean to save
+                    ele.refreshText(ele.getText(), ele.diskTimestamp);
+                }
             });
             testWindow.close();
         });
