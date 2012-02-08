@@ -66,9 +66,13 @@ define(function (require, exports, module) {
         runs(function () {
             //we need to mark the documents as not dirty before we close
             //or the window will stay open prompting to save
-            var workingSet = testWindow.brackets.test.DocumentManager.getWorkingSet();
-            workingSet.forEach(function markClean(ele, i, array) {
-                ele.markClean();
+            var workingSet = testWindow.brackets.test.DocumentManager.getAllOpenDocuments();
+            workingSet.forEach(function resetDoc(ele, i, array) {
+                if (ele.isDirty) {
+                    //just refresh it back to it's current text. This will mark it
+                    //clean to save
+                    ele.refreshText(ele.getText(), ele.diskTimestamp);
+                }
             });
             testWindow.close();
         });
