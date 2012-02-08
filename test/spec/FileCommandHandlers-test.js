@@ -208,7 +208,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     doc.setText(TEST_JS_NEW_CONTENT);
-                    doc.markClean();
+                    doc._markClean();
                 });
                 
                 waitsFor(function () { return editor.getValue() === TEST_JS_NEW_CONTENT; }, 1000);
