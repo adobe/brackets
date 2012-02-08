@@ -456,7 +456,7 @@ define(function (require, exports, module) {
     * Common implementation for close/quit/reload which all mostly
     * the same except for the final step
     */
-    function _handleWindowGoingAway(commandData) {
+    function _handleWindowGoingAway(commandData, postCloseHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
             return (new $.Deferred()).resolved();
@@ -471,30 +471,24 @@ define(function (require, exports, module) {
             .done(function () {
                 _windowGoingAway = true;
                 PreferencesManager.savePreferences();
-            });
+            })
+            .done(postCloseHandler);
     }
     
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
-        return _handleWindowGoingAway(commandData)
-             .done(window.close);
+        return _handleWindowGoingAway(commandData, window.close);
     }
     
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
-        return _handleWindowGoingAway(commandData)
-            .done(function quitApp() {
-                if (brackets && brackets.app) {
-                    brackets.app.quit();
-                }
-            });
+        return _handleWindowGoingAway(commandData, brackets.app.quit);
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
     
      /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
-        return _handleWindowGoingAway(commandData)
-             .done(window.location.reload);
+        return _handleWindowGoingAway(commandData, window.location.reload);
     }
 
     function init(title) {
