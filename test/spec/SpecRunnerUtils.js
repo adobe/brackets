@@ -38,9 +38,26 @@ define(function (require, exports, module) {
         return path.join("/");
     }
 
-    function createTestWindowAndRun(spec, callback) {
-        var isReady = false;
+    function closeTestWindow() {
+        // debug-only to see testWindow state before closing
+        // waits(500);
+        var testWindowClosed = false;
+        
+        runs(function () {
+            // unload callback
+            testWindow.$(testWindow).unload(function () {
+                testWindowClosed = true;
+            });
+            
+            testWindow.close();
+            
+            testWindow = null;
+        });
+        
+        waitsFor(function () { return testWindowClosed; }, "testWindow.close()", 1000);
+    }
 
+    function createTestWindowAndRun(spec, callback) {
         runs(function () {
             testWindow = window.open(getBracketsSourceRoot() + "/index.html");
         });
@@ -56,15 +73,6 @@ define(function (require, exports, module) {
         runs(function () {
             // callback allows specs to query the testWindow before they run
             callback.call(spec, testWindow);
-        });
-    }
-
-    function closeTestWindow() {
-        // debug-only to see testWindow state before closing
-        // waits(500);
-
-        runs(function () {
-            testWindow.close();
         });
     }
 
