@@ -32,16 +32,20 @@ define(function (require, exports, module) {
     // TODO: load conditionally
     brackets.shellAPI = require("shellAPI");
 
-    // Define core brackets namespace
-    brackets = window.brackets || {};
-
-    brackets.inBrowser = !brackets.hasOwnProperty("fs");
-
-
-        
-
+    // Define core brackets namespace if it isn't already defined
+    //
+    // We can't simply do 'brackets = {}' to define it in the global namespace because
+    // we're in "use strict" mode. Most likely, 'window' will always point to the global
+    // object when this code is running. However, in case it isn't (e.g. if we're running 
+    // inside Node for CI testing) we use this trick to get the global object.
+    //
+    // Taken from:
+    //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
+    var Fn = Function, global = (new Fn('return this'))();
+    if (!global.brackets) {
+        global.brackets = {};
+    }
     
-
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
@@ -88,26 +92,40 @@ define(function (require, exports, module) {
 
         function dismissDialog(buttonId) {
             dlg.one("hidden", function () {
-                result.resolve(buttonId);
+                // Let call stack return before notifying that dialog has closed; this avoids issue #191
+                // if the handler we're triggering might show another dialog (as long as there's no
+                // fade-out animation)
+                setTimeout(function () {
+                    result.resolve(buttonId);
+                }, 0);
             });
+            
             dlg.modal(true).hide();
         }
-        // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            dismissDialog($(this).attr("data-button-id"));
-        });
-
+        
+        function stopEvent(e) {
+            // Stop the event if the target is not inside the dialog
+            if (!($.contains(dlg.get(0), e.target))) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+        
         // Enter/Return handler for the primary button. Need to
         // add both keydown and keyup handlers here to make sure
         // the enter key was pressed while the dialog was showing.
         // Otherwise, if a keydown or keypress from somewhere else
         // triggered an alert, the keyup could immediately dismiss it.
         var enterKeyPressed = false;
-        $(document).on("keydown.modal", function (e) {
+        
+        function keydownHandler(e) {
             if (e.keyCode === 13) {
                 enterKeyPressed = true;
             }
-        }).on("keyup.modal", function (e) {
+            stopEvent(e);
+        }
+        
+        function keyupHandler(e) {
             if (e.keyCode === 13 && enterKeyPressed) {
                 var primaryBtn = dlg.find(".primary");
                 if (primaryBtn) {
@@ -115,24 +133,54 @@ define(function (require, exports, module) {
                 }
             }
             enterKeyPressed = false;
+            stopEvent(e);
+        }
+        
+        // These handlers are added at the capture phase to make sure we
+        // get first crack at the events. 
+        document.body.addEventListener("keydown", keydownHandler, true);
+        document.body.addEventListener("keyup", keyupHandler, true);
+        
+        // Click handler for buttons
+        dlg.one("click", ".dialog-button", function (e) {
+            dismissDialog($(this).attr("data-button-id"));
         });
-
 
         // Run the dialog
         dlg.modal({
             backdrop: "static",
             show: true
         }).on("hide", function (e) {
-            // Remove all handlers in the .modal namespace
-            $(document).off(".modal");
+            // Remove key event handlers
+            document.body.removeEventListener("keydown", keydownHandler, true);
+            document.body.removeEventListener("keyup", keyupHandler, true);
         });
         return result;
     };
 
-
     $(document).ready(function () {
 
         var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
+        
+        function initListeners() {
+            // Prevent unhandled drag and drop of files into the browser from replacing 
+            // the entire Brackets app. This doesn't prevent children from choosing to
+            // handle drops.
+            $(document.body)
+                .on("dragover", function (event) {
+                    if (event.originalEvent.dataTransfer.files) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        event.originalEvent.dataTransfer.dropEffect = "none";
+                    }
+                })
+                .on("drop", function (event) {
+                    if (event.originalEvent.dataTransfer.files) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                    }
+                });
+        }
         
         function initProject() {
             ProjectManager.loadProject();
@@ -306,6 +354,7 @@ define(function (require, exports, module) {
 
         EditorManager.setEditorHolder($('#editorHolder'));
     
+        initListeners();
         initProject();
         initMenus();
         initCommandHandlers();
