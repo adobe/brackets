@@ -530,7 +530,7 @@ define(function (require, exports, module) {
     function _init() {
         var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
 
-        if (prefs.files === undefined) {
+        if (!prefs.files) {
             return;
         }
 
