@@ -365,7 +365,7 @@ define(function (require, exports, module) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
-        if (getDocumentForFile(file) !== null) {
+        if (getDocumentForFile(file)) {
             throw new Error("Creating a document + editor when one already exists, for: " + file);
         }
         
