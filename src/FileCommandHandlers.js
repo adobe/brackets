@@ -485,7 +485,7 @@ define(function (require, exports, module) {
         return _handleWindowGoingAway(commandData)
             .done(function quitApp() {
                 if (brackets && brackets.app) {
-                    brackets.app.Quit();
+                    brackets.app.quit();
                 }
             });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
