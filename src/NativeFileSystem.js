@@ -228,7 +228,7 @@ define(function (require, exports, module) {
 
         // TODO (jasonsj): handle Blob data instead of string
         FileWriter.prototype.write = function (data) {
-            if (data === undefined) {
+            if (!data) {
                 throw new Error();
             }
 
@@ -442,8 +442,9 @@ define(function (require, exports, module) {
     NativeFileSystem.DirectoryEntry.prototype.getFile = function (path, options, successCallback, errorCallback) {
         var fileFullPath = path;
         
-        // assume relative paths are relative to this directory
-        if (path.charAt(0) !== '/') {
+        // resolve relative paths relative to the DirectoryEntry
+        // most absolute paths have a leading slash except Windows which has a drive letter followed by :/
+        if (path.charAt(0) !== '/' && path.charAt(1) !== ":") {
             fileFullPath = this.fullPath + "/" + path;
         }
 
