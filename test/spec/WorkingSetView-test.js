@@ -110,18 +110,34 @@ define(function (require, exports, module) {
             runs(function () {
                 localStorage.setItem("doLoadPreferences", true);
             });
+            
+            // remove temporary unit test preferences with a single-spec after() 
+            this.after(function () {
+                localStorage.removeItem("doLoadPreferences");
+            });
 
-            // close test window while working set has 2 files
+            // close test window while working set has 2 files (see beforeEach())
             SpecRunnerUtils.closeTestWindow();
 
-            // reopen without loading a project
+            // reopen brackets test window to initialize unit test working set
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow = w;
             });
+            
+            var listItems;
+            
+            // wait for working set to populate
+            waitsFor(
+                function () {
+                    // check working set UI list content
+                    listItems = testWindow.$("#open-files-container > ul").children();
+                    return listItems.length > 0;
+                },
+                1000
+            );
 
             // files should be in the working set
             runs(function () {
-                var listItems = testWindow.$("#open-files-container > ul").children();
                 expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
                 expect(listItems.find("a").get(1).text === "file_two.js").toBeTruthy();
 
@@ -130,8 +146,6 @@ define(function (require, exports, module) {
 
                 // file_two.js should be active
                 expect($(listItems[1]).hasClass("selected")).toBeTruthy();
-
-                localStorage.removeItem("doLoadPreferences", true);
             });
         });
         

@@ -39,8 +39,6 @@ define(function (require, exports, module) {
     }
 
     function createTestWindowAndRun(spec, callback) {
-        var isReady = false;
-
         runs(function () {
             testWindow = window.open(getBracketsSourceRoot() + "/index.html");
         });
