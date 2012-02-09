@@ -28,11 +28,9 @@ define(function (require, exports, module) {
 
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
-            $("#open-files-header").hide();
-            $("#open-files-divider").hide();
+            $("#open-files-section").hide();
         } else {
-            $("#open-files-header").show();
-            $("#open-files-divider").show();
+            $("#open-files-section").show();
         }
     }
     
