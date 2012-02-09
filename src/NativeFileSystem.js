@@ -443,8 +443,8 @@ define(function (require, exports, module) {
         var fileFullPath = path;
         
         // resolve relative paths relative to the DirectoryEntry
-        // most abololute paths have a leading slash except Windows which has a driver letter followed by :/
-        if (path.charAt(0) !== '/' && path.charAt(1) != ":") {
+        // most absolute paths have a leading slash except Windows which has a drive letter followed by :/
+        if (path.charAt(0) !== '/' && path.charAt(1) !== ":") {
             fileFullPath = this.fullPath + "/" + path;
         }
 
