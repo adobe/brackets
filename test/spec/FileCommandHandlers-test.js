@@ -166,11 +166,10 @@ define(function (require, exports, module) {
             
             it("should report dirty when modified", function () {
                 var doc = DocumentManager.getCurrentDocument();
-                var editor = doc._editor;
                 
                 runs(function () {
                     // change editor content
-                    editor.setValue(TEST_JS_NEW_CONTENT);
+                    doc.setText(TEST_JS_NEW_CONTENT);
                     
                     // verify Document dirty status
                     expect(doc.isDirty).toBe(true);
@@ -183,19 +182,18 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // change editor content, followed by undo and redo
-                    editor.setValue(TEST_JS_NEW_CONTENT);
+                    doc.setText(TEST_JS_NEW_CONTENT);
 
+                    // TODO (jasonsj): edit menu undo/redo commands
                     editor.undo();
                     editor.redo();
                     
-                    expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+                    expect(doc.isDirty).toBe(true);
                 });
             });
             
-            it("should report clean after being marked clean", function () {
+            it("should report not dirty after explicit clean", function () {
                 var doc = DocumentManager.getCurrentDocument();
-                var editor = doc._editor;
                 
                 runs(function () {
                     doc.setText(TEST_JS_NEW_CONTENT);
