@@ -186,7 +186,10 @@ define(function (require, exports, module) {
 
                     // TODO (jasonsj): edit menu undo/redo commands
                     editor.undo();
+                    expect(doc.getText()).toBe(TEST_JS_CONTENT);
+                    
                     editor.redo();
+                    expect(doc.getText()).toBe(TEST_JS_NEW_CONTENT);
                     
                     expect(doc.isDirty).toBe(true);
                 });
