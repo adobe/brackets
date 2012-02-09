@@ -535,73 +535,44 @@ define(function (require, exports, module) {
         }
 
         var projectRoot = ProjectManager.getProjectRoot(),
-            filesToOpen = [],
+            filelist    = [],
             activeFile;
 
-        // in parallel, check if files exist
-        // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
-        //                 e.g. A file to restore no longer exists. Should we silently ignore
-        //                 it or let the user be notified when they attempt to open the Document?
-        var result = (function () {
-            var deferred        = new $.Deferred();
-            var fileCount       = prefs.files.length,
-                responseCount   = 0;
-
-            function next() {
-                responseCount++;
-
-                if (responseCount === fileCount) {
-                    deferred.resolve();
-                }
-            }
-
-            prefs.files.forEach(function (value, index) {
-                // check if the file still exists
-                projectRoot.getFile(value.file, {},
-                    function (fileEntry) {
-                        // maintain original sequence
-                        filesToOpen[index] = fileEntry;
-
-                        if (value.active) {
-                            activeFile = fileEntry;
-                        }
-
-                        next();
-                    },
-                    function (error) {
-                        filesToOpen[index] = null;
-                        next();
-                    });
-            });
-
-            return deferred;
-        }());
-
-        result.done(function () {
-            var activeDoc,
-                doc;
-
-            // Add all existing files to the working set
-            filesToOpen.forEach(function (value, index) {
-                if (value) {
-                    doc = new Document(value);
-                    addToWorkingSet(doc);
-
-                    if (value === activeFile) {
-                        activeDoc = doc;
-                    }
-                }
-            });
-
-            // Initialize the active editor
-            if (!activeDoc && _workingSet.length > 0) {
-                activeDoc = _workingSet[0];
-            }
-
-            if (activeDoc) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
+        prefs.files.forEach(function (value, index) {
+            filelist[index] = value.file;
+            
+            if (value.active) {
+                activeFile = value.file;
             }
         });
+        
+        // in parallel, check if files exist
+        NativeFileSystem.loadFilesAsync(filelist)
+            .done(function (filesToOpen) {
+                var activeDoc,
+                    doc;
+    
+                // Add all existing files to the working set
+                filesToOpen.forEach(function (fileEntry, index) {
+                    if (fileEntry) {
+                        doc = new Document(fileEntry);
+                        addToWorkingSet(doc);
+    
+                        if (fileEntry.fullPath === activeFile) {
+                            activeDoc = doc;
+                        }
+                    }
+                });
+    
+                // Initialize the active editor
+                if (!activeDoc && _workingSet.length > 0) {
+                    activeDoc = _workingSet[0];
+                }
+    
+                if (activeDoc) {
+                    CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
+                }
+            });
     }
 
     // Define public API
