@@ -133,8 +133,10 @@ define(function (require, exports, module) {
                 ["htm", "html", "js", "css"], function (files) {
                     if (files.length > 0) {
                         result = doOpen(files[0])
-                            .done(function updateDefualtOpenDialogFullPath() {
-                                _defaultOpenDialogFullPath =  PathUtils.parseUrl(files[0]).directory;
+                            .done(function updateDefualtOpenDialogFullPath(doc) {
+                                var url = PathUtils.parseUrl(doc.file.fullPath);
+                                //reconstruct the url but use the directory and stop there
+                                _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
                             });
                         return;
                     }
