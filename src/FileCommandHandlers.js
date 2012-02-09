@@ -108,20 +108,36 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Used to track the default directory for the file open dialog
+     */
+    var _defaultOpenDialogFullPath = null;
+    
+    /**
+     * @private
      * Creates a document and displays an editor for the specified file path. 
      * If no path is specified, a file prompt is provided for input.
+     * @param {!fullPath} - The path of the file to open, if it's null we'll prompt for it
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
-    function doOpenWithOptionalPath(fullPath) {
+    function _doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
+            //first time through, default to the current project path
+            if (!_defaultOpenDialogFullPath) {
+                _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
+            }
             // Prompt the user with a dialog
             // TODO: we're relying on this to not be asynchronous--is that safe?
-            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, ProjectManager.getProjectRoot().fullPath,
+            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 ["htm", "html", "js", "css"], function (files) {
                     if (files.length > 0) {
-                        result = doOpen(files[0]);
+                        result = doOpen(files[0])
+                            .done(function updateDefualtOpenDialogFullPath(doc) {
+                                var url = PathUtils.parseUrl(doc.file.fullPath);
+                                //reconstruct the url but use the directory and stop there
+                                _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
+                            });
                         return;
                     }
                 });
@@ -140,11 +156,8 @@ define(function (require, exports, module) {
             fullPath = commandData.fullPath;
         }
         
-        var result = doOpenWithOptionalPath(fullPath);
-        result.always(function () {
-            EditorManager.focusEditor();
-        });
-        return result;
+        return _doOpenWithOptionalPath(fullPath)
+                 .always(EditorManager.focusEditor);
     }
 
     function handleFileAddToWorkingSet(commandData) {
