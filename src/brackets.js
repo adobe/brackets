@@ -389,6 +389,12 @@ define(function (require, exports, module) {
             $(window).unload(function () {
                 CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
             });
+            
+            //TODO: for now disable all the default context menus until we decide what we
+            //actually want to put in them
+            $(window).contextmenu(function (e) {
+                e.preventDefault();
+            });
         }
 
 
