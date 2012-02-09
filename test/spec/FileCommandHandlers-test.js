@@ -171,11 +171,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     // change editor content
                     editor.setValue(TEST_JS_NEW_CONTENT);
-                });
-                
-                waitsFor(function () { return editor.getValue() === TEST_JS_NEW_CONTENT; }, 1000);
-                
-                runs(function () {
+                    
                     // verify Document dirty status
                     expect(doc.isDirty).toBe(true);
                 });
@@ -190,13 +186,8 @@ define(function (require, exports, module) {
                     editor.setValue(TEST_JS_NEW_CONTENT);
 
                     editor.undo();
-                });
-                
-                waitsFor(function () { return editor.getValue() === TEST_JS_CONTENT; }, 1000);
-                
-                runs(function () {
-                    // verify Document dirty status
                     editor.redo();
+                    
                     expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
                 });
@@ -209,11 +200,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     doc.setText(TEST_JS_NEW_CONTENT);
                     doc._markClean();
-                });
-                
-                waitsFor(function () { return editor.getValue() === TEST_JS_NEW_CONTENT; }, 1000);
-                
-                runs(function () {
                     expect(doc.isDirty).toBe(false);
                 });
             });
