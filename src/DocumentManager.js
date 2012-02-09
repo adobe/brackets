@@ -365,7 +365,7 @@ define(function (require, exports, module) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
-        if (getDocumentForFile(file) !== null) {
+        if (getDocumentForFile(file)) {
             throw new Error("Creating a document + editor when one already exists, for: " + file);
         }
         
@@ -415,7 +415,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._setEditor = function (editor, initialTimestamp) {
         // Editor can only be assigned once per Document
-        console.assert(this._editor === null);
+        console.assert(!this._editor);
         
         this._editor = editor;
         this.diskTimestamp = initialTimestamp;
@@ -487,7 +487,7 @@ define(function (require, exports, module) {
     
     /** Marks the document not dirty. Should be called after the document is saved to disk. */
     Document.prototype._markClean = function () {
-        if (this._editor === null) {
+        if (!this._editor) {
             return;
         }
 
@@ -530,7 +530,7 @@ define(function (require, exports, module) {
     function _init() {
         var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
 
-        if (prefs.files === undefined) {
+        if (!prefs.files) {
             return;
         }
 
@@ -594,11 +594,11 @@ define(function (require, exports, module) {
             });
 
             // Initialize the active editor
-            if (activeDoc === null && _workingSet.length > 0) {
+            if (!activeDoc && _workingSet.length > 0) {
                 activeDoc = _workingSet[0];
             }
 
-            if (activeDoc !== null) {
+            if (activeDoc) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
             }
         });

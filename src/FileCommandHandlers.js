@@ -473,7 +473,7 @@ define(function (require, exports, module) {
     function _handleWindowGoingAway(commandData, postCloseHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
-            return (new $.Deferred()).resolved();
+            return (new $.Deferred()).resolve();
         }
         
         //prevent the default action of closing the window until we can save all the files
