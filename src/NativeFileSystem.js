@@ -74,6 +74,96 @@ define(function (require, exports, module) {
             });
         },
 
+        /** loadFilesAsync
+         *
+         * @param {array} path an array of full file paths
+         * @return {Deferred} a jQuery Deferred that will be resolved with an
+         *  an array of all files that can be read without error.
+         */
+        loadFilesAsync: function (filelist) {
+            var i, entries = [], d, deferreds = [];
+
+            // This function is used to create individual functions for each deferred. 
+            // These generated functions will add the async result to the right place 
+            // in the entries array.
+            var genAddToEntriesArrayFunction = function (index) {
+                return function (value) { entries[index] = value; };
+            };
+
+            // This function is called to initiate the stat on individual entires.
+            // Takes the item's full path and the deferred to resolve with.
+            var statEntry = function (itemFullPath, deferred) {
+                brackets.fs.stat(itemFullPath, function (statErr, statData) {
+                    if (!statErr) {
+                        if (statData.isDirectory()) {
+                            deferred.resolve(new NativeFileSystem.DirectoryEntry(itemFullPath));
+                        } else if (statData.isFile()) {
+                            deferred.resolve(new NativeFileSystem.FileEntry(itemFullPath));
+                        } else { // Whatever was returned is neither a file nor a dir, so don't include it.
+                            deferred.resolve(null);
+                        }
+                    } else {
+                        deferred.reject(NativeFileSystem._nativeToFileError(statErr));
+                    }
+                });
+            };
+            
+            // Create all the deferreds, and start the work executing!
+            for (i = 0; i < filelist.length; i++) {
+                d = new $.Deferred();
+                d.done(genAddToEntriesArrayFunction(i));
+                deferreds.push(d);
+                statEntry(filelist[i], d);
+            }
+
+            // FIXME: (joelrbrandt or pflynn) -- once we have an async library, it would be good
+            // to replace the code below with a library call.
+            
+            // Get a Promise that depennds on all the individual deferreds finishing.
+            var masterPromise = $.when.apply(this, deferreds);
+            
+            // We want the error callback to get called after some timeout (in case some deferreds don't return).
+            // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
+            var timeoutWrapper = new $.Deferred();
+            
+            // And finally the result deferred object
+            var result = new $.Deferred();
+
+            var timer = setTimeout(function () {
+                // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
+                // more fitting for a timeout.
+                timeoutWrapper.reject(new NativeFileSystem.FileError(FileError.SECURITY_ERR));
+            }, NativeFileSystem.ASYNC_TIMEOUT);
+
+            masterPromise.always(function () {
+                clearTimeout(timer); // clear timeout if the masterPromise finishes (with success or error)
+            });
+            
+            // When masterPromise finishes, we want the result to bubble up to timeoutWrapper
+            masterPromise.pipe(timeoutWrapper.resolve, timeoutWrapper.reject);
+            
+            // Add the callbacks to the top-level Promise. The top-level Promise is timeoutWrapper,
+            // which wraps masterPromise, which in turn wraps all the individual deferred objects.
+            timeoutWrapper.then(
+                function () { // success
+                    // The entries array may have null values if stat returned things that were
+                    // neither a file nor a dir. So, we need to clean those out.
+                    var cleanedEntries = [], i;
+                    for (i = 0; i < entries.length; i++) {
+                        if (entries[i]) {
+                            cleanedEntries.push(entries[i]);
+                        }
+                    }
+                    result.resolve(cleanedEntries);
+                },
+                function (err) { // error
+                    result.reject(err);
+                }
+            );
+            
+            return result;
+        },
+
         _nativeToFileError: function (nativeErr) {
             var error;
 
@@ -530,85 +620,19 @@ define(function (require, exports, module) {
         var rootPath = this._directory.fullPath;
         brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
-                var i, entries = [], d, deferreds = [];
-
-                // This function is used to create individual functions for each deferred. 
-                // These generated functions will add the async result to the right place 
-                // in the entries array.
-                var genAddToEntriesArrayFunction = function (index) {
-                    return function (value) { entries[index] = value; };
-                };
-
-                // This function is called to initiate the stat on individual entires.
-                // Takes the item's full path and the deferred to resolve with.
-                var statEntry = function (itemFullPath, deferred) {
-                    brackets.fs.stat(itemFullPath, function (statErr, statData) {
-                        if (!statErr) {
-                            if (statData.isDirectory()) {
-                                deferred.resolve(new NativeFileSystem.DirectoryEntry(itemFullPath));
-                            } else if (statData.isFile()) {
-                                deferred.resolve(new NativeFileSystem.FileEntry(itemFullPath));
-                            } else { // Whatever was returned is neither a file nor a dir, so don't include it.
-                                deferred.resolve(null);
-                            }
-                        } else {
-                            deferred.reject(NativeFileSystem._nativeToFileError(statErr));
-                        }
-                    });
-                };
+                var fullPaths = [], i = 0;
                 
-                // Create all the deferreds, and start the work executing!
                 for (i = 0; i < filelist.length; i++) {
-                    d = new $.Deferred();
-                    d.done(genAddToEntriesArrayFunction(i));
-                    deferreds.push(d);
-                    statEntry(rootPath + "/" + filelist[i], d);
+                    fullPaths[i] = rootPath + "/" + filelist[i];
                 }
-
-                // FIXME: (joelrbrandt or pflynn) -- once we have an async library, it would be good
-                // to replace the code below with a library call.
                 
-                // Get a Promise that depennds on all the individual deferreds finishing.
-                var masterPromise = $.when.apply(this, deferreds);
-                
-                // We want the error callback to get called after some timeout (in case some deferreds don't return).
-                // So, we need to wrap masterPromise in another deferred that has this timeout functionality    
-                var timeoutWrapper = new $.Deferred();
-
-                var timer = setTimeout(function () {
-                    // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
-                    // more fitting for a timeout.
-                    timeoutWrapper.reject(new NativeFileSystem.FileError(FileError.SECURITY_ERR));
-                }, NativeFileSystem.ASYNC_TIMEOUT);
-
-                masterPromise.always(function () {
-                    clearTimeout(timer); // clear timeout if the masterPromise finishes (with success or error)
-                });
-                
-                // When masterPromise finishes, we want the result to bubble up to timeoutWrapper
-                masterPromise.pipe(timeoutWrapper.resolve, timeoutWrapper.reject);
-                
-                // Add the callbacks to the top-level Promise. The top-level Promise is timeoutWrapper,
-                // which wraps masterPromise, which in turn wraps all the individual deferred objects.
-                timeoutWrapper.then(
-                    function () { // success
-                        // The entries array may have null values if stat returned things that were
-                        // neither a file nor a dir. So, we need to clean those out.
-                        var cleanedEntries = [], i;
-                        for (i = 0; i < entries.length; i++) {
-                            if (entries[i]) {
-                                cleanedEntries.push(entries[i]);
-                            }
-                        }
-                        successCallback(cleanedEntries);
-                    },
-                    function (err) { // error
-                        if (errorCallback) {
-                            errorCallback(err);
-                        }
-                    }
-                );
-
+                NativeFileSystem.loadFilesAsync(fullPaths)
+                    .done(function (fileEntryList) {
+                        successCallback(fileEntryList);
+                    })
+                    .fail(function (err) {
+                        errorCallback(err);
+                    });
             } else { // There was an error reading the initial directory.
                 errorCallback(NativeFileSystem._nativeToFileError(err));
             }
