@@ -188,6 +188,30 @@ define(function (require, exports, module) {
                     "Shift-F3": "findPrev",
                     "Ctrl-H": "replace",
                     "Shift-Delete": "cut"
+                },
+                onChange: function onChange(editor, change) {
+                    $(exports).triggerHandler("onChange", editor);
+                },
+                onCursorActivity: function onCursorActivity(editor, change) {
+                    $(exports).triggerHandler("onCursorActivity", editor, change);
+                },
+                onGutterClick: function onGutterClick(editor, lineNumber) {
+                    $(exports).triggerHandler("onGutterClick", editor, lineNumber);
+                },
+                onFocus: function onFocus(editor) {
+                    $(exports).triggerHandler("onFocus", editor);
+                },
+                onBlur: function onBlur(editor) {
+                    $(exports).triggerHandler("onBlur", editor);
+                },
+                onScroll: function onScroll(editor) {
+                    $(exports).triggerHandler("onScroll", editor);
+                },
+                onHighlightComplete: function onHighlightComplete(editor) {
+                    $(exports).triggerHandler("onHighlightComplete", editor);
+                },
+                onUpdate: function onUpdate(editor) {
+                    $(exports).triggerHandler("onUpdate", editor);
                 }
             });
             
