@@ -293,6 +293,18 @@ define(function (require, exports, module) {
                 _projectInitialLoad.fullPathToIdMap[entry.fullPath] = jsonEntry.attr.id;
             }
         }
+
+        // FIXME: (joelrbrandt) Right now, this is a hack to put something in the
+        // subtree for empty directories
+        if (jsonEntryList.length === 0) {
+            jsonEntryList.push({
+                data: "Empty directory",
+                attr: { id: "node" + _projectInitialLoad.id++ },
+                metadata: { entry: { isDirectory: false, isFile: false } }
+            });
+        }
+        // END OF HACK
+        
         return jsonEntryList;
     }
 
