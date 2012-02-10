@@ -165,48 +165,43 @@ define(function (require, exports, module) {
             });
             
             it("should report dirty when modified", function () {
+                var doc = DocumentManager.getCurrentDocument();
+                
                 runs(function () {
                     // change editor content
-                    var editor = DocumentManager.getCurrentDocument()._editor;
-                    editor.setValue(TEST_JS_NEW_CONTENT);
-
+                    doc.setText(TEST_JS_NEW_CONTENT);
+                    
                     // verify Document dirty status
-                    expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
-
-                    // FIXME (jasonsj): Even with the main app window reloaded, and
-                    // proper jasmine async handling, some state is being held.
-                    // Without this undo, *any* immediate test will timeout for
-                    // Commands.FILE_OPEN. I had to re-order this suite so that
-                    // this bug has minimal impact. This *does not* appear to be an
-                    // issue with the FileCommandHandlers module.
-                    // FIXME (jasonsj): editor.clearHistory() doesn't work either.
-                    editor.undo();
+                    expect(doc.isDirty).toBe(true);
                 });
             });
 
             it("should report dirty after undo and redo", function () {
+                var doc = DocumentManager.getCurrentDocument();
+                var editor = doc._editor;
+                
                 runs(function () {
                     // change editor content, followed by undo and redo
-                    var editor = DocumentManager.getCurrentDocument()._editor;
-                    editor.setValue(TEST_JS_NEW_CONTENT);
+                    doc.setText(TEST_JS_NEW_CONTENT);
 
+                    // TODO (jasonsj): edit menu undo/redo commands
                     editor.undo();
-                    expect(editor.getValue()).toBe(TEST_JS_CONTENT);
-
-                    // verify Document dirty status
+                    expect(doc.getText()).toBe(TEST_JS_CONTENT);
+                    
                     editor.redo();
-                    expect(editor.getValue()).toBe(TEST_JS_NEW_CONTENT);
-                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+                    expect(doc.getText()).toBe(TEST_JS_NEW_CONTENT);
+                    
+                    expect(doc.isDirty).toBe(true);
                 });
             });
             
-            it("should report clean after being marked clean", function () {
+            it("should report not dirty after explicit clean", function () {
+                var doc = DocumentManager.getCurrentDocument();
+                
                 runs(function () {
-                    var document = DocumentManager.getCurrentDocument();
-                    document.setText(TEST_JS_NEW_CONTENT);
-                    document._markClean();
-                    expect(document.isDirty).toBe(false);
+                    doc.setText(TEST_JS_NEW_CONTENT);
+                    doc._markClean();
+                    expect(doc.isDirty).toBe(false);
                 });
             });
 

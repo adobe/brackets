@@ -66,6 +66,11 @@ define(function (require, exports, module) {
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("CommandManager")
     };
+    
+    // Uncomment the following line to force all low level file i/o routines to complete
+    // asynchronously. This should only be done for testing/debugging.
+    // NOTE: Make sure this line is commented out again before committing!
+    // brackets.forceAsyncCallbacks = true;
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: load conditionally
@@ -388,6 +393,12 @@ define(function (require, exports, module) {
             
             $(window).unload(function () {
                 CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
+            });
+            
+            //TODO: for now disable all the default context menus until we decide what we
+            //actually want to put in them
+            $(window).contextmenu(function (e) {
+                e.preventDefault();
             });
         }
 
