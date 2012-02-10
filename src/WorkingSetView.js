@@ -28,9 +28,13 @@ define(function (require, exports, module) {
 
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
-            $("#open-files-section").hide();
+            $("#open-files-header").hide();
+            $("#open-files-container").hide();
+            $("#open-files-divider").hide();
         } else {
-            $("#open-files-section").show();
+            $("#open-files-header").show();
+            $("#open-files-container").show();
+            $("#open-files-divider").show();
         }
     }
     
