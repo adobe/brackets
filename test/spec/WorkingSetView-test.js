@@ -34,9 +34,18 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
 
-            var didOpen = false, gotError = false;
+            var workingSetCount = 0;
+            
+            runs(function () {
+                // Initialize: register listeners
+                testWindow.$(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
+                    workingSetCount++;
+                });
+            });
             
             var openAndMakeDirty = function (path) {
+                var doc, didOpen = false, gotError = false;
+                
                 // open file
                 runs(function () {
                     FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
@@ -45,16 +54,18 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
 
-                // change editor content to make doc dirty
+                // change editor content to make doc dirty which adds it to the working set
                 runs(function () {
-                    var editor = DocumentManager.getCurrentDocument()._editor;
-                    editor.setValue("dirty document");
-                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+                    doc = DocumentManager.getCurrentDocument();
+                    doc.setText("dirty document");
                 });
             };
             
             openAndMakeDirty(testPath + "/file_one.js");
             openAndMakeDirty(testPath + "/file_two.js");
+            
+            // Wait for both files to be added to the working set
+            waitsFor(function () { return workingSetCount === 2; }, 1000);
         });
 
         afterEach(function () {
@@ -70,7 +81,6 @@ define(function (require, exports, module) {
                 expect(listItems.find(".file-status-icon").length).toBe(2);
             });
         });
-        
         
         it("should remove a list item when a file is closed", function () {
             DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
@@ -90,7 +100,6 @@ define(function (require, exports, module) {
                 expect(listItems.length).toBe(1);
             });
         });
-        
         
         it("should make a file that is clicked the current one in the editor", function () {
             runs(function () {
