@@ -34,9 +34,18 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.loadProjectInTestWindow(testPath);
             });
 
-            var didOpen = false, gotError = false;
+            var workingSetCount = 0;
+            
+            runs(function () {
+                // Initialize: register listeners
+                testWindow.$(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
+                    workingSetCount++;
+                });
+            });
             
             var openAndMakeDirty = function (path) {
+                var doc, didOpen = false, gotError = false;
+                
                 // open file
                 runs(function () {
                     FileViewController.openAndSelectDocument(path, FileViewController.PROJECT_MANAGER)
@@ -45,17 +54,18 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN on file timeout", 1000);
 
-                // change editor content to make doc dirty
+                // change editor content to make doc dirty which adds it to the working set
                 runs(function () {
-                    var editor = DocumentManager.getCurrentDocument()._editor;
-                    editor.setValue("dirty document");
-                    expect(DocumentManager.getCurrentDocument().isDirty).toBe(true);
+                    doc = DocumentManager.getCurrentDocument();
+                    doc.setText("dirty document");
                 });
-            
             };
             
             openAndMakeDirty(testPath + "/file_one.js");
             openAndMakeDirty(testPath + "/file_two.js");
+            
+            // Wait for both files to be added to the working set
+            waitsFor(function () { return workingSetCount === 2; }, 1000);
         });
 
         afterEach(function () {
@@ -70,9 +80,7 @@ define(function (require, exports, module) {
                 expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
                 expect(listItems.find(".file-status-icon").length).toBe(2);
             });
-            
         });
-        
         
         it("should remove a list item when a file is closed", function () {
             DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
@@ -91,19 +99,18 @@ define(function (require, exports, module) {
                 var listItems = testWindow.$("#open-files-container > ul").children();
                 expect(listItems.length).toBe(1);
             });
-                                    
         });
         
-        
         it("should make a file that is clicked the current one in the editor", function () {
-            var $ = testWindow.$;
-            var secondItem =  $($("#open-files-container > ul").children()[1]);
-            secondItem.trigger('click');
-            
-            var listItems = $("#open-files-container > ul").children();
-            expect($(listItems[0]).hasClass("selected")).not.toBeTruthy();
-            expect($(listItems[1]).hasClass("selected")).toBeTruthy();
-                           
+            runs(function () {
+                var $ = testWindow.$;
+                var secondItem =  $($("#open-files-container > ul").children()[1]);
+                secondItem.trigger('click');
+                
+                var listItems = $("#open-files-container > ul").children();
+                expect($(listItems[0]).hasClass("selected")).not.toBeTruthy();
+                expect($(listItems[1]).hasClass("selected")).toBeTruthy();
+            });
         });
         
         it("should rebuild the ui from the model correctly", function () {
@@ -153,42 +160,48 @@ define(function (require, exports, module) {
         
         it("should close a file when the user clicks the close button", function () {
             var $ = testWindow.$;
+            var didClose = false;
                     
             // make 2nd doc clean
             var docList = DocumentManager.getWorkingSet();
-			docList[1]._markClean();
-                            
-            // make the first one active
-            DocumentManager.showInEditor(docList[0]);
-                            
-            // hover over and click on close icon of 2nd list item
-            var secondItem =  $($("#open-files-container > ul").children()[1]);
-            secondItem.trigger('mouseover');
-            var closeIcon = secondItem.find(".file-status-icon");
-            expect(closeIcon.length).toBe(1);
-                            
-            // simulate click
-            var didClose = false;
-            $(DocumentManager).on("workingSetRemove", function (event, removedDoc) {
-                didClose = true;
+
+            runs(function () {
+                docList[1]._markClean();
+                                
+                // make the first one active
+                DocumentManager.showInEditor(docList[0]);
+                                
+                // hover over and click on close icon of 2nd list item
+                var secondItem =  $($("#open-files-container > ul").children()[1]);
+                secondItem.trigger('mouseover');
+                var closeIcon = secondItem.find(".file-status-icon");
+                expect(closeIcon.length).toBe(1);
+                                
+                // simulate click
+                $(DocumentManager).on("workingSetRemove", function (event, removedDoc) {
+                    didClose = true;
+                });
+
+                closeIcon.trigger('click');
             });
             
-            closeIcon.trigger('click');
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);
                             
-            var listItems = $("#open-files-container > ul").children();
-            expect(listItems.length).toBe(1);
-            expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
-                            
-                            
+            runs(function () {
+                var listItems = $("#open-files-container > ul").children();
+                expect(listItems.length).toBe(1);
+                expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
+            });
         });
         
         it("should remove dirty icon when file becomes clean", function () {
-            // check that dirty icon is removed when docs are cleaned
-            var docList = DocumentManager.getWorkingSet();
-            docList[0]._markClean();
-            var listItems = testWindow.$("#open-files-container > ul").children();
-            expect(listItems.find(".file-status-icon dirty").length).toBe(0);
+            runs(function () {
+                // check that dirty icon is removed when docs are cleaned
+                var docList = DocumentManager.getWorkingSet();
+                docList[0]._markClean();
+                var listItems = testWindow.$("#open-files-container > ul").children();
+                expect(listItems.find(".file-status-icon dirty").length).toBe(0);
+            });
         });
             
     });

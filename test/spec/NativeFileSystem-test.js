@@ -431,17 +431,18 @@ define(function (require, exports, module) {
                 waitsFor(function () { return (actualContents !== null); }, 1000);
 
                 // verify actual content to be empty
+                var cleanupComplete = false;
                 runs(function () {
                     expect(actualContents).toEqual("");
 
                     // cleanup
                     var self = this;
                     brackets.fs.unlink(fileEntry.fullPath, function (err) {
-                        if (err !== brackets.fs.NO_ERROR) {
-                            self.fail("Failed to delete " + fileEntry.fullPath);
-                        }
+                        cleanupComplete = (err === brackets.fs.NO_ERROR);
                     });
                 });
+
+                waitsFor(function () { return cleanupComplete; }, 1000);
             });
 
             it("should report an error when a file does not exist and create = false", function () {

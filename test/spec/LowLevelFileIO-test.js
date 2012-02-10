@@ -21,16 +21,22 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
             // Pre-test setup - set permissions on special directories 
+            var set_no_read = false,
+                set_no_write = false;
             
-            // Set read-only mode
-            brackets.fs.chmod(baseDir + "cant_read_here", parseInt("222", 8), function (err) {
-                expect(err).toBeFalsy();
+            runs(function () {
+                // Set read-only mode
+                brackets.fs.chmod(baseDir + "cant_read_here", parseInt("222", 8), function (err) {
+                    set_no_read = (err === brackets.fs.NO_ERROR);
+                });
+    
+                // Set write-only mode
+                brackets.fs.chmod(baseDir + "cant_write_here", parseInt("444", 8), function (err) {
+                    set_no_write = (err === brackets.fs.NO_ERROR);
+                });
             });
-
-            // Set write-only mode
-            brackets.fs.chmod(baseDir + "cant_write_here", parseInt("444", 8), function (err) {
-                expect(err).toBeFalsy();
-            });
+            
+            waitsFor(function () { return set_no_read && set_no_write; }, 1000);
         });
     
         afterEach(function () {
