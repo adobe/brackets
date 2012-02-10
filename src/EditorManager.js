@@ -162,6 +162,7 @@ define(function (require, exports, module) {
             var editor = new CodeMirror(_editorHolder.get(0), {
                 indentUnit : 4,
                 lineNumbers: true,
+                matchBrackets: true,
                 extraKeys: {
                     "Tab"  : _handleTabKey,
                     "Left" : function (instance) {
