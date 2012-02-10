@@ -339,6 +339,26 @@ define(function (require, exports, module) {
 
     }
     
+    /** Returns the full path to the default project folder. The path is current the brackets src folder.
+     * TODO: Brackets does not yet support operating when there is no project folder. This code will likely
+     * not be needed when this support is added
+     * @private
+     * @return {!string} fullPath reference
+     */
+    function _getDefaultProjectPath() {
+        var loadedPath = window.location.pathname;
+        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
+        
+        // On Windows, when loading from a file, window.location.pathname has
+        // a leading '/'. Remove that here.
+        // TODO: Figure out a better way to handle this...
+        if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":") {
+            bracketsSrc = bracketsSrc.substr(1);
+        }
+
+        return bracketsSrc;
+    }
+    
     /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
@@ -404,10 +424,20 @@ define(function (require, exports, module) {
                     brackets.showModalDialog(
                         brackets.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
-                        Strings.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, rootPath, error.code,
-                            function () { result.reject(); }
-                            )
-                    );
+                        Strings.format(
+                            Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
+                            rootPath,
+                            error.code,
+                            function () {
+                                result.reject();
+                            }
+                        )
+                    ).done(function () {
+                        // The project folder stored in preference doesn't exist, so load the default 
+                        // project directory. TODO: When Brackets supports having no project director
+                        // defined this code will need to change
+                        return loadProject(_getDefaultProjectPath());
+                    });
                 }
                 );
         }
@@ -611,19 +641,11 @@ define(function (require, exports, module) {
 
     // Initialize now
     (function () {
-        var loadedPath = window.location.pathname;
-        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
-        // On Windows, when loading from a file, window.location.pathname has
-        // a leading '/'. Remove that here.
-        // TODO: Figure out a better way to handle this...
-        if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":") {
-            bracketsSrc = bracketsSrc.substr(1);
-        }
         
         var defaults = {
-            projectPath:      bracketsSrc, /* initialze to brackets source */
-            projectTreeState: ""           /* TODO (jasonsj): jstree state */
+            projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
+            projectTreeState: ""                     /* TODO (jasonsj): jstree state */
         };
         PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
     }());
