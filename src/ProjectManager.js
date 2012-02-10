@@ -339,9 +339,9 @@ define(function (require, exports, module) {
 
     }
     
-    /** Returns the full path to the default project folder. The path is current the brackets src folder.
+    /** Returns the full path to the default project folder. The path is currently the brackets src folder.
      * TODO: Brackets does not yet support operating when there is no project folder. This code will likely
-     * not be needed when this support is added
+     * not be needed when this support is added.
      * @private
      * @return {!string} fullPath reference
      */
