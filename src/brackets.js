@@ -23,6 +23,9 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/jslint/jslint");
+
+    // load the live-development plugin
+    require("thirdparty/live-development/init");
     
     // Load dependent modules
     var ProjectManager          = require("ProjectManager"),

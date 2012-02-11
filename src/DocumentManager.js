@@ -421,7 +421,7 @@ define(function (require, exports, module) {
         this.diskTimestamp = initialTimestamp;
         
         // Dirty-bit tracking
-        editor.setOption("onChange", this._handleEditorChange.bind(this));
+        $(editor).on("onChange", this._handleEditorChange.bind(this));
         this.isDirty = false;
     };
     

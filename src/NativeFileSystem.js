@@ -11,6 +11,29 @@ define(function (require, exports, module) {
     // TODO: Determine proper public/private API for this module, splitting into separate modules as needed
 
     var NativeFileSystem = {
+
+        /** openLiveBrowser
+         *
+         * @param {string} url
+         * @param {function(...)} successCallback
+         * @param {function(...)} errorCallback
+         */
+        openLiveBrowser: function (url,
+                                  successCallback,
+                                  errorCallback)
+        {
+            brackets.fs.openLiveBrowser(url,
+                function onRun(err) {
+                    if (!err) {
+                        if (successCallback)
+                            successCallback();
+                    } else {
+                        if (errorCallback)
+                           errorCallback(NativeFileSystem._nativeToFileError(err));
+                    }
+                });
+        },
+
         
         /** Amount of time we wait for async calls to return (in milliseconds)
          * TODO: Not all async calls are wrapped with something that times out and calls the error callback
