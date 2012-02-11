@@ -586,6 +586,56 @@ define(function (require, exports, module) {
                 });
             });
 
+
+            it("should write an empty file", function () {
+                var fileEntry = null;
+                var writeComplete = false;
+                var error = null;
+
+                runs(function () {
+                    var successCallback = function (entry) {
+                        fileEntry = entry;
+
+                        fileEntry.createWriter(function (fileWriter) {
+                            fileWriter.onwriteend = function (e) {
+                                writeComplete = true;
+                            };
+                            fileWriter.onerror = function (err) {
+                                writeComplete = true;
+                                error = err;
+                            };
+
+                            // TODO (jasonsj): BlobBulder
+                            fileWriter.write("");
+                        });
+                    };
+                    var errorCallback = function () {
+                        writeComplete = true;
+                    };
+
+                    this.nfs.getFile("file1", { create: false }, successCallback, errorCallback);
+                });
+
+                waitsFor(function () { return writeComplete && fileEntry; }, 1000);
+
+                var actualContents = null;
+
+                runs(function () {
+                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                        actualContents = contents;
+                    });
+                });
+
+                waitsFor(function () { return (actualContents !== null); }, 1000);
+
+                runs(function () {
+                    expect(actualContents).toEqual("");
+
+                    // reset file1 content
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8");
+                });
+            });
+
             it("should report an error when writing to a file that cannot be read", function () {
                 var complete = false;
                 var error = null;
