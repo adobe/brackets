@@ -9,4 +9,4 @@
 	url = git@github.com:douglascrockford/JSLint.git
 [submodule "src/thirdparty/live-development"]
 	path = src/thirdparty/live-development
-	url = https://github.com/joelrbrandt/live-development.git
+	url = git@github.com:joelrbrandt/live-development.git
