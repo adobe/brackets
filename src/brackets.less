@@ -158,7 +158,7 @@ a, img {
     }
 }
 
-#project-file-area {
+#file-section {
     .vbox;
     .box-flex(1);
     margin: 5px 0px 5px 0px;
@@ -219,11 +219,16 @@ a, img {
     }
 }
 
+//Initially start with the open files hidden, they will get show as files are added
+#open-files-header, #open-files-container, #open-files-divider {
+    display:none;
+}
+
 #project-files-container {
     .box-flex(1);
     margin: 0px 0px 0px 8px;
     padding: 0;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto;
     
     ul { margin-top: 0; }
