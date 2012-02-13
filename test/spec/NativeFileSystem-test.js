@@ -555,7 +555,7 @@ define(function (require, exports, module) {
                                 writeComplete = true;
                             };
 
-                            // TODO (jasonsj): BlobBulder
+                            // TODO (issue #241): BlobBulder
                             fileWriter.write("FileWriter.write");
                         });
                     };
@@ -626,7 +626,7 @@ define(function (require, exports, module) {
                                 error = err;
                             };
 
-                            // TODO (jasonsj): BlobBulder
+                            // TODO (issue #241): BlobBulder
                             fileWriter.write("FileWriter.write");
                         });
                     };
@@ -649,15 +649,15 @@ define(function (require, exports, module) {
             });
 
             xit("should append to existing files", function () {
-                this.fail("TODO (jasonsj): not supported for sprint 1");
+                this.fail("TODO (issue #241): not supported for sprint 1");
             });
 
             xit("should seek into a file before writing", function () {
-                this.fail("TODO (jasonsj): not supported for sprint 1");
+                this.fail("TODO (issue #241): not supported for sprint 1");
             });
 
             xit("should truncate files", function () {
-                this.fail("TODO (jasonsj): not supported for sprint 1");
+                this.fail("TODO (issue #241): not supported for sprint 1");
             });
         });
     });
