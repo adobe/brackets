@@ -66,6 +66,7 @@ define(function (require, exports, module) {
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
                 if (!err) {
+                    // FIXME (issue #247): return a NativeFileSystem object
                     var root = new NativeFileSystem.DirectoryEntry(path);
                     successCallback(root);
                 } else if (errorCallback) {
