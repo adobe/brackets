@@ -195,7 +195,8 @@ define(function (require, exports, module) {
                         var keyStr = String.fromCharCode(event.keyCode);
                         if (/[\]\}\)]/.test(keyStr)) {
                             // If the whole line is whitespace, auto-indent it
-                            var lineStr = instance.getLine(instance.getCursor().line);
+                            var lineNum = instance.getCursor().line;
+                            var lineStr = instance.getLine(lineNum);
                             
                             if (!/\S/.test(lineStr)) {
                                 // Need to do the auto-indent on a timeout to ensure
@@ -203,7 +204,7 @@ define(function (require, exports, module) {
                                 // This is the same timeout value used by the
                                 // electricChars feature in CodeMirror.
                                 setTimeout(function () {
-                                    CodeMirror.commands.indentAuto(instance);
+                                    instance.indentLine(lineNum);
                                 }, 75);
                             }
                         }
