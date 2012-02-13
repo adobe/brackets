@@ -125,7 +125,8 @@ define(function (require, exports, module) {
             });
             
             it("can read an empty folder", function () {
-                // FIXME: (joelrbrandt) We need an empty folder for testing in this spec. Unfortunately, it's impossible
+                // TODO: (issue #241): Implement DirectoryEntry.getDirectory() and remove this empty folder workaround.
+                // We need an empty folder for testing in this spec. Unfortunately, it's impossible
                 // to check an empty folder in to git, and we don't have low level fs calls to create an emtpy folder.
                 // So, for now, we have a folder called "emptydir" which contains a single 0-length file called
                 // "placeholder". We delete that file at the beginning of each test, and then recreate it at the end.
@@ -165,7 +166,8 @@ define(function (require, exports, module) {
 
                     
                     function deletePlaceholder(successCallback) {
-                        // FIXME: (joelrbrandt) once NativeFileSystem has a delete/unlink, should use that
+                        // TODO: (issue #241): implement FileEntry.remove()
+                        // once NativeFileSystem has a delete/unlink, should use that
                         brackets.fs.unlink(placeholderPath, function (err) {
                             if (!err) {
                                 placeholderDeleted = true;
@@ -407,7 +409,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (jasonsj): NativeFileSystem.root is missing
+                    // FIXME (issue #247): NativeFileSystem.root is missing
                     this.nfs.getFile("new-zero-length-file.txt", { create: true, exclusive: true }, successCallback, errorCallback);
                 });
 
@@ -461,7 +463,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (jasonsj): NativeFileSystem.root is missing
+                    // FIXME (issue #247): NativeFileSystem.root is missing
                     this.nfs.getFile("does-not-exist.txt", { create: false }, successCallback, errorCallback);
                 });
 
@@ -490,7 +492,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (jasonsj): NativeFileSystem.root is missing
+                    // FIXME (issue #247): NativeFileSystem.root is missing
                     this.nfs.getFile("file1", { create: true, exclusive: true }, successCallback, errorCallback);
                 });
 
@@ -522,7 +524,7 @@ define(function (require, exports, module) {
                         writeComplete = true;
                     };
 
-                    // FIXME (jasonsj): NativeFileSystem.root is missing
+                    // FIXME (issue #247): NativeFileSystem.root is missing
                     this.nfs.getFile("dir1", { create: false }, successCallback, errorCallback);
                 });
 
@@ -555,7 +557,7 @@ define(function (require, exports, module) {
                                 writeComplete = true;
                             };
 
-                            // TODO (jasonsj): BlobBulder
+                            // TODO (issue #241): BlobBulder
                             fileWriter.write("FileWriter.write");
                         });
                     };
@@ -626,7 +628,7 @@ define(function (require, exports, module) {
                                 error = err;
                             };
 
-                            // TODO (jasonsj): BlobBulder
+                            // TODO (issue #241): BlobBulder
                             fileWriter.write("FileWriter.write");
                         });
                     };
@@ -649,15 +651,15 @@ define(function (require, exports, module) {
             });
 
             xit("should append to existing files", function () {
-                this.fail("TODO (jasonsj): not supported for sprint 1");
+                this.fail("TODO (issue #241): not supported for sprint 1");
             });
 
             xit("should seek into a file before writing", function () {
-                this.fail("TODO (jasonsj): not supported for sprint 1");
+                this.fail("TODO (issue #241): not supported for sprint 1");
             });
 
             xit("should truncate files", function () {
-                this.fail("TODO (jasonsj): not supported for sprint 1");
+                this.fail("TODO (issue #241): not supported for sprint 1");
             });
         });
     });
