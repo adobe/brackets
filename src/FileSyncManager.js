@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 );
             }
             return result;
-        });
+        };
         
         // Check all docs in parallel
         // (fail fast b/c we won't continue syncing if there was any error fetching timestamps)

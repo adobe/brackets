@@ -19,7 +19,8 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         EditorUtils         = require("EditorUtils"),
         Async               = require("Async"),
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        PreferencesManager  = require("PreferencesManager");
     
     /**
      * Handlers for commands related to file handling (opening, saving, etc.)
@@ -240,7 +241,7 @@ define(function (require, exports, module) {
             brackets.DIALOG_ID_ERROR,
             "Error saving file(s)",
             Strings.format(
-                "Errors occurred when trying to save the file(s): {0}"
+                "Errors occurred when trying to save the file(s): {0}",
                 errorList 
             )
         );
@@ -249,15 +250,15 @@ define(function (require, exports, module) {
     function doSave(docToSave) {
         var result = new $.Deferred();
         
+        function handleError(error) {
+            showSaveFileError(error.code, fileEntry.fullPath)
+            .always(function () {
+                result.reject(error);
+            });
+        }
+            
         if (docToSave && docToSave.isDirty) {
             var fileEntry = docToSave.file;
-            
-            function handleError(error) {
-                showSaveFileError(error.code, fileEntry.fullPath)
-                .always(function () {
-                    result.reject(error);
-                });
-            }
             
             fileEntry.createWriter(
                 function (writer) {
@@ -430,6 +431,7 @@ define(function (require, exports, module) {
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
             var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: commandData.promptOnly };
+
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
                 result.resolve();
@@ -480,15 +482,49 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+    * @private - tracks our closing state if we get called again
+    */
+    var _windowGoingAway = false;
     
-    /** Confirms any unsaved changes, then exits Brackets */
-    function handleFileQuit() {
-        var closeAllArgs = { promptOnly: false };
-        handleFileCloseAll(closeAllArgs)
+    /**
+    * @private
+    * Common implementation for close/quit/reload which all mostly
+    * the same except for the final step
+    */
+    function _handleWindowGoingAway(commandData, postCloseHandler) {
+        if (_windowGoingAway) {
+            //if we get called back while we're closing, then just return
+            return (new $.Deferred()).resolve();
+        }
+        
+        //prevent the default action of closing the window until we can save all the files
+        if (commandData && commandData.evt && commandData.evt.cancelable) {
+            commandData.evt.preventDefault();
+        }
+
+        return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
-                window.close();  // TODO: call a native API to quit the whole app
-            });
+                _windowGoingAway = true;
+                PreferencesManager.savePreferences();
+            })
+            .done(postCloseHandler);
+    }
+    
+    /** Confirms any unsaved changes, then closes the window */
+    function handleFileCloseWindow(commandData) {
+        return _handleWindowGoingAway(commandData, window.close);
+    }
+    
+    /** Closes the window, then quits the app */
+    function handleFileQuit(commandData) {
+        return _handleWindowGoingAway(commandData, brackets.app.quit);
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+    }
+    
+     /** Does a full reload of the browser window */
+    function handleFileReload(commandData) {
+        return _handleWindowGoingAway(commandData, window.location.reload);
     }
 
     function init(title) {
@@ -504,7 +540,9 @@ define(function (require, exports, module) {
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Commands.FILE_RELOAD, handleFileReload);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

@@ -25,8 +25,7 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var PreferencesManager      = require("PreferencesManager"),
-        ProjectManager          = require("ProjectManager"),
+    var ProjectManager          = require("ProjectManager"),
         DocumentManager         = require("DocumentManager"),
         EditorManager           = require("EditorManager"),
         WorkingSetView          = require("WorkingSetView"),
@@ -58,7 +57,7 @@ define(function (require, exports, module) {
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
     brackets.test = {
-        PreferencesManager      : PreferencesManager,
+        PreferencesManager      : require("PreferencesManager"),
         ProjectManager          : ProjectManager,
         FileCommandHandlers     : FileCommandHandlers,
         FileViewController      : FileViewController,
@@ -68,6 +67,10 @@ define(function (require, exports, module) {
         CommandManager          : require("CommandManager")
     };
 
+    // Load native shell when brackets is run in a native shell rather than the browser
+    // TODO: load conditionally
+    brackets.shellAPI = require("ShellAPI");
+    
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
@@ -327,7 +330,7 @@ define(function (require, exports, module) {
                     }
                 }
 
-                if (testWindow === null) {
+                if (!testWindow) {
                     testWindow = window.open("../test/SpecRunner.html");
                     testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
                 }
@@ -384,7 +387,7 @@ define(function (require, exports, module) {
             });
             
             $(window).unload(function () {
-                PreferencesManager.savePreferences();
+                CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
             });
         }
 

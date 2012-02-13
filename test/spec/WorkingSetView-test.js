@@ -75,7 +75,7 @@ define(function (require, exports, module) {
         
         
         it("should remove a list item when a file is closed", function () {
-            DocumentManager.getCurrentDocument().markClean(); // so we can close without a save dialog
+            DocumentManager.getCurrentDocument()._markClean(); // so we can close without a save dialog
            
             // close the document
             var didClose = false, gotError = false;
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
                     
             // make 2nd doc clean
             var docList = DocumentManager.getWorkingSet();
-			docList[1].markClean();
+			docList[1]._markClean();
                             
             // make the first one active
             DocumentManager.showInEditor(docList[0]);
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
         it("should remove dirty icon when file becomes clean", function () {
             // check that dirty icon is removed when docs are cleaned
             var docList = DocumentManager.getWorkingSet();
-            docList[0].markClean();
+            docList[0]._markClean();
             var listItems = testWindow.$("#open-files-container > ul").children();
             expect(listItems.find(".file-status-icon dirty").length).toBe(0);
         });
