@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            // TODO: we're relying on this to not be asynchronous--is that safe?
+            // TODO (issue #117): we're relying on this to not be asynchronous--is that safe?
             NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 ["htm", "html", "js", "css"], function (files) {
                     if (files.length > 0) {
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                         result.reject(error);
                     };
 
-                    // TODO (jasonsj): Blob instead of string
+                    // TODO (issue #241): Blob instead of string
                     writer.write(docToSave.getText());
                 },
                 function (error) {
