@@ -62,10 +62,10 @@ define(function (require, exports, module) {
         }
 
         if (indentAuto) {
-            var currentWS = line.search(/\S/);
+            var currentLength = line.length;
             CodeMirror.commands.indentAuto(instance);
             // If the amount of whitespace didn't change, insert another tab
-            if (instance.getLine(from.line).search(/\S/) === currentWS) {
+            if (instance.getLine(from.line).length === currentLength) {
                 insertTab = true;
                 to.ch = 0;
             }
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             } else {
                 var i, ins = "", numSpaces = instance.getOption("tabSize");
                 numSpaces -= to.ch % numSpaces;
-                for (i = 0; i < numSpaces + 1; i++) {
+                for (i = 0; i < numSpaces; i++) {
                     ins += " ";
                 }
                 instance.replaceSelection(ins, "end");
@@ -160,6 +160,7 @@ define(function (require, exports, module) {
             // NOTE: CodeMirror doesn't actually require calling 'new',
             // but jslint does require it because of the capital 'C'
             var editor = new CodeMirror(_editorHolder.get(0), {
+                electricChars: false,
                 indentUnit : 4,
                 lineNumbers: true,
                 extraKeys: {
@@ -188,6 +189,28 @@ define(function (require, exports, module) {
                     "Shift-F3": "findPrev",
                     "Ctrl-H": "replace",
                     "Shift-Delete": "cut"
+                },
+                onKeyEvent: function (instance, event) {
+                    if (event.type === "keypress") {
+                        var keyStr = String.fromCharCode(event.which || event.keyCode);
+                        if (/[\]\}\)]/.test(keyStr)) {
+                            // If the whole line is whitespace, auto-indent it
+                            var lineNum = instance.getCursor().line;
+                            var lineStr = instance.getLine(lineNum);
+                            
+                            if (!/\S/.test(lineStr)) {
+                                // Need to do the auto-indent on a timeout to ensure
+                                // the keypress is handled before auto-indenting.
+                                // This is the same timeout value used by the
+                                // electricChars feature in CodeMirror.
+                                setTimeout(function () {
+                                    instance.indentLine(lineNum);
+                                }, 75);
+                            }
+                        }
+                    }
+                    
+                    return false;
                 }
             });
             
