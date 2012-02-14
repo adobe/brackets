@@ -89,19 +89,32 @@ define(function (require, exports, module) {
     brackets.DIALOG_ID_EXT_DELETED = "ext-deleted-dialog";
 
     /**
-     * General purpose modal dialog. Assumes that the HTML for the dialog contains elements with "title"
-     * and "message" classes, as well as a number of elements with "dialog-button" class, each of which has
-     * a "data-button-id".
+     * General purpose modal dialog. Assumes that:
+     * -- the root tag of the dialog is marked with a unique class name (passed as dlgClass), as well as the
+     *    classes "template modal hide".
+     * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
+     *    of elements with "dialog-button" class, each of which has a "data-button-id".
      *
-     * @param {string} id The ID of the dialog node in the HTML.
+     * @param {string} dlgClass The class of the dialog node in the HTML.
      * @param {string} title The title of the error dialog. Can contain HTML markup.
      * @param {string} message The message to display in the error dialog. Can contain HTML markup.
      * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
-    brackets.showModalDialog = function (id, title, message, callback) {
+    brackets.showModalDialog = function (dlgClass, title, message, callback) {
         var result = $.Deferred();
-        var dlg = $("#" + id);
+        
+        // We clone the HTML rather than using it directly so that if two dialogs of the same
+        // type happen to show up, they can appear at the same time. (This is an edge case that
+        // shouldn't happen often, but we can't prevent it from happening since everything is
+        // asynchronous.)
+        // TODO: (issue #258) In future, we should templatize the HTML for the dialogs rather than having 
+        // it live directly in the HTML.
+        var dlg = $("." + dlgClass + ".template")
+            .clone()
+            .removeClass("template")
+            .addClass("instance")
+            .appendTo(document.body);
 
         // Set title and message
         $(".dialog-title", dlg).html(title);
@@ -116,6 +129,9 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 result.resolve(buttonId);
             }, 0);
+            
+            // Remove the dialog instance from the DOM.
+            dlg.remove();
         });
 
         function stopEvent(e) {
@@ -177,11 +193,12 @@ define(function (require, exports, module) {
      * If the dialog is visible, immediately closes it. The dialog callback will be called with the
      * special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
      */
-    brackets.cancelModalDialogIfOpen = function (id) {
-        var dlg = $("#" + id);
-        if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-            brackets._dismissDialog(dlg, brackets.DIALOG_CANCELED);
-        }
+    brackets.cancelModalDialogIfOpen = function (dlgClass) {
+        $("." + dlgClass + ".instance").each(function (dlg) {
+            if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+                brackets._dismissDialog(dlg, brackets.DIALOG_CANCELED);
+            }
+        });
     };
     
     brackets._dismissDialog = function (dlg, buttonId) {
