@@ -498,8 +498,8 @@ define(function (require, exports, module) {
             .done(function () {
                 _windowGoingAway = true;
                 PreferencesManager.savePreferences();
-            })
-            .done(postCloseHandler);
+                postCloseHandler();
+            });
     }
     
     /** Confirms any unsaved changes, then closes the window */
