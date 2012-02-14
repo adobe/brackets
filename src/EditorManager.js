@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                                 // This is the same timeout value used by the
                                 // electricChars feature in CodeMirror.
                                 setTimeout(function () {
-                                    instance.indentLine(lineNum, "smart");
+                                    instance.indentLine(lineNum);
                                 }, 75);
                             }
                         }
