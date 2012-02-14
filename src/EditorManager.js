@@ -192,7 +192,7 @@ define(function (require, exports, module) {
                 },
                 onKeyEvent: function (instance, event) {
                     if (event.type === "keypress") {
-                        var keyStr = String.fromCharCode(event.keyCode);
+                        var keyStr = String.fromCharCode(event.which || event.keyCode);
                         if (/[\]\}\)]/.test(keyStr)) {
                             // If the whole line is whitespace, auto-indent it
                             var lineNum = instance.getCursor().line;
@@ -204,7 +204,7 @@ define(function (require, exports, module) {
                                 // This is the same timeout value used by the
                                 // electricChars feature in CodeMirror.
                                 setTimeout(function () {
-                                    instance.indentLine(lineNum);
+                                    instance.indentLine(lineNum, "smart");
                                 }, 75);
                             }
                         }
