@@ -206,18 +206,17 @@ define(function (require, exports, module) {
         
         var masterPromise = new $.Deferred();
         
-        var parallelResult =
-            doInParallel(
-                items,
-                function (item, i) {
-                    var itemResult = beginProcessItem(item, i);
-                    itemResult.fail(function (error) {
-                        errors.push({ item: item, error: error });
-                    });
-                    return itemResult;
-                },
-                false
-            );
+        var parallelResult = doInParallel(
+            items,
+            function (item, i) {
+                var itemResult = beginProcessItem(item, i);
+                itemResult.fail(function (error) {
+                    errors.push({ item: item, error: error });
+                });
+                return itemResult;
+            },
+            false
+        );
         
         parallelResult
             .done(function () {
@@ -271,5 +270,5 @@ define(function (require, exports, module) {
     exports.doSequentially = doSequentially;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
-
+    exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });

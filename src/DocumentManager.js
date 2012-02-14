@@ -514,7 +514,7 @@ define(function (require, exports, module) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
             },
             function (error) {
-                console.log("Error updating timestamp after saving file: " + this.file.fullPath);
+                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
             }
         );
     };
@@ -547,7 +547,7 @@ define(function (require, exports, module) {
             function checkOneFile(value, index) {
                 var result = new $.Deferred();
                 
-                // check if the file still exists
+                // check if the file still exists (not an error if it doesn't, though)
                 projectRoot.getFile(value.file, {},
                     function (fileEntry) {
                         // maintain original sequence
@@ -556,12 +556,11 @@ define(function (require, exports, module) {
                         if (value.active) {
                             activeFile = fileEntry;
                         }
-
                         result.resolve();
                     },
                     function (error) {
                         filesToOpen[index] = null;
-                        result.reject();
+                        result.resolve();
                     });
                 
                 return result;

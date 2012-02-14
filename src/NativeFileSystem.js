@@ -548,6 +548,7 @@ define(function (require, exports, module) {
         brackets.fs.readdir(rootPath, function (err, filelist) {
             if (!err) {
                 var entries = [];
+                var lastError = null;
 
                 // stat() to determine type of each entry, then populare entries array with objects
                 var masterPromise = Async.doInParallel(filelist, function (filename, index) {
@@ -566,7 +567,8 @@ define(function (require, exports, module) {
                             }
                             deferred.resolve();
                         } else {
-                            deferred.reject(NativeFileSystem._nativeToFileError(statErr));
+                            lastError = NativeFileSystem._nativeToFileError(statErr);
+                            deferred.reject(lastError);
                         }
                     });
                     
@@ -595,6 +597,8 @@ define(function (require, exports, module) {
                             // SECURITY_ERR is the HTML5 File catch-all error, and there isn't anything
                             // more fitting for a timeout.
                             err = new NativeFileSystem.FileError(FileError.SECURITY_ERR);
+                        } else {
+                            err = lastError;
                         }
                         
                         if (errorCallback) {

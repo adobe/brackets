@@ -273,14 +273,19 @@ define(function (require, exports, module) {
             
         if (docToSave && docToSave.isDirty) {
             var fileEntry = docToSave.file;
+            var writeError = false;
             
             fileEntry.createWriter(
                 function (writer) {
                     writer.onwriteend = function () {
-                        docToSave.notifySaved();
-                        result.resolve();
+                        // Per spec, onwriteend is called after onerror too
+                        if (!writeError) {
+                            docToSave.notifySaved();
+                            result.resolve();
+                        }
                     };
                     writer.onerror = function (error) {
+                        writeError = true;
                         handleError(error);
                     };
 
@@ -320,10 +325,9 @@ define(function (require, exports, module) {
     
     /**
      * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If any ONE save operation fails, an error dialog is immediately
-     * shown and the promise fails.
-     * TODO: But subsequent save operations continue in the background, and if more fail the error
-     * dialogs will stack up on top of the old one.
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
      *
      * @return {$.Promise}
      */

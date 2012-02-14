@@ -196,7 +196,7 @@ define(function (require, exports, module) {
             // TODO: doSequentially() should provide a cancellation mechanism
             if (_restartPending) {
                 result.resolve();
-                return;
+                return result;
             }
             
             var message;
