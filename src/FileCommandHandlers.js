@@ -498,24 +498,30 @@ define(function (require, exports, module) {
             .done(function () {
                 _windowGoingAway = true;
                 PreferencesManager.savePreferences();
-            })
-            .done(postCloseHandler);
+                postCloseHandler();
+            });
     }
     
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
-        return _handleWindowGoingAway(commandData, window.close);
+        return _handleWindowGoingAway(commandData, function () {
+            window.close();
+        });
     }
     
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
-        return _handleWindowGoingAway(commandData, brackets.app.quit);
+        return _handleWindowGoingAway(commandData, function () {
+            brackets.app.quit();
+        });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
     
      /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
-        return _handleWindowGoingAway(commandData, window.location.reload);
+        return _handleWindowGoingAway(commandData, function () {
+            window.location.reload();
+        });
     }
 
     function init(title) {
