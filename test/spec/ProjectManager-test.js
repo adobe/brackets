@@ -27,7 +27,6 @@ define(function (require, exports, module) {
         });
 
         describe("createNewItem", function () {
-            // TODO (jasonsj): test Commands.FILE_NEW
             it("should create a new file with a given name", function () {
                 var didCreate = false, gotError = false;
 
