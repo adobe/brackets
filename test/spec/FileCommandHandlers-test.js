@@ -35,7 +35,7 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
 
-        // TODO (jasonsj): test Commands.FILE_NEW. Current implementation of
+        // TODO (issue #115): test Commands.FILE_NEW. Current implementation of
         // ProjectManager.createNewItem() is tightly coupled to jstree UI and
         // events.
 
@@ -184,7 +184,6 @@ define(function (require, exports, module) {
                     // change editor content, followed by undo and redo
                     doc.setText(TEST_JS_NEW_CONTENT);
 
-                    // TODO (jasonsj): edit menu undo/redo commands
                     editor.undo();
                     expect(doc.getText()).toBe(TEST_JS_CONTENT);
                     
@@ -223,7 +222,5 @@ define(function (require, exports, module) {
             });
 */
         });
-
-        // TODO (jasonsj): experiment with mocks instead of real UI
     });
 });

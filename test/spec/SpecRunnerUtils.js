@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             testWindow = window.open(getBracketsSourceRoot() + "/index.html");
         });
 
-        // FIXME (jasonsj): Need an event or something a little more reliable...
+        // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function () {
                 return testWindow.brackets && testWindow.brackets.test;
