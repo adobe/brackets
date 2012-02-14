@@ -74,7 +74,7 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             // Docs restored from last launch aren't really "open" yet, so skip those
-            if (doc.diskTimestamp) {
+            if (!doc.diskTimestamp) {
                 result.resolve();
             } else {
                 doc.file.getMetadata(
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 );
             }
             return result;
-        };
+        }
         
         // Check all docs in parallel
         // (fail fast b/c we won't continue syncing if there was any error fetching timestamps)

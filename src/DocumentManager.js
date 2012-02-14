@@ -173,7 +173,7 @@ define(function (require, exports, module) {
     /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
      * editing" means either the file is in the working set, and/or the file is currently open in
      * the editor UI.
-     * @param {!fullPath}
+     * @param {!string} fullPath
      * @return {?Document}
     */
     function getDocumentForPath(fullPath) {
@@ -565,7 +565,7 @@ define(function (require, exports, module) {
                     });
                 
                 return result;
-            };
+            }
 
             return Async.doInParallel(prefs.files, checkOneFile, false);
         }());

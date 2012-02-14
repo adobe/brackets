@@ -3,23 +3,25 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define, $ */
 
 /**
  * Utilities for working with Deferred, Promise, and other asynchronous processes.
  */
-define(function(require, exports, module) {
+define(function (require, exports, module) {
+    'use strict';
     
-    // TODO: add utilities for blocking UI until a Promise completes
+    // TODO: add utilities for blocking UI until a Promise completes?
     
     // TODO: another architectural issue with Deferred/Promise is the inability to do anything
     // akin to a 'finally' block. It'd be nice if we could harvest exceptions across all steps of
     // an async process and pipe them to a handler, so that we don't leave UI-blocking overlays up
     // forever, etc.
     
-    // TODO: see..
+    // The closest analogue to these utils I can find is the Node.JS implementation of Promise/Deferred, which
+    // offers utilities called all() and seq(). But they do not distinguish resolve() from reject(), and require
+    // more work to use (e.g. seq() takes an array of functions rather than an array plus a function).
     //  - https://github.com/kriszyp/node-promise  (via http://www.hermanradtke.com/blog/managing-multiple-jquery-promises/)
-    //  - http://api.jquery.com/deferred.pipe/
     
     // TODO:
     // A "SuperDeferred" could feature some very useful enhancements:
@@ -88,11 +90,11 @@ define(function(require, exports, module) {
                 promises.push(itemPromise);
                 
                 itemPromise.fail(function () {
-                   if (failFast) {
-                       masterPromise.reject();
-                   } else {
-                       hasFailed = true;
-                   }
+                    if (failFast) {
+                        masterPromise.reject();
+                    } else {
+                        hasFailed = true;
+                    }
                 });
                 itemPromise.always(function () {
                     numCompleted++;
@@ -103,7 +105,7 @@ define(function(require, exports, module) {
                             masterPromise.resolve();
                         }
                     }
-                })
+                });
             });
             
         }
@@ -210,23 +212,27 @@ define(function(require, exports, module) {
                 function (item, i) {
                     var itemResult = beginProcessItem(item, i);
                     itemResult.fail(function (error) {
-                        errors.push({ item:item, error:error });
+                        errors.push({ item: item, error: error });
                     });
                     return itemResult;
                 },
                 false
             );
         
-        parallelResult.done(function () {
-            masterPromise.resolve();
-        })
-        .fail(function () {
-            masterPromise.reject(errors);
-        });
+        parallelResult
+            .done(function () {
+                masterPromise.resolve();
+            })
+            .fail(function () {
+                masterPromise.reject(errors);
+            });
         
         return masterPromise.promise();
     }
     
+    
+    /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
+    var ERROR_TIMEOUT = {};
     
     /**
      * Adds timeout-driven failure to a Promise: returns a new Promise that is resolved/rejected when
@@ -250,263 +256,14 @@ define(function(require, exports, module) {
         promise.always(function () {
             clearTimeout(timer);
         });
+        
+        // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject
+        // won't do anything
         promise.pipe(wrapper.resolve, wrapper.reject);
         
         return wrapper.promise();
     }
     
-    /** Value passed to fail() handlers that have been triggered due to withTimeout()'s timeout */
-    var ERROR_TIMEOUT = {};
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    function test() {
-        var items = [100, 200, 300, 400];
-        var itemsDone;
-        var failItemI = -1;
-        var expectShortCircuit = false;
-        var expectFailFast = false;
-        
-        function fakeProcess(delay, itemI) {
-            var result = new $.Deferred();
-            if (expectShortCircuit && itemI > failItemI)
-                console.log("### Fail - should have short circuited before "+itemI);
-            
-            setTimeout(function() {
-                itemsDone[itemI] = true;
-                if (itemI === failItemI) {
-                    console.log("  item "+itemI+" reject()");
-                    result.reject(itemI); //(args checked in some tests)
-                } else {
-                    console.log("  item "+itemI+" resolve()");
-                    result.resolve(itemI); //(args checked in some tests)
-                }
-            }, delay);
-            return result.promise();
-        }
-        function fakeSyncProcess(delay, itemI) {
-            var result = new $.Deferred();
-            if (expectShortCircuit && itemI > failItemI)
-                console.log("### Fail - should have short circuited before "+itemI);
-            
-            itemsDone[itemI] = true;
-            if (itemI === failItemI) {
-                console.log("  item "+itemI+" reject()");
-                result.reject();
-            } else {
-                console.log("  item "+itemI+" resolve()");
-                result.resolve();
-            }
-            return result.promise();
-        }
-        function shouldNeverCall() {
-            console.log("### TEST FAILED");
-        }
-        
-        
-        var masterPromise;
-        
-        // console.log("Testing 0-length arrays...");
-        // itemsDone = [];
-        // // masterPromise = doInParallel([], shouldNeverCall, true);
-        // // masterPromise = doInParallel([], shouldNeverCall, false);
-        // // masterPromise = doSequentially([], shouldNeverCall, true);
-        // masterPromise = doSequentially([], shouldNeverCall, false);
-        // masterPromise.done(function () {
-        //     console.log("Pass");
-        // });
-        // masterPromise.fail(function () {
-        //     console.log("### Fail");
-        // });
-        
-        
-        // console.log("Test passing");
-        // itemsDone = [];
-        // failItemI = -1;
-        // // masterPromise = doInParallel(items, fakeProcess, true);
-        // // masterPromise = doInParallel(items, fakeProcess, false);
-        // // masterPromise = doSequentially(items, fakeProcess, true);
-        // masterPromise = doSequentially(items, fakeProcess, false);
-        // masterPromise.done(function () {
-        //     console.log("Pass");
-        // });
-        // masterPromise.fail(function () {
-        //     console.log("### Fail");
-        // });
-        
-        
-        // console.log("Test mid failing");
-        // itemsDone = [];
-        // failItemI = 2;
-        // expectShortCircuit = false;
-        // expectFailFast = true;
-        // masterPromise = doInParallel(items, fakeProcess, true);
-        // // expectShortCircuit = false;
-        // // expectFailFast = false;
-        // // masterPromise = doInParallel(items, fakeProcess, false);
-        // // expectShortCircuit = true;
-        // // expectFailFast = true;
-        // // masterPromise = doSequentially(items, fakeProcess, true);
-        // // expectShortCircuit = false;
-        // // expectFailFast = false;
-        // // masterPromise = doSequentially(items, fakeProcess, false);
-        
-        // masterPromise.done(function () {
-        //     console.log("### Fail");
-        // });
-        // masterPromise.fail(function () {
-        //     if (expectFailFast && itemsDone[failItemI+1])
-        //         console.log("### Fail - should not have completed "+(failItemI+1)+" yet");
-        //     else
-        //         console.log("Pass");
-        // });
-        
-        
-        // console.log("Test sync items, mid fail");
-        // itemsDone = [];
-        // failItemI = 2;
-        // // expectShortCircuit = false;
-        // // expectFailFast = false; //see note in doInParallel
-        // // masterPromise = doInParallel(items, fakeSyncProcess, true);
-        // // expectShortCircuit = false;
-        // // expectFailFast = false;
-        // // masterPromise = doInParallel(items, fakeSyncProcess, false);
-        // // expectShortCircuit = true;
-        // // expectFailFast = true;
-        // // masterPromise = doSequentially(items, fakeSyncProcess, true);
-        // expectShortCircuit = false;
-        // expectFailFast = false;
-        // masterPromise = doSequentially(items, fakeSyncProcess, false);
-        
-        // masterPromise.done(function () {
-        //     console.log("### Fail");
-        // });
-        // masterPromise.fail(function () {
-        //     if (expectFailFast && itemsDone[failItemI+1])
-        //         console.log("### Fail - should not have completed "+(failItemI+1)+" yet");
-        //     else
-        //         console.log("Pass");
-        // });
-        
-        
-        // console.log("Test sync items, all pass");
-        // itemsDone = [];
-        // failItemI = -1;
-        // masterPromise = doInParallel(items, fakeSyncProcess, true);
-        // // masterPromise = doInParallel(items, fakeSyncProcess, false);
-        // // masterPromise = doSequentially(items, fakeSyncProcess, true);
-        // // masterPromise = doSequentially(items, fakeSyncProcess, false);
-        
-        // masterPromise.done(function () {
-        //     console.log("Pass");
-        // });
-        // masterPromise.fail(function () {
-        //     console.log("### Fail");
-        // });
-        
-        
-        // console.log("Test error aggregation");
-        // function failWithInfo(delay, itemI) {
-        //     var result = new $.Deferred();
-        //     setTimeout(function () {
-        //         result.reject(delay);
-        //     }, delay);
-        //     return result.promise();
-        // }
-        // itemsDone = [];
-        // masterPromise = doInParallel_aggregateErrors(items, failWithInfo);
-        // masterPromise.done(function () {
-        //     console.log("### Fail - shouldn't resolve");
-        // });
-        // masterPromise.fail(function (errors) {
-        //     var pass = (errors.length == 4);
-        //     errors.forEach(function (error) {
-        //         console.log("  error result: item="+error.item+" error="+error.error);
-        //         pass = pass && (error.item == error.error); 
-        //     });
-        //     if (pass)
-        //         console.log("Pass");
-        //     else
-        //         console.log("### Fail - bad error info");
-        // });
-        
-        
-        console.log("Test withTimeout");
-        itemsDone = [];
-        // failItemI = -1;
-        // masterPromise = withTimeout(fakeProcess(100, 0), 1000);
-        // masterPromise.done(function () {
-        //     console.log("Pass");
-        // });
-        // masterPromise.fail(function (cause) {
-        //     console.log("### Fail");
-        // });
-        // failItemI = -1;
-        // masterPromise = withTimeout(fakeProcess(1000, 0), 100);
-        // masterPromise.done(function () {
-        //     console.log("### Fail");
-        // });
-        // masterPromise.fail(function (cause) {
-        //     if (cause === ERROR_TIMEOUT)
-        //         console.log("Pass");
-        //     else
-        //         console.log("### Fail - wrong error arg "+cause);
-        // });
-        // failItemI = 0;
-        // masterPromise = withTimeout(fakeProcess(1000, 0), 100);
-        // masterPromise.done(function () {
-        //     console.log("### Fail");
-        // });
-        // masterPromise.fail(function (cause) {
-        //     if (cause === ERROR_TIMEOUT)
-        //         console.log("Pass");
-        //     else
-        //         console.log("### Fail - wrong error arg "+cause);
-        // });
-        failItemI = 0;
-        masterPromise = withTimeout(fakeProcess(100, 0), 1000);
-        masterPromise.done(function () {
-            console.log("### Fail");
-        });
-        masterPromise.fail(function (cause) {
-            if (cause === failItemI)
-                console.log("Pass");
-            else
-                console.log("### Fail - wrong error arg "+cause);
-        });
-
-        
-        // console.log("Test passing, completion out of order");
-        // var items = [300, 400, 100, 200]; //order: 2,3,0,1 *IF PARALLEL*
-        // itemsDone = [];
-        // failItemI = -1;
-        // // masterPromise = doInParallel(items, fakeProcess, true);
-        // masterPromise = doInParallel(items, fakeProcess, false);
-        // // masterPromise = doSequentially(items, fakeProcess, true);
-        // // masterPromise = doSequentially(items, fakeProcess, false);
-        // masterPromise.done(function () {
-        //     console.log("Pass");
-        // });
-        // masterPromise.fail(function () {
-        //     console.log("### Fail");
-        // });
-        
-        
-        // TODO
-        // console.log("Test 1st failing");
-        // console.log("Test end failing");
-        // - ensure parallel items all start before any begin completion
-        // - ensure seq items never overlap
-        // - test completion out of order
-        // - test synchronous completion
-    }
     
 
     // Define public API
@@ -514,7 +271,5 @@ define(function(require, exports, module) {
     exports.doSequentially = doSequentially;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
-    
-    // TEMP
-    exports.test = test;
+
 });

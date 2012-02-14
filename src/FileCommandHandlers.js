@@ -71,6 +71,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates a document and displays an editor for the specified file path.
+     * @param {!string} fullPath
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
      * @private
      * Creates a document and displays an editor for the specified file path. 
      * If no path is specified, a file prompt is provided for input.
-     * @param {!fullPath} - The path of the file to open, if it's null we'll prompt for it
+     * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
@@ -246,7 +247,7 @@ define(function (require, exports, module) {
     function showMultipleSaveFileError(errors) {
         var errorList = "<ul>";
         errors.forEach(function (error) {
-           errorList += "<li>"+error.item.fullPath+": "+EditorUtils.getFileErrorString(error.error.code)+"</li>";
+            errorList += "<li>" + error.item.fullPath + ": " + EditorUtils.getFileErrorString(error.error.code) + "</li>";
         });
         errorList += "</ul>";
         
@@ -255,7 +256,7 @@ define(function (require, exports, module) {
             "Error saving file(s)",
             Strings.format(
                 "Errors occurred when trying to save the file(s): {0}",
-                errorList 
+                errorList
             )
         );
     }
@@ -265,9 +266,9 @@ define(function (require, exports, module) {
         
         function handleError(error) {
             showSaveFileError(error.code, fileEntry.fullPath)
-            .always(function () {
-                result.reject(error);
-            });
+                .always(function () {
+                    result.reject(error);
+                });
         }
             
         if (docToSave && docToSave.isDirty) {
