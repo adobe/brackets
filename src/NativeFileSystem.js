@@ -126,7 +126,8 @@ define(function (require, exports, module) {
         
         if (fullPath) {
             var lastChar = fullPath.length - 1;
-            if (isDirectory && fullPath.charAt(lastChar) === "/") {
+            // only trim off the trailing slash for directories, skip system root
+            if (isDirectory && (lastChar > 0) && (fullPath.charAt(lastChar) === "/")) {
                 fullPath = fullPath.substr(0, lastChar);
             }
         }

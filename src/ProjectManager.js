@@ -302,11 +302,12 @@ define(function (require, exports, module) {
      * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
      */
     function _treeDataProvider(treeNode, jsTreeCallback) {
-        var dirEntry;
+        var dirEntry, isProjectRoot = false;
 
         if (treeNode === -1) {
             // Special case: root of tree
             dirEntry = _projectRoot;
+            isProjectRoot = true;
         } else {
             // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
             dirEntry = treeNode.data("entry");
@@ -316,15 +317,16 @@ define(function (require, exports, module) {
         dirEntry.createReader().readEntries(
             function (entries) {
                 var subtreeJSON = _convertEntriesToJSON(entries),
-                    wasNodeOpen = false;
+                    wasNodeOpen = false,
+                    emptyDirectory = (subtreeJSON.length === 0);
                 
-                if (subtreeJSON.length === 0) {
+                if (!isProjectRoot && emptyDirectory) {
                     wasNodeOpen = treeNode.hasClass("jstree-open");
                 }
                 
                 jsTreeCallback(_convertEntriesToJSON(entries));
                 
-                if (subtreeJSON.length === 0) {
+                if (!isProjectRoot && emptyDirectory) {
                     // If the directory is empty, force it to appear as an open or closed node.
                     // This is a workaround for issue #149 where jstree would show this node as a leaf.
                     var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
