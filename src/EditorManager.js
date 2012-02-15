@@ -149,8 +149,9 @@ define(function (require, exports, module) {
      * Creates a new CodeMirror editor instance containing text from the 
      * specified fileEntry. The editor is not yet visible.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @return {Deferred} a jQuery Deferred that will be resolved with the new editor and
-     *      the file's timestamp at the time it was read, or rejected if the file cannot be read.
+     * @return {Deferred} a jQuery Deferred that will be resolved with (the new editor, the file's
+     *      timestamp at the time it was read, the original text as read off disk); or rejected if
+     *      the file cannot be read.
      */
     function _createEditor(fileEntry) {
         var result = new $.Deferred(),
@@ -224,7 +225,7 @@ define(function (require, exports, module) {
             // Make sure we can't undo back to the empty state before setValue()
             editor.clearHistory();
 
-            result.resolve(editor, readTimestamp);
+            result.resolve(editor, readTimestamp, text);
         });
         reader.fail(function (error) {
             result.reject(error);
@@ -312,8 +313,8 @@ define(function (require, exports, module) {
         if (!document._editor) {
             var editorResult = _createEditor(document.file);
 
-            editorResult.done(function (editor, readTimestamp) {
-                document._setEditor(editor, readTimestamp);
+            editorResult.done(function (editor, readTimestamp, rawText) {
+                document._setEditor(editor, readTimestamp, rawText);
                 _doShow(document);
             });
             editorResult.fail(function (error) {
@@ -404,9 +405,10 @@ define(function (require, exports, module) {
         var result          = new $.Deferred(),
             editorResult    = _createEditor(fileEntry);
 
-        editorResult.done(function (editor, readTimestamp) {
+        editorResult.done(function (editor, readTimestamp, rawText) {
             // Create the Document wrapping editor & binding it to a file
-            var doc = new DocumentManager.Document(fileEntry, editor, readTimestamp);
+            var doc = new DocumentManager.Document(fileEntry);
+            doc._setEditor(editor, readTimestamp, rawText);
             result.resolve(doc);
         });
 

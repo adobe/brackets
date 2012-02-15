@@ -2,7 +2,7 @@
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define: false, PathUtils: false, FileError: false, brackets: false */
 
 /**
@@ -23,7 +23,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Given a file URL, determines the mode to use based
-     * off the files extensions.
+     * off the file's extension.
      * @param {string} fileUrl  A cannonical file URL to extract the extension from
      */
     function _getModeFromFileExtensions(fileUrl) {
@@ -70,6 +70,39 @@ define(function (require, exports, module) {
         editor.setOption("mode", mode);
     }
 
+    
+    /** @const */
+    var LINE_ENDINGS_CRLF = "CRLF";
+    /** @const */
+    var LINE_ENDINGS_LF = "LF";
+    
+    /**
+     * Returns the standard line endings for the current platform
+     * @return {LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
+     */
+    function getPlatformLineEndings() {
+        return brackets.isWin ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
+    }
+    
+    /**
+     * Scans the first 1000 chars of the text to determine how it encodes line endings. Returns
+     * null if usage is mixed or if no line endings found.
+     * @param {!string} text
+     * @return {null|LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
+     */
+    function sniffLineEndings(text) {
+        var subset = text.substr(0, 1000);  // (length is clipped to text.length)
+        var hasCRLF = /\r\n/.test(subset);
+        var hasLF = /[^\r]\n/.test(subset);
+        
+        if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF)) {
+            return null;
+        } else {
+            return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
+        }
+    }
+
+
     function getFileErrorString(code) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
@@ -102,6 +135,10 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.setModeFromFileExtension = setModeFromFileExtension;
+    exports.LINE_ENDINGS_CRLF        = LINE_ENDINGS_CRLF;
+    exports.LINE_ENDINGS_LF          = LINE_ENDINGS_LF;
+    exports.getPlatformLineEndings   = getPlatformLineEndings;
+    exports.sniffLineEndings         = sniffLineEndings;
     exports.showFileOpenError        = showFileOpenError;
     exports.getFileErrorString       = getFileErrorString;
 });
