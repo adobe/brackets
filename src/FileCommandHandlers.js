@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     /** @type {jQueryObject} */
     var _title;
     /** @type {string} */
-    var _currentFilePath;  // TODO: eliminate this and just use getCurrentDocument().file.fullPath
+    var _currentFilePath;  // TODO: (issue #271) eliminate this and just use getCurrentDocument().file.fullPath
     /** @type {string} */
     var _currentTitlePath;
     
@@ -385,7 +385,7 @@ define(function (require, exports, module) {
             doc = DocumentManager.getCurrentDocument();
         }
         
-        // No-op if called when nothing is open; TODO: should command be grayed out instead?
+        // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
         if (!doc) {
             return;
         }
@@ -557,7 +557,7 @@ define(function (require, exports, module) {
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
         CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-        // TODO: For now, hook up File > New to the "new in project" handler. Eventually
+        // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
