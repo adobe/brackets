@@ -10,7 +10,7 @@
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
  *
- * TODO: break out the definition of brackets into a separate module from the application controller logic
+ * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         global.brackets = {};
     }
     
-    // TODO: Make sure the "test" object is not included in final builds
+    // TODO: (issue #265) Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
     // in the modules since they would run in context of the unit test window,
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
     // brackets.forceAsyncCallbacks = true;
 
     // Load native shell when brackets is run in a native shell rather than the browser
-    // TODO: load conditionally
+    // TODO: (issue #266) load conditionally
     brackets.shellAPI = require("ShellAPI");
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
@@ -94,19 +94,32 @@ define(function (require, exports, module) {
     brackets.DIALOG_ID_EXT_DELETED = "ext-deleted-dialog";
 
     /**
-     * General purpose modal dialog. Assumes that the HTML for the dialog contains elements with "title"
-     * and "message" classes, as well as a number of elements with "dialog-button" class, each of which has
-     * a "data-button-id".
+     * General purpose modal dialog. Assumes that:
+     * -- the root tag of the dialog is marked with a unique class name (passed as dlgClass), as well as the
+     *    classes "template modal hide".
+     * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
+     *    of elements with "dialog-button" class, each of which has a "data-button-id".
      *
-     * @param {string} id The ID of the dialog node in the HTML.
+     * @param {string} dlgClass The class of the dialog node in the HTML.
      * @param {string} title The title of the error dialog. Can contain HTML markup.
      * @param {string} message The message to display in the error dialog. Can contain HTML markup.
      * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
-    brackets.showModalDialog = function (id, title, message, callback) {
+    brackets.showModalDialog = function (dlgClass, title, message, callback) {
         var result = $.Deferred();
-        var dlg = $("#" + id);
+        
+        // We clone the HTML rather than using it directly so that if two dialogs of the same
+        // type happen to show up, they can appear at the same time. (This is an edge case that
+        // shouldn't happen often, but we can't prevent it from happening since everything is
+        // asynchronous.)
+        // TODO: (issue #258) In future, we should templatize the HTML for the dialogs rather than having 
+        // it live directly in the HTML.
+        var dlg = $("." + dlgClass + ".template")
+            .clone()
+            .removeClass("template")
+            .addClass("instance")
+            .appendTo(document.body);
 
         // Set title and message
         $(".dialog-title", dlg).html(title);
@@ -121,6 +134,9 @@ define(function (require, exports, module) {
             setTimeout(function () {
                 result.resolve(buttonId);
             }, 0);
+            
+            // Remove the dialog instance from the DOM.
+            dlg.remove();
         });
 
         function stopEvent(e) {
@@ -179,14 +195,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * If the dialog is visible, immediately closes it. The dialog callback will be called with the
-     * special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
+     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
+     * be called with the special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
      */
-    brackets.cancelModalDialogIfOpen = function (id) {
-        var dlg = $("#" + id);
-        if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-            brackets._dismissDialog(dlg, brackets.DIALOG_CANCELED);
-        }
+    brackets.cancelModalDialogIfOpen = function (dlgClass) {
+        $("." + dlgClass + ".instance").each(function (dlg) {
+            if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+                brackets._dismissDialog(dlg, brackets.DIALOG_CANCELED);
+            }
+        });
     };
     
     brackets._dismissDialog = function (dlg, buttonId) {
@@ -198,7 +215,7 @@ define(function (require, exports, module) {
     // Main Brackets initialization
     $(document).ready(function () {
 
-        var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
+        var _enableJSLint = true;
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
@@ -364,7 +381,7 @@ define(function (require, exports, module) {
 
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
-            // TODO: show keyboard equivalents in the menus
+            // TODO: (issue #268) show keyboard equivalents in the menus
             var _globalKeymap = new KeyMap({
                 "Ctrl-O": Commands.FILE_OPEN,
                 "Ctrl-S": Commands.FILE_SAVE,
@@ -391,7 +408,7 @@ define(function (require, exports, module) {
         }
         
         function initWindowListeners() {
-            // TODO: to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
+            // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
             });
@@ -400,8 +417,6 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
             });
             
-            //TODO: for now disable all the default context menus until we decide what we
-            //actually want to put in them
             $(window).contextmenu(function (e) {
                 e.preventDefault();
             });
