@@ -8,7 +8,8 @@
 define(function (require, exports, module) {
     'use strict';
 
-    /** 
+    /**
+     * @private
      * builds the keyDescriptor string from the given parts
      */
     function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key) {
@@ -37,7 +38,8 @@ define(function (require, exports, module) {
         return keyDescriptor.join("-");
     }
     
-    /** 
+    /**
+     * @private
      * normalizes the incoming key descriptor so the modifier keys are always specified in the correct order
      * @param {string} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
      */
@@ -63,7 +65,13 @@ define(function (require, exports, module) {
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
             if (_isModifier("ctrl", ele, hasCtrl)) {
                 hasCtrl = true;
+            } else if (_isModifier("cmd", ele, hasCtrl)) {
+                console.log("KeyMap _normalizeKeyDescriptorString() - Cmd getting mapped to Ctrl from: " + origDescriptor);
+                hasCtrl = true;
             } else if (_isModifier("alt", ele, hasAlt)) {
+                hasAlt = true;
+            } else if (_isModifier("opt", ele, hasAlt)) {
+                console.log("KeyMap _normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
                 hasAlt = true;
             } else if (_isModifier("shift", ele, hasShift)) {
                 hasShift = true;
@@ -77,7 +85,8 @@ define(function (require, exports, module) {
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
     
-    /** 
+    /**
+     * @private
      * normalizes the incoming map so all the key descriptors are specified the correct way
      * @param {map} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
      */
