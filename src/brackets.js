@@ -190,8 +190,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * If the dialog is visible, immediately closes it. The dialog callback will be called with the
-     * special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
+     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
+     * be called with the special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
      */
     brackets.cancelModalDialogIfOpen = function (dlgClass) {
         $("." + dlgClass + ".instance").each(function (dlg) {
