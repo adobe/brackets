@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         FileViewController      = require("FileViewController"),
         FileSyncManager         = require("FileSyncManager"),
         KeyBindingManager       = require("KeyBindingManager"),
-        KeyMap                  = require("KeyMap").KeyMap,
+        KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
 
@@ -360,7 +360,7 @@ define(function (require, exports, module) {
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
             // TODO: show keyboard equivalents in the menus
-            var _globalKeymap = new KeyMap({
+            var _globalKeymap = KeyMap.create({
                 "Ctrl-O": Commands.FILE_OPEN,
                 "Ctrl-S": Commands.FILE_SAVE,
                 "Ctrl-W": Commands.FILE_CLOSE
@@ -368,18 +368,7 @@ define(function (require, exports, module) {
             KeyBindingManager.installKeymap(_globalKeymap);
 
             $(document.body).keydown(function (event) {
-                var keyDescriptor = [];
-                if (event.metaKey || event.ctrlKey) {
-                    keyDescriptor.push("Ctrl");
-                }
-                if (event.altKey) {
-                    keyDescriptor.push("Alt");
-                }
-                if (event.shiftKey) {
-                    keyDescriptor.push("Shift");
-                }
-                keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
-                if (KeyBindingManager.handleKey(keyDescriptor.join("-"))) {
+                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
                     event.preventDefault();
                 }
             });

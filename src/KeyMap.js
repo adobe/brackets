@@ -31,6 +31,32 @@ define(function (require, exports, module) {
         this.map = map;
     };
     
+    /**
+     * simple creator
+     */
+    function create(map) {
+        return new KeyMap(map);
+    }
+    
+    /**
+     * Takes a keyboard event and translates it into a key in a key map
+     */
+    function translateKeyboardEvent(evt) {
+        var keyDescriptor = [];
+        if (event.metaKey || event.ctrlKey) {
+            keyDescriptor.push("Ctrl");
+        }
+        if (event.altKey) {
+            keyDescriptor.push("Alt");
+        }
+        if (event.shiftKey) {
+            keyDescriptor.push("Shift");
+        }
+        keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
+        return keyDescriptor.join("-");
+    }
+    
     // Define public API
-    exports.KeyMap = KeyMap;
+    exports.create = create;
+    exports.translateKeyboardEvent = translateKeyboardEvent;
 });
