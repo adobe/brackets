@@ -363,7 +363,9 @@ define(function (require, exports, module) {
             var _globalKeymap = KeyMap.create({
                 "Ctrl-O": Commands.FILE_OPEN,
                 "Ctrl-S": Commands.FILE_SAVE,
-                "Ctrl-W": Commands.FILE_CLOSE
+                "Ctrl-W": Commands.FILE_CLOSE,
+                "Ctrl-R": Commands.FILE_RELOAD,
+                "F5": Commands.FILE_RELOAD
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
