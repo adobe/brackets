@@ -124,9 +124,11 @@ define(function (require, exports, module) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
         
-        var lastChar = fullPath.length - 1;
-        if (isDirectory && fullPath.charAt(lastChar) === "/") {
-            fullPath = fullPath.substr(0, lastChar);
+        if (fullPath) {
+            var lastChar = fullPath.length - 1;
+            if (isDirectory && fullPath.charAt(lastChar) === "/") {
+                fullPath = fullPath.substr(0, lastChar);
+            }
         }
         
         this.fullPath = fullPath;
