@@ -11,26 +11,19 @@
 define(function (require, exports, module) {
     'use strict';
     
-    // TODO: add utilities for blocking UI until a Promise completes?
+    // Further ideas for Async utilities...
+    //  - Utilities for blocking UI until a Promise completes?
+    //  - A "SuperDeferred" could feature some very useful enhancements:
+    //     - API for cancellation (non guaranteed, best attempt)
+    //     - Easier way to add a timeout clause (withTimeout() wrapper below is more verbose)
+    //     - Encapsulate the task kickoff code so you can start it later, e.g. superDeferred.start()
+    //  - Deferred/Promise are unable to do anything akin to a 'finally' block. It'd be nice if we
+    //    could harvest exceptions across all steps of an async process and pipe them to a handler,
+    //    so that we don't leave UI-blocking overlays up forever, etc. But this is hard: we'd have
+    //    wrap every async callback (including low-level native ones that don't use [Super]Deferred)
+    //    to catch exceptions, and then understand which Deferred(s) the code *would* have resolved/
+    //    rejected had it run to completion.
     
-    // TODO: another architectural issue with Deferred/Promise is the inability to do anything
-    // akin to a 'finally' block. It'd be nice if we could harvest exceptions across all steps of
-    // an async process and pipe them to a handler, so that we don't leave UI-blocking overlays up
-    // forever, etc.
-    
-    // The closest analogue to these utils I can find is the Node.JS implementation of Promise/Deferred, which
-    // offers utilities called all() and seq(). But they do not distinguish resolve() from reject(), and require
-    // more work to use (e.g. seq() takes an array of functions rather than an array plus a function).
-    //  - https://github.com/kriszyp/node-promise  (via http://www.hermanradtke.com/blog/managing-multiple-jquery-promises/)
-    
-    // TODO:
-    // A "SuperDeferred" could feature some very useful enhancements:
-    //  - API for cancellation (non guaranteed, best attempt)
-    //  - easy way to add a timeout clause (withTimeout() wrapper below is more verbose)
-    //  - encapsulate the task kickoff code so you can start it later, e.g. superDeferred.start()
-    //  - try/catch guards on the code that calls done()/fail() handlers with some way to chain
-    //    that back to other Deferreds that *would* have been resolved/rejected if the handler had
-    //    run properly...??
 
     /**
      * Executes a series of tasks in parallel, returning a "master" Promise that is resolved once
@@ -76,10 +69,10 @@ define(function (require, exports, module) {
      */
     function doInParallel(items, beginProcessItem, failFast) {
         var promises = [];
-        var masterPromise = new $.Deferred();
+        var masterDeferred = new $.Deferred();
         
         if (items.length === 0) {
-            masterPromise.resolve();
+            masterDeferred.resolve();
             
         } else {
             var numCompleted = 0;
@@ -91,7 +84,7 @@ define(function (require, exports, module) {
                 
                 itemPromise.fail(function () {
                     if (failFast) {
-                        masterPromise.reject();
+                        masterDeferred.reject();
                     } else {
                         hasFailed = true;
                     }
@@ -100,9 +93,9 @@ define(function (require, exports, module) {
                     numCompleted++;
                     if (numCompleted === items.length) {
                         if (hasFailed) {
-                            masterPromise.reject();
+                            masterDeferred.reject();
                         } else {
-                            masterPromise.resolve();
+                            masterDeferred.resolve();
                         }
                     }
                 });
@@ -110,7 +103,7 @@ define(function (require, exports, module) {
             
         }
         
-        return masterPromise.promise();
+        return masterDeferred.promise();
     }
     
     /**
@@ -152,15 +145,15 @@ define(function (require, exports, module) {
      */
     function doSequentially(items, beginProcessItem, failAndStopFast) {
 
-        var masterPromise = new $.Deferred();
+        var masterDeferred = new $.Deferred();
         var hasFailed = false;
         
         function doItem(i) {
             if (i >= items.length) {
                 if (hasFailed) {
-                    masterPromise.reject();
+                    masterDeferred.reject();
                 } else {
-                    masterPromise.resolve();
+                    masterDeferred.resolve();
                 }
                 return;
             }
@@ -172,7 +165,7 @@ define(function (require, exports, module) {
             });
             itemPromise.fail(function () {
                 if (failAndStopFast) {
-                    masterPromise.reject();
+                    masterDeferred.reject();
                     // note: we do NOT process any further items in this case
                 } else {
                     hasFailed = true;
@@ -183,7 +176,7 @@ define(function (require, exports, module) {
         
         doItem(0);
         
-        return masterPromise.promise();
+        return masterDeferred.promise();
     }
     
     
@@ -204,7 +197,7 @@ define(function (require, exports, module) {
     function doInParallel_aggregateErrors(items, beginProcessItem) {
         var errors = [];
         
-        var masterPromise = new $.Deferred();
+        var masterDeferred = new $.Deferred();
         
         var parallelResult = doInParallel(
             items,
@@ -220,13 +213,13 @@ define(function (require, exports, module) {
         
         parallelResult
             .done(function () {
-                masterPromise.resolve();
+                masterDeferred.resolve();
             })
             .fail(function () {
-                masterPromise.reject(errors);
+                masterDeferred.reject(errors);
             });
         
-        return masterPromise.promise();
+        return masterDeferred.promise();
     }
     
     

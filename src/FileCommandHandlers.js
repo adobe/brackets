@@ -244,27 +244,12 @@ define(function (require, exports, module) {
             )
         );
     }
-    function showMultipleSaveFileError(errors) {
-        var errorList = "<ul>";
-        errors.forEach(function (error) {
-            errorList += "<li>" + error.item.fullPath + ": " + EditorUtils.getFileErrorString(error.error.code) + "</li>";
-        });
-        errorList += "</ul>";
-        
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
-            "Error saving file(s)",
-            Strings.format(
-                "Errors occurred when trying to save the file(s): {0}",
-                errorList
-            )
-        );
-    }
     
+    /** Note: if there is an error, the Deferred is not rejected until the user has dimissed the dialog */
     function doSave(docToSave) {
         var result = new $.Deferred();
         
-        function handleError(error) {
+        function handleError(error, fileEntry) {
             showSaveFileError(error.code, fileEntry.fullPath)
                 .always(function () {
                     result.reject(error);
@@ -286,14 +271,14 @@ define(function (require, exports, module) {
                     };
                     writer.onerror = function (error) {
                         writeError = true;
-                        handleError(error);
+                        handleError(error, fileEntry);
                     };
 
                     // TODO (issue #241): Blob instead of string
                     writer.write(docToSave.getText());
                 },
                 function (error) {
-                    handleError(error);
+                    handleError(error, fileEntry);
                 }
             );
         } else {
@@ -332,23 +317,9 @@ define(function (require, exports, module) {
      * @return {$.Promise}
      */
     function saveAll() {
-        // Current way: doSave shows error UI & doesn't finish until its dismissed; forces us to save in seq (not in parallel)
+        // Do in serial because doSave shows error UI for each file, and we don't want to stack
+        // multiple dialogs on top of each other
         return Async.doSequentially(DocumentManager.getWorkingSet(), doSave, false);
-        
-        // // Alternative:
-        // // (assumes doSave() merely returns errors; doesn't show UI)
-        // var errors = [];
-        // var result = new $.Deferred();
-        // Async.doInParallel_aggregateErrors(DocumentManager.getWorkingSet(), doSave)
-        // .done(function () {
-        //     result.resolve();
-        // })
-        // .fail(function (errors) {
-        //     showMultipleSaveFileError(errors)
-        //     .always(function () {
-        //         result.reject();
-        //     })
-        // });
     }
     
 

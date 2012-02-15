@@ -193,7 +193,6 @@ define(function (require, exports, module) {
             var result = new $.Deferred();
             
             // If window has been re-focused, skip all remaining conflicts so the sync can bail & restart
-            // TODO: doSequentially() should provide a cancellation mechanism
             if (_restartPending) {
                 result.resolve();
                 return result;
