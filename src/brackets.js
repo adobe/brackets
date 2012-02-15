@@ -32,8 +32,8 @@ define(function (require, exports, module) {
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
         FileSyncManager         = require("FileSyncManager"),
-        KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
-        KeyMap                  = require("KeyBindingManager").KeyMap,
+        KeyBindingManager       = require("KeyBindingManager"),
+        KeyMap                  = require("KeyMap").KeyMap,
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager");
 
