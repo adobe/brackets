@@ -578,12 +578,19 @@ define(function (require, exports, module) {
 
                 waitsFor(function () { return !!actualContents; }, 1000);
 
+                var rewriteComplete = false;
+                
                 runs(function () {
                     expect(actualContents).toEqual("FileWriter.write");
 
                     // reset file1 content
-                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8");
+                    // reset file1 content
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8", function () {
+                        rewriteComplete = true;
+                    });
                 });
+                
+                waitsFor(function () { return rewriteComplete; }, 1000);
             });
 
 
@@ -628,12 +635,18 @@ define(function (require, exports, module) {
 
                 waitsFor(function () { return (actualContents !== null); }, 1000);
 
+                var rewriteComplete = false;
+                
                 runs(function () {
                     expect(actualContents).toEqual("");
 
                     // reset file1 content
-                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8");
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8", function () {
+                        rewriteComplete = true;
+                    });
                 });
+                
+                waitsFor(function () { return rewriteComplete; }, 1000);
             });
 
             it("should report an error when writing to a file that cannot be read", function () {
