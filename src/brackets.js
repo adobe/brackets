@@ -383,8 +383,9 @@ define(function (require, exports, module) {
                 
                 var perfBody = $("<div class='modal-body' style='padding: 0' />");
 
-                var data = $("<table class='zebra-striped condensed-table'>")
-                    .append("<tbody>")
+                var data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+                    .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
+                    .append("<tbody />")
                     .appendTo(perfBody);
                 
                 var makeCell = function (content) {
@@ -400,7 +401,7 @@ define(function (require, exports, module) {
                         for (i = 0; i < entry.length; i++) {
                             sum += entry[i];
                         }
-                        return Math.floor(sum / entry.length);
+                        return String(Math.floor(sum / entry.length)) + " (avg)";
                     } else {
                         return entry;
                     }
@@ -418,7 +419,7 @@ define(function (require, exports, module) {
                     }
                 }
                                                              
-                var perfDlog = $("<div class='modal hide' style='width: 90%; left: 10%;' />")
+                var perfDlog = $("<div class='modal hide' />")
                     .append(perfHeader)
                     .append(perfBody)
                     .appendTo(document.body)
