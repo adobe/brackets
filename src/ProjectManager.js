@@ -233,7 +233,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry.isFile) {
+                    if (entry && entry.isFile) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
@@ -319,14 +319,23 @@ define(function (require, exports, module) {
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             function (entries) {
-                var subtreeJSON = _convertEntriesToJSON(entries);
+                var subtreeJSON = _convertEntriesToJSON(entries),
+                    wasNodeOpen = false;
                 
-                //If the list is empty, add an empty object so the loading message goes away
                 if (subtreeJSON.length === 0) {
-                    subtreeJSON.push({});
+                    wasNodeOpen = treeNode.hasClass("jstree-open");
                 }
                 
-                jsTreeCallback(subtreeJSON);
+                jsTreeCallback(_convertEntriesToJSON(entries));
+                
+                if (subtreeJSON.length === 0) {
+                    // If the directory is empty, force it to appear as an open or closed node.
+                    // This is a workaround for issue #149 where jstree would show this node as a leaf.
+                    var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
+                    
+                    treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
+                            .addClass(classToAdd);
+                }
             },
             function (error) {
                 brackets.showModalDialog(
@@ -507,12 +516,12 @@ define(function (require, exports, module) {
         // TODO: Need API to get tree node for baseDir.
         // In the meantime, pass null for node so new item is placed
         // relative to the selection
-        var node = null,
-            selection = _projectTree.jstree("get_selected"),
-            selectionEntry = null,
-            position = "inside",
-            escapeKeyPressed = false,
-            result = new $.Deferred();
+        var selection           = _projectTree.jstree("get_selected"),
+            selectionEntry      = null,
+            position            = "inside",
+            escapeKeyPressed    = false,
+            result              = new $.Deferred(),
+            wasNodeOpen         = true;
 
         // get the FileEntry or DirectoryEntry
         if (selection) {
@@ -520,26 +529,23 @@ define(function (require, exports, module) {
         }
 
         // move selection to parent DirectoryEntry
-        if (selectionEntry && selectionEntry.isFile) {
-            position = "after";
-
-            // FIXME (jasonsj): get_parent returns the tree instead of the directory?
-            /*
-            selection = _projectTree.jstree("get_parent", selection);
-
-            if (typeof(selection.data) == "function") {
-                // get Entry from tree node
-                // note that the jstree root will return undefined
-                selectionEntry = selection.data("entry");
+        if (selectionEntry) {
+            if (selectionEntry.isFile) {
+                position = "after";
+                
+                var parent = $.jstree._reference(_projectTree)._get_parent(selection);
+                
+                if (typeof (parent.data) === "function") {
+                    // get Entry from tree node
+                    // note that the jstree root will return undefined
+                    selectionEntry = parent.data("entry");
+                } else {
+                    // reset here. will be replaced with project root.
+                    selectionEntry = null;
+                }
+            } else if (selectionEntry.isDirectory) {
+                wasNodeOpen = selection.hasClass("jstree-open");
             }
-            else {
-                // reset here. will be replaced with project root.
-                selectionEntry = null;
-            }
-            */
-            // FIXME (jasonsj): hackish way to get parent directory; replace with Entry.getParent() when available
-            var filePath = selectionEntry.fullPath;
-            selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
         }
 
         // use the project root DirectoryEntry
@@ -553,7 +559,22 @@ define(function (require, exports, module) {
             function errorCleanup() {
                 // TODO: If an error occurred, we should allow the user to fix the filename.
                 // For now we just remove the node so you have to start again.
+                var parent = data.inst._get_parent(data.rslt.obj);
+                
                 _projectTree.jstree("remove", data.rslt.obj);
+                
+                // Restore tree node state and styling when errors occur.
+                // parent returns -1 when at the root
+                if (parent && (parent !== -1)) {
+                    var methodName = (wasNodeOpen) ? "open_node" : "close_node";
+                    var classToAdd = (wasNodeOpen) ? "jstree-open" : "jstree-closed";
+                    
+                    // This is a workaround for issue #149 where jstree would show this node as a leaf.
+                    _projectTree.jstree(methodName, parent);
+                    parent.removeClass("jstree-leaf jstree-closed jstree-open")
+                          .addClass(classToAdd);
+                }
+                
                 result.reject();
             }
 
@@ -610,9 +631,12 @@ define(function (require, exports, module) {
                 errorCleanup();
             }
         });
+        
+        // Open the node before creating the new child
+        _projectTree.jstree("open_node", selection);
 
         // Create the node and open the editor
-        _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
+        _projectTree.jstree("create", selection, position, {data: initialName}, null, skipRename);
 
         var renameInput = _projectTree.find(".jstree-rename-input");
 
