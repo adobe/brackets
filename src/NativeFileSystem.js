@@ -123,6 +123,12 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry = function (fullPath, isDirectory) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
+        
+        var lastChar = fullPath.length - 1;
+        if (isDirectory && fullPath.charAt(lastChar) === "/") {
+            fullPath = fullPath.substr(0, lastChar);
+        }
+        
         this.fullPath = fullPath;
 
         // Extract name from fullPath
