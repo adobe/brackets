@@ -10,7 +10,7 @@
  * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
  * shortcuts to their Commands.
  *
- * TODO: break out the definition of brackets into a separate module from the application controller logic
+ * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         global.brackets = {};
     }
     
-    // TODO: Make sure the "test" object is not included in final builds
+    // TODO: (issue #265) Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
     // in the modules since they would run in context of the unit test window,
@@ -74,10 +74,14 @@ define(function (require, exports, module) {
     // brackets.forceAsyncCallbacks = true;
 
     // Load native shell when brackets is run in a native shell rather than the browser
-    // TODO: load conditionally
+    // TODO: (issue #266) load conditionally
     brackets.shellAPI = require("ShellAPI");
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
+    
+    brackets.isWin = (global.navigator.userAgent.indexOf("Windows") !== -1);
+    brackets.isMac = !brackets.isWin;
+    
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
@@ -212,8 +216,8 @@ define(function (require, exports, module) {
     $(document).ready(function () {
 
         PerfUtils.addMeasurement("Application Startup: beginning of $(document).ready()");
-        
-        var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
+
+        var _enableJSLint = true;
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
@@ -431,7 +435,7 @@ define(function (require, exports, module) {
 
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
-            // TODO: show keyboard equivalents in the menus
+            // TODO: (issue #268) show keyboard equivalents in the menus
             var _globalKeymap = new KeyMap({
                 "Ctrl-O": Commands.FILE_OPEN,
                 "Ctrl-S": Commands.FILE_SAVE,
@@ -458,7 +462,7 @@ define(function (require, exports, module) {
         }
         
         function initWindowListeners() {
-            // TODO: to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
+            // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
             });
@@ -467,8 +471,6 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
             });
             
-            //TODO: for now disable all the default context menus until we decide what we
-            //actually want to put in them
             $(window).contextmenu(function (e) {
                 e.preventDefault();
             });
