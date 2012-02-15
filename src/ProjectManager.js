@@ -31,7 +31,8 @@ define(function (require, exports, module) {
         CommandManager      = require("CommandManager"),
         Commands            = require("Commands"),
         Strings             = require("strings"),
-        FileViewController  = require("FileViewController");
+        FileViewController  = require("FileViewController"),
+        PerfUtils           = require("PerfUtils");
     
     /**
      * @private
@@ -391,6 +392,8 @@ define(function (require, exports, module) {
                 rootPath = "DummyProject";
             }
         }
+        
+        PerfUtils.markStart("loadProject: " + rootPath);
 
         // Set title
         var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
@@ -418,6 +421,9 @@ define(function (require, exports, module) {
                     });
                     resultRenderTree.fail(function () {
                         result.reject();
+                    });
+                    resultRenderTree.always(function () {
+                        PerfUtils.addMeasurement("loadProject: " + rootPath);
                     });
                 },
                 function (error) {

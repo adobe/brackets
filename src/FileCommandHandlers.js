@@ -19,7 +19,8 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         EditorUtils         = require("EditorUtils"),
         Strings             = require("strings"),
-        PreferencesManager  = require("PreferencesManager");
+        PreferencesManager  = require("PreferencesManager"),
+        PerfUtils           = require("PerfUtils");
     
     /**
      * Handlers for commands related to file handling (opening, saving, etc.)
@@ -80,6 +81,11 @@ define(function (require, exports, module) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
+        
+        PerfUtils.markStart("doOpen: " + fullPath);
+        result.always(function () {
+            PerfUtils.addMeasurement("doOpen: " + fullPath);
+        });
         
         var doc = DocumentManager.getDocumentForPath(fullPath);
         if (doc) {

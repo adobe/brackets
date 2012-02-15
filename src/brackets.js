@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
         KeyMap                  = require("KeyBindingManager").KeyMap,
         Commands                = require("Commands"),
-        CommandManager          = require("CommandManager");
+        CommandManager          = require("CommandManager"),
+        PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -210,6 +211,8 @@ define(function (require, exports, module) {
     // Main Brackets initialization
     $(document).ready(function () {
 
+        PerfUtils.addMeasurement("Application Startup: beginning of $(document).ready()");
+        
         var _enableJSLint = true; // TODO: Decide if this should be opt-in or opt-out.
         
         function initListeners() {
@@ -368,6 +371,58 @@ define(function (require, exports, module) {
                 runJSLint();
                 $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
             });
+            
+            $("#menu-debug-show-perf").click(function () {
+                var perfHeader = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h3 class='dialog-title'>Performance Data</h3>");
+                
+                var perfBody = $("<div class='modal-body' style='padding: 0' />");
+
+                var data = $("<table class='zebra-striped condensed-table'>")
+                    .append("<tbody>")
+                    .appendTo(perfBody);
+                
+                var makeCell = function (content) {
+                    return $("<td/>").text(content);
+                };
+                
+                var getValue = function (entry) {
+                    // entry is either an Array or a number
+                    // If it is an Array, return the average value
+                    if (Array.isArray(entry)) {
+                        var i, sum = 0;
+                        
+                        for (i = 0; i < entry.length; i++) {
+                            sum += entry[i];
+                        }
+                        return Math.floor(sum / entry.length);
+                    } else {
+                        return entry;
+                    }
+                };
+                    
+                var testName;
+                var perfData = PerfUtils.perfData;
+                for (testName in perfData) {
+                    if (perfData.hasOwnProperty(testName)) {
+                        // Add row to error table
+                        var row = $("<tr/>")
+                            .append(makeCell(testName))
+                            .append(makeCell(getValue(perfData[testName])))
+                            .appendTo(data);
+                    }
+                }
+                                                             
+                var perfDlog = $("<div class='modal hide' style='width: 90%; left: 10%;' />")
+                    .append(perfHeader)
+                    .append(perfBody)
+                    .appendTo(document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    });
+            });
         }
 
         function initCommandHandlers() {
@@ -438,6 +493,8 @@ define(function (require, exports, module) {
                 runJSLint();
             }
         });
+        
+        PerfUtils.addMeasurement("Application Startup: end of $(document).ready()");
     });
     
 });
