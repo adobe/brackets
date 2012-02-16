@@ -21,14 +21,36 @@ define(function (require, exports, module) {
         
         it("should normalize keyboard modifiers", function () {
             var testKeyMap = KeyMap.create({
-                "Ctrl-Alt-Shift-Q": "test.correct_order",
-                "Shift-Ctrl-Alt-W": "test.reversed_order",
-                "Ctrl-Shift-Alt-E": "test.mixed_order"
+                "bindings": [
+                    {"Ctrl-Alt-Shift-Q": "test.correct_order"},
+                    {"Shift-Ctrl-Alt-W": "test.reversed_order"},
+                    {"Ctrl-Shift-Alt-E": "test.mixed_order"}
+                ]
             });
             var expectedKeyMap = KeyMap.create({
-                "Ctrl-Alt-Shift-Q": "test.correct_order",
-                "Ctrl-Alt-Shift-W": "test.reversed_order",
-                "Ctrl-Alt-Shift-E": "test.mixed_order"
+                "bindings": [
+                    {"Ctrl-Alt-Shift-Q": "test.correct_order"},
+                    {"Ctrl-Alt-Shift-W": "test.reversed_order"},
+                    {"Ctrl-Alt-Shift-E": "test.mixed_order"}
+                ]
+            });
+            expect(testKeyMap).toEqual(expectedKeyMap);
+        });
+        
+        it("should filter base on platform", function () {
+            var testKeyMap = KeyMap.create({
+                "bindings": [
+                    {"Ctrl-B": "test.both"},
+                    {"Ctrl-M": "test.mac", "platform": "mac"},
+                    {"Ctrl-W": "test.win", "platform": "win"}
+                ],
+                "platform": "mac"
+            });
+            var expectedKeyMap = KeyMap.create({
+                "bindings": [
+                    {"Ctrl-B": "test.both"},
+                    {"Ctrl-M": "test.mac"}
+                ]
             });
             expect(testKeyMap).toEqual(expectedKeyMap);
         });
