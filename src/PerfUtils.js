@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         }
         
         activeTests[name] = {
-            startTime: brackets.app.getEllapsedMilliseconds()
+            startTime: brackets.app.getElapsedMilliseconds()
         };
     }
     
@@ -54,7 +54,7 @@ define(function (require, exports, module) {
      * measured time is relative to app startup.
      */
     function addMeasurement(name) {
-        var elapsedTime = brackets.app.getEllapsedMilliseconds();
+        var elapsedTime = brackets.app.getElapsedMilliseconds();
         
         if (activeTests[name]) {
             elapsedTime -= activeTests[name].startTime;
