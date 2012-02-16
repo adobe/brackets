@@ -51,9 +51,6 @@ define(function (require, exports, module) {
         global.brackets = {};
     }
     
-    //Simple platform detection
-    brackets.platform = (navigator.platform === "MacIntel" || navigator.platform === "MacPPC") ? "mac" : "win";
-    
     // TODO: (issue #265) Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
@@ -81,9 +78,7 @@ define(function (require, exports, module) {
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
-    brackets.isWin = (global.navigator.userAgent.indexOf("Windows") !== -1);
-    brackets.isMac = !brackets.isWin;
-    
+    brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
