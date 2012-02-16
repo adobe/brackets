@@ -111,6 +111,34 @@ define(function (require, exports, module) {
         return finalMap;
     }
     
+    /**
+     * @private
+     * given a list of bindings, goes through and turns them into a map. The list is filter based 
+     * on platform, so if I binding has no specific platform or needs to match the given platform
+     * @param {bindings} A list of binding objects
+     * @param {platform} The platform to fitler on
+     */
+    function _bindingsToMap(bindings, platform) {
+        var map = {};
+        bindings.forEach(function transformToMap(ele, i, arr) {
+            var keys = Object.keys(ele);
+            var platformIndex = keys.indexOf("platform");
+            if (platformIndex > -1) {
+                if (ele.platform !== platform) {
+                    return; //don't add this to the map
+                }
+                keys.splice(platformIndex, 1);
+            }
+            if (keys.length !== 1) {
+                console.log("KeyMap _bindingsToMap() - bindings list has unknown keys: " + bindings);
+                return;
+            }
+            var key = keys[0];
+            map[key] = ele[key];
+        });
+        return map;
+    }
+    
     /** class Keymap
      *
      * A keymap specifies how keys are mapped to commands. This currently just holds the map, but in future
@@ -125,13 +153,21 @@ define(function (require, exports, module) {
      *       down, you must specifically include Shift.
      *
      * @constructor
-     * @param {map} map An object mapping key-description strings to command IDs.
+     * @param {args} An object with a list of objects mapping key-description strings to command IDs and a platform
      */
-    var KeyMap = function (map) {
-        if (map === undefined) {
+    var KeyMap = function (args) {
+        if (args === undefined) {
             throw new Error("All parameters to the KeyMap constructor must be specified");
         }
-        this.map = _normalizeMap(map);
+        this.map = _normalizeMap(_bindingsToMap(args.bindings, args.platform));
+    };
+    
+     /**
+     * adds the given map into the current map, overwritting the existing mappings
+     * @param {map} map An object mapping key-description strings to command IDs.
+     */
+    KeyMap.prototype.addMap = function (map) {
+        
     };
     
     /**

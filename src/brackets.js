@@ -51,6 +51,9 @@ define(function (require, exports, module) {
         global.brackets = {};
     }
     
+    //Simple platform detection
+    brackets.platform = (navigator.platform === "MacIntel" || navigator.platform === "MacPPC") ? "mac" : "win";
+    
     // TODO: Make sure the "test" object is not included in final builds
     // All modules that need to be tested from the context of the application
     // must to be added to this object. The unit tests cannot just pull
@@ -361,11 +364,14 @@ define(function (require, exports, module) {
             // Register keymaps and install the keyboard handler
             // TODO: show keyboard equivalents in the menus
             var _globalKeymap = KeyMap.create({
-                "Ctrl-O": Commands.FILE_OPEN,
-                "Ctrl-S": Commands.FILE_SAVE,
-                "Ctrl-W": Commands.FILE_CLOSE,
-                "Ctrl-R": Commands.FILE_RELOAD,
-                "F5": Commands.FILE_RELOAD
+                "bindings": [
+                    {"Ctrl-O": Commands.FILE_OPEN},
+                    {"Ctrl-S": Commands.FILE_SAVE},
+                    {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
+                    {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
+                ],
+                "platform": brackets.platform
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
