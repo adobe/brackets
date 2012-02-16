@@ -133,11 +133,12 @@ define(function (require, exports, module) {
         
         this.fullPath = fullPath;
 
-        // Extract name from fullPath
         this.name = null; // default if extraction fails
         if (fullPath) {
             var pathParts = fullPath.split("/");
-            if (pathParts.length > 0) {
+            
+            // Extract name from the end of the fullPath (account for trailing slash(es))
+            while (!this.name && pathParts.length) {
                 this.name = pathParts.pop();
             }
         }
