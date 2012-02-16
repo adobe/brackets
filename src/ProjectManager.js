@@ -96,10 +96,7 @@ define(function (require, exports, module) {
      * FIXME (issue #263): Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
-        // DirectoryEntry.fullPath does not end with trailing "/"
-        var rootPath = _projectRoot.fullPath + "/";
-        
-        return (absPath.indexOf(rootPath) === 0);
+        return (absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
@@ -108,8 +105,7 @@ define(function (require, exports, module) {
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
-            // fullPath does not include trailing '/', add 1 here
-            return absPath.slice(_projectRoot.fullPath.length + 1);
+            return absPath.slice(_projectRoot.fullPath.length);
         }
         return absPath;
     }
@@ -124,7 +120,7 @@ define(function (require, exports, module) {
 
         // save jstree state
         var openNodes = [],
-            projectPathLength = _projectRoot.fullPath.length + 1,
+            projectPathLength = _projectRoot.fullPath.length,
             entry,
             fullPath,
             shortPath,
