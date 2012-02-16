@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     /** @type {jQueryObject} */
     var _title;
     /** @type {string} */
-    var _currentFilePath;  // TODO: eliminate this and just use getCurrentDocument().file.fullPath
+    var _currentFilePath;  // TODO: (issue #271) eliminate this and just use getCurrentDocument().file.fullPath
     /** @type {string} */
     var _currentTitlePath;
     
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            // TODO: we're relying on this to not be asynchronous--is that safe?
+            // TODO (issue #117): we're relying on this to not be asynchronous--is that safe?
             NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 ["htm", "html", "js", "css"], function (files) {
                     if (files.length > 0) {
@@ -267,7 +267,7 @@ define(function (require, exports, module) {
                         result.reject(error);
                     };
 
-                    // TODO (jasonsj): Blob instead of string
+                    // TODO (issue #241): Blob instead of string
                     writer.write(docToSave.getText());
                 },
                 function (error) {
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
      * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
      * operations have been completed. If any ONE save operation fails, an error dialog is immediately
      * shown and the promise fails.
-     * TODO: But subsequent save operations continue in the background, and if more fail the error
+     * TODO: (issue #272) But subsequent save operations continue in the background, and if more fail the error
      * dialogs will stack up on top of the old one.
      *
      * @return {$.Promise}
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
             doc = DocumentManager.getCurrentDocument();
         }
         
-        // No-op if called when nothing is open; TODO: should command be grayed out instead?
+        // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
         if (!doc) {
             return;
         }
@@ -498,24 +498,30 @@ define(function (require, exports, module) {
             .done(function () {
                 _windowGoingAway = true;
                 PreferencesManager.savePreferences();
-            })
-            .done(postCloseHandler);
+                postCloseHandler();
+            });
     }
     
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
-        return _handleWindowGoingAway(commandData, window.close);
+        return _handleWindowGoingAway(commandData, function () {
+            window.close();
+        });
     }
     
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
-        return _handleWindowGoingAway(commandData, brackets.app.quit);
+        return _handleWindowGoingAway(commandData, function () {
+            brackets.app.quit();
+        });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
     
      /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
-        return _handleWindowGoingAway(commandData, window.location.reload);
+        return _handleWindowGoingAway(commandData, function () {
+            window.location.reload();
+        });
     }
 
     function init(title) {
@@ -524,7 +530,7 @@ define(function (require, exports, module) {
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
         CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
-        // TODO: For now, hook up File > New to the "new in project" handler. Eventually
+        // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
