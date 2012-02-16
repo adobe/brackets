@@ -1,6 +1,6 @@
 <!doctype html>
 
-<!-- TODO: copyright notice, etc. -->
+<!-- Copyright 2011 Adobe Systems Incorporated. All Rights Reserved. -->
 
 <html>
 <head>
@@ -20,14 +20,14 @@
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>
     
-    <!-- TODO: switch between runtime LESS compilation in dev mode and precompiled version -->
+    <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="brackets.less">
     <script src="thirdparty/less-1.1.5.min.js"></script>
     <!-- <link rel="stylesheet" href="brackets.min.css"> -->
 
 </head>
 <body>
-    <!-- TODO: LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
+    <!-- TODO (Issue #279): LESS won't work directly from Chrome when run locally (unless you launch it with -allow-file-access-from-files)
     due to annoying security restrictions. This will work in the shell app, or in other browsers like Safari. -->
 
     <!-- Top bar for menus -->
@@ -126,7 +126,7 @@
     </div>
 
     <!-- Modal Windows -->
-    <div id="error-dialog" class="modal hide">
+    <div class="error-dialog template modal hide">
         <div class="modal-header">
             <a href="#" class="close">&times;</a>
             <h3 class="dialog-title">Error</h3>
@@ -138,7 +138,7 @@
             <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
         </div>
     </div>
-    <div id="save-close-dialog" class="modal hide">
+    <div class="save-close-dialog template modal hide">
         <div class="modal-header">
             <a href="#" class="close">&times;</a>
             <h3 class="dialog-title">Save Changes</h3>
@@ -152,7 +152,7 @@
             <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
         </div>
     </div>
-    <div id="ext-changed-dialog" class="modal hide">
+    <div class="ext-changed-dialog template modal hide">
         <div class="modal-header">
             <a href="#" class="close">&times;</a>
             <h3 class="dialog-title">Title goes here</h3>
@@ -165,7 +165,7 @@
             <a href="#" class="dialog-button btn primary" data-button-id="cancel">Keep Changes in Editor</a>
         </div>
     </div>
-    <div id="ext-deleted-dialog" class="modal hide">
+    <div class="ext-deleted-dialog template modal hide">
         <div class="modal-header">
             <a href="#" class="close">&times;</a>
             <h3 class="dialog-title">Title goes here</h3>
