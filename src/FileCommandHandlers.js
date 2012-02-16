@@ -82,9 +82,9 @@ define(function (require, exports, module) {
             return result.reject();
         }
         
-        PerfUtils.markStart("doOpen: " + fullPath);
+        PerfUtils.markStart("Open File: " + fullPath);
         result.always(function () {
-            PerfUtils.addMeasurement("doOpen: " + fullPath);
+            PerfUtils.addMeasurement("Open File: " + fullPath);
         });
         
         var doc = DocumentManager.getDocumentForPath(fullPath);

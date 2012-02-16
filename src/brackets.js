@@ -214,9 +214,6 @@ define(function (require, exports, module) {
 
     // Main Brackets initialization
     $(document).ready(function () {
-
-        PerfUtils.addMeasurement("Application Startup: beginning of $(document).ready()");
-
         var _enableJSLint = true;
         
         function initListeners() {
@@ -497,7 +494,7 @@ define(function (require, exports, module) {
             }
         });
         
-        PerfUtils.addMeasurement("Application Startup: end of $(document).ready()");
+        PerfUtils.addMeasurement("Application Startup");
     });
     
 });

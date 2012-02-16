@@ -393,7 +393,7 @@ define(function (require, exports, module) {
             }
         }
         
-        PerfUtils.markStart("loadProject: " + rootPath);
+        PerfUtils.markStart("Load Project: " + rootPath);
 
         // Set title
         var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
@@ -423,7 +423,7 @@ define(function (require, exports, module) {
                         result.reject();
                     });
                     resultRenderTree.always(function () {
-                        PerfUtils.addMeasurement("loadProject: " + rootPath);
+                        PerfUtils.addMeasurement("Load Project: " + rootPath);
                     });
                 },
                 function (error) {
