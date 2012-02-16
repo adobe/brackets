@@ -585,7 +585,7 @@ define(function (require, exports, module) {
                     d = new $.Deferred();
                     d.done(genAddToEntriesArrayFunction(i));
                     deferreds.push(d);
-                    statEntry(rootPath + "/" + filelist[i], d);
+                    statEntry(rootPath + filelist[i], d);
                 }
 
                 // FIXME (issue #213): -- once we have an async library, it would be good
