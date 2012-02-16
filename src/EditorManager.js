@@ -191,30 +191,6 @@ define(function (require, exports, module) {
                     "Ctrl-H": "replace",
                     "Shift-Delete": "cut"
                 },
-                onChange: function onChange(editor, change) {
-                    $(exports).trigger("onChange", {editor: editor, change: change});
-                },
-                onCursorActivity: function onCursorActivity(editor) {
-                    $(exports).trigger("onCursorActivity", {editor: editor});
-                },
-                onGutterClick: function onGutterClick(editor, lineNumber) {
-                    $(exports).trigger("onGutterClick", {editor: editor, lineNumber: lineNumber});
-                },
-                onFocus: function onFocus(editor) {
-                    $(exports).trigger("onFocus", {editor: editor});
-                },
-                onBlur: function onBlur(editor) {
-                    $(exports).trigger("onBlur", {editor: editor});
-                },
-                onScroll: function onScroll(editor) {
-                    $(exports).trigger("onScroll", {editor: editor});
-                },
-                onHighlightComplete: function onHighlightComplete(editor) {
-                    $(exports).trigger("onHighlightComplete", {editor: editor});
-                },
-                onUpdate: function onUpdate(editor) {
-                    $(exports).trigger("onUpdate", {editor: editor});
-                },
                 onKeyEvent: function (instance, event) {
                     if (event.type === "keypress") {
                         var keyStr = String.fromCharCode(event.which || event.keyCode);
@@ -248,6 +224,32 @@ define(function (require, exports, module) {
             
             // Make sure we can't undo back to the empty state before setValue()
             editor.clearHistory();
+
+            // Attach the event handlers
+            editor.onChange = function onChange(editor, change) {
+                $(exports).trigger("onChange", {editor: editor, change: change});
+            };
+            editor.onCursorActivity = function onCursorActivity(editor) {
+                $(exports).trigger("onCursorActivity", {editor: editor});
+            };
+            editor.onGutterClick = function onGutterClick(editor, lineNumber) {
+                $(exports).trigger("onGutterClick", {editor: editor, lineNumber: lineNumber});
+            };
+            editor.onFocus = function onFocus(editor) {
+                $(exports).trigger("onFocus", {editor: editor});
+            };
+            editor.onBlur = function onBlur(editor) {
+                $(exports).trigger("onBlur", {editor: editor});
+            };
+            editor.onScroll = function onScroll(editor) {
+                $(exports).trigger("onScroll", {editor: editor});
+            };
+            editor.onHighlightComplete = function onHighlightComplete(editor) {
+                $(exports).trigger("onHighlightComplete", {editor: editor});
+            };
+            editor.onUpdate = function onUpdate(editor) {
+                $(exports).trigger("onUpdate", {editor: editor});
+            };
 
             result.resolve(editor, readTimestamp, text);
         });
