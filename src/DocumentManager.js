@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("ProjectManager"),
         PreferencesManager  = require("PreferencesManager"),
+        EditorUtils         = require("EditorUtils"),
         CommandManager      = require("CommandManager"),
         Async               = require("Async"),
         Commands            = require("Commands");
@@ -225,40 +226,6 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Asynchronously reads a file as UTF-8 encoded text.
-     * @return {Deferred} a jQuery Deferred that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileError if
-     *  the file can not be read.
-     */
-    function readAsText(fileEntry) {
-        var result = new $.Deferred(),
-            reader = new NativeFileSystem.FileReader();
-
-        fileEntry.file(function (file) {
-            reader.onload = function (event) {
-                var text = event.target.result;
-                
-                fileEntry.getMetadata(
-                    function (metadata) {
-                        result.resolve(text, metadata.modificationTime);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
-            };
-
-            reader.onerror = function (event) {
-                result.reject(event.target.error);
-            };
-
-            reader.readAsText(file, "utf8");
-        });
-
-        return result;
-    }
-    
-    /**
      * Closes the given document (which may or may not be the current document in the editor UI, and
      * may or may not be in the working set). Discards any unsaved changes if isDirty - it is
      * expected that the UI has already confirmed with the user before calling us.
@@ -326,56 +293,59 @@ define(function (require, exports, module) {
         allDocs.forEach(closeDocument);
     }
     
+    
     /**
-     * @private
-     * Preferences callback. Saves the document file paths for the working set.
+     * Asynchronously reads a file as UTF-8 encoded text.
+     * @return {Deferred} a jQuery Deferred that will be resolved with the 
+     *  file's text content plus its timestamp, or rejected with a FileError if
+     *  the file can not be read.
      */
-    function _savePreferences(storage) {
-        // save the working set file paths
-        var files       = [],
-            isActive    = false,
-            workingSet  = getWorkingSet(),
-            currentDoc  = getCurrentDocument();
+    function readAsText(fileEntry) {
+        var result = new $.Deferred(),
+            reader = new NativeFileSystem.FileReader();
 
-        workingSet.forEach(function (value, index) {
-            // flag the currently active editor
-            isActive = (value === currentDoc);
+        fileEntry.file(function (file) {
+            reader.onload = function (event) {
+                var text = event.target.result;
+                
+                fileEntry.getMetadata(
+                    function (metadata) {
+                        result.resolve(text, metadata.modificationTime);
+                    },
+                    function (error) {
+                        result.reject(error);
+                    }
+                );
+            };
 
-            files.push({
-                file: value.file.fullPath,
-                active: isActive
-            });
+            reader.onerror = function (event) {
+                result.reject(event.target.error);
+            };
+
+            reader.readAsText(file, "utf8");
         });
 
-        storage.files = files;
+        return result;
     }
+    
     
     /**
      * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {?CodeMirror} editor  Optional. The editor that will maintain the document state (current text
-     *          and undo stack). It is assumed that the editor text has already been initialized
-     *          with the file's contents. The editor may be null when the working set is restored
-     *          at initialization.
-     * @param {?Date} initialTimestamp  Timestamp of file at the time we read its contents from disk.
-     *          Required if editor is passed.
      */
-    function Document(file, editor, initialTimestamp) {
+    function Document(file) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
         if (getDocumentForFile(file)) {
-            throw new Error("Creating a document + editor when one already exists, for: " + file);
+            throw new Error("Creating a document when one already exists, for: " + file);
         }
         
         this.file = file;
-
-        if (editor) {
-            this._setEditor(editor, initialTimestamp);
-        }
     }
+    
     /**
      * The FileEntry for the document being edited.
      * @type {!FileEntry}
@@ -400,6 +370,7 @@ define(function (require, exports, module) {
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
      * other than DocumentManager and EditorManager should access it.
+     *
      * The editor may be null in the case that the document working set was
      * restored from storage but an editor was not yet created.
      * TODO: we should close on whether private fields are declared on the prototype like this (vs.
@@ -407,14 +378,29 @@ define(function (require, exports, module) {
      * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
+    
+    /**
+     * Null only of editor is not open yet. If a Document is created on empty text, or text with
+     * inconsistent line endings, the Document defaults to the current platform's standard endings.
+     * @type {null|EditorUtils.LINE_ENDINGS_CRLF|EditorUtils.LINE_ENDINGS_LF}
+     */
+    Document.prototype._lineEndings = null;
 
     /**
      * @private
+     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
+     * other than DocumentManager and EditorManager should access it.
+     *
      * Initialize the editor instance for this file.
-     * @param {!CodeMirror} editor
-     * @param {!Date} initialTimestamp
+     * @param {!CodeMirror} editor  The editor that will maintain the document state (current text
+     *          and undo stack). It is assumed that the editor text has already been initialized
+     *          with the file's contents. The editor may be null when the working set is restored
+     *          at initialization.
+     * @param {!Date} initialTimestamp  Timestamp of file at the time we read its contents from disk.
+     *          Required if editor is passed.
+     * @perem {!string} rawText  Original text read from disk, beore handing to CodeMirror.
      */
-    Document.prototype._setEditor = function (editor, initialTimestamp) {
+    Document.prototype._setEditor = function (editor, initialTimestamp, rawText) {
         // Editor can only be assigned once per Document
         console.assert(!this._editor);
         
@@ -424,6 +410,12 @@ define(function (require, exports, module) {
         // Dirty-bit tracking
         editor.setOption("onChange", this._handleEditorChange.bind(this));
         this.isDirty = false;
+        
+        // Sniff line-ending style
+        this._lineEndings = EditorUtils.sniffLineEndings(rawText);
+        if (!this._lineEndings) {
+            this._lineEndings = EditorUtils.getPlatformLineEndings();
+        }
     };
     
     /**
@@ -432,11 +424,19 @@ define(function (require, exports, module) {
      *  created.
      */
     Document.prototype.getText = function () {
-        return this._editor.getValue();
+        // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
+        // endings preferred by the document, if necessary
+        var codeMirrorText = this._editor.getValue();
+        if (this._lineEndings === EditorUtils.LINE_ENDINGS_LF) {
+            return codeMirrorText;
+        } else {
+            return codeMirrorText.replace(/\n/g, "\r\n");
+        }
     };
     
     /**
-     * Sets the contents of the document. Treated as an edit.
+     * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
+     * match the document's current line-ending style.
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function (text) {
@@ -445,7 +445,8 @@ define(function (require, exports, module) {
     
     /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
-     * will be marked clean with a new timestamp, and the undo/redo history is cleared.
+     * will be marked clean with a new timestamp, the undo/redo history is cleared, and we re-check
+     * the text's line-ending style.
      * @param {!string} text The text to replace the contents of the document with.
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
@@ -455,6 +456,12 @@ define(function (require, exports, module) {
         
         this._markClean();
         this.diskTimestamp = newTimestamp;
+        
+        // Re-sniff line-ending style too
+        this._lineEndings = EditorUtils.sniffLineEndings(text);
+        if (!this._lineEndings) {
+            this._lineEndings = EditorUtils.getPlatformLineEndings();
+        }
     };
     
     /**
@@ -486,7 +493,9 @@ define(function (require, exports, module) {
         }
     };
     
-    /** Marks the document not dirty. Should be called after the document is saved to disk. */
+    /**
+     * @private
+     */
     Document.prototype._markClean = function () {
         if (!this._editor) {
             return;
@@ -497,8 +506,8 @@ define(function (require, exports, module) {
     };
     
     /** 
-     * Called when the document is saved (which currently happens in FileCommandHandlers). Updates the
-     * dirty bit and notifies listeners of the save.
+     * Called when the document is saved (which currently happens in FileCommandHandlers). Marks the
+     * document not dirty and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function () {
         this._markClean();
@@ -524,6 +533,31 @@ define(function (require, exports, module) {
         return "[Document " + this.file.fullPath + " " + (this.isDirty ? "(dirty!)" : "(clean)") + "]";
     };
     
+    
+    /**
+     * @private
+     * Preferences callback. Saves the document file paths for the working set.
+     */
+    function _savePreferences(storage) {
+        // save the working set file paths
+        var files       = [],
+            isActive    = false,
+            workingSet  = getWorkingSet(),
+            currentDoc  = getCurrentDocument();
+
+        workingSet.forEach(function (value, index) {
+            // flag the currently active editor
+            isActive = (value === currentDoc);
+
+            files.push({
+                file: value.file.fullPath,
+                active: isActive
+            });
+        });
+
+        storage.files = files;
+    }
+
     /**
      * @private
      * Initializes the working set.
@@ -595,6 +629,7 @@ define(function (require, exports, module) {
             }
         });
     }
+
 
     // Define public API
     exports.Document = Document;

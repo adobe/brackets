@@ -228,7 +228,7 @@ define(function (require, exports, module) {
 
         // TODO (issue #241): handle Blob data instead of string
         FileWriter.prototype.write = function (data) {
-            if (!data) {
+            if (data === null || data === undefined) {
                 throw new Error();
             }
 

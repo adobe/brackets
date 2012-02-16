@@ -77,6 +77,10 @@ define(function (require, exports, module) {
     brackets.shellAPI = require("ShellAPI");
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
+    
+    brackets.isWin = (global.navigator.userAgent.indexOf("Windows") !== -1);
+    brackets.isMac = !brackets.isWin;
+    
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
