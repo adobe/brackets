@@ -226,30 +226,30 @@ define(function (require, exports, module) {
             editor.clearHistory();
 
             // Attach the event handlers
-            editor.onChange = function onChange(editor, change) {
+            editor.setOption("onChange", function onChange(editor, change) {
                 $(exports).trigger("onChange", {editor: editor, change: change});
-            };
-            editor.onCursorActivity = function onCursorActivity(editor) {
+            });
+            editor.setOption("onCursorActivity", function onCursorActivity(editor) {
                 $(exports).trigger("onCursorActivity", {editor: editor});
-            };
-            editor.onGutterClick = function onGutterClick(editor, lineNumber) {
+            });
+            editor.setOption("onGutterClick", function onGutterClick(editor, lineNumber) {
                 $(exports).trigger("onGutterClick", {editor: editor, lineNumber: lineNumber});
-            };
-            editor.onFocus = function onFocus(editor) {
+            });
+            editor.setOption("onFocus", function onFocus(editor) {
                 $(exports).trigger("onFocus", {editor: editor});
-            };
-            editor.onBlur = function onBlur(editor) {
+            });
+            editor.setOption("onBlur", function onBlur(editor) {
                 $(exports).trigger("onBlur", {editor: editor});
-            };
-            editor.onScroll = function onScroll(editor) {
+            });
+            editor.setOption("onScroll", function onScroll(editor) {
                 $(exports).trigger("onScroll", {editor: editor});
-            };
-            editor.onHighlightComplete = function onHighlightComplete(editor) {
+            });
+            editor.setOption("onHighlightComplete", function onHighlightComplete(editor) {
                 $(exports).trigger("onHighlightComplete", {editor: editor});
-            };
-            editor.onUpdate = function onUpdate(editor) {
+            });
+            editor.setOption("onUpdate", function onUpdate(editor) {
                 $(exports).trigger("onUpdate", {editor: editor});
-            };
+            });
 
             result.resolve(editor, readTimestamp, text);
         });
