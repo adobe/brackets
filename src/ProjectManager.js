@@ -316,11 +316,16 @@ define(function (require, exports, module) {
                     wasNodeOpen = false,
                     emptyDirectory = (subtreeJSON.length === 0);
                 
-                if (!isProjectRoot && emptyDirectory) {
-                    wasNodeOpen = treeNode.hasClass("jstree-open");
+                if (emptyDirectory) {
+                    if (!isProjectRoot) {
+                        wasNodeOpen = treeNode.hasClass("jstree-open");
+                    } else {
+                        // project root is a special case, add a placeholder
+                        subtreeJSON.push({});
+                    }
                 }
                 
-                jsTreeCallback(_convertEntriesToJSON(entries));
+                jsTreeCallback(subtreeJSON);
                 
                 if (!isProjectRoot && emptyDirectory) {
                     // If the directory is empty, force it to appear as an open or closed node.
@@ -392,12 +397,9 @@ define(function (require, exports, module) {
             if (brackets.inBrowser) {
                 // In browser: dummy folder tree (hardcoded in ProjectManager)
                 rootPath = "DummyProject";
+                $("#project-title").html(rootPath);
             }
         }
-
-        // Set title
-        var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
-        $("#project-title").html(projectName);
 
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
@@ -406,6 +408,9 @@ define(function (require, exports, module) {
                 function (rootEntry) {
                     // Success!
                     _projectRoot = rootEntry;
+
+                    // Set title
+                    $("#project-title").html(_projectRoot.name);
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
