@@ -125,10 +125,9 @@ define(function (require, exports, module) {
         this.isFile = !isDirectory;
         
         if (fullPath) {
-            var lastChar = fullPath.length - 1;
-            // only trim off the trailing slash for directories, skip system root
-            if (isDirectory && (lastChar > 0) && (fullPath.charAt(lastChar) === "/")) {
-                fullPath = fullPath.substr(0, lastChar);
+            // add trailing "/" to directory paths
+            if (isDirectory && (fullPath.charAt(fullPath.length - 1) !== '/')) {
+                fullPath = fullPath.concat("/");
             }
         }
         
