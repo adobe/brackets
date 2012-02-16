@@ -41,15 +41,29 @@ define(function (require, exports, module) {
     
         afterEach(function () {
             // Restore directory permissions
+            var readModeSet = false, readModeErr = false, writeModeSet = false, writeModeErr = false;
+            
+            runs(function () {
+                // Set read-only mode
+                brackets.fs.chmod(baseDir + "cant_read_here", parseInt("777", 8), function (err) {
+                    readModeSet = true;
+                    readModeErr = err;
+                });
 
-            // Set read-only mode
-            brackets.fs.chmod(baseDir + "cant_read_here", parseInt("777", 8), function (err) {
-                expect(err).toBeFalsy();
+                // Set write-only mode
+                brackets.fs.chmod(baseDir + "cant_write_here", parseInt("777", 8), function (err) {
+                    writeModeSet = true;
+                    writeModeErr = err;
+                });
             });
-
-            // Set write-only mode
-            brackets.fs.chmod(baseDir + "cant_write_here", parseInt("777", 8), function (err) {
-                expect(err).toBeFalsy();
+            
+            waitsFor(function () { return readModeSet && writeModeSet; }, 1000);
+                
+            runs(function () {
+                expect(readModeSet).toBe(true);
+                expect(readModeErr).toBeFalsy();
+                expect(writeModeSet).toBe(true);
+                expect(writeModeErr).toBeFalsy();
             });
         });
     

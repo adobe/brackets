@@ -9,7 +9,7 @@ define(function (require, exports, module) {
     function fixPath(path) {
         // On Windows, when loading from a file, window.location.href has
         // a leading '/'. Remove that here.
-        // TODO: Figure out a better way to handle this...
+        // TODO (issue #281): Figure out a better way to handle this...
         if (path.length > 3 && path[0] === '/' && path[2] === ":") {
             path = path.substr(1);
         }
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
             testWindow = window.open(getBracketsSourceRoot() + "/index.html");
         });
 
-        // FIXME (jasonsj): Need an event or something a little more reliable...
+        // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function () {
                 return testWindow.brackets && testWindow.brackets.test;

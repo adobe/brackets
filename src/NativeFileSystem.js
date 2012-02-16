@@ -8,8 +8,6 @@
 define(function (require, exports, module) {
     'use strict';
 
-    // TODO: Determine proper public/private API for this module, splitting into separate modules as needed
-
     var NativeFileSystem = {
 
         /** openLiveBrowser
@@ -35,8 +33,10 @@ define(function (require, exports, module) {
         },
 
         
-        /** Amount of time we wait for async calls to return (in milliseconds)
-         * TODO: Not all async calls are wrapped with something that times out and calls the error callback
+        /** 
+         * Amount of time we wait for async calls to return (in milliseconds)
+         * Not all async calls are wrapped with something that times out and 
+         * calls the error callback. Timeouts are not specified in the W3C spec.
          * @const
          * @type {number}
          */
@@ -89,6 +89,7 @@ define(function (require, exports, module) {
         requestNativeFileSystem: function (path, successCallback, errorCallback) {
             brackets.fs.stat(path, function (err, data) {
                 if (!err) {
+                    // FIXME (issue #247): return a NativeFileSystem object
                     var root = new NativeFileSystem.DirectoryEntry(path);
                     successCallback(root);
                 } else if (errorCallback) {
@@ -145,8 +146,6 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry = function (fullPath, isDirectory) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
-
-        // TODO (jasonsj): PATH_SEPARATOR per native OS
         this.fullPath = fullPath;
 
         // Extract name from fullPath
@@ -158,32 +157,47 @@ define(function (require, exports, module) {
             }
         }
 
-        this.getMetadata = function (successCallBack, errorCallback) {
-            brackets.fs.stat(this.fullPath, function (err, stat) {
-                if (err === brackets.fs.NO_ERROR) {
-                    var metadata = new NativeFileSystem.Metadata(stat.mtime);
-                    successCallBack(metadata);
-                } else {
-                    errorCallback(NativeFileSystem._nativeToFileError(err));
-                }
-            });
-
-        };
-
-
-        // IMPLEMENT LATER copyTo(parent, newName, successCallBack, errorCallback)
-        // IMPLEMENT LATER getParent(successCallBack, errorCallback)
-        // IMPLEMENT LATER moveTo(parent, newName, successCallBack, errorCallback)
-        // IMPLEMENT LATER remove(successCallBack, errorCallback)
-        // IMPLEMENT LATER toURL() 
-
-        // IMPLEMENT LATER var filesystem;
-        // IMPLEMENT LATER void      moveTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
-        // IMPLEMENT LATER void      copyTo (DirectoryEntry parent, optional DOMString newName, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
-        // IMPLEMENT LATER DOMString toURL (optional DOMString mimeType);
-        // IMPLEMENT LATER void      remove (VoidCallback successCallback, optional ErrorCallback errorCallback);
-        // IMPLEMENT LATER void      getParent (EntryCallback successCallback, optional ErrorCallback errorCallback);
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-filesystem
+        this.filesystem = null;
     };
+    
+    NativeFileSystem.Entry.prototype.moveTo = function (parent, newName, successCallback, errorCallback) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-moveTo
+    };
+    
+    NativeFileSystem.Entry.prototype.copyTo = function (parent, newName, successCallback, errorCallback) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-copyTo
+    };
+    
+    NativeFileSystem.Entry.prototype.toURL = function (mimeType) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-toURL
+    };
+    
+    NativeFileSystem.Entry.prototype.remove = function (successCallback, errorCallback) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+    };
+    
+    NativeFileSystem.Entry.prototype.getParent = function (successCallback, errorCallback) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-Entry-remove
+    };
+    
+    NativeFileSystem.Entry.prototype.getMetadata = function (successCallBack, errorCallback) {
+        brackets.fs.stat(this.fullPath, function (err, stat) {
+            if (err === brackets.fs.NO_ERROR) {
+                var metadata = new NativeFileSystem.Metadata(stat.mtime);
+                successCallBack(metadata);
+            } else {
+                errorCallback(NativeFileSystem._nativeToFileError(err));
+            }
+        });
+    };
+
 
     /**
      * Stores information about a FileEntry
@@ -193,7 +207,6 @@ define(function (require, exports, module) {
         this.modificationTime = modificationTime;
     };
 
-
     /** class: FileEntry
      * This interface represents a file on a file system.
      *
@@ -202,10 +215,9 @@ define(function (require, exports, module) {
      * @extends {Entry}
      */
     NativeFileSystem.FileEntry = function (name) {
-        this.prototype = new NativeFileSystem.Entry();
         NativeFileSystem.Entry.call(this, name, false);
-
     };
+    NativeFileSystem.FileEntry.prototype = new NativeFileSystem.Entry();
 
     /**
      * Creates a new FileWriter associated with the file that this FileEntry represents.
@@ -224,21 +236,6 @@ define(function (require, exports, module) {
             // FileWriter private memeber vars
             this._length = 0;
             this._position = 0;
-
-            // initialize file length
-            // TODO (jasonsj): handle async
-            var self = this;
-
-            brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
-                // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
-                if (err !== brackets.fs.ERR_NOT_FOUND) {
-                    self._err = err;
-                }
-                
-                if (contents) {
-                    self._length = contents.length;
-                }
-            });
         };
 
         FileWriter.prototype.length = function () {
@@ -249,9 +246,9 @@ define(function (require, exports, module) {
             return this._position;
         };
 
-        // TODO (jasonsj): handle Blob data instead of string
+        // TODO (issue #241): handle Blob data instead of string
         FileWriter.prototype.write = function (data) {
-            if (!data) {
+            if (data === null || data === undefined) {
                 throw new Error();
             }
 
@@ -262,7 +259,7 @@ define(function (require, exports, module) {
             this._readyState = NativeFileSystem.FileSaver.WRITING;
 
             if (this.onwritestart) {
-                // TODO (jasonsj): progressevent
+                // TODO (issue #241): progressevent
                 this.onwritestart();
             }
 
@@ -273,14 +270,14 @@ define(function (require, exports, module) {
                 if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
                     var fileError = NativeFileSystem._nativeToFileError(err);
 
-                    // TODO (jasonsj): set readonly FileSaver.error attribute
+                    // TODO (issue #241): set readonly FileSaver.error attribute
                     // self._error = fileError;
                     self.onerror(fileError);
 
-                    // TODO (jasonsj): partial write, update length and position
+                    // TODO (issue #241): partial write, update length and position
                 }
                 // else {
-                    // TODO (jasonsj): After changing data argument to Blob, use
+                    // TODO (issue #241): After changing data argument to Blob, use
                     // Blob.size to update position and length upon successful
                     // completion of a write.
 
@@ -292,12 +289,12 @@ define(function (require, exports, module) {
                 self._readyState = NativeFileSystem.FileSaver.DONE;
                 
                 if (self.onwrite) {
-                    // TODO (jasonsj): progressevent
+                    // TODO (issue #241): progressevent
                     self.onwrite();
                 }
 
                 if (self.onwriteend) {
-                    // TODO (jasonsj): progressevent
+                    // TODO (issue #241): progressevent
                     self.onwriteend();
                 }
             });
@@ -311,14 +308,42 @@ define(function (require, exports, module) {
 
         var fileWriter = new FileWriter();
 
-        if (fileWriter._err && (errorCallback !== undefined)) {
-            errorCallback(NativeFileSystem._nativeToFileError(fileWriter._err));
-        } else if (successCallback !== undefined) {
-            successCallback(fileWriter);
-        }
+        // initialize file length
+        var result = new $.Deferred();
+        brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+            // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
+            if (err !== brackets.fs.ERR_NOT_FOUND) {
+                fileWriter._err = err;
+            }
+            
+            if (contents) {
+                fileWriter._length = contents.length;
+            }
+            
+            result.resolve();
+        });
+
+        result.done(function () {
+            if (fileWriter._err && (errorCallback !== undefined)) {
+                errorCallback(NativeFileSystem._nativeToFileError(fileWriter._err));
+            } else if (successCallback !== undefined) {
+                successCallback(fileWriter);
+            }
+        });
     };
 
+    /**
+     * Obtains the File objecte for a FileEntry object
+     *
+     * @param {function(...)} successCallback
+     * @param {function(...)} errorCallback
+     */
+    NativeFileSystem.FileEntry.prototype.file = function (successCallback, errorCallback) {
+        var newFile = new NativeFileSystem.File(this);
+        successCallback(newFile);
 
+        // TODO (issue #241): errorCallback
+    };
 
     /**
      * This interface extends the FileException interface described in to add
@@ -386,14 +411,14 @@ define(function (require, exports, module) {
         return this._readyState;
     };
 
-    // TODO (jasonsj): http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
+    // TODO (issue #241): http://dev.w3.org/2009/dap/file-system/file-writer.html#widl-FileSaver-abort-void
     NativeFileSystem.FileSaver.prototype.abort = function () {
         // If readyState is DONE or INIT, terminate this overall series of steps without doing anything else..
         if (this._readyState === NativeFileSystem.FileSaver.INIT || this._readyState === NativeFileSystem.FileSaver.DONE) {
             return;
         }
 
-        // Terminate any steps having to do with writing a file.
+        // TODO (issue #241): Terminate any steps having to do with writing a file.
 
         // Set the error attribute to a FileError object with the code ABORT_ERR.
         this._error = new NativeFileSystem.FileError(FileError.ABORT_ERR);
@@ -401,31 +426,14 @@ define(function (require, exports, module) {
         // Set readyState to DONE.
         this._readyState = NativeFileSystem.FileSaver.DONE;
 
-        // Dispatch a progress event called abort
-        // Dispatch a progress event called writeend
-        // Stop dispatching any further progress events.
-        // Terminate this overall set of steps.
+        /*
+        TODO (issue #241): 
+        Dispatch a progress event called abort
+        Dispatch a progress event called writeend
+        Stop dispatching any further progress events.
+        Terminate this overall set of steps.
+        */
     };
-
-    /**
-     * Obtains the File objecte for a FileEntry object
-     *
-     * @param {function(...)} successCallback
-     * @param {function(...)} errorCallback
-     */
-    NativeFileSystem.FileEntry.prototype.file = function (successCallback, errorCallback) {
-        var newFile = new NativeFileSystem.File(this);
-        successCallback(newFile);
-
-        // TODO Ty: error handling
-        // errorCallback
-    };
-
-    /*
-    TODO Jason
-    NativeFileSystem.FileEntry.prototype.createfileerror = function (successCallback, errorCallback) {
-    };
-    */
 
     /**
      * This interface represents a directory on a file system.
@@ -437,12 +445,19 @@ define(function (require, exports, module) {
     NativeFileSystem.DirectoryEntry = function (name) {
         NativeFileSystem.Entry.call(this, name, true);
 
-        // TODO: make DirectoryEntry actually inherit from Entry by modifying prototype. I don't know how to do this yet.
-
-        // IMPLEMENT LATERvoid            getDirectory (DOMString path, optional Flags options, optional EntryCallback successCallback, optional ErrorCallback errorCallback);
-        // IMPLEMENT LATERvoid            removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
+        // TODO (issue #241): void removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
     };
-
+    NativeFileSystem.DirectoryEntry.prototype = new NativeFileSystem.Entry();
+    
+    NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-getDirectory
+    };
+    
+    NativeFileSystem.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
+        // TODO (issue #241)
+        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-removeRecursively
+    };
 
     NativeFileSystem.DirectoryEntry.prototype.createReader = function () {
         var dirReader = new NativeFileSystem.DirectoryReader();
@@ -536,13 +551,11 @@ define(function (require, exports, module) {
         });
     };
 
-
     /** class: DirectoryReader
      */
     NativeFileSystem.DirectoryReader = function () {
 
     };
-
 
     /** readEntries
      *
@@ -589,7 +602,7 @@ define(function (require, exports, module) {
                     statEntry(rootPath + "/" + filelist[i], d);
                 }
 
-                // FIXME: (joelrbrandt or pflynn) -- once we have an async library, it would be good
+                // FIXME (issue #213): -- once we have an async library, it would be good
                 // to replace the code below with a library call.
                 
                 // Get a Promise that depennds on all the individual deferreds finishing.
@@ -644,14 +657,7 @@ define(function (require, exports, module) {
      * @extends {EventTarget}
      */
     NativeFileSystem.FileReader = function () {
-        // Todo Ty: this classes should extend EventTarget
-
-        // async read methods
-        // IMPLEMENT LATER void readAsArrayBuffer(Blob blob);
-        // IMPLEMENT LATER void readAsBinaryString(Blob blob);
-        // IMPLEMENT LATER void readAsDataURL(Blob blob);
-
-        // IMPLEMENT LATER void abort();
+        // TODO (issue #241): this classes should extend EventTarget
 
         // states
         this.EMPTY = 0;
@@ -662,8 +668,8 @@ define(function (require, exports, module) {
         this.readyState = this.EMPTY;
 
         // File or Blob data
-        // IMPLEMENT LATER readonly attribute any result;
-        // IMPLEMENT LATER readonly attribute DOMError error;
+        // TODO (issue #241): readonly attribute any result;
+        // TODO (issue #241): readonly attribute DOMError error;
 
         // event handler attributes
         this.onloadstart = null;
@@ -672,10 +678,30 @@ define(function (require, exports, module) {
         this.onabort = null;
         this.onerror = null;
         this.onloadend = null;
-
-
     };
-
+    // TODO (issue #241): extend EventTarget (draft status, not implememnted in webkit)
+    // NativeFileSystem.FileReader.prototype = new NativeFileSystem.EventTarget()
+    
+    NativeFileSystem.FileReader.prototype.readAsArrayBuffer = function (blob) {
+        // TODO (issue #241): implement
+        // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-readAsArrayBuffer
+    };
+    
+    NativeFileSystem.FileReader.prototype.readAsBinaryString = function (blob) {
+        // TODO (issue #241): implement
+        // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-readAsBinaryStringAsync
+    };
+    
+    NativeFileSystem.FileReader.prototype.readAsDataURL = function (blob) {
+        // TODO (issue #241): implement
+        // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-readAsDataURL
+    };
+    
+    NativeFileSystem.FileReader.prototype.abort = function () {
+        // TODO (issue #241): implement
+        // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-abort
+    };
+    
     /** readAsText
      *
      * @param {Blob} blob
@@ -695,12 +721,12 @@ define(function (require, exports, module) {
         this.readyState = this.LOADING;
 
         if (this.onloadstart) {
-            this.onloadstart(); // todo params
+            this.onloadstart(); // TODO (issue #241): progressevent
         }
 
         brackets.fs.readFile(blob._fullPath, encoding, function (err, data) {
 
-            // TODO: the event objects passed to these event handlers is fake and incomplete right now
+            // TODO (issue #241): the event objects passed to these event handlers is fake and incomplete right now
             var fakeEvent = {
                 loaded: 0,
                 total: 0
@@ -719,7 +745,7 @@ define(function (require, exports, module) {
             } else {
                 self.readyState = self.DONE;
 
-                // TODO: this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
+                // TODO (issue #241): this should be the file/blob size, but we don't have code to get that yet, so for know assume a file size of 1
                 // and since we read the file in one go, assume 100% after the first read
                 fakeEvent.loaded = 1;
                 fakeEvent.total = 1;
@@ -728,7 +754,7 @@ define(function (require, exports, module) {
                     self.onprogress(fakeEvent);
                 }
 
-                // TODO: onabort not currently supported since our native implementation doesn't support it
+                // TODO (issue #241): onabort not currently supported since our native implementation doesn't support it
                 // if (self.onabort)
                 //    self.onabort(fakeEvent);
 
@@ -751,17 +777,19 @@ define(function (require, exports, module) {
      */
     NativeFileSystem.Blob = function (fullPath) {
         this._fullPath = fullPath;
-
-        // IMPLEMENT LATER readonly attribute unsigned long long size;
-        // IMPLEMENT LATER readonly attribute DOMString type;
-
-        //slice Blob into byte-ranged chunks
-
-        // IMPLEMENT LATER Blob slice(optional long long start,
-        //           optional long long end,
-        //           optional DOMString contentType);
+        
+        // TODO (issue #241): implement, readonly
+        this.size = 0;
+        
+        // TODO (issue #241): implement, readonly
+        this.type = null;
     };
-
+    
+    NativeFileSystem.Blob.prototype.slice = function (start, end, contentType) {
+        // TODO (issue #241): implement
+        // http://www.w3.org/TR/2011/WD-FileAPI-20111020/#dfn-slice
+    };
+    
     /** class: File
      *
      * @constructor
@@ -770,9 +798,12 @@ define(function (require, exports, module) {
      */
     NativeFileSystem.File = function (entry) {
         NativeFileSystem.Blob.call(this, entry.fullPath);
-
-        // IMPLEMENT LATER get name() { return this.entry.name; }
-
+        
+        // TODO (issue #241): implement, readonly
+        this.name = "";
+        
+        // TODO (issue #241): implement, readonly
+        this.lastModifiedDate = null;
     };
 
     /** class: FileError
