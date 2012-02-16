@@ -162,14 +162,6 @@ define(function (require, exports, module) {
         this.map = _normalizeMap(_bindingsToMap(args.bindings, args.platform));
     };
     
-     /**
-     * adds the given map into the current map, overwritting the existing mappings
-     * @param {map} map An object mapping key-description strings to command IDs.
-     */
-    KeyMap.prototype.addMap = function (map) {
-        
-    };
-    
     /**
      * simple creator
      * @param {map} map An object mapping key-description strings to command IDs.
