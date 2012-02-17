@@ -44,7 +44,6 @@ define(function (require, exports, module) {
 
     /**
      * Saves to persistent storage.
-     * TODO (jasonsj): local and/or hosted
      */
     function saveToPersistentStorage() {
         // save all preferences

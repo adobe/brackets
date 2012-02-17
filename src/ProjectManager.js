@@ -93,27 +93,19 @@ define(function (require, exports, module) {
     
     /**
      * Returns true if absPath lies within the project, false otherwise.
-     * FIXME: Does not support paths containing ".."
+     * FIXME (issue #263): Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
-        var rootPath = _projectRoot.fullPath;
-        if (rootPath.charAt(rootPath.length - 1) !== "/") {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
-            rootPath += "/";
-        }
-        return (absPath.indexOf(rootPath) === 0);
+        return (absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
-     * FIXME: Does not support paths containing ".."
+     * FIXME (issue #263): Does not support paths containing ".."
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
-            var relPath = absPath.slice(_projectRoot.fullPath.length);
-            if (relPath.charAt(0) === '/') {  // TODO: standardize whether DirectoryEntry.fullPath can end in "/"
-                relPath = relPath.slice(1);
-            }
-            return relPath;
+            return absPath.slice(_projectRoot.fullPath.length);
         }
         return absPath;
     }
@@ -128,7 +120,7 @@ define(function (require, exports, module) {
 
         // save jstree state
         var openNodes = [],
-            projectPathLength = _projectRoot.fullPath.length + 1,
+            projectPathLength = _projectRoot.fullPath.length,
             entry,
             fullPath,
             shortPath,
@@ -141,11 +133,11 @@ define(function (require, exports, module) {
             if (entry.fullPath) {
                 fullPath = entry.fullPath;
 
-                // Truncate project path prefix
-                shortPath = fullPath.slice(projectPathLength);
+                // Truncate project path prefix, remove the trailing slash
+                shortPath = fullPath.slice(projectPathLength, -1);
 
                 // Determine depth of the node by counting path separators.
-                // Children at the root have depth of zero.
+                // Children at the root have depth of zero
                 depth = shortPath.split("/").length - 1;
 
                 // Map tree depth to list of open nodes
@@ -184,7 +176,7 @@ define(function (require, exports, module) {
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                         //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                         // file because jsTree insists on loading one itself)
-                    strings : { loading : "Loading ...", new_node : "New node" }    // TODO: localization
+                    strings : { loading : "Loading ...", new_node : "New node" }
                 }
             )
             .bind(
@@ -233,7 +225,7 @@ define(function (require, exports, module) {
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
                     var entry = $(event.target).closest("li").data("entry");
-                    if (entry.isFile) {
+                    if (entry && entry.isFile) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
@@ -306,11 +298,12 @@ define(function (require, exports, module) {
      * @param {function(Array)} jsTreeCallback  jsTree callback to provide children to
      */
     function _treeDataProvider(treeNode, jsTreeCallback) {
-        var dirEntry;
+        var dirEntry, isProjectRoot = false;
 
         if (treeNode === -1) {
             // Special case: root of tree
             dirEntry = _projectRoot;
+            isProjectRoot = true;
         } else {
             // All other nodes: the DirectoryEntry is saved as jQ data in the tree (by _convertEntriesToJSON())
             dirEntry = treeNode.data("entry");
@@ -319,14 +312,29 @@ define(function (require, exports, module) {
         // Fetch dirEntry's contents
         dirEntry.createReader().readEntries(
             function (entries) {
-                var subtreeJSON = _convertEntriesToJSON(entries);
+                var subtreeJSON = _convertEntriesToJSON(entries),
+                    wasNodeOpen = false,
+                    emptyDirectory = (subtreeJSON.length === 0);
                 
-                //If the list is empty, add an empty object so the loading message goes away
-                if (subtreeJSON.length === 0) {
-                    subtreeJSON.push({});
+                if (emptyDirectory) {
+                    if (!isProjectRoot) {
+                        wasNodeOpen = treeNode.hasClass("jstree-open");
+                    } else {
+                        // project root is a special case, add a placeholder
+                        subtreeJSON.push({});
+                    }
                 }
                 
                 jsTreeCallback(subtreeJSON);
+                
+                if (!isProjectRoot && emptyDirectory) {
+                    // If the directory is empty, force it to appear as an open or closed node.
+                    // This is a workaround for issue #149 where jstree would show this node as a leaf.
+                    var classToAdd = (wasNodeOpen) ? "jstree-closed" : "jstree-open";
+                    
+                    treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
+                            .addClass(classToAdd);
+                }
             },
             function (error) {
                 brackets.showModalDialog(
@@ -340,7 +348,7 @@ define(function (require, exports, module) {
     }
     
     /** Returns the full path to the default project folder. The path is currently the brackets src folder.
-     * TODO: Brackets does not yet support operating when there is no project folder. This code will likely
+     * TODO: (issue #267): Brackets does not yet support operating when there is no project folder. This code will likely
      * not be needed when this support is added.
      * @private
      * @return {!string} fullPath reference
@@ -351,7 +359,7 @@ define(function (require, exports, module) {
         
         // On Windows, when loading from a file, window.location.pathname has
         // a leading '/'. Remove that here.
-        // TODO: Figure out a better way to handle this...
+        // TODO (issue #267): This will be obsolete when Brackets can support no project
         if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":") {
             bracketsSrc = bracketsSrc.substr(1);
         }
@@ -383,18 +391,15 @@ define(function (require, exports, module) {
             rootPath = prefs.projectPath;
             isFirstProjectOpen = true;
 
-            // TODO (jasonsj): handle missing paths, see issue #100
+            // TODO (issue #100): handle missing paths
             _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
                 // In browser: dummy folder tree (hardcoded in ProjectManager)
                 rootPath = "DummyProject";
+                $("#project-title").html(rootPath);
             }
         }
-
-        // Set title
-        var projectName = rootPath.substring(rootPath.lastIndexOf("/") + 1);
-        $("#project-title").html(projectName);
 
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
@@ -403,6 +408,9 @@ define(function (require, exports, module) {
                 function (rootEntry) {
                     // Success!
                     _projectRoot = rootEntry;
+
+                    // Set title
+                    $("#project-title").html(_projectRoot.name);
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -434,7 +442,8 @@ define(function (require, exports, module) {
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
-                        // project directory. TODO: When Brackets supports having no project director
+                        // project directory.
+                        // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
                         return loadProject(_getDefaultProjectPath());
                     });
@@ -504,15 +513,13 @@ define(function (require, exports, module) {
      *  filename.
      */
     function createNewItem(baseDir, initialName, skipRename) {
-        // TODO: Need API to get tree node for baseDir.
-        // In the meantime, pass null for node so new item is placed
-        // relative to the selection
-        var node = null,
-            selection = _projectTree.jstree("get_selected"),
-            selectionEntry = null,
-            position = "inside",
-            escapeKeyPressed = false,
-            result = new $.Deferred();
+        var node                = null,
+            selection           = _projectTree.jstree("get_selected"),
+            selectionEntry      = null,
+            position            = "inside",
+            escapeKeyPressed    = false,
+            result              = new $.Deferred(),
+            wasNodeOpen         = true;
 
         // get the FileEntry or DirectoryEntry
         if (selection) {
@@ -520,26 +527,23 @@ define(function (require, exports, module) {
         }
 
         // move selection to parent DirectoryEntry
-        if (selectionEntry && selectionEntry.isFile) {
-            position = "after";
-
-            // FIXME (jasonsj): get_parent returns the tree instead of the directory?
-            /*
-            selection = _projectTree.jstree("get_parent", selection);
-
-            if (typeof(selection.data) == "function") {
-                // get Entry from tree node
-                // note that the jstree root will return undefined
-                selectionEntry = selection.data("entry");
+        if (selectionEntry) {
+            if (selectionEntry.isFile) {
+                position = "after";
+                
+                var parent = $.jstree._reference(_projectTree)._get_parent(selection);
+                
+                if (typeof (parent.data) === "function") {
+                    // get Entry from tree node
+                    // note that the jstree root will return undefined
+                    selectionEntry = parent.data("entry");
+                } else {
+                    // reset here. will be replaced with project root.
+                    selectionEntry = null;
+                }
+            } else if (selectionEntry.isDirectory) {
+                wasNodeOpen = selection.hasClass("jstree-open");
             }
-            else {
-                // reset here. will be replaced with project root.
-                selectionEntry = null;
-            }
-            */
-            // FIXME (jasonsj): hackish way to get parent directory; replace with Entry.getParent() when available
-            var filePath = selectionEntry.fullPath;
-            selectionEntry = new NativeFileSystem.DirectoryEntry(filePath.substring(0, filePath.lastIndexOf("/")));
         }
 
         // use the project root DirectoryEntry
@@ -551,15 +555,30 @@ define(function (require, exports, module) {
             $(event.target).off("create.jstree");
 
             function errorCleanup() {
-                // TODO: If an error occurred, we should allow the user to fix the filename.
+                // TODO (issue #115): If an error occurred, we should allow the user to fix the filename.
                 // For now we just remove the node so you have to start again.
+                var parent = data.inst._get_parent(data.rslt.obj);
+                
                 _projectTree.jstree("remove", data.rslt.obj);
+                
+                // Restore tree node state and styling when errors occur.
+                // parent returns -1 when at the root
+                if (parent && (parent !== -1)) {
+                    var methodName = (wasNodeOpen) ? "open_node" : "close_node";
+                    var classToAdd = (wasNodeOpen) ? "jstree-open" : "jstree-closed";
+                    
+                    // This is a workaround for issue #149 where jstree would show this node as a leaf.
+                    _projectTree.jstree(methodName, parent);
+                    parent.removeClass("jstree-leaf jstree-closed jstree-open")
+                          .addClass(classToAdd);
+                }
+                
                 result.reject();
             }
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                // TODO: There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
+                // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
                 // We may want to add checks for those here.
                 // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
                 if (data.rslt.name.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
@@ -610,6 +629,14 @@ define(function (require, exports, module) {
                 errorCleanup();
             }
         });
+        
+        // TODO (issue #115): Need API to get tree node for baseDir.
+        // In the meantime, pass null for node so new item is placed
+        // relative to the selection
+        node = selection;
+        
+        // Open the node before creating the new child
+        _projectTree.jstree("open_node", node);
 
         // Create the node and open the editor
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
@@ -623,7 +650,7 @@ define(function (require, exports, module) {
             }
         });
 
-        // TODO: Figure out better way to style this input. All styles are inlined by jsTree...
+        // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
 
@@ -645,7 +672,7 @@ define(function (require, exports, module) {
         
         var defaults = {
             projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
-            projectTreeState: ""                     /* TODO (jasonsj): jstree state */
+            projectTreeState: ""
         };
         PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
     }());
