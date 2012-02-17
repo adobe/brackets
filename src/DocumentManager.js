@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("PreferencesManager"),
         EditorUtils         = require("EditorUtils"),
         CommandManager      = require("CommandManager"),
+        Async               = require("Async"),
         Commands            = require("Commands");
 
     /**
@@ -173,7 +174,7 @@ define(function (require, exports, module) {
     /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
      * editing" means either the file is in the working set, and/or the file is currently open in
      * the editor UI.
-     * @param {!fullPath}
+     * @param {!string} fullPath
      * @return {?Document}
     */
     function getDocumentForPath(fullPath) {
@@ -522,7 +523,7 @@ define(function (require, exports, module) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
             },
             function (error) {
-                console.log("Error updating timestamp after saving file: " + this.file.fullPath);
+                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
             }
         );
     };
@@ -576,40 +577,29 @@ define(function (require, exports, module) {
         // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
         //                 e.g. A file to restore no longer exists. Should we silently ignore
         //                 it or let the user be notified when they attempt to open the Document?
-        var result = (function () {
-            var deferred        = new $.Deferred();
-            var fileCount       = prefs.files.length,
-                responseCount   = 0;
+        function checkOneFile(value, index) {
+            var oneFileResult = new $.Deferred();
+            
+            // check if the file still exists (not an error if it doesn't, though)
+            projectRoot.getFile(value.file, {},
+                function (fileEntry) {
+                    // maintain original sequence
+                    filesToOpen[index] = fileEntry;
 
-            function next() {
-                responseCount++;
+                    if (value.active) {
+                        activeFile = fileEntry;
+                    }
+                    oneFileResult.resolve();
+                },
+                function (error) {
+                    filesToOpen[index] = null;
+                    oneFileResult.resolve();
+                });
+            
+            return oneFileResult;
+        }
 
-                if (responseCount === fileCount) {
-                    deferred.resolve();
-                }
-            }
-
-            prefs.files.forEach(function (value, index) {
-                // check if the file still exists
-                projectRoot.getFile(value.file, {},
-                    function (fileEntry) {
-                        // maintain original sequence
-                        filesToOpen[index] = fileEntry;
-
-                        if (value.active) {
-                            activeFile = fileEntry;
-                        }
-
-                        next();
-                    },
-                    function (error) {
-                        filesToOpen[index] = null;
-                        next();
-                    });
-            });
-
-            return deferred;
-        }());
+        var result = Async.doInParallel(prefs.files, checkOneFile, false);
 
         result.done(function () {
             var activeDoc,
