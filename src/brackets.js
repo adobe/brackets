@@ -128,6 +128,10 @@ define(function (require, exports, module) {
         // Pipe dialog-closing notification back to client code
         dlg.one("hidden", function () {
             var buttonId = dlg.data("buttonId");
+            if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
+                buttonId = brackets.DIALOG_BTN_CANCEL;
+            }
+            
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
