@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("KeyBindingManager"),
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
-        CommandManager          = require("CommandManager");
+        CommandManager          = require("CommandManager"),
+        CodeHintManager         = require("CodeHintManager");
 
     // Define core brackets namespace if it isn't already defined
     //
