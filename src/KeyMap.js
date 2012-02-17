@@ -11,15 +11,15 @@ define(function (require, exports, module) {
     /**
      * @private
      * builds the keyDescriptor string from the given parts
+     * @param {boolean} hasCtrl Is Ctrl key enabled
+     * @param {boolean} hasAlt Is Alt key enabled
+     * @param {boolean} hasShift Is Shift key enabled
+     * @param {string} key The key that's pressed
+     * @return {string} The normalized key descriptor
      */
     function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key) {
         if (!key) {
             console.log("KeyMap _buildKeyDescriptor() - No key provided!");
-            return "";
-        }
-        key = key.trim().toUpperCase();
-        if (key.length === 0) {
-            console.log("KeyMap _buildKeyDescriptor() - Empty key passed in!");
             return "";
         }
         
@@ -42,6 +42,7 @@ define(function (require, exports, module) {
      * @private
      * normalizes the incoming key descriptor so the modifier keys are always specified in the correct order
      * @param {string} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
+     * @return {string} The normalized key descriptor
      */
     function _normalizeKeyDescriptorString(origDescriptor) {
         var hasCtrl = false,
@@ -78,7 +79,7 @@ define(function (require, exports, module) {
             } else if (key.length > 0) {
                 console.log("KeyMap _normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
             } else {
-                key = ele.trim();
+                key = ele;
             }
         });
         
@@ -88,7 +89,8 @@ define(function (require, exports, module) {
     /**
      * @private
      * normalizes the incoming map so all the key descriptors are specified the correct way
-     * @param {map} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
+     * @param {map} map The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
+     * @return {map} The normalized map
      */
     function _normalizeMap(map) {
         var finalMap = {};
@@ -115,8 +117,8 @@ define(function (require, exports, module) {
      * @private
      * given a list of bindings, goes through and turns them into a map. The list is filter based 
      * on platform, so if I binding has no specific platform or needs to match the given platform
-     * @param {bindings} A list of binding objects
-     * @param {platform} The platform to fitler on
+     * @param [{bindings}] bindings A list of binding objects
+     * @param {string} platform The platform to filter on
      */
     function _bindingsToMap(bindings, platform) {
         var map = {};
