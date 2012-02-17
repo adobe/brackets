@@ -3759,6 +3759,7 @@ CSSParser.prototype = {
 
   parseStyleRule: function(aToken, aOwner, aIsInsideMediaRule)
   {
+    var offsetStart = this.mScanner.mPos - aToken.value.length;
     var currentLine = CountLF(this.mScanner.getAlreadyScanned());
     this.preserveState();
     // first let's see if we have a selector here...
@@ -3804,6 +3805,8 @@ CSSParser.prototype = {
       else
         rule.parentStyleSheet = aOwner;
       aOwner.cssRules.push(rule);
+      rule.offsetStart = offsetStart;
+      rule.offsetEnd = this.mScanner.mPos;
       return s;
     }
     this.restoreState();
