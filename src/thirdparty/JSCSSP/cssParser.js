@@ -4200,7 +4200,6 @@ CSSParser.prototype = {
 
       else // plain style rules
       {
-        var startPos = this.mScanner - token.value.length;
         var ruleText = this.parseStyleRule(token, sheet, false);
         if (ruleText)
           foundStyleRules = true;
