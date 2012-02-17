@@ -24,6 +24,7 @@ define(function (require, exports, module) {
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
     require("spec/KeyMap-test.js");
+    require("spec/CodeHintUtils-test.js");
 
     // Clean up preferencesKey
     $(window).unload(function () {
