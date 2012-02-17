@@ -123,13 +123,22 @@ define(function (require, exports, module) {
     NativeFileSystem.Entry = function (fullPath, isDirectory) {
         this.isDirectory = isDirectory;
         this.isFile = !isDirectory;
+        
+        if (fullPath) {
+            // add trailing "/" to directory paths
+            if (isDirectory && (fullPath.charAt(fullPath.length - 1) !== '/')) {
+                fullPath = fullPath.concat("/");
+            }
+        }
+        
         this.fullPath = fullPath;
 
-        // Extract name from fullPath
         this.name = null; // default if extraction fails
         if (fullPath) {
             var pathParts = fullPath.split("/");
-            if (pathParts.length > 0) {
+            
+            // Extract name from the end of the fullPath (account for trailing slash(es))
+            while (!this.name && pathParts.length) {
                 this.name = pathParts.pop();
             }
         }
@@ -460,7 +469,7 @@ define(function (require, exports, module) {
         // resolve relative paths relative to the DirectoryEntry
         // most absolute paths have a leading slash except Windows which has a drive letter followed by :/
         if (path.charAt(0) !== '/' && path.charAt(1) !== ":") {
-            fileFullPath = this.fullPath + "/" + path;
+            fileFullPath = this.fullPath + path;
         }
 
         var createFileEntry = function () {
@@ -576,7 +585,7 @@ define(function (require, exports, module) {
                     d = new $.Deferred();
                     d.done(genAddToEntriesArrayFunction(i));
                     deferreds.push(d);
-                    statEntry(rootPath + "/" + filelist[i], d);
+                    statEntry(rootPath + filelist[i], d);
                 }
 
                 // FIXME (issue #213): -- once we have an async library, it would be good
