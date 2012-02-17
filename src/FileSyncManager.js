@@ -117,7 +117,6 @@ define(function (require, exports, module) {
     
     /**
      * Reloads the Document's contents from disk, discarding any unsaved changes in the editor.
-     * TODO: move this into FileCommandHandlers as the impl of a Revert command?
      *
      * @param {!Document} doc
      * @return {$.Deferred} Resolved after editor has been refreshed; rejected if unable to load the
@@ -171,7 +170,6 @@ define(function (require, exports, module) {
     function closeDeletedDocs() {
         toClose.forEach(function (doc) {
             DocumentManager.closeDocument(doc);
-            // TODO: remove from file tree view also
         });
     }
     
@@ -295,11 +293,6 @@ define(function (require, exports, module) {
         //  4) Prompt about any editors that are dirty (if file changed/deleted on disk)
         // Each phase fully completes (asynchronously) before the next one begins.
         
-        // TODO: like most of our file operations, this is probably full of race conditions where
-        // the user can go into the UI and break our state while we're still in mid-operation. We
-        // need a way to block user input while this is going on, at least in the browser-hosted
-        // version where APIs are truly async.
-
         // 1) Check for external modifications
         var allDocs = DocumentManager.getAllOpenDocuments();
         
