@@ -469,7 +469,7 @@ define(function (require, exports, module) {
         // resolve relative paths relative to the DirectoryEntry
         // most absolute paths have a leading slash except Windows which has a drive letter followed by :/
         if (path.charAt(0) !== '/' && path.charAt(1) !== ":") {
-            fileFullPath = this.fullPath + "/" + path;
+            fileFullPath = this.fullPath + path;
         }
 
         var createFileEntry = function () {
