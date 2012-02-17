@@ -10,9 +10,10 @@
  * creating and updating the project tree when projects are opened and when changes occur to
  * the file tree.
  *
- * This module dispatches 1 event:
+ * This module dispatches these events:
  *    - initializeComplete -- When the ProjectManager initializes the first 
  *                            project at application start-up.
+ *    - projectRootChanged -- when _projectRoot changes
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -401,6 +402,9 @@ define(function (require, exports, module) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function (rootEntry) {
+                    var projectRootChanged = (!_projectRoot || !rootEntry) 
+                        || _projectRoot.fullPath !== rootEntry.fullPath;
+
                     // Success!
                     _projectRoot = rootEntry;
 
@@ -414,6 +418,10 @@ define(function (require, exports, module) {
 
                         if (isFirstProjectOpen) {
                             $(exports).triggerHandler("initializeComplete", _projectRoot);
+                        }
+
+                        if(projectRootChanged) {
+                            $(exports).triggerHandler("projectRootChanged", _projectRoot);
                         }
                     });
                     resultRenderTree.fail(function () {
