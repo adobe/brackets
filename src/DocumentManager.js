@@ -577,31 +577,29 @@ define(function (require, exports, module) {
         // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
         //                 e.g. A file to restore no longer exists. Should we silently ignore
         //                 it or let the user be notified when they attempt to open the Document?
-        var result = (function () {
-            function checkOneFile(value, index) {
-                var result = new $.Deferred();
-                
-                // check if the file still exists (not an error if it doesn't, though)
-                projectRoot.getFile(value.file, {},
-                    function (fileEntry) {
-                        // maintain original sequence
-                        filesToOpen[index] = fileEntry;
+        function checkOneFile(value, index) {
+            var oneFileResult = new $.Deferred();
+            
+            // check if the file still exists (not an error if it doesn't, though)
+            projectRoot.getFile(value.file, {},
+                function (fileEntry) {
+                    // maintain original sequence
+                    filesToOpen[index] = fileEntry;
 
-                        if (value.active) {
-                            activeFile = fileEntry;
-                        }
-                        result.resolve();
-                    },
-                    function (error) {
-                        filesToOpen[index] = null;
-                        result.resolve();
-                    });
-                
-                return result;
-            }
+                    if (value.active) {
+                        activeFile = fileEntry;
+                    }
+                    oneFileResult.resolve();
+                },
+                function (error) {
+                    filesToOpen[index] = null;
+                    oneFileResult.resolve();
+                });
+            
+            return oneFileResult;
+        }
 
-            return Async.doInParallel(prefs.files, checkOneFile, false);
-        }());
+        var result = Async.doInParallel(prefs.files, checkOneFile, false);
 
         result.done(function () {
             var activeDoc,
