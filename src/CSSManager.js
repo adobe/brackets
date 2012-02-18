@@ -104,11 +104,9 @@ define(function (require, exports, module) {
      * Read CSS rules from a file
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
-        var result = new $.Deferred();
-        var textResult = DocumentManager.readAsText(fileEntry);
-        
-        // DEBUG
-        var self = this;
+        var result = new $.Deferred(),
+            textResult = DocumentManager.readAsText(fileEntry),
+            self = this;
         
         textResult.done(function (text) {
             var parser = new CSSParser(),
