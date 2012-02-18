@@ -77,18 +77,15 @@ define(function (require, exports, module) {
     // Adapted from Slick.Finder.js
     function matchNode(selector, tagInfo) {
         // simple (single) selectors
-        var expressions = selector.expressions,
-            simpleExpCounter = 0,
-            i;
-        
-        return expressions.some(function (currentExpression) {
+        return selector.expressions.some(function (currentExpression) {
             if (currentExpression.length === 1) {
                 var exp = currentExpression[0];
                 if (matchSelector(tagInfo, exp.tag, exp.id, exp.classes, exp.attributes, exp.pseudos)) {
                     return true;
                 }
-                simpleExpCounter++;
             }
+            
+            return false;
         });
     }
     
