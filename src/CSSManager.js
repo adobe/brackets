@@ -19,6 +19,8 @@ define(function (require, exports, module) {
     // Adapted from Slick.Finder.js to work without a DOM tree
     function matchSelector(tagInfo, tag, id, classes, attributes, pseudos) {
         if (tag) {
+            tag = tag.toLowerCase();
+            
             var nodeName = tagInfo.tag.toLowerCase();
             if (tag === '*') {
                 if (nodeName < '@') {
@@ -31,16 +33,28 @@ define(function (require, exports, module) {
             }
         }
     
-        if (id && tagInfo.id !== id) {
-            return false;
+        // Case-insensitive ID match
+        // https://developer.mozilla.org/en/Case_Sensitivity_in_class_and_id_Names
+        if (id) {
+            if (!tagInfo.id) {
+                return false;
+            } else if (tagInfo.id.toLowerCase() !== id.toLowerCase()) {
+                return false;
+            }
         }
     
         var part, cls;
         if (classes) {
+            // if the selector has classes, return true if the tagInfo
+            // uses a matching class
             var matchingClass = classes.some(function (cls, i) {
-                if ((tagInfo.clazz && cls.regexp.test(tagInfo.clazz))) {
-                    return true;
+                // Class names are case insensitive. Fix the RegExp flags.
+                // https://developer.mozilla.org/en/Case_Sensitivity_in_class_and_id_Names
+                if (!cls.regexp.ignoreCase) {
+                    cls.regexp = new RegExp(cls.regexp.source, "i");
                 }
+                
+                return ((tagInfo.clazz && cls.regexp.test(tagInfo.clazz.toLowerCase())));
             });
             
             if (!matchingClass) {
@@ -101,7 +115,7 @@ define(function (require, exports, module) {
         
         textResult.done(function (text) {
             var parser = new CSSParser(),
-                sheet = parser.parse(text.toLowerCase(), false, true),
+                sheet = parser.parse(text, false, true),
                 styleRules = [],
                 selector = null;
             
