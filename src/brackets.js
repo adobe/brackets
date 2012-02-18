@@ -32,10 +32,11 @@ define(function (require, exports, module) {
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
         FileSyncManager         = require("FileSyncManager"),
-        KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
-        KeyMap                  = require("KeyBindingManager").KeyMap,
+        KeyBindingManager       = require("KeyBindingManager"),
+        KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
-        CommandManager          = require("CommandManager");
+        CommandManager          = require("CommandManager"),
+        PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -78,9 +79,7 @@ define(function (require, exports, module) {
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
-    brackets.isWin = (global.navigator.userAgent.indexOf("Windows") !== -1);
-    brackets.isMac = !brackets.isWin;
-    
+    brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
@@ -127,6 +126,10 @@ define(function (require, exports, module) {
         // Pipe dialog-closing notification back to client code
         dlg.one("hidden", function () {
             var buttonId = dlg.data("buttonId");
+            if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
+                buttonId = brackets.DIALOG_BTN_CANCEL;
+            }
+            
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
@@ -213,7 +216,6 @@ define(function (require, exports, module) {
 
     // Main Brackets initialization
     $(document).ready(function () {
-
         var _enableJSLint = true;
         
         function initListeners() {
@@ -372,6 +374,59 @@ define(function (require, exports, module) {
                 runJSLint();
                 $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
             });
+            
+            $("#menu-debug-show-perf").click(function () {
+                var perfHeader = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h3 class='dialog-title'>Performance Data</h3>");
+                
+                var perfBody = $("<div class='modal-body' style='padding: 0' />");
+
+                var data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+                    .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
+                    .append("<tbody />")
+                    .appendTo(perfBody);
+                
+                var makeCell = function (content) {
+                    return $("<td/>").text(content);
+                };
+                
+                var getValue = function (entry) {
+                    // entry is either an Array or a number
+                    // If it is an Array, return the average value
+                    if (Array.isArray(entry)) {
+                        var i, sum = 0;
+                        
+                        for (i = 0; i < entry.length; i++) {
+                            sum += entry[i];
+                        }
+                        return String(Math.floor(sum / entry.length)) + " (avg)";
+                    } else {
+                        return entry;
+                    }
+                };
+                    
+                var testName;
+                var perfData = PerfUtils.perfData;
+                for (testName in perfData) {
+                    if (perfData.hasOwnProperty(testName)) {
+                        // Add row to error table
+                        var row = $("<tr/>")
+                            .append(makeCell(testName))
+                            .append(makeCell(getValue(perfData[testName])))
+                            .appendTo(data);
+                    }
+                }
+                                                             
+                var perfDlog = $("<div class='modal hide' />")
+                    .append(perfHeader)
+                    .append(perfBody)
+                    .appendTo(document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    });
+            });
         }
 
         function initCommandHandlers() {
@@ -381,26 +436,20 @@ define(function (require, exports, module) {
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
             // TODO: (issue #268) show keyboard equivalents in the menus
-            var _globalKeymap = new KeyMap({
-                "Ctrl-O": Commands.FILE_OPEN,
-                "Ctrl-S": Commands.FILE_SAVE,
-                "Ctrl-W": Commands.FILE_CLOSE
+            var _globalKeymap = KeyMap.create({
+                "bindings": [
+                    {"Ctrl-O": Commands.FILE_OPEN},
+                    {"Ctrl-S": Commands.FILE_SAVE},
+                    {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
+                    {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
+                ],
+                "platform": brackets.platform
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
             $(document.body).keydown(function (event) {
-                var keyDescriptor = [];
-                if (event.metaKey || event.ctrlKey) {
-                    keyDescriptor.push("Ctrl");
-                }
-                if (event.altKey) {
-                    keyDescriptor.push("Alt");
-                }
-                if (event.shiftKey) {
-                    keyDescriptor.push("Shift");
-                }
-                keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
-                if (KeyBindingManager.handleKey(keyDescriptor.join("-"))) {
+                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
                     event.preventDefault();
                 }
             });
@@ -440,6 +489,8 @@ define(function (require, exports, module) {
                 runJSLint();
             }
         });
+        
+        PerfUtils.addMeasurement("Application Startup");
     });
     
 });
