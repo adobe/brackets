@@ -251,6 +251,13 @@ define(function (require, exports, module) {
                 $(exports).trigger("onUpdate", {editor: editor});
             });
 
+            // track changed documents
+            $(exports).on("onChange", function onChange() {
+                var doc = DocumentManager.getCurrentDocument();
+                if (doc) doc._handleEditorChange();
+            });
+
+
             result.resolve(editor, readTimestamp, text);
         });
         reader.fail(function (error) {

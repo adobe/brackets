@@ -407,7 +407,6 @@ define(function (require, exports, module) {
         this.diskTimestamp = initialTimestamp;
         
         // Dirty-bit tracking
-        $(editor).on("onChange", this._handleEditorChange.bind(this));
         this.isDirty = false;
         
         // Sniff line-ending style
