@@ -227,28 +227,28 @@ define(function (require, exports, module) {
 
             // Attach the event handlers
             editor.setOption("onChange", function onChange(editor, change) {
-                $(exports).trigger("onChange", {editor: editor, change: change});
+                $(exports).triggerHandler("onChange", {editor: editor, change: change});
             });
             editor.setOption("onCursorActivity", function onCursorActivity(editor) {
-                $(exports).trigger("onCursorActivity", {editor: editor});
+                $(exports).triggerHandler("onCursorActivity", {editor: editor});
             });
             editor.setOption("onGutterClick", function onGutterClick(editor, lineNumber) {
-                $(exports).trigger("onGutterClick", {editor: editor, lineNumber: lineNumber});
+                $(exports).triggerHandler("onGutterClick", {editor: editor, lineNumber: lineNumber});
             });
             editor.setOption("onFocus", function onFocus(editor) {
-                $(exports).trigger("onFocus", {editor: editor});
+                $(exports).triggerHandler("onFocus", {editor: editor});
             });
             editor.setOption("onBlur", function onBlur(editor) {
-                $(exports).trigger("onBlur", {editor: editor});
+                $(exports).triggerHandler("onBlur", {editor: editor});
             });
             editor.setOption("onScroll", function onScroll(editor) {
-                $(exports).trigger("onScroll", {editor: editor});
+                $(exports).triggerHandler("onScroll", {editor: editor});
             });
             editor.setOption("onHighlightComplete", function onHighlightComplete(editor) {
-                $(exports).trigger("onHighlightComplete", {editor: editor});
+                $(exports).triggerHandler("onHighlightComplete", {editor: editor});
             });
             editor.setOption("onUpdate", function onUpdate(editor) {
-                $(exports).trigger("onUpdate", {editor: editor});
+                $(exports).triggerHandler("onUpdate", {editor: editor});
             });
 
             // track changed documents
