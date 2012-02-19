@@ -81,7 +81,7 @@ define(function (require, exports, module) {
      * @return {LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
      */
     function getPlatformLineEndings() {
-        return brackets.isWin ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
+        return brackets.platform === "win" ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
     }
     
     /**

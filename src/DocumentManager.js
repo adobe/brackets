@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         PreferencesManager  = require("PreferencesManager"),
         EditorUtils         = require("EditorUtils"),
         CommandManager      = require("CommandManager"),
+        Async               = require("Async"),
         Commands            = require("Commands");
 
     /**
@@ -79,7 +80,7 @@ define(function (require, exports, module) {
      */
     function getWorkingSet() {
         return _workingSet;
-        // TODO: return a clone to prevent meddling?
+        // TODO: (issue #297) return a clone to prevent meddling?
     }
 
     /** 
@@ -173,14 +174,11 @@ define(function (require, exports, module) {
     /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
      * editing" means either the file is in the working set, and/or the file is currently open in
      * the editor UI.
-     * @param {!fullPath}
+     * @param {!string} fullPath
      * @return {?Document}
     */
     function getDocumentForPath(fullPath) {
-        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-
         return getDocumentForFile(fileEntry);
     }
 
@@ -284,9 +282,6 @@ define(function (require, exports, module) {
      * unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        // TODO: could be more efficient by clearing working set in bulk instead of via
-        // individual notifications, and ensuring we don't switch editors while closing...
-        
         var allDocs = getAllOpenDocuments();
         
         allDocs.forEach(closeDocument);
@@ -372,8 +367,6 @@ define(function (require, exports, module) {
      *
      * The editor may be null in the case that the document working set was
      * restored from storage but an editor was not yet created.
-     * TODO: we should close on whether private fields are declared on the prototype like this (vs.
-     * just set in the constructor).
      * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
@@ -511,17 +504,14 @@ define(function (require, exports, module) {
         this._markClean();
         $(exports).triggerHandler("documentSaved", this);
         
-        // TODO: this introduces two race conditions: (a) if user leaves app & returns before this
-        // async op finishes, we'll think file was modified externally when it wasn't; (b) if ext
-        // app overwrites file in between when we saved and when this op finishes, we'll miss the
-        // fact that it was modified externally
+        // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
         this.file.getMetadata(
             function (metadata) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
             },
             function (error) {
-                console.log("Error updating timestamp after saving file: " + this.file.fullPath);
+                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
             }
         );
     };
@@ -572,43 +562,30 @@ define(function (require, exports, module) {
             activeFile;
 
         // in parallel, check if files exist
-        // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
-        //                 e.g. A file to restore no longer exists. Should we silently ignore
-        //                 it or let the user be notified when they attempt to open the Document?
-        var result = (function () {
-            var deferred        = new $.Deferred();
-            var fileCount       = prefs.files.length,
-                responseCount   = 0;
+        // TODO: (issue #298) delay this check until it becomes the current document?
+        function checkOneFile(value, index) {
+            var oneFileResult = new $.Deferred();
+            
+            // check if the file still exists (not an error if it doesn't, though)
+            projectRoot.getFile(value.file, {},
+                function (fileEntry) {
+                    // maintain original sequence
+                    filesToOpen[index] = fileEntry;
 
-            function next() {
-                responseCount++;
+                    if (value.active) {
+                        activeFile = fileEntry;
+                    }
+                    oneFileResult.resolve();
+                },
+                function (error) {
+                    filesToOpen[index] = null;
+                    oneFileResult.resolve();
+                });
+            
+            return oneFileResult;
+        }
 
-                if (responseCount === fileCount) {
-                    deferred.resolve();
-                }
-            }
-
-            prefs.files.forEach(function (value, index) {
-                // check if the file still exists
-                projectRoot.getFile(value.file, {},
-                    function (fileEntry) {
-                        // maintain original sequence
-                        filesToOpen[index] = fileEntry;
-
-                        if (value.active) {
-                            activeFile = fileEntry;
-                        }
-
-                        next();
-                    },
-                    function (error) {
-                        filesToOpen[index] = null;
-                        next();
-                    });
-            });
-
-            return deferred;
-        }());
+        var result = Async.doInParallel(prefs.files, checkOneFile, false);
 
         result.done(function () {
             var activeDoc,
