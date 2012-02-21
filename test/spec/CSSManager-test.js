@@ -17,18 +17,25 @@ define(function (require, exports, module) {
         universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css");
     
     // jasmine matcher for sprint 4 selector matching
-    var toMatchLastSelectorElement = function (expected) {
+    var toMatchLastSelectorElement = function (expected, selectorIndex) {
         var info    = this.actual,
             ruleset = this.actual.ruleset;
         
         if (ruleset) {
-            var selectorCount   = ruleset.selectors.length;
+            var selector,
+                selectorCount   = ruleset.selectors.length;
             
-            if (selectorCount) {
-                var selector = ruleset.selectors[selectorCount - 1],
-                    elementCount = selector.elements.length;
+            if (selectorIndex !== undefined) {
+                selector = ruleset.selectors[selectorIndex];
+            } else if (selectorCount) {
+                selector = ruleset.selectors[selectorCount - 1];
+            }
+            
+            if (selector) {
+                var elementCount = selector.elements.length;
                 
                 if (elementCount) {
+                    // match the last selector element
                     return selector.elements[elementCount - 1].value === expected;
                 }
             }
@@ -168,5 +175,47 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("findMatchingRules() with selector grouping", function () {
+        
+            beforeEach(function () {
+                var groupsFile = new NativeFileSystem.FileEntry(testPath + "/groups.css");
+                init(this, groupsFile);
+            });
+            
+            it("should match a selector in any position of a group", function () {
+                var matches = this.cssManager.findMatchingRules("h1");
+                
+                expect(matches.length).toEqual(4);
+                expect(matches[0]).toMatchLastSelectorElement("h1", 0);
+                expect(matches[1]).toMatchLastSelectorElement("h1", 1);
+                expect(matches[2]).toMatchLastSelectorElement("h1", 0);
+                expect(matches[3]).toMatchLastSelectorElement("h1", 2);
+            });
+        });
+        
+        describe("findMatchingRules() with sprint 4 exemptions", function () {
+        
+            beforeEach(function () {
+                var sprint4exemptions = new NativeFileSystem.FileEntry(testPath + "/sprint4.css");
+                init(this, sprint4exemptions);
+            });
+            
+            it("should match a class selector (right-most only, no pseudo or attr selectors)", function () {
+                var matches = this.cssManager.findMatchingRules(".message");
+                
+                expect(matches.length).toEqual(4);
+                expect(matches[0]).toMatchLastSelectorElement(".message", 0);
+                expect(matches[1]).toMatchLastSelectorElement(".message", 0);
+                expect(matches[2]).toMatchLastSelectorElement(".message", 0);
+                expect(matches[3]).toMatchLastSelectorElement(".message", 1);
+            });
+            
+            it("should match a type selector (right-most only, no pseudo or attr selectors)", function () {
+                var matches = this.cssManager.findMatchingRules("h4");
+                
+                expect(matches.length).toEqual(1);
+                expect(matches[0]).toMatchLastSelectorElement("H4", 0);
+            });
+        });
     });
 });

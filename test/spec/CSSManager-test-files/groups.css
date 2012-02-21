@@ -1,0 +1,23 @@
+h1, h2, h3 {
+    color: "red";
+}
+
+h3, h1, h2 {
+    color: "green";
+}
+
+h1 {
+    color: "orange";
+}
+
+h3, h2, h1 {
+    color: "yellow";
+}
+
+h2 {
+    color: "white";
+}
+
+h3 {
+    color: "black";
+}

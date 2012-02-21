@@ -1,0 +1,47 @@
+div.message {   
+    font-size: 12pt;
+}
+
+footer .message { 
+    color: #888;
+}
+
+footer div.message {
+    color: #888;
+}
+
+h2, h2.message, h3 { 
+    color: #888;
+}
+
+footer .message #text { /* .message is not the rightmost simple selector */
+    color: #369;
+}
+
+.message:hover {  /* pseudo-selectors are not supported */
+    color: #963;
+}
+
+.message[data-attr='42'] { /* attribute selectors are not supported */
+    color: #AAA;
+}
+
+.sublist H4 {
+    color: #111;
+}
+
+h4 .description { /* h3 is not the rightmost simple selector */
+    color: #222;
+}
+
+h4#sidebar { /* Has an ID selector */
+    color: #888;
+}
+
+h4[data-attr='42'] { /* Has an attribute selector */
+    color: #369;
+}
+
+h4:first-child { /* Has a pseudo-selector */
+    font-size: 20pt;
+}
