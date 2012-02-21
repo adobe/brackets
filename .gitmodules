@@ -7,6 +7,3 @@
 [submodule "src/thirdparty/jslint"]
 	path = src/thirdparty/jslint
 	url = git@github.com:douglascrockford/JSLint.git
-[submodule "src/thirdparty/slick"]
-	path = src/thirdparty/slick
-	url = https://github.com/mootools/slick.git
