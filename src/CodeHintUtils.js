@@ -31,6 +31,15 @@ define(function (require, exports, module) {
         };
     }
     
+    function _isQuotedString(string) {
+        if (string.length < 2) {
+            return false;
+        }
+        var endChar = string.charAt(string.length - 1);
+        return ((endChar === "'" || endChar === '"') &&
+                endChar === string.charAt(0));
+    }
+    
     /**
      * If a token is in an attribute value, it returns the attribute name.
      * If it's not in an attribute value it returns an empty string.
@@ -47,6 +56,12 @@ define(function (require, exports, module) {
      */
     function getAttrNameForValueHint(editor, pos) {
         var state = _getInitialState(editor, pos);
+        
+        //Initial state should start off inside the attr value. If the value is
+        //completely quoted, then don't hint it
+        if (_isQuotedString(state.token.string)) {
+            return "";
+        }
         
         //Move to the prev token, and check if it's "="
         if (!_movePrevToken(state)) {

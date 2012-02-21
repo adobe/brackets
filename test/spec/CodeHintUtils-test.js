@@ -26,6 +26,17 @@ define(function (require, exports, module) {
         myCodeMirror = null;
     });
     
+    function getContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
+        pos.line = linesBefore.length;
+        pos.ch = hintLineBefore.length;
+        var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
+        var finalLines = linesBefore.concat([finalHintLine]);
+        if (linesAfter) {
+            finalLines = finalLines.concat(linesAfter);
+        }
+        return finalLines.join("\n");
+    }
+    
     describe("CodeHintUtils", function () {
         
         describe("Html Hinting", function () {
@@ -42,27 +53,48 @@ define(function (require, exports, module) {
             });
             
             it("it should find an attribute as a tag is getting typed", function () {
-                var content = '<html><body><p class="';
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class="');
+                
                 myCodeMirror.setValue(content);
-                var pos = {"ch": content.length, "line": 0};
                 var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
                 expect(attrName).toEqual("class");
             });
             
             it("it should find an attribute as it's added to a tag", function () {
-                var content = '<html><body><div class="clearfix"><p id="';
-                var contentAfter = '></p></div></body></html>';
-                myCodeMirror.setValue(content + contentAfter);
-                var pos = {"ch": content.length, "line": 0};
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p id="', '>test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
                 var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
                 expect(attrName).toEqual("id");
             });
             
             it("it should not find an attribute as text is added", function () {
-                var content = '<html><body><p id="foo">tricky="';
-                var contentAfter = '</p></body></html>';
-                myCodeMirror.setValue(content + contentAfter);
-                var pos = {"ch": content.length, "line": 0};
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p id="foo">tricky="', '</p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
+                expect(attrName).toEqual("");
+            });
+            
+            it("it should not find an attribute when the end quote of the value is entered", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class="foo"', '></p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
                 var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
                 expect(attrName).toEqual("");
             });
