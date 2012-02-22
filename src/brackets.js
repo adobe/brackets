@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager");
+        CodeHintManager         = require("CodeHintManager"),
+        PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -126,6 +127,10 @@ define(function (require, exports, module) {
         // Pipe dialog-closing notification back to client code
         dlg.one("hidden", function () {
             var buttonId = dlg.data("buttonId");
+            if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
+                buttonId = brackets.DIALOG_BTN_CANCEL;
+            }
+            
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
@@ -212,7 +217,6 @@ define(function (require, exports, module) {
 
     // Main Brackets initialization
     $(document).ready(function () {
-
         var _enableJSLint = true;
         
         function initListeners() {
@@ -371,6 +375,59 @@ define(function (require, exports, module) {
                 runJSLint();
                 $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
             });
+            
+            $("#menu-debug-show-perf").click(function () {
+                var perfHeader = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h3 class='dialog-title'>Performance Data</h3>");
+                
+                var perfBody = $("<div class='modal-body' style='padding: 0' />");
+
+                var data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+                    .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
+                    .append("<tbody />")
+                    .appendTo(perfBody);
+                
+                var makeCell = function (content) {
+                    return $("<td/>").text(content);
+                };
+                
+                var getValue = function (entry) {
+                    // entry is either an Array or a number
+                    // If it is an Array, return the average value
+                    if (Array.isArray(entry)) {
+                        var i, sum = 0;
+                        
+                        for (i = 0; i < entry.length; i++) {
+                            sum += entry[i];
+                        }
+                        return String(Math.floor(sum / entry.length)) + " (avg)";
+                    } else {
+                        return entry;
+                    }
+                };
+                    
+                var testName;
+                var perfData = PerfUtils.perfData;
+                for (testName in perfData) {
+                    if (perfData.hasOwnProperty(testName)) {
+                        // Add row to error table
+                        var row = $("<tr/>")
+                            .append(makeCell(testName))
+                            .append(makeCell(getValue(perfData[testName])))
+                            .appendTo(data);
+                    }
+                }
+                                                             
+                var perfDlog = $("<div class='modal hide' />")
+                    .append(perfHeader)
+                    .append(perfBody)
+                    .appendTo(document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    });
+            });
         }
 
         function initCommandHandlers() {
@@ -433,6 +490,8 @@ define(function (require, exports, module) {
                 runJSLint();
             }
         });
+        
+        PerfUtils.addMeasurement("Application Startup");
     });
     
 });

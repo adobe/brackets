@@ -169,6 +169,7 @@ define(function (require, exports, module) {
                 electricChars: false,
                 indentUnit : 4,
                 lineNumbers: true,
+                matchBrackets: true,
                 extraKeys: {
                     "Tab"  : _handleTabKey,
                     "Left" : function (instance) {
