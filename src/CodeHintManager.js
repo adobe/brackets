@@ -12,38 +12,51 @@ define(function (require, exports, module) {
     var CodeHintUtils   = require("CodeHintUtils"),
         EditorManager   = require("EditorManager");
     
-    function _triggerClassHint(editor, pos) {
-        console.log("_triggerClassHint called");
+    /**
+     * @private
+     * Test functions to see if the hinting is working
+     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     */
+    function _triggerClassHint(editor, pos, tagInfo) {
+        console.log("_triggerClassHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
-    function _triggerIdHint(editor, pos) {
-        console.log("_triggerIdHint called");
+    function _triggerIdHint(editor, pos, tagInfo) {
+        console.log("_triggerIdHint called called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
+    /**
+     * @private
+     * Checks to see if this is an attribute value we can hint
+     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     */
     function _checkForAttributeValueHint(editor) {
         var pos = editor.getCursor();
-        var attrName = CodeHintUtils.getAttrNameForValueHint(editor, pos);
-        if (attrName === "class") {
-            _triggerClassHint(editor, pos);
-        } else if (attrName === "id") {
-            _triggerIdHint(editor, pos);
+        var tagInfo = CodeHintUtils.getTagInfoForValueHint(editor, pos);
+        if (tagInfo.attr.name === "class") {
+            _triggerClassHint(editor, pos, tagInfo);
+        } else if (tagInfo.attr.name === "id") {
+            _triggerIdHint(editor, pos, tagInfo);
         }
     }
     
+    /**
+     * @private
+     * Called whenever a CodeMirror editor gets a key event
+     * @param {object} event the jQuery event for onKeyEvent
+     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     * @param {object} keyboardEvent  the raw keyboard event that CM is handling
+     */
     function _onKeyEvent(event, editor, keyboardEvent) {
         if (keyboardEvent.type !== "keypress") {
             return;
         }
         var char = String.fromCharCode(keyboardEvent.charCode);
-        if (char === "'" || char === '"') {
-            //this is a quote char, check for a code hint after it's entered
-            setTimeout(function () { _checkForAttributeValueHint(editor); }, 40);
-        }
+        setTimeout(function () { _checkForAttributeValueHint(editor); }, 40);
     }
     
      // Register our listeners
     $(EditorManager).on("onKeyEvent", _onKeyEvent);
     
     // Define public API
-    //exports.getAttrNameForValueHint = getAttrNameForValueHint;
 });

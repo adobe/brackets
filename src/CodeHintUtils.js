@@ -8,6 +8,12 @@
 define(function (require, exports, module) {
     'use strict';
     
+    /**
+     * @private
+     * moves the current state backwards by one token
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} state
+     * @return {boolean} whether the state changed
+     */
     function _movePrevToken(state) {
         if (state.pos.ch === 0 || state.token.start === 0) {
             //move up a line
@@ -22,7 +28,14 @@ define(function (require, exports, module) {
         state.token = state.editor.getTokenAt(state.pos);
         return true;
     }
-    
+
+   /**
+     * @private
+     * creates a state object
+     * @param {CodeMirror} editor
+     * @param {{ch:{string}, line:{number}} pos
+     * @return {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}
+     */
     function _getInitialState(editor, pos) {
         return {
             "editor": editor,
@@ -30,14 +43,62 @@ define(function (require, exports, module) {
             "token": editor.getTokenAt(pos)
         };
     }
-    
-    function _isQuotedString(string) {
-        if (string.length < 2) {
-            return false;
+ 
+   /**
+     * @private
+     * Sometimes as attr values are getting typed, if the quotes aren't balanced yet
+     * some extra 'non attribute value' text gets included in the token. This attempts
+     * to assure the attribute value we grab is always good
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} state
+     * @return {string}
+     */
+    function _extractAttrVal(state) {
+        var attrValue = state.token.string;
+        var startChar = attrValue.charAt(0);
+        var endChar = attrValue.charAt(attrValue.length - 1);
+        
+        //If this is a fully quoted value, return the whole
+        //thing regardless of position
+        if (attrValue.length > 1 &&
+                (startChar === "'" || startChar === '"') &&
+                endChar === startChar) {
+            //strip the quotes and return;
+            return attrValue.substring(1, attrValue.length - 1);
         }
-        var endChar = string.charAt(string.length - 1);
-        return ((endChar === "'" || endChar === '"') &&
-                endChar === string.charAt(0));
+        
+        //The att value it getting edit in progress. There is possible extra
+        //stuff in this token state since the quote isn't closed, so we assume
+        //the stuff from the quote to the current pos is definitely in the attribute 
+        //value.
+        var posInTokenStr = state.pos.ch - state.token.start;
+        if (posInTokenStr < 0) {
+            console.log("CodeHintUtils: _extractAttrVal - Invalid state: the pos what not in the current token!");
+        } else {
+            attrValue = attrValue.substring(0, posInTokenStr);
+        }
+        
+        //If the attrValue start with a quote, trim that now
+        startChar = attrValue.charAt(0);
+        if (startChar === "'" || startChar === '"') {
+            attrValue = attrValue.substring(1);
+        }
+        
+        return attrValue;
+    }
+    
+    /**
+     * Creates a tagInfo object and assures all the values are entered or are empty strings
+     * @param {string} tagName The name of the tag
+     * @param {string} attrName The name of the attribute
+     * @param {string} attrValue The value of the attribute
+     * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
+     *              about the current tag hint. 
+     */
+    function createTagInfo(tagName, attrName, attrValue) {
+        return { tagName: (tagName || ""),
+                attr:
+                    { name: attrName || "",
+                     value: attrValue || ""} };
     }
     
     /**
@@ -52,38 +113,48 @@ define(function (require, exports, module) {
      *      className:tag       string:"></span>"
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      * @param {{ch: number, ling: number}} pos  A CM pos (likely from editor.getCursor())
-     * @return {string} A string with the attribute name or an empty string
+     * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
+     *              about the current tag hint. 
      */
-    function getAttrNameForValueHint(editor, pos) {
-        var state = _getInitialState(editor, pos);
+    function getTagInfoForValueHint(editor, pos) {
+        var tagName = "",
+            attrName = "",
+            attrVal = "",
+            state = _getInitialState(editor, pos);
         
-        //Initial state should start off inside the attr value. If the value is
-        //completely quoted, then don't hint it
-        if (_isQuotedString(state.token.string)) {
-            return "";
-        }
+        //Initial state should start off inside the attr value. We'll validate
+        //this as we go back
+        attrVal = _extractAttrVal(state);
         
         //Move to the prev token, and check if it's "="
         if (!_movePrevToken(state)) {
-            return "";
+            return createTagInfo();
         }
         if (state.token.string !== "=") {
-            return "";
+            return createTagInfo();
         }
         
         //Move to the prev token, and check if it's an attribute
         if (!_movePrevToken(state)) {
-            return "";
+            return createTagInfo();
         }
         if (state.token.className !== "attribute") {
-            return "";
+            return createTagInfo();
+        }
+        
+        attrName = state.token.string;
+        if (state.token.state.tagName) {
+            tagName = state.token.state.tagName; //XML mode
+        } else {
+            tagName = state.token.state.htmlState.tagName; //HTML mode
         }
  
         //We're good. 
-        return state.token.string;
+        return createTagInfo(tagName, attrName, attrVal);
     }
 
     
     // Define public API
-    exports.getAttrNameForValueHint = getAttrNameForValueHint;
+    exports.getTagInfoForValueHint = getTagInfoForValueHint;
+    exports.createTagInfo = createTagInfo;
 });

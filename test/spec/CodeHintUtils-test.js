@@ -37,6 +37,7 @@ define(function (require, exports, module) {
         return finalLines.join("\n");
     }
     
+    
     describe("CodeHintUtils", function () {
         
         describe("Html Hinting", function () {
@@ -46,24 +47,24 @@ define(function (require, exports, module) {
                 myCodeMirror.setOption("mode", "htmlmixed");
             });
     
-            it("it should not find attribute hints in an empty editor", function () {
+            it("should not find attribute hints in an empty editor", function () {
                 var pos = {"ch": 0, "line": 0};
-                var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
-                expect(attrName).toEqual("");
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
-            it("it should find an attribute as a tag is getting typed", function () {
+            it("should find an attribute as a tag is getting typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p class="');
                 
                 myCodeMirror.setValue(content);
-                var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
-                expect(attrName).toEqual("class");
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class"));
             });
             
-            it("it should find an attribute as it's added to a tag", function () {
+            it("should find an attribute as it's added to a tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
                     ['<html>', '<body>', '<div class="clearfix">'],
@@ -71,11 +72,23 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
-                expect(attrName).toEqual("id");
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id"));
             });
             
-            it("it should not find an attribute as text is added", function () {
+            it("should find an attribute as the value is typed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div class="clearfix">'],
+                    '<p id="one', '>test</p>',
+                    [ '</div>', '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id", "one"));
+            });
+            
+            it("should not find an attribute as text is added", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
@@ -83,11 +96,11 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
-                expect(attrName).toEqual("");
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
-            it("it should not find an attribute when the end quote of the value is entered", function () {
+            it("should find the attribute value if present", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
@@ -95,8 +108,20 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var attrName = CodeHintUtils.getAttrNameForValueHint(myCodeMirror, pos);
-                expect(attrName).toEqual("");
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo"));
+            });
+            
+            it("should find the full attribute as an existing value is changed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class="foo', ' bar"></p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo bar"));
             });
         });
     });
