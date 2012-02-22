@@ -23,7 +23,7 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/jslint/jslint");
-    require("thirdparty/jQuery-Smart-Auto-Complete/jquery.smart_autocomplete");
+    require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
     
     // Load dependent modules
@@ -37,10 +37,10 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
         KeyMap                  = require("KeyBindingManager").KeyMap,
         Commands                = require("Commands"),
-        CommandManager          = require("CommandManager");
+        CommandManager          = require("CommandManager"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        CommandManager          = require("CommandManager");
+        CommandManager          = require("CommandManager"),
         CommandManager          = require("CommandManager"),
         PerfUtils               = require("PerfUtils");
 
@@ -469,7 +469,7 @@ define(function (require, exports, module) {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
-                FileIndexManager.syncFileIndex();
+                FileIndexManager.markDirty();
             });
             
             $(window).unload(function () {
