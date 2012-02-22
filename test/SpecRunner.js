@@ -23,6 +23,8 @@ define(function (require, exports, module) {
     // require("spec/Editor-test.js");
     // require("spec/ProjectManager-test.js");
     // require("spec/WorkingSetView-test.js");
+    // require("spec/KeyMap-test.js");
+    require("spec/CSSManager-test.js");
     require("spec/CSS-test.js");
 
     // Clean up preferencesKey
