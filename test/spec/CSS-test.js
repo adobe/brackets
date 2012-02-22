@@ -9,31 +9,31 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+    var SpecRunnerUtils     = require("./SpecRunnerUtils.js"),
+        CSSManager          = require("../../src/CSSManager.js").CSSManager;
     
     // Test helper functions
     // tagInfo: tag, id, clazz
     function match(cssCode, tagInfo) {
-        // var mgr = new CSSManager();
-        // mgr.loadText(cssCode);
-        // if (tagInfo) {
-        //     return mgr.findMatchingRules(tagInfo);
-        // } else {
-        //     return null;
-        // }
-        return [];
+        var mgr = new CSSManager();
+        mgr.loadString(cssCode);
+        if (tagInfo) {
+            var selector = "";
+            if (tagInfo.tag)    selector += tagInfo.tag;
+            if (tagInfo.clazz)  selector += "."+tagInfo.clazz;
+            if (tagInfo.id)     selector += "#"+tagInfo.id;
+            return mgr.findMatchingRules(selector);
+            // return mgr.findMatchingRules(tagInfo);
+        } else {
+            return null;
+        }
+        // return [];
     }
     
     // Tests for CSS parsing / rule search
 
     describe("CSS Parsing", function () {
 
-        beforeEach(function () {
-        });
-    
-        afterEach(function () {
-        });
-    
         describe("Simple selectors", function () {
         
             it("should match a lone type selector given a type", function () {
@@ -88,12 +88,12 @@ define(function (require, exports, module) {
                 var css = "div { color:red } \n\
                            .foo { color:green } \n\
                            #bar { color:blue }";
-                
-                var result = match(css, { type: "div" });
+                           
+                var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match(css, { type: "foo" });
+                result = match(css, { tag: "foo" });
                 expect(result.length).toBe(0);
-                result = match(css, { type: "bar" });
+                result = match(css, { tag: "bar" });
                 expect(result.length).toBe(0);
                 
                 result = match(css, { clazz: "div" });
@@ -119,9 +119,9 @@ define(function (require, exports, module) {
                            #bar { color:blue } \n\
                            #baR { color:white }";
                            
-                var result = match(css, { type: "div" });
+                var result = match(css, { tag: "div" });
                 expect(result.length).toBe(2);
-                result = match(css, { type: "Div" });
+                result = match(css, { tag: "Div" });
                 expect(result.length).toBe(2);
                 
                 result = match(css, { clazz: "foo" });
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
                            .foo.#bar.class2 { color: cyan }";
                 // note last line: id selectors don't necessarily need to come last
                 
-                var result = match(css, { type: "div" });   // all selectors including a 'div' type selector
+                var result = match(css, { tag: "div" });   // all selectors including a 'div' type selector
                 expect(result.length).toBe(4);
                 
                 result = match(css, { clazz: "foo" });      // all selectors including a '.foo' class selector
@@ -162,6 +162,10 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(4);
             });
             
+            it("should allow searching conjunctions of type, class, and id", function () {
+                // TODO
+            });
+            
             it("should match lone '*' given any tag; else ignore", function () {
                 var css = "* { color:red } \n\
                            *.foo { color:green } \n\
@@ -169,7 +173,7 @@ define(function (require, exports, module) {
                            *.foo#bar { color:yellow }";
                 // should be treated the same as: *, .foo, #bar, .foo#bar respectively
                 
-                var result = match(css, { type: "div" });
+                var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
                 
                 result = match(css, { clazz: "foo" });
@@ -185,7 +189,7 @@ define(function (require, exports, module) {
             });
             
             it("should ignore pseudo-class selectors", function () {
-                // TODO
+                // TODO? - we don't need this for sprint 4, but does it work already anyway?
             });
             
             it("should ignore the content of strings", function () {

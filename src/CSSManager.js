@@ -37,13 +37,30 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Read CSS rules from a file
+     * Read CSS rules from a file. Asynchronous.
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
         var result = new $.Deferred(),
             textResult = DocumentManager.readAsText(fileEntry),
-            self = this,
-            rulesets = [];
+            self = this;
+                
+        textResult.done(function (text) {
+            var rulesets = self.loadString(text);
+            
+            // resolve with rules from this file
+            result.resolve(rulesets);
+        });
+        
+        return result;
+    };
+    
+    /**
+     * Read rules from a string. Synchronous.
+     * Returns the rules added as a result of this call.
+     */
+    CSSManager.prototype.loadString = function (cssText) {
+        var rulesets = [],
+            self = this;
         
         // TODO (jasonsj): handle .less vs. css
         // Use the LESS parser for both .less and .css files.
@@ -61,19 +78,16 @@ define(function (require, exports, module) {
             }
         }
         
-        textResult.done(function (text) {
-            self._parser.parse(text, function (error, root) {
-                addRuleset(root);
+        self._parser.parse(cssText, function (error, root) {
+            // TODO: handle error
             
-                // resolve with rules from this file
-                result.resolve(rulesets);
-                
-                self._rules = self._rules.concat(rulesets);
-            });
+            addRuleset(root);
+        
+            self._rules = self._rules.concat(rulesets);
         });
         
-        return result;
-    };
+        return rulesets;
+    }
     
     CSSManager.prototype.removeFile = function (fileEntry) {
     };
