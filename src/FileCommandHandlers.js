@@ -28,9 +28,9 @@ define(function (require, exports, module) {
      */
     
     /** @type {jQueryObject} Container for label shown above editor */
-    var _title;
+    var _title = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
-    var _currentTitlePath;
+    var _currentTitlePath = null;
     
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
