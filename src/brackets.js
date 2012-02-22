@@ -71,7 +71,8 @@ define(function (require, exports, module) {
         DocumentManager         : DocumentManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
-        CommandManager          : require("CommandManager")
+        CommandManager          : require("CommandManager"),
+        FileIndexManager        : FileIndexManager
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete

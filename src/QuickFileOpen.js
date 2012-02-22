@@ -62,7 +62,8 @@ define(function (require, exports, module) {
         function handleResultsFormatter(path) {
             var filename = filenameFromPath(path);
             var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
-            return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + filename.replace(new RegExp($(that.context).val(), "gi"), "<strong>$&</strong>") +
+            var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
+            return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
                 "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
         }
         
@@ -86,19 +87,18 @@ define(function (require, exports, module) {
             var options = { closeOnEnterKey: true, closeOnClick: false};
             this.dialog = dialogDiv(this, dialogHTML);
             var closed = false, that = this;
-            var searchField = $('input#quickFileOpenSearch');
+            this.searchField = $('input#quickFileOpenSearch');
     
-            // TODO: show file name and fullpath
-            searchField.smartAutoComplete({
+            this.searchField.smartAutoComplete({
                 source: FileIndexManager.getFileInfoList("all"),
-                maxResults: 20,
+                maxResults: 10,
                 forceSelect: false,
                 typeAhead: true,
                 filter: handleFilter,
                 resultFormatter: handleResultsFormatter
             });
     
-            searchField.bind({
+            this.searchField.bind({
                 itemSelect: function (ev, selected_item) {
                     var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
                     
@@ -108,18 +108,27 @@ define(function (require, exports, module) {
                 },
     
                 keydown: function (e) {
-                    var query = $('input#quickFileOpenSearch').val();
-                    if ((e.keyCode === 13 || e.keyCode === 27) && query.charAt(0) === ":") {
+                    var query = that.searchField.val();
+                    if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
                         EditorManager.focusEditor();
                         e.stopPropagation();
                         e.preventDefault();
+
+                        if (e.keyCode === 27) {
+                            query = null;
+                        }
+                        
                         that.close(query);
                     }
+                },
+
+                blur: function (e) {
+                    that.close(null);
                 }
     
             });
     
-            searchField.focus();
+            this.searchField.focus();
             
         };
         
