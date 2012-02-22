@@ -34,8 +34,8 @@ define(function (require, exports, module) {
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
         FileSyncManager         = require("FileSyncManager"),
-        KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
-        KeyMap                  = require("KeyBindingManager").KeyMap,
+        KeyBindingManager       = require("KeyBindingManager"),
+        KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
         FileIndexManager        = require("FileIndexManager"),
@@ -85,9 +85,7 @@ define(function (require, exports, module) {
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
-    brackets.isWin = (global.navigator.userAgent.indexOf("Windows") !== -1);
-    brackets.isMac = !brackets.isWin;
-    
+    brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
@@ -134,6 +132,10 @@ define(function (require, exports, module) {
         // Pipe dialog-closing notification back to client code
         dlg.one("hidden", function () {
             var buttonId = dlg.data("buttonId");
+            if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
+                buttonId = brackets.DIALOG_BTN_CANCEL;
+            }
+            
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
@@ -440,26 +442,20 @@ define(function (require, exports, module) {
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
             // TODO: (issue #268) show keyboard equivalents in the menus
-            var _globalKeymap = new KeyMap({
-                "Ctrl-O": Commands.FILE_OPEN,
-                "Ctrl-S": Commands.FILE_SAVE,
-                "Ctrl-W": Commands.FILE_CLOSE
+            var _globalKeymap = KeyMap.create({
+                "bindings": [
+                    {"Ctrl-O": Commands.FILE_OPEN},
+                    {"Ctrl-S": Commands.FILE_SAVE},
+                    {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
+                    {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
+                ],
+                "platform": brackets.platform
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
             $(document.body).keydown(function (event) {
-                var keyDescriptor = [];
-                if (event.metaKey || event.ctrlKey) {
-                    keyDescriptor.push("Ctrl");
-                }
-                if (event.altKey) {
-                    keyDescriptor.push("Alt");
-                }
-                if (event.shiftKey) {
-                    keyDescriptor.push("Shift");
-                }
-                keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
-                if (KeyBindingManager.handleKey(keyDescriptor.join("-"))) {
+                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
                     event.preventDefault();
                 }
             });
