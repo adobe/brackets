@@ -16,38 +16,35 @@ define(function (require, exports, module) {
     describe("FileIndexManager", function () {
 
     	var testPath = SpecRunnerUtils.getTestPath("/spec/FileIndexManager-test-files");
-        var testWindow;
+        var brackets;
 
         beforeEach(function () {
         	
 
             var projectLoaded = false;
             runs(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
+                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                    brackets = testWindow.brackets;
 
                     // Load module instances from brackets.test
                     FileIndexManager  = testWindow.brackets.test.FileIndexManager;
                     ProjectManager = testWindow.brackets.test.ProjectManager;
 
-                    // Initialize: register listeners
-                    // testWindow.$(ProjectManager).on("projectRootChanged", function (event, addedDoc) {
-                    //     projectLoaded = true;
-                    // });
-
-                    // Open a directory
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                    
                 });
             });
 
-            waitsFor(function () { return projectLoaded; }, 1000);
 
         });
 
         afterEach(function () {
+            SpecRunnerUtils.closeTestWindow();
         });
         
         it("should index files in directory", function () {
+            // Open a directory
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
         	var allFiles = FileIndexManager.getFileInfoList("all");
         	var cssFiles = FileIndexManager.getFileInfoList("css");
            	
@@ -56,6 +53,9 @@ define(function (require, exports, module) {
         });
 
         it("should match a specific filename and return the correct FileInfo", function () {
+            // Open a directory
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                    
         	var fileList = FileIndexManager.getFilenameMatches("all", "file_four.css");
         	expect(fileList.length).toEqual(1);
         	expect(fileList.name).toEqual("file_four.css");
