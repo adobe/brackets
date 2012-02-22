@@ -120,46 +120,94 @@ define(function (require, exports, module) {
     function _showMaxFilesDialog() {
         return brackets.showModalDialog(
             brackets.DIALOG_ID_ERROR,
-            Strings.exports.ERROR_MAX_FILES_TITLE,
-            Strings.exports.ERROR_MAX_FILES
+            Strings.ERROR_MAX_FILES_TITLE,
+            Strings.ERROR_MAX_FILES
         );
     }
 
-    
     /* Recursively visits all files that are descendent of dirEntry and adds
-     * files files to each index when the file matches the filter critera
-     * @private
-     * @param {!DirectoryEntry} dirEntry
-     */
-    function _scanDirectoryRecurse(dirEntry, fileCount) {
+    * files files to each index when the file matches the filter critera
+    * @private
+    * @param {!DirectoryEntry} dirEntry
+    * @param {number} counts total files added. Defaults to zero if undefined
+    * @param {$.Promise}
+    */
+    function _scanDirectorySubTree(dirEntry) {
         if (!dirEntry) {
-            return;
+            throw new Error("Bad dirEntry passed to _scanDirectorySubTree");
         }
 
-        if (fileCount > 10000) {
-            _showMaxFilesDialog();
-            return;
-        }
+        // keep track of directories as they are asynchronously read. We know we are done
+        // when dirInProgress becomes empty again.
+        var state = { fileCount: 0,
+                      dirInProgress: {},    // directory names that are in progress of being read
+                      dirError: {},         // directory names with read errors. key=dir path, value=error
+                      maxFilesHit: false    // used to show warning dialog only once
+                    };
 
-		dirEntry.createReader().readEntries(
+        var deferred = new $.Deferred();
 
-            function (entries) {
-                var entry;
-                entries.forEach(function (entry) {
-                    if (entry.isFile) {
-                        _addFileToIndexes(entry);
-                        fileCount++;
-                        //console.log(entry.name);
-                    } else if (entry.isDirectory) {
-                        _scanDirectoryRecurse(entry);
-                    }
-                });
-            },
-            function (error) {
-                // TODO
+        // inner helper function
+        function _dirScanDone() {
+            var key;
+            for (key in state.dirInProgress) {
+                if (state.dirInProgress.hasOwnProperty(key)) {
+                    return false;
+                }
             }
-        );
+            return true;
+        }
+
+        // inner helper function
+        function _scanDirectoryRecurse(dirEntry) {
+            if (state.fileCount === 10000) {
+                if (!state.maxFilesHit) {
+                    state.maxFilesHit = true;
+                    _showMaxFilesDialog();
+                }
+
+                return;
+            }
+
+            dirEntry.createReader().readEntries(
+                // success callback
+                function (entries) {
+                    // inspect all children of dirEntry
+                    var entry;
+                    entries.forEach(function (entry) {
+                        if (entry.isFile) {
+                            _addFileToIndexes(entry);
+                            state.fileCount++;
+                            //console.log(entry.name);
+                        } else if (entry.isDirectory) {
+                            state.dirInProgress[entry.fullPath] = true;
+                            _scanDirectoryRecurse(entry);
+                        }
+                    });
+                },
+                // error callback
+                function (error) {
+                    state.dirError[dirEntry.fullPath] = error;
+                    delete state.dirInProgress[dirEntry.fullPath];
+                }
+            );
+
+            // done reading this dir, remove from inProgress map
+            delete state.dirInProgress[dirEntry.fullPath];
+
+            if (_dirScanDone()) {
+                // console.log( "done reading dir subtree" + dirEntry.fullPath);
+                deferred.resolve();
+            }
+        }
+
+        state.dirInProgress[dirEntry.fullPath] = true;
+        _scanDirectoryRecurse(dirEntry);
+
+        return deferred.promise();
     }
+    
+    
 
 
     
@@ -191,6 +239,7 @@ define(function (require, exports, module) {
 
     /**
     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
+    * @param {$.Promise}
     *
     */
     function syncFileIndex() {
@@ -198,7 +247,7 @@ define(function (require, exports, module) {
             PerfUtils.markStart("FileIndexManager.syncFileIndex()");
 
             _clearIndexes();
-            _scanDirectoryRecurse(ProjectManager.getProjectRoot());
+            _scanDirectorySubTree(ProjectManager.getProjectRoot());
 
             PerfUtils.addMeasurement("FileIndexManager.syncFileIndex()");
 
@@ -279,7 +328,7 @@ define(function (require, exports, module) {
     );
     
     $(ProjectManager).on("projectRootChanged", function (event, projectRoot) {
-        syncFileIndex();
+        markDirty();
     });
 
     exports.markDirty = markDirty;

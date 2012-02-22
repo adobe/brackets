@@ -84,7 +84,6 @@ define(function (require, exports, module) {
         this.showDialog = function () {
             var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
     
-            var options = { closeOnEnterKey: true, closeOnClick: false};
             this.dialog = dialogDiv(this, dialogHTML);
             var closed = false, that = this;
             this.searchField = $('input#quickFileOpenSearch');
