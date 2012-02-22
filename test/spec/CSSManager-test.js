@@ -92,6 +92,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(styleRules.length).toEqual(6);
+                    expect(styleRules[0].source.fullPath).toEqual(simpleCssFileEntry.fullPath);
                     expect(this.cssManager.getStyleRules()).toEqual(styleRules);
                 });
             });
