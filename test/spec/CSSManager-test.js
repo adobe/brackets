@@ -210,11 +210,11 @@ define(function (require, exports, module) {
                 expect(matches[3]).toMatchLastSelectorElement(".message", 1);
             });
             
-            it("should match a type selector (right-most only, no pseudo or attr selectors)", function () {
+            it("should match a type selector (may terminate with class or ID, no pseudo or attr selectors)", function () {
                 var matches = this.cssManager.findMatchingRules("h4");
                 
-                expect(matches.length).toEqual(1);
-                expect(matches[0]).toMatchLastSelectorElement("H4", 0);
+                expect(matches.length).toEqual(5);
+                console.log(matches);
             });
         });
     });
