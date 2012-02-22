@@ -15,11 +15,11 @@ define(function (require, exports, module) {
     
     describe("FileIndexManager", function () {
 
-    	var testPath = SpecRunnerUtils.getTestPath("/spec/FileIndexManager-test-files");
+        var testPath = SpecRunnerUtils.getTestPath("/spec/FileIndexManager-test-files");
         var brackets;
 
         beforeEach(function () {
-        	
+        
 
             var projectLoaded = false;
             runs(function () {
@@ -43,23 +43,27 @@ define(function (require, exports, module) {
         
         it("should index files in directory", function () {
             // Open a directory
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
-        	var allFiles = FileIndexManager.getFileInfoList("all");
-        	var cssFiles = FileIndexManager.getFileInfoList("css");
-           	
-            expect(allFiles.length).toEqual(5);
-            expect(cssFiles.length).toEqual(2);
+            runs(function () {
+                var allFiles = FileIndexManager.getFileInfoList("all");
+                var cssFiles = FileIndexManager.getFileInfoList("css");
+                
+                expect(allFiles.length).toEqual(5);
+                expect(cssFiles.length).toEqual(2);
+            });
         });
 
         it("should match a specific filename and return the correct FileInfo", function () {
             // Open a directory
-                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
-                    
-        	var fileList = FileIndexManager.getFilenameMatches("all", "file_four.css");
-        	expect(fileList.length).toEqual(1);
-        	expect(fileList.name).toEqual("file_four.css");
-        	expect(fileList.fullPath).toEqual(testPath + "file_four.css");
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            
+            runs(function () {
+                var fileList = FileIndexManager.getFilenameMatches("all", "file_four.css");
+                expect(fileList.length).toEqual(1);
+                expect(fileList.name).toEqual("file_four.css");
+                expect(fileList.fullPath).toEqual(testPath + "file_four.css");
+            });
         });
     });
 });
