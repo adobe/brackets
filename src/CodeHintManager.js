@@ -18,11 +18,11 @@ define(function (require, exports, module) {
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
     function _triggerClassHint(editor, pos, tagInfo) {
-        console.log("_triggerClassHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
+        //console.log("_triggerClassHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
     function _triggerIdHint(editor, pos, tagInfo) {
-        console.log("_triggerIdHint called called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
+        //console.log("_triggerIdHint called called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
     /**

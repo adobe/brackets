@@ -10,33 +10,33 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * moves the current state backwards by one token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} state
-     * @return {boolean} whether the state changed
+     * moves the current context backwards by one token
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @return {boolean} whether the context changed
      */
-    function _movePrevToken(state) {
-        if (state.pos.ch === 0 || state.token.start === 0) {
+    function _movePrevToken(ctx) {
+        if (ctx.pos.ch === 0 || ctx.token.start === 0) {
             //move up a line
-            if (state.pos.line === 0) {
+            if (ctx.pos.line === 0) {
                 return false; //at the top already
             }
-            state.pos.line--;
-            state.pos.ch = state.editor.getLine(state.pos.line).length;
+            ctx.pos.line--;
+            ctx.pos.ch = ctx.editor.getLine(ctx.pos.line).length;
         } else {
-            state.pos.ch = state.token.start;
+            ctx.pos.ch = ctx.token.start;
         }
-        state.token = state.editor.getTokenAt(state.pos);
+        ctx.token = ctx.editor.getTokenAt(ctx.pos);
         return true;
     }
 
    /**
      * @private
-     * creates a state object
+     * creates a context object
      * @param {CodeMirror} editor
      * @param {{ch:{string}, line:{number}} pos
      * @return {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}
      */
-    function _getInitialState(editor, pos) {
+    function _getInitialContext(editor, pos) {
         return {
             "editor": editor,
             "pos": pos,
@@ -49,11 +49,11 @@ define(function (require, exports, module) {
      * Sometimes as attr values are getting typed, if the quotes aren't balanced yet
      * some extra 'non attribute value' text gets included in the token. This attempts
      * to assure the attribute value we grab is always good
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} state
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
      * @return {string}
      */
-    function _extractAttrVal(state) {
-        var attrValue = state.token.string;
+    function _extractAttrVal(ctx) {
+        var attrValue = ctx.token.string;
         var startChar = attrValue.charAt(0);
         var endChar = attrValue.charAt(attrValue.length - 1);
         
@@ -70,9 +70,9 @@ define(function (require, exports, module) {
         //stuff in this token state since the quote isn't closed, so we assume
         //the stuff from the quote to the current pos is definitely in the attribute 
         //value.
-        var posInTokenStr = state.pos.ch - state.token.start;
+        var posInTokenStr = ctx.pos.ch - ctx.token.start;
         if (posInTokenStr < 0) {
-            console.log("CodeHintUtils: _extractAttrVal - Invalid state: the pos what not in the current token!");
+            console.log("CodeHintUtils: _extractAttrVal - Invalid context: the pos what not in the current token!");
         } else {
             attrValue = attrValue.substring(0, posInTokenStr);
         }
@@ -120,33 +120,33 @@ define(function (require, exports, module) {
         var tagName = "",
             attrName = "",
             attrVal = "",
-            state = _getInitialState(editor, pos);
+            ctx = _getInitialContext(editor, pos);
         
-        //Initial state should start off inside the attr value. We'll validate
+        //Initial ctx should start off inside the attr value. We'll validate
         //this as we go back
-        attrVal = _extractAttrVal(state);
+        attrVal = _extractAttrVal(ctx);
         
         //Move to the prev token, and check if it's "="
-        if (!_movePrevToken(state)) {
+        if (!_movePrevToken(ctx)) {
             return createTagInfo();
         }
-        if (state.token.string !== "=") {
+        if (ctx.token.string !== "=") {
             return createTagInfo();
         }
         
         //Move to the prev token, and check if it's an attribute
-        if (!_movePrevToken(state)) {
+        if (!_movePrevToken(ctx)) {
             return createTagInfo();
         }
-        if (state.token.className !== "attribute") {
+        if (ctx.token.className !== "attribute") {
             return createTagInfo();
         }
         
-        attrName = state.token.string;
-        if (state.token.state.tagName) {
-            tagName = state.token.state.tagName; //XML mode
+        attrName = ctx.token.string;
+        if (ctx.token.state.tagName) {
+            tagName = ctx.token.state.tagName; //XML mode
         } else {
-            tagName = state.token.state.htmlState.tagName; //HTML mode
+            tagName = ctx.token.state.htmlState.tagName; //HTML mode
         }
  
         //We're good. 
