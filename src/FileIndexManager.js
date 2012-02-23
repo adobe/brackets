@@ -239,7 +239,7 @@ define(function (require, exports, module) {
 
     /**
     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
-    * @param {$.Promise}
+    * @return {$.Promise} resolved when index has been updated
     */
     function syncFileIndex() {
         if (_indexListDirty) {
@@ -263,7 +263,7 @@ define(function (require, exports, module) {
     /**
     * Returns the FileInfo array for the specified index
     * @param {!string} indexname
-    * @return {Deferred} a promise that is resolved with an Array of FileInfo's
+    * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
     */
     function getFileInfoList(indexName) {
         var result = new $.Deferred();
@@ -285,7 +285,7 @@ define(function (require, exports, module) {
      * and return a a new list of FileInfo's
      * @param {!string}
      * @param {function({string})} filterFunction
-     * @return {Deferred} a promise that is resolved with an Array of FileInfo's
+     * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
      */
     function getFilteredList(indexName, filterFunction) {
         var result = new $.Deferred();
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
      * returns an array of fileInfo's that match the filename parameter
      * @param {!string} indexName
      * @param {!filename}
-     * @return {Deferred} a promise that is resolved with an Array of FileInfo's
+     * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
      */
     function getFilenameMatches(indexName, filename) {
         return getFilteredList(indexName, function (item) {
