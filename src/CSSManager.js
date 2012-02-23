@@ -44,6 +44,62 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Computes the line number of the offset in the given text.
+     * @returns {object} Returns 2 properties: lineNumber (of the offset) and 
+     *  lines (all lines preceding the lineNumber)
+     */
+    function _computeLineNumber(text, offset) {
+        var lines = text.substr(0, offset);
+        var lineNumber = lines.split("\n").length - 1;
+        
+        return { lines: lines, lineNumber: lineNumber };
+    }
+    
+    /**
+     * Computes character offsets and line numbers for all RuleSetInfo objects
+     * derived from the input text.
+     */
+    function _computeOffsets(rulesets, text) {
+        // FIXME (jasonsj): issue #310
+        // To be consistent with LESS, strip CR.
+        // Remove this workaround and patch LESS parser to save accurate offset info.
+        // There are current issues with CRLF replacement and token trimming.
+        var input = text.replace(/\r\n/g, '\n');
+        
+        // rulesets is an in-order traversal of the AST
+        // work backwards to establish offset start and end values
+        var i               = rulesets.length - 1,
+            current         = null,
+            offsetEnd       = input.length,
+            firstElement    = null,
+            computeLine     = { lines: input };
+        
+        while (i >= 0) {
+            current = rulesets[i];
+            
+            // get offset end from the previous rule's offsetStart
+            current.offsetEnd   = offsetEnd;
+            
+            // HACK - Work backwards from the first element
+            // Example: "div { color:red }"
+            // The "div" Selector Element index returns 4 instead of 0
+            firstElement = current.ruleset.selectors[0].elements[0];
+            current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
+            
+            // split the input up to the offset to find the lineStart and lineEnd
+            computeLine = _computeLineNumber(computeLine.lines, current.offsetEnd);
+            current.lineEnd = computeLine.lineNumber;
+            
+            computeLine = _computeLineNumber(computeLine.lines, current.offsetStart);
+            current.lineStart = computeLine.lineNumber;
+            
+            offsetEnd = current.offsetStart - 1;
+            
+            i--;
+        }
+    }
+    
+    /**
      * CSSManager loads CSS content from files (or strings) and parses
      * the content into an abstract syntax tree using the LESS Parser.
      * This manager maintains parsed CSS rules in-memory to provide 
@@ -87,35 +143,7 @@ define(function (require, exports, module) {
             
             _addRuleset(rulesets, root, source);
             
-            // FIXME (jasonsj): issue #310
-            // To be consistent with LESS, strip CR.
-            // Remove this workaround and patch LESS parser to save accurate offset info.
-            // There are current issues with CRLF replacement and token trimming.
-            var input = text.replace(/\r\n/g, '\n');
-            
-            // rulesets is an in-order traversal of the AST
-            // work backwards to establish offset start and end values
-            var i           = rulesets.length - 1,
-                current     = null,
-                offsetEnd   = input.length,
-                firstElement;
-            
-            while (i >= 0) {
-                current = rulesets[i];
-                
-                // get offset end from the previous rule's offsetStart
-                current.offsetEnd = offsetEnd;
-                
-                // HACK - Work backwards from the first element
-                // Example: "div { color:red }"
-                // The "div" Selector Element index returns 4 instead of 0
-                firstElement = current.ruleset.selectors[0].elements[0];
-                current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
-                
-                offsetEnd = current.offsetStart - 1;
-                
-                i--;
-            }
+            _computeOffsets(rulesets, text);
             
             // map file path to rules
             var key = (source) ? source.fullPath : text;

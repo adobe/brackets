@@ -9,13 +9,15 @@ define(function (require, exports, module) {
     'use strict';
     
     var NativeFileSystemModule  = require("NativeFileSystem"),
+        Async                   = require("Async"),
         NativeFileSystem        = NativeFileSystemModule.NativeFileSystem,
         CSSManager              = require("CSSManager"),
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSManager-test-files"),
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
-        universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css");
+        universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
+        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css");
     
     // jasmine matcher for sprint 4 selector matching
     var toMatchLastSelectorElement = function (expected, selectorIndex) {
@@ -45,15 +47,30 @@ define(function (require, exports, module) {
         return false;
     };
     
-    function getTextForRuleset(info) {
-        var result      = new $.Deferred(),
-            textResult  = NativeFileSystemModule.readAsText(info.source);
+    function getTextForInfos(infos) {
+        var results = [],
+            deferred = new $.Deferred();
         
-        textResult.done(function (content) {
-            result.resolve(content.substring(info.offsetStart, info.offsetEnd));
+        var masterPromise = Async.doInParallel(infos, function (info) {
+            var oneFileResult = new $.Deferred();
+            var textResult = NativeFileSystemModule.readAsText(info.source);
+        
+            textResult.done(function (content) {
+                content = content.replace(/\r\n/g, '\n');
+                var lines = content.split("\n").slice(info.lineStart, info.lineEnd + 1);
+                
+                results.push(lines.join("\n"));
+                oneFileResult.resolve();
+            });
+            
+            return oneFileResult;
         });
         
-        return result;
+        masterPromise.done(function () {
+            deferred.resolve(results);
+        });
+        
+        return deferred;
     }
     
     function init(spec, fileEntry) {
@@ -90,10 +107,49 @@ define(function (require, exports, module) {
         
         describe("loadFiles", function () {
             
-            it("should parse a simple selectors from a file", function () {
+            it("should parse a simple selectors from more than one file", function () {
+                var simpleRules     = null,
+                    universalRules  = null,
+                    ruleTexts       = null;
+                
+                runs(function () {
+                    this.cssManager.loadFile(simpleCssFileEntry).done(function (result) {
+                        simpleRules = result;
+                    });
+                });
+                
+                waitsFor(function () { return simpleRules; }, 1000);
+                
+                runs(function () {
+                    expect(simpleRules.length).toEqual(6);
+                    expect(simpleRules[0].source.fullPath).toEqual(simpleCssFileEntry.fullPath);
+                    expect(this.cssManager.getStyleRules()).toEqual(simpleRules);
+                });
+                
+                runs(function () {
+                    this.cssManager.loadFile(universalCssFileEntry).done(function (result) {
+                        universalRules = result;
+                    });
+                });
+                
+                waitsFor(function () { return universalRules; }, 1000);
+                
+                runs(function () {
+                    expect(universalRules.length).toEqual(4);
+                    expect(universalRules[0].source.fullPath).toEqual(universalCssFileEntry.fullPath);
+                    
+                    // CSSManager should append these style rules
+                    expect(this.cssManager.getStyleRules()).toEqual(simpleRules.concat(universalRules));
+                });
+            });
+        });
+        
+        describe("RuleSetInfo", function () {
+            
+            it("should return correct start and end line numbers", function () {
                 var styleRules  = null,
                     loadFile    = false,
-                    ruleText    = null;
+                    ruleTexts   = null;
                 
                 runs(function () {
                     this.cssManager.loadFile(simpleCssFileEntry).done(function (result) {
@@ -104,21 +160,21 @@ define(function (require, exports, module) {
                 waitsFor(function () { return styleRules; }, 1000);
                 
                 runs(function () {
-                    expect(styleRules.length).toEqual(6);
-                    expect(styleRules[0].source.fullPath).toEqual(simpleCssFileEntry.fullPath);
-                    expect(this.cssManager.getStyleRules()).toEqual(styleRules);
-                });
-                
-                runs(function () {
-                    getTextForRuleset(styleRules[0]).done(function (content) {
-                        ruleText = content;
+                    // use lineStart and lineEnd to index into file content
+                    getTextForInfos(styleRules).done(function (texts) {
+                        ruleTexts = texts;
                     });
                 });
                 
-                waitsFor(function () { return ruleText !== null; }, 1000);
+                waitsFor(function () { return ruleTexts !== null; }, 1000);
                 
                 runs(function () {
-                    expect(ruleText).toEqual("");
+                    expect(ruleTexts[0]).toEqual("html {\n    color: \"red\";\n}\n");
+                    expect(ruleTexts[1]).toEqual("HTML {\n    color: \"orange\";\n}\n");
+                    expect(ruleTexts[2]).toEqual(".firstGrade {\n    color: \"green\";\n}\n");
+                    expect(ruleTexts[3]).toEqual(".FIRSTGRADE {\n    color: \"yellow\";\n}\n");
+                    expect(ruleTexts[4]).toEqual("#brack3ts {\n    color: \"blue\";\n}\n");
+                    expect(ruleTexts[5]).toEqual("#BRACK3TS {\n    color: \"black\";\n}");
                 });
             });
         });
@@ -212,8 +268,7 @@ define(function (require, exports, module) {
         describe("findMatchingRules() with selector grouping", function () {
         
             beforeEach(function () {
-                var groupsFile = new NativeFileSystem.FileEntry(testPath + "/groups.css");
-                init(this, groupsFile);
+                init(this, groupsFileEntry);
             });
             
             it("should match a selector in any position of a group", function () {
