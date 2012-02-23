@@ -92,6 +92,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(styleRules.length).toEqual(6);
+                    expect(styleRules[0].source.fullPath).toEqual(simpleCssFileEntry.fullPath);
                     expect(this.cssManager.getStyleRules()).toEqual(styleRules);
                 });
             });
@@ -210,7 +211,7 @@ define(function (require, exports, module) {
                 expect(matches[3]).toMatchLastSelectorElement(".message", 1);
             });
             
-            it("should match a type selector (may terminate with class or ID, no pseudo or attr selectors)", function () {
+            it("should match a type selector (can terminate with class name, ID, pseudo or attr selectors)", function () {
                 var matches = this.cssManager.findMatchingRules("h4");
                 
                 expect(matches.length).toEqual(5);

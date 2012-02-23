@@ -34,8 +34,12 @@ footer .message #text { /* .message is not the rightmost simple selector */
     color: #111;
 }
 
-h4 .description { /* h4 _IS_ rightmost type selector */
+h4.good { /* h4 _IS_ rightmost type selector */
     color: #222;
+}
+
+h4 .bad { /* h4 is _NOT_ rightmost type selector */
+    color: #444;
 }
 
 h4 p .description { /* h4 is _NOT_ the rightmost simple selector */
@@ -62,7 +66,7 @@ h4:first-child { /* Has a pseudo-selector */
     color: #000
 }
 
-body[h4='0'] { /* h4 as an attribute name */
+body[foo='0'] { /* h4 as an attribute name */
     color: #000
 }
 
