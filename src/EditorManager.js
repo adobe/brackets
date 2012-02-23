@@ -13,6 +13,11 @@
  * because the Document state is actually stored in the CodeMirror editor UI, DocumentManager is
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
+ *
+ * This module dispatches several events:
+ *    - onKeyEvent ({CodeMirror}, {KeyboardEvent}) -- When any key event happens in the editor. The event 
+ *          provides the instance of the editor where the event occurred and the raw event. Most likely 
+ *          this should get filtered for event.type === "keypress"
  */
 define(function (require, exports, module) {
     'use strict';
@@ -213,6 +218,8 @@ define(function (require, exports, module) {
                         }
                     }
                     
+                    
+                    $(exports).triggerHandler("onKeyEvent", [instance, event]);
                     return false;
                 }
             });
