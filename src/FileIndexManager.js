@@ -326,7 +326,7 @@ define(function (require, exports, module) {
         "css",
         function (entry) {
             var filename = entry.name;
-            return PathUtils.filenameExtension(filename);
+            return PathUtils.filenameExtension(filename) === ".css";
         }
     );
     

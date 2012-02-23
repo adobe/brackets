@@ -47,20 +47,18 @@ define(function (require, exports, module) {
             runs(function () {
                 FileIndexManager.getFileInfoList("all", function (result) {
                     allFiles = result;
-                    console.log("all ready");
                 });
 
                 FileIndexManager.getFileInfoList("css", function (result) {
                     cssFiles = result;
-                    console.log("css ready");
                 });
             });
 
             waitsFor(function () { return allFiles && cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
             
             runs(function () {
-                expect(allFiles.length).toEqual(5);
-                expect(cssFiles.length).toEqual(2);
+                expect(allFiles.length).toEqual(8);
+                expect(cssFiles.length).toEqual(3);
             });
             
         });
@@ -81,8 +79,8 @@ define(function (require, exports, module) {
             
             runs(function () {
                 expect(fileList.length).toEqual(1);
-                expect(fileList.name).toEqual("file_four.css");
-                expect(fileList.fullPath).toEqual(testPath + "file_four.css");
+                expect(fileList[0].name).toEqual("file_four.css");
+                expect(fileList[0].fullPath).toEqual(testPath + "/file_four.css");
             });
         });
     });
