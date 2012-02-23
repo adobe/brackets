@@ -36,6 +36,7 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
+        CodeHintManager         = require("CodeHintManager"),
         PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
