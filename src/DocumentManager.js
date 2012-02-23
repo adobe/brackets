@@ -289,41 +289,6 @@ define(function (require, exports, module) {
     
     
     /**
-     * Asynchronously reads a file as UTF-8 encoded text.
-     * @return {Deferred} a jQuery Deferred that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileError if
-     *  the file can not be read.
-     */
-    function readAsText(fileEntry) {
-        var result = new $.Deferred(),
-            reader = new NativeFileSystem.FileReader();
-
-        fileEntry.file(function (file) {
-            reader.onload = function (event) {
-                var text = event.target.result;
-                
-                fileEntry.getMetadata(
-                    function (metadata) {
-                        result.resolve(text, metadata.modificationTime);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
-            };
-
-            reader.onerror = function (event) {
-                result.reject(event.target.error);
-            };
-
-            reader.readAsText(file, "utf8");
-        });
-
-        return result;
-    }
-    
-    
-    /**
      * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
@@ -627,7 +592,6 @@ define(function (require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
-    exports.readAsText = readAsText;
     exports.closeAll = closeAll;
 
     // Register preferences callback

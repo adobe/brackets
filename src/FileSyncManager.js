@@ -124,7 +124,7 @@ define(function (require, exports, module) {
      */
     function reloadDoc(doc) {
         
-        var promise = DocumentManager.readAsText(doc.file);
+        var promise = NativeFileSystem.readAsText(doc.file);
         
         promise.done(function (text, readTimestamp) {
             doc.refreshText(text, readTimestamp);

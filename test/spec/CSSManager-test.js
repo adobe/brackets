@@ -8,9 +8,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem = require("NativeFileSystem").NativeFileSystem,
-        CSSManager       = require("CSSManager"),
-        SpecRunnerUtils  = require("./SpecRunnerUtils.js");
+    var NativeFileSystemModule  = require("NativeFileSystem"),
+        NativeFileSystem        = NativeFileSystemModule.NativeFileSystem,
+        CSSManager              = require("CSSManager"),
+        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSManager-test-files"),
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
@@ -43,6 +44,17 @@ define(function (require, exports, module) {
         
         return false;
     };
+    
+    function getTextForRuleset(info) {
+        var result      = new $.Deferred(),
+            textResult  = NativeFileSystemModule.readAsText(info.source);
+        
+        textResult.done(function (content) {
+            result.resolve(content.substring(info.offsetStart, info.offsetEnd));
+        });
+        
+        return result;
+    }
     
     function init(spec, fileEntry) {
         spec.cssManager = new CSSManager.CSSManager();
@@ -79,8 +91,9 @@ define(function (require, exports, module) {
         describe("loadFiles", function () {
             
             it("should parse a simple selectors from a file", function () {
-                var styleRules = null,
-                    loadFile   = false;
+                var styleRules  = null,
+                    loadFile    = false,
+                    ruleText    = null;
                 
                 runs(function () {
                     this.cssManager.loadFile(simpleCssFileEntry).done(function (result) {
@@ -95,6 +108,26 @@ define(function (require, exports, module) {
                     expect(styleRules[0].source.fullPath).toEqual(simpleCssFileEntry.fullPath);
                     expect(this.cssManager.getStyleRules()).toEqual(styleRules);
                 });
+                
+                runs(function () {
+                    getTextForRuleset(styleRules[0]).done(function (content) {
+                        ruleText = content;
+                    });
+                });
+                
+                waitsFor(function () { return ruleText !== null; }, 1000);
+                
+                runs(function () {
+                    expect(ruleText).toEqual("");
+                });
+            });
+        });
+        
+        describe("_loadString", function () {
+            it("should parse arbitrary string content", function () {
+                var results = this.cssManager._loadString("div { color: red }");
+                
+                expect(results.length).toEqual(1);
             });
         });
         
@@ -215,7 +248,6 @@ define(function (require, exports, module) {
                 var matches = this.cssManager.findMatchingRules("h4");
                 
                 expect(matches.length).toEqual(5);
-                console.log(matches);
             });
         });
     });

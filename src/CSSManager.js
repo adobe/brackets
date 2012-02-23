@@ -12,7 +12,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Dependencies
-    var DocumentManager = require("DocumentManager");
+    var NativeFileSystem = require("NativeFileSystem");
     
     /**
      * Regex to match selector element values for ID '#', pseudo ':',
@@ -26,12 +26,6 @@ define(function (require, exports, module) {
     function RuleSetInfo(ruleset, source) {
         this.ruleset = ruleset;
         this.source = source;
-        
-        // FIXME (jasonsj): Patch LESS parser to track whitespace, maintain CRLF
-        //this.offsetStart = ...
-        //this.offsetEnd = ...
-        //this.lineStart = ...; 
-        //this.lineEnd = ...;
     }
     
     // Use the LESS parser for both .less and .css files.
@@ -93,10 +87,39 @@ define(function (require, exports, module) {
             
             _addRuleset(rulesets, root, source);
             
-            if (source && source.fullPath) {
-                // map file path to rules
-                self._rules[source.fullPath] = rulesets;
+            // FIXME (jasonsj): issue #310
+            // To be consistent with LESS, strip CR.
+            // Remove this workaround and patch LESS parser to save accurate offset info.
+            // There are current issues with CRLF replacement and token trimming.
+            var input = text.replace(/\r\n/g, '\n');
+            
+            // rulesets is an in-order traversal of the AST
+            // work backwards to establish offset start and end values
+            var i           = rulesets.length - 1,
+                current     = null,
+                offsetEnd   = input.length,
+                firstElement;
+            
+            while (i >= 0) {
+                current = rulesets[i];
+                
+                // get offset end from the previous rule's offsetStart
+                current.offsetEnd = offsetEnd;
+                
+                // HACK - Work backwards from the first element
+                // Example: "div { color:red }"
+                // The "div" Selector Element index returns 4 instead of 0
+                firstElement = current.ruleset.selectors[0].elements[0];
+                current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
+                
+                offsetEnd = current.offsetStart - 1;
+                
+                i--;
             }
+            
+            // map file path to rules
+            var key = (source) ? source.fullPath : text;
+            self._rules[key] = rulesets;
         });
     };
     
@@ -125,7 +148,7 @@ define(function (require, exports, module) {
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
         var result = new $.Deferred(),
-            textResult = DocumentManager.readAsText(fileEntry),
+            textResult = NativeFileSystem.readAsText(fileEntry),
             self = this,
             rulesets = [];
         
@@ -150,7 +173,7 @@ define(function (require, exports, module) {
      * Clear all rules from cache.
      */
     CSSManager.prototype.clearCache = function () {
-        this._rules = [];
+        this._rules = {};
     };
     
     /**
