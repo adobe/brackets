@@ -447,6 +447,7 @@ define(function (require, exports, module) {
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],

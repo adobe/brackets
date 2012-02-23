@@ -112,7 +112,6 @@ define(function (require, exports, module) {
                 keydown: function (e) {
                     var query = that.searchField.val();
                     if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
-                        EditorManager.focusEditor();
                         e.stopPropagation();
                         e.preventDefault();
 
@@ -120,12 +119,12 @@ define(function (require, exports, module) {
                             query = null;
                         }
                         
-                        this._close(query);
+                        that._close(query);
+                        EditorManager.focusEditor();
                     }
                 },
 
                 blur: function (e) {
-                    // TODO:  screws things up
                     that._close(null);
                 }
     
@@ -136,7 +135,15 @@ define(function (require, exports, module) {
     };
         
 
-    function doFileSearch(cm, rev) {
+    function doFileSearch() {
+
+        // TODO
+        var curDoc = DocumentManager.getCurrentDocument();
+        if (!curDoc) {
+            return;
+        }
+        var cm = curDoc._editor;
+
         var dialog = new QuickNavigateDialog(cm, function (query) {
             cm.operation(function () {
                 if (!query) {
@@ -156,6 +163,6 @@ define(function (require, exports, module) {
 
         dialog.showDialog();
     }
-    
-	CodeMirror.commands.fileFind = function (cm) { doFileSearch(cm); };
+
+    CommandManager.register(Commands.FILE_QUICK_NAVIGATE, doFileSearch);
 });

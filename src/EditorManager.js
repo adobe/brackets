@@ -195,9 +195,7 @@ define(function (require, exports, module) {
                     "F3": "findNext",
                     "Shift-F3": "findPrev",
                     "Ctrl-H": "replace",
-                    "Shift-Delete": "cut",
-                    "Shift-Cmd-O": "fileFind",
-                    "Shift-Ctrl-O": "fileFind"
+                    "Shift-Delete": "cut"
                 },
                 onKeyEvent: function (instance, event) {
                     if (event.type === "keypress") {
