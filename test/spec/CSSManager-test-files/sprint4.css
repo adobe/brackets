@@ -14,15 +14,19 @@ h2, h2.message, h3 {
     color: #888;
 }
 
-footer .message #text { /* .message is not the rightmost simple selector */
+div.message:hovered {
+    color: #f00;
+}
+
+footer .message #text {
     color: #369;
 }
 
-.message:hover {  /* pseudo-selectors are not supported */
+.message:hover {
     color: #963;
 }
 
-.message[data-attr='42'] { /* attribute selectors are not supported */
+.message[data-attr='42'] {
     color: #AAA;
 }
 

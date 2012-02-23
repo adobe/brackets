@@ -98,6 +98,10 @@ define(function (require, exports, module) {
             i--;
         }
     }
+                
+    function _isTypeSelector(str) {
+        return (str.search(IDENTIFIER_REGEX) !== 0);
+    }
     
     /**
      * CSSManager loads CSS content from files (or strings) and parses
@@ -226,58 +230,63 @@ define(function (require, exports, module) {
                     // TODO (jasonsj): Combinators (descendant ' ', child '>', sibling '+')
                     //                 Specificity
                     
-                    if (selector.elements.length > 0) {
-                        var isTypeSelector = function (str) {
-                            return (str.search(IDENTIFIER_REGEX) !== 0);
-                        };
+                    if (selector.elements.length === 0) {
+                        return false;
+                    }
+                    
+                    // find the right-most type selector if the input string is a type
+                    var element,
+                        elementIndex        = selector.elements.length - 1,
+                        elementValue        = null,
+                        query               = selectorString,
+                        isTypeSelectorQuery = false,
+                        match               = false;
+                    
+                    // type selectors are not case sensitive
+                    if (_isTypeSelector(query)) {
+                        isTypeSelectorQuery = true;
+                        query = query.toLowerCase();
+                    }
+                    
+                    // match any element, right-to-left, up to a combinator
+                    while (elementIndex >= 0) {
+                        element = selector.elements[elementIndex];
+                        elementValue = element.value;
                         
-                        // find the right-most type selector if the input string is a type
-                        var element,
-                            elementIndex        = selector.elements.length - 1,
-                            elementValue        = null,
-                            query               = selectorString,
-                            isTypeSelectorQuery = false;
-                        
-                        if (isTypeSelector(query)) {
-                            isTypeSelectorQuery = true;
-                            
-                            while (elementIndex >= 0) {
-                                element = selector.elements[elementIndex];
-                                
-                                if (isTypeSelector(element.value)) {
-                                    // type matches are not case sensitive
-                                    elementValue = element.value.toLowerCase();
-                                    query = selectorString.toLowerCase();
-                                    
-                                    break;
-                                }
-                                
-                                // only scan backwards if there is no combinator
-                                if (element.combinator.value.length === 0) {
-                                    elementIndex--;
-                                } else {
-                                    break;
-                                }
-                            }
-                        } else {
-                            // Use last selector element
-                            element = selector.elements[elementIndex];
-                            elementValue = element.value;
+                        if (_isTypeSelector(elementValue)) {
+                            // type matches are not case sensitive
+                            elementValue = elementValue.toLowerCase();
                         }
                         
-                        if (elementValue) {
-                            // Always match a lone universal selector (sprint 4)
-                            if (isTypeSelectorQuery &&
-                                    (elementValue === "*") &&
-                                    (selector.elements.length === 1)) {
-                                return true;
-                            }
+                        match = (elementValue === query);
+                        
+                        if (match) {
+                            break;
+                        }
+                        
+                        var comb = (element.combinator.value);
                             
-                            return elementValue === query;
+                        // Only scan backwards if there is no combinator.
+                        // Special case for pseudo elements...
+                        //   pseudeo element "::" is treated as a combinator but pseude class ":" is not
+                        if ((comb.length === 0) || (comb === "::")) {
+                            elementIndex--;
+                        } else {
+                            break;
                         }
                     }
                     
-                    return false;
+                    // Always match a lone universal selector (sprint 4)
+                    if (!match && isTypeSelectorQuery) {
+                        if ((elementValue === "*") &&
+                                (selector.elements.length === 1)) {
+                            return true;
+                        }
+                        
+                        return elementValue === query;
+                    }
+                    
+                    return match;
                 });
             });
             
