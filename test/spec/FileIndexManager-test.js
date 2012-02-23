@@ -45,22 +45,23 @@ define(function (require, exports, module) {
 
             var allFiles, cssFiles;
             runs(function () {
-                FileIndexManager.getFileInfoList("all", function(result) {
+                FileIndexManager.getFileInfoList("all", function (result) {
                     allFiles = result;
-                     console.log( "all ready");
+                    console.log("all ready");
                 });
 
-                FileIndexManager.getFileInfoList("css", function(result) {
+                FileIndexManager.getFileInfoList("css", function (result) {
                     cssFiles = result;
-                    console.log( "css ready");
+                    console.log("css ready");
                 });
             });
 
-            waitsFor(function () { return false; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+            waitsFor(function () { return allFiles && cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
             
-            console.log( "expect");
-            expect(allFiles.length).toEqual(5);
-            expect(cssFiles.length).toEqual(2);
+            runs(function () {
+                expect(allFiles.length).toEqual(5);
+                expect(cssFiles.length).toEqual(2);
+            });
             
         });
 
@@ -68,8 +69,17 @@ define(function (require, exports, module) {
             // Open a directory
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
             
+            var fileList;
+            
             runs(function () {
-                var fileList = FileIndexManager.getFilenameMatches("all", "file_four.css");
+                FileIndexManager.getFilenameMatches("all", "file_four.css", function (results) {
+                    fileList = results;
+                });
+            });
+            
+            waitsFor(function () { return fileList; }, 1000);
+            
+            runs(function () {
                 expect(fileList.length).toEqual(1);
                 expect(fileList.name).toEqual("file_four.css");
                 expect(fileList.fullPath).toEqual(testPath + "file_four.css");
