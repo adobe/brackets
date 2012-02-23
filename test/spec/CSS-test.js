@@ -19,9 +19,15 @@ define(function (require, exports, module) {
         mgr.loadString(cssCode);
         if (tagInfo) {
             var selector = "";
-            if (tagInfo.tag)    selector += tagInfo.tag;
-            if (tagInfo.clazz)  selector += "." + tagInfo.clazz;
-            if (tagInfo.id)     selector += "#" + tagInfo.id;
+            if (tagInfo.tag) {
+                selector += tagInfo.tag;
+            }
+            if (tagInfo.clazz) {
+                selector += "." + tagInfo.clazz;
+            }
+            if (tagInfo.id) {
+                selector += "#" + tagInfo.id;
+            }
             return mgr.findMatchingRules(selector);
         } else {
             return null;
@@ -83,9 +89,9 @@ define(function (require, exports, module) {
             });
             
             it("shouldn't confuse type, class, and id", function () {
-                var css = "div { color:red } \n\
-                           .foo { color:green } \n\
-                           #bar { color:blue }";
+                var css = "div { color:red } \n" +
+                          ".foo { color:green } \n" +
+                          "#bar { color:blue }";
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
@@ -110,12 +116,12 @@ define(function (require, exports, module) {
             });
             
             it("should be case-sensitive for all but types", function () {
-                var css = "div { color:red } \n\
-                           DIV { color:red } \n\
-                           .foo { color:green } \n\
-                           .Foo { color:black } \n\
-                           #bar { color:blue } \n\
-                           #baR { color:white }";
+                var css = "div { color:red } \n" +
+                          "DIV { color:red } \n" +
+                          ".foo { color:green } \n" +
+                          ".Foo { color:black } \n" +
+                          "#bar { color:blue } \n" +
+                          "#baR { color:white }";
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(2);
@@ -138,13 +144,13 @@ define(function (require, exports, module) {
             });
             
             it("should match permissively", function () {
-                var css = "div.foo { color:red } \n\
-                           div#bar { color:green } \n\
-                           div.foo#bar { color:blue } \n\
-                           .foo#bar { color:black } \n\
-                           div.foo.class2 { color: white } \n\
-                           .foo.class2 { color: yellow } \n\
-                           .foo#bar.class2 { color: cyan }";
+                var css = "div.foo { color:red } \n" +
+                          "div#bar { color:green } \n" +
+                          "div.foo#bar { color:blue } \n" +
+                          ".foo#bar { color:black } \n" +
+                          "div.foo.class2 { color: white } \n" +
+                          ".foo.class2 { color: yellow } \n" +
+                          ".foo#bar.class2 { color: cyan }";
                 // note last line: id selectors don't necessarily need to come last
                 
                 var result = match(css, { tag: "div" });   // all selectors including a 'div' type selector
@@ -163,13 +169,13 @@ define(function (require, exports, module) {
             it("should allow searching conjunctions of type, class, and id", function () {
                 // TODO: not required for Sprint 4
                 
-                // var css = "div.foo { color:red } \n\
-                //            div#bar { color:green } \n\
-                //            div.foo#bar { color:blue } \n\
-                //            .foo#bar { color:black } \n\
-                //            div.foo.class2 { color: white } \n\
-                //            .foo.class2 { color: yellow } \n\
-                //            .foo#bar.class2 { color: cyan }";
+                // var css = "div.foo { color:red } \n" +
+                //           "div#bar { color:green } \n" +
+                //           "div.foo#bar { color:blue } \n" +
+                //           ".foo#bar { color:black } \n" +
+                //           "div.foo.class2 { color: white } \n" +
+                //           ".foo.class2 { color: yellow } \n" +
+                //           ".foo#bar.class2 { color: cyan }";
                 // // note last line: id selectors don't necessarily need to come last
                 //
                 // var result = match(css, { tag: "div", clazz: "foo" });   // all selectors including a 'div' type selector AND a '.foo' class selector
@@ -191,10 +197,10 @@ define(function (require, exports, module) {
             });
             
             it("should match lone '*' given any tag; else ignore", function () {
-                var css = "* { color:red } \n\
-                           *.foo { color:green } \n\
-                           *#bar { color:blue } \n\
-                           *.foo#bar { color:yellow }";
+                var css = "* { color:red } \n" +
+                          "*.foo { color:green } \n" +
+                          "*#bar { color:blue } \n" +
+                          "*.foo#bar { color:yellow }";
                 // should be treated the same as: *, .foo, #bar, .foo#bar respectively
                 
                 var result = match(css, { tag: "div" });
@@ -214,17 +220,17 @@ define(function (require, exports, module) {
             
             it("should ignore pseudo-class selectors", function () {
                 // Note: not actually required for Sprint 4
-                var css = "div:hover { color:red } \n\
-                           .foo:hover { color:green } \n\
-                           div.foo:hover { color:blue } \n\
-                           #bar:hover { color:yellow } \n\
-                           div#bar:hover { color:black } \n\
-                           .foo.class2:hover { color:white } \n\
-                           div:focus:hover { color:cyan } \n\
-                           div.foo:focus:hover { color:brown } \n\
-                           .foo:focus:hover { color:pink } \n\
-                           div:focus.class3:hover { color:purple } \n\
-                           :focus.class3:hover { color:gray }";
+                var css = "div:hover { color:red } \n" +
+                          ".foo:hover { color:green } \n" +
+                          "div.foo:hover { color:blue } \n" +
+                          "#bar:hover { color:yellow } \n" +
+                          "div#bar:hover { color:black } \n" +
+                          ".foo.class2:hover { color:white } \n" +
+                          "div:focus:hover { color:cyan } \n" +
+                          "div.foo:focus:hover { color:brown } \n" +
+                          ".foo:focus:hover { color:pink } \n" +
+                          "div:focus.class3:hover { color:purple } \n" +
+                          ":focus.class3:hover { color:gray }";
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(6);
@@ -252,14 +258,14 @@ define(function (require, exports, module) {
             
             it("should ignore attribute selectors", function () {
                 // Note: not actually required for Sprint 4
-                var css = "div { color:red } \n\
-                           div[foo] { color:green } \n\
-                           h4[div] { color:blue } \n\
-                           h4[foo] { color:blue } \n\
-                           h4[title=\"div\"] { color:yellow } \n\
-                           h4[title=\".foo\"] { color:yellow } \n\
-                           h4[attr].bar { color:black } \n\
-                           h4.bar[attr] { color:black }";
+                var css = "div { color:red } \n" +
+                          "div[foo] { color:green } \n" +
+                          "h4[div] { color:blue } \n" +
+                          "h4[foo] { color:blue } \n" +
+                          "h4[title=\"div\"] { color:yellow } \n" +
+                          "h4[title=\".foo\"] { color:yellow } \n" +
+                          "h4[attr].bar { color:black } \n" +
+                          "h4.bar[attr] { color:black }";
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(2);
@@ -290,14 +296,14 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 
                 // Quotes nested within quotes
-                var css = "div[attr=\"value with \\\"nested double .quotes\\\"\"] { color:red } \n\
-                           div[attr=\"value with 'single .quotes'\"] { color:green } \n\
-                           div[attr='value with \\'nested single .quotes\\''] { color:blue } \n\
-                           div[attr='value with \"double .quotes\"'] { color:blue } \n\
-                           div[attr='value with \"double .quotes\"'].foo { color:yellow } \n\
-                           div#bar[attr='value with \"double .quotes\"h4'] { color:white } \n\
-                           div[attr='value with \"double .quotes\"h4'] .foo { color:black } \n\
-                           .foo { color:cyan }";
+                var css = "div[attr=\"value with \\\"nested double .quotes\\\"\"] { color:red } \n" +
+                          "div[attr=\"value with 'single .quotes'\"] { color:green } \n" +
+                          "div[attr='value with \\'nested single .quotes\\''] { color:blue } \n" +
+                          "div[attr='value with \"double .quotes\"'] { color:blue } \n" +
+                          "div[attr='value with \"double .quotes\"'].foo { color:yellow } \n" +
+                          "div#bar[attr='value with \"double .quotes\"h4'] { color:white } \n" +
+                          "div[attr='value with \"double .quotes\"h4'] .foo { color:black } \n" +
+                          ".foo { color:cyan }";
                            
                 result = match(css, { tag: "div"});
                 expect(result.length).toBe(6);
@@ -312,11 +318,11 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 
                 // Braces inside string; string inside rule (not inside selector)
-                css = "a::after { content: ' {' attr(href) '}'; } \n\
-                       .foo { color:red } \n\
-                       a::after { content: \" {\" attr(href) \"}\"; } \n\
-                       li::before { content: \"} h4 { color:black }\"; } \n\
-                       div { color:green }";
+                css = "a::after { content: ' {' attr(href) '}'; } \n" +
+                      ".foo { color:red } \n" +
+                      "a::after { content: \" {\" attr(href) \"}\"; } \n" +
+                      "li::before { content: \"} h4 { color:black }\"; } \n" +
+                      "div { color:green }";
                 
                 result = match(css, { tag: "a" });
                 expect(result.length).toBe(2);
@@ -392,26 +398,26 @@ define(function (require, exports, module) {
                 var nsDecl = "@namespace ns \"http://www.example.com\"\n";
                 match("[*|role] {}");
                 match("[|role] {}");
-                match(nsDecl+"[ns|role] {}");
-                match(nsDecl+"[ns|role|='value'] {}");
+                match(nsDecl + "[ns|role] {}");
+                match(nsDecl + "[ns|role|='value'] {}");
                 match("*|div {}");
                 match("|div {}");
-                match(nsDecl+"ns|div {}");
+                match(nsDecl + "ns|div {}");
                 match("*|* {}");
                 match("|* {}");
-                match(nsDecl+"ns|* {}");
+                match(nsDecl + "ns|* {}");
                 match("*|*:not(* {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
                 
             });
             
             it("shouldn't crash on CSS Animation syntax (@keyframe)", function () {
-                var css = "div { color:red } \n\
-                           @keyframes slide { \n\
-                             from { left: 0; } \n\
-                             50% { left: 30px; } \n\
-                             to { left: 100px; } \n\
-                           } \n\
-                           .foo { color:green }";
+                var css = "div { color:red } \n" +
+                          "@keyframes slide { \n" +
+                          "  from { left: 0; } \n" +
+                          "  50% { left: 30px; } \n" +
+                          "  to { left: 100px; } \n" +
+                          "} \n" +
+                          ".foo { color:green }";
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
@@ -429,90 +435,90 @@ define(function (require, exports, module) {
         
         describe("Combinators", function () {
             it("should ignore descendant combinators", function () {
-                var result = match("h4 .foo { color:red }", { tag:"h4" });
+                var result = match("h4 .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 .foo { color:red }", { clazz:"foo" });
+                result = match("h4 .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match("p h4 div { color:red }", { tag:"p" });
+                result = match("p h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
-                result = match("p h4 div { color:red }", { tag:"h4" });
+                result = match("p h4 div { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("p h4 div { color:red }", { tag:"div" });
+                result = match("p h4 div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 
-                result = match(".foo h4 { color:red }", { tag:"h4" });
+                result = match(".foo h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match(".foo h4 { color:red }", { clazz:"foo" });
+                result = match(".foo h4 { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(0);
                 
-                result = match("div div { color:red }", { tag:"div" });
+                result = match("div div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match(".foo .foo { color:red }", { clazz:"foo" });
+                result = match(".foo .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match(".foo .foo { color:red }", { tag:"foo" });
+                result = match(".foo .foo { color:red }", { tag: "foo" });
                 expect(result.length).toBe(0);
             });
             
             it("should ignore other combinators", function () {
-                var result = match("h4 > .foo { color:red }", { tag:"h4" });
+                var result = match("h4 > .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 > .foo { color:red }", { clazz:"foo" });
+                result = match("h4 > .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match(".foo > h4 { color:red }", { tag:"h4" });
+                result = match(".foo > h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match(".foo > h4 { color:red }", { clazz:"foo" });
+                result = match(".foo > h4 { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(0);
                 
-                result = match("h4 + .foo { color:red }", { tag:"h4" });
+                result = match("h4 + .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 + .foo { color:red }", { clazz:"foo" });
+                result = match("h4 + .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match(".foo + h4 { color:red }", { tag:"h4" });
+                result = match(".foo + h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match(".foo + h4 { color:red }", { clazz:"foo" });
+                result = match(".foo + h4 { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(0);
                 
-                result = match("p > h4 + div { color:red }", { tag:"p" });
+                result = match("p > h4 + div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 + div { color:red }", { tag:"h4" });
+                result = match("p > h4 + div { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 + div { color:red }", { tag:"div" });
+                result = match("p > h4 + div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match("p > h4 div { color:red }", { tag:"p" });
+                result = match("p > h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 div { color:red }", { tag:"h4" });
+                result = match("p > h4 div { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 div { color:red }", { tag:"div" });
-                expect(result.length).toBe(1);
-                
-                result = match("h4>.foo { color:red }", { tag:"h4" });
-                expect(result.length).toBe(0);
-                result = match("h4>.foo { color:red }", { clazz:"foo" });
-                expect(result.length).toBe(1);
-                result = match("h4> .foo { color:red }", { tag:"h4" });
-                expect(result.length).toBe(0);
-                result = match("h4> .foo { color:red }", { clazz:"foo" });
-                expect(result.length).toBe(1);
-                result = match("h4 >.foo { color:red }", { tag:"h4" });
-                expect(result.length).toBe(0);
-                result = match("h4 >.foo { color:red }", { clazz:"foo" });
+                result = match("p > h4 div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 
-                result = match("h4+.foo { color:red }", { tag:"h4" });
+                result = match("h4>.foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4+.foo { color:red }", { clazz:"foo" });
+                result = match("h4>.foo { color:red }", { clazz: "foo" });
+                expect(result.length).toBe(1);
+                result = match("h4> .foo { color:red }", { tag: "h4" });
+                expect(result.length).toBe(0);
+                result = match("h4> .foo { color:red }", { clazz: "foo" });
+                expect(result.length).toBe(1);
+                result = match("h4 >.foo { color:red }", { tag: "h4" });
+                expect(result.length).toBe(0);
+                result = match("h4 >.foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match("h4 * .foo { color:red }", { tag:"h4" });
+                result = match("h4+.foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 * .foo { color:red }", { clazz:"foo" });
+                result = match("h4+.foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4 ~ .foo { color:red }", { tag:"h4" });
+                
+                result = match("h4 * .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 ~ .foo { color:red }", { clazz:"foo" });
+                result = match("h4 * .foo { color:red }", { clazz: "foo" });
+                expect(result.length).toBe(1);
+                result = match("h4 ~ .foo { color:red }", { tag: "h4" });
+                expect(result.length).toBe(0);
+                result = match("h4 ~ .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
                 
             });
@@ -522,35 +528,35 @@ define(function (require, exports, module) {
         describe("Selector groups", function () {
             it("should match any item in selector group", function () {
                 // Comma- and space- separated
-                var result = match("h4, .foo, #bar { color:red }", { tag:"h4" });
+                var result = match("h4, .foo, #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4, .foo, #bar { color:red }", { clazz:"foo" });
+                result = match("h4, .foo, #bar { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4, .foo, #bar { color:red }", { id:"bar" });
+                result = match("h4, .foo, #bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(1);
                 
                 // Comma only
-                result = match("h4,.foo,#bar { color:red }", { tag:"h4" });
+                result = match("h4,.foo,#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4,.foo,#bar { color:red }", { clazz:"foo" });
+                result = match("h4,.foo,#bar { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4,.foo,#bar { color:red }", { id:"bar" });
+                result = match("h4,.foo,#bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(1);
                 
                 // Newline-separated
-                result = match("h4,\n.foo,\r\n#bar { color:red }", { tag:"h4" });
+                result = match("h4,\n.foo,\r\n#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4,\n.foo,\r\n#bar { color:red }", { clazz:"foo" });
+                result = match("h4,\n.foo,\r\n#bar { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4,\n.foo,\r\n#bar { color:red }", { id:"bar" });
+                result = match("h4,\n.foo,\r\n#bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(1);
                 
                 // Space-separated with a space combinator
-                result = match("h4, .foo #bar { color:red }", { tag:"h4" });
+                result = match("h4, .foo #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4, .foo #bar { color:red }", { clazz:"foo" });
+                result = match("h4, .foo #bar { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(0);
-                result = match("h4, .foo #bar { color:red }", { id:"bar" });
+                result = match("h4, .foo #bar { color:red }", { id: "bar" });
                 expect(result.length).toBe(1);
             });
         }); // describe("Selector groups")        
