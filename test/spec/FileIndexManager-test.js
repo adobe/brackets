@@ -20,8 +20,6 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
         
-
-            var projectLoaded = false;
             runs(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                     brackets = testWindow.brackets;
@@ -45,13 +43,25 @@ define(function (require, exports, module) {
             // Open a directory
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
+            var allFiles, cssFiles;
             runs(function () {
-                var allFiles = FileIndexManager.getFileInfoList("all");
-                var cssFiles = FileIndexManager.getFileInfoList("css");
-                
-                expect(allFiles.length).toEqual(5);
-                expect(cssFiles.length).toEqual(2);
+                FileIndexManager.getFileInfoList("all", function(result) {
+                    allFiles = result;
+                     console.log( "all ready");
+                });
+
+                FileIndexManager.getFileInfoList("css", function(result) {
+                    cssFiles = result;
+                    console.log( "css ready");
+                });
             });
+
+            waitsFor(function () { return false; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+            
+            console.log( "expect");
+            expect(allFiles.length).toEqual(5);
+            expect(cssFiles.length).toEqual(2);
+            
         });
 
         it("should match a specific filename and return the correct FileInfo", function () {

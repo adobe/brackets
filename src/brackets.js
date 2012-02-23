@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
         CommandManager          = require("CommandManager"),
-        CommandManager          = require("CommandManager"),
         PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
