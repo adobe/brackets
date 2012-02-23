@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets */
+/*global define: false, $: false, brackets, PathUtils */
 
 /*
  * Manages a collection of FileIndexes where each index maintains a list of information about
@@ -326,7 +326,7 @@ define(function (require, exports, module) {
         "css",
         function (entry) {
             var filename = entry.name;
-            return filename.slice(filename.length - 4, filename.length) === ".css";
+            return PathUtils.filenameExtension(filename);
         }
     );
     
