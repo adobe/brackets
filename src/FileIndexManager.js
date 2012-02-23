@@ -240,20 +240,21 @@ define(function (require, exports, module) {
     /**
     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
     * @param {$.Promise}
-    *
     */
     function syncFileIndex() {
         if (_indexListDirty) {
             PerfUtils.markStart("FileIndexManager.syncFileIndex()");
 
             _clearIndexes();
-            _scanDirectorySubTree(ProjectManager.getProjectRoot());
 
-            PerfUtils.addMeasurement("FileIndexManager.syncFileIndex()");
-
-            _indexListDirty = false;
+            return _scanDirectorySubTree(ProjectManager.getProjectRoot())
+                .done( function () {
+                    PerfUtils.addMeasurement("FileIndexManager.syncFileIndex()");
+                    _indexListDirty = false;
+                });
+        } else {
+            return $.Deferred().resolve();
         }
-
 
         //_logFileList(_indexList["all"].fileInfos);
         //_logFileList(_indexList["css"].fileInfos);
@@ -261,17 +262,18 @@ define(function (require, exports, module) {
 
     /**
     * Returns the FileInfo array for the specified index
-    * @param {!string}
-    *
+    * @param {!string} indexname
+    * @param {function({Array.<FileInfo>}) resultCallback
     */
-    function getFileInfoList(indexName) {
-        syncFileIndex();
-
+    function getFileInfoList(indexName, resultCallback ) {
         if (!_indexList.hasOwnProperty(indexName)) {
             throw new Error("indexName not found");
         }
 
-        return _indexList[indexName].fileInfos;
+        syncFileIndex()
+            .done( function () {
+                resultCallback(_indexList[indexName].fileInfos);
+            });
     }
     
     /**
@@ -279,33 +281,35 @@ define(function (require, exports, module) {
      * and return a a new list of FileInfo's
      * @param {!string}
      * @param {function({string})} filterFunction
-     * @returns {Array.<FileInfo>}
+     * @param {function(Array.<FileInfo>}) resultCallback
      */
-    function getFilteredList(indexName, filterFunction) {
-        syncFileIndex();
+    function getFilteredList(indexName, filterFunction, resultCallback) {
+        syncFileIndex()
+            .done( function () {
+                var results = [];
+                var fileList = getFileInfoList(indexName);
 
-        var results = [];
-        var fileList = getFileInfoList(indexName);
+                fileList.forEach(function (fileInfo) {
+                    if (filterFunction(fileInfo.name)) {
+                        results.push(fileInfo);
+                    }
+                });
 
-        fileList.forEach(function (fileInfo) {
-            if (filterFunction(fileInfo.name)) {
-                results.push(fileInfo);
-            }
-        });
-
-        return results;
+                resultCallback(results)
+            });  
     }
     
     /**
      * returns an array of fileInfo's that match the filename parameter
      * @param {!string} indexName
      * @param {!filename}
-     * @returns {Array.<FileInfo>}
+     * @param {function(Array.<FileInfo>}) resultCallback
      */
-    function getFilenameMatches(indexName, filename) {
-        return getFilteredList(indexName, function (item) {
+    function getFilenameMatches(indexName, filename, resultCallback) {
+        getFilteredList(indexName, function (item) {
             return item === filename;
-        });
+        },
+        resultCallback);
     }
     
     /**

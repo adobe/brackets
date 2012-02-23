@@ -24,86 +24,89 @@ define(function (require, exports, module) {
 
     // class
     function QuickNavigateDialog(codemirror, resultCallback) {
-        var that = this;
         this.closed = false;
         this.codemirror = codemirror;
+        this.resultCallback = resultCallback;
+    }
 
 
-        function dialogDiv(cm, template) {
-            var wrap = codemirror.getWrapperElement();
-            var dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
-            dialog.className = "CodeMirror-dialog";
-            dialog.innerHTML = '<div>' + template + '</div>';
-            return dialog;
-        }
+    QuickNavigateDialog.prototype._dialogDiv = function (cm, template) {
+        var wrap = this.codemirror.getWrapperElement();
+        var dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        dialog.className = "CodeMirror-dialog";
+        dialog.innerHTML = '<div>' + template + '</div>';
+        return dialog;
+    };
 
-        function filenameFromPath(path) {
-            return path.slice(path.lastIndexOf("/") + 1, path.length);
-        }
-
-        function handleFilter(term, source) {
-            var filteredList = $.map(source, function (fileInfo) {
-                // match term again filename only (not the path)
-                var path = fileInfo.fullPath;
-                var filename = filenameFromPath(path);
-                if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
-                    return fileInfo.fullPath;
-                }
-            }).sort(function (a, b) {
-                // sort by filename
-                var filenameA = filenameFromPath(a);
-                var filenameB = filenameFromPath(b);
-                return filenameA > filenameB;
-            });
-
-            return filteredList;
-        }
-
-        function handleResultsFormatter(path) {
-            var filename = filenameFromPath(path);
-            var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
-            var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
-            return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
-                "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
+    QuickNavigateDialog.prototype._filenameFromPath = function (path) {
+        return path.slice(path.lastIndexOf("/") + 1, path.length);
+    };
+    
+        
+    QuickNavigateDialog.prototype._close = function (value) {
+        if (this.closed) {
+            return;
         }
         
-        this.close = function (value) {
-            if (this.closed) {
-                return;
-            }
+        this.closed = true;
             
-            this.closed = true;
-                
-            this.dialog.parentNode.removeChild(this.dialog);
+        this.dialog.parentNode.removeChild(this.dialog);
 
-            if (value) {
-                resultCallback(value);
-            }
-        };
+        if (value) {
+            this.resultCallback(value);
+        }
+    };
         
-        this.showDialog = function () {
+    QuickNavigateDialog.prototype.showDialog = function () {
+        var that = this;
+        var fileInfoList;
+
+        FileIndexManager.getFileInfoList("all", function (filelistResult) {
+            fileInfoList = filelistResult;
             var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
+            that.dialog = that._dialogDiv(that, dialogHTML);
+            var closed = false;
+            that.searchField = $('input#quickFileOpenSearch');
+
+            function _handleResultsFormatter(path) {
+                var filename = that._filenameFromPath(path);
+                var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
+                var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
+                return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
+                    "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
+            }
+
+            function _handleFilter(term, source) {
+                var filteredList = $.map(source, function (fileInfo) {
+                    // match term again filename only (not the path)
+                    var path = fileInfo.fullPath;
+                    var filename = that._filenameFromPath(path);
+                    if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
+                        return fileInfo.fullPath;
+                    }
+                }).sort(function (a, b) {
+                    // sort by filename
+                    var filenameA = that._filenameFromPath(a);
+                    var filenameB = that._filenameFromPath(b);
+                    return filenameA > filenameB;
+                });
+
+                return filteredList;
+            }
     
-            this.dialog = dialogDiv(this, dialogHTML);
-            var closed = false, that = this;
-            this.searchField = $('input#quickFileOpenSearch');
-    
-            this.searchField.smartAutoComplete({
-                source: FileIndexManager.getFileInfoList("all"),
+            that.searchField.smartAutoComplete({
+                source: fileInfoList,
                 maxResults: 10,
                 forceSelect: false,
                 typeAhead: true,
-                filter: handleFilter,
-                resultFormatter: handleResultsFormatter
+                filter: _handleFilter,
+                resultFormatter: _handleResultsFormatter
             });
     
-            this.searchField.bind({
+            that.searchField.bind({
                 itemSelect: function (ev, selected_item) {
                     var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
-                    
-                   
-                    
-                    that.close(value);
+                    that._close(value);
                 },
     
                 keydown: function (e) {
@@ -117,22 +120,21 @@ define(function (require, exports, module) {
                             query = null;
                         }
                         
-                        that.close(query);
+                        this._close(query);
                     }
                 },
 
                 blur: function (e) {
-                    that.close(null);
+                    // TODO:  screws things up
+                    that._close(null);
                 }
     
             });
     
-            this.searchField.focus();
-            
-        };
+            that.searchField.focus();
+        });
+    };
         
-        this.showDialog();
-    }
 
     function doFileSearch(cm, rev) {
         var dialog = new QuickNavigateDialog(cm, function (query) {
@@ -149,14 +151,11 @@ define(function (require, exports, module) {
                 } else {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
                 }
-
-                
             });
         });
+
+        dialog.showDialog();
     }
     
-
-
-
 	CodeMirror.commands.fileFind = function (cm) { doFileSearch(cm); };
 });
