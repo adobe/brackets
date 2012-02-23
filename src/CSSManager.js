@@ -131,7 +131,7 @@ define(function (require, exports, module) {
      *
      * @param rulesets {Array.<ResultSetInfo>} Result storage
      * @param text {string} CSS text to parse
-     * @param source {!FileEntry} Optional. FileEntry source of CSS text.
+     * @param source {?FileEntry} Optional. FileEntry source of CSS text.
      */
     CSSManager.prototype._parse = function (rulesets, text, source) {
         var self = this;
@@ -142,23 +142,25 @@ define(function (require, exports, module) {
             }
             
             _addRuleset(rulesets, root, source);
-            
             _computeOffsets(rulesets, text);
-            
-            // map file path to rules
-            var key = (source) ? source.fullPath : text;
-            self._rules[key] = rulesets;
+
+            if (source && source.fullPath) {
+                // map file path to rules
+                self._rules[source.fullPath] = rulesets;
+            } else {
+                self._rules["<from string>"] = rulesets;
+            }
         });
     };
     
     /**
-     * Parse CSS rules from a string. For testing only. Parsed rules are not
-     * cached.
+     * Parse CSS rules from a string - for testing only. Parsed rules are returned
+     * AND added to this CSSManager's cache for querying. Synchronous.
      *
      * @param {!string} str
      * @return {Array.<ResultSetInfo>}
      */
-    CSSManager.prototype._loadString = function (str) {
+    CSSManager.prototype.loadString = function (str) {
         var rulesets = [],
             self = this;
         
@@ -168,7 +170,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Parse CSS rules from a file and cache the results.
+     * Parse CSS rules from a file and cache the results. Asynchronous.
      *
      * @param {!FileEntry} fileEntry
      * @return {Deferred} A promise that is resolved with an Array of RuleSetInfo
