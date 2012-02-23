@@ -45,13 +45,15 @@ define(function (require, exports, module) {
 
             var allFiles, cssFiles;
             runs(function () {
-                FileIndexManager.getFileInfoList("all", function (result) {
-                    allFiles = result;
-                });
+                FileIndexManager.getFileInfoList("all")
+                    .done(function (result) {
+                        allFiles = result;
+                    });
 
-                FileIndexManager.getFileInfoList("css", function (result) {
-                    cssFiles = result;
-                });
+                FileIndexManager.getFileInfoList("css")
+                    .done(function (result) {
+                        cssFiles = result;
+                    });
             });
 
             waitsFor(function () { return allFiles && cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
@@ -70,9 +72,10 @@ define(function (require, exports, module) {
             var fileList;
             
             runs(function () {
-                FileIndexManager.getFilenameMatches("all", "file_four.css", function (results) {
-                    fileList = results;
-                });
+                FileIndexManager.getFilenameMatches("all", "file_four.css")
+                    .done(function (results) {
+                        fileList = results;
+                    });
             });
             
             waitsFor(function () { return fileList; }, 1000);

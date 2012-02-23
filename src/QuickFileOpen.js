@@ -66,77 +66,78 @@ define(function (require, exports, module) {
         var that = this;
         var fileInfoList;
 
-        FileIndexManager.getFileInfoList("all", function (filelistResult) {
-            fileInfoList = filelistResult;
-            var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
-            that.dialog = that._dialogDiv(that, dialogHTML);
-            var closed = false;
-            that.searchField = $('input#quickFileOpenSearch');
+        FileIndexManager.getFileInfoList("all")
+            .done(function (filelistResult) {
+                fileInfoList = filelistResult;
+                var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
+                that.dialog = that._dialogDiv(that, dialogHTML);
+                var closed = false;
+                that.searchField = $('input#quickFileOpenSearch');
 
-            function _handleResultsFormatter(path) {
-                var filename = that._filenameFromPath(path);
-                var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
-                var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
-                return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
-                    "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
-            }
-
-            function _handleFilter(term, source) {
-                var filteredList = $.map(source, function (fileInfo) {
-                    // match term again filename only (not the path)
-                    var path = fileInfo.fullPath;
+                function _handleResultsFormatter(path) {
                     var filename = that._filenameFromPath(path);
-                    if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
-                        return fileInfo.fullPath;
-                    }
-                }).sort(function (a, b) {
-                    // sort by filename
-                    var filenameA = that._filenameFromPath(a);
-                    var filenameB = that._filenameFromPath(b);
-                    return filenameA > filenameB;
-                });
-
-                return filteredList;
-            }
-    
-            that.searchField.smartAutoComplete({
-                source: fileInfoList,
-                maxResults: 10,
-                forceSelect: false,
-                typeAhead: true,
-                filter: _handleFilter,
-                resultFormatter: _handleResultsFormatter
-            });
-    
-            that.searchField.bind({
-                itemSelect: function (ev, selected_item) {
-                    var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
-                    that._close(value);
-                },
-    
-                keydown: function (e) {
-                    var query = that.searchField.val();
-                    if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
-                        e.stopPropagation();
-                        e.preventDefault();
-
-                        if (e.keyCode === 27) {
-                            query = null;
-                        }
-                        
-                        that._close(query);
-                        EditorManager.focusEditor();
-                    }
-                },
-
-                blur: function (e) {
-                    that._close(null);
+                    var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
+                    var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
+                    return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
+                        "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
                 }
-    
+
+                function _handleFilter(term, source) {
+                    var filteredList = $.map(source, function (fileInfo) {
+                        // match term again filename only (not the path)
+                        var path = fileInfo.fullPath;
+                        var filename = that._filenameFromPath(path);
+                        if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
+                            return fileInfo.fullPath;
+                        }
+                    }).sort(function (a, b) {
+                        // sort by filename
+                        var filenameA = that._filenameFromPath(a);
+                        var filenameB = that._filenameFromPath(b);
+                        return filenameA > filenameB;
+                    });
+
+                    return filteredList;
+                }
+        
+                that.searchField.smartAutoComplete({
+                    source: fileInfoList,
+                    maxResults: 10,
+                    forceSelect: false,
+                    typeAhead: true,
+                    filter: _handleFilter,
+                    resultFormatter: _handleResultsFormatter
+                });
+        
+                that.searchField.bind({
+                    itemSelect: function (ev, selected_item) {
+                        var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
+                        that._close(value);
+                    },
+        
+                    keydown: function (e) {
+                        var query = that.searchField.val();
+                        if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
+                            e.stopPropagation();
+                            e.preventDefault();
+
+                            if (e.keyCode === 27) {
+                                query = null;
+                            }
+                            
+                            that._close(query);
+                            EditorManager.focusEditor();
+                        }
+                    },
+
+                    blur: function (e) {
+                        that._close(null);
+                    }
+        
+                });
+        
+                that.searchField.focus();
             });
-    
-            that.searchField.focus();
-        });
     };
         
 

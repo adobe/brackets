@@ -263,17 +263,21 @@ define(function (require, exports, module) {
     /**
     * Returns the FileInfo array for the specified index
     * @param {!string} indexname
-    * @param {function({Array.<FileInfo>}) resultCallback
+    * @return {Deferred} a promise that is resolved with an Array of FileInfo's
     */
-    function getFileInfoList(indexName, resultCallback) {
+    function getFileInfoList(indexName) {
+        var result = new $.Deferred();
+
         if (!_indexList.hasOwnProperty(indexName)) {
             throw new Error("indexName not found");
         }
 
         syncFileIndex()
             .done(function () {
-                resultCallback(_indexList[indexName].fileInfos);
+                result.resolve(_indexList[indexName].fileInfos);
             });
+
+        return result;
     }
     
     /**
@@ -281,34 +285,43 @@ define(function (require, exports, module) {
      * and return a a new list of FileInfo's
      * @param {!string}
      * @param {function({string})} filterFunction
-     * @param {function(Array.<FileInfo>}) resultCallback
+     * @return {Deferred} a promise that is resolved with an Array of FileInfo's
      */
-    function getFilteredList(indexName, filterFunction, resultCallback) {
+    function getFilteredList(indexName, filterFunction) {
+        var result = new $.Deferred();
+
+        if (!_indexList.hasOwnProperty(indexName)) {
+            throw new Error("indexName not found");
+        }
+
         syncFileIndex()
             .done(function () {
-                var results = [];
-                getFileInfoList(indexName, function (fileList) {
-                    fileList.forEach(function (fileInfo) {
-                        if (filterFunction(fileInfo.name)) {
-                            results.push(fileInfo);
-                        }
-                    });
+                var resultList = [];
+                getFileInfoList(indexName)
+                    .done(function (fileList) {
+                        fileList.forEach(function (fileInfo) {
+                            if (filterFunction(fileInfo.name)) {
+                                resultList.push(fileInfo);
+                            }
+                        });
 
-                    resultCallback(results);
-                });
+                        result.resolve(resultList);
+                    });
             });
+
+        return result;
     }
     
     /**
      * returns an array of fileInfo's that match the filename parameter
      * @param {!string} indexName
      * @param {!filename}
-     * @param {function(Array.<FileInfo>}) resultCallback
+     * @return {Deferred} a promise that is resolved with an Array of FileInfo's
      */
-    function getFilenameMatches(indexName, filename, resultCallback) {
-        getFilteredList(indexName,
-            function (item) { return item === filename; },
-            resultCallback);
+    function getFilenameMatches(indexName, filename) {
+        return getFilteredList(indexName, function (item) {
+            return item === filename;
+        });
     }
     
     /**
