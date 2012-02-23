@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         CommandManager          = require("CommandManager"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        CommandManager          = require("CommandManager"),
+        CodeHintManager         = require("CodeHintManager"),
         PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
