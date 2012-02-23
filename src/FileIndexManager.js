@@ -248,7 +248,7 @@ define(function (require, exports, module) {
             _clearIndexes();
 
             return _scanDirectorySubTree(ProjectManager.getProjectRoot())
-                .done( function () {
+                .done(function () {
                     PerfUtils.addMeasurement("FileIndexManager.syncFileIndex()");
                     _indexListDirty = false;
                 });
@@ -265,13 +265,13 @@ define(function (require, exports, module) {
     * @param {!string} indexname
     * @param {function({Array.<FileInfo>}) resultCallback
     */
-    function getFileInfoList(indexName, resultCallback ) {
+    function getFileInfoList(indexName, resultCallback) {
         if (!_indexList.hasOwnProperty(indexName)) {
             throw new Error("indexName not found");
         }
 
         syncFileIndex()
-            .done( function () {
+            .done(function () {
                 resultCallback(_indexList[indexName].fileInfos);
             });
     }
@@ -285,18 +285,18 @@ define(function (require, exports, module) {
      */
     function getFilteredList(indexName, filterFunction, resultCallback) {
         syncFileIndex()
-            .done( function () {
+            .done(function () {
                 var results = [];
-                var fileList = getFileInfoList(indexName);
+                getFileInfoList(indexName, function (fileList) {
+                    fileList.forEach(function (fileInfo) {
+                        if (filterFunction(fileInfo.name)) {
+                            results.push(fileInfo);
+                        }
+                    });
 
-                fileList.forEach(function (fileInfo) {
-                    if (filterFunction(fileInfo.name)) {
-                        results.push(fileInfo);
-                    }
+                    resultCallback(results);
                 });
-
-                resultCallback(results)
-            });  
+            });
     }
     
     /**
@@ -306,10 +306,9 @@ define(function (require, exports, module) {
      * @param {function(Array.<FileInfo>}) resultCallback
      */
     function getFilenameMatches(indexName, filename, resultCallback) {
-        getFilteredList(indexName, function (item) {
-            return item === filename;
-        },
-        resultCallback);
+        getFilteredList(indexName,
+            function (item) { return item === filename; },
+            resultCallback);
     }
     
     /**
