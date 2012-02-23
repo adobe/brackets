@@ -266,12 +266,7 @@ define(function (require, exports, module) {
         var inlineContent = document.createElement('div');
         $(inlineContent).css("border-top", "1px solid #A0A0A0");
         $(inlineContent).css("border-bottom", "1px solid #A0A0A0");
-        $(inlineContent).css("-webkit-box-shadow", "inset 0px 3px 6px 1px rgba(0, 0, 0, .25)");
-        /*
-        -webkit-box-shadow: inset 0px 3px 6px 1px rgba(0, 0, 0, .25);
-        -moz-box-shadow: inset 0px 3px 6px 1px rgba(0, 0, 0, .25);
-        box-shadow: inset 0px 3px 6px 1px rgba(0, 0, 0, .25); 
-        */
+        $(inlineContent).css("-webkit-box-shadow", "inset 0px 3px 6px 1px rgba(0, 0, 0, .25)"); // TODO: not visible b/c editor has opaque background
         
         function closeThisInline() {
             closeCallback();
@@ -280,28 +275,41 @@ define(function (require, exports, module) {
         var dummyCSS = ".dummyCSSContent {\n" +
                        "    this-is-a-test: yes;\n" +
                        "}\n";
-        dummyCSS += dummyCSS + dummyCSS;
+        dummyCSS += dummyCSS + dummyCSS;    // to test longer content
         
         var inlineEditor = _createEditorFromText(dummyCSS, "dummy.css", inlineContent, closeThisInline);
         
+        // For Sprint 4, editor is a read-only view
+        inlineEditor.setOption("readOnly", true);
+        
         // Work around Issue #314
         $(inlineEditor.getWrapperElement()).mousedown(function (jqe) {
-            console.log("Mousedown on inner editor");
             jqe.stopPropagation();
         });
         $(inlineEditor.getWrapperElement()).dblclick(function (jqe) {
-            console.log("Dblclick on inner editor");
             jqe.stopPropagation();
         });
         
+        // Auto-size editor to its content, clamped to a max of 150px
+        var textTotalHeight = editorTotalHeight(inlineEditor);
+        var widgetHeight = Math.min(textTotalHeight, 150);
+        
+        // Once we've been parented into the outer editor, we can run a layout pass & grab focus
         function afterAdded() {
-            $('.CodeMirror-scroll .CodeMirror-scroll', _editorHolder).height(100);
+            $('.CodeMirror-scroll .CodeMirror-scroll', _editorHolder).height(widgetHeight);
             inlineEditor.refresh();
             
             inlineEditor.focus();
         }
         
-        return { content: inlineContent, height: 100, onAdded: afterAdded };
+        return { content: inlineContent, height: widgetHeight, onAdded: afterAdded };
+    }
+    function editorTotalHeight(editor) {
+        // TODO: need a real API for this; currently hacked up based on CodeMirror's totalHeight() impl
+        var lineHeight = 18; // what our current stylesheet yields
+        var padding = 12;    // ditto
+        var nLines = editor.lineCount();
+        return nLines*lineHeight + padding;
     }
     // DEBUG
     
@@ -372,7 +380,6 @@ define(function (require, exports, module) {
      * @see #_updateEditorSize()
      */
     function resizeEditor() {
-        console.log("Resizing main editor to "+_editorHolder.height());
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
             _currentEditor.refresh();
@@ -391,13 +398,11 @@ define(function (require, exports, module) {
                 _resizeTimeout = null;
                 
                 if (_currentEditor) {
-                    console.log("(Finishing resizing of main editor)");
                     _currentEditor.refresh();
                 }
             }, 100);
         }
         if (_currentEditor) {
-            console.log("Semi-resizing main editor to "+_editorHolder.height());
             $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
         }
     }
