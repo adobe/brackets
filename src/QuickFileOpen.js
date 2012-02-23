@@ -22,7 +22,11 @@ define(function (require, exports, module) {
         Commands            = require("Commands"),
         ProjectManager      = require("ProjectManager");
 
-    // class
+    /**
+    * QuickNavigateDialog class
+    * @constructor
+    *
+    */
     function QuickNavigateDialog(codemirror, resultCallback) {
         this.closed = false;
         this.codemirror = codemirror;
@@ -31,6 +35,7 @@ define(function (require, exports, module) {
 
 
     QuickNavigateDialog.prototype._dialogDiv = function (cm, template) {
+        // TODO (issue 311) - using code mirror's wrapper element for now. Need to design a Brackets equivalent.
         var wrap = this.codemirror.getWrapperElement();
         var dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         dialog.className = "CodeMirror-dialog";
@@ -137,7 +142,7 @@ define(function (require, exports, module) {
 
     function doFileSearch() {
 
-        // TODO
+        // TODO (issue 311) - using code mirror's wrapper element for now which requires us to get the editor and the code mirror instance
         var curDoc = DocumentManager.getCurrentDocument();
         if (!curDoc) {
             return;
