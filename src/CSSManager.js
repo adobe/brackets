@@ -232,14 +232,23 @@ define(function (require, exports, module) {
                         };
                         
                         // find the right-most type selector if the input string is a type
-                        var element             = null,
-                            elementIndex        = selector.elements.length - 1;
+                        var element,
+                            elementIndex        = selector.elements.length - 1,
+                            elementValue        = null,
+                            query               = selectorString,
+                            isTypeSelectorQuery = false;
                         
-                        if (isTypeSelector(selectorString)) {
+                        if (isTypeSelector(query)) {
+                            isTypeSelectorQuery = true;
+                            
                             while (elementIndex >= 0) {
                                 element = selector.elements[elementIndex];
                                 
                                 if (isTypeSelector(element.value)) {
+                                    // type matches are not case sensitive
+                                    elementValue = element.value.toLowerCase();
+                                    query = selectorString.toLowerCase();
+                                    
                                     break;
                                 }
                                 
@@ -253,14 +262,19 @@ define(function (require, exports, module) {
                         } else {
                             // Use last selector element
                             element = selector.elements[elementIndex];
+                            elementValue = element.value;
                         }
                         
-                        // Always match the universal selector (sprint 4)
-                        if (element.value.charAt(0) === '*') {
-                            return true;
+                        if (elementValue) {
+                            // Always match a lone universal selector (sprint 4)
+                            if (isTypeSelectorQuery &&
+                                    (elementValue === "*") &&
+                                    (selector.elements.length === 1)) {
+                                return true;
+                            }
+                            
+                            return elementValue === query;
                         }
-                        
-                        return element.value.toLowerCase() === selectorString.toLowerCase();
                     }
                     
                     return false;

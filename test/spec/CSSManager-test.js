@@ -202,9 +202,9 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("_loadString", function () {
+        describe("loadString", function () {
             it("should parse arbitrary string content", function () {
-                var results = this.cssManager._loadString("div { color: red }");
+                var results = this.cssManager.loadString("div { color: red }");
                 
                 expect(results.length).toEqual(1);
             });
@@ -227,19 +227,17 @@ define(function (require, exports, module) {
             it("should match class name selectors", function () {
                 var matches = this.cssManager.findMatchingRules(".firstGrade");
                 
-                expect(matches.length).toEqual(2);
+                expect(matches.length).toEqual(1);
                 
                 // Parser will save selectors as lowercase
                 expect(matches[0]).toMatchLastSelectorElement(".firstGrade");
-                expect(matches[1]).toMatchLastSelectorElement(".FIRSTGRADE");
             });
             
             it("should match IDs", function () {
                 var matches = this.cssManager.findMatchingRules("#brack3ts");
                 
-                expect(matches.length).toEqual(2);
+                expect(matches.length).toEqual(1);
                 expect(matches[0]).toMatchLastSelectorElement("#brack3ts");
-                expect(matches[1]).toMatchLastSelectorElement("#BRACK3TS");
             });
             
             it("should not find a universal selector", function () {
@@ -274,17 +272,15 @@ define(function (require, exports, module) {
             it("should match a class name selector", function () {
                 var matches = this.cssManager.findMatchingRules(".firstGrade");
                 
-                expect(matches.length).toEqual(2);
-                expect(matches[0]).toMatchLastSelectorElement("*");
-                expect(matches[1]).toMatchLastSelectorElement(".firstGrade");
+                expect(matches.length).toEqual(1);
+                expect(matches[0]).toMatchLastSelectorElement(".firstGrade");
             });
             
             it("should match an id selector", function () {
                 var matches = this.cssManager.findMatchingRules("#brack3ts");
                 
-                expect(matches.length).toEqual(2);
-                expect(matches[0]).toMatchLastSelectorElement("*");
-                expect(matches[1]).toMatchLastSelectorElement("#brack3ts");
+                expect(matches.length).toEqual(1);
+                expect(matches[0]).toMatchLastSelectorElement("#brack3ts");
             });
         });
         
