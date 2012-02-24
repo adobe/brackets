@@ -8,9 +8,9 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystemModule  = require("NativeFileSystem"),
+    var NativeFileSystem        = require("NativeFileSystem").NativeFileSystem,
         Async                   = require("Async"),
-        NativeFileSystem        = NativeFileSystemModule.NativeFileSystem,
+        FileUtils               = require("FileUtils"),
         CSSManager              = require("CSSManager"),
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         
         var masterPromise = Async.doInParallel(infos, function (info) {
             var oneFileResult = new $.Deferred();
-            var textResult = NativeFileSystemModule.readAsText(info.source);
+            var textResult = FileUtils.readAsText(info.source);
         
             textResult.done(function (content) {
                 content = content.replace(/\r\n/g, '\n');
@@ -69,7 +69,7 @@ define(function (require, exports, module) {
         var mgr = new CSSManager.CSSManager();
         
         try {
-            mgr.loadString(cssCode);
+            mgr._loadString(cssCode);
         } catch (e) {
             this.fail(e.message + ": " + cssCode);
             return [];
@@ -199,9 +199,9 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("loadString", function () {
+        describe("_loadString", function () {
             it("should parse arbitrary string content", function () {
-                var results = this.cssManager.loadString("div { color: red }");
+                var results = this.cssManager._loadString("div { color: red }");
                 
                 expect(results.length).toEqual(1);
             });

@@ -12,7 +12,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Dependencies
-    var NativeFileSystem = require("NativeFileSystem");
+    var NativeFileSystem = require("NativeFileSystem"),
+        FileUtils        = require("FileUtils");
     
     /**
      * Regex to match selector element values for ID '#', pseudo ':',
@@ -164,7 +165,7 @@ define(function (require, exports, module) {
      * @param {!string} str
      * @return {Array.<ResultSetInfo>}
      */
-    CSSManager.prototype.loadString = function (str) {
+    CSSManager.prototype._loadString = function (str) {
         var rulesets = [],
             self = this;
         
@@ -182,7 +183,7 @@ define(function (require, exports, module) {
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
         var result = new $.Deferred(),
-            textResult = NativeFileSystem.readAsText(fileEntry),
+            textResult = FileUtils.readAsText(fileEntry),
             self = this,
             rulesets = [];
         
@@ -234,7 +235,8 @@ define(function (require, exports, module) {
                         return false;
                     }
                     
-                    // find the right-most type selector if the input string is a type
+                    // The rightmost type selector must be a full match, and can contain
+                    // any other simple selectors (ID, attribute, class, etc.)
                     var element,
                         elementIndex        = selector.elements.length - 1,
                         elementValue        = null,
