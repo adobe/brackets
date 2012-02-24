@@ -251,17 +251,19 @@ define(function (require, exports, module) {
     function _openInlineWidget(instance) {
         // Run through inline-editor providers until one responds
         var pos = instance.getCursor();
-        var inlineContent;
+        var inlinePromise;
         var i;
-        for (i = 0; i < _inlineEditProviders.length && !inlineContent; i++) {
+        for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
             var provider = _inlineEditProviders[i];
-            inlineContent = provider(instance, pos);
+            inlinePromise = provider(instance, pos);
         }
         
-        // If one of them provided a widget, show it inline now        
-        if (inlineContent) {
-            var inlineId = instance.addInlineWidget(pos, inlineContent.content, inlineContent.height);
-            inlineContent.onAdded(inlineId);
+        // If one of them will provide a widget, show it inline once ready
+        if (inlinePromise) {
+            inlinePromise.done(function (inlineContent) {
+                var inlineId = instance.addInlineWidget(pos, inlineContent.content, inlineContent.height);
+                inlineContent.onAdded(inlineId);
+            });
         }
     }
     
@@ -303,8 +305,12 @@ define(function (require, exports, module) {
      * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
      * is set based on the given filename's extension (the actual file on disk is never examined).
      * The editor is not yet visible.
+     * @param {CodeMirror} hostEditor
+     * @param {string} text
+     * @param {?{startLine:Number, endLine:Number}} range
+     * @param {string} fileNameToSelectMode
      */
-    function createInlineEditorFromText(hostEditor, text, fileNameToSelectMode, closeCallback) {
+    function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {
         // Container to hold editor & render its stylized frame
         var inlineContent = document.createElement('div');
         
@@ -315,24 +321,15 @@ define(function (require, exports, module) {
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
         
-        // Work around Issue #314
-        // TODO (issue #314): remove this once fixed
-        $(inlineEditor.getWrapperElement()).mousedown(function (jqEvent) {
-            jqEvent.stopPropagation();
-        });
-        $(inlineEditor.getWrapperElement()).dblclick(function (jqEvent) {
-            jqEvent.stopPropagation();
-        });
-        
         // Auto-size editor to its content, clamped to a max of 150px
-        function editorTotalHeight(editor) {
+        function editorHeight(nLines) {
             // TODO: need a real API for this; currently hacked up based on CodeMirror's totalHeight() impl
             var lineHeight = 18; // what our current stylesheet yields
             var padding = 12;    // ditto
-            var nLines = editor.lineCount();
             return nLines * lineHeight + padding;
         }
-        var textTotalHeight = editorTotalHeight(inlineEditor);
+        var nLines = range ? (range.endLine - range.startLine + 1) : inlineEditor.lineCount();
+        var textTotalHeight = editorHeight(nLines);
         var widgetHeight = Math.min(textTotalHeight, 150);
         
         // Some tasks have to wait until we've been parented into the outer editor
@@ -342,49 +339,35 @@ define(function (require, exports, module) {
             $(inlineEditor.getScrollerElement()).height(widgetHeight);
             inlineEditor.refresh();
             
+            // Hide all lines other than those we want to show. We do this rather than trimming the
+            // text itself so that the editor still shows accurate line numbers.
+            if (range) {
+                inlineEditor.operation(function () {
+                    var i;
+                    for(i = 0; i < range.startLine; i++) {
+                        inlineEditor.hideLine(i);
+                    }
+                    var lineCount = inlineEditor.lineCount();
+                    for(i = range.endLine + 1; i < lineCount; i++) {
+                        inlineEditor.hideLine(i);
+                    }
+                });
+                inlineEditor.setCursor(range.startLine, 0);
+                
+                // CodeMirror has bugs where the gutter line numbers are wrong if the first line
+                // is hidden, so for now when trimming text down to a range we show NO line numbers
+                inlineEditor.setOption("gutter", true);
+                inlineEditor.setOption("lineNumbers", false);
+            }
+            
             inlineEditor.focus();
             
-            // CodeMirror.addInlineWidget() blows away any CSS classes we set earlier
+            // Set late because CodeMirror.addInlineWidget() blows away any CSS classes we set earlier
             $(inlineContent).addClass("inlineCodeEditor");
         }
         
         return { content: inlineContent, editor: inlineEditor, height: widgetHeight, onAdded: afterAdded };
     }
-    
-    // TODO - temp
-    /**
-     * @param {!CodeMirror} editor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {{inlineContent:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
-     */
-    function temp_createDummyInlineEditor(editor, pos) {
-        // Only provide a CSS editor when cursor is in HTML content
-        if (editor.getOption("mode") !== "htmlmixed") {
-            return null;
-        }
-        var htmlmixedState = editor.getTokenAt(pos).state;
-        if (htmlmixedState.mode !== "html") {
-            return null;
-        }
-        
-        // TODO: use 'pos' to form a CSSManager query, and go find an actual relevant CSS rule
-        
-        var dummyCSS = ".dummyCSSContent-for-line-" + (pos.line + 1) + " {\n" +
-                       "    this-is-a-test: yes;\n" +
-                       "}\n";
-        dummyCSS += dummyCSS + dummyCSS;    // to test longer content
-        
-        var inlineInfo = createInlineEditorFromText(editor, dummyCSS, "dummy.css");
-        
-        var inlineEditor = inlineInfo.editor;
-        
-        // For Sprint 4, editor is a read-only view
-        inlineEditor.setOption("readOnly", true);
-        
-        return inlineInfo;
-    }
-    registerInlineEditProvider(temp_createDummyInlineEditor);
-    // TODO - temp
     
     
     /**
@@ -603,6 +586,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.setEditorHolder = setEditorHolder;
     exports.createDocumentAndEditor = createDocumentAndEditor;
+    exports.createInlineEditorFromText = createInlineEditorFromText;
     exports.focusEditor = focusEditor;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
