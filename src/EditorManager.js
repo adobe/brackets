@@ -35,8 +35,14 @@ define(function (require, exports, module) {
     /** @type {Document} */
     var _currentEditorsDocument = null;
     
-    /** @type {number} Used by {@link _updateEditorSize()} */
+    /** @type {number} Used by {@link #_updateEditorSize()} */
     var _resizeTimeout = null;
+    
+    /**
+     * Registered inline-editor widget providers. See {@link #registerInlineEditProvider()}.
+     * @type {Array.<function(...)>}
+     */
+    var _inlineEditProviders = [];
     
     /**
      * @private
@@ -241,81 +247,36 @@ define(function (require, exports, module) {
         return editor;
     }
     
-    // DEBUG
-    function _openInlineContent(instance) {
+    /** Bound to Ctrl+E on outermost editors */
+    function _openInlineWidget(instance) {
+        // Run through inline-editor providers until one responds
         var pos = instance.getCursor();
-        var inlineId;
-        function closeInlineWidget() {
-            instance.removeInlineWidget(inlineId);
+        var inlineContent;
+        var i;
+        for (i = 0; i < _inlineEditProviders.length && !inlineContent; i++) {
+            var provider = _inlineEditProviders[i];
+            inlineContent = provider(instance, pos);
         }
-        var inlineContent = createTestInlineContent(instance, pos, closeInlineWidget);
+        
+        // If one of them provided a widget, show it inline now        
         if (inlineContent) {
-            inlineId = instance.addInlineWidget(pos, inlineContent.content, inlineContent.height);
-            inlineContent.onAdded();
+            var inlineId = instance.addInlineWidget(pos, inlineContent.content, inlineContent.height);
+            inlineContent.onAdded(inlineId);
         }
     }
-    function createTestInlineContent(editor, pos, closeCallback) {
-        // var inlineContent = document.createElement('div');
-        // inlineContent.style.background = '#CCCCCC';
-        // inlineContent.innerHTML = "Inline editor  for line #" + (pos.line+1);
-        
-        // $(inlineContent).click(function() {
-        //     closeCallback();
-        // });
-        
-        var inlineContent = document.createElement('div');
-        $(inlineContent).css("border-top", "1px solid #A0A0A0");
-        $(inlineContent).css("border-bottom", "1px solid #A0A0A0");
-        $(inlineContent).css("-webkit-box-shadow", "inset 0px 3px 6px 1px rgba(0, 0, 0, .25)"); // TODO: not visible b/c editor has opaque background
-        
-        function closeThisInline() {
-            closeCallback();
-        }
-        
-        var dummyCSS = ".dummyCSSContent {\n" +
-                       "    this-is-a-test: yes;\n" +
-                       "}\n";
-        dummyCSS += dummyCSS + dummyCSS;    // to test longer content
-        
-        var inlineEditor = _createEditorFromText(dummyCSS, "dummy.css", inlineContent, closeThisInline);
-        
-        // For Sprint 4, editor is a read-only view
-        inlineEditor.setOption("readOnly", true);
-        
-        // Work around Issue #314
-        $(inlineEditor.getWrapperElement()).mousedown(function (jqe) {
-            jqe.stopPropagation();
-        });
-        $(inlineEditor.getWrapperElement()).dblclick(function (jqe) {
-            jqe.stopPropagation();
-        });
-        
-        // Auto-size editor to its content, clamped to a max of 150px
-        var textTotalHeight = editorTotalHeight(inlineEditor);
-        var widgetHeight = Math.min(textTotalHeight, 150);
-        
-        // Once we've been parented into the outer editor, we can run a layout pass & grab focus
-        function afterAdded() {
-            $('.CodeMirror-scroll .CodeMirror-scroll', _editorHolder).height(widgetHeight);
-            inlineEditor.refresh();
-            
-            inlineEditor.focus();
-        }
-        
-        return { content: inlineContent, height: widgetHeight, onAdded: afterAdded };
+    
+    function _closeInlineWidget(hostEditor, inlineId) {
+        hostEditor.removeInlineWidget(inlineId);
     }
-    function editorTotalHeight(editor) {
-        // TODO: need a real API for this; currently hacked up based on CodeMirror's totalHeight() impl
-        var lineHeight = 18; // what our current stylesheet yields
-        var padding = 12;    // ditto
-        var nLines = editor.lineCount();
-        return nLines*lineHeight + padding;
+    
+    function registerInlineEditProvider(provider) {
+        _inlineEditProviders.push(provider);
     }
-    // DEBUG
+    
     
     /**
-     * Creates a new CodeMirror editor instance containing text from the 
-     * specified fileEntry. The editor is not yet visible.
+     * Creates a new "main" CodeMirror editor instance containing text from the specified fileEntry
+     * (i.e. not an inline editor). The editor is not yet visible.
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @return {Deferred} a jQuery Deferred that will be resolved with (the new editor, the file's
@@ -327,7 +288,7 @@ define(function (require, exports, module) {
             reader = DocumentManager.readAsText(fileEntry);
             
         reader.done(function (text, readTimestamp) {
-            var editor = _createEditorFromText(text, fileEntry.fullPath, container, _openInlineContent);
+            var editor = _createEditorFromText(text, fileEntry.fullPath, container, _openInlineWidget);
             result.resolve(editor, readTimestamp, text);
         });
         reader.fail(function (error) {
@@ -336,6 +297,94 @@ define(function (require, exports, module) {
 
         return result;
     }
+    
+    
+    /**
+     * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
+     * is set based on the given filename's extension (the actual file on disk is never examined).
+     * The editor is not yet visible.
+     */
+    function createInlineEditorFromText(hostEditor, text, fileNameToSelectMode, closeCallback) {
+        // Container to hold editor & render its stylized frame
+        var inlineContent = document.createElement('div');
+        $(inlineContent).css("border-top", "1px solid #A0A0A0");
+        $(inlineContent).css("border-bottom", "1px solid #A0A0A0");
+        $(inlineContent).css("-webkit-box-shadow", "inset 0px 3px 6px 1px rgba(0, 0, 0, .25)"); // TODO: not visible b/c editor has opaque background
+        
+        var myInlineId; // won't be populated until our afterAdded() callback is run
+        function closeThisInline() {
+            _closeInlineWidget(hostEditor, myInlineId);
+        }
+        
+        var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
+        
+        // Work around Issue #314
+        $(inlineEditor.getWrapperElement()).mousedown(function (jqEvent) {
+            jqEvent.stopPropagation();
+        });
+        $(inlineEditor.getWrapperElement()).dblclick(function (jqEvent) {
+            jqEvent.stopPropagation();
+        });
+        
+        // Auto-size editor to its content, clamped to a max of 150px
+        function editorTotalHeight(editor) {
+            // TODO: need a real API for this; currently hacked up based on CodeMirror's totalHeight() impl
+            var lineHeight = 18; // what our current stylesheet yields
+            var padding = 12;    // ditto
+            var nLines = editor.lineCount();
+            return nLines * lineHeight + padding;
+        }
+        var textTotalHeight = editorTotalHeight(inlineEditor);
+        var widgetHeight = Math.min(textTotalHeight, 150);
+        
+        // Once we've been parented into the outer editor, we can run a layout pass & grab focus
+        function afterAdded(inlineId) {
+            myInlineId = inlineId;
+            
+            $('.CodeMirror-scroll .CodeMirror-scroll', _editorHolder).height(widgetHeight);
+            inlineEditor.refresh();
+            
+            inlineEditor.focus();
+        }
+        
+        return { content: inlineContent, editor: inlineEditor, height: widgetHeight, onAdded: afterAdded };
+    }
+    
+    // TODO - temp
+    /**
+     * @param {!CodeMirror} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {{inlineContent:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     */
+    function temp_createDummyInlineEditor(editor, pos) {
+        // var inlineContent = document.createElement('div');
+        // inlineContent.style.background = '#CCCCCC';
+        // inlineContent.innerHTML = "Inline editor  for line #" + (pos.line+1);
+        //
+        // $(inlineContent).click(function() {
+        //     _closeInlineWidget(editor, myInlineId);
+        // });
+        // var myInlineId;
+        // return { content:inlineContent, height:100, onAdded:function(id){ myInlineId=id; } };
+        
+        // TODO: use 'pos' to form a CSSManager query, and go find an actual relevant CSS rule
+        
+        var dummyCSS = ".dummyCSSContent-for-line-" + (pos.line + 1) + " {\n" +
+                       "    this-is-a-test: yes;\n" +
+                       "}\n";
+        dummyCSS += dummyCSS + dummyCSS;    // to test longer content
+        
+        var inlineInfo = createInlineEditorFromText(editor, dummyCSS, "dummy.css");
+        
+        var inlineEditor = inlineInfo.editor;
+        
+        // For Sprint 4, editor is a read-only view
+        inlineEditor.setOption("readOnly", true);
+        
+        return inlineInfo;
+    }
+    registerInlineEditProvider(temp_createDummyInlineEditor);
+    // TODO - temp
     
     
     /**
@@ -556,4 +605,5 @@ define(function (require, exports, module) {
     exports.createDocumentAndEditor = createDocumentAndEditor;
     exports.focusEditor = focusEditor;
     exports.resizeEditor = resizeEditor;
+    exports.registerInlineEditProvider = registerInlineEditProvider;
 });
