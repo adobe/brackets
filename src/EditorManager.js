@@ -307,9 +307,6 @@ define(function (require, exports, module) {
     function createInlineEditorFromText(hostEditor, text, fileNameToSelectMode, closeCallback) {
         // Container to hold editor & render its stylized frame
         var inlineContent = document.createElement('div');
-        $(inlineContent).css("border-top", "1px solid #A0A0A0");
-        $(inlineContent).css("border-bottom", "1px solid #A0A0A0");
-        $(inlineContent).css("-webkit-box-shadow", "inset 0px 3px 6px 1px rgba(0, 0, 0, .25)"); // TODO: not visible b/c editor has opaque background
         
         var myInlineId; // won't be populated until our afterAdded() callback is run
         function closeThisInline() {
@@ -319,6 +316,7 @@ define(function (require, exports, module) {
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
         
         // Work around Issue #314
+        // TODO (issue #314): remove this once fixed
         $(inlineEditor.getWrapperElement()).mousedown(function (jqEvent) {
             jqEvent.stopPropagation();
         });
@@ -337,14 +335,17 @@ define(function (require, exports, module) {
         var textTotalHeight = editorTotalHeight(inlineEditor);
         var widgetHeight = Math.min(textTotalHeight, 150);
         
-        // Once we've been parented into the outer editor, we can run a layout pass & grab focus
+        // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
             myInlineId = inlineId;
             
-            $('.CodeMirror-scroll .CodeMirror-scroll', _editorHolder).height(widgetHeight);
+            $(inlineEditor.getScrollerElement()).height(widgetHeight);
             inlineEditor.refresh();
             
             inlineEditor.focus();
+            
+            // CodeMirror.addInlineWidget() blows away any CSS classes we set earlier
+            $(inlineContent).addClass("inlineCodeEditor");
         }
         
         return { content: inlineContent, editor: inlineEditor, height: widgetHeight, onAdded: afterAdded };
@@ -357,15 +358,14 @@ define(function (require, exports, module) {
      * @return {{inlineContent:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
      */
     function temp_createDummyInlineEditor(editor, pos) {
-        // var inlineContent = document.createElement('div');
-        // inlineContent.style.background = '#CCCCCC';
-        // inlineContent.innerHTML = "Inline editor  for line #" + (pos.line+1);
-        //
-        // $(inlineContent).click(function() {
-        //     _closeInlineWidget(editor, myInlineId);
-        // });
-        // var myInlineId;
-        // return { content:inlineContent, height:100, onAdded:function(id){ myInlineId=id; } };
+        // Only provide a CSS editor when cursor is in HTML content
+        if (editor.getOption("mode") !== "htmlmixed") {
+            return null;
+        }
+        var htmlmixedState = editor.getTokenAt(pos).state;
+        if (htmlmixedState.mode !== "html") {
+            return null;
+        }
         
         // TODO: use 'pos' to form a CSSManager query, and go find an actual relevant CSS rule
         
