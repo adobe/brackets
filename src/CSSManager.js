@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, require: false, less: false */
+/*global define: false, $: false, require: false, less: false, FileError: false */
 
 /**
  * CSSManager
@@ -12,13 +12,25 @@ define(function (require, exports, module) {
     'use strict';
     
     // Dependencies
-    var NativeFileSystem = require("NativeFileSystem");
+    var NativeFileSystem    = require("NativeFileSystem"),
+        FileIndexManager    = require("FileIndexManager"),
+        Async               = require("Async");
     
     /**
      * Regex to match selector element values for ID '#', pseudo ':',
      * class name '.', attribute start '[' or digit.
      */
     var IDENTIFIER_REGEX = /^[#:\.\[\d]/;
+    
+    /**
+     * CSSManager instance for the current project
+     */
+    var _cssManager;
+    
+    /**
+     * Track CSS file modification times
+     */
+    var _cssFileMetadataMap = {};
     
     /**
      * Adapter for LESS RuleSet
@@ -181,6 +193,7 @@ define(function (require, exports, module) {
      *  objects for all rules parsed from the file.
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
+        // TODO (jasonsj): Strategy for inline <style> blocks?
         var result = new $.Deferred(),
             textResult = NativeFileSystem.readAsText(fileEntry),
             self = this,
@@ -199,8 +212,8 @@ define(function (require, exports, module) {
     /**
      * Remove a file from cache
      */
-    CSSManager.prototype.removeFile = function (fileEntry) {
-        delete this._rules[fileEntry.fullPath];
+    CSSManager.prototype.removeFile = function (fullPath) {
+        delete this._rules[fullPath];
     };
     
     /**
@@ -296,5 +309,101 @@ define(function (require, exports, module) {
         return matches;
     };
     
-    exports.CSSManager = CSSManager;
+    function _syncFiles(cssFiles) {
+        // TODO (jasonsj): should FileIndexManager trigger add/change/remove events?
+        var deferred        = new $.Deferred(),
+            filesToLoad     = [],
+            filesToRemove   = {};
+        
+        // Copy the current loaded files into a new map. Remove keys
+        // from the map when the file is or will be loaded.
+        $.each(_cssFileMetadataMap, function (fullPath, value) {
+            filesToRemove[fullPath] = true;
+        });
+        
+        var compareFileTimestamp = function (fileInfo) {
+            var oneDeferred = new $.Deferred(),
+                fileEntry;
+            
+            var metadataSuccess = function (metadata) {
+                // compare to last timestamp
+                var previous = !_cssFileMetadataMap[fileInfo.fullPath],
+                    current = metadata.modificationTime;
+                
+                if ((previous === undefined) || (current !== previous)) {
+                    // new or changed file, load it
+                    filesToLoad.push(fileEntry);
+                }
+                
+                // update the timestamp
+                _cssFileMetadataMap[fileInfo.fullPath] = current;
+            
+                delete filesToRemove[fileInfo.fullPath];
+                
+                oneDeferred.resolve();
+            };
+            
+            var metadataError = function (fileError) {
+                // An entry will be left in currentFileMap
+                if (fileError.code !== FileError.NOT_FOUND_ERR) {
+                    // try to reload the file for any other errors
+                    filesToLoad.push(fileEntry);
+                    
+                    delete filesToRemove[fileInfo.fullPath];
+                }
+                
+                oneDeferred.resolve();
+            };
+            
+            // TODO (jasonsj): work with Ty to add FileEntry property to FileInfo
+            fileEntry = new NativeFileSystem.NativeFileSystem.FileEntry(fileInfo.fullPath);
+            fileEntry.getMetadata(metadataSuccess, metadataError);
+            
+            return oneDeferred.promise();
+        };
+        
+        var compareResult = Async.doInParallel(cssFiles, compareFileTimestamp, false);
+        compareResult.done(function () {
+            // remove files
+            $.each(filesToRemove, function (fullPath) {
+                _cssManager.removeFile(fullPath);
+            });
+            
+            // load new/changed files
+            var loadFilesResult = Async.doInParallel(
+                filesToLoad,
+                function (value, index) {
+                    return _cssManager.loadFile(value);
+                },
+                false
+            );
+            
+            loadFilesResult.done(function () {
+                deferred.resolve();
+            });
+        });
+        
+        return deferred.promise();
+    }
+    
+    function findMatchingRules(selectorString) {
+        var deferred        = new $.Deferred(),
+            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+        
+        cssFilesResult.done(function (fileInfos) {
+            _syncFiles(fileInfos).done(function () {
+                deferred.resolve(_cssManager.findMatchingRules(selectorString));
+            });
+        });
+        
+        return deferred.promise();
+    }
+    
+    // Init
+    (function () {
+        _cssManager = new CSSManager();
+    }());
+    
+    exports.CSSManager          = CSSManager;
+    exports.findMatchingRules   = findMatchingRules;
 });

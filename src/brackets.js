@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
         CodeHintManager         = require("CodeHintManager"),
+        CSSManager              = require("CSSManager"),
         PerfUtils               = require("PerfUtils");
 
     // Define core brackets namespace if it isn't already defined
@@ -71,7 +72,8 @@ define(function (require, exports, module) {
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("CommandManager"),
-        FileIndexManager        : FileIndexManager
+        FileIndexManager        : FileIndexManager,
+        CSSManager              : require("CSSManager")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
