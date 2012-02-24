@@ -177,7 +177,7 @@ define(function (require, exports, module) {
      * Parse CSS rules from a file and cache the results. Asynchronous.
      *
      * @param {!FileEntry} fileEntry
-     * @return {Deferred} A promise that is resolved with an Array of RuleSetInfo
+     * @return {Promise} A promise that is resolved with an Array of RuleSetInfo
      *  objects for all rules parsed from the file.
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
@@ -193,7 +193,7 @@ define(function (require, exports, module) {
             result.resolve(rulesets);
         });
         
-        return result;
+        return result.promise();
     };
     
     /**
