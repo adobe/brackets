@@ -17,7 +17,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager"),
         DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
-        EditorUtils         = require("EditorUtils"),
+        FileUtils           = require("FileUtils"),
         Async               = require("Async"),
         Strings             = require("strings"),
         PreferencesManager  = require("PreferencesManager"),
@@ -104,7 +104,7 @@ define(function (require, exports, module) {
             });
             
             docResult.fail(function (error) {
-                EditorUtils.showFileOpenError(error.code, fullPath);
+                FileUtils.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -244,7 +244,7 @@ define(function (require, exports, module) {
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
                 path,
-                EditorUtils.getFileErrorString(code)
+                FileUtils.getFileErrorString(code)
             )
         );
     }

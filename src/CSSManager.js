@@ -12,9 +12,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Dependencies
-    var NativeFileSystem    = require("NativeFileSystem"),
+    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         FileIndexManager    = require("FileIndexManager"),
         Async               = require("Async");
+        FileUtils           = require("FileUtils");
     
     /**
      * Regex to match selector element values for ID '#', pseudo ':',
@@ -57,14 +58,11 @@ define(function (require, exports, module) {
     
     /**
      * Computes the line number of the offset in the given text.
-     * @returns {object} Returns 2 properties: lineNumber (of the offset) and 
-     *  lines (all lines preceding the lineNumber)
+     * @returns {number}
      */
     function _computeLineNumber(text, offset) {
         var lines = text.substr(0, offset);
-        var lineNumber = lines.split("\n").length - 1;
-        
-        return { lines: lines, lineNumber: lineNumber };
+        return lines.split("\n").length - 1;
     }
     
     /**
@@ -84,7 +82,7 @@ define(function (require, exports, module) {
             current         = null,
             offsetEnd       = input.length,
             firstElement    = null,
-            computeLine     = { lines: input };
+            lines           = input;
         
         while (i >= 0) {
             current = rulesets[i];
@@ -99,11 +97,11 @@ define(function (require, exports, module) {
             current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
             
             // split the input up to the offset to find the lineStart and lineEnd
-            computeLine = _computeLineNumber(computeLine.lines, current.offsetEnd);
-            current.lineEnd = computeLine.lineNumber;
+            current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
+            lines = text.substr(0, current.offsetEnd);
             
-            computeLine = _computeLineNumber(computeLine.lines, current.offsetStart);
-            current.lineStart = computeLine.lineNumber;
+            current.lineStart = _computeLineNumber(lines, current.offsetStart);
+            text.substr(0, current.offsetStart);
             
             offsetEnd = current.offsetStart - 1;
             
@@ -145,9 +143,9 @@ define(function (require, exports, module) {
      * Recursively parse CSS rules from a string. Map the cached results 
      * based on the FileEntry fullPath.
      *
-     * @param rulesets {Array.<ResultSetInfo>} Result storage
-     * @param text {string} CSS text to parse
-     * @param source {?FileEntry} Optional. FileEntry source of CSS text.
+     * @param {Array.<ResultSetInfo>} rulesets Result storage
+     * @param {string} text CSS text to parse
+     * @param {?FileEntry} source Optional. FileEntry source of CSS text.
      */
     CSSManager.prototype._parse = function (rulesets, text, source) {
         var self = this;
@@ -176,7 +174,7 @@ define(function (require, exports, module) {
      * @param {!string} str
      * @return {Array.<ResultSetInfo>}
      */
-    CSSManager.prototype.loadString = function (str) {
+    CSSManager.prototype._loadString = function (str) {
         var rulesets = [],
             self = this;
         
@@ -195,7 +193,7 @@ define(function (require, exports, module) {
     CSSManager.prototype.loadFile = function (fileEntry) {
         // TODO (jasonsj): Strategy for inline <style> blocks?
         var result = new $.Deferred(),
-            textResult = NativeFileSystem.readAsText(fileEntry),
+            textResult = FileUtils.readAsText(fileEntry),
             self = this,
             rulesets = [];
         
@@ -247,7 +245,8 @@ define(function (require, exports, module) {
                         return false;
                     }
                     
-                    // find the right-most type selector if the input string is a type
+                    // The rightmost type selector must be a full match, and can contain
+                    // any other simple selectors (ID, attribute, class, etc.)
                     var element,
                         elementIndex        = selector.elements.length - 1,
                         elementValue        = null,

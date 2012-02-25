@@ -17,16 +17,14 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var NativeFileSystemModule  = require("NativeFileSystem"),
-        NativeFileSystem        = NativeFileSystemModule.NativeFileSystem,
-        ProjectManager          = require("ProjectManager"),
-        DocumentManager         = require("DocumentManager"),
-        EditorManager           = require("EditorManager"),
-        EditorUtils             = require("EditorUtils"),
-        Commands                = require("Commands"),
-        CommandManager          = require("CommandManager"),
-        Async                   = require("Async"),
-        Strings                 = require("strings");
+    var ProjectManager      = require("ProjectManager"),
+        DocumentManager     = require("DocumentManager"),
+        EditorManager       = require("EditorManager"),
+        Commands            = require("Commands"),
+        CommandManager      = require("CommandManager"),
+        Async               = require("Async"),
+        Strings             = require("strings"),
+        FileUtils           = require("FileUtils");
 
     
     /**
@@ -125,7 +123,7 @@ define(function (require, exports, module) {
      */
     function reloadDoc(doc) {
         
-        var promise = NativeFileSystemModule.readAsText(doc.file);
+        var promise = FileUtils.readAsText(doc.file);
         
         promise.done(function (text, readTimestamp) {
             doc.refreshText(text, readTimestamp);
@@ -159,7 +157,7 @@ define(function (require, exports, module) {
             Strings.format(
                 Strings.ERROR_RELOADING_FILE,
                 doc.file.fullPath,
-                EditorUtils.getFileErrorString(error.code)
+                FileUtils.getFileErrorString(error.code)
             )
         );
     }
