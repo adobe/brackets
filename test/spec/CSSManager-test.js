@@ -304,15 +304,7 @@ define(function (require, exports, module) {
         var manager,
             match;
         
-        // Test helper function; tagInfo object contains one of: tag, id, clazz
-        var _match = function (cssCode, tagInfo) {
-            try {
-                manager._loadString(cssCode);
-            } catch (e) {
-                this.fail(e.message + ": " + cssCode);
-                return [];
-            }
-            
+        function findMatchingRules(tagInfo) {
             if (tagInfo) {
                 var selector = "";
                 if (tagInfo.tag) {
@@ -328,7 +320,23 @@ define(function (require, exports, module) {
             } else {
                 return [];
             }
+        }
+        
+        // Test helper function; tagInfo object contains one of: tag, id, clazz
+        var _match = function (cssCode, tagInfo) {
+            try {
+                manager._loadString(cssCode);
+            } catch (e) {
+                this.fail(e.message + ": " + cssCode);
+                return [];
+            }
+            
+            return findMatchingRules(tagInfo);
         };
+        
+        function matchAgain(tagInfo) {
+            return findMatchingRules(tagInfo);
+        }
         
         beforeEach(function () {
             match = _match.bind(this);
@@ -341,13 +349,13 @@ define(function (require, exports, module) {
                 var result = match("div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 
-                result = match("div { color:red }", { tag: "span" });
+                result = matchAgain({ tag: "span" });
                 expect(result.length).toBe(0);
                 
-                result = match("div { color:red }", { tag: "divfoo" });
+                result = matchAgain({ tag: "divfoo" });
                 expect(result.length).toBe(0);
                 
-                result = match("div { color:red }", { tag: "di" });
+                result = matchAgain({ tag: "di" });
                 expect(result.length).toBe(0);
             });
             
@@ -355,16 +363,16 @@ define(function (require, exports, module) {
                 var result = match(".foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match(".foo { color:red }", { clazz: "bar" });
+                result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
                 
-                result = match(".foo { color:red }", { clazz: "foobar" });
+                result = matchAgain({ clazz: "foobar" });
                 expect(result.length).toBe(0);
                 
-                result = match(".foo { color:red }", { clazz: "fo" });
+                result = matchAgain({ clazz: "fo" });
                 expect(result.length).toBe(0);
                 
-                result = match(".foo { color:red }", { clazz: ".foo" });
+                result = matchAgain({ clazz: ".foo" });
                 expect(result.length).toBe(0);
             });
             
@@ -372,16 +380,16 @@ define(function (require, exports, module) {
                 var result = match("#foo { color:red }", { id: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match("#foo { color:red }", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(0);
                 
-                result = match("#foo { color:red }", { id: "foobar" });
+                result = matchAgain({ id: "foobar" });
                 expect(result.length).toBe(0);
                 
-                result = match("#foo { color:red }", { id: "fo" });
+                result = matchAgain({ id: "fo" });
                 expect(result.length).toBe(0);
                 
-                result = match("#foo { color:red }", { id: "#foo" });
+                result = matchAgain({ id: "#foo" });
                 expect(result.length).toBe(0);
             });
             
@@ -392,23 +400,23 @@ define(function (require, exports, module) {
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match(css, { tag: "foo" });
+                result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
-                result = match(css, { tag: "bar" });
+                result = matchAgain({ tag: "bar" });
                 expect(result.length).toBe(0);
                 
-                result = match(css, { clazz: "div" });
+                result = matchAgain({ clazz: "div" });
                 expect(result.length).toBe(0);
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match(css, { clazz: "bar" });
+                result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(0);
                 
-                result = match(css, { id: "div" });
+                result = matchAgain({ id: "div" });
                 expect(result.length).toBe(0);
-                result = match(css, { id: "foo" });
+                result = matchAgain({ id: "foo" });
                 expect(result.length).toBe(0);
-                result = match(css, { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
             });
             
@@ -422,21 +430,21 @@ define(function (require, exports, module) {
                            
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(2);
-                result = match(css, { tag: "Div" });
+                result = matchAgain({ tag: "Div" });
                 expect(result.length).toBe(2);
                 
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match(css, { clazz: "Foo" });
+                result = matchAgain({ clazz: "Foo" });
                 expect(result.length).toBe(1);
-                result = match(css, { clazz: "FOO" });
+                result = matchAgain({ clazz: "FOO" });
                 expect(result.length).toBe(0);
                 
-                result = match(css, { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
-                result = match(css, { id: "baR" });
+                result = matchAgain({ id: "baR" });
                 expect(result.length).toBe(1);
-                result = match(css, { id: "BAR" });
+                result = matchAgain({ id: "BAR" });
                 expect(result.length).toBe(0);
             });
             
@@ -453,13 +461,13 @@ define(function (require, exports, module) {
                 var result = match(css, { tag: "div" });   // all selectors including a 'div' type selector
                 expect(result.length).toBe(4);
                 
-                result = match(css, { clazz: "foo" });      // all selectors including a '.foo' class selector
+                result = matchAgain({ clazz: "foo" });      // all selectors including a '.foo' class selector
                 expect(result.length).toBe(6);
                 
-                result = match(css, { clazz: "class2" });   // all selectors including a '.class2' class selector
+                result = matchAgain({ clazz: "class2" });   // all selectors including a '.class2' class selector
                 expect(result.length).toBe(3);
                 
-                result = match(css, { clazz: "foo" });      // all selectors including a '#bar' id selector and multiple class slectors '.foo.class2'
+                result = matchAgain({ id: "bar" });         // all selectors including a '#bar' id selector and multiple class slectors '.foo.class2'
                 expect(result.length).toBe(6);
             });
             
@@ -503,15 +511,15 @@ define(function (require, exports, module) {
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
                 
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(2);
                 
-                result = match(css, { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(2);
                 
-                result = match(css, { clazz: "otherClass" });
+                result = matchAgain({ clazz: "otherClass" });
                 expect(result.length).toBe(0);
-                result = match(css, { id: "otherId" });
+                result = matchAgain({ id: "otherId" });
                 expect(result.length).toBe(0);
             });
             
@@ -531,25 +539,25 @@ define(function (require, exports, module) {
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(6);
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(5);
-                result = match(css, { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(2);
                 
-                result = match(css, { clazz: "class3" });
+                result = matchAgain({ clazz: "class3" });
                 expect(result.length).toBe(2);
                 
-                result = match(css, { tag: "hover" });
+                result = matchAgain({ tag: "hover" });
                 expect(result.length).toBe(0);
-                result = match(css, { clazz: "hover" });
+                result = matchAgain({ clazz: "hover" });
                 expect(result.length).toBe(0);
-                result = match(css, { id: "hover" });
+                result = matchAgain({ id: "hover" });
                 expect(result.length).toBe(0);
-                result = match(css, { tag: "focus" });
+                result = matchAgain({ tag: "focus" });
                 expect(result.length).toBe(0);
-                result = match(css, { clazz: "focus" });
+                result = matchAgain({ clazz: "focus" });
                 expect(result.length).toBe(0);
-                result = match(css, { id: "focus" });
+                result = matchAgain({ id: "focus" });
                 expect(result.length).toBe(0);
             });
             
@@ -566,30 +574,31 @@ define(function (require, exports, module) {
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(2);
-                result = match(css, { tag: "h4" });
+                result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(6);
                 
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
-                result = match(css, { clazz: "bar" });
+                result = matchAgain({ clazz: "bar" });
                 expect(result.length).toBe(2);
             });
             
+            // TODO (issue #317)
             xit("should ignore the content of strings", function () {
                 // Spaces inside string, single quotes
                 var result = match("div[attr='.foo #bar'] {}", { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match("div[attr='.foo #bar'] {}", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
-                result = match("div[attr='.foo #bar'] {}", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(0);
 
                 // ...double quotes
                 result = match("div[attr=\".foo #bar\"] {}", { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match("div[attr=\".foo #bar\"] {}", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
-                result = match("div[attr=\".foo #bar\"] {}", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(0);
                 
                 // Quotes nested within quotes
@@ -604,14 +613,14 @@ define(function (require, exports, module) {
                            
                 result = match(css, { tag: "div"});
                 expect(result.length).toBe(6);
-                result = match(css, { clazz: "foo"});
+                result = matchAgain({ clazz: "foo"});
                 expect(result.length).toBe(3);
-                result = match(css, { id: "bar"});
+                result = matchAgain({ id: "bar"});
                 expect(result.length).toBe(1);
                 
-                result = match(css, { clazz: "quotes"});
+                result = matchAgain({ clazz: "quotes"});
                 expect(result.length).toBe(0);
-                result = match(css, { tag: "h4"});
+                result = matchAgain({ tag: "h4"});
                 expect(result.length).toBe(0);
                 
                 // Braces inside string; string inside rule (not inside selector)
@@ -623,11 +632,11 @@ define(function (require, exports, module) {
                 
                 result = match(css, { tag: "a" });
                 expect(result.length).toBe(2);
-                result = match(css, { tag: "div" });
+                result = matchAgain({ tag: "div" });
                 expect(result.length).toBe(1);
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match(css, { tag: "h4" });
+                result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
                 
                 // Newline inside string (escaped)
@@ -639,6 +648,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
             });
             
+            // TODO (issue #317)
             xit("shouldn't crash on CSS3 selectors", function () {
                 // Attribute selectors
                 match("[role] {}");
@@ -718,12 +728,12 @@ define(function (require, exports, module) {
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(1);
-                result = match(css, { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = match(css, { tag: "slide" });
+                result = matchAgain({ tag: "slide" });
                 expect(result.length).toBe(0);
-                result = match(css, { tag: "from" });
+                result = matchAgain({ tag: "from" });
                 expect(result.length).toBe(0);
             });
                 
@@ -734,88 +744,88 @@ define(function (require, exports, module) {
             it("should ignore descendant combinators", function () {
                 var result = match("h4 .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 .foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
                 result = match("p h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
-                result = match("p h4 div { color:red }", { tag: "h4" });
+                result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("p h4 div { color:red }", { tag: "div" });
+                result = matchAgain({ tag: "div" });
                 expect(result.length).toBe(1);
                 
                 result = match(".foo h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match(".foo h4 { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
                 
                 result = match("div div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 result = match(".foo .foo { color:red }", { clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match(".foo .foo { color:red }", { tag: "foo" });
+                result = matchAgain({ tag: "foo" });
                 expect(result.length).toBe(0);
             });
             
             it("should ignore other combinators", function () {
                 var result = match("h4 > .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 > .foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
                 result = match(".foo > h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match(".foo > h4 { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
                 
                 result = match("h4 + .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 + .foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
                 result = match(".foo + h4 { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match(".foo + h4 { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
                 
                 result = match("p > h4 + div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 + div { color:red }", { tag: "h4" });
+                result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 + div { color:red }", { tag: "div" });
+                result = matchAgain({ tag: "div" });
                 expect(result.length).toBe(1);
                 result = match("p > h4 div { color:red }", { tag: "p" });
                 expect(result.length).toBe(0);
-                result = match("p > h4 div { color:red }", { tag: "h4" });
+                result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
                 result = match("p > h4 div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 
                 result = match("h4>.foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4>.foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 result = match("h4> .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4> .foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 result = match("h4 >.foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 >.foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
                 result = match("h4+.foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4+.foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
                 result = match("h4 * .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 * .foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 result = match("h4 ~ .foo { color:red }", { tag: "h4" });
                 expect(result.length).toBe(0);
-                result = match("h4 ~ .foo { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
             });
@@ -827,33 +837,33 @@ define(function (require, exports, module) {
                 // Comma- and space- separated
                 var result = match("h4, .foo, #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4, .foo, #bar { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4, .foo, #bar { color:red }", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
                 
                 // Comma only
                 result = match("h4,.foo,#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4,.foo,#bar { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4,.foo,#bar { color:red }", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
                 
                 // Newline-separated
                 result = match("h4,\n.foo,\r\n#bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4,\n.foo,\r\n#bar { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
-                result = match("h4,\n.foo,\r\n#bar { color:red }", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
                 
                 // Space-separated with a space combinator
                 result = match("h4, .foo #bar { color:red }", { tag: "h4" });
                 expect(result.length).toBe(1);
-                result = match("h4, .foo #bar { color:red }", { clazz: "foo" });
+                result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(0);
-                result = match("h4, .foo #bar { color:red }", { id: "bar" });
+                result = matchAgain({ id: "bar" });
                 expect(result.length).toBe(1);
             });
         }); // describe("Selector groups")        
