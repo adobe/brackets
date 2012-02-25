@@ -64,34 +64,6 @@ define(function (require, exports, module) {
         return deferred;
     }
     
-    // Test helper function; tagInfo object contains one of: tag, id, clazz
-    var _match = function (cssCode, tagInfo) {
-        var mgr = new CSSManager.CSSManager();
-        
-        try {
-            mgr._loadString(cssCode);
-        } catch (e) {
-            this.fail(e.message + ": " + cssCode);
-            return [];
-        }
-        
-        if (tagInfo) {
-            var selector = "";
-            if (tagInfo.tag) {
-                selector += tagInfo.tag;
-            }
-            if (tagInfo.clazz) {
-                selector += "." + tagInfo.clazz;
-            }
-            if (tagInfo.id) {
-                selector += "#" + tagInfo.id;
-            }
-            return mgr.findMatchingRules(selector);
-        } else {
-            return [];
-        }
-    };
-    
     function init(spec, fileEntry) {
         spec.cssManager = new CSSManager.CSSManager();
         
