@@ -12,7 +12,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Dependencies
-    var DocumentManager = require("DocumentManager");
+    var NativeFileSystem = require("NativeFileSystem"),
+        FileUtils        = require("FileUtils");
     
     /**
      * Regex to match selector element values for ID '#', pseudo ':',
@@ -26,12 +27,6 @@ define(function (require, exports, module) {
     function RuleSetInfo(ruleset, source) {
         this.ruleset = ruleset;
         this.source = source;
-        
-        // FIXME (jasonsj): Patch LESS parser to track whitespace, maintain CRLF
-        //this.offsetStart = ...
-        //this.offsetEnd = ...
-        //this.lineStart = ...; 
-        //this.lineEnd = ...;
     }
     
     // Use the LESS parser for both .less and .css files.
@@ -47,6 +42,63 @@ define(function (require, exports, module) {
         } else {
             results.push(new RuleSetInfo(ruleset, source));
         }
+    }
+    
+    /**
+     * Computes the line number of the offset in the given text.
+     * @returns {number}
+     */
+    function _computeLineNumber(text, offset) {
+        var lines = text.substr(0, offset);
+        return lines.split("\n").length - 1;
+    }
+    
+    /**
+     * Computes character offsets and line numbers for all RuleSetInfo objects
+     * derived from the input text.
+     */
+    function _computeOffsets(rulesets, text) {
+        // FIXME (jasonsj): issue #310
+        // To be consistent with LESS, strip CR.
+        // Remove this workaround and patch LESS parser to save accurate offset info.
+        // There are current issues with CRLF replacement and token trimming.
+        var input = text.replace(/\r\n/g, '\n');
+        
+        // rulesets is an in-order traversal of the AST
+        // work backwards to establish offset start and end values
+        var i               = rulesets.length - 1,
+            current         = null,
+            offsetEnd       = input.length,
+            firstElement    = null,
+            lines           = input;
+        
+        while (i >= 0) {
+            current = rulesets[i];
+            
+            // get offset end from the previous rule's offsetStart
+            current.offsetEnd   = offsetEnd;
+            
+            // HACK - Work backwards from the first element
+            // Example: "div { color:red }"
+            // The "div" Selector Element index returns 4 instead of 0
+            firstElement = current.ruleset.selectors[0].elements[0];
+            current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
+            
+            // split the input up to the offset to find the lineStart and lineEnd
+            current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
+            lines = text.substr(0, current.offsetEnd);
+            
+            current.lineStart = _computeLineNumber(lines, current.offsetStart);
+            text.substr(0, current.offsetStart);
+            
+            offsetEnd = current.offsetStart - 1;
+            
+            i--;
+        }
+    }
+                
+    function _isTypeSelector(str) {
+        return (str.search(IDENTIFIER_REGEX) !== 0);
     }
     
     /**
@@ -79,9 +131,9 @@ define(function (require, exports, module) {
      * Recursively parse CSS rules from a string. Map the cached results 
      * based on the FileEntry fullPath.
      *
-     * @param rulesets {Array.<ResultSetInfo>} Result storage
-     * @param text {string} CSS text to parse
-     * @param source {!FileEntry} Optional. FileEntry source of CSS text.
+     * @param {Array.<ResultSetInfo>} rulesets Result storage
+     * @param {string} text CSS text to parse
+     * @param {?FileEntry} source Optional. FileEntry source of CSS text.
      */
     CSSManager.prototype._parse = function (rulesets, text, source) {
         var self = this;
@@ -92,17 +144,20 @@ define(function (require, exports, module) {
             }
             
             _addRuleset(rulesets, root, source);
-            
+            _computeOffsets(rulesets, text);
+
             if (source && source.fullPath) {
                 // map file path to rules
                 self._rules[source.fullPath] = rulesets;
+            } else {
+                self._rules["<from string>"] = rulesets;
             }
         });
     };
     
     /**
-     * Parse CSS rules from a string. For testing only. Parsed rules are not
-     * cached.
+     * Parse CSS rules from a string - for testing only. Parsed rules are returned
+     * AND added to this CSSManager's cache for querying. Synchronous.
      *
      * @param {!string} str
      * @return {Array.<ResultSetInfo>}
@@ -117,15 +172,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Parse CSS rules from a file and cache the results.
+     * Parse CSS rules from a file and cache the results. Asynchronous.
      *
      * @param {!FileEntry} fileEntry
-     * @return {Deferred} A promise that is resolved with an Array of RuleSetInfo
+     * @return {Promise} A promise that is resolved with an Array of RuleSetInfo
      *  objects for all rules parsed from the file.
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
         var result = new $.Deferred(),
-            textResult = DocumentManager.readAsText(fileEntry),
+            textResult = FileUtils.readAsText(fileEntry),
             self = this,
             rulesets = [];
         
@@ -136,7 +191,7 @@ define(function (require, exports, module) {
             result.resolve(rulesets);
         });
         
-        return result;
+        return result.promise();
     };
     
     /**
@@ -150,7 +205,7 @@ define(function (require, exports, module) {
      * Clear all rules from cache.
      */
     CSSManager.prototype.clearCache = function () {
-        this._rules = [];
+        this._rules = {};
     };
     
     /**
@@ -173,44 +228,64 @@ define(function (require, exports, module) {
                     // TODO (jasonsj): Combinators (descendant ' ', child '>', sibling '+')
                     //                 Specificity
                     
-                    if (selector.elements.length > 0) {
-                        var isTypeSelector = function (str) {
-                            return (str.search(IDENTIFIER_REGEX) !== 0);
-                        };
+                    if (selector.elements.length === 0) {
+                        return false;
+                    }
+                    
+                    // The rightmost type selector must be a full match, and can contain
+                    // any other simple selectors (ID, attribute, class, etc.)
+                    var element,
+                        elementIndex        = selector.elements.length - 1,
+                        elementValue        = null,
+                        query               = selectorString,
+                        isTypeSelectorQuery = false,
+                        match               = false;
+                    
+                    // type selectors are not case sensitive
+                    if (_isTypeSelector(query)) {
+                        isTypeSelectorQuery = true;
+                        query = query.toLowerCase();
+                    }
+                    
+                    // match any element, right-to-left, up to a combinator
+                    while (elementIndex >= 0) {
+                        element = selector.elements[elementIndex];
+                        elementValue = element.value;
                         
-                        // find the right-most type selector if the input string is a type
-                        var element             = null,
-                            elementIndex        = selector.elements.length - 1;
-                        
-                        if (isTypeSelector(selectorString)) {
-                            while (elementIndex >= 0) {
-                                element = selector.elements[elementIndex];
-                                
-                                if (isTypeSelector(element.value)) {
-                                    break;
-                                }
-                                
-                                // only scan backwards if there is no combinator
-                                if (element.combinator.value.length === 0) {
-                                    elementIndex--;
-                                } else {
-                                    break;
-                                }
-                            }
-                        } else {
-                            // Use last selector element
-                            element = selector.elements[elementIndex];
+                        if (_isTypeSelector(elementValue)) {
+                            // type matches are not case sensitive
+                            elementValue = elementValue.toLowerCase();
                         }
                         
-                        // Always match the universal selector (sprint 4)
-                        if (element.value.charAt(0) === '*') {
+                        match = (elementValue === query);
+                        
+                        if (match) {
+                            break;
+                        }
+                        
+                        var comb = (element.combinator.value);
+                            
+                        // Only scan backwards if there is no combinator.
+                        // Special case for pseudo elements...
+                        //   pseudeo element "::" is treated as a combinator but pseude class ":" is not
+                        if ((comb.length === 0) || (comb === "::")) {
+                            elementIndex--;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // Always match a lone universal selector (sprint 4)
+                    if (!match && isTypeSelectorQuery) {
+                        if ((elementValue === "*") &&
+                                (selector.elements.length === 1)) {
                             return true;
                         }
                         
-                        return element.value.toLowerCase() === selectorString.toLowerCase();
+                        return elementValue === query;
                     }
                     
-                    return false;
+                    return match;
                 });
             });
             
