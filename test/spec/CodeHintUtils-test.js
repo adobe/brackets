@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     
             it("should not find attribute hints in an empty editor", function () {
                 var pos = {"ch": 0, "line": 0};
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
                     '<p class="');
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class"));
             });
             
@@ -72,7 +72,7 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id"));
             });
             
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id", "one"));
             });
             
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo"));
             });
             
@@ -120,8 +120,64 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo bar"));
+            });
+            
+            it("should find the tagname as it's typed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<di');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("di"));
+            });
+            
+            it("should find the tagname of the current tag if two tags are right next to each other", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("span"));
+            });
+            
+            it("should find the tagname as space is typed before the attr name is added", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span ');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo("span"));
+            });
+            
+            it("should not anything after the tag is closed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span>');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(""));
+            });
+            
+            it("should not anything after a closing tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span></span>', '</div>',
+                    ['</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(""));
             });
         });
     });

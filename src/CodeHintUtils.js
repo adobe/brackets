@@ -15,15 +15,37 @@ define(function (require, exports, module) {
      * @return {boolean} whether the context changed
      */
     function _movePrevToken(ctx) {
-        if (ctx.pos.ch === 0 || ctx.token.start === 0) {
+        if (ctx.pos.ch <= 0 || ctx.token.start <= 0) {
             //move up a line
-            if (ctx.pos.line === 0) {
+            if (ctx.pos.line <= 0) {
                 return false; //at the top already
             }
             ctx.pos.line--;
             ctx.pos.ch = ctx.editor.getLine(ctx.pos.line).length;
         } else {
             ctx.pos.ch = ctx.token.start;
+        }
+        ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        return true;
+    }
+    
+    /**
+     * @private
+     * moves the current context forward by one token
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @return {boolean} whether the context changed
+     */
+    function _moveNextToken(ctx) {
+        var eol = ctx.editor.getLine(ctx.pos.line).length;
+        if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
+            //move down a line
+            if (ctx.pos.line === ctx.editor.lineCount()) {
+                return false; //at the bottom
+            }
+            ctx.pos.line++;
+            ctx.pos.ch = 0;
+        } else {
+            ctx.pos.ch = ctx.token.end + 1;
         }
         ctx.token = ctx.editor.getTokenAt(ctx.pos);
         return true;
@@ -86,6 +108,20 @@ define(function (require, exports, module) {
         return attrValue;
     }
     
+      /**
+     * @private
+     * Gets the tagname from where ever you are in the currect state
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {string}
+     */
+    function _extractTagName(ctx) {
+        if (ctx.token.state.tagName) {
+            return ctx.token.state.tagName; //XML mode
+        } else {
+            return ctx.token.state.htmlState.tagName; //HTML mode
+        }
+    }
+    
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
      * @param {string} tagName The name of the tag
@@ -95,15 +131,60 @@ define(function (require, exports, module) {
      *              about the current tag hint. 
      */
     function createTagInfo(tagName, attrName, attrValue) {
-        return { tagName: (tagName || ""),
-                attr:
+        return { tagName: tagName || "",
+                 attr:
                     { name: attrName || "",
                      value: attrValue || ""} };
     }
     
+    
+    function _getTagInfoStartingFromAttrValue(ctx) {
+        // Assume we in the attr value
+        // and validate that by going backwards
+        var attrVal = _extractAttrVal(ctx);
+        
+        //Move to the prev token, and check if it's "="
+        if (!_movePrevToken(ctx) || ctx.token.string !== "=") {
+            return createTagInfo();
+        }
+        
+        //Move to the prev token, and check if it's an attribute
+        if (!_movePrevToken(ctx) || ctx.token.className !== "attribute") {
+            return createTagInfo();
+        }
+        
+        var attrName = ctx.token.string;
+        var tagName = _extractTagName(ctx);
+ 
+        //We're good. 
+        return createTagInfo(tagName, attrName, attrVal);
+    }
+    
+    function _getTagInfoStartingFromAttrName(ctx) {
+        //Verify We're in the attribute name, move forward and try to extract the rest of
+        //the info. If the user it typing the attr the rest might not be here
+        if (ctx.token.className !== "attribute") {
+            return createTagInfo();
+        }
+        
+        var tagName = _extractTagName(ctx);
+        var attrName = ctx.token.string;
+        
+        if (!_moveNextToken(ctx) || ctx.token.string !== "=") {
+            return createTagInfo(tagName, attrName);
+        }
+        
+        if (!_moveNextToken(ctx)) {
+            return createTagInfo(tagName, attrName);
+        }
+        //this should be the attrvalue
+        var attrVal = _extractAttrVal(ctx);
+        
+        return createTagInfo(tagName, attrName, attrVal);
+    }
+    
     /**
-     * If a token is in an attribute value, it returns the attribute name.
-     * If it's not in an attribute value it returns an empty string.
+     * Figure out if we're in a tag, and if we are
      * An example token stream for this tag is <span id="open-files-disclosure-arrow"></span> : 
      *      className:tag       string:"<span"
      *      className:          string:" "
@@ -112,49 +193,58 @@ define(function (require, exports, module) {
      *      className:string    string:""open-files-disclosure-arrow""
      *      className:tag       string:"></span>"
      * @param {CodeMirror} editor An instance of a CodeMirror editor
-     * @param {{ch: number, ling: number}} pos  A CM pos (likely from editor.getCursor())
+     * @param {{ch: number, line: number}} pos  A CM pos (likely from editor.getCursor())
      * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
      *              about the current tag hint. 
      */
-    function getTagInfoForValueHint(editor, pos) {
-        var tagName = "",
-            attrName = "",
-            attrVal = "",
-            ctx = _getInitialContext(editor, pos);
+    function getTagInfo(editor, pos) {
+        var ctx = _getInitialContext(editor, pos);
         
-        //Initial ctx should start off inside the attr value. We'll validate
-        //this as we go back
-        attrVal = _extractAttrVal(ctx);
-        
-        //Move to the prev token, and check if it's "="
-        if (!_movePrevToken(ctx)) {
-            return createTagInfo();
-        }
-        if (ctx.token.string !== "=") {
-            return createTagInfo();
-        }
-        
-        //Move to the prev token, and check if it's an attribute
-        if (!_movePrevToken(ctx)) {
-            return createTagInfo();
-        }
-        if (ctx.token.className !== "attribute") {
-            return createTagInfo();
+        //check and see where we are in the tag
+        //first check, if we're in an all whitespace token and move back
+        //and see what's before us
+        if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
+            if (!_movePrevToken(ctx)) {
+                return createTagInfo();
+            }
+            
+            if (ctx.token.className !== "tag") {
+                //if wasn't the tag name, assume it was an attr value
+                var tagInfo = _getTagInfoStartingFromAttrValue(ctx);
+                //We don't want to give context for the previous attr
+                return createTagInfo(tagInfo.tagName);
+            }
         }
         
-        attrName = ctx.token.string;
-        if (ctx.token.state.tagName) {
-            tagName = ctx.token.state.tagName; //XML mode
-        } else {
-            tagName = ctx.token.state.htmlState.tagName; //HTML mode
+        if (ctx.token.className === "tag") {
+            //check to see if this is the closing of a tag (either the start or end)
+            if (ctx.token.string === ">") {
+                return createTagInfo();
+            }
+            //we're actually in the tag, just return that as we have no relevant 
+            //info about what attr is selected
+            return createTagInfo(_extractTagName(ctx));
         }
- 
-        //We're good. 
-        return createTagInfo(tagName, attrName, attrVal);
+        
+        if (ctx.token.string === "=") {
+            //we could be between the attr and the value
+            //step back and check
+            if (!_movePrevToken(ctx) || ctx.token.className !== "attribute") {
+                return createTagInfo();
+            }
+        }
+        
+        if (ctx.token.className === "attribute") {
+            return _getTagInfoStartingFromAttrName(ctx);
+        }
+        
+        // if we're not at a tag, "=", or attribute name, assume we're in the value
+        return _getTagInfoStartingFromAttrValue(ctx);
     }
-
     
     // Define public API
-    exports.getTagInfoForValueHint = getTagInfoForValueHint;
+    exports.getTagInfo = getTagInfo;
+    //The createTagInfo is really only for the unit tests so they can make the same structure to 
+    //compare results with
     exports.createTagInfo = createTagInfo;
 });

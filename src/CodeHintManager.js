@@ -32,7 +32,7 @@ define(function (require, exports, module) {
      */
     function _checkForAttributeValueHint(editor) {
         var pos = editor.getCursor();
-        var tagInfo = CodeHintUtils.getTagInfoForValueHint(editor, pos);
+        var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
         if (tagInfo.attr.name === "class") {
             _triggerClassHint(editor, pos, tagInfo);
         } else if (tagInfo.attr.name === "id") {
