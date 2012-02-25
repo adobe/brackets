@@ -358,7 +358,7 @@ define(function (require, exports, module) {
             };
             
             // TODO (jasonsj): work with Ty to add FileEntry property to FileInfo
-            fileEntry = new NativeFileSystem.NativeFileSystem.FileEntry(fileInfo.fullPath);
+            fileEntry = new NativeFileSystem.FileEntry(fileInfo.fullPath);
             fileEntry.getMetadata(metadataSuccess, metadataError);
             
             return oneDeferred.promise();
@@ -401,6 +401,9 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /*
+     * Extract line text for each rule from the associated source file.
+     */
     function _getTextForInfos(infos) {
         var results = [],
             deferred = new $.Deferred();
@@ -427,6 +430,21 @@ define(function (require, exports, module) {
         return deferred;
     }
     
+    function _logQuery(selectorString) {
+        var ruleInfo;
+
+        findMatchingRules(selectorString).done(function (ruleInfos) {
+            _getTextForInfos(ruleInfos).done(function (texts) {
+                texts.forEach(function (value, index) {
+                    ruleInfo = ruleInfos[index];
+                    console.log("result[" + index + "] line " + 
+                        (ruleInfo.lineStart + 1) + ": " + 
+                        ruleInfo.source.fullPath + "\n" + value);
+                });
+            });
+        });
+    }
+    
     // Init
     (function () {
         _cssManager = new CSSManager();
@@ -435,4 +453,5 @@ define(function (require, exports, module) {
     exports.CSSManager          = CSSManager;
     exports.findMatchingRules   = findMatchingRules;
     exports._getTextForInfos    = _getTextForInfos;
+    exports._logQuery           = _logQuery;
 });
