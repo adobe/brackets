@@ -14,7 +14,7 @@ define(function (require, exports, module) {
     // Dependencies
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         FileIndexManager    = require("FileIndexManager"),
-        Async               = require("Async");
+        Async               = require("Async"),
         FileUtils           = require("FileUtils");
     
     /**
@@ -308,6 +308,9 @@ define(function (require, exports, module) {
         return matches;
     };
     
+    /*
+     * Check for CSS file deltas. Load and remove files as necessary.
+     */
     function _syncFiles(cssFiles) {
         // TODO (jasonsj): should FileIndexManager trigger add/change/remove events?
         var deferred        = new $.Deferred(),
@@ -398,6 +401,32 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    function _getTextForInfos(infos) {
+        var results = [],
+            deferred = new $.Deferred();
+        
+        var masterPromise = Async.doInParallel(infos, function (info) {
+            var oneFileResult = new $.Deferred();
+            var textResult = FileUtils.readAsText(info.source);
+        
+            textResult.done(function (content) {
+                content = content.replace(/\r\n/g, '\n');
+                var lines = content.split("\n").slice(info.lineStart, info.lineEnd + 1);
+                
+                results.push(lines.join("\n"));
+                oneFileResult.resolve();
+            });
+            
+            return oneFileResult;
+        });
+        
+        masterPromise.done(function () {
+            deferred.resolve(results);
+        });
+        
+        return deferred;
+    }
+    
     // Init
     (function () {
         _cssManager = new CSSManager();
@@ -405,4 +434,5 @@ define(function (require, exports, module) {
     
     exports.CSSManager          = CSSManager;
     exports.findMatchingRules   = findMatchingRules;
+    exports._getTextForInfos    = _getTextForInfos;
 });

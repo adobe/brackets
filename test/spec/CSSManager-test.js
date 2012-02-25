@@ -38,32 +38,6 @@ define(function (require, exports, module) {
         return this.actual.toCSS({compress: true}).trim() === expected;
     };
     
-    function getTextForInfos(infos) {
-        var results = [],
-            deferred = new $.Deferred();
-        
-        var masterPromise = Async.doInParallel(infos, function (info) {
-            var oneFileResult = new $.Deferred();
-            var textResult = FileUtils.readAsText(info.source);
-        
-            textResult.done(function (content) {
-                content = content.replace(/\r\n/g, '\n');
-                var lines = content.split("\n").slice(info.lineStart, info.lineEnd + 1);
-                
-                results.push(lines.join("\n"));
-                oneFileResult.resolve();
-            });
-            
-            return oneFileResult;
-        });
-        
-        masterPromise.done(function () {
-            deferred.resolve(results);
-        });
-        
-        return deferred;
-    }
-    
     // Test helper function; tagInfo object contains one of: tag, id, clazz
     var _match = function (cssCode, tagInfo) {
         var mgr = new CSSManager.CSSManager();
@@ -181,7 +155,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // use lineStart and lineEnd to index into file content
-                    getTextForInfos(styleRules).done(function (texts) {
+                    CSSManager._getTextForInfos(styleRules).done(function (texts) {
                         ruleTexts = texts;
                     });
                 });
