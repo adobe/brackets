@@ -23,7 +23,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager"),
+    var FileUtils           = require("FileUtils"),
+        DocumentManager     = require("DocumentManager"),
         EditorUtils         = require("EditorUtils"),
         Strings             = require("strings");
     
@@ -160,7 +161,7 @@ define(function (require, exports, module) {
      */
     function _createEditor(fileEntry) {
         var result = new $.Deferred(),
-            reader = DocumentManager.readAsText(fileEntry);
+            reader = FileUtils.readAsText(fileEntry);
 
         reader.done(function (text, readTimestamp) {
             // NOTE: CodeMirror doesn't actually require calling 'new',
@@ -329,7 +330,7 @@ define(function (require, exports, module) {
                 // Edge case where (a) file exists at launch, (b) editor not 
                 // yet opened, and (c) file is deleted or permissions are 
                 // modified outside of Brackets
-                EditorUtils.showFileOpenError(error.code, document.file.fullPath).done(function () {
+                FileUtils.showFileOpenError(error.code, document.file.fullPath).done(function () {
                     DocumentManager.closeDocument(document);
                     focusEditor();
                 });
