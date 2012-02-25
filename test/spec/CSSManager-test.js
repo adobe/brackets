@@ -329,10 +329,38 @@ define(function (require, exports, module) {
     
     describe("CSS Parsing: ", function () {
         
-        var match;
+        var manager,
+            match;
+        
+        // Test helper function; tagInfo object contains one of: tag, id, clazz
+        var _match = function (cssCode, tagInfo) {
+            try {
+                manager._loadString(cssCode);
+            } catch (e) {
+                this.fail(e.message + ": " + cssCode);
+                return [];
+            }
+            
+            if (tagInfo) {
+                var selector = "";
+                if (tagInfo.tag) {
+                    selector += tagInfo.tag;
+                }
+                if (tagInfo.clazz) {
+                    selector += "." + tagInfo.clazz;
+                }
+                if (tagInfo.id) {
+                    selector += "#" + tagInfo.id;
+                }
+                return manager.findMatchingRules(selector);
+            } else {
+                return [];
+            }
+        };
         
         beforeEach(function () {
             match = _match.bind(this);
+            manager = new CSSManager.CSSManager();
         });
 
         describe("Simple selectors: ", function () {
