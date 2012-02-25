@@ -16,12 +16,12 @@ define(function (require, exports, module) {
     var EditorManager       = require("EditorManager"),
         DocumentManager     = require("DocumentManager"),
         ProjectManager      = require("ProjectManager"),
-        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
+        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
+        CodeHintUtils       = require("CodeHintUtils");
     
     
     /**
-     * Today: When cursor is within any HTML content, open a dummy CSS 'file' in an inline editor.
-     * TODO: When cursor is on an HTML tag name, class attribute, or id attribute, find associated
+     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
      * CSS rules and show (one/all of them) in an inline editor.
      *
      * @param {!CodeMirror} editor
@@ -37,6 +37,22 @@ define(function (require, exports, module) {
         }
         var htmlmixedState = editor.getTokenAt(pos).state;
         if (htmlmixedState.mode !== "html") {
+            return null;
+        }
+        
+        var tagInfo = CodeHintUtils.getTagInfoForValueHint(editor, pos);
+        var selectorName = "";
+        if (tagInfo.attr.name === "class") {
+            // Class selector
+            selectorName = "." + tagInfo.attr.value;
+        } else if (tagInfo.attr.name === "id") {
+            // ID selector
+            selectorName = "#" + tagInfo.attr.value;
+        } else if (tagInfo.tagName !== "" && tagInfo.attr.name === "") {
+            // Type selector
+            selectorName = tagInfo.tagName;
+        } else {
+            // Cursor is not in a tag name, or class/id attribute
             return null;
         }
         
