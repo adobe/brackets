@@ -61,7 +61,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class"));
             });
             
             it("should find an attribute as it's added to a tag", function () {
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "id"));
             });
             
             it("should find an attribute as the value is typed", function () {
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id", "one"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "id", "one"));
             });
             
             it("should not find an attribute as text is added", function () {
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
@@ -121,7 +121,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo bar"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
             });
             
             it("should find the tagname as it's typed", function () {
@@ -132,7 +132,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("di"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 2, "di"));
             });
             
             it("should find the tagname of the current tag if two tags are right next to each other", function () {
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("span"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 4, "span"));
             });
             
             it("should find the tagname as space is typed before the attr name is added", function () {
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("span"));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "span"));
             });
             
             it("should not anything after the tag is closed", function () {
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(""));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
             it("should not anything after a closing tag", function () {
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
                 
                 myCodeMirror.setValue(content);
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(""));
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
         });
     });

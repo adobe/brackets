@@ -8,6 +8,11 @@
 define(function (require, exports, module) {
     'use strict';
     
+    //constants
+    var TAG_NAME = "tagName",
+        ATTR_NAME = "attr.name",
+        ATTR_VALUE = "att.value";
+    
     /**
      * @private
      * moves the current context backwards by one token
@@ -65,6 +70,20 @@ define(function (require, exports, module) {
             "token": editor.getTokenAt(pos)
         };
     }
+    
+    /**
+     * @private
+     * in the given context, get the character offset of pos from the start of the token
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {number}
+     */
+    function _offsetInToken(ctx) {
+        var offset = ctx.pos.ch - ctx.token.start;
+        if (offset < 0) {
+            console.log("CodeHintUtils: _offsetInToken - Invalid context: the pos what not in the current token!");
+        }
+        return offset;
+    }
  
    /**
      * @private
@@ -72,12 +91,13 @@ define(function (require, exports, module) {
      * some extra 'non attribute value' text gets included in the token. This attempts
      * to assure the attribute value we grab is always good
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
-     * @return {string}
+     * @return { val:{string}, offset{number}}
      */
     function _extractAttrVal(ctx) {
         var attrValue = ctx.token.string;
         var startChar = attrValue.charAt(0);
         var endChar = attrValue.charAt(attrValue.length - 1);
+        var offset = _offsetInToken(ctx);
         
         //If this is a fully quoted value, return the whole
         //thing regardless of position
@@ -85,27 +105,27 @@ define(function (require, exports, module) {
                 (startChar === "'" || startChar === '"') &&
                 endChar === startChar) {
             //strip the quotes and return;
-            return attrValue.substring(1, attrValue.length - 1);
+            attrValue = attrValue.substring(1, attrValue.length - 1);
+            offset = offset - 1 > attrValue.length ? attrValue.length : offset - 1;
+            return {val: attrValue, offset: offset};
         }
         
         //The att value it getting edit in progress. There is possible extra
         //stuff in this token state since the quote isn't closed, so we assume
         //the stuff from the quote to the current pos is definitely in the attribute 
         //value.
-        var posInTokenStr = ctx.pos.ch - ctx.token.start;
-        if (posInTokenStr < 0) {
-            console.log("CodeHintUtils: _extractAttrVal - Invalid context: the pos what not in the current token!");
-        } else {
-            attrValue = attrValue.substring(0, posInTokenStr);
+        if (offset > 0) {
+            attrValue = attrValue.substring(0, offset);
         }
         
         //If the attrValue start with a quote, trim that now
         startChar = attrValue.charAt(0);
         if (startChar === "'" || startChar === '"') {
             attrValue = attrValue.substring(1);
+            offset--;
         }
         
-        return attrValue;
+        return {val: attrValue, offset: offset};
     }
     
       /**
@@ -124,24 +144,31 @@ define(function (require, exports, module) {
     
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
+     * @param {string} token what is getting edited
      * @param {string} tagName The name of the tag
      * @param {string} attrName The name of the attribute
      * @param {string} attrValue The value of the attribute
      * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
      *              about the current tag hint. 
      */
-    function createTagInfo(tagName, attrName, attrValue) {
+    function createTagInfo(token, offset, tagName, attrName, attrValue) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
-                     value: attrValue || ""} };
+                      value: attrValue || ""},
+                 editing:
+                    { token: token || "",
+                      offsetInToken: offset || 0} };
     }
     
     
     function _getTagInfoStartingFromAttrValue(ctx) {
         // Assume we in the attr value
         // and validate that by going backwards
-        var attrVal = _extractAttrVal(ctx);
+        var attrInfo = _extractAttrVal(ctx);
+        var attrVal = attrInfo.val;
+        var offset = attrInfo.offset;
+        
         
         //Move to the prev token, and check if it's "="
         if (!_movePrevToken(ctx) || ctx.token.string !== "=") {
@@ -157,7 +184,7 @@ define(function (require, exports, module) {
         var tagName = _extractTagName(ctx);
  
         //We're good. 
-        return createTagInfo(tagName, attrName, attrVal);
+        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal);
     }
     
     function _getTagInfoStartingFromAttrName(ctx) {
@@ -169,18 +196,21 @@ define(function (require, exports, module) {
         
         var tagName = _extractTagName(ctx);
         var attrName = ctx.token.string;
+        var offset = _offsetInToken(ctx);
         
         if (!_moveNextToken(ctx) || ctx.token.string !== "=") {
-            return createTagInfo(tagName, attrName);
+            return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         
         if (!_moveNextToken(ctx)) {
-            return createTagInfo(tagName, attrName);
+            //The user just typed "=" so they are about to add the attr val
+            return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
-        var attrVal = _extractAttrVal(ctx);
+        var attrInfo = _extractAttrVal(ctx);
+        var attrVal = attrInfo.val;
         
-        return createTagInfo(tagName, attrName, attrVal);
+        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal);
     }
     
     /**
@@ -198,7 +228,10 @@ define(function (require, exports, module) {
      *              about the current tag hint. 
      */
     function getTagInfo(editor, pos) {
-        var ctx = _getInitialContext(editor, pos);
+        var ctx = _getInitialContext(editor, pos),
+            offset = _offsetInToken(ctx),
+            tagInfo,
+            editingToken;
         
         //check and see where we are in the tag
         //first check, if we're in an all whitespace token and move back
@@ -210,10 +243,18 @@ define(function (require, exports, module) {
             
             if (ctx.token.className !== "tag") {
                 //if wasn't the tag name, assume it was an attr value
-                var tagInfo = _getTagInfoStartingFromAttrValue(ctx);
+                tagInfo = _getTagInfoStartingFromAttrValue(ctx);
                 //We don't want to give context for the previous attr
-                return createTagInfo(tagInfo.tagName);
+                //and we want it to look like the user is going to add a new attr
+                if (tagInfo.tagName) {
+                    return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+                }
+                return createTagInfo();
             }
+            
+            //we know the tag was here, so they user is adding an attr name
+            editingToken = ATTR_NAME;
+            offset = 0;
         }
         
         if (ctx.token.className === "tag") {
@@ -221,9 +262,15 @@ define(function (require, exports, module) {
             if (ctx.token.string === ">") {
                 return createTagInfo();
             }
+            
+            if (!editingToken) {
+                editingToken = TAG_NAME;
+                offset--; //need to take off 1 for the leading "<"
+            }
+            
             //we're actually in the tag, just return that as we have no relevant 
             //info about what attr is selected
-            return createTagInfo(_extractTagName(ctx));
+            return createTagInfo(editingToken, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
@@ -232,17 +279,32 @@ define(function (require, exports, module) {
             if (!_movePrevToken(ctx) || ctx.token.className !== "attribute") {
                 return createTagInfo();
             }
+            
+            //This the the = as the are going to add an value now
+            editingToken = ATTR_VALUE;
+            offset = 0;
         }
         
         if (ctx.token.className === "attribute") {
-            return _getTagInfoStartingFromAttrName(ctx);
+            tagInfo = _getTagInfoStartingFromAttrName(ctx);
+        } else {
+            // if we're not at a tag, "=", or attribute name, assume we're in the value
+            tagInfo = _getTagInfoStartingFromAttrValue(ctx);
         }
         
-        // if we're not at a tag, "=", or attribute name, assume we're in the value
-        return _getTagInfoStartingFromAttrValue(ctx);
+        if (editingToken && tagInfo.tagName) {
+            tagInfo.editing.token = editingToken;
+            tagInfo.editing.offsetInToken = offset;
+        }
+        
+        return tagInfo;
     }
     
     // Define public API
+    exports.TAG_NAME = TAG_NAME;
+    exports.ATTR_NAME = ATTR_NAME;
+    exports.ATTR_VALUE = ATTR_VALUE;
+    
     exports.getTagInfo = getTagInfo;
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
