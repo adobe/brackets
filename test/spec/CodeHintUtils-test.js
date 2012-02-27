@@ -135,6 +135,17 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 2, "di"));
             });
             
+            it("should hint tagname as the open < is typed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p>test</p><');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME));
+            });
+            
             it("should find the tagname of the current tag if two tags are right next to each other", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
