@@ -101,7 +101,7 @@ define(function (require, exports, module) {
             lines = lines.substr(0, current.offsetEnd);
             
             current.lineStart = _computeLineNumber(lines, current.offsetStart);
-            text.substr(0, current.offsetStart);
+            lines = lines.substr(0, current.offsetStart);
             
             offsetEnd = current.offsetStart - 1;
             
