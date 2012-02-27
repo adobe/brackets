@@ -91,7 +91,7 @@ define(function (require, exports, module) {
      * some extra 'non attribute value' text gets included in the token. This attempts
      * to assure the attribute value we grab is always good
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
-     * @return { val:{string}, offset{number}}
+     * @return { val:{string}, offset:{number}}
      */
     function _extractAttrVal(ctx) {
         var attrValue = ctx.token.string;
@@ -215,7 +215,6 @@ define(function (require, exports, module) {
         }
         
         if (!_moveNextToken(ctx)) {
-            //The user just typed "=" so they are about to add the attr val
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
