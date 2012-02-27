@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     function _checkForHint(editor) {
         var pos = editor.getCursor();
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
-        if (tagInfo.editing.token === CodeHintUtils.ATTR_VALUE) {
+        if (tagInfo.hint.type === CodeHintUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 _triggerClassHint(editor, pos, tagInfo);
             } else if (tagInfo.attr.name === "id") {

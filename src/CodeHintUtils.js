@@ -128,7 +128,7 @@ define(function (require, exports, module) {
         return {val: attrValue, offset: offset};
     }
     
-      /**
+    /**
      * @private
      * Gets the tagname from where ever you are in the currect state
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
@@ -144,24 +144,30 @@ define(function (require, exports, module) {
     
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
-     * @param {string} token what is getting edited
+     * @param {string} hint what is getting edited and should be hinted
+     * @param {number} offset where the cursor is for the part getting hinted
      * @param {string} tagName The name of the tag
      * @param {string} attrName The name of the attribute
      * @param {string} attrValue The value of the attribute
      * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
      *              about the current tag hint. 
      */
-    function createTagInfo(token, offset, tagName, attrName, attrValue) {
+    function createTagInfo(type, offset, tagName, attrName, attrValue) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
                       value: attrValue || ""},
-                 editing:
-                    { token: token || "",
-                      offsetInToken: offset || 0} };
+                 hint:
+                    { type: type || "",
+                      offset: offset || 0} };
     }
     
-    
+    /**
+     * @private
+     * Gets the taginfo starting from the attribute value and moving backwards
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {string}
+     */
     function _getTagInfoStartingFromAttrValue(ctx) {
         // Assume we in the attr value
         // and validate that by going backwards
@@ -186,7 +192,13 @@ define(function (require, exports, module) {
         //We're good. 
         return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal);
     }
-    
+
+    /**
+     * @private
+     * Gets the taginfo starting from the attribute name and moving forwards
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @return {string}
+     */
     function _getTagInfoStartingFromAttrName(ctx) {
         //Verify We're in the attribute name, move forward and try to extract the rest of
         //the info. If the user it typing the attr the rest might not be here
@@ -231,7 +243,7 @@ define(function (require, exports, module) {
         var ctx = _getInitialContext(editor, pos),
             offset = _offsetInToken(ctx),
             tagInfo,
-            editingToken;
+            hint;
         
         //check and see where we are in the tag
         //first check, if we're in an all whitespace token and move back
@@ -253,7 +265,7 @@ define(function (require, exports, module) {
             }
             
             //we know the tag was here, so they user is adding an attr name
-            editingToken = ATTR_NAME;
+            hint = ATTR_NAME;
             offset = 0;
         }
         
@@ -263,14 +275,14 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            if (!editingToken) {
-                editingToken = TAG_NAME;
+            if (!hint) {
+                hint = TAG_NAME;
                 offset--; //need to take off 1 for the leading "<"
             }
             
             //we're actually in the tag, just return that as we have no relevant 
             //info about what attr is selected
-            return createTagInfo(editingToken, offset, _extractTagName(ctx));
+            return createTagInfo(hint, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
@@ -281,7 +293,7 @@ define(function (require, exports, module) {
             }
             
             //This the the = as the are going to add an value now
-            editingToken = ATTR_VALUE;
+            hint = ATTR_VALUE;
             offset = 0;
         }
         
@@ -292,9 +304,9 @@ define(function (require, exports, module) {
             tagInfo = _getTagInfoStartingFromAttrValue(ctx);
         }
         
-        if (editingToken && tagInfo.tagName) {
-            tagInfo.editing.token = editingToken;
-            tagInfo.editing.offsetInToken = offset;
+        if (hint && tagInfo.tagName) {
+            tagInfo.hint.type = hint;
+            tagInfo.hint.offset = offset;
         }
         
         return tagInfo;
