@@ -126,6 +126,13 @@ define(function (require, exports, module) {
                 waitsFor(function () { return styleRules; }, 1000);
                 
                 runs(function () {
+                    expect(styleRules[0].lineStart).toBe(0);
+                    expect(styleRules[1].lineStart).toBe(4);
+                    expect(styleRules[2].lineStart).toBe(8);
+                    expect(styleRules[3].lineStart).toBe(12);
+                    expect(styleRules[4].lineStart).toBe(16);
+                    expect(styleRules[5].lineStart).toBe(20);
+                    
                     // use lineStart and lineEnd to index into file content
                     CSSManager._getTextForInfos(styleRules).done(function (texts) {
                         ruleTexts = texts;
