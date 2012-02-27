@@ -437,8 +437,8 @@ define(function (require, exports, module) {
             _getTextForInfos(ruleInfos).done(function (texts) {
                 texts.forEach(function (value, index) {
                     ruleInfo = ruleInfos[index];
-                    console.log("result[" + index + "] line " + 
-                        (ruleInfo.lineStart + 1) + ": " + 
+                    console.log("result[" + index + "] line " +
+                        (ruleInfo.lineStart + 1) + ": " +
                         ruleInfo.source.fullPath + "\n" + value);
                 });
             });
