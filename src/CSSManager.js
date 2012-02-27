@@ -86,10 +86,10 @@ define(function (require, exports, module) {
             
             // split the input up to the offset to find the lineStart and lineEnd
             current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
-            lines = text.substr(0, current.offsetEnd);
+            lines = lines.substr(0, current.offsetEnd);
             
             current.lineStart = _computeLineNumber(lines, current.offsetStart);
-            text.substr(0, current.offsetStart);
+            lines = lines.substr(0, current.offsetStart);
             
             offsetEnd = current.offsetStart - 1;
             
