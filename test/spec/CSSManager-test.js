@@ -322,9 +322,13 @@ define(function (require, exports, module) {
             }
         }
         
-        // Test helper function; tagInfo object contains one of: tag, id, clazz
+        /**
+         * Test helper function; tagInfo object contains one of: tag, id, clazz. Tests against a
+         * clean CSSManager that has loaded only the given cssCode string.
+         */
         var _match = function (cssCode, tagInfo) {
             try {
+                manager = new CSSManager.CSSManager();
                 manager._loadString(cssCode);
             } catch (e) {
                 this.fail(e.message + ": " + cssCode);
@@ -334,13 +338,13 @@ define(function (require, exports, module) {
             return findMatchingRules(tagInfo);
         };
         
+        /** Tests against the CSSManager created by the most recent call to match() */
         function matchAgain(tagInfo) {
             return findMatchingRules(tagInfo);
         }
         
         beforeEach(function () {
             match = _match.bind(this);
-            manager = new CSSManager.CSSManager();
         });
 
         describe("Simple selectors: ", function () {
@@ -467,8 +471,8 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "class2" });   // all selectors including a '.class2' class selector
                 expect(result.length).toBe(3);
                 
-                result = matchAgain({ id: "bar" });         // all selectors including a '#bar' id selector and multiple class slectors '.foo.class2'
-                expect(result.length).toBe(6);
+                result = matchAgain({ id: "bar" });         // all selectors including a '#bar' id selector
+                expect(result.length).toBe(4);
             });
             
             it("should allow searching conjunctions of type, class, and id", function () {
@@ -488,16 +492,16 @@ define(function (require, exports, module) {
                 //
                 // // TODO: any way to search two of the same thing? (e.g. all selectors including a '.foo' AND a '.class2' class selector)
                 //
-                // result = match(css, { clazz: "foo", id: "bar" });   // all selectors including a '.foo' class selector AND a '#bar' id selector
+                // result = matchAgain({ clazz: "foo", id: "bar" });   // all selectors including a '.foo' class selector AND a '#bar' id selector
                 // expect(result.length).toBe(3);
                 //
-                // result = match(css, { tag: "div", id: "bar" });      // all selectors including a 'div' type selector AND a '#bar' id selector
+                // result = matchAgain({ tag: "div", id: "bar" });      // all selectors including a 'div' type selector AND a '#bar' id selector
                 // expect(result.length).toBe(2);
                 //
-                // result = match(css, { tag: "div", clazz: "foo", id: "bar" });
+                // result = matchAgain({ tag: "div", clazz: "foo", id: "bar" });
                 // expect(result.length).toBe(1);
                 //
-                // result = match(css, { tag: "div", clazz: "class2", id: "bar" });
+                // result = matchAgain({ tag: "div", clazz: "class2", id: "bar" });
                 // expect(result.length).toBe(0);
             });
             
@@ -583,8 +587,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(2);
             });
             
-            // TODO (issue #317)
-            xit("should ignore the content of strings", function () {
+            it("should ignore the content of strings", function () {
                 // Spaces inside string, single quotes
                 var result = match("div[attr='.foo #bar'] {}", { tag: "div" });
                 expect(result.length).toBe(1);
@@ -644,12 +647,14 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 // Newline inside string (unescaped, with backslash line terminator)
-                result = match("li::before { content: 'foo\\\nbar'; } \n div { color:red }", { tag: "div" });
-                expect(result.length).toBe(1);
+                // TODO (issue #317): LESS parser chokes on this
+                // result = match("li::before { content: 'foo\\\nbar'; } \n div { color:red }", { tag: "div" });
+                // expect(result.length).toBe(1);
             });
             
-            // TODO (issue #317)
-            xit("shouldn't crash on CSS3 selectors", function () {
+            it("shouldn't crash on CSS3 selectors", function () {
+                // See spec: http://www.w3.org/TR/selectors/
+                
                 // Attribute selectors
                 match("[role] {}");
                 match("a[href] {}");
@@ -666,6 +671,17 @@ define(function (require, exports, module) {
                 match("div[attr*='value'].myClass#myId {}");
                 match("div#myId[attr*='value'].myClass {}");
                 match(":focus[attr=\"value\"].className {}");
+                
+                // TODO (issue #317): LESS parser chokes on attributes ending in a digit
+                // match("tagName[attr2='value'] {}");
+                // match("tagName[attr2 = 'value'] {}");
+                // match("tagName[attr2 ='value'] {}");
+                // match("tagName[attr2= 'value'] {}");
+                // match("tagName[attr2=\"value\"] {}");
+                // match("[attr2='value'] {}"); 
+                // match("tagName[attr=\"value\"][attr2=\"value2\"] {}");
+                // match("tagName[attr='value'][attr2='value2'] {}");
+                match(":not([attr2=\"value2\"]) {}");   // oddly, works fine if it's in a :not() clause
                 
                 // Pseudo-classes with complicated syntax
                 match(":lang(de) {}");
@@ -691,30 +707,32 @@ define(function (require, exports, module) {
                 match(".className:not(tagName) {}");
                 match("tagName:not(.className) {}");
                 match(":not(tagName.className) {}");
-                match("tagName:not([attr=\"value\"])[attr2='value2'] {}");  // FIXME: causes error
+                match("tagName:not([attr=\"value\"]) {}");
+                match("tagName:not([attr=\"value\"])[attrB='valueB'] {}");
+                match("tagName[attr='value']:not([attrB=\"valueB\"]) {}");
                 
                 // Pseudo-elements (can only occur once, and must be after the rightmost combinator)
-                match("::first-line");
-                match("tagName::first-line");
-                match(".className::first-line");
-                match("::first-line.className"); //spec says this is valid but no browsers seem to support it
-                match("p:hover::first-line");
+                match("::first-line {}");
+                match("tagName::first-line {}");
+                match(".className::first-line {}");
+                match("::first-line.className {}"); //spec says this is valid but no browsers seem to support it
+                match("p:hover::first-line {}");
                 // not valid: :not(::first-line) - because pseudo-elements aren't simple selectors
                 
                 // Namespaces
-                var nsDecl = "@namespace ns \"http://www.example.com\"\n";
-                match("[*|role] {}");
-                match("[|role] {}");
-                match(nsDecl + "[ns|role] {}");
-                match(nsDecl + "[ns|role|='value'] {}");
-                match("*|div {}");
-                match("|div {}");
-                match(nsDecl + "ns|div {}");
-                match("*|* {}");
-                match("|* {}");
-                match(nsDecl + "ns|* {}");
-                match("*|*:not(* {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
-                
+                // TODO (issue #317): LESS parser chokes on these
+                // var nsDecl = "@namespace ns \"http://www.example.com\"\n";
+                // match("[*|role] {}");
+                // match("[|role] {}");
+                // match(nsDecl + "[ns|role] {}");
+                // match(nsDecl + "[ns|role|='value'] {}");
+                // match("*|div {}");
+                // match("|div {}");
+                // match(nsDecl + "ns|div {}");
+                // match("*|* {}");
+                // match("|* {}");
+                // match(nsDecl + "ns|* {}");
+                // match("*|*:not(*) {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
             });
             
             it("shouldn't crash on CSS Animation syntax (@keyframe)", function () {
