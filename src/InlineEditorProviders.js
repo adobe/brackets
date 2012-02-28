@@ -40,9 +40,6 @@ define(function (require, exports, module) {
             return null;
         }
         
-        var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
-        var selectorName = "";
-        
         // Only provide CSS editor if the selection is an insertion point
         var selStart = editor.getCursor(false),
             selEnd = editor.getCursor(true);
@@ -50,11 +47,14 @@ define(function (require, exports, module) {
         if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
             return null;
         }
+                
+        var tagInfo = CodeHintUtils.getTagInfo(editor, pos),
+            selectorName = "";
         
-        if (tagInfo.hint.type === CodeHintUtils.TAG_NAME) {
+        if (tagInfo.position.type === CodeHintUtils.TAG_NAME) {
             // Type selector
             selectorName = tagInfo.tagName;
-        } else if (tagInfo.hint.type === CodeHintUtils.ATTR_VALUE) {
+        } else if (tagInfo.position.type === CodeHintUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 // Class selector. We only look for the class name
                 // that includes the insertion point. For example, if
@@ -62,8 +62,8 @@ define(function (require, exports, module) {
                 //   class="error-dialog modal hide"
                 // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
-                var startIndex = attributeValue.substr(0, tagInfo.hint.offset).lastIndexOf(" ");
-                var endIndex = attributeValue.indexOf(" ", tagInfo.hint.offset);
+                var startIndex = attributeValue.substr(0, tagInfo.position.offset).lastIndexOf(" ");
+                var endIndex = attributeValue.indexOf(" ", tagInfo.position.offset);
                 selectorName = "." +
                     attributeValue.substring(
                         startIndex === -1 ? 0 : startIndex + 1,
