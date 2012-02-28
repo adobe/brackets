@@ -51,7 +51,8 @@ define(function (require, exports, module) {
             children.forEach(function (value, index) {
                 _addRuleset(results, value, source);
             });
-        } else {
+        } else if (ruleset.selectors.length > 0) {
+            // only add rules with selectors
             results.push(new RuleSetInfo(ruleset, source));
         }
     }
@@ -74,18 +75,20 @@ define(function (require, exports, module) {
         // To be consistent with LESS, strip CR.
         // Remove this workaround and patch LESS parser to save accurate offset info.
         // There are current issues with CRLF replacement and token trimming.
-        var input = text.replace(/\r\n/g, '\n');
+        var input = text.replace(/\r\n/g, '\n').trimRight();
         
         // rulesets is an in-order traversal of the AST
         // work backwards to establish offset start and end values
         var i               = rulesets.length - 1,
             current         = null,
-            offsetEnd       = input.length,
+            offsetEnd       = input.length, // offset last non-white space char
+            elements        = null,
             firstElement    = null,
-            lines           = input;
+            lines           = input;        // complete file content
         
         while (i >= 0) {
             current = rulesets[i];
+            elements = current.ruleset.selectors[0].elements;
             
             // get offset end from the previous rule's offsetStart
             current.offsetEnd   = offsetEnd;
@@ -93,17 +96,24 @@ define(function (require, exports, module) {
             // HACK - Work backwards from the first element
             // Example: "div { color:red }"
             // The "div" Selector Element index returns 4 instead of 0
-            firstElement = current.ruleset.selectors[0].elements[0];
-            current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
+            firstElement = elements[0];
+            current.offsetStart = firstElement.index - firstElement.value.length;
+            
+            // only subtract the first combinator if the selector has a single element
+            if ((elements.length === 1) && (firstElement.combinator.value === ' ')) {
+                current.offsetStart -= firstElement.combinator.value.length;
+            }
             
             // split the input up to the offset to find the lineStart and lineEnd
             current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
-            lines = lines.substr(0, current.offsetEnd);
+            lines = lines.substr(0, current.offsetEnd).trimRight();
             
             current.lineStart = _computeLineNumber(lines, current.offsetStart);
-            lines = lines.substr(0, current.offsetStart);
             
-            offsetEnd = current.offsetStart - 1;
+            // the next rule (moving towards the top of the file) ends
+            // with the first non-whitespace char before this rule's offsetStart
+            lines = lines.substr(0, current.offsetStart).trimRight();
+            offsetEnd = lines.length;
             
             i--;
         }
