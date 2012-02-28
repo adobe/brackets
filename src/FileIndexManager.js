@@ -280,7 +280,7 @@ define(function (require, exports, module) {
                 });
         } else {
             _syncFileIndexReentracyGuard = false;
-            return $.Deferred().resolve();
+            return $.Deferred().resolve().promise();
         }
     }
 
