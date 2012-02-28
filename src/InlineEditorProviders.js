@@ -51,10 +51,10 @@ define(function (require, exports, module) {
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos),
             selectorName = "";
         
-        if (tagInfo.position.type === CodeHintUtils.TAG_NAME) {
+        if (tagInfo.position.tokenType === CodeHintUtils.TAG_NAME) {
             // Type selector
             selectorName = tagInfo.tagName;
-        } else if (tagInfo.position.type === CodeHintUtils.ATTR_VALUE) {
+        } else if (tagInfo.position.tokenType === CodeHintUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 // Class selector. We only look for the class name
                 // that includes the insertion point. For example, if
