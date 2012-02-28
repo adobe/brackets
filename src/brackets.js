@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     var ProjectManager          = require("ProjectManager"),
         DocumentManager         = require("DocumentManager"),
         EditorManager           = require("EditorManager"),
+        InlineEditorProviders   = require("InlineEditorProviders"),
         WorkingSetView          = require("WorkingSetView"),
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
@@ -311,6 +312,7 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
+        InlineEditorProviders.init();
     
         initListeners();
         initProject();
