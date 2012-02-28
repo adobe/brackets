@@ -14,7 +14,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var EditorManager       = require("EditorManager"),
-        DocumentManager     = require("DocumentManager"),
+        FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         CodeHintUtils       = require("CodeHintUtils");
@@ -74,7 +74,7 @@ define(function (require, exports, module) {
         // Load a project file at random
         var arbitraryFile = "todos.css";
         var fileEntry = new NativeFileSystem.FileEntry(ProjectManager.getProjectRoot().fullPath + arbitraryFile);
-        DocumentManager.readAsText(fileEntry)
+        FileUtils.readAsText(fileEntry)
             .done(function (text) {
                 // var dummyRange = { startLine: 18, endLine: 22 };    // small rule
                 var dummyRange = { startLine: 218, endLine: 255 };    // tall rule

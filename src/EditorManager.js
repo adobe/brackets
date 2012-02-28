@@ -272,7 +272,17 @@ define(function (require, exports, module) {
     }
     
     function _closeInlineWidget(hostEditor, inlineId) {
+        // Place cursor back on the line just above the inline (the line from which it was opened)
+        // If cursor's already on that line, leave it be to preserve column position
+        var widgetLine = hostEditor.getInlineWidgetInfo(inlineId).line;
+        var cursorLine = hostEditor.getCursor().line;
+        if (cursorLine !== widgetLine) {
+            hostEditor.setCursor({ line: widgetLine, pos: 0 });
+        }
+        
         hostEditor.removeInlineWidget(inlineId);
+        
+        hostEditor.focus();
     }
     
     function registerInlineEditProvider(provider) {
@@ -317,6 +327,7 @@ define(function (require, exports, module) {
     function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {
         // Container to hold editor & render its stylized frame
         var inlineContent = document.createElement('div');
+        $(inlineContent).addClass("inlineCodeEditor");
         
         var myInlineId; // won't be populated until our afterAdded() callback is run
         function closeThisInline() {
@@ -325,23 +336,11 @@ define(function (require, exports, module) {
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
         
-        // Auto-size editor to its content, clamped to a max of 150px
-        function editorHeight(nLines) {
-            // TODO: need a real API for this; currently hacked up based on CodeMirror's totalHeight() impl
-            var lineHeight = 18; // what our current stylesheet yields
-            var padding = 12;    // ditto
-            return nLines * lineHeight + padding;
-        }
-        var nLines = range ? (range.endLine - range.startLine + 1) : inlineEditor.lineCount();
-        var textTotalHeight = editorHeight(nLines);
-        var widgetHeight = Math.min(textTotalHeight, 150);
+        var MAX_INLINE_HEIGHT = 150;
         
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
             myInlineId = inlineId;
-            
-            $(inlineEditor.getScrollerElement()).height(widgetHeight);
-            inlineEditor.refresh();
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
@@ -357,20 +356,20 @@ define(function (require, exports, module) {
                     }
                 });
                 inlineEditor.setCursor(range.startLine, 0);
-                
-                // CodeMirror has bugs where the gutter line numbers are wrong if the first line
-                // is hidden, so for now when trimming text down to a range we show NO line numbers
-                inlineEditor.setOption("gutter", true);
-                inlineEditor.setOption("lineNumbers", false);
             }
             
-            inlineEditor.focus();
+            // Auto-size editor to its remaining content, clamped to a max
+            var totalTextHeight = inlineEditor.totalHeight(true);
+            var widgetHeight = Math.min(totalTextHeight, MAX_INLINE_HEIGHT);
+
+            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight);
+            $(inlineEditor.getScrollerElement()).height(widgetHeight);
+            inlineEditor.refresh();
             
-            // Set late because CodeMirror.addInlineWidget() blows away any CSS classes we set earlier
-            $(inlineContent).addClass("inlineCodeEditor");
+            inlineEditor.focus();
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: widgetHeight, onAdded: afterAdded };
+        return { content: inlineContent, editor: inlineEditor, height: MAX_INLINE_HEIGHT, onAdded: afterAdded };
     }
     
     
