@@ -29,8 +29,10 @@ define(function (require, exports, module) {
     */
     function QuickNavigateDialog(codemirror, resultCallback) {
         this.closed = false;
-        this.codemirror = codemirror;
         this.resultCallback = resultCallback;
+
+        // TODO (issue 311) - remove code mirror references
+        this.codemirror = codemirror;
     }
 
 
@@ -117,10 +119,13 @@ define(function (require, exports, module) {
         
                     keydown: function (e) {
                         var query = that.searchField.val();
+
+                        // special handling for ENTER (23) and ESC (27) key
                         if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
                             e.stopPropagation();
                             e.preventDefault();
 
+                            // cleary the query on ESC key
                             if (e.keyCode === 27) {
                                 query = null;
                             }
@@ -139,9 +144,14 @@ define(function (require, exports, module) {
                 that.searchField.focus();
             });
     };
+
+
         
 
     function doFileSearch() {
+
+        // TEST
+        //var test = FileIndexManager.getFilenameMatches("all", "file_four.css");
 
         // TODO (issue 311) - using code mirror's wrapper element for now which requires us to get the editor and the code mirror instance
         var curDoc = DocumentManager.getCurrentDocument();

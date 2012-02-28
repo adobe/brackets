@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -101,16 +101,12 @@ define(function (require, exports, module) {
     //
     function _addFileToIndexes(entry) {
         var fileInfo = new FileInfo(entry);
-
-
-        var filterAndAdd = function (index, entry, fileInfo) {
+        console.log(entry.name);
+  
+        $.each(_indexList, function (indexName, index) {
             if (index.filterFunction(entry)) {
                 index.fileInfos.push(fileInfo);
             }
-        };
-  
-        $.each(_indexList, function (indexName, index) {
-            filterAndAdd(index, entry, fileInfo);
         });
     }
     
@@ -129,8 +125,7 @@ define(function (require, exports, module) {
     * files files to each index when the file matches the filter critera
     * @private
     * @param {!DirectoryEntry} dirEntry
-    * @param {number} counts total files added. Defaults to zero if undefined
-    * @param {$.Promise}
+    * @returns {$.Promise}
     */
     function _scanDirectorySubTree(dirEntry) {
         if (!dirEntry) {
@@ -158,50 +153,55 @@ define(function (require, exports, module) {
             return true;
         }
 
+        function _finishDirScan(dirEntry) {
+            console.log("finished: " + dirEntry.fullPath);
+            delete state.dirInProgress[dirEntry.fullPath];
+
+            if (_dirScanDone()) {
+                console.log("dir scan completly done");
+                deferred.resolve();
+            }
+        }
+
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
-            if (state.fileCount === 10000) {
-                if (!state.maxFilesHit) {
-                    state.maxFilesHit = true;
-                    _showMaxFilesDialog();
-                }
-
-                return;
-            }
+            state.dirInProgress[dirEntry.fullPath] = true;
+            console.log("started dir: " + dirEntry.fullPath);
 
             dirEntry.createReader().readEntries(
                 // success callback
                 function (entries) {
                     // inspect all children of dirEntry
-                    var entry;
                     entries.forEach(function (entry) {
                         if (entry.isFile) {
                             _addFileToIndexes(entry);
                             state.fileCount++;
-                            //console.log(entry.name);
+
+                            // For now limit the number of files that are indexed. This limit could be increased
+                            // if files were indexed in a worker thread so scanning didn't block the UI
+                            if (state.fileCount === 10000) {
+                                if (!state.maxFilesHit) {
+                                    state.maxFilesHit = true;
+                                    _showMaxFilesDialog();
+                                }
+                                return;
+                            }
+
                         } else if (entry.isDirectory) {
-                            state.dirInProgress[entry.fullPath] = true;
                             _scanDirectoryRecurse(entry);
                         }
                     });
+
+                    _finishDirScan(dirEntry);
                 },
                 // error callback
                 function (error) {
                     state.dirError[dirEntry.fullPath] = error;
-                    delete state.dirInProgress[dirEntry.fullPath];
+                    _finishDirScan(dirEntry);
                 }
             );
-
-            // done reading this dir, remove from inProgress map
-            delete state.dirInProgress[dirEntry.fullPath];
-
-            if (_dirScanDone()) {
-                // console.log( "done reading dir subtree" + dirEntry.fullPath);
-                deferred.resolve();
-            }
         }
 
-        state.dirInProgress[dirEntry.fullPath] = true;
         _scanDirectoryRecurse(dirEntry);
 
         return deferred.promise();
@@ -238,26 +238,41 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Used by syncFileIndex function to prevent reentrancy
+     * @private
+     */
+    var _syncFileIndexReentracyGuard = false;
+
+    /**
     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
     * @return {$.Promise} resolved when index has been updated
     */
     function syncFileIndex() {
+        if (_syncFileIndexReentracyGuard) {
+            throw new Error("syncFileIndex cannot be called Recursively");
+        }
+
+        _syncFileIndexReentracyGuard = true;
+
+        var rootDir = ProjectManager.getProjectRoot();
         if (_indexListDirty) {
-            PerfUtils.markStart("FileIndexManager.syncFileIndex()");
+            PerfUtils.markStart("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
 
             _clearIndexes();
 
-            return _scanDirectorySubTree(ProjectManager.getProjectRoot())
+            return _scanDirectorySubTree(rootDir)
                 .done(function () {
-                    PerfUtils.addMeasurement("FileIndexManager.syncFileIndex()");
+                    PerfUtils.addMeasurement("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
                     _indexListDirty = false;
+                    _syncFileIndexReentracyGuard = false;
+
+                    //_logFileList(_indexList["all"].fileInfos);
+                    //_logFileList(_indexList["css"].fileInfos);
                 });
         } else {
+            _syncFileIndexReentracyGuard = false;
             return $.Deferred().resolve();
         }
-
-        //_logFileList(_indexList["all"].fileInfos);
-        //_logFileList(_indexList["css"].fileInfos);
     }
 
     /**
@@ -277,7 +292,7 @@ define(function (require, exports, module) {
                 result.resolve(_indexList[indexName].fileInfos);
             });
 
-        return result;
+        return result.promise();
     }
     
     /**
@@ -299,17 +314,15 @@ define(function (require, exports, module) {
                 var resultList = [];
                 getFileInfoList(indexName)
                     .done(function (fileList) {
-                        fileList.forEach(function (fileInfo) {
-                            if (filterFunction(fileInfo.name)) {
-                                resultList.push(fileInfo);
-                            }
+                        resultList = fileList.filter(function (fileInfo) {
+                            return filterFunction(fileInfo.name);
                         });
 
                         result.resolve(resultList);
                     });
             });
 
-        return result;
+        return result.promise();
     }
     
     /**
@@ -348,7 +361,6 @@ define(function (require, exports, module) {
     });
 
     exports.markDirty = markDirty;
-    exports.getFilteredList = getFilteredList;
     exports.getFileInfoList = getFileInfoList;
     exports.getFilenameMatches = getFilenameMatches;
 

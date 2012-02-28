@@ -49,15 +49,17 @@ define(function (require, exports, module) {
                     .done(function (result) {
                         allFiles = result;
                     });
-
+            });
+            waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+            
+            runs(function () {
                 FileIndexManager.getFileInfoList("css")
                     .done(function (result) {
                         cssFiles = result;
                     });
             });
+            waitsFor(function () { return cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
 
-            waitsFor(function () { return allFiles && cssFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
-            
             runs(function () {
                 expect(allFiles.length).toEqual(8);
                 expect(cssFiles.length).toEqual(3);

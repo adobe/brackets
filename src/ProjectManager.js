@@ -410,7 +410,7 @@ define(function (require, exports, module) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function (rootEntry) {
-                    var projectRootChanged = (!_projectRoot || !rootEntry) 
+                    var projectRootChanged = (!_projectRoot || !rootEntry)
                         || _projectRoot.fullPath !== rootEntry.fullPath;
 
                     // Success!
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
                             $(exports).triggerHandler("initializeComplete", _projectRoot);
                         }
 
-                        if(projectRootChanged) {
+                        if (projectRootChanged) {
                             $(exports).triggerHandler("projectRootChanged", _projectRoot);
                         }
                     });
