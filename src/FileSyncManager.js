@@ -315,10 +315,14 @@ define(function (require, exports, module) {
                                 } else {
                                     // We're really done!
                                     _alreadyChecking = false;
-                                    EditorManager.focusEditor();
+                                    
+                                    // If we showed a dialog, restore focus to editor
+                                    if (editConflicts.length > 0 || deleteConflicts.length > 0) {
+                                        EditorManager.focusEditor();
+                                    }
                                     
                                     // (Any errors that ocurred during presentConflicts() have already
-                                    // shown UI & been dismissed, so there's no fail() processing here)
+                                    // shown UI & been dismissed, so there's no fail() handler here)
                                 }
                             });
                     });
