@@ -43,6 +43,14 @@ define(function (require, exports, module) {
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
         var selectorName = "";
         
+        // Only provide CSS editor if the selection is an insertion point
+        var selStart = editor.getCursor(false),
+            selEnd = editor.getCursor(true);
+        
+        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
+            return null;
+        }
+        
         if (tagInfo.hint.type === CodeHintUtils.TAG_NAME) {
             // Type selector
             selectorName = tagInfo.tagName;
@@ -61,10 +69,20 @@ define(function (require, exports, module) {
                         startIndex === -1 ? 0 : startIndex + 1,
                         endIndex === -1 ? attributeValue.length : endIndex
                     );
+                
+                // If the insertion point is surrounded by space, selectorName is "."
+                // Check for that here
+                if (selectorName === ".") {
+                    selectorName = "";
+                }
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
                 selectorName = "#" + tagInfo.attr.value;
             }
+        }
+        
+        if (selectorName === "") {
+            return null;
         }
 
         var result = new $.Deferred();
