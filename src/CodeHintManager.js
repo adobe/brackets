@@ -40,10 +40,6 @@ define(function (require, exports, module) {
                 _triggerIdHint(editor, pos, tagInfo);
             }
         }
-        
-        if (tagInfo.hint.type) {
-            console.log("_checkForHint called for: " + tagInfo.position.type + " with tagname: " + tagInfo.tagName + " " + tagInfo.attr.name + "=" + tagInfo.attr.value);
-        }
     }
     
     /**
