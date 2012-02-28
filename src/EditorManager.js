@@ -342,11 +342,11 @@ define(function (require, exports, module) {
             if (range) {
                 inlineEditor.operation(function () {
                     var i;
-                    for(i = 0; i < range.startLine; i++) {
+                    for (i = 0; i < range.startLine; i++) {
                         inlineEditor.hideLine(i);
                     }
                     var lineCount = inlineEditor.lineCount();
-                    for(i = range.endLine + 1; i < lineCount; i++) {
+                    for (i = range.endLine + 1; i < lineCount; i++) {
                         inlineEditor.hideLine(i);
                     }
                 });
