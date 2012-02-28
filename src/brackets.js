@@ -28,7 +28,6 @@ define(function (require, exports, module) {
         DocumentManager         = require("DocumentManager"),
         EditorManager           = require("EditorManager"),
         WorkingSetView          = require("WorkingSetView"),
-        DebugCommandHandlers    = require("DebugCommandHandlers"),
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
         FileSyncManager         = require("FileSyncManager"),
@@ -36,10 +35,13 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager"),
         PerfUtils               = require("PerfUtils"),
-        Menus                   = require("Menus"),
-        JSLint                  = require("JSLint");
+        Menus                   = require("Menus");
+    
+    //Load modules the self-register and just need to get included in the main project
+    require("JSLint");
+    require("CodeHintManager");
+    require("DebugCommandHandlers");
 
     // Define core brackets namespace if it isn't already defined
     //
