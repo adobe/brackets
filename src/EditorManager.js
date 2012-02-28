@@ -363,7 +363,7 @@ define(function (require, exports, module) {
             inlineEditor.focus();
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: 1, onAdded: afterAdded };
+        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
     }
     
     
