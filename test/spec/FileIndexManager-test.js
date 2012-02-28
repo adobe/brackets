@@ -132,11 +132,11 @@ define(function (require, exports, module) {
             // Load spec/FileIndexManager-test-files
             SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
-            var allFiles, txtFiles;
+            var allFiles; // set by checkAllFileCount
             
             // helper function to validate base state of 8 files
             function checkAllFileCount(fileCount) {
-                var files = null;
+                var files;
                 runs(function () {
                     FileIndexManager.getFileInfoList("all")
                         .done(function (result) {
@@ -147,6 +147,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
                 
                 runs(function () {
+                    allFiles = files;
                     expect(files.length).toEqual(fileCount);
                 });
             }

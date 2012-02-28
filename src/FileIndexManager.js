@@ -103,6 +103,12 @@ define(function (require, exports, module) {
     // future use when files are incrementally added
     //
     function _addFileToIndexes(entry) {
+
+        // skip invisible files on mac
+        if (brackets.platform === "mac" && entry.name.charAt(0) === ".") {
+            return;
+        }
+
         var fileInfo = new FileInfo(entry);
         //console.log(entry.name);
   
