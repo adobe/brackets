@@ -22,7 +22,7 @@ define(function (require, exports, module) {
     }
     
     function _triggerIdHint(editor, pos, tagInfo) {
-        //console.log("_triggerIdHint called called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
+        //console.log("_triggerIdHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
     /**
@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     function _checkForHint(editor) {
         var pos = editor.getCursor();
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
-        if (tagInfo.hint.type === CodeHintUtils.ATTR_VALUE) {
+        if (tagInfo.position.type === CodeHintUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 _triggerClassHint(editor, pos, tagInfo);
             } else if (tagInfo.attr.name === "id") {
@@ -53,7 +53,6 @@ define(function (require, exports, module) {
         if (keyboardEvent.type !== "keypress") {
             return;
         }
-        var char = String.fromCharCode(keyboardEvent.charCode);
         setTimeout(function () { _checkForHint(editor); }, 40);
     }
     

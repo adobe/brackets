@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     //constants
     var TAG_NAME = "tagName",
         ATTR_NAME = "attr.name",
-        ATTR_VALUE = "att.value";
+        ATTR_VALUE = "attr.value";
     
     /**
      * @private
@@ -53,6 +53,25 @@ define(function (require, exports, module) {
             ctx.pos.ch = ctx.token.end + 1;
         }
         ctx.token = ctx.editor.getTokenAt(ctx.pos);
+        return true;
+    }
+    
+   /**
+     * @private
+     * moves the current context in the given direction, skipping any whitespace it hits
+     * @param {function} moveFxn the funciton to move the context
+     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
+     * @return {boolean} whether the context changed
+     */
+    function _moveSkippingWhitespace(moveFxn, ctx) {
+        if (!moveFxn(ctx)) {
+            return false;
+        }
+        while (!ctx.token.className && ctx.token.string.trim().length === 0) {
+            if (!moveFxn(ctx)) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -144,20 +163,20 @@ define(function (require, exports, module) {
     
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
-     * @param {string} hint what is getting edited and should be hinted
+     * @param {string} type what is getting edited and should be hinted
      * @param {number} offset where the cursor is for the part getting hinted
      * @param {string} tagName The name of the tag
      * @param {string} attrName The name of the attribute
      * @param {string} attrValue The value of the attribute
-     * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
-     *              about the current tag hint. 
+     * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
+     *              A tagInfo object with some context about the current tag hint.            
      */
     function createTagInfo(type, offset, tagName, attrName, attrValue) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
                       value: attrValue || ""},
-                 hint:
+                 position:
                     { type: type || "",
                       offset: offset || 0} };
     }
@@ -177,12 +196,12 @@ define(function (require, exports, module) {
         
         
         //Move to the prev token, and check if it's "="
-        if (!_movePrevToken(ctx) || ctx.token.string !== "=") {
+        if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.string !== "=") {
             return createTagInfo();
         }
         
         //Move to the prev token, and check if it's an attribute
-        if (!_movePrevToken(ctx) || ctx.token.className !== "attribute") {
+        if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
             return createTagInfo();
         }
         
@@ -210,11 +229,11 @@ define(function (require, exports, module) {
         var attrName = ctx.token.string;
         var offset = _offsetInToken(ctx);
         
-        if (!_moveNextToken(ctx) || ctx.token.string !== "=") {
+        if (!_moveSkippingWhitespace(_moveNextToken, ctx) || ctx.token.string !== "=") {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         
-        if (!_moveNextToken(ctx)) {
+        if (!_moveSkippingWhitespace(_moveNextToken, ctx)) {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
@@ -225,7 +244,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Figure out if we're in a tag, and if we are
+     * Figure out if we're in a tag, and if we are return info about what to hint about it
      * An example token stream for this tag is <span id="open-files-disclosure-arrow"></span> : 
      *      className:tag       string:"<span"
      *      className:          string:" "
@@ -235,8 +254,8 @@ define(function (require, exports, module) {
      *      className:tag       string:"></span>"
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      * @param {{ch: number, line: number}} pos  A CM pos (likely from editor.getCursor())
-     * @return {{tagName:string, attr{name:string, value:string}} A tagInfo object with some context
-     *              about the current tag hint. 
+     * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
+     *              A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, pos) {
         var ctx = _getInitialContext(editor, pos),
@@ -287,11 +306,11 @@ define(function (require, exports, module) {
         if (ctx.token.string === "=") {
             //we could be between the attr and the value
             //step back and check
-            if (!_movePrevToken(ctx) || ctx.token.className !== "attribute") {
+            if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
                 return createTagInfo();
             }
             
-            //This the the = as the are going to add an value now
+            //The "=" is added, time to hint for values
             hint = ATTR_VALUE;
             offset = 0;
         }
