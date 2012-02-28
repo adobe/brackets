@@ -169,6 +169,17 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 4, "span"));
             });
             
+            it("should hint attributes even if there is a lot of space between the tag name and the next attr name", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><li  ', '  id="foo"');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "li"));
+            });
+            
             it("should find the tagname as space is typed before the attr name is added", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
