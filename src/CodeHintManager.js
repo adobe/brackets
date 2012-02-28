@@ -22,7 +22,7 @@ define(function (require, exports, module) {
     }
     
     function _triggerIdHint(editor, pos, tagInfo) {
-        //console.log("_triggerIdHint called called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
+        //console.log("_triggerIdHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
     /**
@@ -30,13 +30,15 @@ define(function (require, exports, module) {
      * Checks to see if this is an attribute value we can hint
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
-    function _checkForAttributeValueHint(editor) {
+    function _checkForHint(editor) {
         var pos = editor.getCursor();
-        var tagInfo = CodeHintUtils.getTagInfoForValueHint(editor, pos);
-        if (tagInfo.attr.name === "class") {
-            _triggerClassHint(editor, pos, tagInfo);
-        } else if (tagInfo.attr.name === "id") {
-            _triggerIdHint(editor, pos, tagInfo);
+        var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
+        if (tagInfo.position.type === CodeHintUtils.ATTR_VALUE) {
+            if (tagInfo.attr.name === "class") {
+                _triggerClassHint(editor, pos, tagInfo);
+            } else if (tagInfo.attr.name === "id") {
+                _triggerIdHint(editor, pos, tagInfo);
+            }
         }
     }
     
@@ -51,12 +53,12 @@ define(function (require, exports, module) {
         if (keyboardEvent.type !== "keypress") {
             return;
         }
-        var char = String.fromCharCode(keyboardEvent.charCode);
-        setTimeout(function () { _checkForAttributeValueHint(editor); }, 40);
+        setTimeout(function () { _checkForHint(editor); }, 40);
     }
     
-     // Register our listeners
-    $(EditorManager).on("onKeyEvent", _onKeyEvent);
+    // Register our listeners
+    // Commenting out the code hinting for now. Uncomment this line to re-enable.
+    //$(EditorManager).on("onKeyEvent", _onKeyEvent);
     
     // Define public API
 });
