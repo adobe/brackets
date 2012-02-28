@@ -163,7 +163,7 @@ define(function (require, exports, module) {
     
     /**
      * Creates a tagInfo object and assures all the values are entered or are empty strings
-     * @param {string} type what is getting edited and should be hinted
+     * @param {string} tokenType what is getting edited and should be hinted
      * @param {number} offset where the cursor is for the part getting hinted
      * @param {string} tagName The name of the tag
      * @param {string} attrName The name of the attribute
@@ -171,13 +171,13 @@ define(function (require, exports, module) {
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.            
      */
-    function createTagInfo(type, offset, tagName, attrName, attrValue) {
+    function createTagInfo(tokenType, offset, tagName, attrName, attrValue) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
                       value: attrValue || ""},
                  position:
-                    { type: type || "",
+                    { tokenType: tokenType || "",
                       offset: offset || 0} };
     }
     
