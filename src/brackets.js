@@ -37,7 +37,6 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager"),
         FileIndexManager        = require("FileIndexManager"),
         PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
