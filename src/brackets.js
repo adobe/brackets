@@ -22,6 +22,8 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
+    require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
+
     
     // Load dependent modules
     var ProjectManager          = require("ProjectManager"),
@@ -36,6 +38,9 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
+        CodeHintManager         = require("CodeHintManager"),
+        FileIndexManager        = require("FileIndexManager"),
+        QuickFileOpen           = require("QuickFileOpen"),
         PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     
@@ -71,13 +76,14 @@ define(function (require, exports, module) {
         DocumentManager         : DocumentManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
-        CommandManager          : require("CommandManager")
+        CommandManager          : require("CommandManager"),
+        FileIndexManager        : FileIndexManager
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
     // asynchronously. This should only be done for testing/debugging.
     // NOTE: Make sure this line is commented out again before committing!
-    // brackets.forceAsyncCallbacks = true;
+    //brackets.forceAsyncCallbacks = true;
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: (issue #266) load conditionally
@@ -276,6 +282,7 @@ define(function (require, exports, module) {
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],
@@ -294,6 +301,7 @@ define(function (require, exports, module) {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
+                FileIndexManager.markDirty();
             });
             
             $(window).unload(function () {
