@@ -40,22 +40,33 @@ define(function (require, exports, module) {
             return null;
         }
         
-        var tagInfo = CodeHintUtils.getTagInfoForValueHint(editor, pos);
+        var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
         var selectorName = "";
-        if (tagInfo.attr.name === "class") {
-            // Class selector
-            selectorName = "." + tagInfo.attr.value;
-        } else if (tagInfo.attr.name === "id") {
-            // ID selector
-            selectorName = "#" + tagInfo.attr.value;
-        } else if (tagInfo.tagName !== "" && tagInfo.attr.name === "") {
+        
+        if (tagInfo.hint.type === CodeHintUtils.TAG_NAME) {
             // Type selector
             selectorName = tagInfo.tagName;
-        } else {
-            // Cursor is not in a tag name, or class/id attribute
-            return null;
+        } else if (tagInfo.hint.type === CodeHintUtils.ATTR_VALUE) {
+            if (tagInfo.attr.name === "class") {
+                // Class selector. We only look for the class name
+                // that includes the insertion point. For example, if
+                // the attribute is: 
+                //   class="error-dialog modal hide"
+                // And the insertion point is inside "modal", we want ".modal"
+                var attributeValue = tagInfo.attr.value;
+                var startIndex = attributeValue.substr(0, tagInfo.hint.offset).lastIndexOf(" ");
+                var endIndex = attributeValue.indexOf(" ", tagInfo.hint.offset);
+                selectorName = "." + 
+                    attributeValue.substring(
+                        startIndex === -1 ? 0 : startIndex, endIndex === -1 ? 
+                        attributeValue.length : endIndex
+                    );
+            } else if (tagInfo.attr.name === "id") {
+                // ID selector
+                selectorName = "#" + tagInfo.attr.value;
+            }
         }
-        
+
         var result = new $.Deferred();
         
         // TODO: use 'pos' to form a CSSManager query, and go find an actual relevant CSS rule

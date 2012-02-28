@@ -30,13 +30,15 @@ define(function (require, exports, module) {
      * Checks to see if this is an attribute value we can hint
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
-    function _checkForAttributeValueHint(editor) {
+    function _checkForHint(editor) {
         var pos = editor.getCursor();
-        var tagInfo = CodeHintUtils.getTagInfoForValueHint(editor, pos);
-        if (tagInfo.attr.name === "class") {
-            _triggerClassHint(editor, pos, tagInfo);
-        } else if (tagInfo.attr.name === "id") {
-            _triggerIdHint(editor, pos, tagInfo);
+        var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
+        if (tagInfo.hint.type === CodeHintUtils.ATTR_VALUE) {
+            if (tagInfo.attr.name === "class") {
+                _triggerClassHint(editor, pos, tagInfo);
+            } else if (tagInfo.attr.name === "id") {
+                _triggerIdHint(editor, pos, tagInfo);
+            }
         }
     }
     
@@ -52,7 +54,7 @@ define(function (require, exports, module) {
             return;
         }
         var char = String.fromCharCode(keyboardEvent.charCode);
-        setTimeout(function () { _checkForAttributeValueHint(editor); }, 40);
+        setTimeout(function () { _checkForHint(editor); }, 40);
     }
     
      // Register our listeners
