@@ -20,5 +20,8 @@ define(function (require, exports, module) {
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
     exports.FILE_RELOAD = "file.reload";
     exports.FILE_QUIT = "file.quit";
+    exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
+    exports.DEBUG_JSLINT = "debug.jslint";
+    exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
 });
 
