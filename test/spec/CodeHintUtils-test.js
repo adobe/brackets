@@ -124,6 +124,18 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
             });
             
+            it("should find the attribute value even when there is space around the =", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class = "foo"', '></p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
+            });
+            
             it("should find the tagname as it's typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
@@ -168,7 +180,7 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "span"));
             });
             
-            it("should not anything after the tag is closed", function () {
+            it("should not hint anything after the tag is closed", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
@@ -179,7 +191,7 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
-            it("should not anything after a closing tag", function () {
+            it("should not hint anything after a closing tag", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
