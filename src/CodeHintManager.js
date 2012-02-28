@@ -56,8 +56,9 @@ define(function (require, exports, module) {
         setTimeout(function () { _checkForHint(editor); }, 40);
     }
     
-     // Register our listeners
-    $(EditorManager).on("onKeyEvent", _onKeyEvent);
+    // Register our listeners
+    // Commenting out the code hinting for now. Uncomment this line to re-enable.
+    //$(EditorManager).on("onKeyEvent", _onKeyEvent);
     
     // Define public API
 });
