@@ -52,14 +52,14 @@ define(function (require, exports, module) {
                 // that includes the insertion point. For example, if
                 // the attribute is: 
                 //   class="error-dialog modal hide"
-                // And the insertion point is inside "modal", we want ".modal"
+                // and the insertion point is inside "modal", we want ".modal"
                 var attributeValue = tagInfo.attr.value;
                 var startIndex = attributeValue.substr(0, tagInfo.hint.offset).lastIndexOf(" ");
                 var endIndex = attributeValue.indexOf(" ", tagInfo.hint.offset);
-                selectorName = "." + 
+                selectorName = "." +
                     attributeValue.substring(
-                        startIndex === -1 ? 0 : startIndex, endIndex === -1 ? 
-                        attributeValue.length : endIndex
+                        startIndex === -1 ? 0 : startIndex + 1,
+                        endIndex === -1 ? attributeValue.length : endIndex
                     );
             } else if (tagInfo.attr.name === "id") {
                 // ID selector
