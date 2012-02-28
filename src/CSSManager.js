@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, require: false, less: false */
+/*global define: false, $: false, require: false, less: false, FileError: false */
 
 /**
  * CSSManager
@@ -12,14 +12,26 @@ define(function (require, exports, module) {
     'use strict';
     
     // Dependencies
-    var NativeFileSystem = require("NativeFileSystem"),
-        FileUtils        = require("FileUtils");
+    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
+        FileIndexManager    = require("FileIndexManager"),
+        Async               = require("Async"),
+        FileUtils           = require("FileUtils");
     
     /**
      * Regex to match selector element values for ID '#', pseudo ':',
      * class name '.', attribute start '[' or digit.
      */
     var IDENTIFIER_REGEX = /^[#:\.\[\d]/;
+    
+    /**
+     * CSSManager instance for the current project
+     */
+    var _cssManager;
+    
+    /**
+     * Track CSS file modification times
+     */
+    var _cssFileMetadataMap = {};
     
     /**
      * Adapter for LESS RuleSet
@@ -39,7 +51,8 @@ define(function (require, exports, module) {
             children.forEach(function (value, index) {
                 _addRuleset(results, value, source);
             });
-        } else {
+        } else if (ruleset.selectors.length > 0) {
+            // only add rules with selectors
             results.push(new RuleSetInfo(ruleset, source));
         }
     }
@@ -62,18 +75,20 @@ define(function (require, exports, module) {
         // To be consistent with LESS, strip CR.
         // Remove this workaround and patch LESS parser to save accurate offset info.
         // There are current issues with CRLF replacement and token trimming.
-        var input = text.replace(/\r\n/g, '\n');
+        var input = text.replace(/\r\n/g, '\n').trimRight();
         
         // rulesets is an in-order traversal of the AST
         // work backwards to establish offset start and end values
         var i               = rulesets.length - 1,
             current         = null,
-            offsetEnd       = input.length,
+            offsetEnd       = input.length, // offset last non-white space char
+            elements        = null,
             firstElement    = null,
-            lines           = input;
+            lines           = input;        // complete file content
         
         while (i >= 0) {
             current = rulesets[i];
+            elements = current.ruleset.selectors[0].elements;
             
             // get offset end from the previous rule's offsetStart
             current.offsetEnd   = offsetEnd;
@@ -81,17 +96,24 @@ define(function (require, exports, module) {
             // HACK - Work backwards from the first element
             // Example: "div { color:red }"
             // The "div" Selector Element index returns 4 instead of 0
-            firstElement = current.ruleset.selectors[0].elements[0];
-            current.offsetStart = firstElement.index - firstElement.value.length - firstElement.combinator.value.length;
+            firstElement = elements[0];
+            current.offsetStart = firstElement.index - firstElement.value.length;
+            
+            // only subtract the first combinator if the selector has a single element
+            if ((elements.length === 1) && (firstElement.combinator.value === ' ')) {
+                current.offsetStart -= firstElement.combinator.value.length;
+            }
             
             // split the input up to the offset to find the lineStart and lineEnd
             current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
-            lines = lines.substr(0, current.offsetEnd);
+            lines = lines.substr(0, current.offsetEnd).trimRight();
             
             current.lineStart = _computeLineNumber(lines, current.offsetStart);
-            lines = lines.substr(0, current.offsetStart);
             
-            offsetEnd = current.offsetStart - 1;
+            // the next rule (moving towards the top of the file) ends
+            // with the first non-whitespace char before this rule's offsetStart
+            lines = lines.substr(0, current.offsetStart).trimRight();
+            offsetEnd = lines.length;
             
             i--;
         }
@@ -179,6 +201,7 @@ define(function (require, exports, module) {
      *  objects for all rules parsed from the file.
      */
     CSSManager.prototype.loadFile = function (fileEntry) {
+        // TODO (jasonsj): Strategy for inline <style> blocks?
         var result = new $.Deferred(),
             textResult = FileUtils.readAsText(fileEntry),
             self = this,
@@ -197,8 +220,8 @@ define(function (require, exports, module) {
     /**
      * Remove a file from cache
      */
-    CSSManager.prototype.removeFile = function (fileEntry) {
-        delete this._rules[fileEntry.fullPath];
+    CSSManager.prototype.removeFile = function (fullPath) {
+        delete this._rules[fullPath];
     };
     
     /**
@@ -295,5 +318,150 @@ define(function (require, exports, module) {
         return matches;
     };
     
-    exports.CSSManager = CSSManager;
+    /*
+     * Check for CSS file deltas. Load and remove files as necessary.
+     */
+    function _syncFiles(cssFiles) {
+        // TODO (jasonsj): should FileIndexManager trigger add/change/remove events?
+        var deferred        = new $.Deferred(),
+            filesToLoad     = [],
+            filesToRemove   = {};
+        
+        // Copy the current loaded files into a new map. Remove keys
+        // from the map when the file is or will be loaded.
+        $.each(_cssFileMetadataMap, function (fullPath, value) {
+            filesToRemove[fullPath] = true;
+        });
+        
+        var compareFileTimestamp = function (fileInfo) {
+            var oneDeferred = new $.Deferred(),
+                fileEntry;
+            
+            var metadataSuccess = function (metadata) {
+                // compare to last timestamp
+                var previous = !_cssFileMetadataMap[fileInfo.fullPath],
+                    current = metadata.modificationTime;
+                
+                if ((previous === undefined) || (current !== previous)) {
+                    // new or changed file, load it
+                    filesToLoad.push(fileEntry);
+                }
+                
+                // update the timestamp
+                _cssFileMetadataMap[fileInfo.fullPath] = current;
+            
+                delete filesToRemove[fileInfo.fullPath];
+                
+                oneDeferred.resolve();
+            };
+            
+            var metadataError = function (fileError) {
+                // An entry will be left in currentFileMap
+                if (fileError.code !== FileError.NOT_FOUND_ERR) {
+                    // try to reload the file for any other errors
+                    filesToLoad.push(fileEntry);
+                    
+                    delete filesToRemove[fileInfo.fullPath];
+                }
+                
+                oneDeferred.resolve();
+            };
+            
+            // TODO (jasonsj): work with Ty to add FileEntry property to FileInfo
+            fileEntry = new NativeFileSystem.FileEntry(fileInfo.fullPath);
+            fileEntry.getMetadata(metadataSuccess, metadataError);
+            
+            return oneDeferred.promise();
+        };
+        
+        var compareResult = Async.doInParallel(cssFiles, compareFileTimestamp, false);
+        compareResult.done(function () {
+            // remove files
+            $.each(filesToRemove, function (fullPath) {
+                _cssManager.removeFile(fullPath);
+            });
+            
+            // load new/changed files
+            var loadFilesResult = Async.doInParallel(
+                filesToLoad,
+                function (value, index) {
+                    return _cssManager.loadFile(value);
+                },
+                false
+            );
+            
+            loadFilesResult.done(function () {
+                deferred.resolve();
+            });
+        });
+        
+        return deferred.promise();
+    }
+    
+    function findMatchingRules(selectorString) {
+        var deferred        = new $.Deferred(),
+            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+        
+        cssFilesResult.done(function (fileInfos) {
+            _syncFiles(fileInfos).done(function () {
+                deferred.resolve(_cssManager.findMatchingRules(selectorString));
+            });
+        });
+        
+        return deferred.promise();
+    }
+    
+    /*
+     * Extract line text for each rule from the associated source file.
+     */
+    function _getTextForInfos(infos) {
+        var results = [],
+            deferred = new $.Deferred();
+        
+        var masterPromise = Async.doInParallel(infos, function (info) {
+            var oneFileResult = new $.Deferred();
+            var textResult = FileUtils.readAsText(info.source);
+        
+            textResult.done(function (content) {
+                content = content.replace(/\r\n/g, '\n');
+                var lines = content.split("\n").slice(info.lineStart, info.lineEnd + 1);
+                
+                results.push(lines.join("\n"));
+                oneFileResult.resolve();
+            });
+            
+            return oneFileResult;
+        });
+        
+        masterPromise.done(function () {
+            deferred.resolve(results);
+        });
+        
+        return deferred;
+    }
+    
+    function _logQuery(selectorString) {
+        var ruleInfo;
+
+        findMatchingRules(selectorString).done(function (ruleInfos) {
+            _getTextForInfos(ruleInfos).done(function (texts) {
+                texts.forEach(function (value, index) {
+                    ruleInfo = ruleInfos[index];
+                    console.log("result[" + index + "] line " +
+                        (ruleInfo.lineStart + 1) + ": " +
+                        ruleInfo.source.fullPath + "\n" + value);
+                });
+            });
+        });
+    }
+    
+    // Init
+    (function () {
+        _cssManager = new CSSManager();
+    }());
+    
+    exports.CSSManager          = CSSManager;
+    exports.findMatchingRules   = findMatchingRules;
+    exports._getTextForInfos    = _getTextForInfos;
+    exports._logQuery           = _logQuery;
 });
