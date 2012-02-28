@@ -111,19 +111,20 @@ define(function (require, exports, module) {
             // spec/FileIndexManager-test-files/dir1/dir2
             SpecRunnerUtils.loadProjectInTestWindow(testPath + "/dir1/dir2/");
 
+            var dir2Files;
             runs(function () {
                 FileIndexManager.getFileInfoList("all")
                     .done(function (result) {
-                        allFiles = result;
+                        dir2Files = result;
                     });
             });
 
-            waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+            waitsFor(function () { return dir2Files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
             
             runs(function () {
-                expect(allFiles.length).toEqual(2);
-                expect(allFiles[0].name).toEqual("file_eight.css");
-                expect(allFiles[1].name).toEqual("file_seven.js");
+                expect(dir2Files.length).toEqual(2);
+                expect(dir2Files[0].name).toEqual("file_eight.css");
+                expect(dir2Files[1].name).toEqual("file_seven.js");
             });
         });
         
@@ -135,17 +136,18 @@ define(function (require, exports, module) {
             
             // helper function to validate base state of 8 files
             function checkAllFileCount(fileCount) {
+                var files = null;
                 runs(function () {
                     FileIndexManager.getFileInfoList("all")
                         .done(function (result) {
-                            allFiles = result;
+                            files = result;
                         });
                 });
     
-                waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
+                waitsFor(function () { return files; }, "FileIndexManager.getFileInfoList() timeout", 1000);
                 
                 runs(function () {
-                    expect(allFiles.length).toEqual(fileCount);
+                    expect(files.length).toEqual(fileCount);
                 });
             }
             
@@ -169,8 +171,6 @@ define(function (require, exports, module) {
                 // mark FileIndexManager dirty after new file was created
                 FileIndexManager.markDirty();
             });
-
-            waitsFor(function () { return allFiles; }, "FileIndexManager.getFileInfoList() timeout", 1000);
             
             // verify 9 files
             checkAllFileCount(9);

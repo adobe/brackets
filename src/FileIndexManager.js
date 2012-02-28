@@ -10,6 +10,9 @@
  * files that meet the criteria specified by the index. The indexes are created lazily when
  * they are queried and marked dirty when Brackets becomes active.
  *
+ * TODO (issue 325 ) - FileIndexer doesn't currently add a file to the index when the user createa
+ * a new file within brackets.
+ *
  */
 
 
@@ -101,7 +104,7 @@ define(function (require, exports, module) {
     //
     function _addFileToIndexes(entry) {
         var fileInfo = new FileInfo(entry);
-        console.log(entry.name);
+        //console.log(entry.name);
   
         $.each(_indexList, function (indexName, index) {
             if (index.filterFunction(entry)) {
@@ -154,11 +157,11 @@ define(function (require, exports, module) {
         }
 
         function _finishDirScan(dirEntry) {
-            console.log("finished: " + dirEntry.fullPath);
+            //console.log("finished: " + dirEntry.fullPath);
             delete state.dirInProgress[dirEntry.fullPath];
 
             if (_dirScanDone()) {
-                console.log("dir scan completly done");
+                //console.log("dir scan completly done");
                 deferred.resolve();
             }
         }
@@ -166,7 +169,7 @@ define(function (require, exports, module) {
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
             state.dirInProgress[dirEntry.fullPath] = true;
-            console.log("started dir: " + dirEntry.fullPath);
+            //console.log("started dir: " + dirEntry.fullPath);
 
             dirEntry.createReader().readEntries(
                 // success callback
