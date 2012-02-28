@@ -336,8 +336,6 @@ define(function (require, exports, module) {
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
         
-        var MAX_INLINE_HEIGHT = 150;
-        
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
             myInlineId = inlineId;
@@ -358,9 +356,8 @@ define(function (require, exports, module) {
                 inlineEditor.setCursor(range.startLine, 0);
             }
             
-            // Auto-size editor to its remaining content, clamped to a max
-            var totalTextHeight = inlineEditor.totalHeight(true);
-            var widgetHeight = Math.min(totalTextHeight, MAX_INLINE_HEIGHT);
+            // Auto-size editor to its remaining content
+            var widgetHeight = inlineEditor.totalHeight(true);
 
             hostEditor.setInlineWidgetHeight(inlineId, widgetHeight);
             $(inlineEditor.getScrollerElement()).height(widgetHeight);
@@ -369,7 +366,7 @@ define(function (require, exports, module) {
             inlineEditor.focus();
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: MAX_INLINE_HEIGHT, onAdded: afterAdded };
+        return { content: inlineContent, editor: inlineEditor, height: 1, onAdded: afterAdded };
     }
     
     
