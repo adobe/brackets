@@ -6,8 +6,8 @@
 /*global define, $, CodeMirror */
 
 /*
-* Displays a auto suggest popup list of files in the current project to allow the user
-* to quickly navigate to a file.
+* Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
+* Uses FileIndexManger to supply the file list and registers Commands.FILE_QUICK_NAVIGATE with Brackets.
 *
 */
 
@@ -36,18 +36,17 @@ define(function (require, exports, module) {
     }
 
 
-    QuickNavigateDialog.prototype._dialogDiv = function (cm, template) {
+    QuickNavigateDialog.prototype._createDialogDiv = function (cm, template) {
         // TODO (issue 311) - using code mirror's wrapper element for now. Need to design a Brackets equivalent.
         var wrap = this.codemirror.getWrapperElement();
-        var dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
-        dialog.className = "CodeMirror-dialog";
-        dialog.innerHTML = '<div>' + template + '</div>';
-        return dialog;
+        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        this.dialog.className = "CodeMirror-dialog";
+        this.dialog.innerHTML = '<div>' + template + '</div>';
     };
 
-    QuickNavigateDialog.prototype._filenameFromPath = function (path) {
+    function _filenameFromPath(path) {
         return path.slice(path.lastIndexOf("/") + 1, path.length);
-    };
+    }
     
         
     QuickNavigateDialog.prototype._close = function (value) {
@@ -72,12 +71,12 @@ define(function (require, exports, module) {
             .done(function (filelistResult) {
                 fileInfoList = filelistResult;
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
-                that.dialog = that._dialogDiv(that, dialogHTML);
+                that._createDialogDiv(that, dialogHTML);
                 var closed = false;
-                that.searchField = $('input#quickFileOpenSearch');
+                var searchField = $('input#quickFileOpenSearch');
 
                 function _handleResultsFormatter(path) {
-                    var filename = that._filenameFromPath(path);
+                    var filename = _filenameFromPath(path);
                     var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
                     var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
                     return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
@@ -88,21 +87,21 @@ define(function (require, exports, module) {
                     var filteredList = $.map(source, function (fileInfo) {
                         // match term again filename only (not the path)
                         var path = fileInfo.fullPath;
-                        var filename = that._filenameFromPath(path);
+                        var filename = _filenameFromPath(path);
                         if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
                             return fileInfo.fullPath;
                         }
                     }).sort(function (a, b) {
                         // sort by filename
-                        var filenameA = that._filenameFromPath(a);
-                        var filenameB = that._filenameFromPath(b);
+                        var filenameA = _filenameFromPath(a);
+                        var filenameB =_filenameFromPath(b);
                         return filenameA > filenameB;
                     });
 
                     return filteredList;
                 }
         
-                that.searchField.smartAutoComplete({
+                searchField.smartAutoComplete({
                     source: fileInfoList,
                     maxResults: 10,
                     forceSelect: false,
@@ -111,14 +110,14 @@ define(function (require, exports, module) {
                     resultFormatter: _handleResultsFormatter
                 });
         
-                that.searchField.bind({
+                searchField.bind({
                     itemSelect: function (ev, selected_item) {
                         var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
                         that._close(value);
                     },
         
                     keydown: function (e) {
-                        var query = that.searchField.val();
+                        var query = searchField.val();
 
                         // special handling for ENTER (23) and ESC (27) key
                         if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
@@ -141,7 +140,7 @@ define(function (require, exports, module) {
         
                 });
         
-                that.searchField.focus();
+                searchField.focus();
             });
     };
 

@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         CodeHintManager         = require("CodeHintManager"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        CodeHintManager         = require("CodeHintManager"),
         PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     
