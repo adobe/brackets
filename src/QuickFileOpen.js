@@ -8,7 +8,13 @@
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
 * Uses FileIndexManger to supply the file list and registers Commands.FILE_QUICK_NAVIGATE with Brackets.
-*
+* 
+* TODO ( ) - currently jquery smart auto complete is used for the popup list. While it mostly works
+* it has several issues, so it should be replace with an alternative. Issues:
+* - only accepts an array of strings. A list of objects is preferred to avoid some work arounds to display 
+*   both the path and filename.
+* - the popup position logic has flaws that require css work-arounds
+* - the popup properties cannot be modified once the object is constructed
 */
 
 
