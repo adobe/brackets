@@ -18,6 +18,40 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
+
+    /**
+     * Show a range of text in an inline editor.
+     * 
+     * @param {!CodeMirror} parentEditor The parent editor that will contain the inline editor
+     * @param {!FileEntry} fileEntry File containing inline content
+     * @param {!Number} startLine The first line to be shown in the inline editor 
+     * @param {!Number} endLine The last line to be shown in the inline editor
+     */
+    function _showTextRangeInInlineEditor(parentEditor, fileEntry, startLine, endLine) {
+        var result = new $.Deferred();
+        
+        FileUtils.readAsText(fileEntry)
+            .done(function (text) {
+                var range = {
+                    startLine: startLine,
+                    endLine: endLine - 1   // rule.lineEnd is exclusive, range.endLine is inclusive
+                };
+                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
+                
+                var inlineEditor = inlineInfo.editor;
+                
+                // For Sprint 4, editor is a read-only view
+                inlineEditor.setOption("readOnly", true);
+                
+                result.resolve(inlineInfo);
+            })
+            .fail(function (fileError) {
+                console.log("Error reading as text: ", fileError);
+                result.reject();
+            });
+    
+        return result.promise();
+    }
     
     /**
      * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
@@ -91,23 +125,11 @@ define(function (require, exports, module) {
                 if (rules && rules.length > 0) {
                     var rule = rules[0];  // For Sprint 4 we use the first match only
                     
-                    FileUtils.readAsText(rule.source)
-                        .done(function (text) {
-                            var range = {
-                                startLine: rule.lineStart,
-                                endLine: rule.lineEnd - 1   // rule.lineEnd is exclusive, range.endLine is inclusive
-                            };
-                            var inlineInfo = EditorManager.createInlineEditorFromText(editor, text, range, rule.source.fullPath);
-                            
-                            var inlineEditor = inlineInfo.editor;
-                            
-                            // For Sprint 4, editor is a read-only view
-                            inlineEditor.setOption("readOnly", true);
-                            
+                    _showTextRangeInInlineEditor(editor, rule.source, rule.lineStart, rule.lineEnd)
+                        .done(function (inlineInfo) {
                             result.resolve(inlineInfo);
                         })
-                        .fail(function (fileError) {
-                            console.log("Error reading as text: ", fileError);
+                        .fail(function () {
                             result.reject();
                         });
                 } else {
