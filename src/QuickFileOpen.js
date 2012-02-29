@@ -102,6 +102,8 @@ define(function (require, exports, module) {
 
                     return filteredList;
                 }
+
+
         
                 searchField.smartAutoComplete({
                     source: fileInfoList,
@@ -109,7 +111,8 @@ define(function (require, exports, module) {
                     forceSelect: false,
                     typeAhead: true,
                     filter: _handleFilter,
-                    resultFormatter: _handleResultsFormatter
+                    resultFormatter: _handleResultsFormatter,
+
                 });
         
                 searchField.bind({
@@ -134,7 +137,7 @@ define(function (require, exports, module) {
                             that._close(query);
                             EditorManager.focusEditor();
                         }
-                    },
+                    }
 
         
                 });
