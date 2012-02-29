@@ -57,6 +57,10 @@ define(function (require, exports, module) {
     exports.ERROR_CREATING_FILE_TITLE         = "Error creating file";
     exports.ERROR_CREATING_FILE               = "An error occurred when trying to create the file \"{0}\". {1}";
 
+    // FileIndexManager error string
+    exports.ERROR_MAX_FILES_TITLE             = "Error Indexing Files";
+    exports.ERROR_MAX_FILES                   = "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.";
+
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";
