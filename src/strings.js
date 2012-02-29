@@ -60,6 +60,9 @@ define(function (require, exports, module) {
     // FileIndexManager error string
     exports.ERROR_MAX_FILES_TITLE             = "Error Indexing Files";
     exports.ERROR_MAX_FILES                   = "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.";
+    
+    // CSSManager error strings
+    exports.ERROR_PARSE_TITLE                 = "Error parsing CSS file(s):";
 
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";

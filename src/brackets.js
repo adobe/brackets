@@ -41,7 +41,6 @@ define(function (require, exports, module) {
         PerfUtils               = require("PerfUtils"),
         CSSManager              = require("CSSManager"),
         FileIndexManager        = require("FileIndexManager"),
-        PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project
