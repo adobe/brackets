@@ -398,6 +398,13 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
+    /**
+     * Finds matching CSS rules in the current project, based on the tag,
+     * id and/or class name specified in the selectorString parameter. 
+     * @param {!string} selectorString A string formatted as a type name
+     *  "body", identifier "#myID" or class name ".myClass".
+     * @return {Array.<ResultSetInfo>}
+     */
     function findMatchingRules(selectorString) {
         var deferred        = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css");
@@ -460,8 +467,8 @@ define(function (require, exports, module) {
         _cssManager = new CSSManager();
     }());
     
-    exports.CSSManager          = CSSManager;
     exports.findMatchingRules   = findMatchingRules;
+    exports._CSSManager         = CSSManager;
     exports._getTextForInfos    = _getTextForInfos;
     exports._logQuery           = _logQuery;
 });

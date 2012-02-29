@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     };
     
     function init(spec, fileEntry) {
-        spec.cssManager = new CSSManager.CSSManager();
+        spec.cssManager = new CSSManager._CSSManager();
         
         if (fileEntry) {
             spec.addMatchers({toMatchLastSelector: toMatchLastSelector});
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
          */
         var _match = function (cssCode, tagInfo) {
             try {
-                manager = new CSSManager.CSSManager();
+                manager = new CSSManager._CSSManager();
                 manager._loadString(cssCode);
             } catch (e) {
                 this.fail(e.message + ": " + cssCode);
