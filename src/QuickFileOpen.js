@@ -125,8 +125,7 @@ define(function (require, exports, module) {
                     forceSelect: false,
                     typeAhead: true,
                     filter: _handleFilter,
-                    resultFormatter: _handleResultsFormatter,
-
+                    resultFormatter: _handleResultsFormatter
                 });
         
                 searchField.bind({
@@ -183,7 +182,7 @@ define(function (require, exports, module) {
 
         var dialog = new QuickNavigateDialog(cm);
         dialog.showDialog()
-            .done( function (query) {
+            .done(function (query) {
                 if (query) {
                     if (query.charAt(0) === ":") {
                         var lineNumber = parseInt(query.slice(1, query.length), 10);
