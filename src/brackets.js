@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         CommandManager          = require("CommandManager"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        FileIndexManager        = require("FileIndexManager"),
         PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     

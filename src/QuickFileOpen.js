@@ -94,7 +94,7 @@ define(function (require, exports, module) {
                     }).sort(function (a, b) {
                         // sort by filename
                         var filenameA = _filenameFromPath(a);
-                        var filenameB =_filenameFromPath(b);
+                        var filenameB = _filenameFromPath(b);
                         return filenameA > filenameB;
                     });
 
@@ -149,8 +149,6 @@ define(function (require, exports, module) {
 
     function doFileSearch() {
 
-        // TEST
-        //var test = FileIndexManager.getFilenameMatches("all", "file_four.css");
 
         // TODO (issue 311) - using code mirror's wrapper element for now which requires us to get the editor and the code mirror instance
         var curDoc = DocumentManager.getCurrentDocument();
