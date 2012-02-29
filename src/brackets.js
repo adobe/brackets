@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
         CodeHintManager         = require("CodeHintManager"),
-        PerfUtils               = require("PerfUtils");
+        PerfUtils               = require("PerfUtils"),
+        CSSManager              = require("CSSManager");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -66,7 +67,8 @@ define(function (require, exports, module) {
         DocumentManager         : DocumentManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
-        CommandManager          : require("CommandManager")
+        CommandManager          : require("CommandManager"),
+        CSSManager              : CSSManager
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete

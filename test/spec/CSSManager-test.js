@@ -17,7 +17,9 @@ define(function (require, exports, module) {
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSManager-test-files"),
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
         universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css");
+        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
+        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
+        emptyCssFileEntry       = new NativeFileSystem.FileEntry(testPath + "/empty.css");
     
     var getSelectorAt = function (info, i, selectorGroupPos) {
         var selectors = info[i].ruleset.selectors,
@@ -37,32 +39,6 @@ define(function (require, exports, module) {
     var toMatchLastSelector = function (expected) {
         return this.actual.toCSS({compress: true}).trim() === expected;
     };
-    
-    function getTextForInfos(infos) {
-        var results = [],
-            deferred = new $.Deferred();
-        
-        var masterPromise = Async.doInParallel(infos, function (info) {
-            var oneFileResult = new $.Deferred();
-            var textResult = FileUtils.readAsText(info.source);
-        
-            textResult.done(function (content) {
-                content = content.replace(/\r\n/g, '\n');
-                var lines = content.split("\n").slice(info.lineStart, info.lineEnd + 1);
-                
-                results.push(lines.join("\n"));
-                oneFileResult.resolve();
-            });
-            
-            return oneFileResult;
-        });
-        
-        masterPromise.done(function () {
-            deferred.resolve(results);
-        });
-        
-        return deferred;
-    }
     
     function init(spec, fileEntry) {
         spec.cssManager = new CSSManager.CSSManager();
@@ -98,6 +74,23 @@ define(function (require, exports, module) {
         });
         
         describe("loadFiles", function () {
+            
+            it("should parse an empty file", function () {
+                var emptyRules      = null,
+                    ruleTexts       = null;
+                
+                runs(function () {
+                    this.cssManager.loadFile(emptyCssFileEntry).done(function (result) {
+                        emptyRules = result;
+                    });
+                });
+                
+                waitsFor(function () { return emptyRules; }, 1000);
+                
+                runs(function () {
+                    expect(emptyRules.length).toEqual(0);
+                });
+            });
             
             it("should parse a simple selectors from more than one file", function () {
                 var simpleRules     = null,
@@ -160,7 +153,7 @@ define(function (require, exports, module) {
                     expect(styleRules[5].lineStart).toBe(20);
                     
                     // use lineStart and lineEnd to index into file content
-                    getTextForInfos(styleRules).done(function (texts) {
+                    CSSManager._getTextForInfos(styleRules).done(function (texts) {
                         ruleTexts = texts;
                     });
                 });
@@ -168,12 +161,62 @@ define(function (require, exports, module) {
                 waitsFor(function () { return ruleTexts !== null; }, 1000);
                 
                 runs(function () {
-                    expect(ruleTexts[0]).toEqual("html {\n    color: \"red\";\n}\n");
-                    expect(ruleTexts[1]).toEqual("HTML {\n    color: \"orange\";\n}\n");
-                    expect(ruleTexts[2]).toEqual(".firstGrade {\n    color: \"green\";\n}\n");
-                    expect(ruleTexts[3]).toEqual(".FIRSTGRADE {\n    color: \"yellow\";\n}\n");
-                    expect(ruleTexts[4]).toEqual("#brack3ts {\n    color: \"blue\";\n}\n");
+                    expect(ruleTexts[0]).toEqual("html {\n    color: \"red\";\n}");
+                    expect(ruleTexts[1]).toEqual("HTML {\n    color: \"orange\";\n}");
+                    expect(ruleTexts[2]).toEqual(".firstGrade {\n    color: \"green\";\n}");
+                    expect(ruleTexts[3]).toEqual(".FIRSTGRADE {\n    color: \"yellow\";\n}");
+                    expect(ruleTexts[4]).toEqual("#brack3ts {\n    color: \"blue\";\n}");
                     expect(ruleTexts[5]).toEqual("#BRACK3TS {\n    color: \"black\";\n}");
+                });
+            });
+            
+            it("should handle rules on adjacent lines", function () {
+                var styleRules  = null,
+                    loadFile    = false,
+                    ruleTexts   = null;
+                
+                runs(function () {
+                    this.cssManager.loadFile(offsetsCssFileEntry).done(function (result) {
+                        styleRules = result;
+                    });
+                });
+                
+                waitsFor(function () { return styleRules; }, 1000);
+                
+                runs(function () {
+                    expect(styleRules[0].lineStart).toBe(0);
+                    expect(styleRules[0].lineEnd).toBe(2);
+                    
+                    expect(styleRules[1].lineStart).toBe(3);
+                    expect(styleRules[1].lineEnd).toBe(5);
+                    
+                    expect(styleRules[2].lineStart).toBe(7);
+                    expect(styleRules[2].lineEnd).toBe(7);
+                    
+                    expect(styleRules[3].lineStart).toBe(8);
+                    expect(styleRules[3].lineEnd).toBe(8);
+                    
+                    expect(styleRules[4].lineStart).toBe(10);
+                    expect(styleRules[4].lineEnd).toBe(10);
+                    
+                    expect(styleRules[5].lineStart).toBe(10);
+                    expect(styleRules[5].lineEnd).toBe(10);
+                    
+                    // use lineStart and lineEnd to index into file content
+                    CSSManager._getTextForInfos(styleRules).done(function (texts) {
+                        ruleTexts = texts;
+                    });
+                });
+                
+                waitsFor(function () { return ruleTexts !== null; }, 1000);
+                
+                runs(function () {
+                    expect(ruleTexts[0]).toEqual("a {\n    color: \"red\";\n}/*END*/");
+                    expect(ruleTexts[1]).toEqual("a {\n    color: \"orange\";\n}/*END*/");
+                    expect(ruleTexts[2]).toEqual("a { color: \"yellow\"; }/*END*/");
+                    expect(ruleTexts[3]).toEqual("a:visited { color: \"black\"; }/*END*/");
+                    expect(ruleTexts[4]).toEqual("a { color: \"red\"; }/*END*/a { color: \"blue\"; }/*END*/");
+                    expect(ruleTexts[5]).toEqual("a { color: \"red\"; }/*END*/a { color: \"blue\"; }/*END*/");
                 });
             });
         });
@@ -329,9 +372,13 @@ define(function (require, exports, module) {
             }
         }
         
-        // Test helper function; tagInfo object contains one of: tag, id, clazz
+        /**
+         * Test helper function; tagInfo object contains one of: tag, id, clazz. Tests against a
+         * clean CSSManager that has loaded only the given cssCode string.
+         */
         var _match = function (cssCode, tagInfo) {
             try {
+                manager = new CSSManager.CSSManager();
                 manager._loadString(cssCode);
             } catch (e) {
                 this.fail(e.message + ": " + cssCode);
@@ -341,13 +388,13 @@ define(function (require, exports, module) {
             return findMatchingRules(tagInfo);
         };
         
+        /** Tests against the CSSManager created by the most recent call to match() */
         function matchAgain(tagInfo) {
             return findMatchingRules(tagInfo);
         }
         
         beforeEach(function () {
             match = _match.bind(this);
-            manager = new CSSManager.CSSManager();
         });
 
         describe("Simple selectors: ", function () {
@@ -474,8 +521,8 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "class2" });   // all selectors including a '.class2' class selector
                 expect(result.length).toBe(3);
                 
-                result = matchAgain({ id: "bar" });         // all selectors including a '#bar' id selector and multiple class slectors '.foo.class2'
-                expect(result.length).toBe(6);
+                result = matchAgain({ id: "bar" });         // all selectors including a '#bar' id selector
+                expect(result.length).toBe(4);
             });
             
             it("should allow searching conjunctions of type, class, and id", function () {
@@ -495,16 +542,16 @@ define(function (require, exports, module) {
                 //
                 // // TODO: any way to search two of the same thing? (e.g. all selectors including a '.foo' AND a '.class2' class selector)
                 //
-                // result = match(css, { clazz: "foo", id: "bar" });   // all selectors including a '.foo' class selector AND a '#bar' id selector
+                // result = matchAgain({ clazz: "foo", id: "bar" });   // all selectors including a '.foo' class selector AND a '#bar' id selector
                 // expect(result.length).toBe(3);
                 //
-                // result = match(css, { tag: "div", id: "bar" });      // all selectors including a 'div' type selector AND a '#bar' id selector
+                // result = matchAgain({ tag: "div", id: "bar" });      // all selectors including a 'div' type selector AND a '#bar' id selector
                 // expect(result.length).toBe(2);
                 //
-                // result = match(css, { tag: "div", clazz: "foo", id: "bar" });
+                // result = matchAgain({ tag: "div", clazz: "foo", id: "bar" });
                 // expect(result.length).toBe(1);
                 //
-                // result = match(css, { tag: "div", clazz: "class2", id: "bar" });
+                // result = matchAgain({ tag: "div", clazz: "class2", id: "bar" });
                 // expect(result.length).toBe(0);
             });
             
@@ -590,8 +637,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(2);
             });
             
-            // TODO (issue #317)
-            xit("should ignore the content of strings", function () {
+            it("should ignore the content of strings", function () {
                 // Spaces inside string, single quotes
                 var result = match("div[attr='.foo #bar'] {}", { tag: "div" });
                 expect(result.length).toBe(1);
@@ -651,12 +697,14 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 // Newline inside string (unescaped, with backslash line terminator)
-                result = match("li::before { content: 'foo\\\nbar'; } \n div { color:red }", { tag: "div" });
-                expect(result.length).toBe(1);
+                // TODO (issue #317): LESS parser chokes on this
+                // result = match("li::before { content: 'foo\\\nbar'; } \n div { color:red }", { tag: "div" });
+                // expect(result.length).toBe(1);
             });
             
-            // TODO (issue #317)
-            xit("shouldn't crash on CSS3 selectors", function () {
+            it("shouldn't crash on CSS3 selectors", function () {
+                // See spec: http://www.w3.org/TR/selectors/
+                
                 // Attribute selectors
                 match("[role] {}");
                 match("a[href] {}");
@@ -673,6 +721,17 @@ define(function (require, exports, module) {
                 match("div[attr*='value'].myClass#myId {}");
                 match("div#myId[attr*='value'].myClass {}");
                 match(":focus[attr=\"value\"].className {}");
+                
+                // TODO (issue #317): LESS parser chokes on attributes ending in a digit
+                // match("tagName[attr2='value'] {}");
+                // match("tagName[attr2 = 'value'] {}");
+                // match("tagName[attr2 ='value'] {}");
+                // match("tagName[attr2= 'value'] {}");
+                // match("tagName[attr2=\"value\"] {}");
+                // match("[attr2='value'] {}"); 
+                // match("tagName[attr=\"value\"][attr2=\"value2\"] {}");
+                // match("tagName[attr='value'][attr2='value2'] {}");
+                match(":not([attr2=\"value2\"]) {}");   // oddly, works fine if it's in a :not() clause
                 
                 // Pseudo-classes with complicated syntax
                 match(":lang(de) {}");
@@ -698,30 +757,32 @@ define(function (require, exports, module) {
                 match(".className:not(tagName) {}");
                 match("tagName:not(.className) {}");
                 match(":not(tagName.className) {}");
-                match("tagName:not([attr=\"value\"])[attr2='value2'] {}");  // FIXME: causes error
+                match("tagName:not([attr=\"value\"]) {}");
+                match("tagName:not([attr=\"value\"])[attrB='valueB'] {}");
+                match("tagName[attr='value']:not([attrB=\"valueB\"]) {}");
                 
                 // Pseudo-elements (can only occur once, and must be after the rightmost combinator)
-                match("::first-line");
-                match("tagName::first-line");
-                match(".className::first-line");
-                match("::first-line.className"); //spec says this is valid but no browsers seem to support it
-                match("p:hover::first-line");
+                match("::first-line {}");
+                match("tagName::first-line {}");
+                match(".className::first-line {}");
+                match("::first-line.className {}"); //spec says this is valid but no browsers seem to support it
+                match("p:hover::first-line {}");
                 // not valid: :not(::first-line) - because pseudo-elements aren't simple selectors
                 
                 // Namespaces
-                var nsDecl = "@namespace ns \"http://www.example.com\"\n";
-                match("[*|role] {}");
-                match("[|role] {}");
-                match(nsDecl + "[ns|role] {}");
-                match(nsDecl + "[ns|role|='value'] {}");
-                match("*|div {}");
-                match("|div {}");
-                match(nsDecl + "ns|div {}");
-                match("*|* {}");
-                match("|* {}");
-                match(nsDecl + "ns|* {}");
-                match("*|*:not(* {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
-                
+                // TODO (issue #317): LESS parser chokes on these
+                // var nsDecl = "@namespace ns \"http://www.example.com\"\n";
+                // match("[*|role] {}");
+                // match("[|role] {}");
+                // match(nsDecl + "[ns|role] {}");
+                // match(nsDecl + "[ns|role|='value'] {}");
+                // match("*|div {}");
+                // match("|div {}");
+                // match(nsDecl + "ns|div {}");
+                // match("*|* {}");
+                // match("|* {}");
+                // match(nsDecl + "ns|* {}");
+                // match("*|*:not(*) {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
             });
             
             it("shouldn't crash on CSS Animation syntax (@keyframe)", function () {
