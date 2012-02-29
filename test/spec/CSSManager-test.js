@@ -948,6 +948,22 @@ define(function (require, exports, module) {
         }); // describe("At-rules")        
 
 
+        describe("Known Issues", function () {
+            it("should handle an empty declaration (extra semi-colon)", function () {
+                try {
+                    manager = new CSSManager._CSSManager();
+                    manager._loadString("h4 { color:red;; }");
+                } catch (error) {
+                    expect(error.index).toBe(15);
+                    expect(error.message).toBe("Syntax Error on line 1");
+                    return;
+                }
+                
+                this.fail("Known issue #332");
+            });
+        }); // describe("Known Issues")    
+
+
     }); //describe("CSS Parsing")
     
 });
