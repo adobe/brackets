@@ -27,7 +27,7 @@ define(function (require, exports, module) {
      * @param {!CodeMirror} editor
      * @param {!{line:Number, ch:Number}} pos
      * @return {$.Promise} a promise that will be resolved with:
-     *      {{inlineContent:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(editor, pos) {
