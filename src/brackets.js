@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     var ProjectManager          = require("ProjectManager"),
         DocumentManager         = require("DocumentManager"),
         EditorManager           = require("EditorManager"),
+        InlineEditorProviders   = require("InlineEditorProviders"),
         WorkingSetView          = require("WorkingSetView"),
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
@@ -37,9 +38,9 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
+        FileIndexManager        = require("FileIndexManager"),
         PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     
@@ -314,6 +315,7 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
+        InlineEditorProviders.init();
     
         initListeners();
         initProject();
