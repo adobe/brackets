@@ -947,8 +947,10 @@ define(function (require, exports, module) {
             });
         }); // describe("At-rules")        
 
-
+        // The following tests expect "failures" in order to pass. They
+        // will be updated once the associated issues are fixed.
         describe("Known Issues", function () {
+            // TODO (issue #332): ParseError for double semi-colon
             it("should handle an empty declaration (extra semi-colon)", function () {
                 try {
                     manager = new CSSManager._CSSManager();
