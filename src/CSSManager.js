@@ -401,11 +401,15 @@ define(function (require, exports, module) {
             // show a dialog when parsing fails
             // TODO (jasonsj): log parsing errors in a panel?
             loadFilesResult.fail(function (errors) {
-                var files = "";
+                var files = "<ul>";
                 
                 errors.forEach(function (value, index) {
-                    files += "[" + index + "] " + value.item.fullPath + "\n";
+                    files += "<li>" + value.error.message +
+                        " " + value.item.fullPath + " line " + value.error.line +
+                        "</li>";
                 });
+                
+                files += "</ul>";
                 
                 var dialog = brackets.showModalDialog(
                     brackets.DIALOG_ID_ERROR,
