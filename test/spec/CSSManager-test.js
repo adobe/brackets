@@ -17,7 +17,9 @@ define(function (require, exports, module) {
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSManager-test-files"),
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
         universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
-        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css");
+        groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
+        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
+        emptyCssFileEntry       = new NativeFileSystem.FileEntry(testPath + "/empty.css");
     
     var getSelectorAt = function (info, i, selectorGroupPos) {
         var selectors = info[i].ruleset.selectors,
@@ -38,34 +40,8 @@ define(function (require, exports, module) {
         return this.actual.toCSS({compress: true}).trim() === expected;
     };
     
-    function getTextForInfos(infos) {
-        var results = [],
-            deferred = new $.Deferred();
-        
-        var masterPromise = Async.doInParallel(infos, function (info) {
-            var oneFileResult = new $.Deferred();
-            var textResult = FileUtils.readAsText(info.source);
-        
-            textResult.done(function (content) {
-                content = content.replace(/\r\n/g, '\n');
-                var lines = content.split("\n").slice(info.lineStart, info.lineEnd + 1);
-                
-                results.push(lines.join("\n"));
-                oneFileResult.resolve();
-            });
-            
-            return oneFileResult;
-        });
-        
-        masterPromise.done(function () {
-            deferred.resolve(results);
-        });
-        
-        return deferred;
-    }
-    
     function init(spec, fileEntry) {
-        spec.cssManager = new CSSManager.CSSManager();
+        spec.cssManager = new CSSManager._CSSManager();
         
         if (fileEntry) {
             spec.addMatchers({toMatchLastSelector: toMatchLastSelector});
@@ -98,6 +74,23 @@ define(function (require, exports, module) {
         });
         
         describe("loadFiles", function () {
+            
+            it("should parse an empty file", function () {
+                var emptyRules      = null,
+                    ruleTexts       = null;
+                
+                runs(function () {
+                    this.cssManager.loadFile(emptyCssFileEntry).done(function (result) {
+                        emptyRules = result;
+                    });
+                });
+                
+                waitsFor(function () { return emptyRules; }, 1000);
+                
+                runs(function () {
+                    expect(emptyRules.length).toEqual(0);
+                });
+            });
             
             it("should parse a simple selectors from more than one file", function () {
                 var simpleRules     = null,
@@ -160,7 +153,7 @@ define(function (require, exports, module) {
                     expect(styleRules[5].lineStart).toBe(20);
                     
                     // use lineStart and lineEnd to index into file content
-                    getTextForInfos(styleRules).done(function (texts) {
+                    CSSManager._getTextForInfos(styleRules).done(function (texts) {
                         ruleTexts = texts;
                     });
                 });
@@ -168,12 +161,62 @@ define(function (require, exports, module) {
                 waitsFor(function () { return ruleTexts !== null; }, 1000);
                 
                 runs(function () {
-                    expect(ruleTexts[0]).toEqual("html {\n    color: \"red\";\n}\n");
-                    expect(ruleTexts[1]).toEqual("HTML {\n    color: \"orange\";\n}\n");
-                    expect(ruleTexts[2]).toEqual(".firstGrade {\n    color: \"green\";\n}\n");
-                    expect(ruleTexts[3]).toEqual(".FIRSTGRADE {\n    color: \"yellow\";\n}\n");
-                    expect(ruleTexts[4]).toEqual("#brack3ts {\n    color: \"blue\";\n}\n");
+                    expect(ruleTexts[0]).toEqual("html {\n    color: \"red\";\n}");
+                    expect(ruleTexts[1]).toEqual("HTML {\n    color: \"orange\";\n}");
+                    expect(ruleTexts[2]).toEqual(".firstGrade {\n    color: \"green\";\n}");
+                    expect(ruleTexts[3]).toEqual(".FIRSTGRADE {\n    color: \"yellow\";\n}");
+                    expect(ruleTexts[4]).toEqual("#brack3ts {\n    color: \"blue\";\n}");
                     expect(ruleTexts[5]).toEqual("#BRACK3TS {\n    color: \"black\";\n}");
+                });
+            });
+            
+            it("should handle rules on adjacent lines", function () {
+                var styleRules  = null,
+                    loadFile    = false,
+                    ruleTexts   = null;
+                
+                runs(function () {
+                    this.cssManager.loadFile(offsetsCssFileEntry).done(function (result) {
+                        styleRules = result;
+                    });
+                });
+                
+                waitsFor(function () { return styleRules; }, 1000);
+                
+                runs(function () {
+                    expect(styleRules[0].lineStart).toBe(0);
+                    expect(styleRules[0].lineEnd).toBe(2);
+                    
+                    expect(styleRules[1].lineStart).toBe(3);
+                    expect(styleRules[1].lineEnd).toBe(5);
+                    
+                    expect(styleRules[2].lineStart).toBe(7);
+                    expect(styleRules[2].lineEnd).toBe(7);
+                    
+                    expect(styleRules[3].lineStart).toBe(8);
+                    expect(styleRules[3].lineEnd).toBe(8);
+                    
+                    expect(styleRules[4].lineStart).toBe(10);
+                    expect(styleRules[4].lineEnd).toBe(10);
+                    
+                    expect(styleRules[5].lineStart).toBe(10);
+                    expect(styleRules[5].lineEnd).toBe(10);
+                    
+                    // use lineStart and lineEnd to index into file content
+                    CSSManager._getTextForInfos(styleRules).done(function (texts) {
+                        ruleTexts = texts;
+                    });
+                });
+                
+                waitsFor(function () { return ruleTexts !== null; }, 1000);
+                
+                runs(function () {
+                    expect(ruleTexts[0]).toEqual("a {\n    color: \"red\";\n}/*END*/");
+                    expect(ruleTexts[1]).toEqual("a {\n    color: \"orange\";\n}/*END*/");
+                    expect(ruleTexts[2]).toEqual("a { color: \"yellow\"; }/*END*/");
+                    expect(ruleTexts[3]).toEqual("a:visited { color: \"black\"; }/*END*/");
+                    expect(ruleTexts[4]).toEqual("a { color: \"red\"; }/*END*/a { color: \"blue\"; }/*END*/");
+                    expect(ruleTexts[5]).toEqual("a { color: \"red\"; }/*END*/a { color: \"blue\"; }/*END*/");
                 });
             });
         });
@@ -335,7 +378,7 @@ define(function (require, exports, module) {
          */
         var _match = function (cssCode, tagInfo) {
             try {
-                manager = new CSSManager.CSSManager();
+                manager = new CSSManager._CSSManager();
                 manager._loadString(cssCode);
             } catch (e) {
                 this.fail(e.message + ": " + cssCode);
