@@ -66,3 +66,27 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
         background: #d2dcf8;
     }
 }
+
+.inlineCodeEditor {
+    .filename {
+        position: absolute;
+        top: 0;
+        right: 20px;
+        background: #FFF;
+        padding: 0px 4px 3px;
+        font-family: "Lucida Grande";
+        font-size: 12px;
+        border: solid #808080;
+        border-width: 0px 1px 1px;
+        border-bottom-right-radius: 3px 5px;
+        border-bottom-left-radius: 3px 5px;
+    }
+    .shadow.top {
+        top: 0px;
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0));
+    }
+    .shadow.bottom {
+        bottom: 0px;
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.4));
+    }
+}

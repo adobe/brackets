@@ -18,6 +18,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
     
+    var _htmlToCSSProviders = [];
     
     /**
      * Today: When cursor is within any HTML content, open a dummy CSS 'file' in an inline editor.
@@ -52,8 +53,11 @@ define(function (require, exports, module) {
                 // var dummyRange = { startLine: 18, endLine: 22 };    // small rule
                 var dummyRange = { startLine: 218, endLine: 255 };    // tall rule
                 var inlineInfo = EditorManager.createInlineEditorFromText(editor, text, dummyRange, arbitraryFile);
-                
                 var inlineEditor = inlineInfo.editor;
+                
+                $(inlineInfo.content).find(".CodeMirror-scroll").append('<div class="filename">' + fileEntry.name + '</div>');
+                $(inlineInfo.content).append('<div class="shadow top"/>');
+                $(inlineInfo.content).append('<div class="shadow bottom"/>');
                 
                 // For Sprint 4, editor is a read-only view
                 inlineEditor.setOption("readOnly", true);
