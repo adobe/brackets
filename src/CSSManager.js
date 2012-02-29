@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, require: false, less: false, FileError: false */
+/*global define: false, $: false, require: false, brackets: false, less: false, FileError: false */
 
 /**
  * CSSManager
@@ -15,6 +15,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         FileIndexManager    = require("FileIndexManager"),
         Async               = require("Async"),
+        Strings             = require("strings"),
         FileUtils           = require("FileUtils");
     
     /**
@@ -208,10 +209,14 @@ define(function (require, exports, module) {
             rulesets = [];
         
         textResult.done(function (text) {
-            self._parse(rulesets, text, fileEntry);
+            try {
+                self._parse(rulesets, text, fileEntry);
             
-            // resolve with rules from this file
-            result.resolve(rulesets);
+                // resolve with rules from this file
+                result.resolve(rulesets);
+            } catch (err) {
+                result.reject(err);
+            }
         });
         
         return result.promise();
@@ -382,22 +387,48 @@ define(function (require, exports, module) {
             });
             
             // load new/changed files
-            var loadFilesResult = Async.doInParallel(
+            var loadFilesResult = Async.doInParallel_aggregateErrors(
                 filesToLoad,
                 function (value, index) {
                     return _cssManager.loadFile(value);
-                },
-                false
+                }
             );
             
             loadFilesResult.done(function () {
                 deferred.resolve();
+            });
+            
+            // show a dialog when parsing fails
+            // TODO (jasonsj): log parsing errors in a panel?
+            loadFilesResult.fail(function (errors) {
+                var files = "";
+                
+                errors.forEach(function (value, index) {
+                    files += "[" + index + "] " + value.item.fullPath + "\n";
+                });
+                
+                var dialog = brackets.showModalDialog(
+                    brackets.DIALOG_ID_ERROR,
+                    Strings.ERROR_PARSE_TITLE,
+                    files
+                );
+                
+                dialog.done(function () {
+                    deferred.resolve();
+                });
             });
         });
         
         return deferred.promise();
     }
     
+    /**
+     * Finds matching CSS rules in the current project, based on the tag,
+     * id and/or class name specified in the selectorString parameter. 
+     * @param {!string} selectorString A string formatted as a type name
+     *  "body", identifier "#myID" or class name ".myClass".
+     * @return {Array.<ResultSetInfo>}
+     */
     function findMatchingRules(selectorString) {
         var deferred        = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css");
@@ -460,8 +491,8 @@ define(function (require, exports, module) {
         _cssManager = new CSSManager();
     }());
     
-    exports.CSSManager          = CSSManager;
     exports.findMatchingRules   = findMatchingRules;
+    exports._CSSManager         = CSSManager;
     exports._getTextForInfos    = _getTextForInfos;
     exports._logQuery           = _logQuery;
 });
