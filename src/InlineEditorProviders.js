@@ -16,6 +16,7 @@ define(function (require, exports, module) {
     var CodeHintUtils       = require("CodeHintUtils"),
         CSSManager          = require("CSSManager"),
         EditorManager       = require("EditorManager"),
+        FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
     
     /**
@@ -87,9 +88,27 @@ define(function (require, exports, module) {
 
         CSSManager.findMatchingRules(selectorName)
             .done(function (rules) {
-                if (rules && rules.length() > 0) {
-                    //var inlineInfo = EditorManager.createInlineEditorFromText();
-                    var foo = 42;
+                if (rules && rules.length > 0) {
+                    var rule = rules[0];  // For Sprint 4 we use the first match only
+                    
+                    FileUtils.readAsText(rule.source)
+                        .done(function (text) {
+                            var range = { startLine: rule.lineStart, endLine: rule.lineEnd - 1 }; // rule.lineEnd is exclusive, range.endLine is inclusive
+                            var inlineInfo = EditorManager.createInlineEditorFromText(editor, text, range, rule.source.fullPath);
+                            
+                            var inlineEditor = inlineInfo.editor;
+                            
+                            // For Sprint 4, editor is a read-only view
+                            inlineEditor.setOption("readOnly", true);
+                            
+                            result.resolve(inlineInfo);
+                        })
+                        .fail(function (fileError) {
+                            console.log("Error in dummy htmlToCSSProvider(): ", fileError);
+                            result.reject();
+                        });
+                } else {
+                    result.reject();
                 }
             })
             .fail(function () {
