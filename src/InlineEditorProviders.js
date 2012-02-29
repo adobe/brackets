@@ -93,7 +93,10 @@ define(function (require, exports, module) {
                     
                     FileUtils.readAsText(rule.source)
                         .done(function (text) {
-                            var range = { startLine: rule.lineStart, endLine: rule.lineEnd - 1 }; // rule.lineEnd is exclusive, range.endLine is inclusive
+                            var range = {
+                                startLine: rule.lineStart,
+                                endLine: rule.lineEnd - 1   // rule.lineEnd is exclusive, range.endLine is inclusive
+                            };
                             var inlineInfo = EditorManager.createInlineEditorFromText(editor, text, range, rule.source.fullPath);
                             
                             var inlineEditor = inlineInfo.editor;
@@ -104,10 +107,11 @@ define(function (require, exports, module) {
                             result.resolve(inlineInfo);
                         })
                         .fail(function (fileError) {
-                            console.log("Error in dummy htmlToCSSProvider(): ", fileError);
+                            console.log("Error reading as text: ", fileError);
                             result.reject();
                         });
                 } else {
+                    // No matching rules were found.
                     result.reject();
                 }
             })
@@ -115,28 +119,6 @@ define(function (require, exports, module) {
                 console.log("Error in CSSManager.findMatchingRules()");
                 result.reject();
             });
-        
-        /*
-        // Load a project file at random
-        var arbitraryFile = "todos.css";
-        var fileEntry = new NativeFileSystem.FileEntry(ProjectManager.getProjectRoot().fullPath + arbitraryFile);
-        FileUtils.readAsText(fileEntry)
-            .done(function (text) {
-                // var dummyRange = { startLine: 18, endLine: 22 };    // small rule
-                var dummyRange = { startLine: 218, endLine: 255 };    // tall rule
-                var inlineInfo = EditorManager.createInlineEditorFromText(editor, text, dummyRange, arbitraryFile);
-                
-                var inlineEditor = inlineInfo.editor;
-                
-                // For Sprint 4, editor is a read-only view
-                inlineEditor.setOption("readOnly", true);
-                
-                result.resolve(inlineInfo);
-            })
-            .fail(function (fileError) {
-                console.log("Error in dummy htmlToCSSProvider(): ", fileError);
-            });
-        */
         
         return result.promise();
     }
