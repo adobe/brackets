@@ -58,6 +58,8 @@ define(function (require, exports, module) {
             
         this.dialog.parentNode.removeChild(this.dialog);
 
+        $(".smart_autocomplete_container").remove();
+
         if (value) {
             this.resultCallback(value);
         }
@@ -134,9 +136,6 @@ define(function (require, exports, module) {
                         }
                     },
 
-                    blur: function (e) {
-                        that._close(null);
-                    }
         
                 });
         

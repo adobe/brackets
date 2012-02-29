@@ -174,6 +174,11 @@ define(function (require, exports, module) {
 
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
+            // skip invisible directories on mac
+            if (brackets.platform === "mac" && dirEntry.name.charAt(0) === ".") {
+                return;
+            }
+
             state.dirInProgress[dirEntry.fullPath] = true;
             //console.log("started dir: " + dirEntry.fullPath);
 
