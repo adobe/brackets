@@ -437,7 +437,7 @@ define(function (require, exports, module) {
             deferred.resolve(results);
         });
         
-        return deferred;
+        return deferred.promise();
     }
     
     function _logQuery(selectorString) {
