@@ -9,7 +9,7 @@
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
 * Uses FileIndexManger to supply the file list and registers Commands.FILE_QUICK_NAVIGATE with Brackets.
 * 
-* TODO ( ) - currently jquery smart auto complete is used for the popup list. While it mostly works
+* TODO (issue 333) - currently jquery smart auto complete is used for the popup list. While it mostly works
 * it has several issues, so it should be replace with an alternative. Issues:
 * - only accepts an array of strings. A list of objects is preferred to avoid some work arounds to display 
 *   both the path and filename.
@@ -33,15 +33,17 @@ define(function (require, exports, module) {
     * @constructor
     *
     */
-    function QuickNavigateDialog(codemirror, resultCallback) {
+    function QuickNavigateDialog(codemirror) {
         this.closed = false;
-        this.resultCallback = resultCallback;
+        this.result = null; // $.Deferred
 
         // TODO (issue 311) - remove code mirror references
         this.codemirror = codemirror;
     }
 
-
+    /**
+    * Creates a dialog div floating on top of the current code mirror editor
+    */
     QuickNavigateDialog.prototype._createDialogDiv = function (cm, template) {
         // TODO (issue 311) - using code mirror's wrapper element for now. Need to design a Brackets equivalent.
         var wrap = this.codemirror.getWrapperElement();
@@ -54,7 +56,9 @@ define(function (require, exports, module) {
         return path.slice(path.lastIndexOf("/") + 1, path.length);
     }
     
-        
+    /**
+    * Closes the search dialog and resolves the promise that showDialog returned
+    */
     QuickNavigateDialog.prototype._close = function (value) {
         if (this.closed) {
             return;
@@ -66,14 +70,17 @@ define(function (require, exports, module) {
 
         $(".smart_autocomplete_container").remove();
 
-        if (value) {
-            this.resultCallback(value);
-        }
+        this.result.resolve(value);
     };
         
+    /**
+    * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
+    * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
+    */
     QuickNavigateDialog.prototype.showDialog = function () {
         var that = this;
         var fileInfoList;
+        this.result = new $.Deferred();
 
         FileIndexManager.getFileInfoList("all")
             .done(function (filelistResult) {
@@ -83,6 +90,7 @@ define(function (require, exports, module) {
                 var closed = false;
                 var searchField = $('input#quickFileOpenSearch');
 
+                // auto suggest list helper function
                 function _handleResultsFormatter(path) {
                     var filename = _filenameFromPath(path);
                     var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
@@ -91,6 +99,7 @@ define(function (require, exports, module) {
                         "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
                 }
 
+                // auto suggest list helper function
                 function _handleFilter(term, source) {
                     var filteredList = $.map(source, function (fileInfo) {
                         // match term again filename only (not the path)
@@ -109,8 +118,7 @@ define(function (require, exports, module) {
                     return filteredList;
                 }
 
-
-        
+                // Create the auto suggest list of filenames
                 searchField.smartAutoComplete({
                     source: fileInfoList,
                     maxResults: 10,
@@ -122,6 +130,7 @@ define(function (require, exports, module) {
                 });
         
                 searchField.bind({
+                    // close the dialog when the user selects an item
                     itemSelect: function (ev, selected_item) {
                         var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
                         that._close(value);
@@ -130,12 +139,12 @@ define(function (require, exports, module) {
                     keydown: function (e) {
                         var query = searchField.val();
 
-                        // special handling for ENTER (23) and ESC (27) key
+                        // close the dialog when the ENTER (23) or ESC (27) key is pressed
                         if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
                             e.stopPropagation();
                             e.preventDefault();
 
-                            // cleary the query on ESC key
+                            // clear the query on ESC key
                             if (e.keyCode === 27) {
                                 query = null;
                             }
@@ -150,11 +159,18 @@ define(function (require, exports, module) {
         
                 searchField.focus();
             });
+
+        return this.result;
     };
 
 
         
-
+    /**
+    * Displays a non-modal embedded dialog above the code mirror edit that allows the user to quickly 
+    * navigate to different files and parts of the current file.
+    * The search field lists files in the project. The user can enter ":" followed by a line
+    * number to navigate to a specific line in the current file.
+    */
     function doFileSearch() {
 
 
@@ -165,24 +181,20 @@ define(function (require, exports, module) {
         }
         var cm = curDoc._editor;
 
-        var dialog = new QuickNavigateDialog(cm, function (query) {
-            cm.operation(function () {
-                if (!query) {
-                    return;
-                }
-
-                if (query.charAt(0) === ":") {
-                    var lineNumber = parseInt(query.slice(1, query.length), 10);
-                    if (!isNaN(lineNumber)) {
-                        DocumentManager.getCurrentDocument().setCursor(lineNumber - 1, 0);
+        var dialog = new QuickNavigateDialog(cm);
+        dialog.showDialog()
+            .done( function (query) {
+                if (query) {
+                    if (query.charAt(0) === ":") {
+                        var lineNumber = parseInt(query.slice(1, query.length), 10);
+                        if (!isNaN(lineNumber)) {
+                            DocumentManager.getCurrentDocument().setCursor(lineNumber - 1, 0);
+                        }
+                    } else {
+                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
                     }
-                } else {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
                 }
             });
-        });
-
-        dialog.showDialog();
     }
 
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE, doFileSearch);
