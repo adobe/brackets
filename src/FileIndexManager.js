@@ -259,6 +259,8 @@ define(function (require, exports, module) {
     * @return {$.Promise} resolved when index has been updated
     */
     function syncFileIndex() {
+
+        // TODO (issue 330) - allow multiple calls to syncFileIndex to be batched up so that this code isn't necessary
         if (_syncFileIndexReentracyGuard) {
             throw new Error("syncFileIndex cannot be called Recursively");
         }
