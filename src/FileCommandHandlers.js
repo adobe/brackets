@@ -17,7 +17,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager"),
         DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
-        EditorUtils         = require("EditorUtils"),
+        FileUtils           = require("FileUtils"),
         Async               = require("Async"),
         Strings             = require("strings"),
         PreferencesManager  = require("PreferencesManager"),
@@ -27,12 +27,10 @@ define(function (require, exports, module) {
      * Handlers for commands related to file handling (opening, saving, etc.)
      */
     
-    /** @type {jQueryObject} */
-    var _title;
-    /** @type {string} */
-    var _currentFilePath;  // TODO: (issue #271) eliminate this and just use getCurrentDocument().file.fullPath
-    /** @type {string} */
-    var _currentTitlePath;
+    /** @type {jQueryObject} Container for label shown above editor */
+    var _title = null;
+    /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
+    var _currentTitlePath = null;
     
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
@@ -49,14 +47,12 @@ define(function (require, exports, module) {
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
     
-            _currentFilePath = _currentTitlePath = fullPath;
-
             // In the main toolbar, show the project-relative path (if the file is inside the current project)
             // or the full absolute path (if it's not in the project).
             _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
             
         } else {
-            _currentFilePath = _currentTitlePath = null;
+            _currentTitlePath = null;
         }
         
         // Update title text & "dirty dot" display
@@ -64,7 +60,9 @@ define(function (require, exports, module) {
     }
     
     function handleDirtyChange(event, changedDoc) {
-        if (changedDoc.file.fullPath === _currentFilePath) {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        
+        if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
             updateTitle();
         }
     }
@@ -106,7 +104,7 @@ define(function (require, exports, module) {
             });
             
             docResult.fail(function (error) {
-                EditorUtils.showFileOpenError(error.code, fullPath);
+                FileUtils.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -246,7 +244,7 @@ define(function (require, exports, module) {
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
                 path,
-                EditorUtils.getFileErrorString(code)
+                FileUtils.getFileErrorString(code)
             )
         );
     }

@@ -815,5 +815,5 @@ define(function (require, exports, module) {
     };
 
     // Define public API
-    exports.NativeFileSystem = NativeFileSystem;
+    exports.NativeFileSystem    = NativeFileSystem;
 });
