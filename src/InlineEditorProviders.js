@@ -13,12 +13,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var EditorManager       = require("EditorManager"),
-        FileUtils           = require("FileUtils"),
-        ProjectManager      = require("ProjectManager"),
-        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        CodeHintUtils       = require("CodeHintUtils");
-    
+    var CodeHintUtils       = require("CodeHintUtils"),
+        CSSManager          = require("CSSManager"),
+        EditorManager       = require("EditorManager"),
+        ProjectManager      = require("ProjectManager");
     
     /**
      * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
@@ -86,9 +84,20 @@ define(function (require, exports, module) {
         }
 
         var result = new $.Deferred();
+
+        CSSManager.findMatchingRules(selectorName)
+            .done(function (rules) {
+                if (rules && rules.length() > 0) {
+                    //var inlineInfo = EditorManager.createInlineEditorFromText();
+                    var foo = 42;
+                }
+            })
+            .fail(function () {
+                console.log("Error in CSSManager.findMatchingRules()");
+                result.reject();
+            });
         
-        // TODO: use 'pos' to form a CSSManager query, and go find an actual relevant CSS rule
-        
+        /*
         // Load a project file at random
         var arbitraryFile = "todos.css";
         var fileEntry = new NativeFileSystem.FileEntry(ProjectManager.getProjectRoot().fullPath + arbitraryFile);
@@ -108,6 +117,7 @@ define(function (require, exports, module) {
             .fail(function (fileError) {
                 console.log("Error in dummy htmlToCSSProvider(): ", fileError);
             });
+        */
         
         return result.promise();
     }
