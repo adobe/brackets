@@ -319,11 +319,11 @@ define(function (require, exports, module) {
      * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
      * is set based on the given filename's extension (the actual file on disk is never examined).
      * The editor is not yet visible.
-     * @param {CodeMirror} hostEditor  Outer CodeMirror instance that inline editor will sit within.
-     * @param {string} text  The text content of the editor.
+     * @param {!CodeMirror} hostEditor  Outer CodeMirror instance that inline editor will sit within.
+     * @param {!string} text  The text content of the editor.
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
-     * @param {string} fileNameToSelectMode  A filename (optionally including path) from which to
+     * @param {!string} fileNameToSelectMode  A filename (optionally including path) from which to
      *      infer the editor's mode.
      */
     function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {

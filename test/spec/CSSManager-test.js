@@ -399,19 +399,19 @@ define(function (require, exports, module) {
          * Test helper function: expects CSS parsing to fail on the given 1-based line number with
          * the given message.
          */
-        function _expectParseError(cssCode, lineNumber, errorString) {
+        var _expectParseError = function (cssCode, lineNumber, errorString) {
             try {
                 manager = new CSSManager._CSSManager();
                 manager._loadString(cssCode);
                 
                 // shouldn't get here since _loadString() is expected to throw
-                this.fail("Expected parse error: "+cssCode);
+                this.fail("Expected parse error: " + cssCode);
                 
             } catch (error) {
                 expect(error.index).toBe(lineNumber);
                 expect(error.message).toBe(errorString);
             }
-        }
+        };
             
         /** To call fail(), these helpers need access to the value of 'this' inside each it() */
         beforeEach(function () {
