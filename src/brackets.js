@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: true, $: false, JSLINT: false, PathUtils: false */
+/*global define: false, brackets: true, $: false, PathUtils: false */
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
@@ -22,20 +22,31 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
-    require("thirdparty/jslint/jslint");
+
     
     // Load dependent modules
     var ProjectManager          = require("ProjectManager"),
         DocumentManager         = require("DocumentManager"),
         EditorManager           = require("EditorManager"),
+        InlineEditorProviders   = require("InlineEditorProviders"),
         WorkingSetView          = require("WorkingSetView"),
         FileCommandHandlers     = require("FileCommandHandlers"),
         FileViewController      = require("FileViewController"),
         FileSyncManager         = require("FileSyncManager"),
-        KeyBindingManager       = require("KeyBindingManager").KeyBindingManager,
-        KeyMap                  = require("KeyBindingManager").KeyMap,
+        KeyBindingManager       = require("KeyBindingManager"),
+        KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
-        CommandManager          = require("CommandManager");
+        CommandManager          = require("CommandManager"),
+        CodeHintManager         = require("CodeHintManager"),
+        PerfUtils               = require("PerfUtils"),
+        CSSManager              = require("CSSManager"),
+        FileIndexManager        = require("FileIndexManager"),
+        Menus                   = require("Menus");
+    
+    //Load modules the self-register and just need to get included in the main project
+    require("JSLint");
+    require("CodeHintManager");
+    require("DebugCommandHandlers");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -64,13 +75,15 @@ define(function (require, exports, module) {
         DocumentManager         : DocumentManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
-        CommandManager          : require("CommandManager")
+        CommandManager          : require("CommandManager"),
+        CSSManager              : CSSManager,
+        FileIndexManager        : FileIndexManager
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
     // asynchronously. This should only be done for testing/debugging.
     // NOTE: Make sure this line is commented out again before committing!
-    // brackets.forceAsyncCallbacks = true;
+    //brackets.forceAsyncCallbacks = true;
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: (issue #266) load conditionally
@@ -78,9 +91,7 @@ define(function (require, exports, module) {
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
-    brackets.isWin = (global.navigator.userAgent.indexOf("Windows") !== -1);
-    brackets.isMac = !brackets.isWin;
-    
+    brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     brackets.DIALOG_BTN_CANCEL = "cancel";
     brackets.DIALOG_BTN_OK = "ok";
@@ -127,6 +138,10 @@ define(function (require, exports, module) {
         // Pipe dialog-closing notification back to client code
         dlg.one("hidden", function () {
             var buttonId = dlg.data("buttonId");
+            if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
+                buttonId = brackets.DIALOG_BTN_CANCEL;
+            }
+            
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
@@ -213,8 +228,6 @@ define(function (require, exports, module) {
 
     // Main Brackets initialization
     $(document).ready(function () {
-
-        var _enableJSLint = true;
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
@@ -256,124 +269,7 @@ define(function (require, exports, module) {
        
         }
         
-        function runJSLint() {
-            var currentDoc = DocumentManager.getCurrentDocument();
-            var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
-            var lintResults = $("#jslint-results");
-            var goldStar = $("#gold-star");
-            
-            if (_enableJSLint && /^(\.js|\.htm|\.html)$/i.test(ext)) {
-                var text = currentDoc.getText();
-                
-                // If a line contains only whitespace, remove the whitespace
-                // This should be doable with a regexp: text.replace(/\r[\x20|\t]+\r/g, "\r\r");,
-                // but that doesn't work.
-                var i, arr = text.split("\n");
-                for (i = 0; i < arr.length; i++) {
-                    if (!arr[i].match(/\S/)) {
-                        arr[i] = "";
-                    }
-                }
-                text = arr.join("\n");
-                
-                var result = JSLINT(text, null);
-                
-                if (!result) {
-                    var errorTable = $("<table class='zebra-striped condensed-table'>")
-                                       .append("<tbody>");
-                    var selectedRow;
-                    
-                    JSLINT.errors.forEach(function (item, i) {
-                        if (item) {
-                            var makeCell = function (content) {
-                                return $("<td/>").text(content);
-                            };
-                            
-                            // Add row to error table
-                            var row = $("<tr/>")
-                                .append(makeCell(item.line))
-                                .append(makeCell(item.reason))
-                                .append(makeCell(item.evidence || ""))
-                                .appendTo(errorTable);
-                            
-                            row.click(function () {
-                                if (selectedRow) {
-                                    selectedRow.removeClass("selected");
-                                }
-                                row.addClass("selected");
-                                selectedRow = row;
-                                currentDoc.setCursor(item.line - 1, item.character - 1);
-                                EditorManager.focusEditor();
-                            });
-                        }
-                    });
-
-                    $("#jslint-results .table-container")
-                        .empty()
-                        .append(errorTable);
-                    lintResults.show();
-                    goldStar.hide();
-                } else {
-                    lintResults.hide();
-                    goldStar.show();
-                }
-            } else {
-                // JSLint is disabled or does not apply to the current file, hide
-                // both the results and the gold star
-                lintResults.hide();
-                goldStar.hide();
-            }
-            
-            EditorManager.resizeEditor();
-        }
         
-        function initMenus() {
-            // Implements the File menu items
-            $("#menu-file-new").click(function () {
-                CommandManager.execute(Commands.FILE_NEW);
-            });
-            $("#menu-file-open").click(function () {
-                CommandManager.execute(Commands.FILE_OPEN);
-            });
-            $("#menu-file-close").click(function () {
-                CommandManager.execute(Commands.FILE_CLOSE);
-            });
-            $("#menu-file-save").click(function () {
-                CommandManager.execute(Commands.FILE_SAVE);
-            });
-            $("#menu-file-quit").click(function () {
-                CommandManager.execute(Commands.FILE_QUIT);
-            });
-
-            // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
-            var testWindow = null;
-            $("#menu-debug-runtests").click(function () {
-                if (testWindow) {
-                    try {
-                        testWindow.location.reload();
-                    } catch (e) {
-                        testWindow = null;  // the window was probably closed
-                    }
-                }
-
-                if (!testWindow) {
-                    testWindow = window.open("../test/SpecRunner.html");
-                    testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
-                }
-            });
-            
-            // Other debug menu items
-//            $("#menu-debug-wordwrap").click(function() {
-//                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
-//            });     
-            
-            $("#menu-debug-jslint").click(function () {
-                _enableJSLint = !_enableJSLint;
-                runJSLint();
-                $("#jslint-enabled-checkbox").css("display", _enableJSLint ? "" : "none");
-            });
-        }
-
         function initCommandHandlers() {
             FileCommandHandlers.init($("#main-toolbar .title"));
         }
@@ -381,26 +277,20 @@ define(function (require, exports, module) {
         function initKeyBindings() {
             // Register keymaps and install the keyboard handler
             // TODO: (issue #268) show keyboard equivalents in the menus
-            var _globalKeymap = new KeyMap({
-                "Ctrl-O": Commands.FILE_OPEN,
-                "Ctrl-S": Commands.FILE_SAVE,
-                "Ctrl-W": Commands.FILE_CLOSE
+            var _globalKeymap = KeyMap.create({
+                "bindings": [
+                    {"Ctrl-O": Commands.FILE_OPEN},
+                    {"Ctrl-S": Commands.FILE_SAVE},
+                    {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
+                    {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
+                ],
+                "platform": brackets.platform
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
             $(document.body).keydown(function (event) {
-                var keyDescriptor = [];
-                if (event.metaKey || event.ctrlKey) {
-                    keyDescriptor.push("Ctrl");
-                }
-                if (event.altKey) {
-                    keyDescriptor.push("Alt");
-                }
-                if (event.shiftKey) {
-                    keyDescriptor.push("Shift");
-                }
-                keyDescriptor.push(String.fromCharCode(event.keyCode).toUpperCase());
-                if (KeyBindingManager.handleKey(keyDescriptor.join("-"))) {
+                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
                     event.preventDefault();
                 }
             });
@@ -410,6 +300,7 @@ define(function (require, exports, module) {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
+                FileIndexManager.markDirty();
             });
             
             $(window).unload(function () {
@@ -423,23 +314,16 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
+        InlineEditorProviders.init();
     
         initListeners();
         initProject();
-        initMenus();
+        Menus.init();
         initCommandHandlers();
         initKeyBindings();
         initWindowListeners();
         
-        $(DocumentManager).on("currentDocumentChange", function () {
-            runJSLint();
-        });
-        
-        $(DocumentManager).on("documentSaved", function (event, document) {
-            if (document === DocumentManager.getCurrentDocument()) {
-                runJSLint();
-            }
-        });
+        PerfUtils.addMeasurement("Application Startup");
     });
     
 });

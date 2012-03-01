@@ -17,20 +17,20 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager"),
         DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
-        EditorUtils         = require("EditorUtils"),
+        FileUtils           = require("FileUtils"),
+        Async               = require("Async"),
         Strings             = require("strings"),
-        PreferencesManager  = require("PreferencesManager");
+        PreferencesManager  = require("PreferencesManager"),
+        PerfUtils           = require("PerfUtils");
     
     /**
      * Handlers for commands related to file handling (opening, saving, etc.)
      */
     
-    /** @type {jQueryObject} */
-    var _title;
-    /** @type {string} */
-    var _currentFilePath;  // TODO: (issue #271) eliminate this and just use getCurrentDocument().file.fullPath
-    /** @type {string} */
-    var _currentTitlePath;
+    /** @type {jQueryObject} Container for label shown above editor */
+    var _title = null;
+    /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
+    var _currentTitlePath = null;
     
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
@@ -47,14 +47,12 @@ define(function (require, exports, module) {
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
     
-            _currentFilePath = _currentTitlePath = fullPath;
-
             // In the main toolbar, show the project-relative path (if the file is inside the current project)
             // or the full absolute path (if it's not in the project).
             _currentTitlePath = ProjectManager.makeProjectRelativeIfPossible(fullPath);
             
         } else {
-            _currentFilePath = _currentTitlePath = null;
+            _currentTitlePath = null;
         }
         
         // Update title text & "dirty dot" display
@@ -62,7 +60,9 @@ define(function (require, exports, module) {
     }
     
     function handleDirtyChange(event, changedDoc) {
-        if (changedDoc.file.fullPath === _currentFilePath) {
+        var currentDoc = DocumentManager.getCurrentDocument();
+        
+        if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
             updateTitle();
         }
     }
@@ -70,6 +70,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates a document and displays an editor for the specified file path.
+     * @param {!string} fullPath
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
@@ -80,6 +81,11 @@ define(function (require, exports, module) {
             console.log("doOpen() called without fullPath");
             return result.reject();
         }
+        
+        PerfUtils.markStart("Open File: " + fullPath);
+        result.always(function () {
+            PerfUtils.addMeasurement("Open File: " + fullPath);
+        });
         
         var doc = DocumentManager.getDocumentForPath(fullPath);
         if (doc) {
@@ -98,7 +104,7 @@ define(function (require, exports, module) {
             });
             
             docResult.fail(function (error) {
-                EditorUtils.showFileOpenError(error.code, fullPath);
+                FileUtils.showFileOpenError(error.code, fullPath);
                 result.reject();
             });
         }
@@ -116,7 +122,7 @@ define(function (require, exports, module) {
      * @private
      * Creates a document and displays an editor for the specified file path. 
      * If no path is specified, a file prompt is provided for input.
-     * @param {!fullPath} - The path of the file to open, if it's null we'll prompt for it
+     * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
      * @return {Deferred} a jQuery Deferred that will be resolved with a new 
      *  document for the specified file path, or rejected if the file can not be read.
      */
@@ -238,40 +244,45 @@ define(function (require, exports, module) {
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
                 path,
-                EditorUtils.getFileErrorString(code)
+                FileUtils.getFileErrorString(code)
             )
         );
     }
     
+    /** Note: if there is an error, the Deferred is not rejected until the user has dimissed the dialog */
     function doSave(docToSave) {
         var result = new $.Deferred();
         
+        function handleError(error, fileEntry) {
+            showSaveFileError(error.code, fileEntry.fullPath)
+                .always(function () {
+                    result.reject(error);
+                });
+        }
+            
         if (docToSave && docToSave.isDirty) {
             var fileEntry = docToSave.file;
+            var writeError = false;
             
-            //setup our resolve and reject handlers
-            result.done(function fileSaved() {
-                docToSave.notifySaved();
-            });
-
-            result.fail(function fileError(error) {
-                showSaveFileError(error.code, fileEntry.fullPath);
-            });
-
             fileEntry.createWriter(
                 function (writer) {
                     writer.onwriteend = function () {
-                        result.resolve();
+                        // Per spec, onwriteend is called after onerror too
+                        if (!writeError) {
+                            docToSave.notifySaved();
+                            result.resolve();
+                        }
                     };
                     writer.onerror = function (error) {
-                        result.reject(error);
+                        writeError = true;
+                        handleError(error, fileEntry);
                     };
 
                     // TODO (issue #241): Blob instead of string
                     writer.write(docToSave.getText());
                 },
                 function (error) {
-                    result.reject(error);
+                    handleError(error, fileEntry);
                 }
             );
         } else {
@@ -303,25 +314,16 @@ define(function (require, exports, module) {
     
     /**
      * Saves all unsaved documents. Returns a Promise that will be resolved once ALL the save
-     * operations have been completed. If any ONE save operation fails, an error dialog is immediately
-     * shown and the promise fails.
-     * TODO: (issue #272) But subsequent save operations continue in the background, and if more fail the error
-     * dialogs will stack up on top of the old one.
+     * operations have been completed. If ANY save operation fails, an error dialog is immediately
+     * shown and the other files wait to save until it is dismissed; after all files have been
+     * processed, the Promise is rejected if any ONE save operation failed.
      *
      * @return {$.Promise}
      */
     function saveAll() {
-        var saveResults = [];
-        
-        DocumentManager.getWorkingSet().forEach(function (doc) {
-            saveResults.push(doSave(doc));
-        });
-        
-        // Aggregate all the file-save Deferreds into one master
-        // (p.s., it would be nice if $.when() accepted an array instead of varargs, but oh well...)
-        var overallResult = $.when.apply($, saveResults);
-        
-        return overallResult;
+        // Do in serial because doSave shows error UI for each file, and we don't want to stack
+        // multiple dialogs on top of each other
+        return Async.doSequentially(DocumentManager.getWorkingSet(), doSave, false);
     }
     
 

@@ -35,8 +35,9 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("ProjectManager"),
         PreferencesManager  = require("PreferencesManager"),
-        EditorUtils         = require("EditorUtils"),
+        FileUtils           = require("FileUtils"),
         CommandManager      = require("CommandManager"),
+        Async               = require("Async"),
         Commands            = require("Commands");
 
     /**
@@ -79,7 +80,7 @@ define(function (require, exports, module) {
      */
     function getWorkingSet() {
         return _workingSet;
-        // TODO: return a clone to prevent meddling?
+        // TODO: (issue #297) return a clone to prevent meddling?
     }
 
     /** 
@@ -173,14 +174,11 @@ define(function (require, exports, module) {
     /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
      * editing" means either the file is in the working set, and/or the file is currently open in
      * the editor UI.
-     * @param {!fullPath}
+     * @param {!string} fullPath
      * @return {?Document}
     */
     function getDocumentForPath(fullPath) {
-        // TODO: we should implement something like NativeFileSystem.resolveNativeFileSystemURL() (similar
-        // to what's in the standard file API) to get a FileEntry, rather than manually constructing it
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-
         return getDocumentForFile(fileEntry);
     }
 
@@ -284,47 +282,9 @@ define(function (require, exports, module) {
      * unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        // TODO: could be more efficient by clearing working set in bulk instead of via
-        // individual notifications, and ensuring we don't switch editors while closing...
-        
         var allDocs = getAllOpenDocuments();
         
         allDocs.forEach(closeDocument);
-    }
-    
-    
-    /**
-     * Asynchronously reads a file as UTF-8 encoded text.
-     * @return {Deferred} a jQuery Deferred that will be resolved with the 
-     *  file's text content plus its timestamp, or rejected with a FileError if
-     *  the file can not be read.
-     */
-    function readAsText(fileEntry) {
-        var result = new $.Deferred(),
-            reader = new NativeFileSystem.FileReader();
-
-        fileEntry.file(function (file) {
-            reader.onload = function (event) {
-                var text = event.target.result;
-                
-                fileEntry.getMetadata(
-                    function (metadata) {
-                        result.resolve(text, metadata.modificationTime);
-                    },
-                    function (error) {
-                        result.reject(error);
-                    }
-                );
-            };
-
-            reader.onerror = function (event) {
-                result.reject(event.target.error);
-            };
-
-            reader.readAsText(file, "utf8");
-        });
-
-        return result;
     }
     
     
@@ -372,8 +332,6 @@ define(function (require, exports, module) {
      *
      * The editor may be null in the case that the document working set was
      * restored from storage but an editor was not yet created.
-     * TODO: we should close on whether private fields are declared on the prototype like this (vs.
-     * just set in the constructor).
      * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
@@ -381,7 +339,7 @@ define(function (require, exports, module) {
     /**
      * Null only of editor is not open yet. If a Document is created on empty text, or text with
      * inconsistent line endings, the Document defaults to the current platform's standard endings.
-     * @type {null|EditorUtils.LINE_ENDINGS_CRLF|EditorUtils.LINE_ENDINGS_LF}
+     * @type {null|FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
 
@@ -411,9 +369,9 @@ define(function (require, exports, module) {
         this.isDirty = false;
         
         // Sniff line-ending style
-        this._lineEndings = EditorUtils.sniffLineEndings(rawText);
+        this._lineEndings = FileUtils.sniffLineEndings(rawText);
         if (!this._lineEndings) {
-            this._lineEndings = EditorUtils.getPlatformLineEndings();
+            this._lineEndings = FileUtils.getPlatformLineEndings();
         }
     };
     
@@ -426,7 +384,7 @@ define(function (require, exports, module) {
         // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
         // endings preferred by the document, if necessary
         var codeMirrorText = this._editor.getValue();
-        if (this._lineEndings === EditorUtils.LINE_ENDINGS_LF) {
+        if (this._lineEndings === FileUtils.LINE_ENDINGS_LF) {
             return codeMirrorText;
         } else {
             return codeMirrorText.replace(/\n/g, "\r\n");
@@ -457,9 +415,9 @@ define(function (require, exports, module) {
         this.diskTimestamp = newTimestamp;
         
         // Re-sniff line-ending style too
-        this._lineEndings = EditorUtils.sniffLineEndings(text);
+        this._lineEndings = FileUtils.sniffLineEndings(text);
         if (!this._lineEndings) {
-            this._lineEndings = EditorUtils.getPlatformLineEndings();
+            this._lineEndings = FileUtils.getPlatformLineEndings();
         }
     };
     
@@ -512,17 +470,14 @@ define(function (require, exports, module) {
         this._markClean();
         $(exports).triggerHandler("documentSaved", this);
         
-        // TODO: this introduces two race conditions: (a) if user leaves app & returns before this
-        // async op finishes, we'll think file was modified externally when it wasn't; (b) if ext
-        // app overwrites file in between when we saved and when this op finishes, we'll miss the
-        // fact that it was modified externally
+        // TODO: (issue #295) fetching timestamp async creates race conditions (albeit unlikely ones)
         var thisDoc = this;
         this.file.getMetadata(
             function (metadata) {
                 thisDoc.diskTimestamp = metadata.modificationTime;
             },
             function (error) {
-                console.log("Error updating timestamp after saving file: " + this.file.fullPath);
+                console.log("Error updating timestamp after saving file: " + thisDoc.file.fullPath);
             }
         );
     };
@@ -573,43 +528,30 @@ define(function (require, exports, module) {
             activeFile;
 
         // in parallel, check if files exist
-        // TODO (jasonsj): delay validation until user requests the editor (like Eclipse)?
-        //                 e.g. A file to restore no longer exists. Should we silently ignore
-        //                 it or let the user be notified when they attempt to open the Document?
-        var result = (function () {
-            var deferred        = new $.Deferred();
-            var fileCount       = prefs.files.length,
-                responseCount   = 0;
+        // TODO: (issue #298) delay this check until it becomes the current document?
+        function checkOneFile(value, index) {
+            var oneFileResult = new $.Deferred();
+            
+            // check if the file still exists (not an error if it doesn't, though)
+            projectRoot.getFile(value.file, {},
+                function (fileEntry) {
+                    // maintain original sequence
+                    filesToOpen[index] = fileEntry;
 
-            function next() {
-                responseCount++;
+                    if (value.active) {
+                        activeFile = fileEntry;
+                    }
+                    oneFileResult.resolve();
+                },
+                function (error) {
+                    filesToOpen[index] = null;
+                    oneFileResult.resolve();
+                });
+            
+            return oneFileResult;
+        }
 
-                if (responseCount === fileCount) {
-                    deferred.resolve();
-                }
-            }
-
-            prefs.files.forEach(function (value, index) {
-                // check if the file still exists
-                projectRoot.getFile(value.file, {},
-                    function (fileEntry) {
-                        // maintain original sequence
-                        filesToOpen[index] = fileEntry;
-
-                        if (value.active) {
-                            activeFile = fileEntry;
-                        }
-
-                        next();
-                    },
-                    function (error) {
-                        filesToOpen[index] = null;
-                        next();
-                    });
-            });
-
-            return deferred;
-        }());
+        var result = Async.doInParallel(prefs.files, checkOneFile, false);
 
         result.done(function () {
             var activeDoc,
@@ -650,7 +592,6 @@ define(function (require, exports, module) {
     exports.showInEditor = showInEditor;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
-    exports.readAsText = readAsText;
     exports.closeAll = closeAll;
 
     // Register preferences callback

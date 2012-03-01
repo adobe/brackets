@@ -17,8 +17,6 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/css/css");
     require("thirdparty/CodeMirror2/mode/less/less");
     require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
-    
-    var Strings = require("strings");
 
     /**
      * @private
@@ -70,75 +68,6 @@ define(function (require, exports, module) {
         editor.setOption("mode", mode);
     }
 
-    
-    /** @const */
-    var LINE_ENDINGS_CRLF = "CRLF";
-    /** @const */
-    var LINE_ENDINGS_LF = "LF";
-    
-    /**
-     * Returns the standard line endings for the current platform
-     * @return {LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
-     */
-    function getPlatformLineEndings() {
-        return brackets.isWin ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
-    }
-    
-    /**
-     * Scans the first 1000 chars of the text to determine how it encodes line endings. Returns
-     * null if usage is mixed or if no line endings found.
-     * @param {!string} text
-     * @return {null|LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
-     */
-    function sniffLineEndings(text) {
-        var subset = text.substr(0, 1000);  // (length is clipped to text.length)
-        var hasCRLF = /\r\n/.test(subset);
-        var hasLF = /[^\r]\n/.test(subset);
-        
-        if ((hasCRLF && hasLF) || (!hasCRLF && !hasLF)) {
-            return null;
-        } else {
-            return hasCRLF ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
-        }
-    }
-
-
-    function getFileErrorString(code) {
-        // There are a few error codes that we have specific error messages for. The rest are
-        // displayed with a generic "(error N)" message.
-        var result;
-
-        if (code === FileError.NOT_FOUND_ERR) {
-            result = Strings.NOT_FOUND_ERR;
-        } else if (code === FileError.NOT_READABLE_ERR) {
-            result = Strings.NOT_READABLE_ERR;
-        } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
-            result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
-        } else {
-            result = Strings.format(Strings.GENERIC_ERROR, code);
-        }
-
-        return result;
-    }
-    
-    function showFileOpenError(code, path) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
-            Strings.ERROR_OPENING_FILE_TITLE,
-            Strings.format(
-                Strings.ERROR_OPENING_FILE,
-                path,
-                getFileErrorString(code)
-            )
-        );
-    }
-
     // Define public API
     exports.setModeFromFileExtension = setModeFromFileExtension;
-    exports.LINE_ENDINGS_CRLF        = LINE_ENDINGS_CRLF;
-    exports.LINE_ENDINGS_LF          = LINE_ENDINGS_LF;
-    exports.getPlatformLineEndings   = getPlatformLineEndings;
-    exports.sniffLineEndings         = sniffLineEndings;
-    exports.showFileOpenError        = showFileOpenError;
-    exports.getFileErrorString       = getFileErrorString;
 });

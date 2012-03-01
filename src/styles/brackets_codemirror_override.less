@@ -33,4 +33,36 @@
     span.cm-quote {color: @accent-quote;}
     span.cm-hr {color: @accent-hr;}
     span.cm-link {color: @accent-link;}
+    
+}
+
+div.CodeMirror span.CodeMirror-matchingbracket {color: @accent-bracket; background-color: @background-color-2;}
+div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
+
+
+/*
+    CodeMirror's use of descendant selectors for certain styling causes problems when editors are
+    nested because, for items in the inner editor, the left-hand clause in the selector will now
+    match either the actual containing CodeMirror instance *OR* the outer "host" CodeMirror instance.
+    
+    TODO (issue #324): We'll still have problems if editors can be nested more than one level deep,
+    or if any other descendant-selector-driven CM styles can differ between inner & outer editors
+    (potential problem areas include line wrap and coloring theme: basically, anything in codemirror.css
+    that uses a descandant selector where the CSS class name to the left of the space is something
+    other than a vanilla .CodeMirror)
+ */
+.CodeMirror {
+    .CodeMirror pre.CodeMirror-cursor {
+        visibility: hidden;
+    }
+    .CodeMirror.CodeMirror-focused pre.CodeMirror-cursor {
+        visibility: visible;
+    }
+    
+    .CodeMirror div.CodeMirror-selected {
+        background: #d9d9d9;
+    }
+    .CodeMirror.CodeMirror-focused div.CodeMirror-selected {
+        background: #d2dcf8;
+    }
 }
