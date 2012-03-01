@@ -29,13 +29,27 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager");
 
     /**
+    * FileLocation class
+    * @constructor
+    *
+    */
+    function FileLocation(fullPath, lineNumber, functionName) {
+        this.fullPath = fullPath;
+        this.lineNumber = lineNumber;
+        this.functionName = functionName
+    }
+
+    /**
     * QuickNavigateDialog class
     * @constructor
     *
     */
     function QuickNavigateDialog(codemirror) {
+        this.searchField = undefined; // defined when showDialog() is called
         this.closed = false;
-        this.result = null; // $.Deferred
+        this.result = null; // $.Deferred, assigned by showShowDialog() resolved by _close()
+        this.fileLocation = new FileLocation();
+        this.functionList = [];
 
         // TODO (issue 311) - remove code mirror references
         this.codemirror = codemirror;
@@ -63,14 +77,23 @@ define(function (require, exports, module) {
         if (this.closed) {
             return;
         }
-        
         this.closed = true;
-            
+
+;
+
+        // extract line number
+        var query = this.searchField.val();
+        var regInfo = query.match(/(\d+)/);
+        // TODO store line number
+
+        // todo extra @function
+        var regInfo = query.match(/@(.+)/);
+
+        // remove the UI
         this.dialog.parentNode.removeChild(this.dialog);
+        //this.searchField.remove();
 
-        $(".smart_autocomplete_container").remove();
-
-        this.result.resolve(value);
+        this.result.resolve(this.fileLocation);
     };
         
     /**
@@ -79,48 +102,85 @@ define(function (require, exports, module) {
     */
     QuickNavigateDialog.prototype.showDialog = function () {
         var that = this;
-        var fileInfoList;
+        var suggestList;
         this.result = new $.Deferred();
 
         FileIndexManager.getFileInfoList("all")
             .done(function (filelistResult) {
-                fileInfoList = filelistResult;
+                suggestList = filelistResult;
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
                 that._createDialogDiv(that, dialogHTML);
+                that.searchField = $('input#quickFileOpenSearch');
                 var closed = false;
-                var searchField = $('input#quickFileOpenSearch');
 
                 // auto suggest list helper function
-                function _handleResultsFormatter(path) {
-                    var filename = _filenameFromPath(path);
-                    var rPath = ProjectManager.makeProjectRelativeIfPossible(path);
-                    var boldName = filename.replace(new RegExp($('input#quickFileOpenSearch').val(), "gi"), "<strong>$&</strong>");
-                    return "<li data-fullpath='" + encodeURIComponent(path) + "'>" + boldName +
-                        "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
+                function _handleResultsFormatter(item) {
+                    var term = $('input#quickFileOpenSearch').val();
+                    var functionSearch = term.charAt(0) === '@';
+                    if (functionSearch) {
+                        term = term.slice(1, term.length);
+                    }
+
+                    if (functionSearch) {
+                        var boldName = item.replace(new RegExp(term, "gi"), "<strong>$&</strong>");
+                        return "<li>" + boldName + "</li>";
+                    } else {
+                        var filename = _filenameFromPath(item);
+                        var rPath = ProjectManager.makeProjectRelativeIfPossible(item);
+                        var boldName = filename.replace(new RegExp(term, "gi"), "<strong>$&</strong>");
+                        return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + boldName +
+                            "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
+                    }
                 }
 
                 // auto suggest list helper function
                 function _handleFilter(term, source) {
-                    var filteredList = $.map(source, function (fileInfo) {
-                        // match term again filename only (not the path)
-                        var path = fileInfo.fullPath;
-                        var filename = _filenameFromPath(path);
-                        if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
-                            return fileInfo.fullPath;
-                        }
+                    var functionSearch = term.charAt(0) === '@';
+                    if (functionSearch) {
+                        term = term.slice(1, term.length);
+                    }
+
+                    var filteredList = $.map(source, function (itemInfo) {
+
+                        if (functionSearch && itemInfo.hasOwnProperty("functionName")) {
+                            var functionName = itemInfo.functionName;
+                            if (functionName.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
+                                return functionName;
+                            }
+                        } else if (!functionSearch && itemInfo.hasOwnProperty("fullPath")) {
+                            // match term against filename only (not the full path)
+                            var path = itemInfo.fullPath;
+                            var filename = _filenameFromPath(path);
+                            if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
+                                return path;
+                            }
+                        } else {
+                            return null;
+                        }   
                     }).sort(function (a, b) {
-                        // sort by filename
-                        var filenameA = _filenameFromPath(a);
-                        var filenameB = _filenameFromPath(b);
-                        return filenameA > filenameB;
+
+                        if (functionSearch) {
+                            return a > b;
+                        } else {
+                            // sort by filename
+                            var filenameA = _filenameFromPath(a);
+                            var filenameB = _filenameFromPath(b);
+                            return filenameA > filenameB;
+                        }
+
                     });
 
                     return filteredList;
                 }
 
+                that._generateFunctionList();
+                suggestList.push.apply(suggestList, that.functionList)
+
+
+
                 // Create the auto suggest list of filenames
-                searchField.smartAutoComplete({
-                    source: fileInfoList,
+                that.searchField.smartAutoComplete({
+                    source: suggestList,
                     maxResults: 10,
                     forceSelect: false,
                     typeAhead: true,
@@ -128,27 +188,31 @@ define(function (require, exports, module) {
                     resultFormatter: _handleResultsFormatter
                 });
         
-                searchField.bind({
+                that.searchField.bind({
                     // close the dialog when the user selects an item
                     itemSelect: function (ev, selected_item) {
-                        var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
-                        that._close(value);
+                        var fullPath = $(selected_item).attr("data-fullpath");
+                        if (fullPath) {
+                            that.fileLocation.fullPath = decodeURIComponent(fullPath); 
+                        } else {
+                            that._getFunctionLocation($(selected_item).text());
+                        }
+                        
+                        that._close();
                     },
         
                     keydown: function (e) {
-                        var query = searchField.val();
-
-                        // close the dialog when the ENTER (23) or ESC (27) key is pressed
-                        if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
+                        // close the dialog when the ENTER (13) or ESC (27) key is pressed
+                        if ((e.keyCode === 13 && !$(".smart_autocomplete_container").is(":visible")) || e.keyCode === 27) {
                             e.stopPropagation();
                             e.preventDefault();
 
                             // clear the query on ESC key
                             if (e.keyCode === 27) {
-                                query = null;
+                                that.fileLocation = undefined;
                             }
                             
-                            that._close(query);
+                            that._close();
                             EditorManager.focusEditor();
                         }
                     }
@@ -156,12 +220,52 @@ define(function (require, exports, module) {
         
                 });
         
-                searchField.focus();
+                that.searchField.focus();
             });
 
         return this.result;
     };
 
+    function _computeLineNumber(text, offset) {
+        var lines = text.substr(0, offset);
+        return lines.split("\n").length - 1;
+    }
+
+    // TODO: rename function to something better.
+    QuickNavigateDialog.prototype._getFunctionLocation = function (functionName) {
+        this.fileLocation.functionName = functionName;
+
+        this.functionList.forEach(function (functionInfo) {
+            if (functionInfo.functionName === functionName) {
+                this.fileLocation.lineNumber = functionInfo.lineNumber;
+                return;
+            }
+        });
+
+        this.fileLocation.lineNumber = undefined;
+    }
+
+    QuickNavigateDialog.prototype._generateFunctionList = function () {
+        var doc = DocumentManager.getCurrentDocument();
+        if (!doc) {
+            // TODO
+        }
+
+        var docText = doc.getText();
+        this.functionList = [];
+        var regex = new RegExp(/(function\b)(.+)\b\(/gi);
+        var info;
+
+        while(info = regex.exec(docText))
+        {
+            this.functionList.push({ 
+                functionName: $.trim(info[2]), 
+                index: info.index, 
+                lineNumber: _computeLineNumber(docText, info.index) 
+            });
+            //console.log(info[2]);
+        }
+    }
 
         
     /**
@@ -182,16 +286,25 @@ define(function (require, exports, module) {
 
         var dialog = new QuickNavigateDialog(cm);
         dialog.showDialog()
-            .done(function (query) {
-                if (query) {
-                    if (query.charAt(0) === ":") {
-                        var lineNumber = parseInt(query.slice(1, query.length), 10);
-                        if (!isNaN(lineNumber)) {
-                            DocumentManager.getCurrentDocument().setCursor(lineNumber - 1, 0);
-                        }
-                    } else {
-                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
+            .done(function (fileLocation) {
+                if (fileLocation) {
+                    if (fileLocation.fullPath) {
+                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileLocation.fullPath});
                     }
+
+                    if (fileLocation.lineNumber) {
+                        DocumentManager.getCurrentDocument().setCursor(fileLocation.lineNumber - 1, 0);
+                    }
+
+                    // TODO old
+                    // if (query.charAt(0) === ":") {
+                    //     var lineNumber = parseInt(query.slice(1, query.length), 10);
+                    //     if (!isNaN(lineNumber)) {
+                    //         DocumentManager.getCurrentDocument().setCursor(lineNumber - 1, 0);
+                    //     }
+                    // } else {
+                    //     CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
+                    // }
                 }
             });
     }
