@@ -85,7 +85,8 @@ define(function (require, exports, module) {
             offsetEnd       = input.length, // offset last non-white space char
             elements        = null,
             firstElement    = null,
-            lines           = input;        // complete file content
+            temp            = null,
+            lines           = input;        // start with complete file content, truncating starting at EOF
         
         while (i >= 0) {
             current = rulesets[i];
@@ -98,12 +99,10 @@ define(function (require, exports, module) {
             // Example: "div { color:red }"
             // The "div" Selector Element index returns 4 instead of 0
             firstElement = elements[0];
-            current.offsetStart = firstElement.index - firstElement.value.length;
             
-            // only subtract the first combinator if the selector has a single element
-            if ((elements.length === 1) && (firstElement.combinator.value === ' ')) {
-                current.offsetStart -= firstElement.combinator.value.length;
-            }
+            // search for the first selector element's offset
+            temp = lines.substring(0, firstElement.index);
+            current.offsetStart = temp.lastIndexOf(firstElement.value);
             
             // split the input up to the offset to find the lineStart and lineEnd
             current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
