@@ -396,10 +396,10 @@ define(function (require, exports, module) {
         
         
         /**
-         * Test helper function: expects CSS parsing to fail on the given 1-based line number with
-         * the given message.
+         * Test helper function: expects CSS parsing to fail at the given 0-based offset within the
+         * cssCode string, with the given error message.
          */
-        var _expectParseError = function (cssCode, lineNumber, errorString) {
+        var _expectParseError = function (cssCode, expectedCodeOffset, expectedErrorMessage) {
             try {
                 manager = new CSSManager._CSSManager();
                 manager._loadString(cssCode);
@@ -408,8 +408,8 @@ define(function (require, exports, module) {
                 this.fail("Expected parse error: " + cssCode);
                 
             } catch (error) {
-                expect(error.index).toBe(lineNumber);
-                expect(error.message).toBe(errorString);
+                expect(error.index).toBe(expectedCodeOffset);
+                expect(error.message).toBe(expectedErrorMessage);
             }
         };
             
@@ -714,6 +714,15 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
+                
+                // Quotes AND braces nested inside string
+                // TODO (issue #343): these should get parsed correctly
+                expectParseError("div::after { content: \"\\\"}\\\"\"; }", 13, "Syntax Error on line 1");
+                expectParseError("div::after { content: \"\\\"{\"; }", undefined, "Missing closing `}`");
+                
+                css = "@import \"null?\\\"{\"; \n" +   // this is a real-world CSS hack that is a case of the above
+                      "div { color: red }";
+                expectParseError(css, undefined, "Missing closing `}`");
                 
                 // Newline inside string (escaped)
                 result = match("li::before { content: 'foo\\nbar'; } \n div { color:red }", { tag: "div" });
