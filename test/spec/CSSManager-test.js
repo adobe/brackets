@@ -352,7 +352,8 @@ define(function (require, exports, module) {
     describe("CSS Parsing: ", function () {
         
         var manager,
-            match;
+            match,
+            expectParseError;
         
         function findMatchingRules(tagInfo) {
             if (tagInfo) {
@@ -393,9 +394,31 @@ define(function (require, exports, module) {
             return findMatchingRules(tagInfo);
         }
         
+        
+        /**
+         * Test helper function: expects CSS parsing to fail at the given 0-based offset within the
+         * cssCode string, with the given error message.
+         */
+        var _expectParseError = function (cssCode, expectedCodeOffset, expectedErrorMessage) {
+            try {
+                manager = new CSSManager._CSSManager();
+                manager._loadString(cssCode);
+                
+                // shouldn't get here since _loadString() is expected to throw
+                this.fail("Expected parse error: " + cssCode);
+                
+            } catch (error) {
+                expect(error.index).toBe(expectedCodeOffset);
+                expect(error.message).toBe(expectedErrorMessage);
+            }
+        };
+            
+        /** To call fail(), these helpers need access to the value of 'this' inside each it() */
         beforeEach(function () {
             match = _match.bind(this);
+            expectParseError = _expectParseError.bind(this);
         });
+
 
         describe("Simple selectors: ", function () {
         
@@ -692,6 +715,15 @@ define(function (require, exports, module) {
                 result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
                 
+                // Quotes AND braces nested inside string
+                // TODO (issue #343): these should get parsed correctly
+                expectParseError("div::after { content: \"\\\"}\\\"\"; }", 13, "Syntax Error on line 1");
+                expectParseError("div::after { content: \"\\\"{\"; }", undefined, "Missing closing `}`");
+                
+                css = "@import \"null?\\\"{\"; \n" +   // this is a real-world CSS hack that is a case of the above
+                      "div { color: red }";
+                expectParseError(css, undefined, "Missing closing `}`");
+                
                 // Newline inside string (escaped)
                 result = match("li::before { content: 'foo\\nbar'; } \n div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
@@ -950,19 +982,41 @@ define(function (require, exports, module) {
         // The following tests expect "failures" in order to pass. They
         // will be updated once the associated issues are fixed.
         describe("Known Issues", function () {
+            
             // TODO (issue #332): ParseError for double semi-colon
             it("should handle an empty declaration (extra semi-colon)", function () {
-                try {
-                    manager = new CSSManager._CSSManager();
-                    manager._loadString("h4 { color:red;; }");
-                } catch (error) {
-                    expect(error.index).toBe(15);
-                    expect(error.message).toBe("Syntax Error on line 1");
-                    return;
-                }
-                
-                this.fail("Known issue #332");
+                expectParseError("h4 { color:red;; }", 15, "Syntax Error on line 1");
+                expectParseError("div{; color:red}", 4, "Syntax Error on line 1");
             });
+            
+            // TODO (issue #338): ParseError for various IE filter syntaxes
+            it("should handle IE filter syntaxes", function () {
+                expectParseError("div{opacity:0; filter:alpha(opacity = 0)}", 15, "Syntax Error on line 1");
+                expectParseError("div { filter:alpha(opacity = 0) }", 6, "Syntax Error on line 1");
+                expectParseError("div { filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr='#92CBE0',EndColorStr='#6B9EBC'); }",
+                    6, "Syntax Error on line 1");
+            });
+            
+            // TODO (issue #343): Inline editor has trouble with CSS Hacks
+            it("should handle unnecessary escape codes", function () {
+                expectParseError("div { f\\loat: left; }", 6, "Syntax Error on line 1");
+            });
+            
+            // TODO (issue #343): Inline editor has trouble with CSS Hacks
+            it("should handle comments within properties", function () {
+                expectParseError("div { display/**/: block; }", 6, "Syntax Error on line 1");
+                
+                // Related cases that DO work already:
+                match("div/**/ { display: block; }");
+                match("div /**/{ display: block; }");
+                match("div {/**/ display: block; }");
+                match("div { /**/display: block; }");
+                match("div { display:/**/ block; }");
+                match("div { display: /**/block; }");
+                match("div { display: block/**/; }");
+                match("div { display: block /**/; }");
+            });
+            
         }); // describe("Known Issues")    
 
 
