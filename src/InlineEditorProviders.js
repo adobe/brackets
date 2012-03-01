@@ -19,7 +19,61 @@ define(function (require, exports, module) {
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
 
-    var _htmlToCSSProviders = [];
+    // track divs to re-position manually
+    var _htmlToCSSProviderContent   = [],
+        _repositionTimeout          = null;
+    
+    /**
+     * Reposition a .inlineCodeEditor .filename div { right: 20px; }
+     * @private
+     */
+    function _updateInlineEditorFilename(holderWidth, filenameDiv) {
+        var filenameWidth = $(filenameDiv).width();
+        $(filenameDiv).css("left", holderWidth - filenameWidth - 20);
+    }
+    
+    /**
+     * Returns editor holder width (not CodeMirror's width).
+     * @private
+     */
+    function _editorHolderWidth() {
+        return $("#editorHolder").width();
+    }
+    
+    /**
+     * Reposition all filename divs after a window resize.
+     * @private
+     */
+    function _updateAllFilenames() {
+        if (!_repositionTimeout) {
+            _repositionTimeout = setTimeout(function () {
+                _repositionTimeout = null;
+                var holderWidth = _editorHolderWidth();
+                
+                _htmlToCSSProviderContent.forEach(function (value) {
+                    var filenameDiv = $(value).find(".filename");
+                    _updateInlineEditorFilename(holderWidth, filenameDiv);
+                });
+            }, 100);
+        }
+    }
+    
+    /**
+     * Stops tracking an editor after being removed from the document.
+     * @private
+     */
+    function _inlineEditorRemoved(event) {
+        var indexOf = _htmlToCSSProviderContent.indexOf(event.target);
+        
+        if (indexOf >= 0) {
+            _htmlToCSSProviderContent.splice(indexOf, 1);
+        }
+        
+        // stop listening for resize when all inline editors are closed
+        if (_htmlToCSSProviderContent.length === 0) {
+            $(window).unbind("resize", _updateAllFilenames);
+        }
+    }
 
     /**
      * Show a range of text in an inline editor.
@@ -129,11 +183,33 @@ define(function (require, exports, module) {
                     
                     _showTextRangeInInlineEditor(editor, rule.source, rule.lineStart, rule.lineEnd)
                         .done(function (inlineInfo) {
+                            // track inlineEditor content removal
+                            inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
+                            
+                            // create the filename div
+                            var filenameDiv = document.createElement("div");
+                            $(filenameDiv).addClass("filename").text(rule.source.name);
+                            
+                            // add inline editor styling
+                            var scroller = inlineInfo.editor.getScrollerElement();
+                            $(scroller).append('<div class="shadow top"/>');
+                            $(scroller).append('<div class="shadow bottom"/>');
+                            $(scroller).append(filenameDiv);
+                            
+                            _htmlToCSSProviderContent.push(inlineInfo.content);
+                            
+                            // Manaully position filename div's. Can't use CSS positioning in this case
+                            // since the label is relative to the window boundary, not CodeMirror.
+                            if (_htmlToCSSProviderContent.length > 0) {
+                                $(window).bind("resize", _updateAllFilenames);
+                            }
+                            
+                            // update the current inline editor immediately
+                            // use setTimeout to allow filenameDiv to render first
+                            setTimeout(function () {
+                                _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+                            }, 0);
 
-                            $(inlineInfo.content).find(".CodeMirror-scroll").append('<div class="filename">' + fileEntry.name + '</div>');
-                            $(inlineInfo.content).append('<div class="shadow top"/>');
-                            $(inlineInfo.content).append('<div class="shadow bottom"/>');
-                
                             result.resolve(inlineInfo);
                         })
                         .fail(function () {
