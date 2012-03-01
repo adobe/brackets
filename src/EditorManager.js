@@ -422,20 +422,11 @@ define(function (require, exports, module) {
     
     /**
      * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
-     * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
+     * height.
      * @see #resizeEditor()
      */
     function _updateEditorSize() {
-        // Don't refresh every single time
-        if (!_resizeTimeout) {
-            _resizeTimeout = setTimeout(function () {
-                _resizeTimeout = null;
-                
-                if (_currentEditor) {
-                    _currentEditor.refresh();
-                }
-            }, 100);
-        }
+        // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
         }
@@ -583,7 +574,9 @@ define(function (require, exports, module) {
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(window).resize(_updateEditorSize);
+    // Add this as a capture handler so we're guaranteed to run it before the editor does its own
+    // refresh on resize.
+    window.addEventListener("resize", _updateEditorSize, true);
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
