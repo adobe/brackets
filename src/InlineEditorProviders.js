@@ -34,7 +34,7 @@ define(function (require, exports, module) {
             .done(function (text) {
                 var range = {
                     startLine: startLine,
-                    endLine: endLine - 1   // rule.lineEnd is exclusive, range.endLine is inclusive
+                    endLine: endLine
                 };
                 var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
                 
