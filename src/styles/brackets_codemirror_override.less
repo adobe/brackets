@@ -68,6 +68,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
 }
 
 .inlineCodeEditor {
+    .cm-s-default {
+        background-color: #E6E6E6;
+    }
     .filename {
         position: absolute;
         top: 0;
@@ -79,6 +82,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
         border-width: 0px 1px 1px;
         border-bottom-right-radius: 3px 5px;
         border-bottom-left-radius: 3px 5px;
+        z-index: 11;
     }
     .shadow {
         display: block;
@@ -87,6 +91,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
         position: absolute;
         content: " ";
         left: 0;
+        z-index: 10;
     }
     .shadow.top {
         top: 0px;
