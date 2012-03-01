@@ -20,8 +20,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager");
 
     // track divs to re-position manually
-    var _htmlToCSSProviderContent   = [],
-        _repositionTimeout          = null;
+    var _htmlToCSSProviderContent   = [];
     
     /**
      * Reposition a .inlineCodeEditor .filename div { right: 20px; }
@@ -45,17 +44,12 @@ define(function (require, exports, module) {
      * @private
      */
     function _updateAllFilenames() {
-        if (!_repositionTimeout) {
-            _repositionTimeout = setTimeout(function () {
-                _repositionTimeout = null;
-                var holderWidth = _editorHolderWidth();
-                
-                _htmlToCSSProviderContent.forEach(function (value) {
-                    var filenameDiv = $(value).find(".filename");
-                    _updateInlineEditorFilename(holderWidth, filenameDiv);
-                });
-            }, 100);
-        }
+        var holderWidth = _editorHolderWidth();
+        
+        _htmlToCSSProviderContent.forEach(function (value) {
+            var filenameDiv = $(value).find(".filename");
+            _updateInlineEditorFilename(holderWidth, filenameDiv);
+        });
     }
     
     /**
