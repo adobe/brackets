@@ -26,7 +26,11 @@ define(function (require, exports, module) {
      *  and end of the selector. Returns null if the selector is not found.
      */
     function findSelector(text, selector) {
-        var re = new RegExp(".*[\\s|,|\\.#]" + selector + "\\s*[,\\{][^\\}]*\\}", "i");
+        // escape initial '.'
+        if (selector[0] === '.') {
+            selector = "\\" + selector;
+        }
+        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*\\s*[,\\{][^\\}]*\\}", "i");
         var startPos = text.search(re);
         
         if (startPos !== -1) {
