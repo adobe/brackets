@@ -136,6 +136,18 @@ define(function (require, exports, module) {
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
+            it("should find the attribute value when the IP is after the =", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class=', '"foo"></p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class", "foo"));
+            });
+            
             it("should find the tagname as it's typed", function () {
                 var pos = {"ch": 0, "line": 0};
                 var content = getContentAndUpdatePos(pos,

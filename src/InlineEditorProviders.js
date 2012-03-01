@@ -84,7 +84,7 @@ define(function (require, exports, module) {
             .done(function (text) {
                 var range = {
                     startLine: startLine,
-                    endLine: endLine - 1   // rule.lineEnd is exclusive, range.endLine is inclusive
+                    endLine: endLine
                 };
                 var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
                 
@@ -137,7 +137,8 @@ define(function (require, exports, module) {
         if (tagInfo.position.tokenType === CodeHintUtils.TAG_NAME) {
             // Type selector
             selectorName = tagInfo.tagName;
-        } else if (tagInfo.position.tokenType === CodeHintUtils.ATTR_VALUE) {
+        } else if (tagInfo.position.tokenType === CodeHintUtils.ATTR_NAME ||
+                   tagInfo.position.tokenType === CodeHintUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 // Class selector. We only look for the class name
                 // that includes the insertion point. For example, if
