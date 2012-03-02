@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         CommandManager          = require("CommandManager"),
         CodeHintManager         = require("CodeHintManager"),
         PerfUtils               = require("PerfUtils"),
-        CSSManager              = require("CSSManager"),
         FileIndexManager        = require("FileIndexManager"),
         Menus                   = require("Menus");
     
@@ -76,7 +75,6 @@ define(function (require, exports, module) {
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("CommandManager"),
-        CSSManager              : CSSManager,
         FileIndexManager        : FileIndexManager
     };
     
