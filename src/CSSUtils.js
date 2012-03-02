@@ -123,7 +123,5 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    exports.findSelector = findSelector;
-    exports.findAllMatchingSelectors = findAllMatchingSelectors;
     exports.findMatchingRules = findMatchingRules;
 });
