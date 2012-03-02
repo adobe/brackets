@@ -158,11 +158,11 @@ define(function (require, exports, module) {
         }
         
         if (!classOrIdSelector) {
-            // Tag selectors must only have whitespace in front
-            prefix = "^\\s*";
+            // Tag selectors must have nothing or whitespace before it.
+            selector = "(^\\s*|\\s+)" + selector;
         }
         
-        var re = new RegExp(prefix + selector + "\\s*((\\[[^\\]]*\\])*|(:{1,2}[\\w-]+)*)*\\s*$", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "((\\[[^\\]]*\\])*|(:{1,2}[\\w-]+)*|(\\.[\\w-]+)*)*\\s*$", classOrIdSelector ? "" : "i");
         for (i = 0; i < allSelectors.length; i++) {
             if (allSelectors[i].selector.search(re) !== -1) {
                 result.push(allSelectors[i]);
