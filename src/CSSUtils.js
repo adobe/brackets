@@ -30,7 +30,7 @@ define(function (require, exports, module) {
         if (selector[0] === '.') {
             selector = "\\" + selector;
         }
-        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*\\s*[,\\{][^\\}]*\\}", "i");
+        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*\\w*)*\\s*[,\\{][^\\}]*\\}", "i");
         var startPos = text.search(re);
         
         if (startPos !== -1) {
