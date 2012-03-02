@@ -15,7 +15,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeHintUtils       = require("CodeHintUtils"),
         CSSManager          = require("CSSManager"),
-        CSSUtils            = require("CSSUtilsCodeMirror"),
+        CSSUtils            = require("CSSUtils"),
+        CSSUtilsCodeMirror  = require("CSSUtilsCodeMirror"),
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
@@ -122,7 +123,9 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        CSSUtils.findMatchingRules(selectorName)
+//        CSSUtils.findMatchingRules(selectorName)
+        CSSUtilsCodeMirror.findMatchingRules(selectorName)
+//        CSSManager.findMatchingRules(selectorName)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
                     var rule = rules[0];  // For Sprint 4 we use the first match only
