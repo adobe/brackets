@@ -289,7 +289,8 @@ define(function (require, exports, module) {
         
         if (ctx.token.className === "tag") {
             //check to see if this is the closing of a tag (either the start or end)
-            if (ctx.token.string === ">") {
+            if (ctx.token.string === ">" ||
+                    (ctx.token.string.charAt(0) === '<' && ctx.token.string.charAt(1) === '/')) {
                 return createTagInfo();
             }
             
