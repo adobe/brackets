@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define: false, $: false, CodeMirror: false */
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -15,104 +15,169 @@ define(function (require, exports, module) {
         FileIndexManager    = require("FileIndexManager"),
         FileUtils           = require("FileUtils"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
-    
-    /**
-     * Find the first instance of the specified selector in the text.
-     * Returns an Object with "start" and "end" properties specifying the character offsets for
-     * the selector, or null if no match was found.
-     * @param text {!String} CSS text to search
-     * @param selector {!String} selector to search for
-     * @return {Object} Object with start and end properties specifying the offset of the start
-     *  and end of the selector. Returns null if the selector is not found.
-     */
-    function findSelector(text, selector) {
-        // escape initial '.'
-        if (selector[0] === '.') {
-            selector = "\\" + selector;
+
+    /*
+     * This code can be used to create an "independent" HTML document that can be passed to jQuery
+     * calls. Allows using jQuery's CSS selector engine without actually putting anything in the browser's DOM
+     *
+    var _htmlDoctype = document.implementation.createDocumentType('html',
+        '-//W3C//DTD XHTML 1.0 Strict//EN',
+        'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
+    );
+    var _htmlDocument = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', _htmlDoctype);
+
+    function checkIfSelectorSelectsHTML(selector, theHTML) {
+        $('html', _htmlDocument).html(theHTML);
+        return ($(selector, _htmlDocument).length > 0);
+    }
+    */
+
+    /* DEBUG FUNCTION
+    function printer(one, two, three, four, five) {
+        var string = "parse output: " + one + " | " + two + " | " + three + " | " + four + " | ";
+        if (five.length === 0) {
+            string += "0:[]";
+        } else {
+            string += five.length + ":" + five[five.length-1];
         }
-        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*[\\w-]*)*\\s*[,\\{][^\\}]*\\}", "i");
-        var startPos = text.search(re);
+        console.log(string);
+    }
+    */
+
+    /**
+     * @private
+     * Extracts all CSS selectors from the given text
+     * Returns an array of selectors. Each selector is an object with the following properties:
+         selector: the text of the selector (note: comma separated selectors like "h1, h2" are broken into separate selectors)
+         line: zero-indexed line in the text where the selector appears
+         character: zero-indexed column in the line where the selector starts
+         ruleEndLine: zero-indexed line in the text where the rules for that selector end
+         ruleEndCharacter: zero-indexed column in the line where the rules for that selector end
+     * @param text {!String} CSS text to extract from
+     * @return {Array.<Object>} Array with objects specifying selectors.
+     */
+    function _extractAllSelectors(text) {
+        var selectors = [];
+        var mode = CodeMirror.getMode({indentUnit: 2}, "css");
+        var state = CodeMirror.startState(mode);
+
+        var lines = CodeMirror.splitLines(text);
+        var lineCount = lines.length;
         
-        // Return true if pos is within a comment
-        function inComment(text, pos) {
-            // Look from beginning up to pos
-            var str = text.substr(0, pos);
-            
-            // Search backwards for an open comment
-            var openCommentPos = str.lastIndexOf("/*");
-            
-            if (openCommentPos === -1) {
-                // No open comment before pos
-                return false;
+        var currentSelector = "", currentPosition = -1;
+        var token, style, stream, i, j;
+
+        var inRules = false;
+
+        for (i = 0; i < lineCount; ++i) {
+            if (currentSelector.trim() !== "") { // we got to a new line with a current selector, so save it and start parsing a new selector
+                selectors.push({selector: currentSelector.trim(), line: i - 1, character: currentPosition});
+                currentSelector = "";
+                currentPosition = -1;
             }
 
-            // See if there is a close comment after the open comment
-            if (str.indexOf("*/", openCommentPos) === -1) {
-                // No close comment, which means we must be inside a comment
-                return true;
-            }
-                
-            return false;
-        }
-        
-        if (startPos !== -1) {
-            if (inComment(text, startPos)) {
-                
-                // startPos is within a comment. Call this function recursively
-                // starting after the comment is terminated.
-                var endCommentPos = text.indexOf("*/", startPos);
-                
-                if (endCommentPos === -1) {
-                    // Unterminated comment
-                    return null;
+            stream = new CodeMirror.StringStream(lines[i]);
+            while (!stream.eol()) {
+                style = mode.token(stream, state);
+                token = stream.current();
+
+                // DEBUG STATEMENT -- printer(token, style, i, stream.start, state.stack);
+
+                if (state.stack.indexOf("{") === -1 && // not in a rule
+                        (state.stack.length === 0 || state.stack[state.stack.length - 1] !== "@media") && // not parsing a media query
+                        ((style === null && token !== "{" && token !== "}" && token !== ",") || (style !== null && style !== "comment" && style !== "meta"))) { // not at a non-selector token
+                    // we're parsing a selector!
+                    if (currentPosition < 0) { // start of a new selector
+                        currentPosition = stream.start;
+                    }
+                    currentSelector += token;
+                } else { // we aren't parsing a selector
+                    if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
+                        selectors.push({selector: currentSelector.trim(), line: i, character: currentPosition});
+                        currentSelector = "";
+                        currentPosition = -1;
+                    }
+
+                    if (!inRules && state.stack.indexOf("{") > -1) { // just started parsing a rule
+                        inRules = true;
+                    } else if (inRules && state.stack.indexOf("{") === -1) {  // just finished parsing a rule
+                        inRules = false;
+                        // assign this rule position to every selector on the stack that doesn't have a rule start and end line
+                        for (j = selectors.length - 1; j >= 0; j--) {
+                            if (selectors[j].ruleEndLine) {
+                                break;
+                            } else {
+                                selectors[j].ruleEndLine = i;
+                                selectors[j].ruleEndChar = stream.start;
+                            }
+                        }
+                    }
                 }
-                var result = findSelector(text.substr(endCommentPos), selector);
-                
-                if (result) {
-                    // adjust returned positions
-                    result.start += endCommentPos;
-                    result.end += endCommentPos;
-                }
-                
-                return result;
+
+                // advance the stream past this token
+                stream.start = stream.pos;
             }
-            
-            var selectorText = re.exec(text)[0];
-            // trim off any preceding whitespace
-            startPos += selectorText.search(/\S/);
-            var endPos = startPos + re.exec(text)[0].length - 1;
-            
-            return { start: startPos, end: endPos };
         }
-        
-        return null;
+
+        return selectors;
     }
     
     /**
      * Finds all instances of the specified selector in "text".
      * Returns an Array of Objects with start and end properties.
+     *
+     * For Sprint 4, we only support simple selectors. This function will need to change
+     * dramatically to support full selectors.
+     *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
      * @return {Array.<Object>} Array of objects containing the start and end offsets for
      *  each matched selector.
      */
-    function findAllMatchingSelectors(text, selector) {
+    function _findAllMatchingSelectorsInText(text, selector) {
+        var allSelectors = _extractAllSelectors(text);
         var result = [];
-        var offset = 0;
-        var localText = text.substr(offset);
-        var selectorPos;
-            
-        while ((selectorPos = findSelector(localText, selector)) !== null) {
-            selectorPos.start += offset;
-            selectorPos.end += offset;
-            result.push(selectorPos);
-            offset += selectorPos.end;
-            localText = localText.substr(selectorPos.end);
+        var i;
+        
+        // Escape initial "." in selector, if present.
+        if (selector[0] === ".") {
+            selector = "\\" + selector;
+        }
+        
+        // For sprint 4 we only match the rightmost simple selector, and ignore 
+        // attribute selectors and pseudo selectors
+        var classOrIdSelector = selector[0] === "." || selector[0] === "#";
+        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*[\\w-]*)*\\s*", classOrIdSelector ? "" : "i");
+        for (i = 0; i < allSelectors.length; i++) {
+            if (allSelectors[i].selector.search(re) !== -1) {
+                result.push(allSelectors[i]);
+            }
         }
         
         return result;
     }
     
+    /**
+     * Return all rules matching the specified selector.
+     * For Sprint 4, we only look at the rightmost simple selector. For example, searching for ".foo" will 
+     * match these rules:
+     *  .foo {}
+     *  div .foo {}
+     *  div.foo {}
+     *  div .foo[bar="42"] {}
+     *  div .foo:hovered {}
+     *  div .foo::first-child
+     * but will *not* match these rules:
+     *  .foobar {}
+     *  .foo .bar {}
+     *  div .foo .bar {}
+     *  .foo.bar {}
+     *
+     * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
+     * @return {Array<Object>} Array of objects containing the source (FileEntry), lineStart (Number), and 
+     *  lineEnd (Number) for each matching rule.
+     */
+     
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
@@ -125,18 +190,14 @@ define(function (require, exports, module) {
             FileUtils.readAsText(fileEntry)
                 .done(function (content) {
                     // Scan for selectors
-                    var localResults = findAllMatchingSelectors(content, selector);
-                    
-                    function lineNum(text, offset) {
-                        return text.substr(0, offset).split("\n").length - 1; // 0-based linenum
-                    }
+                    var localResults = _findAllMatchingSelectorsInText(content, selector);
                     
                     if (localResults.length > 0) {
                         $.each(localResults, function (index, value) {
                             selectors.push({
                                 source: fileEntry,
-                                lineStart: lineNum(content, localResults[index].start),
-                                lineEnd: lineNum(content, localResults[index].end)
+                                lineStart: localResults[index].line,
+                                lineEnd: localResults[index].ruleEndLine
                             });
                         });
                     }
@@ -166,7 +227,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    exports._findSelector = findSelector; // For testing only
-    exports._findAllMatchingSelectors = findAllMatchingSelectors;   // For testing only
+    exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
 });
