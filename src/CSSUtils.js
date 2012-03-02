@@ -154,7 +154,7 @@ define(function (require, exports, module) {
             selector = "(^\\s*|\\s+)" + selector;
         }
         
-        var re = new RegExp(selector + "((\\[[^\\]]*\\])*|(:{1,2}[\\w-]+)*|(\\.[\\w-]+)*)*\\s*$", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         for (i = 0; i < allSelectors.length; i++) {
             if (allSelectors[i].selector.search(re) !== -1) {
                 result.push(allSelectors[i]);
