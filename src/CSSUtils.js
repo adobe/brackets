@@ -30,10 +30,53 @@ define(function (require, exports, module) {
         if (selector[0] === '.') {
             selector = "\\" + selector;
         }
-        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*\\w*)*\\s*[,\\{][^\\}]*\\}", "i");
+        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*[\\w-]*)*\\s*[,\\{][^\\}]*\\}", "i");
         var startPos = text.search(re);
         
+        // Return true if pos is within a comment
+        function inComment(text, pos) {
+            // Look from beginning up to pos
+            var str = text.substr(0, pos);
+            
+            // Search backwards for an open comment
+            var openCommentPos = str.lastIndexOf("/*");
+            
+            if (openCommentPos === -1) {
+                // No open comment before pos
+                return false;
+            }
+
+            // See if there is a close comment after the open comment
+            if (str.indexOf("*/", openCommentPos) === -1) {
+                // No close comment, which means we must be inside a comment
+                return true;
+            }
+                
+            return false;
+        }
+        
         if (startPos !== -1) {
+            if (inComment(text, startPos)) {
+                
+                // startPos is within a comment. Call this function recursively
+                // starting after the comment is terminated.
+                var endCommentPos = text.indexOf("*/", startPos);
+                
+                if (endCommentPos === -1) {
+                    // Unterminated comment
+                    return null;
+                }
+                var result = findSelector(text.substr(endCommentPos), selector);
+                
+                if (result) {
+                    // adjust returned positions
+                    result.start += endCommentPos;
+                    result.end += endCommentPos;
+                }
+                
+                return result;
+            }
+            
             var selectorText = re.exec(text)[0];
             // trim off any preceding whitespace
             startPos += selectorText.search(/\S/);
@@ -123,5 +166,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    exports._findSelector = findSelector; // For testing only
+    exports._findAllMatchingSelectors = findAllMatchingSelectors;   // For testing only
     exports.findMatchingRules = findMatchingRules;
 });
