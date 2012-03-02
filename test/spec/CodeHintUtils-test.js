@@ -225,6 +225,17 @@ define(function (require, exports, module) {
                 var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
+            
+            it("should not hint anything inside a closing tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div id="test" class="foo"></div>'],
+                    '</body></ht', 'ml>');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+            });
         });
     });
 });
