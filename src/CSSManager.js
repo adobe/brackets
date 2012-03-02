@@ -42,20 +42,15 @@ define(function (require, exports, module) {
         this.source = source;
     }
     
-    // Use the LESS parser for both .less and .css files.
-    // Current support is CSS only, so we only consider leaf rulesets
-    function _addRuleset(results, ruleset, source) {
-        var children = ruleset.rulesets();
-        
-        // depth-first search for leaf rulesets
-        if (children.length > 0) {
-            children.forEach(function (value, index) {
-                _addRuleset(results, value, source);
-            });
-        } else if (ruleset.selectors.length > 0) {
-            // only add rules with selectors
-            results.push(new RuleSetInfo(ruleset, source));
-        }
+    /**
+     * Strip CR to match LESS parser indicies
+     */
+    function stripCR(text) {
+        // FIXME (jasonsj): issue #310
+        // To be consistent with LESS, strip CR.
+        // Remove this workaround and patch LESS parser to save accurate offset info.
+        // There are current issues with CRLF replacement and token trimming.
+        return text.replace(/\r\n/g, '\n').trimRight();
     }
     
     /**
@@ -71,52 +66,60 @@ define(function (require, exports, module) {
      * Computes character offsets and line numbers for all RuleSetInfo objects
      * derived from the input text.
      */
-    function _computeOffsets(rulesets, text) {
-        // FIXME (jasonsj): issue #310
-        // To be consistent with LESS, strip CR.
-        // Remove this workaround and patch LESS parser to save accurate offset info.
-        // There are current issues with CRLF replacement and token trimming.
-        var input = text.replace(/\r\n/g, '\n').trimRight();
+    function _computeOffsets(info, text) {
+        var firstElement    = info.ruleset.selectors[0].elements[0],
+            temp            = null;
         
-        // rulesets is an in-order traversal of the AST
-        // work backwards to establish offset start and end values
-        var i               = rulesets.length - 1,
-            current         = null,
-            offsetEnd       = input.length, // offset last non-white space char
-            elements        = null,
-            firstElement    = null,
-            temp            = null,
-            lines           = input;        // start with complete file content, truncating starting at EOF
+        // HACK - Work backwards from the first element
+        // Example: "div { color:red }"
+        // The "div" Selector Element index returns 4 instead of 0
+        info.offsetEnd = text.length;
         
-        while (i >= 0) {
-            current = rulesets[i];
-            elements = current.ruleset.selectors[0].elements;
-            
-            // get offset end from the previous rule's offsetStart
-            current.offsetEnd   = offsetEnd;
-            
-            // HACK - Work backwards from the first element
-            // Example: "div { color:red }"
-            // The "div" Selector Element index returns 4 instead of 0
-            firstElement = elements[0];
-            
-            // search for the first selector element's offset
-            temp = lines.substring(0, firstElement.index);
-            current.offsetStart = temp.lastIndexOf(firstElement.value);
-            
-            // split the input up to the offset to find the lineStart and lineEnd
-            current.lineEnd = _computeLineNumber(lines, current.offsetEnd);
-            lines = lines.substr(0, current.offsetEnd).trimRight();
-            
-            current.lineStart = _computeLineNumber(lines, current.offsetStart);
-            
-            // the next rule (moving towards the top of the file) ends
-            // with the first non-whitespace char before this rule's offsetStart
-            lines = lines.substr(0, current.offsetStart).trimRight();
-            offsetEnd = lines.length;
-            
-            i--;
+        // offsetStart: search for the first selector element's offset
+        temp = text.substring(0, firstElement.index);
+        info.offsetStart = temp.lastIndexOf(firstElement.value);
+        
+        // split the input up to the offset to find the lineStart and lineEnd
+        info.lineEnd = _computeLineNumber(text, info.offsetEnd);
+        info.lineStart = _computeLineNumber(text, info.offsetStart);
+    }
+    
+    // Use the LESS parser for both .less and .css files.
+    // Current support is CSS only, so we only consider leaf rulesets
+    function _addRuleset(results, node, source, text) {
+        var children    = [],
+            lines       = text; // text of unprocessed rules from start of file to current position
+        
+        // process rules in reverse order
+        if (node instanceof less.tree.Ruleset) {
+            children = Array.prototype.concat.apply(children, node.rules).reverse();
         }
+        
+        // depth-first, reversed search for leaf rulesets
+        if (children.length > 0) {
+            children.forEach(function (childNode, index) {
+                if (childNode.selectors && (childNode.selectors.length > 0)) {
+                    // this is a leaf ruleset (has selectors)
+                    var info = new RuleSetInfo(childNode, source);
+                    results.splice(0, 0, info);
+                    _computeOffsets(info, lines);
+                    
+                    // trim off this rule
+                    lines = text.substring(0, info.offsetStart);
+                } else if (childNode instanceof less.tree.Ruleset) {
+                    // this is a ruleset with children rulesets
+                    lines = _addRuleset(results, childNode, source, lines);
+                } else if (childNode.value) {
+                    // this is a non-ruleset leaf (e.g. tree.Comment)
+                    // trim off this node
+                    lines = text.substring(0, lines.length - childNode.value.length + 1);
+                }
+                
+                lines = lines.trimRight();
+            });
+        }
+        
+        return lines.trimRight();
     }
                 
     function _isTypeSelector(str) {
@@ -165,8 +168,7 @@ define(function (require, exports, module) {
                 throw error;
             }
             
-            _addRuleset(rulesets, root, source);
-            _computeOffsets(rulesets, text);
+            _addRuleset(rulesets, root, source, text);
 
             if (source && source.fullPath) {
                 // map file path to rules
@@ -188,7 +190,7 @@ define(function (require, exports, module) {
         var rulesets = [],
             self = this;
         
-        this._parse(rulesets, str);
+        this._parse(rulesets, stripCR(str));
         
         return rulesets;
     };
@@ -209,7 +211,7 @@ define(function (require, exports, module) {
         
         textResult.done(function (text) {
             try {
-                self._parse(rulesets, text, fileEntry);
+                self._parse(rulesets, stripCR(text), fileEntry);
             
                 // resolve with rules from this file
                 result.resolve(rulesets);
@@ -343,8 +345,8 @@ define(function (require, exports, module) {
             
             var metadataSuccess = function (metadata) {
                 // compare to last timestamp
-                var previous = !_cssFileMetadataMap[fileInfo.fullPath],
-                    current = metadata.modificationTime;
+                var previous = _cssFileMetadataMap[fileInfo.fullPath],
+                    current = metadata.modificationTime.valueOf();
                 
                 if ((previous === undefined) || (current !== previous)) {
                     // new or changed file, load it
