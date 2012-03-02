@@ -45,18 +45,21 @@ define(function (require, exports, module) {
     */
 
     /**
-     * @private
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
          selector: the text of the selector (note: comma separated selectors like "h1, h2" are broken into separate selectors)
-         line: zero-indexed line in the text where the selector appears
-         character: zero-indexed column in the line where the selector starts
-         ruleEndLine: zero-indexed line in the text where the rules for that selector end
-         ruleEndCharacter: zero-indexed column in the line where the rules for that selector end
+         line: line in the text where the selector appears
+         character: column in the line where the selector starts
+         selectorEndLine: line where the selector ends
+         selectorEndChar: column where the selector ends
+         ruleStartLine: line where the rules for the selector start
+         ruleStartChar: column in line where the rules for the selector start
+         ruleEndLine: line where the rules for the selector end
+         ruleEndChar: column in the line where the rules for the selector end
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function _extractAllSelectors(text) {
+    function extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state = CodeMirror.startState(mode);
@@ -68,6 +71,7 @@ define(function (require, exports, module) {
         var token, style, stream, i, j;
 
         var inRules = false;
+        var ruleStartLine = -1, ruleStartChar = -1;
 
         for (i = 0; i < lineCount; ++i) {
             if (currentSelector.trim() !== "") {
@@ -93,13 +97,15 @@ define(function (require, exports, module) {
                     currentSelector += token;
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
-                        selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition});
+                        selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition, selectorEndLine: i, selectorEndChar: stream.start});
                         currentSelector = "";
                         currentPosition = -1;
                     }
 
                     if (!inRules && state.stack.indexOf("{") > -1) { // just started parsing a rule
                         inRules = true;
+                        ruleStartLine = i;
+                        ruleStartChar = stream.start;
                     } else if (inRules && state.stack.indexOf("{") === -1) {  // just finished parsing a rule
                         inRules = false;
                         // assign this rule position to every selector on the stack that doesn't have a rule start and end line
@@ -107,6 +113,8 @@ define(function (require, exports, module) {
                             if (selectors[j].ruleEndLine) {
                                 break;
                             } else {
+                                selectors[j].ruleStartLine = ruleStartLine;
+                                selectors[j].ruleStartChar = ruleStartChar;
                                 selectors[j].ruleEndLine = i;
                                 selectors[j].ruleEndChar = stream.pos;
                             }
@@ -135,7 +143,7 @@ define(function (require, exports, module) {
      *  each matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = _extractAllSelectors(text);
+        var allSelectors = extractAllSelectors(text);
         var result = [];
         var i;
         
