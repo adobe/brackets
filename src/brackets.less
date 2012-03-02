@@ -316,6 +316,11 @@ a, img {
     border-bottom: 1px solid #A0A0A0;
 }
 
+.inlineCodeEditor .CodeMirror-scroll {
+    /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
+    overflow-x: hidden;
+}
+
 /* Styles for the search dialog--this is temporary, only for debugging */
 
 .CodeMirror-dialog {

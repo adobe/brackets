@@ -38,9 +38,11 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
+        CodeHintManager         = require("CodeHintManager"),
+        PerfUtils               = require("PerfUtils"),
+        CSSManager              = require("CSSManager"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project
@@ -76,6 +78,7 @@ define(function (require, exports, module) {
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("CommandManager"),
+        CSSManager              : CSSManager,
         FileIndexManager        : FileIndexManager
     };
     

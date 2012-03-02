@@ -207,6 +207,9 @@ define(function (require, exports, module) {
                 "Shift-Insert": "paste",
                 "Ctrl-E" : function (instance) {
                     onInlineGesture(instance);
+                },
+                "Cmd-E" : function (instance) {
+                    onInlineGesture(instance);
                 }
             },
             onKeyEvent: function (instance, event) {

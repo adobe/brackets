@@ -261,7 +261,7 @@ define(function (require, exports, module) {
         var ctx = _getInitialContext(editor, pos),
             offset = _offsetInToken(ctx),
             tagInfo,
-            hint;
+            tokenType;
         
         //check and see where we are in the tag
         //first check, if we're in an all whitespace token and move back
@@ -283,7 +283,7 @@ define(function (require, exports, module) {
             }
             
             //we know the tag was here, so they user is adding an attr name
-            hint = ATTR_NAME;
+            tokenType = ATTR_NAME;
             offset = 0;
         }
         
@@ -293,14 +293,14 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            if (!hint) {
-                hint = TAG_NAME;
+            if (!tokenType) {
+                tokenType = TAG_NAME;
                 offset--; //need to take off 1 for the leading "<"
             }
             
             //we're actually in the tag, just return that as we have no relevant 
             //info about what attr is selected
-            return createTagInfo(hint, offset, _extractTagName(ctx));
+            return createTagInfo(tokenType, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
@@ -311,7 +311,7 @@ define(function (require, exports, module) {
             }
             
             //The "=" is added, time to hint for values
-            hint = ATTR_VALUE;
+            tokenType = ATTR_VALUE;
             offset = 0;
         }
         
@@ -322,9 +322,9 @@ define(function (require, exports, module) {
             tagInfo = _getTagInfoStartingFromAttrValue(ctx);
         }
         
-        if (hint && tagInfo.tagName) {
-            tagInfo.hint.type = hint;
-            tagInfo.hint.offset = offset;
+        if (tokenType && tagInfo.tagName) {
+            tagInfo.position.tokenType = tokenType;
+            tagInfo.position.offset = offset;
         }
         
         return tagInfo;
