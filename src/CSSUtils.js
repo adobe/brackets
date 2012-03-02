@@ -70,12 +70,6 @@ define(function (require, exports, module) {
         var inRules = false;
 
         for (i = 0; i < lineCount; ++i) {
-            if (currentSelector.trim() !== "") { // we got to a new line with a current selector, so save it and start parsing a new selector
-                selectors.push({selector: currentSelector.trim(), line: i - 1, character: currentPosition});
-                currentSelector = "";
-                currentPosition = -1;
-            }
-
             stream = new CodeMirror.StringStream(lines[i]);
             while (!stream.eol()) {
                 style = mode.token(stream, state);
@@ -108,7 +102,7 @@ define(function (require, exports, module) {
                                 break;
                             } else {
                                 selectors[j].ruleEndLine = i;
-                                selectors[j].ruleEndChar = stream.start;
+                                selectors[j].ruleEndChar = stream.pos;
                             }
                         }
                     }
@@ -147,7 +141,7 @@ define(function (require, exports, module) {
         // For sprint 4 we only match the rightmost simple selector, and ignore 
         // attribute selectors and pseudo selectors
         var classOrIdSelector = selector[0] === "." || selector[0] === "#";
-        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*[\\w-]*)*\\s*$", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "\\s*((\\[[^\\]]*\\])*|(:{1,2}[\\w-]+)*)*\\s*$", classOrIdSelector ? "" : "i");
         for (i = 0; i < allSelectors.length; i++) {
             if (allSelectors[i].selector.search(re) !== -1) {
                 result.push(allSelectors[i]);
@@ -191,15 +185,13 @@ define(function (require, exports, module) {
                     // Scan for selectors
                     var localResults = _findAllMatchingSelectorsInText(content, selector);
                     
-                    if (localResults.length > 0) {
-                        $.each(localResults, function (index, value) {
-                            selectors.push({
-                                source: fileEntry,
-                                lineStart: localResults[index].line,
-                                lineEnd: localResults[index].ruleEndLine
-                            });
+                    localResults.forEach(function (value, index) {
+                        selectors.push({
+                            source: fileEntry,
+                            lineStart: value.line,
+                            lineEnd: value.ruleEndLine
                         });
-                    }
+                    });
                     
                     result.resolve();
                 })
