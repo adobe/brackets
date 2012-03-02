@@ -20,28 +20,35 @@ define(function (require, exports, module) {
         ProjectManager      = require("ProjectManager");
 
     // track divs to re-position manually
-    var _htmlToCSSProviderInlines   = [];
+    var _htmlToCSSProviderContent   = [];
     
     /**
-     * Reposition the filename tab. The tab is position: fixed so it will stay at the correct
-     * horizontal position relative to the browser window, but needs its top to stay in sync
-     * with the code editor's scroll position.
-     * @param {!CodeMirror} editor The inline editor containing this filename
-     * @param {!jQueryObject} filenameDiv The div displaying the filename
+     * Reposition a .inlineCodeEditor .filename div { right: 20px; }
      * @private
      */
-    function _updateInlineEditorFilename(inlineEditor, filenameDiv) {
-        $(filenameDiv).css("top", $(inlineEditor.getWrapperElement()).offset().top);
+    function _updateInlineEditorFilename(holderWidth, filenameDiv) {
+        var filenameWidth = $(filenameDiv).outerWidth();
+        $(filenameDiv).css("left", holderWidth - filenameWidth - 40);
     }
     
     /**
-     * Reposition all filename divs after a window resize or scroll.
+     * Returns editor holder width (not CodeMirror's width).
+     * @private
+     */
+    function _editorHolderWidth() {
+        return $("#editorHolder").width();
+    }
+    
+    /**
+     * Reposition all filename divs after a window resize.
      * @private
      */
     function _updateAllFilenames() {
-        _htmlToCSSProviderInlines.forEach(function (inlineInfo) {
-            var filenameDiv = $(inlineInfo.content).find(".filename");
-            _updateInlineEditorFilename(inlineInfo.editor, filenameDiv);
+        var holderWidth = _editorHolderWidth();
+        
+        _htmlToCSSProviderContent.forEach(function (value) {
+            var filenameDiv = $(value).find(".filename");
+            _updateInlineEditorFilename(holderWidth, filenameDiv);
         });
     }
     
@@ -50,27 +57,20 @@ define(function (require, exports, module) {
      * @private
      */
     function _inlineEditorRemoved(event) {
-        var i, indexOf = -1;
-        for (i = 0; i < _htmlToCSSProviderInlines.length; i++) {
-            if (_htmlToCSSProviderInlines[i].content === event.target) {
-                indexOf = i;
-                break;
-            }
-        }
+        var indexOf = _htmlToCSSProviderContent.indexOf(event.target);
         
         if (indexOf >= 0) {
-            _htmlToCSSProviderInlines.splice(indexOf, 1);
+            _htmlToCSSProviderContent.splice(indexOf, 1);
         }
         
         // stop listening for resize when all inline editors are closed
-        if (_htmlToCSSProviderInlines.length === 0) {
+        if (_htmlToCSSProviderContent.length === 0) {
             $(window).unbind("resize", _updateAllFilenames);
         }
     }
 
     /**
      * Show a range of text in an inline editor.
-     * @private
      * 
      * @param {!CodeMirror} parentEditor The parent editor that will contain the inline editor
      * @param {!FileEntry} fileEntry File containing inline content
@@ -104,13 +104,33 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return the selector relevant to the tag/attribute at the current position in the editor,
-     * or "" if no relevant tag/attribute is found.
-     * @private
-     * @param {!CodeMirror} editor The CodeMirror editor containing the HTML document.
-     * @param {!pos} pos The position within the editor to look at.
+     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
+     * CSS rules and show (one/all of them) in an inline editor.
+     *
+     * @param {!CodeMirror} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {$.Promise} a promise that will be resolved with:
+     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     *      or null if we're not going to provide anything.
      */
-    function _getSelectorInfo(editor, pos) {
+    function htmlToCSSProvider(editor, pos) {
+        // Only provide a CSS editor when cursor is in HTML content
+        if (editor.getOption("mode") !== "htmlmixed") {
+            return null;
+        }
+        var htmlmixedState = editor.getTokenAt(pos).state;
+        if (htmlmixedState.mode !== "html") {
+            return null;
+        }
+        
+        // Only provide CSS editor if the selection is an insertion point
+        var selStart = editor.getCursor(false),
+            selEnd = editor.getCursor(true);
+        
+        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
+            return null;
+        }
+                
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos),
             selectorName = "";
         
@@ -144,61 +164,7 @@ define(function (require, exports, module) {
                 selectorName = "#" + tagInfo.attr.value;
             }
         }
-        return selectorName;
-    }
-    
-    /**
-     * Create the shadow and filename tab for an inline editor.
-     * @param {!Object} inlineInfo The inline info object as returned by EditorManager.createInlineEditorFromText()
-     * @param {!string} filename The filename of the inline content
-     */
-    function _createInlineDecorators(inlineInfo, filename) {
-        // create the filename div
-        var filenameDiv = document.createElement("div");
-        $(filenameDiv).addClass("filename").text(filename);
         
-        // add inline editor styling
-        var editorWrapper = inlineInfo.editor.getWrapperElement();
-        $(editorWrapper).append('<div class="shadow top"/>');
-        $(editorWrapper).append('<div class="shadow bottom"/>');
-        $(editorWrapper).append(filenameDiv);
-        
-        // update the current inline editor immediately
-        // use setTimeout to allow filenameDiv to render first
-        setTimeout(function () {
-            _updateInlineEditorFilename(inlineInfo.editor, filenameDiv);
-        }, 0);
-    }
-    
-    /**
-     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
-     * CSS rules and show (one/all of them) in an inline editor.
-     *
-     * @param {!CodeMirror} editor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with:
-     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
-     *      or null if we're not going to provide anything.
-     */
-    function htmlToCSSProvider(editor, pos) {
-        // Only provide a CSS editor when cursor is in HTML content
-        if (editor.getOption("mode") !== "htmlmixed") {
-            return null;
-        }
-        var htmlmixedState = editor.getTokenAt(pos).state;
-        if (htmlmixedState.mode !== "html") {
-            return null;
-        }
-        
-        // Only provide CSS editor if the selection is an insertion point
-        var selStart = editor.getCursor(false),
-            selEnd = editor.getCursor(true);
-        
-        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
-            return null;
-        }
-                
-        var selectorName = _getSelectorInfo(editor, pos);
         if (selectorName === "") {
             return null;
         }
@@ -214,23 +180,30 @@ define(function (require, exports, module) {
                         .done(function (inlineInfo) {
                             // track inlineEditor content removal
                             inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
-
-                            _createInlineDecorators(inlineInfo, rule.source.name);
-
-                            // Manually position filename div's. Can't use CSS positioning in this case
+                            
+                            // create the filename div
+                            var filenameDiv = document.createElement("div");
+                            $(filenameDiv).addClass("filename").text(rule.source.name);
+                            
+                            // add inline editor styling
+                            var scroller = inlineInfo.editor.getScrollerElement();
+                            $(scroller).append('<div class="shadow top"/>');
+                            $(scroller).append('<div class="shadow bottom"/>');
+                            $(scroller).append(filenameDiv);
+                            
+                            _htmlToCSSProviderContent.push(inlineInfo.content);
+                            
+                            // Manaully position filename div's. Can't use CSS positioning in this case
                             // since the label is relative to the window boundary, not CodeMirror.
-                            if (_htmlToCSSProviderInlines.length === 0) {
-                                // Although the position: fixed tab will ordinarily keep its position relative to
-                                // the right-hand side even on a resize, we might have to deal with the vertical
-                                // position of the inline editor shifting if word-wrap is on.
+                            if (_htmlToCSSProviderContent.length > 0) {
                                 $(window).bind("resize", _updateAllFilenames);
-
-                                // TODO: (Issue #370) CodeMirror only allows one onScroll handler, so if anyone else wants to handle
-                                // scrolling, this will clobber it.
-                                editor.setOption("onScroll", _updateAllFilenames);
                             }
                             
-                            _htmlToCSSProviderInlines.push(inlineInfo);
+                            // update the current inline editor immediately
+                            // use setTimeout to allow filenameDiv to render first
+                            setTimeout(function () {
+                                _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+                            }, 0);
 
                             result.resolve(inlineInfo);
                         })

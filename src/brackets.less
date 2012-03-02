@@ -60,10 +60,6 @@ a, img {
        so we need to .clearfix the children. */
     .clearfix;
 
-    /* Make sure the inline tabs don't go over the menubar */
-    position: relative;
-    z-index: 21;
-
     .brand {
         .sane-box-model;
         margin-left: 0;
@@ -122,11 +118,6 @@ a, img {
     border-top-style: solid;
     border-width: 1px;
     border-color: lighten(@bc-grey, @bc-color-step-size*4);
-    background-color: #ffffff;
-    
-    /* Make sure the inline tabs don't go over the lint results */
-    position: relative;
-    z-index: 20;
 
     .toolbar {
         height: auto;
@@ -323,11 +314,11 @@ a, img {
 .inlineCodeEditor {
     border-top:    1px solid #C0C0C0;
     border-bottom: 1px solid #C0C0C0;
-    
-    .CodeMirror-scroll {
-        /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
-        overflow-x: hidden;
-    }
+}
+
+.inlineCodeEditor .CodeMirror-scroll {
+    /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
+    overflow-x: hidden;
 }
 
 /* Styles for the search dialog--this is temporary, only for debugging */
