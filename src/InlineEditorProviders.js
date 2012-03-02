@@ -152,7 +152,7 @@ define(function (require, exports, module) {
      */
     function _createInlineEditorDecorations(editor, filename) {
         // create the filename div
-        var filenameDiv = $('<div class="filename"/>').text(filename);
+        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>').text(filename);
         
         // add inline editor styling
         $(editor.getScrollerElement())
@@ -164,6 +164,7 @@ define(function (require, exports, module) {
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
             _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+            filenameDiv.css("visibility", "");
         }, 0);
     }
     
