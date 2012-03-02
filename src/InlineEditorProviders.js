@@ -15,7 +15,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeHintUtils       = require("CodeHintUtils"),
         CSSManager          = require("CSSManager"),
-        CSSUtils            = require("CSSUtils"),
+        CSSUtils            = require("CSSUtilsCodeMirror"),
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
