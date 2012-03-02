@@ -104,33 +104,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
-     * CSS rules and show (one/all of them) in an inline editor.
-     *
-     * @param {!CodeMirror} editor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with:
-     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
-     *      or null if we're not going to provide anything.
+     * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
+     * surrounding that position, or "" if none is found.
+     * @private
      */
-    function htmlToCSSProvider(editor, pos) {
-        // Only provide a CSS editor when cursor is in HTML content
-        if (editor.getOption("mode") !== "htmlmixed") {
-            return null;
-        }
-        var htmlmixedState = editor.getTokenAt(pos).state;
-        if (htmlmixedState.mode !== "html") {
-            return null;
-        }
-        
-        // Only provide CSS editor if the selection is an insertion point
-        var selStart = editor.getCursor(false),
-            selEnd = editor.getCursor(true);
-        
-        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
-            return null;
-        }
-                
+    function _getSelectorName(editor, pos) {
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos),
             selectorName = "";
         
@@ -165,6 +143,59 @@ define(function (require, exports, module) {
             }
         }
         
+        return selectorName;
+    }
+    
+    /**
+     * Create the shadowing and filename tab for an inline editor.
+     * @private
+     */
+    function _createInlineEditorDecorations(editor, filename) {
+        // create the filename div
+        var filenameDiv = $('<div class="filename"/>').text(filename);
+        
+        // add inline editor styling
+        $(editor.getScrollerElement())
+            .append('<div class="shadow top"/>')
+            .append('<div class="shadow bottom"/>')
+            .append(filenameDiv);
+
+        // update the current inline editor immediately
+        // use setTimeout to allow filenameDiv to render first
+        setTimeout(function () {
+            _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+        }, 0);
+    }
+    
+    /**
+     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
+     * CSS rules and show (one/all of them) in an inline editor.
+     *
+     * @param {!CodeMirror} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {$.Promise} a promise that will be resolved with:
+     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     *      or null if we're not going to provide anything.
+     */
+    function htmlToCSSProvider(editor, pos) {
+        // Only provide a CSS editor when cursor is in HTML content
+        if (editor.getOption("mode") !== "htmlmixed") {
+            return null;
+        }
+        var htmlmixedState = editor.getTokenAt(pos).state;
+        if (htmlmixedState.mode !== "html") {
+            return null;
+        }
+        
+        // Only provide CSS editor if the selection is an insertion point
+        var selStart = editor.getCursor(false),
+            selEnd = editor.getCursor(true);
+        
+        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
+            return null;
+        }
+        
+        var selectorName = _getSelectorName(editor, pos);
         if (selectorName === "") {
             return null;
         }
@@ -180,16 +211,7 @@ define(function (require, exports, module) {
                         .done(function (inlineInfo) {
                             // track inlineEditor content removal
                             inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
-                            
-                            // create the filename div
-                            var filenameDiv = document.createElement("div");
-                            $(filenameDiv).addClass("filename").text(rule.source.name);
-                            
-                            // add inline editor styling
-                            var scroller = inlineInfo.editor.getScrollerElement();
-                            $(scroller).append('<div class="shadow top"/>');
-                            $(scroller).append('<div class="shadow bottom"/>');
-                            $(scroller).append(filenameDiv);
+                            _createInlineEditorDecorations(inlineInfo.editor, rule.source.name);
                             
                             _htmlToCSSProviderContent.push(inlineInfo.content);
                             
@@ -199,12 +221,6 @@ define(function (require, exports, module) {
                                 $(window).bind("resize", _updateAllFilenames);
                             }
                             
-                            // update the current inline editor immediately
-                            // use setTimeout to allow filenameDiv to render first
-                            setTimeout(function () {
-                                _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
-                            }, 0);
-
                             result.resolve(inlineInfo);
                         })
                         .fail(function () {
