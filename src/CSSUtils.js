@@ -64,12 +64,17 @@ define(function (require, exports, module) {
         var lines = CodeMirror.splitLines(text);
         var lineCount = lines.length;
         
-        var currentSelector = "", currentPosition = -1;
+        var currentSelector = "", currentPosition = -1, selectorStartLine;
         var token, style, stream, i, j;
 
         var inRules = false;
 
         for (i = 0; i < lineCount; ++i) {
+            if (currentSelector.trim() !== "") {
+                // If we are in a current selector and starting a newline, make sure there is whitespace in the selector
+                currentSelector += " ";
+            }
+            
             stream = new CodeMirror.StringStream(lines[i]);
             while (!stream.eol()) {
                 style = mode.token(stream, state);
@@ -83,11 +88,12 @@ define(function (require, exports, module) {
                     // we're parsing a selector!
                     if (currentPosition < 0) { // start of a new selector
                         currentPosition = stream.start;
+                        selectorStartLine = i;
                     }
                     currentSelector += token;
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
-                        selectors.push({selector: currentSelector.trim(), line: i, character: currentPosition});
+                        selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition});
                         currentSelector = "";
                         currentPosition = -1;
                     }
@@ -133,15 +139,22 @@ define(function (require, exports, module) {
         var result = [];
         var i;
         
+        // For sprint 4 we only match the rightmost simple selector, and ignore 
+        // attribute selectors and pseudo selectors
+        var classOrIdSelector = selector[0] === "." || selector[0] === "#";
+        var prefix = "";
+        
         // Escape initial "." in selector, if present.
         if (selector[0] === ".") {
             selector = "\\" + selector;
         }
         
-        // For sprint 4 we only match the rightmost simple selector, and ignore 
-        // attribute selectors and pseudo selectors
-        var classOrIdSelector = selector[0] === "." || selector[0] === "#";
-        var re = new RegExp(selector + "\\s*((\\[[^\\]]*\\])*|(:{1,2}[\\w-]+)*)*\\s*$", classOrIdSelector ? "" : "i");
+        if (!classOrIdSelector) {
+            // Tag selectors must have nothing or whitespace before it.
+            selector = "(^|\\s)" + selector;
+        }
+        
+        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         for (i = 0; i < allSelectors.length; i++) {
             if (allSelectors[i].selector.search(re) !== -1) {
                 result.push(allSelectors[i]);
