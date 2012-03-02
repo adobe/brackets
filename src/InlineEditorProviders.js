@@ -232,7 +232,7 @@ define(function (require, exports, module) {
                 }
             })
             .fail(function () {
-                console.log("Error in CSSManager.findMatchingRules()");
+                console.log("Error in findMatchingRules()");
                 result.reject();
             });
         

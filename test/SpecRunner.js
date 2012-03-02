@@ -27,7 +27,6 @@ define(function (require, exports, module) {
     require("spec/KeyMap-test.js");
     require("spec/FileIndexManager-test.js");
     require("spec/CodeHintUtils-test.js");
-    require("spec/CSSManager-test.js");
 
     // Clean up preferencesKey
     $(window).unload(function () {
