@@ -42,10 +42,10 @@ define(function (require, exports, module) {
             var selectors = CSSUtils._findAllMatchingSelectorsInText(content, "h2");
             expect(selectors).not.toBe(null);
             expect(selectors.length).toBe(2);
-            expect(selectors[0].start).toBe(292);
-            expect(selectors[0].end).toBe(301);
-            expect(selectors[1].start).toBe(318);
-            expect(selectors[1].end).toBe(321);
+            expect(selectors[0].line).toBe(292);
+            expect(selectors[0].ruleEndLine).toBe(301);
+            expect(selectors[1].line).toBe(318);
+            expect(selectors[1].ruleEndLine).toBe(321);
         });
         
         it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
