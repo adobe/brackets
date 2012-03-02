@@ -185,7 +185,7 @@ define(function (require, exports, module) {
                     // Scan for selectors
                     var localResults = _findAllMatchingSelectorsInText(content, selector);
                     
-                    localResults.forEach(function (value, index) {
+                    localResults.forEach(function (value) {
                         selectors.push({
                             source: fileEntry,
                             lineStart: value.line,
