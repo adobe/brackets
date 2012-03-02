@@ -147,7 +147,7 @@ define(function (require, exports, module) {
         // For sprint 4 we only match the rightmost simple selector, and ignore 
         // attribute selectors and pseudo selectors
         var classOrIdSelector = selector[0] === "." || selector[0] === "#";
-        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*[\\w-]*)*\\s*", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "\\s*(\\[[^\\]]*\\])*(::*[\\w-]*)*\\s*$", classOrIdSelector ? "" : "i");
         for (i = 0; i < allSelectors.length; i++) {
             if (allSelectors[i].selector.search(re) !== -1) {
                 result.push(allSelectors[i]);
@@ -177,7 +177,6 @@ define(function (require, exports, module) {
      * @return {Array<Object>} Array of objects containing the source (FileEntry), lineStart (Number), and 
      *  lineEnd (Number) for each matching rule.
      */
-     
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),

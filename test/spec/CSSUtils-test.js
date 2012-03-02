@@ -31,30 +31,25 @@ define(function (require, exports, module) {
         });
 
         it("should find the first instance of the h2 selector", function () {
-            var selector = CSSUtils._findSelector(content, "h2");
+            var selector = CSSUtils._findAllMatchingSelectorsInText(content, "h2")[0];
             
             expect(selector).not.toBe(null);
-            expect(selector.start).toBe(4371);
-            expect(selector.end).toBe(4482);
+            expect(selector.line).toBe(292);
+            expect(selector.ruleEndLine).toBe(301);
         });
         
         it("should find all instances of the h2 selector", function () {
-            var selectors = CSSUtils._findAllMatchingSelectors(content, "h2");
+            var selectors = CSSUtils._findAllMatchingSelectorsInText(content, "h2");
             expect(selectors).not.toBe(null);
             expect(selectors.length).toBe(2);
-            expect(selectors[0].start).toBe(4371);
-            expect(selectors[0].end).toBe(4482);
-            expect(selectors[1].start).toBe(4667);
-            expect(selectors[1].end).toBe(4712);
-        });
-        
-        it("should return null when a findSelector cannot find a match", function () {
-            var selector = CSSUtils._findSelector(content, "NO-SUCH-SELECTOR");
-            expect(selector).toBe(null);
+            expect(selectors[0].start).toBe(292);
+            expect(selectors[0].end).toBe(301);
+            expect(selectors[1].start).toBe(318);
+            expect(selectors[1].end).toBe(321);
         });
         
         it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
-            var selectors = CSSUtils._findAllMatchingSelectors(content, "NO-SUCH-SELECTOR");
+            var selectors = CSSUtils._findAllMatchingSelectorsInText(content, "NO-SUCH-SELECTOR");
             expect(selectors.length).toBe(0);
         });
     });
