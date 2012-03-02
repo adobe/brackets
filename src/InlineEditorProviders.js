@@ -19,6 +19,56 @@ define(function (require, exports, module) {
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
 
+    // track divs to re-position manually
+    var _htmlToCSSProviderContent   = [];
+    
+    /**
+     * Reposition a .inlineCodeEditor .filename div { right: 20px; }
+     * @private
+     */
+    function _updateInlineEditorFilename(holderWidth, filenameDiv) {
+        var filenameWidth = $(filenameDiv).outerWidth();
+        $(filenameDiv).css("left", holderWidth - filenameWidth - 40);
+    }
+    
+    /**
+     * Returns editor holder width (not CodeMirror's width).
+     * @private
+     */
+    function _editorHolderWidth() {
+        return $("#editorHolder").width();
+    }
+    
+    /**
+     * Reposition all filename divs after a window resize.
+     * @private
+     */
+    function _updateAllFilenames() {
+        var holderWidth = _editorHolderWidth();
+        
+        _htmlToCSSProviderContent.forEach(function (value) {
+            var filenameDiv = $(value).find(".filename");
+            _updateInlineEditorFilename(holderWidth, filenameDiv);
+        });
+    }
+    
+    /**
+     * Stops tracking an editor after being removed from the document.
+     * @private
+     */
+    function _inlineEditorRemoved(event) {
+        var indexOf = _htmlToCSSProviderContent.indexOf(event.target);
+        
+        if (indexOf >= 0) {
+            _htmlToCSSProviderContent.splice(indexOf, 1);
+        }
+        
+        // stop listening for resize when all inline editors are closed
+        if (_htmlToCSSProviderContent.length === 0) {
+            $(window).unbind("resize", _updateAllFilenames);
+        }
+    }
+
     /**
      * Show a range of text in an inline editor.
      * 
@@ -54,33 +104,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
-     * CSS rules and show (one/all of them) in an inline editor.
-     *
-     * @param {!CodeMirror} editor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with:
-     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
-     *      or null if we're not going to provide anything.
+     * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
+     * surrounding that position, or "" if none is found.
+     * @private
      */
-    function htmlToCSSProvider(editor, pos) {
-        // Only provide a CSS editor when cursor is in HTML content
-        if (editor.getOption("mode") !== "htmlmixed") {
-            return null;
-        }
-        var htmlmixedState = editor.getTokenAt(pos).state;
-        if (htmlmixedState.mode !== "html") {
-            return null;
-        }
-        
-        // Only provide CSS editor if the selection is an insertion point
-        var selStart = editor.getCursor(false),
-            selEnd = editor.getCursor(true);
-        
-        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
-            return null;
-        }
-                
+    function _getSelectorName(editor, pos) {
         var tagInfo = CodeHintUtils.getTagInfo(editor, pos),
             selectorName = "";
         
@@ -115,6 +143,59 @@ define(function (require, exports, module) {
             }
         }
         
+        return selectorName;
+    }
+    
+    /**
+     * Create the shadowing and filename tab for an inline editor.
+     * @private
+     */
+    function _createInlineEditorDecorations(editor, filename) {
+        // create the filename div
+        var filenameDiv = $('<div class="filename"/>').text(filename);
+        
+        // add inline editor styling
+        $(editor.getScrollerElement())
+            .append('<div class="shadow top"/>')
+            .append('<div class="shadow bottom"/>')
+            .append(filenameDiv);
+
+        // update the current inline editor immediately
+        // use setTimeout to allow filenameDiv to render first
+        setTimeout(function () {
+            _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+        }, 0);
+    }
+    
+    /**
+     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
+     * CSS rules and show (one/all of them) in an inline editor.
+     *
+     * @param {!CodeMirror} editor
+     * @param {!{line:Number, ch:Number}} pos
+     * @return {$.Promise} a promise that will be resolved with:
+     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     *      or null if we're not going to provide anything.
+     */
+    function htmlToCSSProvider(editor, pos) {
+        // Only provide a CSS editor when cursor is in HTML content
+        if (editor.getOption("mode") !== "htmlmixed") {
+            return null;
+        }
+        var htmlmixedState = editor.getTokenAt(pos).state;
+        if (htmlmixedState.mode !== "html") {
+            return null;
+        }
+        
+        // Only provide CSS editor if the selection is an insertion point
+        var selStart = editor.getCursor(false),
+            selEnd = editor.getCursor(true);
+        
+        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
+            return null;
+        }
+        
+        var selectorName = _getSelectorName(editor, pos);
         if (selectorName === "") {
             return null;
         }
@@ -128,6 +209,18 @@ define(function (require, exports, module) {
                     
                     _showTextRangeInInlineEditor(editor, rule.source, rule.lineStart, rule.lineEnd)
                         .done(function (inlineInfo) {
+                            // track inlineEditor content removal
+                            inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
+                            _createInlineEditorDecorations(inlineInfo.editor, rule.source.name);
+                            
+                            _htmlToCSSProviderContent.push(inlineInfo.content);
+                            
+                            // Manaully position filename div's. Can't use CSS positioning in this case
+                            // since the label is relative to the window boundary, not CodeMirror.
+                            if (_htmlToCSSProviderContent.length > 0) {
+                                $(window).bind("resize", _updateAllFilenames);
+                            }
+                            
                             result.resolve(inlineInfo);
                         })
                         .fail(function () {
