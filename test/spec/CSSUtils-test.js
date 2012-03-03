@@ -74,6 +74,11 @@ define(function (require, exports, module) {
         
         describe("line offsets", function () {
             
+            /**
+             * Checks the lines ranges of the results returned by CSSUtils. Expects the numbers of
+             * results to equal the length of 'ranges'; each entry in range gives the {start, end}
+             * of the expected line range for that Nth result.
+             */
             function expectRuleRanges(spec, cssCode, selector, ranges) {
                 var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
                 spec.expect(result.length).toEqual(ranges.length);
@@ -212,13 +217,16 @@ define(function (require, exports, module) {
                 }
                 return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
             } else {
+                // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
                 CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy");
+                return null;
             }
         }
         
         /**
          * Test helper function; tagInfo object contains one of: tag, id, clazz. Tests against only
-         * the given cssCode string in isolation (no CSS files are loaded).
+         * the given cssCode string in isolation (no CSS files are loaded). If tagInfo not specified,
+         * returns no results; only tests that parsing plus a simple search won't crash.
          */
         var _match = function (cssCode, tagInfo) {
             lastCssCode = cssCode;
@@ -242,7 +250,7 @@ define(function (require, exports, module) {
          */
         var _expectParseError = function (cssCode, expectedCodeOffset, expectedErrorMessage) {
             try {
-                _findMatchingRules(cssCode, { tag: "dummy_shouldnt_read_anyway" });
+                _findMatchingRules(cssCode, null);
                 
                 // shouldn't get here since _findMatchingRules() is expected to throw
                 this.fail("Expected parse error: " + cssCode);
