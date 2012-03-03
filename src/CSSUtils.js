@@ -154,10 +154,15 @@ define(function (require, exports, module) {
             selector = "(^|\\s)" + selector;
         }
         
-        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         for (i = 0; i < allSelectors.length; i++) {
             if (allSelectors[i].selector.search(re) !== -1) {
                 result.push(allSelectors[i]);
+            } else if (!classOrIdSelector) {
+                // Special case for tag selectors - match "*"
+                if (allSelectors[i].selector.trim() === "*") {
+                    result.push(allSelectors[i]);
+                }
             }
         }
         
