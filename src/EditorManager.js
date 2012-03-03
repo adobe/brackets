@@ -274,7 +274,8 @@ define(function (require, exports, module) {
     function _closeInlineWidget(hostEditor, inlineId) {
         // Place cursor back on the line just above the inline (the line from which it was opened)
         // If cursor's already on that line, leave it be to preserve column position
-        var widgetLine = hostEditor.getInlineWidgetInfo(inlineId).line;
+        var info = hostEditor.getInlineWidgetInfo(inlineId);
+        var widgetLine = info.line;
         var cursorLine = hostEditor.getCursor().line;
         if (cursorLine !== widgetLine) {
             hostEditor.setCursor({ line: widgetLine, pos: 0 });
@@ -283,6 +284,8 @@ define(function (require, exports, module) {
         hostEditor.removeInlineWidget(inlineId);
         
         hostEditor.focus();
+        
+        $(info.node).triggerHandler("closed", info.node);
     }
     
     function registerInlineEditProvider(provider) {
