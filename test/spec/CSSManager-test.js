@@ -18,7 +18,8 @@ define(function (require, exports, module) {
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
         universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
         groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
-        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css");
+        offsetsCssFileEntry     = new NativeFileSystem.FileEntry(testPath + "/offsets.css"),
+        bootstrapCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/bootstrap.css");
     
     
     /**
@@ -109,7 +110,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("findMatchingRules() with the universal selector", function () {
+        describe("with the universal selector", function () {
         
             beforeEach(function () {
                 init(this, universalCssFileEntry);
@@ -129,7 +130,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("findMatchingRules() with sprint 4 exemptions", function () {
+        describe("with sprint 4 exemptions", function () {
         
             beforeEach(function () {
                 var sprint4exemptions = new NativeFileSystem.FileEntry(testPath + "/sprint4.css");
@@ -156,8 +157,40 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("with real-world Bootstrap CSS code", function () {
+            
+            beforeEach(function () {
+                init(this, bootstrapCssFileEntry);
+            });
+            
+            it("should find the first instance of the h2 selector", function () {
+                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "h2");
+                expect(selectors).not.toBe(null);
+                expect(selectors.length).toBeGreaterThan(0);
+                
+                expect(selectors[0]).not.toBe(null);
+                expect(selectors[0].line).toBe(292);
+                expect(selectors[0].ruleEndLine).toBe(301);
+            });
+            
+            it("should find all instances of the h2 selector", function () {
+                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "h2");
+                expect(selectors.length).toBe(2);
+                
+                expect(selectors[0].line).toBe(292);
+                expect(selectors[0].ruleEndLine).toBe(301);
+                expect(selectors[1].line).toBe(318);
+                expect(selectors[1].ruleEndLine).toBe(321);
+            });
+            
+            it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
+                var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "NO-SUCH-SELECTOR");
+                expect(selectors.length).toBe(0);
+            });
+        });
+        
     }); // describe("CSSUtils")
-    
+
     
     describe("CSS Parsing: ", function () {
         
