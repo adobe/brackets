@@ -23,7 +23,7 @@ define(function (require, exports, module) {
     var _htmlToCSSProviderContent   = [];
     
     /**
-     * Reposition a .inlineCodeEditor .filename div { right: 20px; }
+     * Reposition a .inlineCodeEditor .filename div { right: 40px; }
      * @private
      */
     function _updateInlineEditorFilename(holderWidth, filenameDiv) {
@@ -50,23 +50,6 @@ define(function (require, exports, module) {
             var filenameDiv = $(value).find(".filename");
             _updateInlineEditorFilename(holderWidth, filenameDiv);
         });
-    }
-    
-    /**
-     * Stops tracking an editor after being removed from the document.
-     * @private
-     */
-    function _inlineEditorRemoved(event) {
-        var indexOf = _htmlToCSSProviderContent.indexOf(event.target);
-        
-        if (indexOf >= 0) {
-            _htmlToCSSProviderContent.splice(indexOf, 1);
-        }
-        
-        // stop listening for resize when all inline editors are closed
-        if (_htmlToCSSProviderContent.length === 0) {
-            $(window).unbind("resize", _updateAllFilenames);
-        }
     }
 
     /**
@@ -210,8 +193,20 @@ define(function (require, exports, module) {
                     
                     _showTextRangeInInlineEditor(editor, rule.source, rule.lineStart, rule.lineEnd)
                         .done(function (inlineInfo) {
-                            // track inlineEditor content removal
-                            inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
+                            // Stops tracking an inline editor after it closes
+                            $(inlineInfo.content).one("closed", function(event) {
+                                var indexOf = _htmlToCSSProviderContent.indexOf(inlineInfo.content);
+                                
+                                if (indexOf >= 0) {
+                                    _htmlToCSSProviderContent.splice(indexOf, 1);
+                                }
+                                
+                                // stop listening for resize when all inline editors are closed
+                                if (_htmlToCSSProviderContent.length === 0) {
+                                    $(window).unbind("resize", _updateAllFilenames);
+                                }
+                            });
+
                             _createInlineEditorDecorations(inlineInfo.editor, rule.source.name);
                             
                             _htmlToCSSProviderContent.push(inlineInfo.content);
