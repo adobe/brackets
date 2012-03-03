@@ -344,18 +344,28 @@ define(function (require, exports, module) {
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
+            var hidLines = false;
             if (range) {
                 inlineEditor.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
+                        hidLines = true;
                         inlineEditor.hideLine(i);
                     }
                     var lineCount = inlineEditor.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
+                        hidLines = true;
                         inlineEditor.hideLine(i);
                     }
                 });
                 inlineEditor.setCursor(range.startLine, 0);
+            }
+            
+            // If we haven't hidden any lines (which would have caused an update already), 
+            // force the editor to update its display so we measure the correct height below
+            // in totalHeight().
+            if (!hidLines) {
+                inlineEditor.refresh();
             }
             
             // Auto-size editor to its remaining content
