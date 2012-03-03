@@ -591,7 +591,6 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 // Newline inside string (unescaped, with backslash line terminator)
-                // TODO (issue #317): LESS parser chokes on this
                 result = match("li::before { content: 'foo\\\nbar'; } \n div { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 
@@ -895,11 +894,9 @@ define(function (require, exports, module) {
             });
         }); // describe("At-rules")        
 
-        // TODO: turn these into actual tests now that they parse correctly
         
-        // The following tests expect "failures" in order to pass. They
-        // will be updated once the associated issues are fixed.
-        describe("Known Issues", function () {
+        // The following tests were for known failures in the LESS parser
+        describe("LESS Known Issues", function () {
             
             it("should handle an empty declaration (extra semi-colon)", function () {
                 var result = match("h4 { color:red;; }", { tag: "h4" });
