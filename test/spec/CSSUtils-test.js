@@ -14,7 +14,7 @@ define(function (require, exports, module) {
         CSSUtils                = require("CSSUtils"),
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
-    var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSManager-test-files"),
+    var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
         universalCssFileEntry   = new NativeFileSystem.FileEntry(testPath + "/universal.css"),
         groupsFileEntry         = new NativeFileSystem.FileEntry(testPath + "/groups.css"),
@@ -597,6 +597,7 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 result = match("/* div::before { content: \"*/\"; } \n h4 { color:red }*/ \n p { color:green }", { tag: "div" });
+                console.log("/* div::before { content: \"*/\"; } \n h4 { color:red }*/ \n p { color:green }");
                 expect(result.length).toBe(0);
                 result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(0);
