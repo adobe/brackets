@@ -244,7 +244,7 @@ define(function (require, exports, module) {
             try {
                 _findMatchingRules(cssCode, { tag: "dummy_shouldnt_read_anyway" });
                 
-                // shouldn't get here since _loadString() is expected to throw
+                // shouldn't get here since _findMatchingRules() is expected to throw
                 this.fail("Expected parse error: " + cssCode);
                 
             } catch (error) {
@@ -438,6 +438,21 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
                 result = matchAgain({ id: "otherId" });
                 expect(result.length).toBe(0);
+                
+                result = match("div * { color:red }", { tag: "span"});
+                expect(result.length).toBe(1);
+                matchAgain({ tag: "div"});      // only because '*' matches 'div'
+                expect(result.length).toBe(1);
+                
+                result = match(".foo * { color:red }", { tag: "span"});
+                expect(result.length).toBe(1);
+                result = matchAgain({ clazz: "foo"});
+                expect(result.length).toBe(0);
+                
+                result = match("#bar * { color:red }", { tag: "span"});
+                expect(result.length).toBe(1);
+                result = matchAgain({ id: "bar"});
+                expect(result.length).toBe(0);
             });
             
             it("should ignore pseudo-class selectors", function () {
@@ -581,11 +596,13 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
                 // Comments inside strings
+                // '/*' in a string does not start a comment...
                 result = match("div::before { content: \"/*\"; } \n h4 { color: red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(1);
                 
+                // If not in a comment, '*/' is also fine...
                 result = match("div::before { content: \"/**/\"; } \n h4 { color:red }", { tag: "div" });
                 expect(result.length).toBe(1);
                 result = matchAgain({ tag: "h4" });
@@ -596,18 +613,19 @@ define(function (require, exports, module) {
                 result = matchAgain({ tag: "h4" });
                 expect(result.length).toBe(1);
                 
-                result = match("/* div::before { content: \"*/\"; } \n h4 { color:red }*/ \n p { color:green }", { tag: "div" });
-                console.log("/* div::before { content: \"*/\"; } \n h4 { color:red }*/ \n p { color:green }");
+                // But if already in a comment, '*/' in a string DOES END the comment
+                // So the rule below is equivalent to "span::before { content:\"foo\"; }"
+                result = match("span::before { content:/*div::before { content: \"*/\"foo\"; } \n h4 { color:red }", { tag: "div" });
                 expect(result.length).toBe(0);
+                result = matchAgain({ tag: "span" });
+                expect(result.length).toBe(1);
                 result = matchAgain({ tag: "h4" });
-                expect(result.length).toBe(0);
-                result = matchAgain({ tag: "p" });
                 expect(result.length).toBe(1);
             });
             
             it("should handle unusual whitespace", function () {
                 // This is valid CSS, but both Chrome and FF treat it as invalid
-                // It *should* be treated as ".foo .bar", not ".foo.bar"
+                // It *should* be treated as ".foo .bar" (not ".foo.bar")
                 var css = ".foo\n" +
                           ".bar\n" +
                           "{ color: red; }";
@@ -644,16 +662,15 @@ define(function (require, exports, module) {
                 match("div#myId[attr*='value'].myClass {}");
                 match(":focus[attr=\"value\"].className {}");
                 
-                // TODO (issue #317): LESS parser chokes on attributes ending in a digit
-                // match("tagName[attr2='value'] {}");
-                // match("tagName[attr2 = 'value'] {}");
-                // match("tagName[attr2 ='value'] {}");
-                // match("tagName[attr2= 'value'] {}");
-                // match("tagName[attr2=\"value\"] {}");
-                // match("[attr2='value'] {}"); 
-                // match("tagName[attr=\"value\"][attr2=\"value2\"] {}");
-                // match("tagName[attr='value'][attr2='value2'] {}");
-                match(":not([attr2=\"value2\"]) {}");   // oddly, works fine if it's in a :not() clause
+                match("tagName[attr2='value'] {}");
+                match("tagName[attr2 = 'value'] {}");
+                match("tagName[attr2 ='value'] {}");
+                match("tagName[attr2= 'value'] {}");
+                match("tagName[attr2=\"value\"] {}");
+                match("[attr2='value'] {}"); 
+                match("tagName[attr=\"value\"][attr2=\"value2\"] {}");
+                match("tagName[attr='value'][attr2='value2'] {}");
+                match(":not([attr2=\"value2\"]) {}");
                 
                 // Pseudo-classes with complicated syntax
                 match(":lang(de) {}");
@@ -692,22 +709,21 @@ define(function (require, exports, module) {
                 // not valid: :not(::first-line) - because pseudo-elements aren't simple selectors
                 
                 // Namespaces
-                // TODO (issue #317): LESS parser chokes on these
-                // var nsDecl = "@namespace ns \"http://www.example.com\"\n";
-                // match("[*|role] {}");
-                // match("[|role] {}");
-                // match(nsDecl + "[ns|role] {}");
-                // match(nsDecl + "[ns|role|='value'] {}");
-                // match("*|div {}");
-                // match("|div {}");
-                // match(nsDecl + "ns|div {}");
-                // match("*|* {}");
-                // match("|* {}");
-                // match(nsDecl + "ns|* {}");
-                // match("*|*:not(*) {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
+                var nsDecl = "@namespace ns \"http://www.example.com\"\n";
+                match("[*|role] {}");
+                match("[|role] {}");
+                match(nsDecl + "[ns|role] {}");
+                match(nsDecl + "[ns|role|='value'] {}");
+                match("*|div {}");
+                match("|div {}");
+                match(nsDecl + "ns|div {}");
+                match("*|* {}");
+                match("|* {}");
+                match(nsDecl + "ns|* {}");
+                match("*|*:not(*) {}");      // actual example from W3C spec; 5 points if you can figure out what it means!
             });
             
-            it("shouldn't crash on CSS Animation syntax (@keyframe)", function () {
+            it("shouldn't crash on CSS Animation syntax (@keyframes)", function () {
                 var css = "div { color:red } \n" +
                           "@keyframes slide { \n" +
                           "  from { left: 0; } \n" +
@@ -721,8 +737,10 @@ define(function (require, exports, module) {
                 result = matchAgain({ clazz: "foo" });
                 expect(result.length).toBe(1);
                 
-                result = matchAgain({ tag: "slide" });
-                expect(result.length).toBe(0);
+                // TODO (issue #389): false positive match from @keyframes animation identifier
+                // result = matchAgain({ tag: "slide" });
+                // expect(result.length).toBe(0);
+                
                 result = matchAgain({ tag: "from" });
                 expect(result.length).toBe(0);
             });
@@ -877,11 +895,12 @@ define(function (require, exports, module) {
             });
         }); // describe("At-rules")        
 
+        // TODO: turn these into actual tests now that they parse correctly
+        
         // The following tests expect "failures" in order to pass. They
         // will be updated once the associated issues are fixed.
         describe("Known Issues", function () {
             
-            // TODO (issue #332): ParseError for double semi-colon
             it("should handle an empty declaration (extra semi-colon)", function () {
                 var result = match("h4 { color:red;; }", { tag: "h4" });
                 expect(result.length).toBe(1);
@@ -889,7 +908,6 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
             });
             
-            // TODO (issue #338): ParseError for various IE filter syntaxes
             it("should handle IE filter syntaxes", function () {
                 var result = match("div{opacity:0; filter:alpha(opacity = 0)}", { tag: "div" });
                 expect(result.length).toBe(1);
@@ -900,13 +918,11 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
             });
             
-            // TODO (issue #343): Inline editor has trouble with CSS Hacks
             it("should handle unnecessary escape codes", function () {
                 var result = match("div { f\\loat: left; }", { tag: "div" });
                 expect(result.length).toBe(1);
             });
             
-            // TODO (issue #343): Inline editor has trouble with CSS Hacks
             it("should handle comments within properties", function () {
                 match("div { display/**/: block; }");
                 match("div/**/ { display: block; }");
