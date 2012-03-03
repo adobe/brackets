@@ -159,8 +159,8 @@ define(function (require, exports, module) {
             if (entry.selector.search(re) !== -1) {
                 result.push(entry);
             } else if (!classOrIdSelector) {
-                // Special case for tag selectors - match "*"
-                if (entry.selector.trim() === "*") {
+                // Special case for tag selectors - match "*" as the rightmost character
+                if (entry.selector.trim().search(/\*$/) !== -1) {
                     result.push(entry);
                 }
             }
