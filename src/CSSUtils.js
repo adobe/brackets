@@ -155,16 +155,16 @@ define(function (require, exports, module) {
         }
         
         var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
-        for (i = 0; i < allSelectors.length; i++) {
-            if (allSelectors[i].selector.search(re) !== -1) {
-                result.push(allSelectors[i]);
+        allSelectors.forEach(function (entry) {
+            if (entry.selector.search(re) !== -1) {
+                result.push(entry);
             } else if (!classOrIdSelector) {
-                // Special case for tag selectors - match "*"
-                if (allSelectors[i].selector.trim() === "*") {
-                    result.push(allSelectors[i]);
+                // Special case for tag selectors - match "*" as the rightmost character
+                if (entry.selector.trim().search(/\*$/) !== -1) {
+                    result.push(entry);
                 }
             }
-        }
+        });
         
         return result;
     }
