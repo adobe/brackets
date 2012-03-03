@@ -289,6 +289,32 @@ define(function (require, exports, module) {
         _inlineEditProviders.push(provider);
     }
     
+    /**
+     * @private
+     * Given an array editors, find the widest gutter and make all the others match
+     * @param [{!CodeMirror}] editor An array of code mirror editors
+     */
+    function _syncGutterWidths(editors) {
+        if (editors.length === 1) {
+            $(editors[0].getScrollerElement()).find(".CodeMirror-gutter").css("min-width", '');
+            editors[0].refresh();
+            return;
+        }
+        
+        var maxWidth = 0;
+        editors.forEach(function (ele, i, arr) {
+            var curWidth =  $(ele.getScrollerElement()).find(".CodeMirror-gutter").width();
+            if (curWidth > maxWidth) {
+                maxWidth = curWidth;
+            }
+        });
+        
+        maxWidth = maxWidth + "px";
+        editors.forEach(function (ele, i, arr) {
+            $(ele.getScrollerElement()).find(".CodeMirror-gutter").css("min-width", maxWidth);
+            ele.refresh();
+        });
+    }
     
     /**
      * Creates a new "main" CodeMirror editor instance containing text from the specified fileEntry
@@ -373,7 +399,8 @@ define(function (require, exports, module) {
 
             hostEditor.setInlineWidgetHeight(inlineId, widgetHeight, true);
             $(inlineEditor.getScrollerElement()).height(widgetHeight);
-            inlineEditor.refresh();
+            
+            _syncGutterWidths([hostEditor, inlineEditor]);
             
             inlineEditor.focus();
         }
