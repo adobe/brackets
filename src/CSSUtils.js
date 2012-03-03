@@ -131,8 +131,8 @@ define(function (require, exports, module) {
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
-     * @return {Array.<Object>} Array of objects containing the start and end offsets for
-     *  each matched selector.
+     * @return {Array.<{line:number, ruleEndLine:number}>} Array of objects containing the start
+     *      and end line numbers (0-based, inclusive range) for each matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
         var allSelectors = _extractAllSelectors(text);
@@ -186,8 +186,8 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
-     * @return {Array<Object>} Array of objects containing the source (FileEntry), lineStart (Number), and 
-     *  lineEnd (Number) for each matching rule.
+     * @return {Array<{source:FileEntry, lineStart:number, lineEnd:number}>} Array of objects containing the
+     *      source file, start line, and end line (0-based, inclusive range) for each matching rule.
      */
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
