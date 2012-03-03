@@ -371,7 +371,7 @@ define(function (require, exports, module) {
             // Auto-size editor to its remaining content
             var widgetHeight = inlineEditor.totalHeight(true);
 
-            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight);
+            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight, true);
             $(inlineEditor.getScrollerElement()).height(widgetHeight);
             inlineEditor.refresh();
             
