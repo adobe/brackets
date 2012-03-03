@@ -666,7 +666,7 @@ define(function (require, exports, module) {
                 match("tagName[attr2 ='value'] {}");
                 match("tagName[attr2= 'value'] {}");
                 match("tagName[attr2=\"value\"] {}");
-                match("[attr2='value'] {}"); 
+                match("[attr2='value'] {}");
                 match("tagName[attr=\"value\"][attr2=\"value2\"] {}");
                 match("tagName[attr='value'][attr2='value2'] {}");
                 match(":not([attr2=\"value2\"]) {}");
