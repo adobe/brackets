@@ -94,9 +94,9 @@ define(function (require, exports, module) {
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
                         selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition});
-                        currentSelector = "";
-                        currentPosition = -1;
                     }
+                    currentSelector = "";
+                    currentPosition = -1;
 
                     if (!inRules && state.stack.indexOf("{") > -1) { // just started parsing a rule
                         inRules = true;
