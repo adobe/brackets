@@ -362,7 +362,8 @@ define(function (require, exports, module) {
             }
             
             // If we haven't hidden any lines (which would have caused an update already), 
-            // force the editor to update its display so we get the correct height.
+            // force the editor to update its display so we measure the correct height below
+            // in totalHeight().
             if (!hidLines) {
                 inlineEditor.refresh();
             }
