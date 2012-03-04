@@ -308,7 +308,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Given a host editor, extract all it's inline editors.
+     * Given a host editor, extract all its inline editors.
      * @param {!CodeMirror} hostEditor
      */
     function _getInlineEditors(hostEditor) {
@@ -326,13 +326,13 @@ define(function (require, exports, module) {
      */
     function _syncGutterWidths(hostEditor) {
         var editors = _getInlineEditors(hostEditor);
-        //add the host to the list and go through them all
+        // add the host to the list and go through them all
         editors.push(hostEditor);
         
         var maxWidth = 0;
         editors.forEach(function (ele) {
             $(ele.getGutterElement()).css("min-width", "");
-            var curWidth =  $(ele.getGutterElement()).width();
+            var curWidth = $(ele.getGutterElement()).width();
             if (curWidth > maxWidth) {
                 maxWidth = curWidth;
             }
