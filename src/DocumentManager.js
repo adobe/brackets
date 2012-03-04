@@ -405,7 +405,7 @@ define(function (require, exports, module) {
     Document.prototype._removeInlineEditor = function (inlineEditor) {
         var i = this._inlineEditors.indexOf(inlineEditor);
         if (i >= 0) {
-            this._inlineEditors.splice(i, 0);
+            this._inlineEditors.splice(i, 1);
         }
     };
     
