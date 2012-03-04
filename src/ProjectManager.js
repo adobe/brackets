@@ -58,26 +58,27 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}
     };
     
-    $(FileViewController).on("documentSelectionFocusChange", function (event) {
-        var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc
-                && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
-            $("#project-files-container li").is(function (index) {
-                var entry = $(this).data("entry");
+    // TY TODO TEST
+    // $(FileViewController).on("documentSelectionFocusChange", function (event) {
+    //     var curDoc = DocumentManager.getCurrentDocument();
+    //     if (curDoc
+    //             && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
+    //         $("#project-files-container li").is(function (index) {
+    //             var entry = $(this).data("entry");
                 
-                if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
-                    //we don't want to trigger another selection change event, so manually deselect
-                    //and select without sending out notifications
-                    _projectTree.jstree("deselect_all");
-                    _projectTree.jstree("select_node", $(this), false);
-                    return true;
-                }
-                return false;
-            });
-        } else {
-            _projectTree.jstree("deselect_all");
-        }
-    });
+    //             if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
+    //                 //we don't want to trigger another selection change event, so manually deselect
+    //                 //and select without sending out notifications
+    //                 _projectTree.jstree("deselect_all");
+    //                 _projectTree.jstree("select_node", $(this), false);
+    //                 return true;
+    //             }
+    //             return false;
+    //         });
+    //     } else {
+    //         _projectTree.jstree("deselect_all");
+    //     }
+    // });
     
     /**
      * Unique PreferencesManager clientID

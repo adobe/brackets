@@ -163,7 +163,11 @@ define(function (require, exports, module) {
         }
         
         return _doOpenWithOptionalPath(fullPath)
-                 .always(EditorManager.focusEditor);
+                 .always( function() {
+                    if(commandData.focusEditor) {
+                        EditorManager.focusEditor();
+                    }
+                });
     }
 
     function handleFileAddToWorkingSet(commandData) {

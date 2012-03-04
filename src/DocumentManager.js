@@ -429,6 +429,15 @@ define(function (require, exports, module) {
     Document.prototype.setCursor = function (line, char) {
         this._editor.setCursor(line, char);
     };
+
+    /**
+     * Sets the selection in the document.
+     * @param {number} from The 0 based starting char position
+     * @param {number} to The 0 based ending char position
+     */
+    Document.prototype.setSelection = function (from, to) {
+        this._editor.setSelection(from, to);
+    };
     
     /**
      * @private

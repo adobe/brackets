@@ -33,9 +33,10 @@ define(function (require, exports, module) {
     * @constructor
     *
     */
-    function FileLocation(fullPath, lineNumber, functionName) {
+    function FileLocation(fullPath, line, column, functionName) {
         this.fullPath = fullPath;
-        this.lineNumber = lineNumber;
+        this.line = line;
+        this.column = column;
         this.functionName = functionName
     }
 
@@ -60,10 +61,13 @@ define(function (require, exports, module) {
     */
     QuickNavigateDialog.prototype._createDialogDiv = function (cm, template) {
         // TODO (issue 311) - using code mirror's wrapper element for now. Need to design a Brackets equivalent.
-        var wrap = this.codemirror.getWrapperElement();
-        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div>' + template + '</div>';
+        var wrap = $("#editorHolder");
+        this.dialog = $("<div>").addClass("CodeMirror-dialog")
+            .html('<div>' + template + '</div>');
+        wrap.before(this.dialog);
+        //this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        //this.dialog.className = "CodeMirror-dialog";
+        //this.dialog.innerHTML = '<div>' + template + '</div>';
     };
 
     function _filenameFromPath(path) {
@@ -73,25 +77,41 @@ define(function (require, exports, module) {
     /**
     * Closes the search dialog and resolves the promise that showDialog returned
     */
+    QuickNavigateDialog.prototype._handleItemCommit = function (value) {
+
+        var query = this.searchField.val();
+
+
+        if(this.fileLocation && !this.fileLocation.function) {
+            // extract line number
+            var regInfo = query.match(/(!?:)(\d+)/);
+            if(regInfo) {
+                this.fileLocation.line = regInfo[2] - 1;
+            } else {
+                regInfo = query.match(/(!?:)(\d+)/);
+            }
+        }
+
+        // todo extra @function
+        var regInfo = query.match(/@(.+)/);
+    }
+
+
+    /**
+    * Closes the search dialog and resolves the promise that showDialog returned
+    */
     QuickNavigateDialog.prototype._close = function (value) {
+        //EditorManager.focusEditor();
+
         if (this.closed) {
             return;
         }
         this.closed = true;
 
-;
-
-        // extract line number
-        var query = this.searchField.val();
-        var regInfo = query.match(/(\d+)/);
-        // TODO store line number
-
-        // todo extra @function
-        var regInfo = query.match(/@(.+)/);
-
         // remove the UI
-        this.dialog.parentNode.removeChild(this.dialog);
-        //this.searchField.remove();
+        // $(document).unbind();
+        // $(".smart_autocomplete_container").remove();
+        // this.dialog.remove();
 
         this.result.resolve(this.fileLocation);
     };
@@ -107,7 +127,6 @@ define(function (require, exports, module) {
 
         FileIndexManager.getFileInfoList("all")
             .done(function (filelistResult) {
-                suggestList = filelistResult;
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
                 that._createDialogDiv(that, dialogHTML);
                 that.searchField = $('input#quickFileOpenSearch');
@@ -142,12 +161,12 @@ define(function (require, exports, module) {
 
                     var filteredList = $.map(source, function (itemInfo) {
 
-                        if (functionSearch && itemInfo.hasOwnProperty("functionName")) {
+                        if (functionSearch && itemInfo.functionName) {
                             var functionName = itemInfo.functionName;
                             if (functionName.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
                                 return functionName;
                             }
-                        } else if (!functionSearch && itemInfo.hasOwnProperty("fullPath")) {
+                        } else if (!functionSearch && itemInfo.fullPath) {
                             // match term against filename only (not the full path)
                             var path = itemInfo.fullPath;
                             var filename = _filenameFromPath(path);
@@ -173,12 +192,10 @@ define(function (require, exports, module) {
                     return filteredList;
                 }
 
-                that._generateFunctionList();
-                suggestList.push.apply(suggestList, that.functionList)
-
-
-
                 // Create the auto suggest list of filenames
+                that._generateFunctionList();
+                suggestList = filelistResult.concat(that.functionList);
+
                 that.searchField.smartAutoComplete({
                     source: suggestList,
                     maxResults: 10,
@@ -189,15 +206,28 @@ define(function (require, exports, module) {
                 });
         
                 that.searchField.bind({
-                    // close the dialog when the user selects an item
                     itemSelect: function (ev, selected_item) {
+                        that._handleItemCommit();
+                    },
+
+                    itemFocus: function (ev, selected_item) {
                         var fullPath = $(selected_item).attr("data-fullpath");
                         if (fullPath) {
                             that.fileLocation.fullPath = decodeURIComponent(fullPath); 
+
+                            // TODO: make function
+                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: that.fileLocation.fullPath, focusEditor: false});
                         } else {
-                            that._getFunctionLocation($(selected_item).text());
+                            that._setLocationFromFunctionName($(selected_item).text());
+
+                            // TODO: make function
+                            var from = {line: that.fileLocation.line, ch: that.fileLocation.column};
+                            var to = {line: that.fileLocation.line, ch: that.fileLocation.column + that.fileLocation.functionName.length};
+                            DocumentManager.getCurrentDocument().setSelection(from, to);
                         }
-                        
+                    },
+
+                    lostFocus: function (e) {
                         that._close();
                     },
         
@@ -212,8 +242,8 @@ define(function (require, exports, module) {
                                 that.fileLocation = undefined;
                             }
                             
+                            that._handleItemCommit();
                             that._close();
-                            EditorManager.focusEditor();
                         }
                     }
 
@@ -226,23 +256,21 @@ define(function (require, exports, module) {
         return this.result;
     };
 
-    function _computeLineNumber(text, offset) {
-        var lines = text.substr(0, offset);
-        return lines.split("\n").length - 1;
-    }
 
     // TODO: rename function to something better.
-    QuickNavigateDialog.prototype._getFunctionLocation = function (functionName) {
-        this.fileLocation.functionName = functionName;
+    QuickNavigateDialog.prototype._setLocationFromFunctionName = function (functionName) {
 
-        this.functionList.forEach(function (functionInfo) {
+        var that = this;
+        var i;
+        for (i = 0; i < this.functionList.length; i++) {
+            var functionInfo = this.functionList[i];
             if (functionInfo.functionName === functionName) {
-                this.fileLocation.lineNumber = functionInfo.lineNumber;
+                that.fileLocation = functionInfo;
                 return;
             }
-        });
+        }
 
-        this.fileLocation.lineNumber = undefined;
+        this.fileLocation.line = undefined;
     }
 
     QuickNavigateDialog.prototype._generateFunctionList = function () {
@@ -254,16 +282,19 @@ define(function (require, exports, module) {
         var docText = doc.getText();
         this.functionList = [];
         var regex = new RegExp(/(function\b)(.+)\b\(/gi);
-        var info;
+        var info, i, line;
 
-        while(info = regex.exec(docText))
-        {
-            this.functionList.push({ 
-                functionName: $.trim(info[2]), 
-                index: info.index, 
-                lineNumber: _computeLineNumber(docText, info.index) 
-            });
-            //console.log(info[2]);
+        var lines = docText.split("\n");
+
+        for (i = 0; i < lines.length; i++) {
+            line = lines[i];
+            info = regex.exec(line);
+
+            if (info) {
+                var funcName = $.trim(info[2]);
+                this.functionList.push(new FileLocation(null, i, line.indexOf(funcName), funcName));
+                //console.log(info[2]);
+            }
         }
     }
 
@@ -292,19 +323,17 @@ define(function (require, exports, module) {
                         CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileLocation.fullPath});
                     }
 
-                    if (fileLocation.lineNumber) {
-                        DocumentManager.getCurrentDocument().setCursor(fileLocation.lineNumber - 1, 0);
+                    if (fileLocation.functionName) {
+                        var from = {line: fileLocation.line, ch: fileLocation.column};
+                        var to = {line: fileLocation.line, ch: fileLocation.column + fileLocation.functionName.length};
+                        DocumentManager.getCurrentDocument().setSelection(from, to);
+                    } else if (fileLocation.line) {
+                        var from = {line: fileLocation.line, ch: 0};
+                        var to = {line: fileLocation.line, ch: 0};
+                        DocumentManager.getCurrentDocument().setSelection(from, to);
                     }
 
-                    // TODO old
-                    // if (query.charAt(0) === ":") {
-                    //     var lineNumber = parseInt(query.slice(1, query.length), 10);
-                    //     if (!isNaN(lineNumber)) {
-                    //         DocumentManager.getCurrentDocument().setCursor(lineNumber - 1, 0);
-                    //     }
-                    // } else {
-                    //     CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
-                    // }
+                    EditorManager.focusEditor();
                 }
             });
     }
