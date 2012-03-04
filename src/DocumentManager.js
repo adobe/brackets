@@ -388,7 +388,7 @@ define(function (require, exports, module) {
      * other than DocumentManager and EditorManager should access it.
      *
      * Adds to the list of inline editors
-     * @param {number} inlineEditorId  the id to reference the inline editor by
+     * @param {!CodeMirror} inlineEditor
      */
     Document.prototype._addInlineEditor = function (inlineEditor) {
         this._inlineEditors.push(inlineEditor);
@@ -410,7 +410,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return [numbers] an array of inline editors
+     * @return [{!CodeMirror}] an array of inline editors
      */
     Document.prototype.getInlineEditors = function () {
         return this._inlineEditors;

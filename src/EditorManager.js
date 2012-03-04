@@ -254,7 +254,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Given an editor, find the document that holds it
-     * @param {!CodeMirror} hostEditor An array of code mirror editors
+     * @param {!CodeMirror} editor
      */
     function _getDocumentForEditor(editor) {
         var doc = null;
