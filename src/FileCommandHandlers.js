@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             // TODO (issue #117): we're relying on this to not be asynchronous--is that safe?
             NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                ["htm", "html", "js", "css"], function (files) {
+                null, function (files) {
                     if (files.length > 0) {
                         result = doOpen(files[0])
                             .done(function updateDefualtOpenDialogFullPath(doc) {
