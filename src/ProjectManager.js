@@ -53,9 +53,9 @@ define(function (require, exports, module) {
      * Used to initialize jstree state
      */
     var _projectInitialLoad = {
-        previous : [],
-        id : 0,
-        fullPathToIdMap : {}
+        previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
+        id              : 0,    /* incrementing id */
+        fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
     $(FileViewController).on("documentSelectionFocusChange", function (event) {
@@ -199,11 +199,16 @@ define(function (require, exports, module) {
                     if (_projectInitialLoad.previous.length > 0) {
                         // load previously open nodes by increasing depth
                         var toOpenPaths = _projectInitialLoad.previous.shift(),
-                            toOpenIds   = [];
+                            toOpenIds   = [],
+                            node        = null;
         
                         // use path to lookup ID
                         $.each(toOpenPaths, function (index, value) {
-                            toOpenIds.push(_projectInitialLoad.fullPathToIdMap[value]);
+                            node = _projectInitialLoad.fullPathToIdMap[value];
+                            
+                            if (node) {
+                                toOpenIds.push(node);
+                            }
                         });
         
                         // specify nodes to open and load
@@ -211,6 +216,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("reload_nodes", false);
                     }
                     if (_projectInitialLoad.previous.length === 0) {
+                        // resolve after all paths are opened
                         result.resolve();
                     }
                 }
@@ -393,7 +399,6 @@ define(function (require, exports, module) {
             rootPath = prefs.projectPath;
             isFirstProjectOpen = true;
 
-            // TODO (issue #100): handle missing paths
             _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
