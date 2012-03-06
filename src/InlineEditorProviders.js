@@ -79,37 +79,28 @@ define(function (require, exports, module) {
      * @param {!Number} endLine The last line to be shown in the inline editor
      */
     function _showTextRangeInInlineEditor(parentEditor, fileEntry, startLine, endLine) {
-        var result = new $.Deferred(),
-            document = DocumentManager.getDocumentForFile(fileEntry);
+        var result = new $.Deferred();
         
-        function createEditor(text) {
-            var range = {
-                startLine: startLine,
-                endLine: endLine
-            };
-            var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
-            
-            var inlineEditor = inlineInfo.editor;
-            
-            // For Sprint 4, editor is a read-only view
-            inlineEditor.setOption("readOnly", true);
-            
-            return inlineInfo;
-        }
-        
-        if (document) {
-            result.resolve(createEditor(document.getText()));
-        } else {
-            FileUtils.readAsText(fileEntry)
-                .done(function (text) {
-                    result.resolve(createEditor(text));
-                })
-                .fail(function (fileError) {
-                    console.log("Error reading as text: ", fileError);
-                    result.reject();
-                });
-        }
-    
+        DocumentManager.getDocumentContents(fileEntry.fullPath)
+            .done(function (text) {
+                var range = {
+                    startLine: startLine,
+                    endLine: endLine
+                };
+                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
+                
+                var inlineEditor = inlineInfo.editor;
+                
+                // For Sprint 4, editor is a read-only view
+                inlineEditor.setOption("readOnly", true);
+
+                result.resolve(inlineInfo);
+            })
+            .fail(function (fileError) {
+                console.log("Error getting document contents: ", fileError);
+                result.reject();
+            });
+
         return result.promise();
     }
     

@@ -943,6 +943,99 @@ define(function (require, exports, module) {
         }); // describe("Known Issues")    
 
 
+        describe("Working with unsaved changes", function () {
+            var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+                CSSUtils,
+                DocumentManager,
+                FileViewController,
+                ProjectManager,
+                brackets;
+    
+            beforeEach(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                    // Load module instances from brackets.test
+                    brackets            = testWindow.brackets;
+                    CSSUtils            = testWindow.brackets.test.CSSUtils;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                    ProjectManager      = testWindow.brackets.test.ProjectManager;
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+            it("should return the correct offsets if the file has changed", function () {
+                var didOpen = false,
+                    gotError = false;
+                
+                runs(function () {
+                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                        .done(function () { didOpen = true; })
+                        .fail(function () { gotError = true; });
+                });
+                
+                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                
+                var rules = null;
+                
+                runs(function () {
+                    var doc = DocumentManager.getCurrentDocument();
+                    
+                    // Add several blank lines at the beginning of the text
+                    doc.setText("\n\n\n\n" + doc.getText());
+                    
+                    // Look for ".FIRSTGRADE"
+                    CSSUtils.findMatchingRules(".FIRSTGRADE")
+                        .done(function (result) { rules = result; });
+                });
+                
+                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                
+                runs(function () {
+                    expect(rules.length).toBe(1);
+                    expect(rules[0].lineStart).toBe(16);
+                    expect(rules[0].lineEnd).toBe(18);
+                });
+            });
+            
+            it("should return a newly created rule in an unsaved file", function () {
+                var didOpen = false,
+                    gotError = false;
+                
+                runs(function () {
+                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                        .done(function () { didOpen = true; })
+                        .fail(function () { gotError = true; });
+                });
+                
+                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                
+                var rules = null;
+                
+                runs(function () {
+                    var doc = DocumentManager.getCurrentDocument();
+                    
+                    // Add several blank lines at the beginning of the text
+                    doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                    
+                    // Look for the selector we just created
+                    CSSUtils.findMatchingRules(".TESTSELECTOR")
+                        .done(function (result) { rules = result; });
+                });
+                
+                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                
+                runs(function () {
+                    expect(rules.length).toBe(1);
+                    expect(rules[0].lineStart).toBe(24);
+                    expect(rules[0].lineEnd).toBe(26);
+                });
+            });
+        });
     }); //describe("CSS Parsing")
     
 });
