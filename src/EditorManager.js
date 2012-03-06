@@ -251,6 +251,23 @@ define(function (require, exports, module) {
         return editor;
     }
     
+    /**
+     * @private
+     * Given an editor, find the document that holds it
+     * @param {!CodeMirror} editor
+     */
+    function _getDocumentForEditor(editor) {
+        var doc = null;
+        DocumentManager.getAllOpenDocuments().some(function (ele) {
+            if (ele._editor === editor) {
+                doc = ele;
+                return true;
+            }
+            return false;
+        });
+        return doc;
+    }
+    
     /** Bound to Ctrl+E on outermost editors */
     function _openInlineWidget(instance) {
         // Run through inline-editor providers until one responds
@@ -289,6 +306,50 @@ define(function (require, exports, module) {
         _inlineEditProviders.push(provider);
     }
     
+    /**
+     * @private
+     * Given a host editor, extract all its inline editors.
+     * @param {!CodeMirror} hostEditor
+     */
+    function _getInlineEditors(hostEditor) {
+        var doc = _getDocumentForEditor(hostEditor);
+        if (doc) {
+            return doc.getInlineEditors();
+        }
+        return [];
+    }
+    
+    /**
+     * @private
+     * Given an array of editors, find the widest gutter and make all the others match
+     * @param [{!CodeMirror}] editor An array of code mirror editors
+     */
+    function _syncGutterWidths(hostEditor) {
+        var editors = _getInlineEditors(hostEditor);
+        // add the host to the list and go through them all
+        editors.push(hostEditor);
+        
+        var maxWidth = 0;
+        editors.forEach(function (ele) {
+            $(ele.getGutterElement()).css("min-width", "");
+            var curWidth = $(ele.getGutterElement()).width();
+            if (curWidth > maxWidth) {
+                maxWidth = curWidth;
+            }
+        });
+        
+        if (editors.length === 1) {
+            //There's only the host, just bail
+            editors[0].setOption("gutter", true);
+            return;
+        }
+        
+        maxWidth = maxWidth + "px";
+        editors.forEach(function (ele) {
+            $(ele.getGutterElement()).css("min-width", maxWidth);
+            ele.setOption("gutter", true);
+        });
+    }
     
     /**
      * Creates a new "main" CodeMirror editor instance containing text from the specified fileEntry
@@ -332,8 +393,13 @@ define(function (require, exports, module) {
         $(inlineContent).addClass("inlineCodeEditor");
         
         var myInlineId; // won't be populated until our afterAdded() callback is run
-        function closeThisInline() {
+        function closeThisInline(instance) {
             _closeInlineWidget(hostEditor, myInlineId);
+            var doc = _getDocumentForEditor(hostEditor);
+            if (doc) {
+                doc._removeInlineEditor(instance);
+            }
+            _syncGutterWidths(hostEditor);
         }
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
@@ -344,24 +410,39 @@ define(function (require, exports, module) {
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
+            var hidLines = false;
             if (range) {
                 inlineEditor.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
+                        hidLines = true;
                         inlineEditor.hideLine(i);
                     }
                     var lineCount = inlineEditor.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
+                        hidLines = true;
                         inlineEditor.hideLine(i);
                     }
                 });
                 inlineEditor.setCursor(range.startLine, 0);
+                var doc = _getDocumentForEditor(hostEditor);
+                if (doc) {
+                    doc._addInlineEditor(inlineEditor);
+                }
+                _syncGutterWidths(hostEditor);
+            }
+            
+            // If we haven't hidden any lines (which would have caused an update already), 
+            // force the editor to update its display so we measure the correct height below
+            // in totalHeight().
+            if (!hidLines) {
+                inlineEditor.refresh();
             }
             
             // Auto-size editor to its remaining content
             var widgetHeight = inlineEditor.totalHeight(true);
 
-            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight);
+            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight, true);
             $(inlineEditor.getScrollerElement()).height(widgetHeight);
             inlineEditor.refresh();
             

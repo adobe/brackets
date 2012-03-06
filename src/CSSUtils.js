@@ -98,9 +98,9 @@ define(function (require, exports, module) {
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
                         selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition, selectorEndLine: i, selectorEndChar: stream.start});
-                        currentSelector = "";
-                        currentPosition = -1;
                     }
+                    currentSelector = "";
+                    currentPosition = -1;
 
                     if (!inRules && state.stack.indexOf("{") > -1) { // just started parsing a rule
                         inRules = true;
@@ -139,8 +139,8 @@ define(function (require, exports, module) {
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
-     * @return {Array.<Object>} Array of objects containing the start and end offsets for
-     *  each matched selector.
+     * @return {Array.<{line:number, ruleEndLine:number}>} Array of objects containing the start
+     *      and end line numbers (0-based, inclusive range) for each matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
         var allSelectors = extractAllSelectors(text);
@@ -159,15 +159,20 @@ define(function (require, exports, module) {
         
         if (!classOrIdSelector) {
             // Tag selectors must have nothing or whitespace before it.
-            selector = "(^\\s*|\\s+)" + selector;
+            selector = "(^|\\s)" + selector;
         }
         
-        var re = new RegExp(selector + "((\\[[^\\]]*\\])*|(:{1,2}[\\w-]+)*|(\\.[\\w-]+)*)*\\s*$", classOrIdSelector ? "" : "i");
-        for (i = 0; i < allSelectors.length; i++) {
-            if (allSelectors[i].selector.search(re) !== -1) {
-                result.push(allSelectors[i]);
+        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
+        allSelectors.forEach(function (entry) {
+            if (entry.selector.search(re) !== -1) {
+                result.push(entry);
+            } else if (!classOrIdSelector) {
+                // Special case for tag selectors - match "*" as the rightmost character
+                if (entry.selector.trim().search(/\*$/) !== -1) {
+                    result.push(entry);
+                }
             }
-        }
+        });
         
         return result;
     }
@@ -189,8 +194,8 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
-     * @return {Array<Object>} Array of objects containing the source (FileEntry), lineStart (Number), and 
-     *  lineEnd (Number) for each matching rule.
+     * @return {Array<{source:FileEntry, lineStart:number, lineEnd:number}>} Array of objects containing the
+     *      source file, start line, and end line (0-based, inclusive range) for each matching rule.
      */
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
@@ -241,4 +246,5 @@ define(function (require, exports, module) {
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
+    exports.extractAllSelectors = extractAllSelectors;
 });
