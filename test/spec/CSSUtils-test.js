@@ -88,6 +88,24 @@ define(function (require, exports, module) {
                 });
             }
             
+            /**
+             * Similar to the above function, but instead checks the lines ranges for the entire selector *group*
+             * of the results returned by CSSUtils. For example, if a rule looks like ".foo,[newline].bar"
+             * and the caller asks for selector ".bar", this function checks against the entire range
+             * starting with the line ".foo. is on.
+             * 
+             * Expects the numbers of results to equal the length of 'ranges'; each entry in range gives 
+             * the {start, end} of the expected line range for that Nth result.
+             */
+            function expectGroupRanges(spec, cssCode, selector, ranges) {
+                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+                spec.expect(result.length).toEqual(ranges.length);
+                ranges.forEach(function (range, i) {
+                    spec.expect(result[i].selectorGroupStartLine).toEqual(range.start);
+                    spec.expect(result[i].ruleEndLine).toEqual(range.end);
+                });
+            }
+            
             it("should return correct start and end line numbers for simple rules", function () {
                 runs(function () {
                     init(this, simpleCssFileEntry);
@@ -111,6 +129,24 @@ define(function (require, exports, module) {
                         {start: 0, end: 2}, {start: 3, end: 5 }, {start: 7, end: 7},
                         {start: 8, end: 8}, {start: 10, end: 10}, {start: 10, end: 10}
                     ]);
+                });
+            });
+            
+            it("should return correct group range when selector group spans multiple lines", function () {
+                runs(function () {
+                    init(this, groupsFileEntry);
+                });
+                
+                runs(function () {
+                    expectGroupRanges(this, this.fileCssContent, ".a", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileCssContent, ".b", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileCssContent, ".c", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileCssContent, ".d", [{start: 24, end: 29}]);
+                    
+                    expectGroupRanges(this, this.fileCssContent, ".f", [{start: 31, end: 31}]);
+                    expectGroupRanges(this, this.fileCssContent, ".g", [{start: 31, end: 34}]);
+                    expectGroupRanges(this, this.fileCssContent, ".h", [{start: 31, end: 34}]);
+                    
                 });
             });
         });
