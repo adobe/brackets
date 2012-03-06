@@ -12,6 +12,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var Async               = require("Async"),
+        DocumentManager     = require("DocumentManager"),
         FileIndexManager    = require("FileIndexManager"),
         FileUtils           = require("FileUtils"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
@@ -194,29 +195,38 @@ define(function (require, exports, module) {
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             selectors       = [];
     
+        function _scanText(fileEntry, content) {
+            // Scan for selectors
+            var localResults = _findAllMatchingSelectorsInText(content, selector);
+            
+            localResults.forEach(function (value) {
+                selectors.push({
+                    source: fileEntry,
+                    lineStart: value.line,
+                    lineEnd: value.ruleEndLine
+                });
+            });
+        }
+        
         function _loadFileAndScan(fullPath, selector) {
             var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                result = new $.Deferred();
+                result = new $.Deferred(),
+                document = DocumentManager.getDocumentForFile(fileEntry);
             
-            FileUtils.readAsText(fileEntry)
-                .done(function (content) {
-                    // Scan for selectors
-                    var localResults = _findAllMatchingSelectorsInText(content, selector);
-                    
-                    localResults.forEach(function (value) {
-                        selectors.push({
-                            source: fileEntry,
-                            lineStart: value.line,
-                            lineEnd: value.ruleEndLine
-                        });
+            if (document) {
+                _scanText(fileEntry, document.getText());
+                result.resolve();
+            } else {
+                FileUtils.readAsText(fileEntry)
+                    .done(function (content) {
+                        _scanText(fileEntry, content);
+                        result.resolve();
+                    })
+                    .fail(function (error) {
+                        result.reject(error);
                     });
-                    
-                    result.resolve();
-                })
-                .fail(function (error) {
-                    result.reject(error);
-                });
-            
+            }
+        
             return result.promise();
         }
         
