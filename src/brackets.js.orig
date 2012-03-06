@@ -38,11 +38,14 @@ define(function (require, exports, module) {
         KeyMap                  = require("KeyMap"),
         Commands                = require("Commands"),
         CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager"),
-        PerfUtils               = require("PerfUtils"),
+<<<<<<< HEAD
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
+=======
+        CodeHintManager         = require("CodeHintManager"),
+>>>>>>> origin/master
         PerfUtils               = require("PerfUtils"),
+        FileIndexManager        = require("FileIndexManager"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project

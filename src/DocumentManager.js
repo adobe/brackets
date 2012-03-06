@@ -335,7 +335,14 @@ define(function (require, exports, module) {
      * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
-    
+
+    /**
+     * @private
+     * List of the open inline editors in this document
+     * @type [{!CodeMirror}]
+     */
+    Document.prototype._inlineEditors = [];
+
     /**
      * Null only of editor is not open yet. If a Document is created on empty text, or text with
      * inconsistent line endings, the Document defaults to the current platform's standard endings.
@@ -373,6 +380,40 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+    };
+    
+    /**
+     * @private
+     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
+     * other than DocumentManager and EditorManager should access it.
+     *
+     * Adds to the list of inline editors
+     * @param {!CodeMirror} inlineEditor
+     */
+    Document.prototype._addInlineEditor = function (inlineEditor) {
+        this._inlineEditors.push(inlineEditor);
+    };
+    
+    /**
+     * @private
+     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
+     * other than DocumentManager and EditorManager should access it.
+     *
+     * Removes the inline editor from our list
+     * @param {!CodeMirror} inlineEditor
+     */
+    Document.prototype._removeInlineEditor = function (inlineEditor) {
+        var i = this._inlineEditors.indexOf(inlineEditor);
+        if (i >= 0) {
+            this._inlineEditors.splice(i, 1);
+        }
+    };
+    
+    /**
+     * @return [{!CodeMirror}] an array of inline editors
+     */
+    Document.prototype.getInlineEditors = function () {
+        return this._inlineEditors;
     };
     
     /**
