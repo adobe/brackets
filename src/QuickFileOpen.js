@@ -108,12 +108,12 @@ define(function (require, exports, module) {
                         }
                     }).sort(function (a, b) {
                         // sort by filename
-                        var filenameA = _filenameFromPath(a);
-                        var filenameB = _filenameFromPath(b);
-                        if(filenameA > filenameB) {
-                            return -1
-                        } else if(filenameA < filenameB) {
-                            return 1
+                        var filenameA = _filenameFromPath(a).toLowerCase();
+                        var filenameB = _filenameFromPath(b).toLowerCase();
+                        if (filenameA < filenameB) {
+                            return -1;
+                        } else if (filenameA > filenameB) {
+                            return 1;
                         } else {
                             return 0;
                         }
