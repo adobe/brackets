@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
@@ -33,20 +33,16 @@ define(function (require, exports, module) {
     * @constructor
     *
     */
-    function QuickNavigateDialog(codemirror) {
+    function QuickNavigateDialog() {
         this.closed = false;
         this.result = null; // $.Deferred
-
-        // TODO (issue 311) - remove code mirror references
-        this.codemirror = codemirror;
     }
 
     /**
     * Creates a dialog div floating on top of the current code mirror editor
     */
-    QuickNavigateDialog.prototype._createDialogDiv = function (cm, template) {
-        // TODO (issue 311) - using code mirror's wrapper element for now. Need to design a Brackets equivalent.
-        var wrap = this.codemirror.getWrapperElement();
+    QuickNavigateDialog.prototype._createDialogDiv = function (template) {
+        var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div>' + template + '</div>';
@@ -86,7 +82,7 @@ define(function (require, exports, module) {
             .done(function (filelistResult) {
                 fileInfoList = filelistResult;
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
-                that._createDialogDiv(that, dialogHTML);
+                that._createDialogDiv(dialogHTML);
                 var closed = false;
                 var searchField = $('input#quickFileOpenSearch');
 
@@ -172,15 +168,7 @@ define(function (require, exports, module) {
     */
     function doFileSearch() {
 
-
-        // TODO (issue 311) - using code mirror's wrapper element for now which requires us to get the editor and the code mirror instance
-        var curDoc = DocumentManager.getCurrentDocument();
-        if (!curDoc) {
-            return;
-        }
-        var cm = curDoc._editor;
-
-        var dialog = new QuickNavigateDialog(cm);
+        var dialog = new QuickNavigateDialog();
         dialog.showDialog()
             .done(function (query) {
                 if (query) {
