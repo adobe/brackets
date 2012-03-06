@@ -42,7 +42,6 @@ define(function (require, exports, module) {
         PerfUtils               = require("PerfUtils"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        PerfUtils               = require("PerfUtils"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project

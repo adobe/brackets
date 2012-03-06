@@ -103,12 +103,20 @@ define(function (require, exports, module) {
                         var filename = _filenameFromPath(path);
                         if (filename.toLowerCase().indexOf(term.toLowerCase()) !== -1) {
                             return fileInfo.fullPath;
+                        } else {
+                            return null;
                         }
                     }).sort(function (a, b) {
                         // sort by filename
                         var filenameA = _filenameFromPath(a);
                         var filenameB = _filenameFromPath(b);
-                        return filenameA > filenameB;
+                        if(filenameA > filenameB) {
+                            return -1
+                        } else if(filenameA < filenameB) {
+                            return 1
+                        } else {
+                            return 0;
+                        }
                     });
 
                     return filteredList;
