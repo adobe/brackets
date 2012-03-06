@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $ */
 
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
@@ -45,29 +45,22 @@ define(function (require, exports, module) {
     * @constructor
     *
     */
-    function QuickNavigateDialog(codemirror) {
+    function QuickNavigateDialog() {
         this.searchField = undefined; // defined when showDialog() is called
         this.closed = false;
         this.result = null; // $.Deferred, assigned by showShowDialog() resolved by _close()
         this.fileLocation = new FileLocation();
         this.functionList = [];
-
-        // TODO (issue 311) - remove code mirror references
-        this.codemirror = codemirror;
     }
 
     /**
     * Creates a dialog div floating on top of the current code mirror editor
     */
-    QuickNavigateDialog.prototype._createDialogDiv = function (cm, template) {
-        // TODO (issue 311) - using code mirror's wrapper element for now. Need to design a Brackets equivalent.
-        var wrap = $("#editorHolder");
-        this.dialog = $("<div>").addClass("CodeMirror-dialog")
-            .html('<div>' + template + '</div>');
-        wrap.before(this.dialog);
-        //this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
-        //this.dialog.className = "CodeMirror-dialog";
-        //this.dialog.innerHTML = '<div>' + template + '</div>';
+    QuickNavigateDialog.prototype._createDialogDiv = function (template) {
+        var wrap = $("#editorHolder")[0];
+        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        this.dialog.className = "CodeMirror-dialog";
+        this.dialog.innerHTML = '<div>' + template + '</div>';
     };
 
     function _filenameFromPath(path) {
@@ -108,10 +101,8 @@ define(function (require, exports, module) {
         }
         this.closed = true;
 
-        // remove the UI
-        // $(document).unbind();
-        // $(".smart_autocomplete_container").remove();
-        // this.dialog.remove();
+        this.dialog.parentNode.removeChild(this.dialog);
+        $(".smart_autocomplete_container").remove();
 
         this.result.resolve(this.fileLocation);
     };
@@ -128,7 +119,7 @@ define(function (require, exports, module) {
         FileIndexManager.getFileInfoList("all")
             .done(function (filelistResult) {
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
-                that._createDialogDiv(that, dialogHTML);
+                that._createDialogDiv(dialogHTML);
                 that.searchField = $('input#quickFileOpenSearch');
                 var closed = false;
 
@@ -184,7 +175,13 @@ define(function (require, exports, module) {
                             // sort by filename
                             var filenameA = _filenameFromPath(a);
                             var filenameB = _filenameFromPath(b);
-                            return filenameA > filenameB;
+                            if(filenameA > filenameB) {
+                                return -1
+                            } else if(filenameA < filenameB) {
+                                return 1
+                            } else {
+                                return 0;
+                            }
                         }
 
                     });
@@ -274,13 +271,15 @@ define(function (require, exports, module) {
     }
 
     QuickNavigateDialog.prototype._generateFunctionList = function () {
+        this.functionList = [];
+
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
-            // TODO
+            return;
         }
 
         var docText = doc.getText();
-        this.functionList = [];
+        
         var regex = new RegExp(/(function\b)(.+)\b\(/gi);
         var info, i, line;
 
@@ -307,15 +306,9 @@ define(function (require, exports, module) {
     */
     function doFileSearch() {
 
-
-        // TODO (issue 311) - using code mirror's wrapper element for now which requires us to get the editor and the code mirror instance
         var curDoc = DocumentManager.getCurrentDocument();
-        if (!curDoc) {
-            return;
-        }
-        var cm = curDoc._editor;
 
-        var dialog = new QuickNavigateDialog(cm);
+        var dialog = new QuickNavigateDialog();
         dialog.showDialog()
             .done(function (fileLocation) {
                 if (fileLocation) {
