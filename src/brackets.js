@@ -22,6 +22,7 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-dropdown");
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
+    require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
     
     // Load dependent modules
@@ -40,6 +41,7 @@ define(function (require, exports, module) {
         CodeHintManager         = require("CodeHintManager"),
         PerfUtils               = require("PerfUtils"),
         FileIndexManager        = require("FileIndexManager"),
+        QuickFileOpen           = require("QuickFileOpen"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project
@@ -280,6 +282,7 @@ define(function (require, exports, module) {
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],
