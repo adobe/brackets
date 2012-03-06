@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     
             it("should not find attribute hints in an empty editor", function () {
                 var pos = {"ch": 0, "line": 0};
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -60,8 +60,8 @@ define(function (require, exports, module) {
                     '<p class="');
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class"));
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class"));
             });
             
             it("should find an attribute as it's added to a tag", function () {
@@ -72,8 +72,8 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id"));
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "id"));
             });
             
             it("should find an attribute as the value is typed", function () {
@@ -84,8 +84,8 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "id", "one"));
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "id", "one"));
             });
             
             it("should not find an attribute as text is added", function () {
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -108,8 +108,8 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo"));
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
@@ -120,8 +120,121 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfoForValueHint(myCodeMirror, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo("p", "class", "foo bar"));
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
+            });
+            
+            it("should find the attribute value even when there is space around the =", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class = "foo"', '></p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
+            });
+            
+            it("should find the attribute value when the IP is after the =", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p class=', '"foo"></p>',
+                    [ '</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class", "foo"));
+            });
+            
+            it("should find the tagname as it's typed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<di');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 2, "di"));
+            });
+            
+            it("should hint tagname as the open < is typed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<p>test</p><');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME));
+            });
+            
+            it("should find the tagname of the current tag if two tags are right next to each other", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 4, "span"));
+            });
+            
+            it("should hint attributes even if there is a lot of space between the tag name and the next attr name", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><li  ', '  id="foo"');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "li"));
+            });
+            
+            it("should find the tagname as space is typed before the attr name is added", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span ');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "span"));
+            });
+            
+            it("should not hint anything after the tag is closed", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span>');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+            });
+            
+            it("should not hint anything after a closing tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>'],
+                    '<div><span></span>', '</div>',
+                    ['</body>', '</html>']);
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+            });
+            
+            it("should not hint anything inside a closing tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div id="test" class="foo"></div>'],
+                    '</body></ht', 'ml>');
+                
+                myCodeMirror.setValue(content);
+                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
         });
     });

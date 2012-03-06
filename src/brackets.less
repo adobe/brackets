@@ -186,8 +186,7 @@ a, img {
     .box-flex(0);
     margin: 0px;
     padding: 0px;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: auto;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
     
@@ -203,7 +202,7 @@ a, img {
         
         li {
             padding: 2px 0px 2px 2px;
-            
+            white-space: nowrap;
             position: relative; // so that children can be positioned absolute
             
             &:hover {
@@ -228,8 +227,7 @@ a, img {
     .box-flex(1);
     margin: 0px 0px 0px 8px;
     padding: 0;
-    overflow-x: auto;
-    overflow-y: auto;
+    overflow: auto;
     
     ul { margin-top: 0; }
 }
@@ -310,6 +308,17 @@ a, img {
     .code-font();
 }
 
+/* Styles for inline editors */
+.inlineCodeEditor {
+    border-top:    1px solid #C0C0C0;
+    border-bottom: 1px solid #C0C0C0;
+}
+
+.inlineCodeEditor .CodeMirror-scroll {
+    /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
+    overflow-x: hidden;
+}
+
 /* Styles for the search dialog--this is temporary, only for debugging */
 
 .CodeMirror-dialog {
@@ -344,11 +353,15 @@ a, img {
   background-color: inherit;
 }
 
-ul.smart_autocomplete_container {
+.smart_autocomplete_container {
     
     border: 1px solid #999;
     background-color: #FFFFFF;
-    padding: 0px;
+
+    /* smart auto complete doesn't correctly position the container
+     * so these specific padding and margin values are necessary*/
+    padding: 0px 8px 0px 0px;
+    margin: 9px 0px 0px 0px;
 
     .quickOpenPath {
         font-size: 11px;
@@ -364,7 +377,6 @@ ul.smart_autocomplete_container {
         padding: 0px 2px 0px 4px;
     }
 }
-
 
 
 li.smart_autocomplete_highlight {
