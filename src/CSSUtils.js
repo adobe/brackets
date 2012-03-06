@@ -16,34 +16,6 @@ define(function (require, exports, module) {
         FileUtils           = require("FileUtils"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
 
-    /*
-     * This code can be used to create an "independent" HTML document that can be passed to jQuery
-     * calls. Allows using jQuery's CSS selector engine without actually putting anything in the browser's DOM
-     *
-    var _htmlDoctype = document.implementation.createDocumentType('html',
-        '-//W3C//DTD XHTML 1.0 Strict//EN',
-        'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
-    );
-    var _htmlDocument = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', _htmlDoctype);
-
-    function checkIfSelectorSelectsHTML(selector, theHTML) {
-        $('html', _htmlDocument).html(theHTML);
-        return ($(selector, _htmlDocument).length > 0);
-    }
-    */
-
-    /* DEBUG FUNCTION
-    function printer(one, two, three, four, five) {
-        var string = "parse output: " + one + " | " + two + " | " + three + " | " + four + " | ";
-        if (five.length === 0) {
-            string += "0:[]";
-        } else {
-            string += five.length + ":" + five[five.length-1];
-        }
-        console.log(string);
-    }
-    */
-
     /**
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
@@ -130,12 +102,34 @@ define(function (require, exports, module) {
         return selectors;
     }
     
+    /*
+     * This code can be used to create an "independent" HTML document that can be passed to jQuery
+     * calls. Allows using jQuery's CSS selector engine without actually putting anything in the browser's DOM
+     *
+    var _htmlDoctype = document.implementation.createDocumentType('html',
+        '-//W3C//DTD XHTML 1.0 Strict//EN',
+        'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
+    );
+    var _htmlDocument = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', _htmlDoctype);
+
+    function checkIfSelectorSelectsHTML(selector, theHTML) {
+        $('html', _htmlDocument).html(theHTML);
+        return ($(selector, _htmlDocument).length > 0);
+    }
+    */
+    
     /**
      * Finds all instances of the specified selector in "text".
      * Returns an Array of Objects with start and end properties.
      *
      * For Sprint 4, we only support simple selectors. This function will need to change
      * dramatically to support full selectors.
+     *
+     * FUTURE: (JRB) It would be nice to eventually use the browser/jquery to do the selector evaluation.
+     * One way to do this would be to take the user's HTML, add a special attribute to every tag with a UID,
+     * and then construct a DOM (using the commented out code above). Then, give this DOM and the selector to 
+     * jquery and ask what matches. If the node that the user's cursor is in comes back from jquery, then 
+     * we know the selector applies.
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
