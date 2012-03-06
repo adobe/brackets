@@ -16,47 +16,22 @@ define(function (require, exports, module) {
         FileIndexManager    = require("FileIndexManager"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
 
-    /*
-     * This code can be used to create an "independent" HTML document that can be passed to jQuery
-     * calls. Allows using jQuery's CSS selector engine without actually putting anything in the browser's DOM
-     *
-    var _htmlDoctype = document.implementation.createDocumentType('html',
-        '-//W3C//DTD XHTML 1.0 Strict//EN',
-        'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
-    );
-    var _htmlDocument = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', _htmlDoctype);
-
-    function checkIfSelectorSelectsHTML(selector, theHTML) {
-        $('html', _htmlDocument).html(theHTML);
-        return ($(selector, _htmlDocument).length > 0);
-    }
-    */
-
-    /* DEBUG FUNCTION
-    function printer(one, two, three, four, five) {
-        var string = "parse output: " + one + " | " + two + " | " + three + " | " + four + " | ";
-        if (five.length === 0) {
-            string += "0:[]";
-        } else {
-            string += five.length + ":" + five[five.length-1];
-        }
-        console.log(string);
-    }
-    */
-
     /**
-     * @private
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
          selector: the text of the selector (note: comma separated selectors like "h1, h2" are broken into separate selectors)
-         line: zero-indexed line in the text where the selector appears
-         character: zero-indexed column in the line where the selector starts
-         ruleEndLine: zero-indexed line in the text where the rules for that selector end
-         ruleEndCharacter: zero-indexed column in the line where the rules for that selector end
+         line: line in the text where the selector appears
+         character: column in the line where the selector starts
+         selectorEndLine: line where the selector ends
+         selectorEndChar: column where the selector ends
+         ruleStartLine: line where the rules for the selector start
+         ruleStartChar: column in line where the rules for the selector start
+         ruleEndLine: line where the rules for the selector end
+         ruleEndChar: column in the line where the rules for the selector end
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function _extractAllSelectors(text) {
+    function extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state = CodeMirror.startState(mode);
@@ -68,6 +43,7 @@ define(function (require, exports, module) {
         var token, style, stream, i, j;
 
         var inRules = false;
+        var ruleStartLine = -1, ruleStartChar = -1;
 
         for (i = 0; i < lineCount; ++i) {
             if (currentSelector.trim() !== "") {
@@ -93,13 +69,15 @@ define(function (require, exports, module) {
                     currentSelector += token;
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
-                        selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition});
+                        selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition, selectorEndLine: i, selectorEndChar: stream.start});
                     }
                     currentSelector = "";
                     currentPosition = -1;
 
                     if (!inRules && state.stack.indexOf("{") > -1) { // just started parsing a rule
                         inRules = true;
+                        ruleStartLine = i;
+                        ruleStartChar = stream.start;
                     } else if (inRules && state.stack.indexOf("{") === -1) {  // just finished parsing a rule
                         inRules = false;
                         // assign this rule position to every selector on the stack that doesn't have a rule start and end line
@@ -107,6 +85,8 @@ define(function (require, exports, module) {
                             if (selectors[j].ruleEndLine) {
                                 break;
                             } else {
+                                selectors[j].ruleStartLine = ruleStartLine;
+                                selectors[j].ruleStartChar = ruleStartChar;
                                 selectors[j].ruleEndLine = i;
                                 selectors[j].ruleEndChar = stream.pos;
                             }
@@ -122,6 +102,22 @@ define(function (require, exports, module) {
         return selectors;
     }
     
+    /*
+     * This code can be used to create an "independent" HTML document that can be passed to jQuery
+     * calls. Allows using jQuery's CSS selector engine without actually putting anything in the browser's DOM
+     *
+    var _htmlDoctype = document.implementation.createDocumentType('html',
+        '-//W3C//DTD XHTML 1.0 Strict//EN',
+        'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'
+    );
+    var _htmlDocument = document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', _htmlDoctype);
+
+    function checkIfSelectorSelectsHTML(selector, theHTML) {
+        $('html', _htmlDocument).html(theHTML);
+        return ($(selector, _htmlDocument).length > 0);
+    }
+    */
+    
     /**
      * Finds all instances of the specified selector in "text".
      * Returns an Array of Objects with start and end properties.
@@ -129,13 +125,19 @@ define(function (require, exports, module) {
      * For Sprint 4, we only support simple selectors. This function will need to change
      * dramatically to support full selectors.
      *
+     * FUTURE: (JRB) It would be nice to eventually use the browser/jquery to do the selector evaluation.
+     * One way to do this would be to take the user's HTML, add a special attribute to every tag with a UID,
+     * and then construct a DOM (using the commented out code above). Then, give this DOM and the selector to 
+     * jquery and ask what matches. If the node that the user's cursor is in comes back from jquery, then 
+     * we know the selector applies.
+     *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
      * @return {Array.<{line:number, ruleEndLine:number}>} Array of objects containing the start
      *      and end line numbers (0-based, inclusive range) for each matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = _extractAllSelectors(text);
+        var allSelectors = extractAllSelectors(text);
         var result = [];
         var i;
         
@@ -236,4 +238,5 @@ define(function (require, exports, module) {
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
+    exports.extractAllSelectors = extractAllSelectors;
 });
