@@ -14,10 +14,7 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
- * This module dispatches several events:
- *    - onKeyEvent ({CodeMirror}, {KeyboardEvent}) -- When any key event happens in the editor. The event 
- *          provides the instance of the editor where the event occurred and the raw event. Most likely 
- *          this should get filtered for event.type === "keypress"
+ * This module does not dispatch any events.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -139,7 +136,7 @@ define(function (require, exports, module) {
         
         var maxWidth = 0;
         editors.forEach(function (editor) {
-            var gutter = $(editor._codeMirror.getGutterElement())
+            var gutter = $(editor._codeMirror.getGutterElement());
             gutter.css("min-width", "");
             var curWidth = gutter.width();
             if (curWidth > maxWidth) {
@@ -174,8 +171,8 @@ define(function (require, exports, module) {
             reader = FileUtils.readAsText(fileEntry);
             
         reader.done(function (text, readTimestamp) {
-            var editorWrapper = _createEditorFromText(text, fileEntry.fullPath, container, _openInlineWidget);
-            result.resolve(editorWrapper, readTimestamp, text);
+            var editor = _createEditorFromText(text, fileEntry.fullPath, container, _openInlineWidget);
+            result.resolve(editor, readTimestamp, text);
         });
         reader.fail(function (error) {
             result.reject(error);
@@ -349,8 +346,8 @@ define(function (require, exports, module) {
         if (!document.editor) {
             var editorResult = _createEditorFromFile(document.file, _editorHolder.get(0));
 
-            editorResult.done(function (editorWrapper, readTimestamp, rawText) {
-                document._setEditor(editorWrapper, readTimestamp, rawText);
+            editorResult.done(function (editor, readTimestamp, rawText) {
+                document._setEditor(editor, readTimestamp, rawText);
                 _doShow(document);
             });
             editorResult.fail(function (error) {
@@ -441,10 +438,10 @@ define(function (require, exports, module) {
         var result          = new $.Deferred(),
             editorResult    = _createEditorFromFile(fileEntry, _editorHolder.get(0));
 
-        editorResult.done(function (editorWrapper, readTimestamp, rawText) {
+        editorResult.done(function (editor, readTimestamp, rawText) {
             // Create the Document wrapping editor & binding it to a file
             var doc = new DocumentManager.Document(fileEntry);
-            doc._setEditor(editorWrapper, readTimestamp, rawText);
+            doc._setEditor(editor, readTimestamp, rawText);
             result.resolve(doc);
         });
 

@@ -338,13 +338,6 @@ define(function (require, exports, module) {
     Document.prototype.editor = null;
 
     /**
-     * @private
-     * List of the open inline editors in this document
-     * @type [{!CodeMirror}]
-     */
-    Document.prototype._inlineEditors = [];
-
-    /**
      * Null only of editor is not open yet. If a Document is created on empty text, or text with
      * inconsistent line endings, the Document defaults to the current platform's standard endings.
      * @type {null|FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}

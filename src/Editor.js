@@ -10,11 +10,14 @@
  * functionality and provides APIs that cleanly pass through the bits of CodeMirror that the rest
  * of our codebase may want to interact with.
  *
- * For now, direct access to the underlying CodeMirror object is provided -- but this is considered
- * deprecated.
+ * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
+ * but this is considered deprecated and may go away.
  *  
  * The Editor object dispatches the following events:
  *    - onChange -- When the text of the editor changes (including due to undo/redo)
+ *    - onKeyEvent -- When any key event happens in the editor (whether it changes the text or not).
+ *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
+ *          Note: most listeners will only want to respond when event.type === "keypress".
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(editorInstance).on("eventname", handler);
@@ -23,10 +26,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    // var FileUtils           = require("FileUtils"),
-    //     DocumentManager     = require("DocumentManager"),
-    //     EditorUtils         = require("EditorUtils"),
-    //     Strings             = require("strings");
+    // (none, so far)
     
     
     /**
@@ -141,6 +141,31 @@ define(function (require, exports, module) {
         return handled;
     }
     
+    /**
+     * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
+     * back-indenting it if so.
+     */
+    function _checkElectricChars(instance, event) {
+        if (event.type === "keypress") {
+            var keyStr = String.fromCharCode(event.which || event.keyCode);
+            if (/[\]\}\)]/.test(keyStr)) {
+                // If the whole line is whitespace, auto-indent it
+                var lineNum = instance.getCursor().line;
+                var lineStr = instance.getLine(lineNum);
+                
+                if (!/\S/.test(lineStr)) {
+                    // Need to do the auto-indent on a timeout to ensure
+                    // the keypress is handled before auto-indenting.
+                    // This is the same timeout value used by the
+                    // electricChars feature in CodeMirror.
+                    setTimeout(function () {
+                        instance.indentLine(lineNum);
+                    }, 75);
+                }
+            }
+        }
+    }
+    
 
     /**
      * Creates a new CodeMirror editor instance containing the given text. The editor's mode is set
@@ -158,6 +183,7 @@ define(function (require, exports, module) {
         
         this._inlineWidgets = [];
         
+        // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
             "Tab"  : _handleTabKey,
             "Left" : function (instance) {
@@ -185,47 +211,36 @@ define(function (require, exports, module) {
             "Ctrl-H": "replace",
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste",
+            "Shift-Insert": "paste"
         };
-        for (var key in additionalKeys) {
-            if (codeMirrorKeyMap.hasOwnProperty(key)) {
-                console.log("Warning: overwriting standard Editor shortcut "+key);
-            }
-            codeMirrorKeyMap[key] = function(instance) {
-                additionalKeys[key](self);
+        
+        // Merge in the additionalKeys we were passed
+        function wrapEventHandler(externalHandler) {
+            return function (instance) {
+                externalHandler(self);
+            };
+        }
+        var key;
+        for (key in additionalKeys) {
+            if (additionalKeys.hasOwnProperty(key)) {
+                if (codeMirrorKeyMap.hasOwnProperty(key)) {
+                    console.log("Warning: overwriting standard Editor shortcut " + key);
+                }
+                codeMirrorKeyMap[key] = wrapEventHandler(additionalKeys[key]);
             }
         }
         
         // NOTE: CodeMirror doesn't actually require calling 'new',
         // but jslint does require it because of the capital 'C'
         this._codeMirror = new CodeMirror(container, {
-            electricChars: false,
+            electricChars: false,       // we do our own handling of this to avoid CodeMirror bugs; see _checkElectricChars()
             indentUnit : 4,
             lineNumbers: true,
             matchBrackets: true,
             extraKeys: codeMirrorKeyMap,
             onKeyEvent: function (instance, event) {
-                if (event.type === "keypress") {
-                    var keyStr = String.fromCharCode(event.which || event.keyCode);
-                    if (/[\]\}\)]/.test(keyStr)) {
-                        // If the whole line is whitespace, auto-indent it
-                        var lineNum = instance.getCursor().line;
-                        var lineStr = instance.getLine(lineNum);
-                        
-                        if (!/\S/.test(lineStr)) {
-                            // Need to do the auto-indent on a timeout to ensure
-                            // the keypress is handled before auto-indenting.
-                            // This is the same timeout value used by the
-                            // electricChars feature in CodeMirror.
-                            setTimeout(function () {
-                                instance.indentLine(lineNum);
-                            }, 75);
-                        }
-                    }
-                }
-                
-                
-                $(exports).triggerHandler("onKeyEvent", [instance, event]);
+                _checkElectricChars(instance, event);
+                $(self).triggerHandler("onKeyEvent", [self, event]);
                 return false;
             }
         });
@@ -240,40 +255,40 @@ define(function (require, exports, module) {
         this.resetText(text);
     }
     
-    Editor.prototype._installEditorListeners = function() {
+    Editor.prototype._installEditorListeners = function () {
         var self = this;
         
         this._codeMirror.setOption("onChange", function () {
             $(self).triggerHandler("onChange");
         });
-    }
+    };
     
     
     /**
      * @return {string} The editor's current contents
      */
-    Editor.prototype.getText = function() {
+    Editor.prototype.getText = function () {
         return this._codeMirror.getValue();
-    }
+    };
     /**
      * Sets the contents of the editor. Treated as an edit, so it adds an undo step and dispatches
      * onChange. Note: all line endings will be changed to LFs.
      * @param {!string} text
      */
-    Editor.prototype.setText = function(text) {
+    Editor.prototype.setText = function (text) {
         this._codeMirror.setValue(text);
-    }
+    };
     /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches onChange.
      * @param {!string} text
      */
-    Editor.prototype.resetText = function(text) {
+    Editor.prototype.resetText = function (text) {
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
         
         // Make sure we can't undo back to the empty state before setValue()
         this._codeMirror.clearHistory();
-    }
+    };
     
     
     /**
@@ -281,17 +296,17 @@ define(function (require, exports, module) {
      * end of the range the cursor lies at.
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function() {
+    Editor.prototype.getCursorPos = function () {
         return this._codeMirror.getCursor();
-    }
+    };
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
      * @param {number} ch   The 0 based character position.
      */
-    Editor.prototype.setCursorPos = function(line, ch) {
+    Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
-    }
+    };
     
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
@@ -299,11 +314,11 @@ define(function (require, exports, module) {
      * length of zero).
      * @return !{start:{line:number, ch:number}, end:{line:number, ch:number}}
      */
-    Editor.prototype.getSelection = function() {
+    Editor.prototype.getSelection = function () {
         var selStart = this._codeMirror.getCursor(true),
             selEnd = this._codeMirror.getCursor(false);
         return { start: selStart, end: selEnd };
-    }
+    };
     
     
     /**
@@ -315,11 +330,12 @@ define(function (require, exports, module) {
      * @param data
      * @return {number} a unique (to this Editor instance) id for this inline widget
      */
-    Editor.prototype.addInlineWidget = function(pos, domContent, initialHeight, data) {
+    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, data) {
         // If any other inline widget is alrady open on this line, CodeMirror will automatically
         // close it. We don't want to leak by growing _inlineWidgets forever, so check for this case
         // and remove it manually instead.
-        for (var i = 0; i < this._inlineWidgets.length; i++) {
+        var i;
+        for (i = 0; i < this._inlineWidgets.length; i++) {
             var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
             if (info.line === pos.line) {
                 this.removeInlineWidget(this._inlineWidgets[i].id);
@@ -332,30 +348,31 @@ define(function (require, exports, module) {
         this._inlineWidgets.push({ id: inlineId, data: data });
         
         return inlineId;
-    }
+    };
     
     /**
      * Removes the given inline widget.
      * @param inlineId
      */
-    Editor.prototype.removeInlineWidget = function(inlineId) {
+    Editor.prototype.removeInlineWidget = function (inlineId) {
         this._codeMirror.removeInlineWidget(inlineId);
         
-        for (var i = 0; i < this._inlineWidgets.length; i++) {
+        var i;
+        for (i = 0; i < this._inlineWidgets.length; i++) {
             if (this._inlineWidgets[i].id === inlineId) {
                 this._inlineWidgets.splice(i, 1);
                 break;
             }
         }
-    }
+    };
 
     /**
      * Returns a list of all inline widgets currently open in this editor.
      * @return {!Array<{id:number, data:Object}>}
      */
-    Editor.prototype.getInlineWidgets = function() {
+    Editor.prototype.getInlineWidgets = function () {
         return this._inlineWidgets;
-    }
+    };
     
     
     
