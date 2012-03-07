@@ -12,8 +12,8 @@ define(function (require, exports, module) {
     'use strict';
     
     var Async               = require("Async"),
+        DocumentManager     = require("DocumentManager"),
         FileIndexManager    = require("FileIndexManager"),
-        FileUtils           = require("FileUtils"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
 
     /**
@@ -195,15 +195,14 @@ define(function (require, exports, module) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             selectors       = [];
-    
+        
         function _loadFileAndScan(fullPath, selector) {
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                result = new $.Deferred();
+            var result = new $.Deferred();
             
-            FileUtils.readAsText(fileEntry)
+            DocumentManager.getDocumentContents(fullPath)
                 .done(function (content) {
-                    // Scan for selectors
                     var localResults = _findAllMatchingSelectorsInText(content, selector);
+                    var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                     
                     localResults.forEach(function (value) {
                         selectors.push({
@@ -212,13 +211,12 @@ define(function (require, exports, module) {
                             lineEnd: value.ruleEndLine
                         });
                     });
-                    
                     result.resolve();
                 })
                 .fail(function (error) {
                     result.reject(error);
                 });
-            
+        
             return result.promise();
         }
         

@@ -15,6 +15,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeHintUtils       = require("CodeHintUtils"),
         CSSUtils            = require("CSSUtils"),
+        DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
@@ -80,7 +81,7 @@ define(function (require, exports, module) {
     function _showTextRangeInInlineEditor(parentEditor, fileEntry, startLine, endLine) {
         var result = new $.Deferred();
         
-        FileUtils.readAsText(fileEntry)
+        DocumentManager.getDocumentContents(fileEntry.fullPath)
             .done(function (text) {
                 var range = {
                     startLine: startLine,
@@ -92,14 +93,14 @@ define(function (require, exports, module) {
                 
                 // For Sprint 4, editor is a read-only view
                 inlineEditor.setOption("readOnly", true);
-                
+
                 result.resolve(inlineInfo);
             })
             .fail(function (fileError) {
-                console.log("Error reading as text: ", fileError);
+                console.log("Error getting document contents: ", fileError);
                 result.reject();
             });
-    
+
         return result.promise();
     }
     
