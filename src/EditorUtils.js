@@ -24,7 +24,7 @@ define(function (require, exports, module) {
      * off the file's extension.
      * @param {string} fileUrl  A cannonical file URL to extract the extension from
      */
-    function _getModeFromFileExtensions(fileUrl) {
+    function getModeFromFileExtension(fileUrl) {
         var ext = PathUtils.filenameExtension(fileUrl);
         //incase the arg is just the ext
         if (!ext) {
@@ -58,16 +58,16 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * Change the current mode of the editor based on file extension 
-     * @param {object} editor  An instance of a CodeMirror editor
-     * @param {string} fileUrl  A cannonical file URL to extract the extension from
-     */
-    function setModeFromFileExtension(editor, fileUrl) {
-        var mode = _getModeFromFileExtensions(fileUrl);
-        editor.setOption("mode", mode);
-    }
+    // /**
+    //  * Change the current mode of the editor based on file extension 
+    //  * @param {object} editor  An instance of a CodeMirror editor
+    //  * @param {string} fileUrl  A cannonical file URL to extract the extension from
+    //  */
+    // function setModeFromFileExtension(editor, fileUrl) {
+    //     var mode = _getModeFromFileExtensions(fileUrl);
+    //     
+    // }
 
     // Define public API
-    exports.setModeFromFileExtension = setModeFromFileExtension;
+    exports.getModeFromFileExtension = getModeFromFileExtension;
 });
