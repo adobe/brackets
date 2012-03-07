@@ -316,8 +316,21 @@ define(function (require, exports, module) {
      * @return {number} a unique (to this Editor instance) id for this inline widget
      */
     Editor.prototype.addInlineWidget = function(pos, domContent, initialHeight, data) {
+        // If any other inline widget is alrady open on this line, CodeMirror will automatically
+        // close it. We don't want to leak by growing _inlineWidgets forever, so check for this case
+        // and remove it manually instead.
+        for (var i = 0; i < this._inlineWidgets.length; i++) {
+            var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
+            if (info.line === pos.line) {
+                this.removeInlineWidget(this._inlineWidgets[i].id);
+                break;
+            }
+        }
+        
+        // Now add the new widget
         var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight);
         this._inlineWidgets.push({ id: inlineId, data: data });
+        
         return inlineId;
     }
     
@@ -328,8 +341,6 @@ define(function (require, exports, module) {
     Editor.prototype.removeInlineWidget = function(inlineId) {
         this._codeMirror.removeInlineWidget(inlineId);
         
-        // FIXME: not cleaned up if inline widget is auto-closed by CodeMirror due to opening another
-        // one on the same line. Was this case ever properly handled in the old world?
         for (var i = 0; i < this._inlineWidgets.length; i++) {
             if (this._inlineWidgets[i].id === inlineId) {
                 this._inlineWidgets.splice(i, 1);
