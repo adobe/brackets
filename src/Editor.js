@@ -156,6 +156,8 @@ define(function (require, exports, module) {
     function Editor(text, mode, container, additionalKeys) {
         var self = this;
         
+        this._inlineWidgets = [];
+        
         var codeMirrorKeyMap = {
             "Tab"  : _handleTabKey,
             "Left" : function (instance) {
@@ -304,6 +306,47 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Adds an inline widget on the given line. If any inline widget was already open on that line,
+     * it is closed without warning.
+     * @param pos
+     * @param domContent
+     * @param initialHeight
+     * @param data
+     * @return {number} a unique (to this Editor instance) id for this inline widget
+     */
+    Editor.prototype.addInlineWidget = function(pos, domContent, initialHeight, data) {
+        var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight);
+        this._inlineWidgets.push({ id: inlineId, data: data });
+        return inlineId;
+    }
+    
+    /**
+     * Removes the given inline widget.
+     * @param inlineId
+     */
+    Editor.prototype.removeInlineWidget = function(inlineId) {
+        this._codeMirror.removeInlineWidget(inlineId);
+        
+        // FIXME: not cleaned up if inline widget is auto-closed by CodeMirror due to opening another
+        // one on the same line. Was this case ever properly handled in the old world?
+        for (var i = 0; i < this._inlineWidgets.length; i++) {
+            if (this._inlineWidgets[i].id === inlineId) {
+                this._inlineWidgets.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Returns a list of all inline widgets currently open in this editor.
+     * @return {!Array<{id:number, data:Object}>}
+     */
+    Editor.prototype.getInlineWidgets = function() {
+        return this._inlineWidgets;
+    }
+    
+    
     
     /**
      * @private
@@ -311,6 +354,12 @@ define(function (require, exports, module) {
      * @type {!CodeMirror}
      */
     Editor.prototype._codeMirror = null;
+    
+    /**
+     * @private
+     * @type {!Array<{id:number, data:Object}>}
+     */
+    Editor.prototype._inlineWidgets = null;
 
 
 

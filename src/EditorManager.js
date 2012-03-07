@@ -73,23 +73,6 @@ define(function (require, exports, module) {
         return new Editor(text, mode, container, extraKeys);
     }
     
-    /**
-     * @private
-     * Given an editor, find the document that holds it
-     * @param {!Editor} editor
-     */
-    function _getDocumentForEditor(editor) {
-        var doc = null;
-        DocumentManager.getAllOpenDocuments().some(function (ele) {
-            if (ele.editor === editor) {
-                doc = ele;
-                return true;
-            }
-            return false;
-        });
-        return doc;
-    }
-    
     /** Bound to Ctrl+E on outermost editors */
     function _openInlineWidget(editor) {
         // Run through inline-editor providers until one responds
@@ -104,7 +87,7 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineContent) {
-                var inlineId = editor._codeMirror.addInlineWidget(pos, inlineContent.content, inlineContent.height);
+                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height, inlineContent);
                 inlineContent.onAdded(inlineId);
             });
         }
@@ -113,15 +96,15 @@ define(function (require, exports, module) {
     function _closeInlineWidget(hostEditor, inlineId) {
         // Place cursor back on the line just above the inline (the line from which it was opened)
         // If cursor's already on that line, leave it be to preserve column position
-        var widgetLine = hostEditor.getInlineWidgetInfo(inlineId).line;
-        var cursorLine = hostEditor.getCursor().line;
+        var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
+        var cursorLine = hostEditor.getCursorPos().line;
         if (cursorLine !== widgetLine) {
-            hostEditor.setCursor({ line: widgetLine, pos: 0 });
+            hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
         }
         
         hostEditor.removeInlineWidget(inlineId);
         
-        hostEditor.focus();
+        hostEditor._codeMirror.focus();
     }
     
     function registerInlineEditProvider(provider) {
@@ -130,15 +113,18 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Given a host editor, extract all its inline editors.
+     * Given a host editor, return a list of all its open inline editors. (Ignoring any other
+     * inline widgets that might be open).
      * @param {!Editor} hostEditor
      */
     function _getInlineEditors(hostEditor) {
-        var doc = _getDocumentForEditor(hostEditor);
-        if (doc) {
-            return doc.getInlineEditors();
-        }
-        return [];
+        var inlineEditors = [];
+        hostEditor.getInlineWidgets().forEach(function (widget) {
+            if (widget.data.editor) {
+                inlineEditors.push(widget.data.editor);
+            }
+        });
+        return inlineEditors;
     }
     
     /**
@@ -217,11 +203,7 @@ define(function (require, exports, module) {
         
         var myInlineId; // won't be populated until our afterAdded() callback is run
         function closeThisInline(editor) {
-            _closeInlineWidget(hostEditor._codeMirror, myInlineId);
-            var doc = _getDocumentForEditor(hostEditor);
-            if (doc) {
-                doc._removeInlineEditor(editor);
-            }
+            _closeInlineWidget(hostEditor, myInlineId);
             _syncGutterWidths(hostEditor);
         }
         
@@ -249,10 +231,6 @@ define(function (require, exports, module) {
                     }
                 });
                 inlineEditor.setCursorPos(range.startLine, 0);
-                var doc = _getDocumentForEditor(hostEditor);
-                if (doc) {
-                    doc._addInlineEditor(inlineEditor); // TODO: move this into Editor ?
-                }
                 _syncGutterWidths(hostEditor);
             }
             

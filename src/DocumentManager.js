@@ -383,40 +383,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
-     * other than DocumentManager and EditorManager should access it.
-     *
-     * Adds to the list of inline editors
-     * @param {!Editor} inlineEditor
-     */
-    Document.prototype._addInlineEditor = function (inlineEditor) {
-        this._inlineEditors.push(inlineEditor);
-    };
-    
-    /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
-     * other than DocumentManager and EditorManager should access it.
-     *
-     * Removes the inline editor from our list
-     * @param {!Editor} inlineEditor
-     */
-    Document.prototype._removeInlineEditor = function (inlineEditor) {
-        var i = this._inlineEditors.indexOf(inlineEditor);
-        if (i >= 0) {
-            this._inlineEditors.splice(i, 1);
-        }
-    };
-    
-    /**
-     * @return {!Array.<Editor>} an array of inline editors
-     */
-    Document.prototype.getInlineEditors = function () {
-        return this._inlineEditors;
-    };
-    
-    /**
      * @return {string} The document's current contents; may not be saved to disk 
      *  yet. Returns null if the file was not yet read and no editor was 
      *  created.
