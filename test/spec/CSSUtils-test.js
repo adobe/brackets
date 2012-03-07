@@ -1019,7 +1019,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var doc = DocumentManager.getCurrentDocument();
                     
-                    // Add several blank lines at the beginning of the text
+                    // Add a new selector to the file
                     doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
                     
                     // Look for the selector we just created
