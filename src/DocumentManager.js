@@ -182,6 +182,28 @@ define(function (require, exports, module) {
         return getDocumentForFile(fileEntry);
     }
 
+    /** 
+     * If the given file is 'open' for editing, return the contents of the editor (which could
+     * be different from the contents of the file, if the editor contains unsaved changes). If
+     * the given file is not open for editing, read the contents off disk.
+     * @param {!string} fullPath
+     * @return {Deferred} A Deferred object that will be resolved with the contents of the document
+     */
+    function getDocumentContents(fullPath) {
+        var doc = getDocumentForPath(fullPath);
+        
+        if (doc) {
+            var result = new $.Deferred();
+            
+            result.resolve(doc.getText());
+            return result;
+        } else {
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            
+            return FileUtils.readAsText(fileEntry);
+        }
+    }
+    
     /**
      * Displays the given file in the editor pane. May also add the item to the working set list.
      * This changes the value of getCurrentDocument(), which will trigger listeners elsewhere in the
@@ -627,6 +649,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
+    exports.getDocumentContents = getDocumentContents;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;
