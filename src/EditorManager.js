@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
     
-    /** @type {CodeMirror} */
+    /** @type {Editor} */
     var _currentEditor = null;
     /** @type {Document} */
     var _currentEditorsDocument = null;
@@ -76,12 +76,12 @@ define(function (require, exports, module) {
     /**
      * @private
      * Given an editor, find the document that holds it
-     * @param {!CodeMirror} editor
+     * @param {!Editor} editor
      */
     function _getDocumentForEditor(editor) {
         var doc = null;
         DocumentManager.getAllOpenDocuments().some(function (ele) {
-            if (ele._editor === editor) {
+            if (ele.editor === editor) {
                 doc = ele;
                 return true;
             }
@@ -98,13 +98,13 @@ define(function (require, exports, module) {
         var i;
         for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
             var provider = _inlineEditProviders[i];
-            inlinePromise = provider(editor._editor, pos);
+            inlinePromise = provider(editor, pos);
         }
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineContent) {
-                var inlineId = editor._editor.addInlineWidget(pos, inlineContent.content, inlineContent.height);
+                var inlineId = editor._codeMirror.addInlineWidget(pos, inlineContent.content, inlineContent.height);
                 inlineContent.onAdded(inlineId);
             });
         }
@@ -131,7 +131,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Given a host editor, extract all its inline editors.
-     * @param {!CodeMirror} hostEditor
+     * @param {!Editor} hostEditor
      */
     function _getInlineEditors(hostEditor) {
         var doc = _getDocumentForEditor(hostEditor);
@@ -143,8 +143,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Given an array of editors, find the widest gutter and make all the others match
-     * @param [{!CodeMirror}] editor An array of code mirror editors
+     * Given a host editor and its inline editors, find the widest gutter and make all the others match
+     * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
      */
     function _syncGutterWidths(hostEditor) {
         var editors = _getInlineEditors(hostEditor);
@@ -152,9 +152,10 @@ define(function (require, exports, module) {
         editors.push(hostEditor);
         
         var maxWidth = 0;
-        editors.forEach(function (ele) {
-            $(ele.getGutterElement()).css("min-width", "");
-            var curWidth = $(ele.getGutterElement()).width();
+        editors.forEach(function (editor) {
+            var gutter = $(editor._codeMirror.getGutterElement())
+            gutter.css("min-width", "");
+            var curWidth = gutter.width();
             if (curWidth > maxWidth) {
                 maxWidth = curWidth;
             }
@@ -162,14 +163,14 @@ define(function (require, exports, module) {
         
         if (editors.length === 1) {
             //There's only the host, just bail
-            editors[0].setOption("gutter", true);
+            editors[0]._codeMirror.setOption("gutter", true);
             return;
         }
         
         maxWidth = maxWidth + "px";
-        editors.forEach(function (ele) {
-            $(ele.getGutterElement()).css("min-width", maxWidth);
-            ele.setOption("gutter", true);
+        editors.forEach(function (editor) {
+            $(editor._codeMirror.getGutterElement()).css("min-width", maxWidth);
+            editor._codeMirror.setOption("gutter", true);
         });
     }
     
@@ -202,7 +203,7 @@ define(function (require, exports, module) {
      * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
      * is set based on the given filename's extension (the actual file on disk is never examined).
      * The editor is not yet visible.
-     * @param {!CodeMirror} hostEditor  Outer CodeMirror instance that inline editor will sit within.
+     * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
      * @param {!string} text  The text content of the editor.
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
@@ -216,16 +217,16 @@ define(function (require, exports, module) {
         
         var myInlineId; // won't be populated until our afterAdded() callback is run
         function closeThisInline(editor) {
-            _closeInlineWidget(hostEditor, myInlineId);
+            _closeInlineWidget(hostEditor._codeMirror, myInlineId);
             var doc = _getDocumentForEditor(hostEditor);
             if (doc) {
-                doc._removeInlineEditor(editor._editor);
+                doc._removeInlineEditor(editor);
             }
             _syncGutterWidths(hostEditor);
         }
         
-        var editorWrapper = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
-        var inlineEditor = editorWrapper._editor;
+        var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
+        var inlineEditorCM = inlineEditor._codeMirror;
         
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
@@ -235,22 +236,22 @@ define(function (require, exports, module) {
             // text itself so that the editor still shows accurate line numbers.
             var hidLines = false;
             if (range) {
-                inlineEditor.operation(function () {
+                inlineEditorCM.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
                         hidLines = true;
-                        inlineEditor.hideLine(i);
+                        inlineEditorCM.hideLine(i);
                     }
-                    var lineCount = inlineEditor.lineCount();
+                    var lineCount = inlineEditorCM.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
                         hidLines = true;
-                        inlineEditor.hideLine(i);
+                        inlineEditorCM.hideLine(i);
                     }
                 });
-                inlineEditor.setCursor(range.startLine, 0);
+                inlineEditor.setCursorPos(range.startLine, 0);
                 var doc = _getDocumentForEditor(hostEditor);
                 if (doc) {
-                    doc._addInlineEditor(inlineEditor);
+                    doc._addInlineEditor(inlineEditor); // TODO: move this into Editor ?
                 }
                 _syncGutterWidths(hostEditor);
             }
@@ -259,17 +260,17 @@ define(function (require, exports, module) {
             // force the editor to update its display so we measure the correct height below
             // in totalHeight().
             if (!hidLines) {
-                inlineEditor.refresh();
+                inlineEditorCM.refresh();
             }
             
             // Auto-size editor to its remaining content
-            var widgetHeight = inlineEditor.totalHeight(true);
+            var widgetHeight = inlineEditorCM.totalHeight(true);
 
-            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight, true);
-            $(inlineEditor.getScrollerElement()).height(widgetHeight);
-            inlineEditor.refresh();
+            hostEditor._codeMirror.setInlineWidgetHeight(inlineId, widgetHeight, true);
+            $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
+            inlineEditorCM.refresh();
             
-            inlineEditor.focus();
+            inlineEditorCM.focus();
         }
         
         return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
@@ -282,7 +283,7 @@ define(function (require, exports, module) {
      * @param {!Document} document
      */
     function _destroyEditorIfUnneeded(document) {
-        var editor = document._editor;
+        var editor = document.editor;
 
         if (!editor) {
             return;
@@ -293,7 +294,7 @@ define(function (require, exports, module) {
             
             // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
             // is "Remove this from your tree to delete an editor instance."
-            $(editor.getWrapperElement()).remove();
+            $(editor._codeMirror.getWrapperElement()).remove();
             
             // Our callers should really ensure this, but just for safety...
             if (_currentEditor === editor) {
@@ -307,7 +308,7 @@ define(function (require, exports, module) {
     // TODO: rename to focusMainEditor()
     function focusEditor() {
         if (_currentEditor) {
-            _currentEditor.focus();
+            _currentEditor._codeMirror.focus();
         }
     }
     
@@ -320,8 +321,8 @@ define(function (require, exports, module) {
      */
     function resizeEditor() {
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
-            _currentEditor.refresh();
+            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
+            _currentEditor._codeMirror.refresh();
         }
     }
     
@@ -333,7 +334,7 @@ define(function (require, exports, module) {
     function _updateEditorSize() {
         // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
+            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
         }
     }
     
@@ -344,9 +345,9 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _currentEditor = document._editor;
+        _currentEditor = document.editor;
 
-        $(_currentEditor.getWrapperElement()).css("display", "");
+        $(_currentEditor._codeMirror.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
@@ -362,7 +363,7 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#notEditor").css("display", "none");
         } else {
-            $(_currentEditor.getWrapperElement()).css("display", "none");
+            $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
 
@@ -392,7 +393,7 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            $(_currentEditor.getWrapperElement()).css("display", "none");
+            $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
             _currentEditorsDocument = null;

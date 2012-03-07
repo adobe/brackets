@@ -13,10 +13,8 @@
  * For now, direct access to the underlying CodeMirror object is provided -- but this is considered
  * deprecated.
  *  
- * The Editor object dispatches several events:
+ * The Editor object dispatches the following events:
  *    - onChange -- When the text of the editor changes (including due to undo/redo)
- *    - xxxxxxx -- When a Document's changes have been saved. The 2nd arg to the listener is the 
- *      Document that has been saved.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(editorInstance).on("eventname", handler);
@@ -198,7 +196,7 @@ define(function (require, exports, module) {
         
         // NOTE: CodeMirror doesn't actually require calling 'new',
         // but jslint does require it because of the capital 'C'
-        var editor = new CodeMirror(container, {
+        this._codeMirror = new CodeMirror(container, {
             electricChars: false,
             indentUnit : 4,
             lineNumbers: true,
@@ -230,12 +228,10 @@ define(function (require, exports, module) {
             }
         });
         
-        this._editor = editor;
-        
         this._installEditorListeners();
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
-        editor.setOption("mode", mode);
+        this._codeMirror.setOption("mode", mode);
         
         // Initially populate with text. This will send a spurious change event, but that's ok
         // because no one's listening yet (and we clear the undo stack below)
@@ -245,7 +241,7 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function() {
         var self = this;
         
-        this._editor.setOption("onChange", function () {
+        this._codeMirror.setOption("onChange", function () {
             $(self).triggerHandler("onChange");
         });
     }
@@ -255,7 +251,7 @@ define(function (require, exports, module) {
      * @return {string} The editor's current contents
      */
     Editor.prototype.getText = function() {
-        return this._editor.getValue();
+        return this._codeMirror.getValue();
     }
     /**
      * Sets the contents of the editor. Treated as an edit, so it adds an undo step and dispatches
@@ -263,7 +259,7 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype.setText = function(text) {
-        this._editor.setValue(text);
+        this._codeMirror.setValue(text);
     }
     /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches onChange.
@@ -271,19 +267,20 @@ define(function (require, exports, module) {
      */
     Editor.prototype.resetText = function(text) {
         // This *will* fire a change event, but we clear the undo immediately afterward
-        this._editor.setValue(text);
+        this._codeMirror.setValue(text);
         
         // Make sure we can't undo back to the empty state before setValue()
-        this._editor.clearHistory();
+        this._codeMirror.clearHistory();
     }
     
     
     /**
-     * Gets the current cursor position within the editor. If there is a selection, returns ...TODO
+     * Gets the current cursor position within the editor. If there is a selection, returns whichever
+     * end of the range the cursor lies at.
      * @return !{line:number, ch:number}
      */
     Editor.prototype.getCursorPos = function() {
-        return this._editor.getCursor();
+        return this._codeMirror.getCursor();
     }
     /**
      * Sets the cursor position within the editor. Removes any selection.
@@ -291,21 +288,32 @@ define(function (require, exports, module) {
      * @param {number} ch   The 0 based character position.
      */
     Editor.prototype.setCursorPos = function(line, ch) {
-        this._editor.setCursor(line, ch);
+        this._codeMirror.setCursor(line, ch);
+    }
+    
+    /**
+     * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
+     * returns the current cursor position as both the start and end of the range (i.e. a selection
+     * length of zero).
+     * @return !{start:{line:number, ch:number}, end:{line:number, ch:number}}
+     */
+    Editor.prototype.getSelection = function() {
+        var selStart = this._codeMirror.getCursor(true),
+            selEnd = this._codeMirror.getCursor(false);
+        return { start: selStart, end: selEnd };
     }
     
     
     
-    Editor.prototype._editor = null;
+    /**
+     * @private
+     * NOTE: this is actually "semi-private": EditorManager also accesses this field.
+     * @type {!CodeMirror}
+     */
+    Editor.prototype._codeMirror = null;
 
 
 
     // Define public API
     exports.Editor = Editor;
-    // exports.setEditorHolder = setEditorHolder;
-    // exports.createDocumentAndEditor = createDocumentAndEditor;
-    // exports.createInlineEditorFromText = createInlineEditorFromText;
-    // exports.focusEditor = focusEditor;
-    // exports.resizeEditor = resizeEditor;
-    // exports.registerInlineEditProvider = registerInlineEditProvider;
 });

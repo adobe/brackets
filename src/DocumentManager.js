@@ -329,14 +329,12 @@ define(function (require, exports, module) {
     /**
      * @private
      * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
-     * other than DocumentManager and EditorManager should access it.
+     * other than DocumentManager and EditorManager should access it. -- TODO: is this still true?
      *
      * The editor may be null in the case that the document working set was
      * restored from storage but an editor was not yet created.
-     * @type {?CodeMirror}
+     * @type {?Editor}
      */
-    Document.prototype._editor = null;
-    
     Document.prototype.editor = null;
 
     /**
@@ -371,7 +369,6 @@ define(function (require, exports, module) {
         console.assert(!this.editor);
         
         this.editor = editor;
-        this._editor = editor._editor;
         this.diskTimestamp = initialTimestamp;
         
         // Dirty-bit tracking
@@ -391,7 +388,7 @@ define(function (require, exports, module) {
      * other than DocumentManager and EditorManager should access it.
      *
      * Adds to the list of inline editors
-     * @param {!CodeMirror} inlineEditor
+     * @param {!Editor} inlineEditor
      */
     Document.prototype._addInlineEditor = function (inlineEditor) {
         this._inlineEditors.push(inlineEditor);
@@ -403,7 +400,7 @@ define(function (require, exports, module) {
      * other than DocumentManager and EditorManager should access it.
      *
      * Removes the inline editor from our list
-     * @param {!CodeMirror} inlineEditor
+     * @param {!Editor} inlineEditor
      */
     Document.prototype._removeInlineEditor = function (inlineEditor) {
         var i = this._inlineEditors.indexOf(inlineEditor);
@@ -413,7 +410,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return [{!CodeMirror}] an array of inline editors
+     * @return {!Array.<Editor>} an array of inline editors
      */
     Document.prototype.getInlineEditors = function () {
         return this._inlineEditors;
