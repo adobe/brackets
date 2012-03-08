@@ -23,6 +23,7 @@ define(function (require, exports, module) {
         Commands            = require("Commands"),
         CommandManager      = require("CommandManager"),
         Async               = require("Async"),
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         FileUtils           = require("FileUtils");
 
@@ -151,8 +152,8 @@ define(function (require, exports, module) {
      * @return {$.Deferred}
      */
     function showReloadError(error, doc) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
+        return Dialogs.showModalDialog(
+            Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_RELOADING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_RELOADING_FILE,
@@ -202,7 +203,7 @@ define(function (require, exports, module) {
             // Prompt UI varies depending on whether the file on disk was modified vs. deleted
             if (i < editConflicts.length) {
                 toClose = false;
-                dialogId = brackets.DIALOG_ID_EXT_CHANGED;
+                dialogId = Dialogs.DIALOG_ID_EXT_CHANGED;
                 message = Strings.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
@@ -210,16 +211,16 @@ define(function (require, exports, module) {
                 
             } else {
                 toClose = true;
-                dialogId = brackets.DIALOG_ID_EXT_DELETED;
+                dialogId = Dialogs.DIALOG_ID_EXT_DELETED;
                 message = Strings.format(
                     Strings.EXT_DELETED_MESSAGE,
                     ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
                 );
             }
             
-            brackets.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message)
+            Dialogs.showModalDialog(dialogId, Strings.EXT_MODIFIED_TITLE, message)
                 .done(function (id) {
-                    if (id === brackets.DIALOG_BTN_DONTSAVE) {
+                    if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
                             // Discard - close editor
                             DocumentManager.closeDocument(doc);
@@ -276,8 +277,8 @@ define(function (require, exports, module) {
             
             // Close dialog if it was open. This will 'unblock' presentConflict(), which bails back
             // to us immediately upon seeing _restartPending. We then restart the sync - see below
-            brackets.cancelModalDialogIfOpen(brackets.DIALOG_ID_EXT_CHANGED);
-            brackets.cancelModalDialogIfOpen(brackets.DIALOG_ID_EXT_DELETED);
+            Dialogs.cancelModalDialogIfOpen(Dialogs.DIALOG_ID_EXT_CHANGED);
+            Dialogs.cancelModalDialogIfOpen(Dialogs.DIALOG_ID_EXT_DELETED);
             
             return;
         }

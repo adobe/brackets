@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         CommandManager      = require("CommandManager"),
         Commands            = require("Commands"),
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
         PerfUtils           = require("PerfUtils");
@@ -339,8 +340,8 @@ define(function (require, exports, module) {
                 }
             },
             function (error) {
-                brackets.showModalDialog(
-                    brackets.DIALOG_ID_ERROR,
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
                     Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, dirEntry.fullPath, error.code)
                 );
@@ -443,8 +444,8 @@ define(function (require, exports, module) {
                     });
                 },
                 function (error) {
-                    brackets.showModalDialog(
-                        brackets.DIALOG_ID_ERROR,
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
                         Strings.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
@@ -491,8 +492,8 @@ define(function (require, exports, module) {
                         }
                     },
                     function (error) {
-                        brackets.showModalDialog(
-                            brackets.DIALOG_ID_ERROR,
+                        Dialogs.showModalDialog(
+                            Dialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LOADING_PROJECT,
                             Strings.format(Strings.OPEN_DIALOG_ERROR, error.code)
                         );
@@ -596,8 +597,8 @@ define(function (require, exports, module) {
                 // We may want to add checks for those here.
                 // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
                 if (data.rslt.name.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
-                    brackets.showModalDialog(
-                        brackets.DIALOG_ID_ERROR,
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
                         Strings.INVALID_FILENAME_TITLE,
                         Strings.INVALID_FILENAME_MESSAGE
                     );
@@ -618,8 +619,8 @@ define(function (require, exports, module) {
                     function (error) {
                         if ((error.code === FileError.PATH_EXISTS_ERR)
                                 || (error.code === FileError.TYPE_MISMATCH_ERR)) {
-                            brackets.showModalDialog(
-                                brackets.DIALOG_ID_ERROR,
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
                                 Strings.INVALID_FILENAME_TITLE,
                                 Strings.format(Strings.FILE_ALREADY_EXISTS, data.rslt.name)
                             );
@@ -629,8 +630,8 @@ define(function (require, exports, module) {
                                              Strings.format(String.GENERIC_ERROR, error.code);
                             var errMsg = Strings.format(Strings.ERROR_CREATING_FILE, data.rslt.name, errString);
                           
-                            brackets.showModalDialog(
-                                brackets.DIALOG_ID_ERROR,
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_CREATING_FILE_TITLE,
                                 errMsg
                             );
