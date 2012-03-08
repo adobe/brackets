@@ -6,7 +6,7 @@
 /*global define: false, $: false, brackets: false */
 
 /**
- * Utilities for working with Deferred, Promise, and other asynchronous processes.
+ * Utilities for creating and managing standard modal dialogs.
  */
 define(function (require, exports, module) {
     'use strict';
