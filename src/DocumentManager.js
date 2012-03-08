@@ -182,6 +182,28 @@ define(function (require, exports, module) {
         return getDocumentForFile(fileEntry);
     }
 
+    /** 
+     * If the given file is 'open' for editing, return the contents of the editor (which could
+     * be different from the contents of the file, if the editor contains unsaved changes). If
+     * the given file is not open for editing, read the contents off disk.
+     * @param {!string} fullPath
+     * @return {Deferred} A Deferred object that will be resolved with the contents of the document
+     */
+    function getDocumentContents(fullPath) {
+        var doc = getDocumentForPath(fullPath);
+        
+        if (doc) {
+            var result = new $.Deferred();
+            
+            result.resolve(doc.getText());
+            return result;
+        } else {
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            
+            return FileUtils.readAsText(fileEntry);
+        }
+    }
+    
     /**
      * Displays the given file in the editor pane. May also add the item to the working set list.
      * This changes the value of getCurrentDocument(), which will trigger listeners elsewhere in the
@@ -335,7 +357,14 @@ define(function (require, exports, module) {
      * @type {?CodeMirror}
      */
     Document.prototype._editor = null;
-    
+
+    /**
+     * @private
+     * List of the open inline editors in this document
+     * @type [{!CodeMirror}]
+     */
+    Document.prototype._inlineEditors = [];
+
     /**
      * Null only of editor is not open yet. If a Document is created on empty text, or text with
      * inconsistent line endings, the Document defaults to the current platform's standard endings.
@@ -373,6 +402,40 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+    };
+    
+    /**
+     * @private
+     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
+     * other than DocumentManager and EditorManager should access it.
+     *
+     * Adds to the list of inline editors
+     * @param {!CodeMirror} inlineEditor
+     */
+    Document.prototype._addInlineEditor = function (inlineEditor) {
+        this._inlineEditors.push(inlineEditor);
+    };
+    
+    /**
+     * @private
+     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
+     * other than DocumentManager and EditorManager should access it.
+     *
+     * Removes the inline editor from our list
+     * @param {!CodeMirror} inlineEditor
+     */
+    Document.prototype._removeInlineEditor = function (inlineEditor) {
+        var i = this._inlineEditors.indexOf(inlineEditor);
+        if (i >= 0) {
+            this._inlineEditors.splice(i, 1);
+        }
+    };
+    
+    /**
+     * @return [{!CodeMirror}] an array of inline editors
+     */
+    Document.prototype.getInlineEditors = function () {
+        return this._inlineEditors;
     };
     
     /**
@@ -586,6 +649,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
+    exports.getDocumentContents = getDocumentContents;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;
