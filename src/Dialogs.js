@@ -51,7 +51,7 @@ define(function (require, exports, module) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
-            // FIXME (issue #XXX) CMD+. Cancel swallowed by native shell?
+            // FIXME (issue #418) CMD+. Cancel swallowed by native shell
             } else if (e.metaKey && (e.which === 190)) {
                 buttonId = DIALOG_BTN_CANCEL;
             }
