@@ -349,12 +349,10 @@ define(function (require, exports, module) {
     Document.prototype.diskTimestamp = null;
     
     /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
-     * other than DocumentManager and EditorManager should access it. -- TODO: is this still true?
-     *
-     * The editor may be null in the case that the document working set was
-     * restored from storage but an editor was not yet created.
+     * Editor object representing the full-size editor UI for this document. Null if Document was
+     * restored from persisted working set but hasn'r been opened in the UI yet.
+     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
+     * UI-related actions that Document does not provide any APIs for.
      * @type {?Editor}
      */
     Document.prototype.editor = null;

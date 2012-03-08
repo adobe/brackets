@@ -280,7 +280,6 @@ define(function (require, exports, module) {
     }
 
     /** Focus the currently visible editor. If no editor visible, does nothing. */
-    // TODO: rename to focusMainEditor()
     function focusEditor() {
         if (_currentEditor) {
             _currentEditor._codeMirror.focus();

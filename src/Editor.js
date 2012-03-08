@@ -175,8 +175,8 @@ define(function (require, exports, module) {
      * @param {!string} mode  Syntax-highlighting language mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
-     * @param {!Object<string, function(CodeMirror)} additionalKeys  ...TODO...
-     * @return {CodeMirror} the newly created editor.
+     * @param {!Object<string, function(Editor)} additionalKeys  Mapping of keyboard shortcuts to
+     *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
      */
     function Editor(text, mode, container, additionalKeys) {
         var self = this;
@@ -230,10 +230,10 @@ define(function (require, exports, module) {
             }
         }
         
-        // NOTE: CodeMirror doesn't actually require calling 'new',
-        // but jslint does require it because of the capital 'C'
+        // Create the CodeMirror instance
+        // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
-            electricChars: false,       // we do our own handling of this to avoid CodeMirror bugs; see _checkElectricChars()
+            electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             indentUnit : 4,
             lineNumbers: true,
             matchBrackets: true,
@@ -255,6 +255,10 @@ define(function (require, exports, module) {
         this.resetText(text);
     }
     
+    /**
+     * Install singleton event handlers on the CodeMirror instance, translating them into multi-
+     * listener-capable jQuery events on the Editor instance.
+     */
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
@@ -264,20 +268,21 @@ define(function (require, exports, module) {
     };
     
     
-    /**
-     * @return {string} The editor's current contents
-     */
+    /** @return {string} The editor's current contents */
     Editor.prototype.getText = function () {
         return this._codeMirror.getValue();
     };
+    
     /**
-     * Sets the contents of the editor. Treated as an edit, so it adds an undo step and dispatches
-     * onChange. Note: all line endings will be changed to LFs.
+     * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches
+     * onChange.
+     * Note: all line endings will be changed to LFs.
      * @param {!string} text
      */
     Editor.prototype.setText = function (text) {
         this._codeMirror.setValue(text);
     };
+    
     /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches onChange.
      * @param {!string} text
@@ -299,6 +304,7 @@ define(function (require, exports, module) {
     Editor.prototype.getCursorPos = function () {
         return this._codeMirror.getCursor();
     };
+    
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
@@ -311,7 +317,7 @@ define(function (require, exports, module) {
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
-     * length of zero).
+     * of length zero).
      * @return !{start:{line:number, ch:number}, end:{line:number, ch:number}}
      */
     Editor.prototype.getSelection = function () {
@@ -322,18 +328,19 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds an inline widget on the given line. If any inline widget was already open on that line,
-     * it is closed without warning.
-     * @param pos
-     * @param domContent
-     * @param initialHeight
-     * @param data
-     * @return {number} a unique (to this Editor instance) id for this inline widget
+     * Adds an inline widget below the given line. If any inline widget was already open for that
+     * line, it is closed without warning.
+     * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
+     * @param {!DOMElement} domContent  DOM node of widget UI to insert.
+     * @param {number} initialHeight  Initial height to accomodate.
+     * @param {Object} data  Extra data to track along with the widget. Accessible later via
+     *          {@link #getInlineWidgets()}.
+     * @return {number} id for this inline widget instance; unique to this Editor
      */
     Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, data) {
         // If any other inline widget is alrady open on this line, CodeMirror will automatically
-        // close it. We don't want to leak by growing _inlineWidgets forever, so check for this case
-        // and remove it manually instead.
+        // close it. We don't want to leak an _inlineWidgets entry, so check for this case and
+        // remove it manually instead.
         var i;
         for (i = 0; i < this._inlineWidgets.length; i++) {
             var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
@@ -352,7 +359,7 @@ define(function (require, exports, module) {
     
     /**
      * Removes the given inline widget.
-     * @param inlineId
+     * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype.removeInlineWidget = function (inlineId) {
         this._codeMirror.removeInlineWidget(inlineId);
@@ -367,8 +374,9 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns a list of all inline widgets currently open in this editor.
-     * @return {!Array<{id:number, data:Object}>}
+     * Returns a list of all inline widgets currently open in this editor. Each entry contains the
+     * inline's id, and the data parameter that was passed to addInlineWidget().
+     * @return {!Array.<{id:number, data:Object}>}
      */
     Editor.prototype.getInlineWidgets = function () {
         return this._inlineWidgets;
@@ -385,7 +393,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * @type {!Array<{id:number, data:Object}>}
+     * @type {!Array.<{id:number, data:Object}>}
      */
     Editor.prototype._inlineWidgets = null;
 
