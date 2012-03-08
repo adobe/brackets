@@ -193,7 +193,7 @@ define(function (require, exports, module) {
     function getDocumentContents(fullPath) {
         var doc = getDocumentForPath(fullPath);
         
-        if (doc) {
+        if (doc && doc.editor) {
             var result = new $.Deferred();
             
             result.resolve(doc.getText());
