@@ -8,56 +8,55 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorUtils = require("EditorUtils");
+    var Editor      = require("Editor").Editor,
+        EditorUtils = require("EditorUtils");
 
     describe("Editor", function () {
         var content = 'Brackets is going to be awesome!\n';
 
-        describe("CodeMirror", function () {
-            var myCodeMirror;
+        describe("Editor wrapper", function () {
+            var myEditor;
 
             beforeEach(function () {
-                // init CodeMirror instance
+                // init Editor instance (containing a CodeMirror instance)
                 $("body").append("<div id='editor'/>");
-                myCodeMirror = new CodeMirror($("#editor").get(0), {
-                    value: content
-                });
+                myEditor = new Editor(content, "", $("#editor").get(0), {});
             });
 
             afterEach(function () {
                 $("#editor").remove();
-                myCodeMirror = null;
+                myEditor = null;
             });
 
             it("should initialize with content", function () {
                 // verify editor content
-                expect(myCodeMirror.getValue()).toEqual(content);
+                expect(myEditor.getText()).toEqual(content);
+            });
+        });
+            
+        describe("File extension to mode mapping", function () {
+            it("should switch to the HTML mode for files ending in .html", function () {
+                // verify editor content
+                var mode = EditorUtils.getModeFromFileExtension("file:///only/testing/the/path.html");
+                expect(mode).toEqual("htmlmixed");
             });
             
-            describe("Modes", function () {
-                it("should switch to the HTML mode for files ending in .html", function () {
-                    // verify editor content
-                    EditorUtils.setModeFromFileExtension(myCodeMirror, "file:///only/testing/the/path.html");
-                    expect(myCodeMirror.getOption("mode")).toEqual("htmlmixed");
-                });
-                
-                it("should switch modes even if the url has a query string", function () {
-                    // verify editor content
-                    EditorUtils.setModeFromFileExtension(myCodeMirror, "http://only.org/testing/the/path.css?v=2");
-                    expect(myCodeMirror.getOption("mode")).toEqual("css");
-                });
-                
-                it("should accecpt just a file name too", function () {
-                    // verify editor content
-                    EditorUtils.setModeFromFileExtension(myCodeMirror, "path.js");
-                    expect(myCodeMirror.getOption("mode")).toEqual("javascript");
-                });
+            it("should switch modes even if the url has a query string", function () {
+                // verify editor content
+                var mode = EditorUtils.getModeFromFileExtension("http://only.org/testing/the/path.css?v=2");
+                expect(mode).toEqual("css");
+            });
+            
+            it("should accecpt just a file name too", function () {
+                // verify editor content
+                var mode = EditorUtils.getModeFromFileExtension("path.js");
+                expect(mode).toEqual("javascript");
+            });
 
-                it("should default to plaintext for unknown file extensions", function () {
-                    // verify editor content
-                    EditorUtils.setModeFromFileExtension(myCodeMirror, "test.foo");
-                    expect(myCodeMirror.getOption("mode")).toEqual("");
-                });
+            it("should default to plaintext for unknown file extensions", function () {
+                // verify editor content
+                var mode = EditorUtils.getModeFromFileExtension("test.foo");
+                expect(mode).toEqual("");
             });
         });
     });

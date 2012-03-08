@@ -102,8 +102,7 @@ define(function (require, exports, module) {
                 var didOpen     = false,
                     didSave     = false,
                     gotError    = false,
-                    filePath    = testPath + "/test.js",
-                    editor;
+                    filePath    = testPath + "/test.js";
 
                 runs(function () {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath})
@@ -114,8 +113,7 @@ define(function (require, exports, module) {
 
                 // modify and save
                 runs(function () {
-                    editor = DocumentManager.getCurrentDocument()._editor;
-                    editor.setValue(TEST_JS_NEW_CONTENT);
+                    DocumentManager.getCurrentDocument().setText(TEST_JS_NEW_CONTENT);
 
                     CommandManager.execute(Commands.FILE_SAVE)
                         .done(function () { didSave = true; })
@@ -178,7 +176,7 @@ define(function (require, exports, module) {
 
             it("should report dirty after undo and redo", function () {
                 var doc = DocumentManager.getCurrentDocument();
-                var editor = doc._editor;
+                var editor = doc.editor._codeMirror;
                 
                 runs(function () {
                     // change editor content, followed by undo and redo
@@ -211,12 +209,14 @@ define(function (require, exports, module) {
             it("should report not dirty after undo", function() {
                 runs(function() {
                     // change editor content, followed by undo
-                    var editor = DocumentManager.getCurrentDocument()._editor;
-                    editor.setValue(TEST_JS_NEW_CONTENT);
+                    var doc = DocumentManager.getCurrentDocument();
+                    var editor = doc.editor._codeMirror;
+                    
+                    doc.getText(TEST_JS_NEW_CONTENT);
                     editor.undo();
                     
                     // verify Document dirty status
-                    expect(editor.getValue()).toBe(TEST_JS_CONTENT);
+                    expect(doc.getText()).toBe(TEST_JS_CONTENT);
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                 });
             });
