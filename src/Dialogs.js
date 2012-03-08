@@ -66,6 +66,10 @@ define(function (require, exports, module) {
         
         if (buttonId) {
             _dismissDialog(this, buttonId);
+        } else {
+            // Stop the event if not handled by this dialog
+            e.stopPropagation();
+            e.preventDefault();
         }
     };
     
@@ -117,7 +121,9 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             dlg.remove();
-            dlg.unbind("keydown", handleKeyDown);
+
+            // Remove keydown event handler
+            document.body.removeEventListener("keydown", handleKeyDown, true);
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = dlg.find(".primary");
@@ -127,7 +133,7 @@ define(function (require, exports, module) {
             }
 
             // Listen for dialog keyboard shortcuts
-            dlg.bind("keydown", handleKeyDown);
+            document.body.addEventListener("keydown", handleKeyDown, true);
         });
         
         // Click handler for buttons
