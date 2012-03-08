@@ -31,6 +31,43 @@ define(function (require, exports, module) {
     function _hasButton(dlg, buttonId) {
         return dlg.find("[data-button-id='" + buttonId + "']");
     }
+
+    var _handleKeyDown = function (e) {
+        var primaryBtn = this.find(".primary"),
+            buttonId = null,
+            which = String.fromCharCode(e.which);
+        
+        if (e.which === 13) {
+            // Click primary button
+            if (primaryBtn) {
+                buttonId = primaryBtn.attr("data-button-id");
+            }
+        } else if (e.which === 32) {
+            // Space bar on focused button
+            this.find(".dialog-button:focus").click();
+        } else if (brackets.platform === "mac") {
+            // CMD+D Don't Save
+            if (e.metaKey && (which === 'D')) {
+                if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
+                    buttonId = DIALOG_BTN_DONTSAVE;
+                }
+            // FIXME (issue #XXX) CMD+. Cancel swallowed by native shell?
+            } else if (e.metaKey && (e.which === 190)) {
+                buttonId = DIALOG_BTN_CANCEL;
+            }
+        } else { // if (brackets.platform === "win") {
+            // 'N' Don't Save
+            if (which === 'N') {
+                if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
+                    buttonId = DIALOG_BTN_DONTSAVE;
+                }
+            }
+        }
+        
+        if (buttonId) {
+            _dismissDialog(this, buttonId);
+        }
+    };
     
     /**
      * General purpose modal dialog. Assumes that:
@@ -62,6 +99,8 @@ define(function (require, exports, module) {
         $(".dialog-title", dlg).html(title);
         $(".dialog-message", dlg).html(message);
 
+        var handleKeyDown = _handleKeyDown.bind(dlg);
+
         // Pipe dialog-closing notification back to client code
         dlg.one("hidden", function () {
             var buttonId = dlg.data("buttonId");
@@ -78,84 +117,18 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             dlg.remove();
+            dlg.unbind("keydown", handleKeyDown);
         }).one("shown", function () {
+            // Set focus to the default button
             var primaryBtn = dlg.find(".primary");
 
             if (primaryBtn) {
                 primaryBtn.focus();
             }
+
+            // Listen for dialog keyboard shortcuts
+            dlg.bind("keydown", handleKeyDown);
         });
-
-        function stopEvent(e) {
-            // Stop the event if the target is not inside the dialog
-            if (!($.contains(dlg.get(0), e.target))) {
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        }
-        
-        // Standard keyboard handlers.
-        // Need to add both keydown and keyup handlers here to make sure
-        // the enter key was pressed while the dialog was showing.
-        // Otherwise, if a keydown or keypress from somewhere else
-        // triggered an alert, the keyup could immediately dismiss it.
-        var keyDownHandled = false;
-        
-        function keydownHandler(e) {
-            keyDownHandled = true;
-            stopEvent(e);
-        }
-        
-        function keyupHandler(e) {
-            if (keyDownHandled) {
-                var primaryBtn = dlg.find(".primary"),
-                    buttonId = null;
-                
-                if (e.keyCode === 13) {
-                    if (primaryBtn) {
-                        buttonId = primaryBtn.attr("data-button-id");
-                    }
-                } else {
-                    var keyCode = String.fromCharCode(e.keyCode);
-                    
-                    if (keyCode) {
-                        keyCode = keyCode.toLowerCase();
-
-                        if (brackets.platform === "mac") {
-                            // CMD+D Don't Save
-                            if (e.ctrlKey && keyCode === 'd') {
-                                if (_hasButton(DIALOG_BTN_DONTSAVE)) {
-                                    buttonId = DIALOG_BTN_DONTSAVE;
-                                }
-                            // CMD+. Cancel
-                            } else if (e.ctrlKey && keyCode === '.') {
-                                buttonId = DIALOG_BTN_CANCEL;
-                            }
-                        } else { // if (brackets.platform === "win") {
-                            // 'n' Don't Save
-                            if (keyCode === 'n') {
-                                if (_hasButton(DIALOG_BTN_DONTSAVE)) {
-                                    buttonId = DIALOG_BTN_DONTSAVE;
-                                }
-                            }
-                        }
-                    }
-                }
-            
-                keyDownHandled = false;
-                
-                if (buttonId) {
-                    _dismissDialog(dlg, buttonId);
-                }
-            }
-
-            stopEvent(e);
-        }
-        
-        // These handlers are added at the capture phase to make sure we
-        // get first crack at the events. 
-        document.body.addEventListener("keydown", keydownHandler, true);
-        document.body.addEventListener("keyup", keyupHandler, true);
         
         // Click handler for buttons
         dlg.one("click", ".dialog-button", function (e) {
@@ -165,11 +138,8 @@ define(function (require, exports, module) {
         // Run the dialog
         dlg.modal({
             backdrop: "static",
-            show: true
-        }).on("hide", function (e) {
-            // Remove key event handlers
-            document.body.removeEventListener("keydown", keydownHandler, true);
-            document.body.removeEventListener("keyup", keyupHandler, true);
+            show: true,
+            keyboard: true
         });
         return result;
     }
