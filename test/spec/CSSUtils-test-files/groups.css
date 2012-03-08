@@ -21,3 +21,15 @@ h2 {
 h3 {
     color: "black";
 }
+
+.a,
+.b, .c,
+.d
+{
+    color: "black";
+}
+
+.f { color: "black"; } .g,
+.h {
+    color: "white";
+}
