@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
  */
@@ -453,16 +452,6 @@ define(function (require, exports, module) {
         return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
     }
     
-    // TODO TY: move fucntion and add comments
-       function _AutoSizeInlineWidget(hostEditor, inlineId) {
-
-        
-        var widgetHeight = inlineEditor.totalHeight(true);
-
-        hostEditor.setInlineWidgetHeight(inlineId, widgetHeight, true);
-        $(inlineEditor.getScrollerElement()).height(widgetHeight);
-        inlineEditor.refresh();
-    }
     
     /**
      * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in

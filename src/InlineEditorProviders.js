@@ -92,7 +92,7 @@ define(function (require, exports, module) {
                 var inlineEditor = inlineInfo.editor;
                 
                 // For Sprint 4, editor is a read-only view
-                //inlineEditor.setOption("readOnly", true);
+                inlineEditor.setOption("readOnly", true);
 
                 result.resolve(inlineInfo);
             })
