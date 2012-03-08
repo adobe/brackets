@@ -258,16 +258,16 @@ define(function (require, exports, module) {
                 ProjectManager.openProject();
             });
 
+
             // Handle toggling top level disclosure arrows of file list area
-            $("#open-files-disclosure-arrow").click(function () {
-                $(this).toggleClass("disclosure-arrow-closed");
+            $("#open-files-header").click(function () {
+                $("#open-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
                 $("#open-files-container").toggle();
             });
-            $("#project-files-disclosure-arrow").click(function () {
-                $(this).toggleClass("disclosure-arrow-closed");
+            $("#project-files-header").click(function () {
+                $("#project-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
                 $("#project-files-container").toggle();
             });
-       
         }
         
         
