@@ -78,6 +78,12 @@ define(function (require, exports, module) {
             
             // Remove the dialog instance from the DOM.
             dlg.remove();
+        }).one("shown", function () {
+            var primaryBtn = dlg.find(".primary");
+
+            if (primaryBtn) {
+                primaryBtn.focus();
+            }
         });
 
         function stopEvent(e) {
@@ -140,9 +146,10 @@ define(function (require, exports, module) {
                 
                 if (buttonId) {
                     _dismissDialog(dlg, buttonId);
-                    stopEvent(e);
                 }
             }
+
+            stopEvent(e);
         }
         
         // These handlers are added at the capture phase to make sure we
