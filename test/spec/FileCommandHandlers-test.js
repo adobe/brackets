@@ -176,7 +176,7 @@ define(function (require, exports, module) {
 
             it("should report dirty after undo and redo", function () {
                 var doc = DocumentManager.getCurrentDocument();
-                var editor = doc._codeMirror;
+                var editor = doc.editor._codeMirror;
                 
                 runs(function () {
                     // change editor content, followed by undo and redo
@@ -210,7 +210,7 @@ define(function (require, exports, module) {
                 runs(function() {
                     // change editor content, followed by undo
                     var doc = DocumentManager.getCurrentDocument();
-                    var editor = doc._codeMirror;
+                    var editor = doc.editor._codeMirror;
                     
                     doc.getText(TEST_JS_NEW_CONTENT);
                     editor.undo();
