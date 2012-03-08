@@ -260,18 +260,14 @@ define(function (require, exports, module) {
 
 
             // Handle toggling top level disclosure arrows of file list area
-            function hideShowOpenFiles() {
+            $("#open-files-header").click(function () {
                 $("#open-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
                 $("#open-files-container").toggle();
-            }
-            function hideShowProjectFiles() {
+            });
+            $("#project-files-header").click(function () {
                 $("#project-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
                 $("#project-files-container").toggle();
-            }
-            $("#open-files-disclosure-arrow").click(hideShowOpenFiles);
-            $("#open-files-header-text").click(hideShowOpenFiles);
-            $("#project-files-disclosure-arrow").click(hideShowProjectFiles);
-            $("#project-files-header-text").click(hideShowProjectFiles);
+            });
         }
         
         
