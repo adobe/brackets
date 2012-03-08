@@ -66,8 +66,12 @@ define(function (require, exports, module) {
         
         if (buttonId) {
             _dismissDialog(this, buttonId);
-        } else {
-            // Stop the event if not handled by this dialog
+        } else if (!($.contains(this.get(0), e.target)) ||
+                  (this.filter(":input").length === 0)) {
+            // Stop the event if the target is not inside the dialog
+            // or if the target is not a form element.
+            // TODO (issue #414): more robust handling of dialog scoped
+            //                    vs. global key bindings
             e.stopPropagation();
             e.preventDefault();
         }
