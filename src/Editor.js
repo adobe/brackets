@@ -14,8 +14,8 @@
  * but this is considered deprecated and may go away.
  *  
  * The Editor object dispatches the following events:
- *    - onChange -- When the text of the editor changes (including due to undo/redo)
- *    - onKeyEvent -- When any key event happens in the editor (whether it changes the text or not).
+ *    - change -- When the text of the editor changes (including due to undo/redo)
+ *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
  *
@@ -24,9 +24,6 @@
  */
 define(function (require, exports, module) {
     'use strict';
-    
-    // Load dependent modules
-    // (none, so far)
     
     
     /**
@@ -145,7 +142,8 @@ define(function (require, exports, module) {
      * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
      * back-indenting it if so.
      */
-    function _checkElectricChars(instance, event) {
+    function _checkElectricChars(jqEvent, editor, event) {
+        var instance = editor._codeMirror;
         if (event.type === "keypress") {
             var keyStr = String.fromCharCode(event.which || event.keyCode);
             if (/[\]\}\)]/.test(keyStr)) {
@@ -237,15 +235,12 @@ define(function (require, exports, module) {
             indentUnit : 4,
             lineNumbers: true,
             matchBrackets: true,
-            extraKeys: codeMirrorKeyMap,
-            onKeyEvent: function (instance, event) {
-                _checkElectricChars(instance, event);
-                $(self).triggerHandler("onKeyEvent", [self, event]);
-                return false;
-            }
+            extraKeys: codeMirrorKeyMap
         });
         
         this._installEditorListeners();
+        
+        $(this).on("keyEvent", _checkElectricChars);
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
@@ -262,8 +257,13 @@ define(function (require, exports, module) {
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
+        // FUTURE: if this list grows longer, consider making this a more generic mapping
         this._codeMirror.setOption("onChange", function () {
-            $(self).triggerHandler("onChange");
+            $(self).triggerHandler("change");
+        });
+        this._codeMirror.setOption("onKeyEvent", function (instance, event) {
+            $(self).triggerHandler("keyEvent", [self, event]);
+            return false;   // false tells CodeMirror we didn't eat the event
         });
     };
     
@@ -274,8 +274,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches
-     * onChange.
+     * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches a
+     * change event.
      * Note: all line endings will be changed to LFs.
      * @param {!string} text
      */
@@ -284,7 +284,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the contents of the editor and clears the undo/redo history. Dispatches onChange.
+     * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
      * @param {!string} text
      */
     Editor.prototype.resetText = function (text) {
@@ -324,6 +324,16 @@ define(function (require, exports, module) {
         var selStart = this._codeMirror.getCursor(true),
             selEnd = this._codeMirror.getCursor(false);
         return { start: selStart, end: selEnd };
+    };
+    
+    /**
+     * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
+     * end of the selection range.
+     * @param {!{line:number, ch:number}} start
+     * @param {!{line:number, ch:number}} end
+     */
+    Editor.prototype.setSelection = function (start, end) {
+        this._codeMirror.setSelection(start, end);
     };
     
     
@@ -383,10 +393,18 @@ define(function (require, exports, module) {
     };
     
     
+    /** Gives focus to the editor control */
+    Editor.prototype.focus = function () {
+        this._codeMirror.focus();
+    };
+    
+    
     
     /**
      * @private
-     * NOTE: this is actually "semi-private": EditorManager also accesses this field.
+     * NOTE: this is actually "semi-private": EditorManager also accesses this field... as well as
+     * a few other modules. However, we should try to gradually move most code away from talking to
+     * CodeMirror directly.
      * @type {!CodeMirror}
      */
     Editor.prototype._codeMirror = null;

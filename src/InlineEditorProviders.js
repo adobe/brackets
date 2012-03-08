@@ -148,7 +148,7 @@ define(function (require, exports, module) {
     
     /**
      * Create the shadowing and filename tab for an inline editor.
-     * TODO: move to createInlineEditorFromText()
+     * TODO (issue #424): move to createInlineEditorFromText()
      * @private
      */
     function _createInlineEditorDecorations(editor, filename) {

@@ -58,16 +58,6 @@ define(function (require, exports, module) {
         }
     }
 
-    // /**
-    //  * Change the current mode of the editor based on file extension 
-    //  * @param {object} editor  An instance of a CodeMirror editor
-    //  * @param {string} fileUrl  A cannonical file URL to extract the extension from
-    //  */
-    // function setModeFromFileExtension(editor, fileUrl) {
-    //     var mode = _getModeFromFileExtensions(fileUrl);
-    //     
-    // }
-
     // Define public API
     exports.getModeFromFileExtension = getModeFromFileExtension;
 });

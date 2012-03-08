@@ -101,7 +101,7 @@ define(function (require, exports, module) {
         
         hostEditor.removeInlineWidget(inlineId);
         
-        hostEditor._codeMirror.focus();
+        hostEditor.focus();
     }
     
     function registerInlineEditProvider(provider) {
@@ -245,7 +245,7 @@ define(function (require, exports, module) {
             $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
             inlineEditorCM.refresh();
             
-            inlineEditorCM.focus();
+            inlineEditor.focus();
         }
         
         return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
     /** Focus the currently visible editor. If no editor visible, does nothing. */
     function focusEditor() {
         if (_currentEditor) {
-            _currentEditor._codeMirror.focus();
+            _currentEditor.focus();
         }
     }
     
