@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
-        PerfUtils           = require("PerfUtils");
+        PerfUtils           = require("PerfUtils"),
+        ViewUtils           = require("ViewUtils");
     
     /**
      * @private
@@ -155,24 +156,6 @@ define(function (require, exports, module) {
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
     }
-    
-    /** Since the parent div has overflow:auto, we set the width of the first child to have
-     * the scrollWidth of the parent. This makes the child widths more sane. Otherwise they
-     * would use the width of the showing div and would look wierd as you scrolled to the 
-     * overflow area of the div
-     */
-    function _updatePanelWidth() {
-        var $parent = $("#project-files-container");
-        var $firstChild = $parent.children().first();
-        //clear the width first so we get the natural scrollWidth below
-        $firstChild.width("");
-        
-        var targetWidth = $parent[0].scrollWidth -
-            parseInt($parent.css("paddingLeft"), 10) -
-            parseInt($parent.css("paddingRight"), 10);
-        
-        $firstChild.width(targetWidth);
-    }
 
 
     /**
@@ -258,7 +241,9 @@ define(function (require, exports, module) {
                 });
         });
         
-        result.always(_updatePanelWidth);
+        result.always(function () {
+            ViewUtils.updateChildWidthToParentScrollwidth($("#project-files-container"));
+        });
         
         return result;
     }
@@ -365,7 +350,7 @@ define(function (require, exports, module) {
                             .addClass(classToAdd);
                 }
                 
-                _updatePanelWidth();
+                ViewUtils.updateChildWidthToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(
