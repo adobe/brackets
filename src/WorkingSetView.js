@@ -26,6 +26,24 @@ define(function (require, exports, module) {
      */
     var _DOCUMENT_KEY = "document";
 
+    /** Since the parent div has overflow:auto, we set the width of the first child to have
+     * the scrollWidth of the parent. This makes the child widths more sane. Otherwise they
+     * would use the width of the showing div and would look wierd as you scrolled to the 
+     * overflow area of the div
+     */
+    function _updateListWidth() {
+        var $parent = $("#open-files-container");
+        var $firstChild = $parent.children().first();
+        //clear the width first so we get the natural scrollWidth below
+        $firstChild.width("");
+        
+        var targetWidth = $parent[0].scrollWidth -
+            parseInt($parent.css("paddingLeft"), 10) -
+            parseInt($parent.css("paddingRight"), 10);
+        
+        $firstChild.width(targetWidth);
+    }
+
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $("#open-files-header").hide();
@@ -36,6 +54,8 @@ define(function (require, exports, module) {
             $("#open-files-container").show();
             $("#open-files-divider").show();
         }
+        
+        _updateListWidth();
     }
     
     /** 
