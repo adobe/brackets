@@ -329,7 +329,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * The FileEntry for the document being edited.
+     * The FileEntry for the document being edited. Need not lie within the project.
      * @type {!FileEntry}
      */
     Document.prototype.file = null;

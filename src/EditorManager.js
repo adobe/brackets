@@ -46,7 +46,7 @@ define(function (require, exports, module) {
     /**
      * Creates a new CodeMirror editor instance containing the given text. The editor's mode is set
      * based on the given filename's extension (the actual file on disk is never examined). The
-     * editor is not yet visible.
+     * editor is appended to the given container as a visible child.
      * @param {!string} text  The text content of the editor.
      * @param {!string} fileNameToSelectMode  A filename from which to infer the editor's mode. May
      *          include path too.
@@ -160,7 +160,8 @@ define(function (require, exports, module) {
     
     /**
      * Creates a new "full-size" (not inline) Editor from the Document's file, and sets it as the
-     * Document's main editor. *The editor is expected to be about to become the currentDocument.*
+     * Document's main editor. The editor is not yet visible; to show it, call
+     * DocumentManager.showInEditor().
      * @param {!Document} document  Document whose main/full Editor to create
      * @return {Deferred} a jQuery Deferred that will be resolved once Document.editor is populated,
      *      or rejected with a FileError if the file cannot be read.
@@ -170,8 +171,11 @@ define(function (require, exports, module) {
             reader = FileUtils.readAsText(document.file);
             
         reader.done(function (text, readTimestamp) {
+            // Create editor; make it initially invisible
             var container = _editorHolder.get(0);
             var editor = _createEditorFromText(text, document.file.fullPath, container, _openInlineWidget);
+            $(editor._codeMirror.getWrapperElement()).css("display", "none");
+            
             document._setEditor(editor, readTimestamp, text);
             result.resolve();
         });
@@ -221,28 +225,25 @@ define(function (require, exports, module) {
                 DocumentManager.addToWorkingSet(doc);
             }
             
-            // if (!doc.editor) {
-            //     // FIXME: need a way to do this without the assumption that it's about to become
-            //     // the main visible editor...
-            //     var editorResult = _realizeFullEditor(doc);
-            //    
-            //     editorResult.done(function () {
-            //         // TODO: begin syncing from inline to full editor
-            //     });
-            //     editorResult.fail(function (error) {
-            //         console.log("### Error loading main copy for inline editor: "+error);
-            //         // TODO: what to do here? show UI?
-            //     });
-            //     // TODO: what happens if the copy we loaded has changed since we read the text into the inline?
-            //     // should we store a readTimestamp when the inline was opened so we can know whether it's stale?
-            //     // but if it is... what then? blow away the edit the uer has just made??
-            //     // Answer? if an inline is open, even without a backing main editor, window activate should check
-            //     // its time stamp and blow away the inline if file has changed since then. if file has changed while
-            //     // Brackets still open, we're in the same boat as always: saving will blow away whatever had changed
-            //     // on disk (because inline->full syncing will overwrite whatever we just read off disk with the full
-            //     // text of the inline editor
-            // }
-            
+            if (!doc.editor) {
+                var editorResult = _realizeFullEditor(doc);
+                
+                editorResult.done(function () {
+                    // TODO: begin syncing from inline to full editor
+                });
+                editorResult.fail(function (error) {
+                    console.log("### Error loading main copy for inline editor: "+error);
+                    // TODO: what to do here? show UI?
+                });
+                // TODO: what happens if the copy we loaded has changed since we read the text into the inline?
+                // should we store a readTimestamp when the inline was opened so we can know whether it's stale?
+                // but if it is... what then? blow away the edit the uer has just made??
+                // Answer? if an inline is open, even without a backing main editor, window activate should check
+                // its time stamp and blow away the inline if file has changed since then. if file has changed while
+                // Brackets still open, we're in the same boat as always: saving will blow away whatever had changed
+                // on disk (because inline->full syncing will overwrite whatever we just read off disk with the full
+                // text of the inline editor
+            }
         });
         
         // Some tasks have to wait until we've been parented into the outer editor
@@ -358,7 +359,7 @@ define(function (require, exports, module) {
         // Show new editor
         _currentEditorsDocument = document;
         _currentEditor = document.editor;
-
+        
         $(_currentEditor._codeMirror.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
