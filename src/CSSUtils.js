@@ -214,7 +214,7 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
-     * @return {Array<{source:FileEntry, lineStart:number, lineEnd:number}>} Array of objects containing the
+     * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source file, start line, and end line (0-based, inclusive range) for each matching rule.
      */
     function findMatchingRules(selector) {
