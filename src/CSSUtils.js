@@ -84,6 +84,7 @@ define(function (require, exports, module) {
                         selectors.push({selector: currentSelector.trim(),
                                         line: selectorStartLine,
                                         character: currentPosition,
+                                        ruleEndLine: -1,
                                         selectorEndLine: i,
                                         selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
                                         selectorGroupStartLine: selectorGroupStartLine,
@@ -107,7 +108,7 @@ define(function (require, exports, module) {
                         inRules = false;
                         // assign this rule position to every selector on the stack that doesn't have a rule start and end line
                         for (j = selectors.length - 1; j >= 0; j--) {
-                            if (selectors[j].ruleEndLine) {
+                            if (selectors[j].ruleEndLine !== -1) {
                                 break;
                             } else {
                                 selectors[j].ruleStartLine = ruleStartLine;
