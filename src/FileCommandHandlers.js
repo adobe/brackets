@@ -88,26 +88,21 @@ define(function (require, exports, module) {
         });
         
         var doc = DocumentManager.getDocumentForPath(fullPath);
-        if (doc) {
-            // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(doc);
-            result.resolve(doc);
-            
-        } else {
+        if (!doc) {
             // File wasn't open before, so we must create a new document for it
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            var docResult = EditorManager.createDocumentAndEditor(fileEntry);
-
-            docResult.done(function (doc) {
-                DocumentManager.showInEditor(doc);
-                result.resolve(doc);
-            });
-            
-            docResult.fail(function (error) {
-                FileUtils.showFileOpenError(error.code, fullPath);
-                result.reject();
-            });
+            doc = new DocumentManager.Document(fileEntry);
         }
+        
+        // This will load the file if it was never open before, and then switch to it
+        DocumentManager.showInEditor(doc);
+        
+        // FIXME: if the file needed to be loaded, it's actually wrong to resolve() this already!
+        // Need to move file loading from EditorManager into DocumentManager so showInEditor() can
+        // return a Deferred that tracks this... or have EditorManager fire an event once it's done
+        // responding to currentDocumentChange.
+        // The performance numbers above will be artificially low until this is fixed...
+        result.resolve(doc);
 
         return result;
     }

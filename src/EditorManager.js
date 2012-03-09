@@ -157,30 +157,31 @@ define(function (require, exports, module) {
         });
     }
     
+    
     /**
-     * Creates a new "main" CodeMirror editor instance containing text from the specified fileEntry
-     * (i.e. not an inline editor). The editor is not yet visible.
-     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @param {!jQueryObject} container  Container to add the editor to.
-     * @return {Deferred} a jQuery Deferred that will be resolved with (the new editor, the file's
-     *      timestamp at the time it was read, the original text as read off disk); or rejected if
-     *      the file cannot be read.
+     * Creates a new "full-size" (not inline) Editor from the Document's file, and sets it as the
+     * Document's main editor. *The editor is expected to be about to become the currentDocument.*
+     * @param {!Document} document  Document whose main/full Editor to create
+     * @return {Deferred} a jQuery Deferred that will be resolved once Document.editor is populated,
+     *      or rejected with a FileError if the file cannot be read.
      */
-    function _createEditorFromFile(fileEntry, container) {
+    function _realizeFullEditor(document) {
         var result = new $.Deferred(),
-            reader = FileUtils.readAsText(fileEntry);
+            reader = FileUtils.readAsText(document.file);
             
         reader.done(function (text, readTimestamp) {
-            var editor = _createEditorFromText(text, fileEntry.fullPath, container, _openInlineWidget);
-            result.resolve(editor, readTimestamp, text);
+            var container = _editorHolder.get(0);
+            var editor = _createEditorFromText(text, document.file.fullPath, container, _openInlineWidget);
+            document._setEditor(editor, readTimestamp, text);
+            result.resolve();
         });
         reader.fail(function (error) {
             result.reject(error);
         });
-
+        
         return result;
     }
-    
+
     
     /**
      * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
@@ -190,10 +191,11 @@ define(function (require, exports, module) {
      * @param {!string} text  The text content of the editor.
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
-     * @param {!string} fileNameToSelectMode  A filename (optionally including path) from which to
+     * @param {!FileEntry} sourceFile  The file from which the text was drawn. Important, since this
+     *      is what ties the inline editor back to a full editor and where any edits will be saved.
      *      infer the editor's mode.
      */
-    function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {
+    function createInlineEditorFromText(hostEditor, text, range, sourceFile) {
         // Container to hold editor & render its stylized frame
         var inlineContent = document.createElement('div');
         $(inlineContent).addClass("inlineCodeEditor");
@@ -204,8 +206,44 @@ define(function (require, exports, module) {
             _syncGutterWidths(hostEditor);
         }
         
-        var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
+        var inlineEditor = _createEditorFromText(text, sourceFile.fullPath, inlineContent, closeThisInline);
         var inlineEditorCM = inlineEditor._codeMirror;
+        
+        // Wire up to Document
+        $(inlineEditor).on("change", function () {
+            console.log("Inline editor CHANGE - " + sourceFile);
+            
+            var doc = DocumentManager.getDocumentForFile(sourceFile);
+            if (!doc) {
+                // File wasn't open before, so we must create a new document for it
+                doc = new DocumentManager.Document(sourceFile);
+                
+                DocumentManager.addToWorkingSet(doc);
+            }
+            
+            // if (!doc.editor) {
+            //     // FIXME: need a way to do this without the assumption that it's about to become
+            //     // the main visible editor...
+            //     var editorResult = _realizeFullEditor(doc);
+            //    
+            //     editorResult.done(function () {
+            //         // TODO: begin syncing from inline to full editor
+            //     });
+            //     editorResult.fail(function (error) {
+            //         console.log("### Error loading main copy for inline editor: "+error);
+            //         // TODO: what to do here? show UI?
+            //     });
+            //     // TODO: what happens if the copy we loaded has changed since we read the text into the inline?
+            //     // should we store a readTimestamp when the inline was opened so we can know whether it's stale?
+            //     // but if it is... what then? blow away the edit the uer has just made??
+            //     // Answer? if an inline is open, even without a backing main editor, window activate should check
+            //     // its time stamp and blow away the inline if file has changed since then. if file has changed while
+            //     // Brackets still open, we're in the same boat as always: saving will blow away whatever had changed
+            //     // on disk (because inline->full syncing will overwrite whatever we just read off disk with the full
+            //     // text of the inline editor
+            // }
+            
+        });
         
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
@@ -343,16 +381,11 @@ define(function (require, exports, module) {
 
         // Lazily create editor for Documents that were restored on-init
         if (!document.editor) {
-            var editorResult = _createEditorFromFile(document.file, _editorHolder.get(0));
-
-            editorResult.done(function (editor, readTimestamp, rawText) {
-                document._setEditor(editor, readTimestamp, rawText);
+            var editorResult = _realizeFullEditor(document);
+            editorResult.done(function () {
                 _doShow(document);
             });
             editorResult.fail(function (error) {
-                // Edge case where (a) file exists at launch, (b) editor not 
-                // yet opened, and (c) file is deleted or permissions are 
-                // modified outside of Brackets
                 FileUtils.showFileOpenError(error.code, document.file.fullPath).done(function () {
                     DocumentManager.closeDocument(document);
                     focusEditor();
@@ -362,7 +395,7 @@ define(function (require, exports, module) {
             _doShow(document);
         }
     }
-
+    
 
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
@@ -424,33 +457,6 @@ define(function (require, exports, module) {
         _editorHolder = holder;
     }
     
-    /**
-     * Creates a new CodeMirror editor instance containing text from the 
-     * specified fileEntry and wraps it in a new Document tied to the given 
-     * file. The editor is not yet visible; to display it in the main
-     * editor UI area, ask DocumentManager to make this the current document.
-     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
-     *  document for the fileEntry, or rejected if the file can not be read.
-     */
-    function createDocumentAndEditor(fileEntry) {
-        var result          = new $.Deferred(),
-            editorResult    = _createEditorFromFile(fileEntry, _editorHolder.get(0));
-
-        editorResult.done(function (editor, readTimestamp, rawText) {
-            // Create the Document wrapping editor & binding it to a file
-            var doc = new DocumentManager.Document(fileEntry);
-            doc._setEditor(editor, readTimestamp, rawText);
-            result.resolve(doc);
-        });
-
-        editorResult.fail(function (error) {
-            result.reject(error);
-        });
-
-        return result;
-    }
-
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
@@ -460,7 +466,6 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
-    exports.createDocumentAndEditor = createDocumentAndEditor;
     exports.createInlineEditorFromText = createInlineEditorFromText;
     exports.focusEditor = focusEditor;
     exports.resizeEditor = resizeEditor;

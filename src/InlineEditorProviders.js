@@ -87,11 +87,8 @@ define(function (require, exports, module) {
                     startLine: startLine,
                     endLine: endLine
                 };
-                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
+                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry);
                 
-                // For Sprint 4, editor is a read-only view
-                inlineInfo.editor._codeMirror.setOption("readOnly", true);
-
                 result.resolve(inlineInfo);
             })
             .fail(function (fileError) {
