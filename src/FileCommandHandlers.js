@@ -71,7 +71,7 @@ define(function (require, exports, module) {
      * @private
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     * @return {Deferred} a jQuery Deferred that will be resolved with a
      *  document for the specified file path, or rejected if the file can not be read.
      */
     function doOpen(fullPath) {
@@ -95,14 +95,13 @@ define(function (require, exports, module) {
         }
         
         // This will load the file if it was never open before, and then switch to it
-        DocumentManager.showInEditor(doc);
-        
-        // FIXME: if the file needed to be loaded, it's actually wrong to resolve() this already!
-        // Need to move file loading from EditorManager into DocumentManager so showInEditor() can
-        // return a Deferred that tracks this... or have EditorManager fire an event once it's done
-        // responding to currentDocumentChange.
-        // The performance numbers above will be artificially low until this is fixed...
-        result.resolve(doc);
+        DocumentManager.showInEditor(doc)
+            .done(function () {
+                result.resolve(doc);
+            })
+            .fail(function (fileError) {
+                result.reject();
+            });
 
         return result;
     }
@@ -129,12 +128,13 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            // TODO (issue #117): we're relying on this to not be asynchronous--is that safe?
+            // TODO (issue #117): we're relying on this to not be asynchronous ('result' not set until
+            // dialog is dismissed); won't work in a browser-based version
             NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 null, function (files) {
                     if (files.length > 0) {
                         result = doOpen(files[0])
-                            .done(function updateDefualtOpenDialogFullPath(doc) {
+                            .always(function updateDefualtOpenDialogFullPath(doc) {
                                 var url = PathUtils.parseUrl(doc.file.fullPath);
                                 //reconstruct the url but use the directory and stop there
                                 _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;

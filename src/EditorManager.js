@@ -164,9 +164,9 @@ define(function (require, exports, module) {
      * DocumentManager.showInEditor().
      * @param {!Document} document  Document whose main/full Editor to create
      * @return {Deferred} a jQuery Deferred that will be resolved once Document.editor is populated,
-     *      or rejected with a FileError if the file cannot be read.
+     *      or rejected with a FileError if the file cannot be read. Does not show any error UI.
      */
-    function _realizeFullEditor(document) {
+    function createFullEditorForDocument(document) {
         var result = new $.Deferred(),
             reader = FileUtils.readAsText(document.file);
             
@@ -226,7 +226,7 @@ define(function (require, exports, module) {
             }
             
             if (!doc.editor) {
-                var editorResult = _realizeFullEditor(doc);
+                var editorResult = createFullEditorForDocument(doc);
                 
                 editorResult.done(function () {
                     // TODO: begin syncing from inline to full editor
@@ -380,21 +380,12 @@ define(function (require, exports, module) {
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
 
-        // Lazily create editor for Documents that were restored on-init
+        // DocumentManager should have already ensured that we've created an Editor
         if (!document.editor) {
-            var editorResult = _realizeFullEditor(document);
-            editorResult.done(function () {
-                _doShow(document);
-            });
-            editorResult.fail(function (error) {
-                FileUtils.showFileOpenError(error.code, document.file.fullPath).done(function () {
-                    DocumentManager.closeDocument(document);
-                    focusEditor();
-                });
-            });
-        } else {
-            _doShow(document);
+            throw new Error("Trying to show a currentDocument without an Editor!");
         }
+        
+        _doShow(document);
     }
     
 
@@ -467,6 +458,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
+    exports.createFullEditorForDocument = createFullEditorForDocument;
     exports.createInlineEditorFromText = createInlineEditorFromText;
     exports.focusEditor = focusEditor;
     exports.resizeEditor = resizeEditor;
