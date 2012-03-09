@@ -3,26 +3,16 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var FileUtils   = require("FileUtils");
+    
     var TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences",
         testWindow;
-
-    function fixPath(path) {
-        // On Windows, when loading from a file, window.location.href has
-        // a leading '/'. Remove that here.
-        // TODO (issue #281): Figure out a better way to handle this...
-        if (path.length > 3 && path[0] === '/' && path[2] === ":") {
-            path = path.substr(1);
-        }
-        
-        return path;
-    }
     
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
-        var path = window.location.href;
-        path = path.substr("file://".length);
+        var path = window.location.pathname;
         path = path.substr(0, path.lastIndexOf("/"));
-        path = fixPath(path);
+        path = FileUtils.convertToNativePath(path);
         return path;
     }
     
@@ -31,8 +21,8 @@ define(function (require, exports, module) {
     }
     
     function getBracketsSourceRoot() {
-        var path = window.location.href;
-        path = path.substr("file://".length).split("/");
+        var path = window.location.pathname;
+        path = path.split("/");
         path = path.slice(0, path.length - 2);
         path.push("src");
         return path.join("/");
