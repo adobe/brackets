@@ -58,6 +58,8 @@ define(function (require, exports, module) {
     
     // Register our listeners
     // Commenting out the code hinting for now. Uncomment this line to re-enable.
+    // NOTE: this has gone stale a bit; individual Editors now dispatch a keyEvent event; there is
+    // no global EditorManager event
     //$(EditorManager).on("onKeyEvent", _onKeyEvent);
     
     // Define public API

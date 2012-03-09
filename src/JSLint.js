@@ -73,7 +73,7 @@ define(function (require, exports, module) {
                             }
                             row.addClass("selected");
                             selectedRow = row;
-                            currentDoc.setCursor(item.line - 1, item.character - 1);
+                            currentDoc.editor.setCursorPos(item.line - 1, item.character - 1);
                             EditorManager.focusEditor();
                         });
                     }

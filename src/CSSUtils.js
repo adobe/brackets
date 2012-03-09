@@ -12,22 +12,27 @@ define(function (require, exports, module) {
     'use strict';
     
     var Async               = require("Async"),
+        DocumentManager     = require("DocumentManager"),
         FileIndexManager    = require("FileIndexManager"),
-        FileUtils           = require("FileUtils"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
 
     /**
      * Extracts all CSS selectors from the given text
      * Returns an array of selectors. Each selector is an object with the following properties:
-         selector: the text of the selector (note: comma separated selectors like "h1, h2" are broken into separate selectors)
-         line: line in the text where the selector appears
-         character: column in the line where the selector starts
-         selectorEndLine: line where the selector ends
-         selectorEndChar: column where the selector ends
-         ruleStartLine: line where the rules for the selector start
-         ruleStartChar: column in line where the rules for the selector start
-         ruleEndLine: line where the rules for the selector end
-         ruleEndChar: column in the line where the rules for the selector end
+         selector:                 the text of the selector (note: comma separated selector groups like 
+                                   "h1, h2" are broken into separate selectors)
+         line:                     line in the text where the selector appears
+         character:                column in the line where the selector starts
+         selectorEndLine:          line where the selector ends
+         selectorEndChar:          column where the selector ends
+         selectorGroupStartLine:   line where the comma-separated selector group (e.g. .foo, .bar, .baz)
+                                   starts that this selector (e.g. .baz) is part of. Particularly relevant for
+                                   groups that are on multiple lines.
+         selectorGroupStartChar:   column in line where the selector group starts.
+         ruleStartLine:            line where the rules for the selector start
+         ruleStartChar:            column in line where the rules for the selector start
+         ruleEndLine:              line where the rules for the selector end
+         ruleEndChar:              column in the line where the rules for the selector end
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
@@ -43,6 +48,7 @@ define(function (require, exports, module) {
         var token, style, stream, i, j;
 
         var inRules = false;
+        var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var ruleStartLine = -1, ruleStartChar = -1;
 
         for (i = 0; i < lineCount; ++i) {
@@ -65,11 +71,25 @@ define(function (require, exports, module) {
                     if (currentPosition < 0) { // start of a new selector
                         currentPosition = stream.start;
                         selectorStartLine = i;
+                        if (selectorGroupStartLine < 0) {
+                            // this is the start of a new comma-separated selector group
+                            // (whenever we start parsing rules, we set selectorGroupStartLine to -1)
+                            selectorGroupStartLine = selectorStartLine;
+                            selectorGroupStartChar = currentPosition;
+                        }
                     }
                     currentSelector += token;
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
-                        selectors.push({selector: currentSelector.trim(), line: selectorStartLine, character: currentPosition, selectorEndLine: i, selectorEndChar: stream.start});
+                        selectors.push({selector: currentSelector.trim(),
+                                        line: selectorStartLine,
+                                        character: currentPosition,
+                                        ruleEndLine: -1,
+                                        selectorEndLine: i,
+                                        selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
+                                        selectorGroupStartLine: selectorGroupStartLine,
+                                        selectorGroupStartChar: selectorGroupStartChar
+                                       });
                     }
                     currentSelector = "";
                     currentPosition = -1;
@@ -78,17 +98,23 @@ define(function (require, exports, module) {
                         inRules = true;
                         ruleStartLine = i;
                         ruleStartChar = stream.start;
+
+                        // Since we're now in a rule set, that means we also finished parsing the whole selector group.
+                        // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
+                        selectorGroupStartLine = -1;
+                        selectorGroupStartChar = -1;
+
                     } else if (inRules && state.stack.indexOf("{") === -1) {  // just finished parsing a rule
                         inRules = false;
                         // assign this rule position to every selector on the stack that doesn't have a rule start and end line
                         for (j = selectors.length - 1; j >= 0; j--) {
-                            if (selectors[j].ruleEndLine) {
+                            if (selectors[j].ruleEndLine !== -1) {
                                 break;
                             } else {
                                 selectors[j].ruleStartLine = ruleStartLine;
                                 selectors[j].ruleStartChar = ruleStartChar;
                                 selectors[j].ruleEndLine = i;
-                                selectors[j].ruleEndChar = stream.pos;
+                                selectors[j].ruleEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                             }
                         }
                     }
@@ -188,37 +214,35 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
-     * @return {Array<{source:FileEntry, lineStart:number, lineEnd:number}>} Array of objects containing the
+     * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source file, start line, and end line (0-based, inclusive range) for each matching rule.
      */
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             selectors       = [];
-    
+        
         function _loadFileAndScan(fullPath, selector) {
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
-                result = new $.Deferred();
+            var result = new $.Deferred();
             
-            FileUtils.readAsText(fileEntry)
+            DocumentManager.getDocumentContents(fullPath)
                 .done(function (content) {
-                    // Scan for selectors
                     var localResults = _findAllMatchingSelectorsInText(content, selector);
+                    var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                     
                     localResults.forEach(function (value) {
                         selectors.push({
                             source: fileEntry,
-                            lineStart: value.line,
+                            lineStart: value.selectorGroupStartLine,
                             lineEnd: value.ruleEndLine
                         });
                     });
-                    
                     result.resolve();
                 })
                 .fail(function (error) {
                     result.reject(error);
                 });
-            
+        
             return result.promise();
         }
         

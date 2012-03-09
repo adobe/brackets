@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         FileUtils           = require("FileUtils"),
         CommandManager      = require("CommandManager"),
         Async               = require("Async"),
+        Editor              = require("Editor").Editor,
         Commands            = require("Commands");
 
     /**
@@ -182,6 +183,28 @@ define(function (require, exports, module) {
         return getDocumentForFile(fileEntry);
     }
 
+    /** 
+     * If the given file is 'open' for editing, return the contents of the editor (which could
+     * be different from the contents of the file, if the editor contains unsaved changes). If
+     * the given file is not open for editing, read the contents off disk.
+     * @param {!string} fullPath
+     * @return {Deferred} A Deferred object that will be resolved with the contents of the document
+     */
+    function getDocumentContents(fullPath) {
+        var doc = getDocumentForPath(fullPath);
+        
+        if (doc && doc.editor) {
+            var result = new $.Deferred();
+            
+            result.resolve(doc.getText());
+            return result;
+        } else {
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            
+            return FileUtils.readAsText(fileEntry);
+        }
+    }
+    
     /**
      * Displays the given file in the editor pane. May also add the item to the working set list.
      * This changes the value of getCurrentDocument(), which will trigger listeners elsewhere in the
@@ -326,22 +349,13 @@ define(function (require, exports, module) {
     Document.prototype.diskTimestamp = null;
     
     /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this field. But no one
-     * other than DocumentManager and EditorManager should access it.
-     *
-     * The editor may be null in the case that the document working set was
-     * restored from storage but an editor was not yet created.
-     * @type {?CodeMirror}
+     * Editor object representing the full-size editor UI for this document. Null if Document was
+     * restored from persisted working set but hasn'r been opened in the UI yet.
+     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
+     * UI-related actions that Document does not provide any APIs for.
+     * @type {?Editor}
      */
-    Document.prototype._editor = null;
-
-    /**
-     * @private
-     * List of the open inline editors in this document
-     * @type [{!CodeMirror}]
-     */
-    Document.prototype._inlineEditors = [];
+    Document.prototype.editor = null;
 
     /**
      * Null only of editor is not open yet. If a Document is created on empty text, or text with
@@ -356,23 +370,22 @@ define(function (require, exports, module) {
      * other than DocumentManager and EditorManager should access it.
      *
      * Initialize the editor instance for this file.
-     * @param {!CodeMirror} editor  The editor that will maintain the document state (current text
+     * @param {!Editor} editor  The editor that will maintain the document state (current text
      *          and undo stack). It is assumed that the editor text has already been initialized
-     *          with the file's contents. The editor may be null when the working set is restored
-     *          at initialization.
+     *          with the file's contents.
      * @param {!Date} initialTimestamp  Timestamp of file at the time we read its contents from disk.
      *          Required if editor is passed.
      * @perem {!string} rawText  Original text read from disk, beore handing to CodeMirror.
      */
     Document.prototype._setEditor = function (editor, initialTimestamp, rawText) {
         // Editor can only be assigned once per Document
-        console.assert(!this._editor);
+        console.assert(!this.editor);
         
-        this._editor = editor;
+        this.editor = editor;
         this.diskTimestamp = initialTimestamp;
         
         // Dirty-bit tracking
-        editor.setOption("onChange", this._handleEditorChange.bind(this));
+        $(editor).on("change", this._handleEditorChange.bind(this));
         this.isDirty = false;
         
         // Sniff line-ending style
@@ -383,40 +396,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
-     * other than DocumentManager and EditorManager should access it.
-     *
-     * Adds to the list of inline editors
-     * @param {!CodeMirror} inlineEditor
-     */
-    Document.prototype._addInlineEditor = function (inlineEditor) {
-        this._inlineEditors.push(inlineEditor);
-    };
-    
-    /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
-     * other than DocumentManager and EditorManager should access it.
-     *
-     * Removes the inline editor from our list
-     * @param {!CodeMirror} inlineEditor
-     */
-    Document.prototype._removeInlineEditor = function (inlineEditor) {
-        var i = this._inlineEditors.indexOf(inlineEditor);
-        if (i >= 0) {
-            this._inlineEditors.splice(i, 1);
-        }
-    };
-    
-    /**
-     * @return [{!CodeMirror}] an array of inline editors
-     */
-    Document.prototype.getInlineEditors = function () {
-        return this._inlineEditors;
-    };
-    
-    /**
      * @return {string} The document's current contents; may not be saved to disk 
      *  yet. Returns null if the file was not yet read and no editor was 
      *  created.
@@ -424,7 +403,7 @@ define(function (require, exports, module) {
     Document.prototype.getText = function () {
         // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
         // endings preferred by the document, if necessary
-        var codeMirrorText = this._editor.getValue();
+        var codeMirrorText = this.editor.getText();
         if (this._lineEndings === FileUtils.LINE_ENDINGS_LF) {
             return codeMirrorText;
         } else {
@@ -438,7 +417,7 @@ define(function (require, exports, module) {
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function (text) {
-        this._editor.setValue(text);
+        this.editor.setText(text);
     };
     
     /**
@@ -449,8 +428,7 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
-        this._editor.setValue(text);
-        this._editor.clearHistory();
+        this.editor.resetText(text);
         
         this._markClean();
         this.diskTimestamp = newTimestamp;
@@ -463,22 +441,9 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Sets the cursor position in the document.
-     * @param {number} line The 0 based line number.
-     * @param {number} char The 0 based character position.
-     */
-    Document.prototype.setCursor = function (line, char) {
-        this._editor.setCursor(line, char);
-    };
-    
-    /**
      * @private
      */
     Document.prototype._handleEditorChange = function () {
-        if (!this._editor) {
-            return;
-        }
-
         // On any change, mark the file dirty. In the future, we should make it so that if you
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
@@ -495,7 +460,7 @@ define(function (require, exports, module) {
      * @private
      */
     Document.prototype._markClean = function () {
-        if (!this._editor) {
+        if (!this.editor) {
             return;
         }
 
@@ -627,6 +592,7 @@ define(function (require, exports, module) {
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
+    exports.getDocumentContents = getDocumentContents;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;
