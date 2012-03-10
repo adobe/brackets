@@ -192,6 +192,8 @@ define(function (require, exports, module) {
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      * @param {!string} fileNameToSelectMode  A filename (optionally including path) from which to
      *      infer the editor's mode.
+     *
+     * #returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
      */
     function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {
         // Container to hold editor & render its stylized frame
@@ -206,6 +208,14 @@ define(function (require, exports, module) {
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
         var inlineEditorCM = inlineEditor._codeMirror;
+
+         function sizeInlineEditorToContents() {
+            var widgetHeight = inlineEditorCM.totalHeight(true);
+
+            hostEditor.setInlineWidgetHeight(myInlineId, widgetHeight, true);
+            $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
+            inlineEditorCM.refresh();
+        }
         
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
@@ -213,17 +223,17 @@ define(function (require, exports, module) {
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
-            var hidLines = false;
+            var hideLines = false;
             if (range) {
                 inlineEditorCM.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
-                        hidLines = true;
+                        hideLines = true;
                         inlineEditorCM.hideLine(i);
                     }
                     var lineCount = inlineEditorCM.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
-                        hidLines = true;
+                        hideLines = true;
                         inlineEditorCM.hideLine(i);
                     }
                 });
@@ -234,16 +244,15 @@ define(function (require, exports, module) {
             // If we haven't hidden any lines (which would have caused an update already), 
             // force the editor to update its display so we measure the correct height below
             // in totalHeight().
-            if (!hidLines) {
+            if (!hideLines) {
                 inlineEditorCM.refresh();
             }
             
-            // Auto-size editor to its remaining content
-            var widgetHeight = inlineEditorCM.totalHeight(true);
-
-            hostEditor._codeMirror.setInlineWidgetHeight(inlineId, widgetHeight, true);
-            $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
-            inlineEditorCM.refresh();
+            // Size editor to current contents and register a listener to resize on changes
+            sizeInlineEditorToContents();
+            $(inlineEditor).on("change", function(e) {
+                sizeInlineEditorToContents();
+            });
             
             inlineEditor.focus();
         }
@@ -295,8 +304,8 @@ define(function (require, exports, module) {
      */
     function resizeEditor() {
         if (_currentEditor) {
-            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
-            _currentEditor._codeMirror.refresh();
+            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
+            _currentEditor.refresh();
         }
     }
     
@@ -308,7 +317,7 @@ define(function (require, exports, module) {
     function _updateEditorSize() {
         // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
-            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
+            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
         }
     }
     

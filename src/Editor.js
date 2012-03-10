@@ -335,6 +335,23 @@ define(function (require, exports, module) {
     Editor.prototype.setSelection = function (start, end) {
         this._codeMirror.setSelection(start, end);
     };
+
+    /**
+     * Gets the height of the editor.
+     * @param {!boolean} includePadding
+     * @returns {!number} height
+     */
+    Editor.prototype.totalHeight = function (includePadding) {
+        return this._codeMirror.totalHeight(includePadding);
+    }
+
+    /**
+    * Gets the scroller element from the editor.
+    * @returns {!HTMLDivElement} scroller
+    */
+    Editor.prototype.getScrollerElement = function () {
+        return this._codeMirror.getScrollerElement();
+    }
     
     
     /**
@@ -391,6 +408,16 @@ define(function (require, exports, module) {
     Editor.prototype.getInlineWidgets = function () {
         return this._inlineWidgets;
     };
+
+    /**
+     * Sets the height of the inline widget for this editor. The inline editor is identified by id.
+     * @param {!number} id
+     * @param {!height} height
+     * @param {boolean} ensureVisible
+     */
+    Editor.prototype.setInlineWidgetHeight = function (id, height, ensureVisible) {
+        this._codeMirror.setInlineWidgetHeight(id, height, ensureVisible);
+    }
     
     
     /** Gives focus to the editor control */
@@ -398,6 +425,12 @@ define(function (require, exports, module) {
         this._codeMirror.focus();
     };
     
+    /**
+     * Refreshes the editor control
+     */
+    Editor.prototype.refresh = function () {
+        this._codeMirror.refresh();
+    }
     
     
     /**
