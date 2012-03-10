@@ -181,7 +181,7 @@ define(function (require, exports, module) {
             selector = "(^|\\s)" + selector;
         }
         
-        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+(\\([^)]+\\))?|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-()]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         allSelectors.forEach(function (entry) {
             if (entry.selector.search(re) !== -1) {
                 result.push(entry);
