@@ -193,7 +193,7 @@ define(function (require, exports, module) {
      * @param {!string} fileNameToSelectMode  A filename (optionally including path) from which to
      *      infer the editor's mode.
      *
-     * #returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     * @returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
      */
     function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {
         // Container to hold editor & render its stylized frame
@@ -207,14 +207,18 @@ define(function (require, exports, module) {
         }
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
-        var inlineEditorCM = inlineEditor._codeMirror;
 
-         function sizeInlineEditorToContents() {
-            var widgetHeight = inlineEditorCM.totalHeight(true);
-
-            hostEditor.setInlineWidgetHeight(myInlineId, widgetHeight, true);
-            $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
-            inlineEditorCM.refresh();
+        // Update the inline editor's height when the number of lines change
+        var prevLineCount;
+        function sizeInlineEditorToContents() {
+            var lineCount = inlineEditor.lineCount();
+            if (lineCount !== prevLineCount) {
+                prevLineCount = lineCount;
+                var widgetHeight = inlineEditor.totalHeight(true);
+                hostEditor.setInlineWidgetHeight(myInlineId, widgetHeight, true);
+                $(inlineEditor.getScrollerElement()).height(widgetHeight);
+                inlineEditor.refresh();
+            }
         }
         
         // Some tasks have to wait until we've been parented into the outer editor
@@ -223,18 +227,18 @@ define(function (require, exports, module) {
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
-            var hideLines = false;
+            var didHideLines  = false;
             if (range) {
-                inlineEditorCM.operation(function () {
+                inlineEditor.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
-                        hideLines = true;
-                        inlineEditorCM.hideLine(i);
+                        didHideLines  = true;
+                        inlineEditor.hideLine(i);
                     }
-                    var lineCount = inlineEditorCM.lineCount();
+                    var lineCount = inlineEditor.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
-                        hideLines = true;
-                        inlineEditorCM.hideLine(i);
+                        didHideLines  = true;
+                        inlineEditor.hideLine(i);
                     }
                 });
                 inlineEditor.setCursorPos(range.startLine, 0);
@@ -244,13 +248,13 @@ define(function (require, exports, module) {
             // If we haven't hidden any lines (which would have caused an update already), 
             // force the editor to update its display so we measure the correct height below
             // in totalHeight().
-            if (!hideLines) {
-                inlineEditorCM.refresh();
+            if (!didHideLines ) {
+                inlineEditor.refresh();
             }
             
             // Size editor to current contents and register a listener to resize on changes
             sizeInlineEditorToContents();
-            $(inlineEditor).on("change", function(e) {
+            $(inlineEditor).on("change", function (e) {
                 sizeInlineEditorToContents();
             });
             

@@ -337,22 +337,46 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Gets the height of the editor.
+     * Gets the total number of lines in the the document (includes lines not visible in the viewport)
+     * @returns {!number}
+     */
+    Editor.prototype.lineCount = function () {
+        return this._codeMirror.lineCount();
+    };
+
+    /* Hides the specified line number in the editor
+     * @param {!number}
+     */
+    Editor.prototype.hideLine = function (lineNumber) {
+        return this._codeMirror.hideLine(lineNumber);
+    };
+
+    /**
+     * Gets the total height of the document in pixels (not the viewport)
      * @param {!boolean} includePadding
-     * @returns {!number} height
+     * @returns {!number} height in pixels
      */
     Editor.prototype.totalHeight = function (includePadding) {
         return this._codeMirror.totalHeight(includePadding);
-    }
+    };
 
     /**
-    * Gets the scroller element from the editor.
-    * @returns {!HTMLDivElement} scroller
-    */
+     * Gets the scroller element from the editor.
+     * @returns {!HTMLDivElement} scroller
+     */
     Editor.prototype.getScrollerElement = function () {
         return this._codeMirror.getScrollerElement();
-    }
+    };
     
+    /**
+     * Returns the provided function wrapped in a code mirror closure so that the function
+     * can operate on code mirror internal structures
+     * @param {!function}
+     * @returns {!function}
+     */
+    Editor.prototype.operation = function (func) {
+        return this._codeMirror.operation(func);
+    };
     
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
@@ -417,7 +441,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.setInlineWidgetHeight = function (id, height, ensureVisible) {
         this._codeMirror.setInlineWidgetHeight(id, height, ensureVisible);
-    }
+    };
     
     
     /** Gives focus to the editor control */
@@ -430,7 +454,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype.refresh = function () {
         this._codeMirror.refresh();
-    }
+    };
     
     
     /**
