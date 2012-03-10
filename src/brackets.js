@@ -94,139 +94,6 @@ define(function (require, exports, module) {
     
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
-    brackets.DIALOG_BTN_CANCEL = "cancel";
-    brackets.DIALOG_BTN_OK = "ok";
-    brackets.DIALOG_BTN_DONTSAVE = "dontsave";
-    brackets.DIALOG_CANCELED = "_canceled";
-
-    brackets.DIALOG_ID_ERROR = "error-dialog";
-    brackets.DIALOG_ID_SAVE_CLOSE = "save-close-dialog";
-    brackets.DIALOG_ID_EXT_CHANGED = "ext-changed-dialog";
-    brackets.DIALOG_ID_EXT_DELETED = "ext-deleted-dialog";
-
-    /**
-     * General purpose modal dialog. Assumes that:
-     * -- the root tag of the dialog is marked with a unique class name (passed as dlgClass), as well as the
-     *    classes "template modal hide".
-     * -- the HTML for the dialog contains elements with "title" and "message" classes, as well as a number 
-     *    of elements with "dialog-button" class, each of which has a "data-button-id".
-     *
-     * @param {string} dlgClass The class of the dialog node in the HTML.
-     * @param {string} title The title of the error dialog. Can contain HTML markup.
-     * @param {string} message The message to display in the error dialog. Can contain HTML markup.
-     * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
-     *     is dismissed. Never rejected.
-     */
-    brackets.showModalDialog = function (dlgClass, title, message, callback) {
-        var result = $.Deferred();
-        
-        // We clone the HTML rather than using it directly so that if two dialogs of the same
-        // type happen to show up, they can appear at the same time. (This is an edge case that
-        // shouldn't happen often, but we can't prevent it from happening since everything is
-        // asynchronous.)
-        // TODO: (issue #258) In future, we should templatize the HTML for the dialogs rather than having 
-        // it live directly in the HTML.
-        var dlg = $("." + dlgClass + ".template")
-            .clone()
-            .removeClass("template")
-            .addClass("instance")
-            .appendTo(document.body);
-
-        // Set title and message
-        $(".dialog-title", dlg).html(title);
-        $(".dialog-message", dlg).html(message);
-
-        // Pipe dialog-closing notification back to client code
-        dlg.one("hidden", function () {
-            var buttonId = dlg.data("buttonId");
-            if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
-                buttonId = brackets.DIALOG_BTN_CANCEL;
-            }
-            
-            // Let call stack return before notifying that dialog has closed; this avoids issue #191
-            // if the handler we're triggering might show another dialog (as long as there's no
-            // fade-out animation)
-            setTimeout(function () {
-                result.resolve(buttonId);
-            }, 0);
-            
-            // Remove the dialog instance from the DOM.
-            dlg.remove();
-        });
-
-        function stopEvent(e) {
-            // Stop the event if the target is not inside the dialog
-            if (!($.contains(dlg.get(0), e.target))) {
-                e.stopPropagation();
-                e.preventDefault();
-            }
-        }
-        
-        // Enter/Return handler for the primary button. Need to
-        // add both keydown and keyup handlers here to make sure
-        // the enter key was pressed while the dialog was showing.
-        // Otherwise, if a keydown or keypress from somewhere else
-        // triggered an alert, the keyup could immediately dismiss it.
-        var enterKeyPressed = false;
-        
-        function keydownHandler(e) {
-            if (e.keyCode === 13) {
-                enterKeyPressed = true;
-            }
-            stopEvent(e);
-        }
-        
-        function keyupHandler(e) {
-            if (e.keyCode === 13 && enterKeyPressed) {
-                var primaryBtn = dlg.find(".primary");
-                if (primaryBtn) {
-                    brackets._dismissDialog(dlg, primaryBtn.attr("data-button-id"));
-                }
-            }
-            enterKeyPressed = false;
-            stopEvent(e);
-        }
-        
-        // These handlers are added at the capture phase to make sure we
-        // get first crack at the events. 
-        document.body.addEventListener("keydown", keydownHandler, true);
-        document.body.addEventListener("keyup", keyupHandler, true);
-        
-        // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            brackets._dismissDialog(dlg, $(this).attr("data-button-id"));
-        });
-
-        // Run the dialog
-        dlg.modal({
-            backdrop: "static",
-            show: true
-        }).on("hide", function (e) {
-            // Remove key event handlers
-            document.body.removeEventListener("keydown", keydownHandler, true);
-            document.body.removeEventListener("keyup", keyupHandler, true);
-        });
-        return result;
-    };
-    
-    /**
-     * Immediately closes any dialog instances with the given class. The dialog callback for each instance will 
-     * be called with the special buttonId brackets.DIALOG_CANCELED (note: callback is run asynchronously).
-     */
-    brackets.cancelModalDialogIfOpen = function (dlgClass) {
-        $("." + dlgClass + ".instance").each(function (dlg) {
-            if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                brackets._dismissDialog(dlg, brackets.DIALOG_CANCELED);
-            }
-        });
-    };
-    
-    brackets._dismissDialog = function (dlg, buttonId) {
-        dlg.data("buttonId", buttonId);
-        dlg.modal(true).hide();
-    };
-
-
     // Main Brackets initialization
     $(document).ready(function () {
         
@@ -258,16 +125,16 @@ define(function (require, exports, module) {
                 ProjectManager.openProject();
             });
 
+
             // Handle toggling top level disclosure arrows of file list area
-            $("#open-files-disclosure-arrow").click(function () {
-                $(this).toggleClass("disclosure-arrow-closed");
+            $("#open-files-header").click(function () {
+                $("#open-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
                 $("#open-files-container").toggle();
             });
-            $("#project-files-disclosure-arrow").click(function () {
-                $(this).toggleClass("disclosure-arrow-closed");
+            $("#project-files-header").click(function () {
+                $("#project-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
                 $("#project-files-container").toggle();
             });
-       
         }
         
         
