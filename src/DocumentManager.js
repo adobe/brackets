@@ -104,7 +104,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns all documents that are open in editors: the union of the working set and the current
-     * document (which may not be in the working set if it is unmodified).
+     * document (which may not be in the working set if it is unmodified). Files viewed in inline
+     * editors are only included in this list if they've been modified.
      * @return {Array.<Document>}
      */
     function getAllOpenDocuments() {

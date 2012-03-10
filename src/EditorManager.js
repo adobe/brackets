@@ -204,8 +204,8 @@ define(function (require, exports, module) {
         var inlineContent = document.createElement('div');
         $(inlineContent).addClass("inlineCodeEditor");
         
-        var myInlineId; // won't be populated until our afterAdded() callback is run
-        function closeThisInline(editor) {
+        var myInlineId;  // id is set when afterAdded() runs
+        function closeThisInline() {
             _closeInlineWidget(hostEditor, myInlineId);
             _syncGutterWidths(hostEditor);
         }
@@ -213,10 +213,9 @@ define(function (require, exports, module) {
         var inlineEditor = _createEditorFromText(text, sourceFile.fullPath, inlineContent, closeThisInline);
         var inlineEditorCM = inlineEditor._codeMirror;
         
-        // Wire up to Document
+        // Wire up to Document and its main full-size editor
         $(inlineEditor).on("change", function () {
-            console.log("Inline editor CHANGE - " + sourceFile);
-            
+            // Add to working set, since it's about to become dirty
             var doc = DocumentManager.getDocumentForFile(sourceFile);
             if (!doc) {
                 // File wasn't open before, so we must create a new document for it
@@ -225,24 +224,21 @@ define(function (require, exports, module) {
                 DocumentManager.addToWorkingSet(doc);
             }
             
-            if (!doc.editor) {
+            // Sync the change into the Document's full editor
+            if (doc.editor) {
+                doc.editor.syncFrom(inlineEditor);
+            } else {
                 var editorResult = createFullEditorForDocument(doc);
                 
                 editorResult.done(function () {
-                    // TODO: begin syncing from inline to full editor
+                    // Begin syncing from inline to full editor
+                    doc.editor.syncFrom(inlineEditor);
                 });
                 editorResult.fail(function (error) {
-                    console.log("### Error loading main copy for inline editor: "+error);
-                    // TODO: what to do here? show UI?
+                    FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
+                        closeThisInline();
+                    });
                 });
-                // TODO: what happens if the copy we loaded has changed since we read the text into the inline?
-                // should we store a readTimestamp when the inline was opened so we can know whether it's stale?
-                // but if it is... what then? blow away the edit the uer has just made??
-                // Answer? if an inline is open, even without a backing main editor, window activate should check
-                // its time stamp and blow away the inline if file has changed since then. if file has changed while
-                // Brackets still open, we're in the same boat as always: saving will blow away whatever had changed
-                // on disk (because inline->full syncing will overwrite whatever we just read off disk with the full
-                // text of the inline editor
             }
         });
         
