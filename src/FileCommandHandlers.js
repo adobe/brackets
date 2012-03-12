@@ -19,6 +19,7 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         Async               = require("Async"),
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         PreferencesManager  = require("PreferencesManager"),
         PerfUtils           = require("PerfUtils");
@@ -136,7 +137,7 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             // TODO (issue #117): we're relying on this to not be asynchronous--is that safe?
             NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                ["htm", "html", "js", "css"], function (files) {
+                null, function (files) {
                     if (files.length > 0) {
                         result = doOpen(files[0])
                             .done(function updateDefualtOpenDialogFullPath(doc) {
@@ -242,8 +243,8 @@ define(function (require, exports, module) {
     }
     
     function showSaveFileError(code, path) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
+        return Dialogs.showModalDialog(
+            Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
@@ -372,14 +373,14 @@ define(function (require, exports, module) {
         if (doc.isDirty) {
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
-            brackets.showModalDialog(
-                brackets.DIALOG_ID_SAVE_CLOSE,
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename)
             ).done(function (id) {
-                if (id === brackets.DIALOG_BTN_CANCEL) {
+                if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
-                } else if (id === brackets.DIALOG_BTN_OK) {
+                } else if (id === Dialogs.DIALOG_BTN_OK) {
                     doSave(doc)
                         .done(function () {
                             doClose(doc);
@@ -446,14 +447,14 @@ define(function (require, exports, module) {
             });
             message += "</ul>";
             
-            brackets.showModalDialog(
-                brackets.DIALOG_ID_SAVE_CLOSE,
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 message
             ).done(function (id) {
-                if (id === brackets.DIALOG_BTN_CANCEL) {
+                if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
-                } else if (id === brackets.DIALOG_BTN_OK) {
+                } else if (id === Dialogs.DIALOG_BTN_OK) {
                     // Save all unsaved files, then if that succeeds, close all
                     saveAll().done(function () {
                         result.resolve();

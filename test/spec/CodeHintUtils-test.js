@@ -9,21 +9,20 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeHintUtils = require("CodeHintUtils");
+    var CodeHintUtils = require("CodeHintUtils"),
+        Editor        = require("Editor").Editor;
     
     //Use a clean version of the editor each time
-    var myCodeMirror;
+    var myEditor;
     beforeEach(function () {
         // init CodeMirror instance
         $("body").append("<div id='editor'/>");
-        myCodeMirror = new CodeMirror($("#editor").get(0), {
-            value: ""
-        });
+        myEditor = new Editor("", "", $("#editor").get(0), {});
     });
 
     afterEach(function () {
         $("#editor").remove();
-        myCodeMirror = null;
+        myEditor = null;
     });
     
     function getContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
@@ -44,12 +43,12 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 // tell CodeMirror this is html content as the mode is
                 //used in determining the hints
-                myCodeMirror.setOption("mode", "htmlmixed");
+                myEditor._codeMirror.setOption("mode", "htmlmixed");
             });
     
             it("should not find attribute hints in an empty editor", function () {
                 var pos = {"ch": 0, "line": 0};
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -59,8 +58,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<p class="');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class"));
             });
             
@@ -71,8 +70,8 @@ define(function (require, exports, module) {
                     '<p id="', '>test</p>',
                     [ '</div>', '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "id"));
             });
             
@@ -83,8 +82,8 @@ define(function (require, exports, module) {
                     '<p id="one', '>test</p>',
                     [ '</div>', '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "id", "one"));
             });
             
@@ -95,8 +94,8 @@ define(function (require, exports, module) {
                     '<p id="foo">tricky="', '</p>',
                     [ '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -107,8 +106,8 @@ define(function (require, exports, module) {
                     '<p class="foo"', '></p>',
                     [ '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
@@ -119,8 +118,8 @@ define(function (require, exports, module) {
                     '<p class="foo', ' bar"></p>',
                     [ '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
             });
             
@@ -131,8 +130,8 @@ define(function (require, exports, module) {
                     '<p class = "foo"', '></p>',
                     [ '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
@@ -143,8 +142,8 @@ define(function (require, exports, module) {
                     '<p class=', '"foo"></p>',
                     [ '</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class", "foo"));
             });
             
@@ -154,8 +153,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<di');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 2, "di"));
             });
             
@@ -165,8 +164,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<p>test</p><');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME));
             });
             
@@ -176,8 +175,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><span');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 4, "span"));
             });
             
@@ -187,8 +186,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><li  ', '  id="foo"');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "li"));
             });
             
@@ -198,8 +197,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><span ');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "span"));
             });
             
@@ -209,8 +208,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><span>');
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
@@ -221,8 +220,19 @@ define(function (require, exports, module) {
                     '<div><span></span>', '</div>',
                     ['</body>', '</html>']);
                 
-                myCodeMirror.setValue(content);
-                var tag = CodeHintUtils.getTagInfo(myCodeMirror, pos);
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+            });
+            
+            it("should not hint anything inside a closing tag", function () {
+                var pos = {"ch": 0, "line": 0};
+                var content = getContentAndUpdatePos(pos,
+                    ['<html>', '<body>', '<div id="test" class="foo"></div>'],
+                    '</body></ht', 'ml>');
+                
+                myEditor.setText(content);
+                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
         });

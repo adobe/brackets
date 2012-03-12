@@ -12,6 +12,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings");
     
     /**
@@ -98,8 +99,8 @@ define(function (require, exports, module) {
     }
     
     function showFileOpenError(code, path) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
+        return Dialogs.showModalDialog(
+            Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_OPENING_FILE,

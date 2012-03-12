@@ -252,13 +252,13 @@ define(function (require, exports, module) {
      *      className:          string:"="
      *      className:string    string:""open-files-disclosure-arrow""
      *      className:tag       string:"></span>"
-     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     * @param {Editor} editor An instance of a Brackets editor
      * @param {{ch: number, line: number}} pos  A CM pos (likely from editor.getCursor())
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, pos) {
-        var ctx = _getInitialContext(editor, pos),
+        var ctx = _getInitialContext(editor._codeMirror, pos),
             offset = _offsetInToken(ctx),
             tagInfo,
             tokenType;
@@ -289,7 +289,8 @@ define(function (require, exports, module) {
         
         if (ctx.token.className === "tag") {
             //check to see if this is the closing of a tag (either the start or end)
-            if (ctx.token.string === ">") {
+            if (ctx.token.string === ">" ||
+                    (ctx.token.string.charAt(0) === '<' && ctx.token.string.charAt(1) === '/')) {
                 return createTagInfo();
             }
             

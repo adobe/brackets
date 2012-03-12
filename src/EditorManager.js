@@ -14,10 +14,7 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
- * This module dispatches several events:
- *    - onKeyEvent ({CodeMirror}, {KeyboardEvent}) -- When any key event happens in the editor. The event 
- *          provides the instance of the editor where the event occurred and the raw event. Most likely 
- *          this should get filtered for event.type === "keypress"
+ * This module does not dispatch any events.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -25,13 +22,14 @@ define(function (require, exports, module) {
     // Load dependent modules
     var FileUtils           = require("FileUtils"),
         DocumentManager     = require("DocumentManager"),
+        Editor              = require("Editor").Editor,
         EditorUtils         = require("EditorUtils"),
         Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
     
-    /** @type {CodeMirror} */
+    /** @type {Editor} */
     var _currentEditor = null;
     /** @type {Document} */
     var _currentEditorsDocument = null;
@@ -46,118 +44,6 @@ define(function (require, exports, module) {
     var _inlineEditProviders = [];
     
     /**
-     * @private
-     * Handle Tab key press.
-     * @param {!CodeMirror} instance CodeMirror instance.
-     */
-    function _handleTabKey(instance) {
-        // Tab key handling is done as follows:
-        // 1. If the selection is before any text and the indentation is to the left of 
-        //    the proper indentation then indent it to the proper place. Otherwise,
-        //    add another tab. In either case, move the insertion point to the 
-        //    beginning of the text.
-        // 2. If the selection is after the first non-space character, and is not an 
-        //    insertion point, indent the entire line(s).
-        // 3. If the selection is after the first non-space character, and is an 
-        //    insertion point, insert a tab character or the appropriate number 
-        //    of spaces to pad to the nearest tab boundary.
-        var from = instance.getCursor(true),
-            to = instance.getCursor(false),
-            line = instance.getLine(from.line),
-            indentAuto = false,
-            insertTab = false;
-        
-        if (from.line === to.line) {
-            if (line.search(/\S/) > to.ch || to.ch === 0) {
-                indentAuto = true;
-            }
-        }
-
-        if (indentAuto) {
-            var currentLength = line.length;
-            CodeMirror.commands.indentAuto(instance);
-            // If the amount of whitespace didn't change, insert another tab
-            if (instance.getLine(from.line).length === currentLength) {
-                insertTab = true;
-                to.ch = 0;
-            }
-        } else if (instance.somethingSelected()) {
-            CodeMirror.commands.indentMore(instance);
-        } else {
-            insertTab = true;
-        }
-        
-        if (insertTab) {
-            if (instance.getOption("indentWithTabs")) {
-                CodeMirror.commands.insertTab(instance);
-            } else {
-                var i, ins = "", numSpaces = instance.getOption("tabSize");
-                numSpaces -= to.ch % numSpaces;
-                for (i = 0; i < numSpaces; i++) {
-                    ins += " ";
-                }
-                instance.replaceSelection(ins, "end");
-            }
-        }
-    }
-    
-    /**
-     * @private
-     * Handle left arrow, right arrow, backspace and delete keys when soft tabs are used.
-     * @param {!CodeMirror} instance CodeMirror instance 
-     * @param {number} direction Direction of movement: 1 for forward, -1 for backward
-     * @param {function} functionName name of the CodeMirror function to call
-     * @return {boolean} true if key was handled
-     */
-    function _handleSoftTabNavigation(instance, direction, functionName) {
-        var handled = false;
-        if (!instance.getOption("indentWithTabs")) {
-            var cursor = instance.getCursor(),
-                tabSize = instance.getOption("tabSize"),
-                jump = cursor.ch % tabSize,
-                line = instance.getLine(cursor.line);
-
-            if (direction === 1) {
-                jump = tabSize - jump;
-
-                if (cursor.ch + jump > line.length) { // Jump would go beyond current line
-                    return false;
-                }
-
-                if (line.substr(cursor.ch, jump).search(/\S/) === -1) {
-                    instance[functionName](jump, "char");
-                    handled = true;
-                }
-            } else {
-                // Quick exit if we are at the beginning of the line
-                if (cursor.ch === 0) {
-                    return false;
-                }
-                
-                // If we are on the tab boundary, jump by the full amount, 
-                // but not beyond the start of the line.
-                if (jump === 0) {
-                    jump = tabSize;
-                }
-
-                // Search backwards to the first non-space character
-                var offset = line.substr(cursor.ch - jump, jump).search(/\s*$/g);
-
-                if (offset !== -1) { // Adjust to jump to first non-space character
-                    jump -= offset;
-                }
-
-                if (jump > 0) {
-                    instance[functionName](-jump, "char");
-                    handled = true;
-                }
-            }
-        }
-
-        return handled;
-    }
-    
-    /**
      * Creates a new CodeMirror editor instance containing the given text. The editor's mode is set
      * based on the given filename's extension (the actual file on disk is never examined). The
      * editor is not yet visible.
@@ -167,105 +53,38 @@ define(function (require, exports, module) {
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!function} onInlineGesture  Handler for Ctrl+E command (open/close inline, depending
                 on context)
-     * @return {CodeMirror} the newly created editor.
+     * @return {Editor} the newly created editor.
      */
     function _createEditorFromText(text, fileNameToSelectMode, container, onInlineGesture) {
-        // NOTE: CodeMirror doesn't actually require calling 'new',
-        // but jslint does require it because of the capital 'C'
-        var editor = new CodeMirror(container, {
-            electricChars: false,
-            indentUnit : 4,
-            lineNumbers: true,
-            matchBrackets: true,
-            extraKeys: {
-                "Tab"  : _handleTabKey,
-                "Left" : function (instance) {
-                    if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
-                        CodeMirror.commands.goCharLeft(instance);
-                    }
-                },
-                "Right" : function (instance) {
-                    if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
-                        CodeMirror.commands.goCharRight(instance);
-                    }
-                },
-                "Backspace" : function (instance) {
-                    if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
-                        CodeMirror.commands.delCharLeft(instance);
-                    }
-                },
-                "Delete" : function (instance) {
-                    if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
-                        CodeMirror.commands.delCharRight(instance);
-                    }
-                },
-                "F3": "findNext",
-                "Shift-F3": "findPrev",
-                "Ctrl-H": "replace",
-                "Shift-Delete": "cut",
-                "Ctrl-Insert": "copy",
-                "Shift-Insert": "paste",
-                "Ctrl-E" : function (instance) {
-                    onInlineGesture(instance);
-                },
-                "Cmd-E" : function (instance) {
-                    onInlineGesture(instance);
-                }
+        var mode = EditorUtils.getModeFromFileExtension(fileNameToSelectMode);
+        
+        var extraKeys = {
+            "Ctrl-E" : function (editor) {
+                onInlineGesture(editor);
             },
-            onKeyEvent: function (instance, event) {
-                if (event.type === "keypress") {
-                    var keyStr = String.fromCharCode(event.which || event.keyCode);
-                    if (/[\]\}\)]/.test(keyStr)) {
-                        // If the whole line is whitespace, auto-indent it
-                        var lineNum = instance.getCursor().line;
-                        var lineStr = instance.getLine(lineNum);
-                        
-                        if (!/\S/.test(lineStr)) {
-                            // Need to do the auto-indent on a timeout to ensure
-                            // the keypress is handled before auto-indenting.
-                            // This is the same timeout value used by the
-                            // electricChars feature in CodeMirror.
-                            setTimeout(function () {
-                                instance.indentLine(lineNum);
-                            }, 75);
-                        }
-                    }
-                }
-                
-                
-                $(exports).triggerHandler("onKeyEvent", [instance, event]);
-                return false;
+            "Cmd-E" : function (editor) {
+                onInlineGesture(editor);
             }
-        });
-        
-        // Set code-coloring mode
-        EditorUtils.setModeFromFileExtension(editor, fileNameToSelectMode);
-        
-        // Initially populate with text. This will send a spurious change event, but that's ok
-        // because no one's listening yet (and we clear the undo stack below)
-        editor.setValue(text);
-        
-        // Make sure we can't undo back to the empty state before setValue()
-        editor.clearHistory();
-        
-        return editor;
+        };
+
+        return new Editor(text, mode, container, extraKeys);
     }
     
     /** Bound to Ctrl+E on outermost editors */
-    function _openInlineWidget(instance) {
+    function _openInlineWidget(editor) {
         // Run through inline-editor providers until one responds
-        var pos = instance.getCursor();
+        var pos = editor.getCursorPos();
         var inlinePromise;
         var i;
         for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
             var provider = _inlineEditProviders[i];
-            inlinePromise = provider(instance, pos);
+            inlinePromise = provider(editor, pos);
         }
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineContent) {
-                var inlineId = instance.addInlineWidget(pos, inlineContent.content, inlineContent.height);
+                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height, inlineContent);
                 inlineContent.onAdded(inlineId);
             });
         }
@@ -274,10 +93,10 @@ define(function (require, exports, module) {
     function _closeInlineWidget(hostEditor, inlineId) {
         // Place cursor back on the line just above the inline (the line from which it was opened)
         // If cursor's already on that line, leave it be to preserve column position
-        var widgetLine = hostEditor.getInlineWidgetInfo(inlineId).line;
-        var cursorLine = hostEditor.getCursor().line;
+        var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
+        var cursorLine = hostEditor.getCursorPos().line;
         if (cursorLine !== widgetLine) {
-            hostEditor.setCursor({ line: widgetLine, pos: 0 });
+            hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
         }
         
         hostEditor.removeInlineWidget(inlineId);
@@ -289,6 +108,54 @@ define(function (require, exports, module) {
         _inlineEditProviders.push(provider);
     }
     
+    /**
+     * @private
+     * Given a host editor, return a list of all its open inline editors. (Ignoring any other
+     * inline widgets that might be open).
+     * @param {!Editor} hostEditor
+     */
+    function _getInlineEditors(hostEditor) {
+        var inlineEditors = [];
+        hostEditor.getInlineWidgets().forEach(function (widget) {
+            if (widget.data.editor) {
+                inlineEditors.push(widget.data.editor);
+            }
+        });
+        return inlineEditors;
+    }
+    
+    /**
+     * @private
+     * Given a host editor and its inline editors, find the widest gutter and make all the others match
+     * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
+     */
+    function _syncGutterWidths(hostEditor) {
+        var editors = _getInlineEditors(hostEditor);
+        // add the host to the list and go through them all
+        editors.push(hostEditor);
+        
+        var maxWidth = 0;
+        editors.forEach(function (editor) {
+            var gutter = $(editor._codeMirror.getGutterElement());
+            gutter.css("min-width", "");
+            var curWidth = gutter.width();
+            if (curWidth > maxWidth) {
+                maxWidth = curWidth;
+            }
+        });
+        
+        if (editors.length === 1) {
+            //There's only the host, just bail
+            editors[0]._codeMirror.setOption("gutter", true);
+            return;
+        }
+        
+        maxWidth = maxWidth + "px";
+        editors.forEach(function (editor) {
+            $(editor._codeMirror.getGutterElement()).css("min-width", maxWidth);
+            editor._codeMirror.setOption("gutter", true);
+        });
+    }
     
     /**
      * Creates a new "main" CodeMirror editor instance containing text from the specified fileEntry
@@ -319,10 +186,12 @@ define(function (require, exports, module) {
      * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
      * is set based on the given filename's extension (the actual file on disk is never examined).
      * The editor is not yet visible.
-     * @param {CodeMirror} hostEditor
-     * @param {string} text
-     * @param {?{startLine:Number, endLine:Number}} range
-     * @param {string} fileNameToSelectMode
+     * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
+     * @param {!string} text  The text content of the editor.
+     * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
+     *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
+     * @param {!string} fileNameToSelectMode  A filename (optionally including path) from which to
+     *      infer the editor's mode.
      */
     function createInlineEditorFromText(hostEditor, text, range, fileNameToSelectMode) {
         // Container to hold editor & render its stylized frame
@@ -330,11 +199,13 @@ define(function (require, exports, module) {
         $(inlineContent).addClass("inlineCodeEditor");
         
         var myInlineId; // won't be populated until our afterAdded() callback is run
-        function closeThisInline() {
+        function closeThisInline(editor) {
             _closeInlineWidget(hostEditor, myInlineId);
+            _syncGutterWidths(hostEditor);
         }
         
         var inlineEditor = _createEditorFromText(text, fileNameToSelectMode, inlineContent, closeThisInline);
+        var inlineEditorCM = inlineEditor._codeMirror;
         
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
@@ -342,26 +213,37 @@ define(function (require, exports, module) {
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
+            var hidLines = false;
             if (range) {
-                inlineEditor.operation(function () {
+                inlineEditorCM.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
-                        inlineEditor.hideLine(i);
+                        hidLines = true;
+                        inlineEditorCM.hideLine(i);
                     }
-                    var lineCount = inlineEditor.lineCount();
+                    var lineCount = inlineEditorCM.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
-                        inlineEditor.hideLine(i);
+                        hidLines = true;
+                        inlineEditorCM.hideLine(i);
                     }
                 });
-                inlineEditor.setCursor(range.startLine, 0);
+                inlineEditor.setCursorPos(range.startLine, 0);
+                _syncGutterWidths(hostEditor);
+            }
+            
+            // If we haven't hidden any lines (which would have caused an update already), 
+            // force the editor to update its display so we measure the correct height below
+            // in totalHeight().
+            if (!hidLines) {
+                inlineEditorCM.refresh();
             }
             
             // Auto-size editor to its remaining content
-            var widgetHeight = inlineEditor.totalHeight(true);
+            var widgetHeight = inlineEditorCM.totalHeight(true);
 
-            hostEditor.setInlineWidgetHeight(inlineId, widgetHeight);
-            $(inlineEditor.getScrollerElement()).height(widgetHeight);
-            inlineEditor.refresh();
+            hostEditor._codeMirror.setInlineWidgetHeight(inlineId, widgetHeight, true);
+            $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
+            inlineEditorCM.refresh();
             
             inlineEditor.focus();
         }
@@ -376,7 +258,7 @@ define(function (require, exports, module) {
      * @param {!Document} document
      */
     function _destroyEditorIfUnneeded(document) {
-        var editor = document._editor;
+        var editor = document.editor;
 
         if (!editor) {
             return;
@@ -387,7 +269,7 @@ define(function (require, exports, module) {
             
             // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
             // is "Remove this from your tree to delete an editor instance."
-            $(editor.getWrapperElement()).remove();
+            $(editor._codeMirror.getWrapperElement()).remove();
             
             // Our callers should really ensure this, but just for safety...
             if (_currentEditor === editor) {
@@ -413,29 +295,20 @@ define(function (require, exports, module) {
      */
     function resizeEditor() {
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
-            _currentEditor.refresh();
+            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
+            _currentEditor._codeMirror.refresh();
         }
     }
     
     /**
      * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
-     * height; somewhat less than once per resize event, we also kick it to do a full re-layout.
+     * height.
      * @see #resizeEditor()
      */
     function _updateEditorSize() {
-        // Don't refresh every single time
-        if (!_resizeTimeout) {
-            _resizeTimeout = setTimeout(function () {
-                _resizeTimeout = null;
-                
-                if (_currentEditor) {
-                    _currentEditor.refresh();
-                }
-            }, 100);
-        }
+        // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
+            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
         }
     }
     
@@ -446,9 +319,9 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _currentEditor = document._editor;
+        _currentEditor = document.editor;
 
-        $(_currentEditor.getWrapperElement()).css("display", "");
+        $(_currentEditor._codeMirror.getWrapperElement()).css("display", "");
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
@@ -464,12 +337,12 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#notEditor").css("display", "none");
         } else {
-            $(_currentEditor.getWrapperElement()).css("display", "none");
+            $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
 
         // Lazily create editor for Documents that were restored on-init
-        if (!document._editor) {
+        if (!document.editor) {
             var editorResult = _createEditorFromFile(document.file, _editorHolder.get(0));
 
             editorResult.done(function (editor, readTimestamp, rawText) {
@@ -494,7 +367,7 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            $(_currentEditor.getWrapperElement()).css("display", "none");
+            $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
             _currentEditorsDocument = null;
@@ -581,7 +454,9 @@ define(function (require, exports, module) {
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
-    $(window).resize(_updateEditorSize);
+    // Add this as a capture handler so we're guaranteed to run it before the editor does its own
+    // refresh on resize.
+    window.addEventListener("resize", _updateEditorSize, true);
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
