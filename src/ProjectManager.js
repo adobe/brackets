@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
         PerfUtils           = require("PerfUtils"),
+        ViewUtils           = require("ViewUtils"),
         FileUtils           = require("FileUtils");
     
     /**
@@ -241,6 +242,10 @@ define(function (require, exports, module) {
                 });
         });
         
+        result.always(function () {
+            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+        });
+        
         return result;
     }
     
@@ -345,6 +350,8 @@ define(function (require, exports, module) {
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
                 }
+                
+                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(
@@ -368,7 +375,7 @@ define(function (require, exports, module) {
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
         bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
-        
+
         return bracketsSrc;
     }
     

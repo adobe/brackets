@@ -17,6 +17,27 @@
     #gradient > .vertical(#5fa3e0, #0065be);
 }
 
+/* Make the links in the JS tree the width of the container
+ * by shifting the off the screen by negative margin and moving the
+ * content back by pushing the padding. The icons are positioned absolute
+ * relative to the containing list item so the sit above the a's background. 
+ * This also means we need to include the size of the sprite in the padding
+ * so the text ends up back in the same spot visually
+ */
+.jstree-brackets li > a {
+    padding-left: @spriteSize18 + 10000;
+    margin-left: -10000px;
+    width: 100%;
+}
+
+.jstree li { 
+    position: relative;
+}
+
+.jstree ins {
+    position: absolute;
+}
+
 .jstree-brackets a .jstree-icon { background-position:-56px -19px; }
 .jstree-brackets a.jstree-loading .jstree-icon { background:url("styles/images/throbber.gif") center center no-repeat !important; }
 
