@@ -89,7 +89,12 @@ define(function (require, exports, module) {
             });
     }
     
+    function _handleNewBracketsWindow() {
+        window.open(window.location.href);
+    }
+    
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
     CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
     CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
+    CommandManager.register(Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
 });

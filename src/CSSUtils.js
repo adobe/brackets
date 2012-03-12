@@ -84,6 +84,7 @@ define(function (require, exports, module) {
                         selectors.push({selector: currentSelector.trim(),
                                         line: selectorStartLine,
                                         character: currentPosition,
+                                        ruleEndLine: -1,
                                         selectorEndLine: i,
                                         selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
                                         selectorGroupStartLine: selectorGroupStartLine,
@@ -107,7 +108,7 @@ define(function (require, exports, module) {
                         inRules = false;
                         // assign this rule position to every selector on the stack that doesn't have a rule start and end line
                         for (j = selectors.length - 1; j >= 0; j--) {
-                            if (selectors[j].ruleEndLine) {
+                            if (selectors[j].ruleEndLine !== -1) {
                                 break;
                             } else {
                                 selectors[j].ruleStartLine = ruleStartLine;
@@ -181,7 +182,7 @@ define(function (require, exports, module) {
             selector = "(^|\\s)" + selector;
         }
         
-        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
+        var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-()]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
         allSelectors.forEach(function (entry) {
             if (entry.selector.search(re) !== -1) {
                 result.push(entry);
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
-     * @return {Array<{source:FileEntry, lineStart:number, lineEnd:number}>} Array of objects containing the
+     * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source file, start line, and end line (0-based, inclusive range) for each matching rule.
      */
     function findMatchingRules(selector) {
