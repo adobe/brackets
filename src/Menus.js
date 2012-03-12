@@ -46,6 +46,10 @@ define(function (require, exports, module) {
         $("#menu-debug-show-perf").click(function () {
             CommandManager.execute(Commands.DEBUG_SHOW_PERF_DATA);
         });
+        
+        $("#menu-debug-new-brackets-window").click(function () {
+            CommandManager.execute(Commands.DEBUG_NEW_BRACKETS_WINDOW);
+        });
     }
 
     // Define public API

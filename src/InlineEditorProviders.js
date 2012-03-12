@@ -153,7 +153,7 @@ define(function (require, exports, module) {
         var filenameDiv = $('<div class="filename" style="visibility: hidden"/>').text(filename);
         
         // add inline editor styling
-        $(editor._codeMirror.getScrollerElement())
+        $(editor.getScrollerElement())
             .append('<div class="shadow top"/>')
             .append('<div class="shadow bottom"/>')
             .append(filenameDiv);

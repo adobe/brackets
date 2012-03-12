@@ -345,6 +345,38 @@ define(function (require, exports, module) {
     Editor.prototype.setSelection = function (start, end) {
         this._codeMirror.setSelection(start, end);
     };
+
+    /**
+     * Gets the total number of lines in the the document (includes lines not visible in the viewport)
+     * @returns {!number}
+     */
+    Editor.prototype.lineCount = function () {
+        return this._codeMirror.lineCount();
+    };
+
+    /* Hides the specified line number in the editor
+     * @param {!number}
+     */
+    Editor.prototype.hideLine = function (lineNumber) {
+        return this._codeMirror.hideLine(lineNumber);
+    };
+
+    /**
+     * Gets the total height of the document in pixels (not the viewport)
+     * @param {!boolean} includePadding
+     * @returns {!number} height in pixels
+     */
+    Editor.prototype.totalHeight = function (includePadding) {
+        return this._codeMirror.totalHeight(includePadding);
+    };
+
+    /**
+     * Gets the scroller element from the editor.
+     * @returns {!HTMLDivElement} scroller
+     */
+    Editor.prototype.getScrollerElement = function () {
+        return this._codeMirror.getScrollerElement();
+    };
     
     
     /**
@@ -401,6 +433,16 @@ define(function (require, exports, module) {
     Editor.prototype.getInlineWidgets = function () {
         return this._inlineWidgets;
     };
+
+    /**
+     * Sets the height of the inline widget for this editor. The inline editor is identified by id.
+     * @param {!number} id
+     * @param {!height} height
+     * @param {boolean} ensureVisible
+     */
+    Editor.prototype.setInlineWidgetHeight = function (id, height, ensureVisible) {
+        this._codeMirror.setInlineWidgetHeight(id, height, ensureVisible);
+    };
     
     
     /** Gives focus to the editor control */
@@ -408,6 +450,12 @@ define(function (require, exports, module) {
         this._codeMirror.focus();
     };
     
+    /**
+     * Refreshes the editor control
+     */
+    Editor.prototype.refresh = function () {
+        this._codeMirror.refresh();
+    };
     
     
     /**

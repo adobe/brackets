@@ -198,6 +198,8 @@ define(function (require, exports, module) {
      * @param {!FileEntry} sourceFile  The file from which the text was drawn. Important, since this
      *      is what ties the inline editor back to a full editor and where any edits will be saved.
      *      infer the editor's mode.
+     *
+     * @returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
      */
     function createInlineEditorFromText(hostEditor, text, range, sourceFile) {
         // Container to hold editor & render its stylized frame
@@ -211,10 +213,26 @@ define(function (require, exports, module) {
         }
         
         var inlineEditor = _createEditorFromText(text, sourceFile.fullPath, inlineContent, closeThisInline);
-        var inlineEditorCM = inlineEditor._codeMirror;
+
+        // Update the inline editor's height when the number of lines change
+        var prevLineCount;
+        function sizeInlineEditorToContents() {
+            var lineCount = inlineEditor.lineCount();
+            if (lineCount !== prevLineCount) {
+                prevLineCount = lineCount;
+                var widgetHeight = inlineEditor.totalHeight(true);
+                hostEditor.setInlineWidgetHeight(myInlineId, widgetHeight, true);
+                $(inlineEditor.getScrollerElement()).height(widgetHeight);
+                inlineEditor.refresh();
+            }
+        }
         
-        // Wire up to Document and its main full-size editor
+        // When text is edited, auto-resize UI and sync changes to a backing full-size editor
         $(inlineEditor).on("change", function () {
+            // Size editor to current contents
+            sizeInlineEditorToContents();
+            
+            // Wire up to Document and its main full-size editor:
             // Ensure there's a Document
             var doc = DocumentManager.getDocumentForFile(sourceFile);
             if (!doc) {
@@ -246,18 +264,18 @@ define(function (require, exports, module) {
             
             // Hide all lines other than those we want to show. We do this rather than trimming the
             // text itself so that the editor still shows accurate line numbers.
-            var hidLines = false;
+            var didHideLines  = false;
             if (range) {
-                inlineEditorCM.operation(function () {
+                inlineEditor._codeMirror.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
-                        hidLines = true;
-                        inlineEditorCM.hideLine(i);
+                        didHideLines  = true;
+                        inlineEditor.hideLine(i);
                     }
-                    var lineCount = inlineEditorCM.lineCount();
+                    var lineCount = inlineEditor.lineCount();
                     for (i = range.endLine + 1; i < lineCount; i++) {
-                        hidLines = true;
-                        inlineEditorCM.hideLine(i);
+                        didHideLines  = true;
+                        inlineEditor.hideLine(i);
                     }
                 });
                 inlineEditor.setCursorPos(range.startLine, 0);
@@ -266,17 +284,13 @@ define(function (require, exports, module) {
             
             // If we haven't hidden any lines (which would have caused an update already), 
             // force the editor to update its display so we measure the correct height below
-            // in totalHeight().
-            if (!hidLines) {
-                inlineEditorCM.refresh();
+            // when sizeInlineEditorToContents() calls totalHeight().
+            if (!didHideLines) {
+                inlineEditor.refresh();
             }
             
-            // Auto-size editor to its remaining content
-            var widgetHeight = inlineEditorCM.totalHeight(true);
-
-            hostEditor._codeMirror.setInlineWidgetHeight(inlineId, widgetHeight, true);
-            $(inlineEditorCM.getScrollerElement()).height(widgetHeight);
-            inlineEditorCM.refresh();
+            // Set initial size
+            sizeInlineEditorToContents();
             
             inlineEditor.focus();
         }
@@ -328,8 +342,8 @@ define(function (require, exports, module) {
      */
     function resizeEditor() {
         if (_currentEditor) {
-            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
-            _currentEditor._codeMirror.refresh();
+            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
+            _currentEditor.refresh();
         }
     }
     
@@ -341,7 +355,7 @@ define(function (require, exports, module) {
     function _updateEditorSize() {
         // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
-            $(_currentEditor._codeMirror.getScrollerElement()).height(_editorHolder.height());
+            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
         }
     }
     
