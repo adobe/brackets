@@ -485,7 +485,7 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 // Pop up a folder browse dialog
-                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
+                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
