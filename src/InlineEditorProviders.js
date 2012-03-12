@@ -87,8 +87,8 @@ define(function (require, exports, module) {
                     startLine: startLine,
                     endLine: endLine
                 };
-                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
-
+                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry);
+                
                 result.resolve(inlineInfo);
             })
             .fail(function (fileError) {

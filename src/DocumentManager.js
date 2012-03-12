@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("ProjectManager"),
+        EditorManager       = require("EditorManager"),
         PreferencesManager  = require("PreferencesManager"),
         FileUtils           = require("FileUtils"),
         CommandManager      = require("CommandManager"),
@@ -54,7 +55,8 @@ define(function (require, exports, module) {
     
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
-     * When this changes, DocumentManager dispatches a "currentDocumentChange" event.
+     * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
+     * document always has a full-size editor associated with it (i.e. Document.editor != null).
      * @return {?Document}
      */
     function getCurrentDocument() {
@@ -102,7 +104,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns all documents that are open in editors: the union of the working set and the current
-     * document (which may not be in the working set if it is unmodified).
+     * document (which may not be in the working set if it is unmodified). Files viewed in inline
+     * editors are only included in this list if they've been modified.
      * @return {Array.<Document>}
      */
     function getAllOpenDocuments() {
@@ -182,13 +185,29 @@ define(function (require, exports, module) {
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
         return getDocumentForFile(fileEntry);
     }
+    
+    /**
+     * Returns a Document for the given file: the existing Document if the given file is 'open' for
+     * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
+     * @param {!string} fullPath
+     * @return {!Document}
+    */
+    function getOrCreateDocumentForPath(fullPath) {
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        var doc = getDocumentForFile(fileEntry);
+        if (!doc) {
+            doc = new Document(fileEntry);
+        }
+        return doc;
+    }
 
     /** 
      * If the given file is 'open' for editing, return the contents of the editor (which could
      * be different from the contents of the file, if the editor contains unsaved changes). If
      * the given file is not open for editing, read the contents off disk.
      * @param {!string} fullPath
-     * @return {Deferred} A Deferred object that will be resolved with the contents of the document
+     * @return {Deferred} A Deferred object that will be resolved with the contents of the document,
+     *      or rejected with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentContents(fullPath) {
         var doc = getDocumentForPath(fullPath);
@@ -206,18 +225,22 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Displays the given file in the editor pane. May also add the item to the working set list.
-     * This changes the value of getCurrentDocument(), which will trigger listeners elsewhere in the
-     * UI that in turn do things like update the selection in the file tree / working set UI.
+     * Displays the given file in the editor pane; this may occur asynchronously if the file has
+     * not been opened before. After the file is loaded and an editor is created, the value of
+     * getCurrentDocument() changes, firing currentDocumentChange and triggering listeners elsewhere
+     * to update the selection in the file tree / working set UI, etc.
+     * This call may also add the item to the working set list.
      * 
      * @param {!Document} document  The document whose editor should be shown. May or may not
      *      already be in the working set.
+     * @return {$.Deferred}  A Deferred that is resolved once the Document is loaded and displayed
+     *      in the UI, or rejected - after showing error UI - if the file could not be loaded.
      */
     function showInEditor(document) {
         
         // If this file is already in editor, do nothing
         if (_currentDocument === document) {
-            return;
+            return (new $.Deferred()).resolve();
         }
         
         // If file not within project tree, add it to working set right now (don't wait for it to
@@ -226,10 +249,33 @@ define(function (require, exports, module) {
             addToWorkingSet(document);
         }
         
+        // Ensure an editor exists for this document
+        var result = new $.Deferred();
+        if (document.editor) {
+            result.resolve();
+        } else {
+            // Editor doesn't exist; load the file (async) and populate a new Editor with it
+            EditorManager.createFullEditorForDocument(document)
+                .done(function () {
+                    result.resolve();
+                })
+                .fail(function (fileError) {
+                    FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
+                        closeDocument(document);
+                        EditorManager.focusEditor();
+                        result.reject(fileError);
+                    });
+                });
+        }
+        
         // Make it the current document
-        _currentDocument = document;
-        $(exports).triggerHandler("currentDocumentChange");
-        // (this event triggers EditorManager to actually switch editors in the UI)
+        result.done(function () {
+            _currentDocument = document;
+            $(exports).triggerHandler("currentDocumentChange");
+            // (this event triggers EditorManager to actually switch editors in the UI)
+        });
+        
+        return result;
     }
     
     /** Closes the currently visible document, if any */
@@ -329,7 +375,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * The FileEntry for the document being edited.
+     * The FileEntry for the document being edited. Need not lie within the project.
      * @type {!FileEntry}
      */
     Document.prototype.file = null;
@@ -590,6 +636,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
+    exports.getOrCreateDocumentForPath = getOrCreateDocumentForPath;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
     exports.getDocumentContents = getDocumentContents;
