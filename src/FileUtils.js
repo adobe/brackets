@@ -110,6 +110,22 @@ define(function (require, exports, module) {
         );
     }
 
+    /**
+     * Convert a URI path to a native path.
+     * On the mac, this is a no-op
+     * On windows, URI paths start with a "/", but have a drive letter ("C:"). In this
+     * case, remove the initial "/".
+     * @param {!string} path
+     * @return {string}
+     */
+    function convertToNativePath(path) {
+        if (path.indexOf(":") !== -1 && path[0] === "/") {
+            return path.substr(1);
+        }
+        
+        return path;
+    }
+    
     // Define public API
     exports.LINE_ENDINGS_CRLF        = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF          = LINE_ENDINGS_LF;
@@ -118,4 +134,5 @@ define(function (require, exports, module) {
     exports.showFileOpenError        = showFileOpenError;
     exports.getFileErrorString       = getFileErrorString;
     exports.readAsText               = readAsText;
+    exports.convertToNativePath      = convertToNativePath;
 });
