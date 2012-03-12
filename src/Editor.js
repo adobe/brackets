@@ -302,8 +302,8 @@ define(function (require, exports, module) {
      * @param {Editor} changedEditor
      */
     Editor.prototype.syncFrom = function (changedEditor) {
-        this._codeMirror.setValue( changedEditor._codeMirror.getValue() );
-    }
+        this._codeMirror.setValue(changedEditor._codeMirror.getValue());
+    };
     
     
     /**

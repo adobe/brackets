@@ -244,8 +244,8 @@ define(function (require, exports, module) {
                         // Begin syncing from inline to full editor
                         doc.editor.syncFrom(inlineEditor);
                     })
-                    .fail(function (error) {
-                        FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
+                    .fail(function (fileError) {
+                        FileUtils.showFileOpenError(fileError.code, doc.file.fullPath).done(function () {
                             closeThisInline();
                         });
                     });
