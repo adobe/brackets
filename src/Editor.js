@@ -295,6 +295,16 @@ define(function (require, exports, module) {
         this._codeMirror.clearHistory();
     };
     
+    /**
+     * Copies the state of changedEditor into this editor.
+     * NOTE: for now, all we do is copy the contents from one editor to the other. The undo/redo
+     * history and other details will differ.
+     * @param {Editor} changedEditor
+     */
+    Editor.prototype.syncFrom = function (changedEditor) {
+        this._codeMirror.setValue( changedEditor._codeMirror.getValue() );
+    }
+    
     
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
