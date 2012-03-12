@@ -242,7 +242,7 @@ define(function (require, exports, module) {
         });
         
         result.always(function () {
-            ViewUtils.updateChildWidthToParentScrollwidth($("#project-files-container"));
+            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
         });
         
         return result;
@@ -350,7 +350,7 @@ define(function (require, exports, module) {
                             .addClass(classToAdd);
                 }
                 
-                ViewUtils.updateChildWidthToParentScrollwidth($("#project-files-container"));
+                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(

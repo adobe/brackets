@@ -38,7 +38,7 @@ define(function (require, exports, module) {
             $("#open-files-divider").show();
         }
         
-        ViewUtils.updateChildWidthToParentScrollwidth($("#open-files-container"));
+        ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
     }
     
     /** 

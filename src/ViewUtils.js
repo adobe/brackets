@@ -17,19 +17,19 @@ define(function (require, exports, module) {
      * the div scrolls the background looks wrong.
      * @param {!JQuery} $parent the jQuery parent for the object 
      */
-    function updateChildWidthToParentScrollwidth($parent) {
-        var $firstChild = $parent.children().first();
+    function updateChildrenToParentScrollwidth($parent) {
+        var $children = $parent.children();
         //clear the width first so we get the natural scrollWidth below
-        $firstChild.width("");
+        $children.width("");
         
         var targetWidth = $parent[0].scrollWidth -
             parseInt($parent.css("paddingLeft"), 10) -
             parseInt($parent.css("paddingRight"), 10);
         
-        $firstChild.width(targetWidth);
+        $children.width(targetWidth);
     }
 
 
     // Define public API
-    exports.updateChildWidthToParentScrollwidth = updateChildWidthToParentScrollwidth;
+    exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
 });
