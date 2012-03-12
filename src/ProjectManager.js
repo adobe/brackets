@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
-        PerfUtils           = require("PerfUtils");
+        PerfUtils           = require("PerfUtils"),
+        FileUtils           = require("FileUtils");
     
     /**
      * @private
@@ -366,13 +367,8 @@ define(function (require, exports, module) {
         var loadedPath = window.location.pathname;
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
-        // On Windows, when loading from a file, window.location.pathname has
-        // a leading '/'. Remove that here.
-        // TODO (issue #267): This will be obsolete when Brackets can support no project
-        if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":") {
-            bracketsSrc = bracketsSrc.substr(1);
-        }
-
+        bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
+        
         return bracketsSrc;
     }
     
