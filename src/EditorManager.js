@@ -229,7 +229,7 @@ define(function (require, exports, module) {
             // text itself so that the editor still shows accurate line numbers.
             var didHideLines  = false;
             if (range) {
-                inlineEditor.operation(function () {
+                inlineEditor._codeMirror.operation(function () {
                     var i;
                     for (i = 0; i < range.startLine; i++) {
                         didHideLines  = true;
@@ -248,7 +248,7 @@ define(function (require, exports, module) {
             // If we haven't hidden any lines (which would have caused an update already), 
             // force the editor to update its display so we measure the correct height below
             // in totalHeight().
-            if (!didHideLines ) {
+            if (!didHideLines) {
                 inlineEditor.refresh();
             }
             

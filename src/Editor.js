@@ -368,15 +368,6 @@ define(function (require, exports, module) {
         return this._codeMirror.getScrollerElement();
     };
     
-    /**
-     * Returns the provided function wrapped in a code mirror closure so that the function
-     * can operate on code mirror internal structures
-     * @param {!function}
-     * @returns {!function}
-     */
-    Editor.prototype.operation = function (func) {
-        return this._codeMirror.operation(func);
-    };
     
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
