@@ -537,6 +537,44 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(0);
             });
             
+            it("should ignore pseudo-elements with arguments", function () {
+                // Note: not actually required for Sprint 4
+                var css = "div:nth-child(3) { color:red } \n" +
+                          ".foo:nth-child(3) { color:green } \n" +
+                          "div.foo:nth-child(3) { color:blue } \n" +
+                          "#bar:nth-child(3) { color:yellow } \n" +
+                          "div#bar:nth-child(3) { color:black } \n" +
+                          ".foo.class2:nth-child(3) { color:white } \n" +
+                          "div:nth-child(2n):nth-child(3) { color:cyan } \n" +
+                          "div.foo:nth-child(2n):nth-child(3) { color:brown } \n" +
+                          ".foo:nth-child(2n):nth-child(3) { color:pink } \n" +
+                          "div:nth-child(2n).class3:nth-child(3) { color:purple } \n" +
+                          ":nth-child(2n).class3:nth-child(3) { color:gray }";
+                
+                var result = match(css, { tag: "div" });
+                expect(result.length).toBe(6);
+                result = matchAgain({ clazz: "foo" });
+                expect(result.length).toBe(5);
+                result = matchAgain({ id: "bar" });
+                expect(result.length).toBe(2);
+                
+                result = matchAgain({ clazz: "class3" });
+                expect(result.length).toBe(2);
+                
+                result = matchAgain({ tag: "hover" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ clazz: "hover" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ id: "hover" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ tag: "focus" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ clazz: "focus" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ id: "focus" });
+                expect(result.length).toBe(0);
+            });
+            
             it("should ignore attribute selectors", function () {
                 // Note: not actually required for Sprint 4
                 var css = "div { color:red } \n" +
