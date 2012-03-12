@@ -391,8 +391,9 @@ define(function (require, exports, module) {
      */
     Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, data) {
         // If any other inline widget is alrady open on this line, CodeMirror will automatically
-        // close it. We don't want to leak an _inlineWidgets entry, so check for this case and
-        // remove it manually instead.
+        // close it. Also, CodeMirror may have already disposed of one of the existing widgets due
+        // to an edit. We don't want to leak an _inlineWidgets entry, so check for these cases and
+        // remove it manually instead. When we fix issue #426 this should no longer be necessary here.
         var i;
         for (i = 0; i < this._inlineWidgets.length; i++) {
             var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
