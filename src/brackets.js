@@ -15,6 +15,16 @@
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
  */
+
+// load module packages
+// this must be done in the global scope
+require.config({
+    "packages": [{
+        "name": "LiveDevelopment",
+        "location": "modules/LiveDevelopment"
+    }]
+});
+
 define(function (require, exports, module) {
     'use strict';
     
@@ -23,8 +33,9 @@ define(function (require, exports, module) {
     require("widgets/bootstrap-modal");
     require("thirdparty/path-utils/path-utils.min");
 
-    // load the live-development plugin
-    require("thirdparty/live-development/init");
+    // load modules
+    require("LiveDevelopment");
+
     
     // Load dependent modules
     var ProjectManager          = require("ProjectManager"),
