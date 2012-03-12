@@ -88,9 +88,6 @@ define(function (require, exports, module) {
                     endLine: endLine
                 };
                 var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
-                
-                // For Sprint 4, editor is a read-only view
-                inlineInfo.editor._codeMirror.setOption("readOnly", true);
 
                 result.resolve(inlineInfo);
             })
@@ -156,7 +153,7 @@ define(function (require, exports, module) {
         var filenameDiv = $('<div class="filename" style="visibility: hidden"/>').text(filename);
         
         // add inline editor styling
-        $(editor._codeMirror.getScrollerElement())
+        $(editor.getScrollerElement())
             .append('<div class="shadow top"/>')
             .append('<div class="shadow bottom"/>')
             .append(filenameDiv);

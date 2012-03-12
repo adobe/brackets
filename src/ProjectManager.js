@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
         PerfUtils           = require("PerfUtils"),
-        ViewUtils           = require("ViewUtils");
+        ViewUtils           = require("ViewUtils"),
+        FileUtils           = require("FileUtils");
     
     /**
      * @private
