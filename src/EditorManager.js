@@ -215,13 +215,11 @@ define(function (require, exports, module) {
         
         // Wire up to Document and its main full-size editor
         $(inlineEditor).on("change", function () {
-            // Add to working set, since it's about to become dirty
+            // Ensure there's a Document
             var doc = DocumentManager.getDocumentForFile(sourceFile);
             if (!doc) {
                 // File wasn't open before, so we must create a new document for it
                 doc = new DocumentManager.Document(sourceFile);
-                
-                DocumentManager.addToWorkingSet(doc);
             }
             
             // Sync the change into the Document's full editor
