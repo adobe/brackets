@@ -386,7 +386,7 @@ define(function (require, exports, module) {
         var i;
         for (i = 0; i < this._inlineWidgets.length; i++) {
             var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
-            if (info.line === pos.line) {
+            if (!info || (info.line === pos.line)) {
                 this.removeInlineWidget(this._inlineWidgets[i].id);
                 break;
             }
