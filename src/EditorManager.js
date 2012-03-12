@@ -195,9 +195,8 @@ define(function (require, exports, module) {
      * @param {!string} text  The text content of the editor.
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
-     * @param {!FileEntry} sourceFile  The file from which the text was drawn. Important, since this
-     *      is what ties the inline editor back to a full editor and where any edits will be saved.
-     *      infer the editor's mode.
+     * @param {!FileEntry} sourceFile  The file from which the text was drawn. Ties the inline editor
+     *      back to the full editor from which edits can be saved; also determines the editor's mode.
      *
      * @returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
      */
@@ -232,29 +231,24 @@ define(function (require, exports, module) {
             // Size editor to current contents
             sizeInlineEditorToContents();
             
-            // Wire up to Document and its main full-size editor:
-            // Ensure there's a Document
-            var doc = DocumentManager.getDocumentForFile(sourceFile);
-            if (!doc) {
-                // File wasn't open before, so we must create a new document for it
-                doc = new DocumentManager.Document(sourceFile);
-            }
+            // Wire up to Document and its main full-size editor
+            var doc = DocumentManager.getOrCreateDocumentForPath(sourceFile.fullPath);
             
-            // Sync the change into the Document's full editor
             if (doc.editor) {
+                // Full editor already open: sync change now
                 doc.editor.syncFrom(inlineEditor);
             } else {
-                var editorResult = createFullEditorForDocument(doc);
-                
-                editorResult.done(function () {
-                    // Begin syncing from inline to full editor
-                    doc.editor.syncFrom(inlineEditor);
-                });
-                editorResult.fail(function (error) {
-                    FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
-                        closeThisInline();
+                // Full editor not yet open: load & open it, then sync this change once done
+                createFullEditorForDocument(doc)
+                    .done(function () {
+                        // Begin syncing from inline to full editor
+                        doc.editor.syncFrom(inlineEditor);
+                    })
+                    .fail(function (error) {
+                        FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
+                            closeThisInline();
+                        });
                     });
-                });
             }
         });
         

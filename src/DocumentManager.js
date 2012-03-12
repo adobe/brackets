@@ -185,6 +185,21 @@ define(function (require, exports, module) {
         var fileEntry = new NativeFileSystem.FileEntry(fullPath);
         return getDocumentForFile(fileEntry);
     }
+    
+    /**
+     * Returns a Document for the given file: the existing Document if the given file is 'open' for
+     * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
+     * @param {!string} fullPath
+     * @return {!Document}
+    */
+    function getOrCreateDocumentForPath(fullPath) {
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        var doc = getDocumentForFile(fileEntry);
+        if (!doc) {
+            doc = new Document(fileEntry);
+        }
+        return doc;
+    }
 
     /** 
      * If the given file is 'open' for editing, return the contents of the editor (which could
@@ -621,6 +636,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
+    exports.getOrCreateDocumentForPath = getOrCreateDocumentForPath;
     exports.getDocumentForPath = getDocumentForPath;
     exports.getDocumentForFile = getDocumentForFile;
     exports.getDocumentContents = getDocumentContents;

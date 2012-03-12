@@ -88,12 +88,7 @@ define(function (require, exports, module) {
             PerfUtils.addMeasurement("Open File: " + fullPath);
         });
         
-        var doc = DocumentManager.getDocumentForPath(fullPath);
-        if (!doc) {
-            // File wasn't open before, so we must create a new document for it
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            doc = new DocumentManager.Document(fileEntry);
-        }
+        var doc = DocumentManager.getOrCreateDocumentForPath(fullPath);
         
         // This will load the file if it was never open before, and then switch to it
         DocumentManager.showInEditor(doc)
