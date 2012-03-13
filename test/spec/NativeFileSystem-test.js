@@ -18,7 +18,7 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
             this.path = SpecRunnerUtils.getTestPath("/spec/NativeFileSystem-test-files");
-            this.file1content = "Here is file1\n";
+            this.file1content = "Here is file1";
         });
 
         describe("Reading a directory", function () {

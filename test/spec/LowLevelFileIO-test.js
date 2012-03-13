@@ -110,17 +110,20 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should return an error if the directory can't be read", function () {
-                brackets.fs.readdir(baseDir + "cant_read_here", function (err, contents) {
-                    error = err;
-                    complete = true;
-                });
-            
-                waitsFor(function () { return complete; }, 1000);
-            
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_CANT_READ);
-                });
+            it("should return an error if the directory can't be read (Mac only)", function () {
+                if (brackets.platform === "mac") {
+                    brackets.fs.readdir(baseDir + "cant_read_here", function (err, contents) {
+                        error = err;
+                        complete = true;
+                    });
+                
+                    waitsFor(function () { return complete; }, 1000);
+                
+                    runs(function () {
+                        expect(error).toBe(brackets.fs.ERR_CANT_READ);
+                    });                    
+                }
+
             });
 
             it("should return an error if invalid parameters are passed", function () {
@@ -320,17 +323,20 @@ define(function (require, exports, module) {
                 });
             });
         
-            it("should return an error if the file can't be written", function () {
-                brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, "utf8", function (err) {
-                    error = err;
-                    complete = true;
-                });
-            
-                waitsFor(function () { return complete; }, 1000);
-            
-                runs(function () {
-                    expect(error).toBe(brackets.fs.ERR_CANT_WRITE);
-                });
+            it("should return an error if the file can't be written (Mac only)", function () {
+                if (brackets.platform === "mac") {
+                    brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, "utf8", function (err) {
+                        error = err;
+                        complete = true;
+                    });
+                
+                    waitsFor(function () { return complete; }, 1000);
+                
+                    runs(function () {
+                        expect(error).toBe(brackets.fs.ERR_CANT_WRITE);
+                    });
+                }
+
             });
         
             it("should return an error if called with invalid parameters", function () {
