@@ -209,6 +209,12 @@ define(function (require, exports, module) {
         function closeThisInline() {
             _closeInlineWidget(hostEditor, myInlineId);
             _syncGutterWidths(hostEditor);
+            
+            // Un-link from Document, if we are linked to one
+            if (linkedDocument) {
+                $(linkedDocument.editor).off("change", handleDocumentChange);
+                $(DocumentManager).off("workingSetRemove", handleDocumentClose);
+            }
         }
         
         var inlineEditor = _createEditorFromText(text, sourceFile.fullPath, inlineContent, closeThisInline);
@@ -226,6 +232,40 @@ define(function (require, exports, module) {
             }
         }
         
+        var duringSync = false;
+        var linkedDocument = null;
+        
+        function handleDocumentChange() {
+            if (!duringSync) {
+                // User has edited main editor, OR main editor refreshed from external changes
+                closeThisInline();
+            }
+        }
+        function handleDocumentClose(event, removedDoc) {
+            if (removedDoc === linkedDocument) {
+                // User has closed main editor
+                closeThisInline();
+            }
+        }
+        
+        // If we're not linked to a Document yet - either because the first edit just happened or
+        // we just finished creating a Document shortly after that first edit - link now so we listen
+        // for the Document being modified out from under us (closed, or modified as a result of
+        // something other than our syncing).
+        // Note: this doesn't catch the case where there's no main editor / Document when we open the
+        // inline, then a Document is later opened without us knowing, and then later still we make
+        // an edit in the inline, linking to the now-existing Document. In the interim since the doc
+        // was created, we may have missed a refresh or other doc change.
+        // To fix this, we could listen for addToWorkingSet and currentDocumentChange -- though we
+        // still wouldn't catch external disk changes that way...
+        function ensureLinkedToDocument(doc) {
+            if (!linkedDocument) {
+                linkedDocument = doc;
+                $(doc.editor).on("change", handleDocumentChange);
+                $(DocumentManager).on("workingSetRemove", handleDocumentClose);
+            }
+        }
+        
         // When text is edited, auto-resize UI and sync changes to a backing full-size editor
         $(inlineEditor).on("change", function () {
             // Size editor to current contents
@@ -234,15 +274,24 @@ define(function (require, exports, module) {
             // Wire up to Document and its main full-size editor
             var doc = DocumentManager.getOrCreateDocumentForPath(sourceFile.fullPath);
             
+            
             if (doc.editor) {
                 // Full editor already open: sync change now
+                duringSync = true;
                 doc.editor.syncFrom(inlineEditor);
+                duringSync = false;
+                
+                ensureLinkedToDocument(doc);
             } else {
                 // Full editor not yet open: load & open it, then sync this change once done
                 createFullEditorForDocument(doc)
                     .done(function () {
                         // Begin syncing from inline to full editor
+                        duringSync = true;
                         doc.editor.syncFrom(inlineEditor);
+                        duringSync = false;
+                        
+                        ensureLinkedToDocument(doc);
                     })
                     .fail(function (fileError) {
                         FileUtils.showFileOpenError(fileError.code, doc.file.fullPath).done(function () {
