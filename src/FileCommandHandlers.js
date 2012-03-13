@@ -302,6 +302,9 @@ define(function (require, exports, module) {
             if (focusedEditor) {
                 doc = DocumentManager.getDocumentForFile(focusedEditor.source);
             }
+            
+            // The doSave() method called below does a null check on doc and makes sure the
+            // document is dirty before saving.
         }
         
         return doSave(doc);

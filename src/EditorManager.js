@@ -461,7 +461,7 @@ define(function (require, exports, module) {
             
             // See if any inlines have focus
             _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget.data.editor.hasFocus()) {
+                if (widget.data.editor && widget.data.editor.hasFocus()) {
                     focusedInline = { editor: widget.data.editor, source: widget.data.source };
                 }
             });

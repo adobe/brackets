@@ -59,5 +59,29 @@ define(function (require, exports, module) {
                 expect(mode).toEqual("");
             });
         });
+        
+        describe("Focus", function () {
+            var myEditor;
+            
+            beforeEach(function () {
+                // init Editor instance (containing a CodeMirror instance)
+                $("body").append("<div id='editor'/>");
+                myEditor = new Editor(content, "", $("#editor").get(0), {});
+            });
+
+            afterEach(function () {
+                $("#editor").remove();
+                myEditor = null;
+            });
+
+            it("should not have focus until explicitly set", function () {
+                expect(myEditor.hasFocus()).toBe(false);
+            });
+            
+            it("should be able to detect when it has focus", function () {
+                myEditor.focus();
+                expect(myEditor.hasFocus()).toBe(true);
+            });
+        });
     });
 });
