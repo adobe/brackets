@@ -186,21 +186,6 @@ define(function (require, exports, module) {
         return getDocumentForFile(fileEntry);
     }
     
-    /**
-     * Returns a Document for the given file: the existing Document if the given file is 'open' for
-     * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
-     * @param {!string} fullPath
-     * @return {!Document}
-    */
-    function getOrCreateDocumentForPath(fullPath) {
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-        var doc = getDocumentForFile(fileEntry);
-        if (!doc) {
-            doc = new Document(fileEntry);
-        }
-        return doc;
-    }
-
     /** 
      * If the given file is 'open' for editing, return the contents of the editor (which could
      * be different from the contents of the file, if the editor contains unsaved changes). If
@@ -223,6 +208,7 @@ define(function (require, exports, module) {
             return FileUtils.readAsText(fileEntry);
         }
     }
+    
     
     /**
      * Displays the given file in the editor pane; this may occur asynchronously if the file has
@@ -261,7 +247,7 @@ define(function (require, exports, module) {
                 })
                 .fail(function (fileError) {
                     FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
-                        closeDocument(document);
+                        _removeFromWorkingSet(document);
                         EditorManager.focusEditor();
                         result.reject(fileError);
                     });
@@ -538,6 +524,24 @@ define(function (require, exports, module) {
     Document.prototype.toString = function () {
         return "[Document " + this.file.fullPath + " " + (this.isDirty ? "(dirty!)" : "(clean)") + "]";
     };
+    
+    
+    /**
+     * Returns a Document for the given file: the existing Document if the given file is 'open' for
+     * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
+     * Use getDocumentForPath() or getDocumentForFile() if you *only* care about Documents that are
+     * already open.
+     * @param {!string} fullPath
+     * @return {!Document}
+    */
+    function getOrCreateDocumentForPath(fullPath) {
+        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        var doc = getDocumentForFile(fileEntry);
+        if (!doc) {
+            doc = new Document(fileEntry);
+        }
+        return doc;
+    }
     
     
     /**
