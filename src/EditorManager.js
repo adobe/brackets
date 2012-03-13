@@ -198,7 +198,7 @@ define(function (require, exports, module) {
      * @param {!FileEntry} sourceFile  The file from which the text was drawn. Ties the inline editor
      *      back to the full editor from which edits can be saved; also determines the editor's mode.
      *
-     * @returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     * @returns {{content:DOMElement, editor:Editor, source: FileEntry, height:Number, onAdded:function(inlineId:Number)}}
      */
     function createInlineEditorFromText(hostEditor, text, range, sourceFile) {
         // Container to hold editor & render its stylized frame
@@ -289,7 +289,7 @@ define(function (require, exports, module) {
             inlineEditor.focus();
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
+        return { content: inlineContent, editor: inlineEditor, source: sourceFile, height: 0, onAdded: afterAdded };
     }
     
     
@@ -451,6 +451,33 @@ define(function (require, exports, module) {
         _editorHolder = holder;
     }
     
+    /**
+     * Returns the currently focused editor instance.
+     * @returns {{editor:Editor, source:FileEntry}}
+     */
+    function getFocusedEditor() {
+        if (_currentEditor) {
+            var focusedInline;
+            
+            // See if any inlines have focus
+            _currentEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget.data.editor.hasFocus()) {
+                    focusedInline = { editor: widget.data.editor, source: widget.data.source };
+                }
+            });
+            
+            if (focusedInline) {
+                return focusedInline;
+            }
+            
+            if (_currentEditor.hasFocus()) {
+                return { editor: _currentEditor, source: _currentEditorsDocument.file };
+            }
+        }
+        
+        return null;
+    }
+    
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
@@ -463,6 +490,7 @@ define(function (require, exports, module) {
     exports.createFullEditorForDocument = createFullEditorForDocument;
     exports.createInlineEditorFromText = createInlineEditorFromText;
     exports.focusEditor = focusEditor;
+    exports.getFocusedEditor = getFocusedEditor;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
 });

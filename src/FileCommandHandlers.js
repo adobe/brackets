@@ -297,7 +297,11 @@ define(function (require, exports, module) {
             doc = commandData.doc;
         }
         if (!doc) {
-            doc = DocumentManager.getCurrentDocument();
+            var focusedEditor = EditorManager.getFocusedEditor();
+            
+            if (focusedEditor) {
+                doc = DocumentManager.getDocumentForFile(focusedEditor.source);
+            }
         }
         
         return doSave(doc);
