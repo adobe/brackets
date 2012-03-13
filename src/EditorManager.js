@@ -198,7 +198,7 @@ define(function (require, exports, module) {
      * @param {!FileEntry} sourceFile  The file from which the text was drawn. Ties the inline editor
      *      back to the full editor from which edits can be saved; also determines the editor's mode.
      *
-     * @returns {{content:DOMElement, editor:Editor, source: FileEntry, height:Number, onAdded:function(inlineId:Number)}}
+     * @returns {{content:DOMElement, editor:Editor, source:FileEntry, height:Number, onAdded:function(inlineId:Number)}}
      */
     function createInlineEditorFromText(hostEditor, text, range, sourceFile) {
         // Container to hold editor & render its stylized frame
