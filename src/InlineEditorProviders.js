@@ -70,6 +70,9 @@ define(function (require, exports, module) {
         
         _htmlToCSSProviderContent.forEach(function (value) {
             var $filenameDiv = $(value).find(".filename");
+            // This only checks filename here. If there are multiple documents with the same filename
+            // (in different directories), this test will fail.
+            // This needs to be fixed once we have proper document<-->editor mapping.
             if ($filenameDiv.text() === doc.file.name) {
                 _showDirtyIndicator($filenameDiv.find(".dirty-indicator"), doc.isDirty);
             }
