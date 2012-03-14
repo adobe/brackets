@@ -162,7 +162,8 @@ define(function (require, exports, module) {
      * @private
      * Creates a new "full-size" (not inline) Editor from the Document's file, and sets it as the
      * Document's main editor. The editor is not yet visible; to show it, call
-     * DocumentManager.showInEditor(). Should not be called outside this module other than by Editor.
+     * DocumentManager.showInEditor().
+     * Semi-private: should not be called outside this module other than by Editor.
      * @param {!Document} document  Document whose main/full Editor to create
      */
     function _createFullEditorForDocument(document) {
@@ -364,7 +365,7 @@ define(function (require, exports, module) {
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
-        // Ensure an editor exists for this document
+        // Ensure a main editor exists for this document to show in the UI
         if (!document._model) {
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
