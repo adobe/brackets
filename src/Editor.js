@@ -451,6 +451,12 @@ define(function (require, exports, module) {
         this._codeMirror.focus();
     };
     
+    /** Returns true if the editor has focus */
+    Editor.prototype.hasFocus = function () {
+        // The CodeMirror instance wrapper has a "CodeMirror-focused" class set when focused
+        return $(this._codeMirror.getWrapperElement()).hasClass("CodeMirror-focused");
+    };
+    
     /**
      * Refreshes the editor control
      */
