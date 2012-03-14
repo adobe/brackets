@@ -650,30 +650,35 @@ define(function (require, exports, module) {
                 
                 waitsFor(function () { return rewriteComplete; }, 1000);
             });
+            
+            // This is Mac only because the chmod implementation on Windows supports disallowing write via
+            // FILE_ATTRIBUTE_READONLY, but does not support disallowing read.
+            it("should report an error when writing to a file that cannot be read (Mac only)", function () {
+                if (brackets.platform === "mac") {
+                    var complete = false;
+                    var error = null;
 
-            it("should report an error when writing to a file that cannot be read", function () {
-                var complete = false;
-                var error = null;
+                    // createWriter() should return an error for files it can't read
+                    runs(function () {
+                        this.nfs.getFile(
+                            "cant_read_here.txt",
+                            { create: false },
+                            function (entry) {
+                                entry.createWriter(
+                                    function () { complete = true; },
+                                    function (err) { error = err; }
+                                );
+                            }
+                        );
+                    });
+                    waitsFor(function () { return complete || error; }, 1000);
 
-                // createWriter() should return an error for files it can't read
-                runs(function () {
-                    this.nfs.getFile(
-                        "cant_read_here.txt",
-                        { create: false },
-                        function (entry) {
-                            entry.createWriter(
-                                function () { complete = true; },
-                                function (err) { error = err; }
-                            );
-                        }
-                    );
-                });
-                waitsFor(function () { return complete || error; }, 1000);
-
-                runs(function () {
-                    expect(complete).toBeFalsy();
-                    expect(error.code).toBe(FileError.NOT_READABLE_ERR);
-                });
+                    runs(function () {
+                        expect(complete).toBeFalsy();
+                        expect(error.code).toBe(FileError.NOT_READABLE_ERR);
+                    });
+                }
+                
             });
 
             it("should report an error when writing to a file that cannot be written", function () {
