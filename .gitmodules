@@ -7,9 +7,6 @@
 [submodule "src/thirdparty/jslint"]
 	path = src/thirdparty/jslint
 	url = git@github.com:douglascrockford/JSLint.git
-[submodule "src/thirdparty/live-development"]
-	path = src/thirdparty/live-development
-	url = git@github.com:joelrbrandt/live-development.git
 [submodule "src/modules/LiveDevelopment"]
 	path = src/modules/LiveDevelopment
 	url = https://github.com/joelrbrandt/live-development.git
