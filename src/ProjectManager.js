@@ -172,13 +172,28 @@ define(function (require, exports, module) {
         _projectTree = projectTreeContainer
             .jstree(
                 {
-                    plugins : ["ui", "themes", "json_data", "crrm"],
+                    plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                     json_data : { data: treeDataProvider, correct_state: false },
                     core : { animation: 0 },
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                         //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                         // file because jsTree insists on loading one itself)
-                    strings : { loading : "Loading ...", new_node : "New node" }
+                    strings : { loading : "Loading ...", new_node : "New node" },
+                    sort :  function (a, b) {
+                        if (brackets.platform === "mac") {
+                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        } else {
+                            // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                            var a1 = $(a),
+                                b1 = $(b);
+                            if (!a1 || !b1) {
+                                return 0;
+                            }
+                            var a2 = (a1.hasClass("jstree-open") || a1.hasClass("jstree-closed") ? "0" : "1") + this.get_text(a).toLowerCase(),
+                                b2 = (b1.hasClass("jstree-open") || b1.hasClass("jstree-closed") ? "0" : "1") + this.get_text(b).toLowerCase();
+                            return (a2 > b2) ? 1 : -1;
+                        }
+                    }
                 }
             )
             .bind(
