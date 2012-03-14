@@ -25,6 +25,8 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var EditorManager    = require("EditorManager");
+    
     
     /**
      * @private
@@ -166,18 +168,25 @@ define(function (require, exports, module) {
     
 
     /**
-     * Creates a new CodeMirror editor instance containing the given text. The editor's mode is set
+     * Creates a new CodeMirror editor instance containing the given Document's text. The editor's mode is set
      * based on the given filename's extension (the actual file on disk is never examined).
      *
-     * @param {!string} text  The text content of the editor.
+     * @param {!Document} document  
      * @param {!string} mode  Syntax-highlighting language mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)} additionalKeys  Mapping of keyboard shortcuts to
      *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
      */
-    function Editor(text, mode, container, additionalKeys) {
+    function Editor(document, mode, container, additionalKeys) {
         var self = this;
+        
+        // Attach to document
+        this.document = document;
+        document.addRef();
+        $(document).on("change", function () {
+            self._handleDocumentChange();
+        });
         
         this._inlineWidgets = [];
         
@@ -241,14 +250,79 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this).on("keyEvent", _checkElectricChars);
+        $(this).on("change", function () {
+            self._handleEditorChange();
+        });
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
         
-        // Initially populate with text. This will send a spurious change event, but that's ok
-        // because no one's listening yet (and we clear the undo stack below)
-        this.resetText(text);
+        // Initially populate with text. This will send a spurious change event, but only our listener
+        // is attached yet; so we need to make sure this is understood as a 'sync from document' case,
+        // not a genuine edit
+        this._duringSync = true;
+        this._resetText(document.getText());
+        this._duringSync = false;
     }
+    
+    Editor.prototype.destroy = function () {
+        // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
+        // tree to delete an editor instance."
+        $(this._codeMirror.getWrapperElement()).remove();
+        
+        this.document.releaseRef();
+        // FIXME: do we need to do something MORE special if this is the "master" Editor???
+    }
+    
+    // There are several kinds of spurious changes we need to worry about:
+    // - if we're the master editor, document changes should be ignored becuase we always already have
+    //   the text (either the change originated with us, or it has already been set into us by Document)
+    // - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
+    //   to a document change
+    // - if we're a secondary editor, document changes should be ignored if they were caused by us sending
+    //   the document an editor change that originated with us
+    Editor.prototype._handleEditorChange = function () {
+        // we're just syncing from the Document, so don't echo back TO the Document
+        if (this._duringSync) {
+            return;
+        }
+        
+        // Force creation of "master" editor backing the model, if doesn't exist yet
+        if (!this.document._model) {
+            EditorManager._createFullEditorForDocument(this.document);
+        }
+        
+        if (this.document._model._editor === this) {
+            // we're the ground truth; nothing else to do, since everyone else will sync from us
+            // note: this change might have been a real edit made by the user, OR this might have
+            // been a change synced from another editor
+        } else {
+            // we're not the ground truth; if we got here, this was a real editor change (not a
+            // sync from the real ground truth), so we need to sync from us into the document
+            this._duringSync = true;
+            this.document._model.setText(this._getText());
+            this._duringSync = false;
+        }
+    }
+    Editor.prototype._duringSync = false;
+    
+    Editor.prototype._handleDocumentChange = function () {
+        // we're just syncing to the Document, so don't echo back FROM the Document
+        if (this._duringSync) {
+            return;
+        }
+        
+        if (this.document._model && this.document._model._editor === this) {
+            // we're the ground truth; Document change is just echoing that our editor changed
+        } else {
+            // we're not the ground truth, so sync from the Document
+            console.log("#### We don't yet support syncing a secondary editor from the model's main editor!");
+            // this._duringSync = true;
+            // this.setText(this.document.getText());
+            // this._duringSync = false;
+        }
+    }
+    
     
     /**
      * Install singleton event handlers on the CodeMirror instance, translating them into multi-
@@ -267,9 +341,11 @@ define(function (require, exports, module) {
         });
     };
     
-    
-    /** @return {string} The editor's current contents */
-    Editor.prototype.getText = function () {
+    /**
+     * @return {string} The editor's current contents
+     * Semi-private: only Document/EditableDocumentModel should call this.
+     */
+    Editor.prototype._getText = function () {
         return this._codeMirror.getValue();
     };
     
@@ -277,17 +353,19 @@ define(function (require, exports, module) {
      * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches a
      * change event.
      * Note: all line endings will be changed to LFs.
+     * Semi-private: only Document/EditableDocumentModel should call this.
      * @param {!string} text
      */
-    Editor.prototype.setText = function (text) {
+    Editor.prototype._setText = function (text) {
         this._codeMirror.setValue(text);
     };
     
     /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
+     * Semi-private: only Document/EditableDocumentModel should call this.
      * @param {!string} text
      */
-    Editor.prototype.resetText = function (text) {
+    Editor.prototype._resetText = function (text) {
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
         
@@ -295,15 +373,15 @@ define(function (require, exports, module) {
         this._codeMirror.clearHistory();
     };
     
-    /**
-     * Copies the state of changedEditor into this editor.
-     * NOTE: for now, all we do is copy the contents from one editor to the other. The undo/redo
-     * history and other details will differ.
-     * @param {Editor} changedEditor
-     */
-    Editor.prototype.syncFrom = function (changedEditor) {
-        this._codeMirror.setValue(changedEditor._codeMirror.getValue());
-    };
+    // /**
+    //  * Copies the state of changedEditor into this editor.
+    //  * NOTE: for now, all we do is copy the contents from one editor to the other. The undo/redo
+    //  * history and other details will differ.
+    //  * @param {Editor} changedEditor
+    //  */
+    // Editor.prototype.syncFrom = function (changedEditor) {
+    //     this._codeMirror.setValue(changedEditor._codeMirror.getValue());
+    // };
     
     
     /**
@@ -464,6 +542,11 @@ define(function (require, exports, module) {
         this._codeMirror.refresh();
     };
     
+    
+    /**
+     * @type {!Document}
+     */
+    Editor.prototype.document = null;
     
     /**
      * @private

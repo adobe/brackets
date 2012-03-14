@@ -215,7 +215,7 @@ define(function (require, exports, module) {
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
      * @return {$.Promise} that will be resolved with an Array of objects containing the
-     *      source file, start line, and end line (0-based, inclusive range) for each matching rule.
+     *      source document, start line, and end line (0-based, inclusive range) for each matching rule.
      */
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
@@ -225,14 +225,14 @@ define(function (require, exports, module) {
         function _loadFileAndScan(fullPath, selector) {
             var result = new $.Deferred();
             
-            DocumentManager.getDocumentContents(fullPath)
-                .done(function (content) {
-                    var localResults = _findAllMatchingSelectorsInText(content, selector);
+            DocumentManager.getDocument(fullPath)
+                .done(function (doc) {
+                    var localResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
                     var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                     
                     localResults.forEach(function (value) {
                         selectors.push({
-                            source: fileEntry,
+                            document: doc,
                             lineStart: value.selectorGroupStartLine,
                             lineEnd: value.ruleEndLine
                         });

@@ -78,25 +78,14 @@ define(function (require, exports, module) {
      * @param {!Number} startLine The first line to be shown in the inline editor 
      * @param {!Number} endLine The last line to be shown in the inline editor
      */
-    function _showTextRangeInInlineEditor(parentEditor, fileEntry, startLine, endLine) {
-        var result = new $.Deferred();
+    function _showTextRangeInInlineEditor(parentEditor, doc, startLine, endLine) {
+        var range = {
+            startLine: startLine,
+            endLine: endLine
+        };
         
-        DocumentManager.getDocumentContents(fileEntry.fullPath)
-            .done(function (text) {
-                var range = {
-                    startLine: startLine,
-                    endLine: endLine
-                };
-                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry);
-                
-                result.resolve(inlineInfo);
-            })
-            .fail(function (fileError) {
-                console.log("Error getting document contents: ", fileError);
-                result.reject();
-            });
-
-        return result.promise();
+        var inlineInfo = EditorManager.createInlineEditorForDocument(parentEditor, doc, range);
+        return inlineInfo;
     }
     
     /**
@@ -204,25 +193,21 @@ define(function (require, exports, module) {
                 if (rules && rules.length > 0) {
                     var rule = rules[0];  // For Sprint 4 we use the first match only
                     
-                    _showTextRangeInInlineEditor(editor, rule.source, rule.lineStart, rule.lineEnd)
-                        .done(function (inlineInfo) {
-                            // track inlineEditor content removal
-                            inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
-                            _createInlineEditorDecorations(inlineInfo.editor, rule.source.name);
-                            
-                            _htmlToCSSProviderContent.push(inlineInfo.content);
-                            
-                            // Manaully position filename div's. Can't use CSS positioning in this case
-                            // since the label is relative to the window boundary, not CodeMirror.
-                            if (_htmlToCSSProviderContent.length > 0) {
-                                $(window).bind("resize", _updateAllFilenames);
-                            }
-                            
-                            result.resolve(inlineInfo);
-                        })
-                        .fail(function () {
-                            result.reject();
-                        });
+                    var inlineInfo = _showTextRangeInInlineEditor(editor, rule.document, rule.lineStart, rule.lineEnd);
+                    
+                    // track inlineEditor content removal
+                    inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
+                    _createInlineEditorDecorations(inlineInfo.editor, rule.document.file.name);
+                    
+                    _htmlToCSSProviderContent.push(inlineInfo.content);
+                    
+                    // Manaully position filename div's. Can't use CSS positioning in this case
+                    // since the label is relative to the window boundary, not CodeMirror.
+                    if (_htmlToCSSProviderContent.length > 0) {
+                        $(window).bind("resize", _updateAllFilenames);
+                    }
+                    
+                    result.resolve(inlineInfo);
                 } else {
                     // No matching rules were found.
                     result.reject();

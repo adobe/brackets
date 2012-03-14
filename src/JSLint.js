@@ -73,7 +73,9 @@ define(function (require, exports, module) {
                             }
                             row.addClass("selected");
                             selectedRow = row;
-                            currentDoc.editor.setCursorPos(item.line - 1, item.character - 1);
+                            
+                            var editor = EditorManager.getFullEditorForDocument(currentDoc);
+                            editor.setCursorPos(item.line - 1, item.character - 1);
                             EditorManager.focusEditor();
                         });
                     }

@@ -94,9 +94,8 @@ define(function (require, exports, module) {
         // If fullPath corresonds to the current doc being viewed then opening the file won't
         // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
         // in this case to signify the selection focus has changed even though the current document has not.
-        var doc = DocumentManager.getDocumentForPath(fullPath);
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc && curDoc === doc) {
+        if (curDoc && curDoc.file.fullPath === fullPath) {
             $(exports).triggerHandler("documentSelectionFocusChange");
             // Ensure the editor has focus even though we didn't open a new file.
             EditorManager.focusEditor();

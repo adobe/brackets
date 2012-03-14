@@ -70,6 +70,13 @@ define(function (require, exports, module) {
     var _workingSet = [];
     
     /**
+     * Maps Document.file.fullPath -> Document
+     * @private
+     * @type {Object.<string, Document>}
+     */
+    var _openDocuments = {};
+    
+    /**
      * Returns an ordered list of items in the working set. May be 0-length, but never null.
      *
      * When a Document is added this list, DocumentManager dispatches a "workingSetAdd" event.
@@ -103,20 +110,19 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns all documents that are open in editors: the union of the working set and the current
-     * document (which may not be in the working set if it is unmodified). Files viewed in inline
-     * editors are only included in this list if they've been modified.
+     * Returns all documents that are open in editors (both inline editors and main editors).
      * @return {Array.<Document>}
      */
     function getAllOpenDocuments() {
-        var allDocs = _workingSet.slice(0);  //slice() to clone
-        
-        if (_currentDocument && allDocs.indexOf(_currentDocument) === -1) {
-            allDocs.push(_currentDocument);
+        var result = [];
+        for (var path in _openDocuments) {
+            if (_openDocuments.hasOwnProperty(path)) {
+                result.push(_openDocuments[path]);
+            }
         }
-        
-        return allDocs;
+        return result;
     }
+    
     
     /**
      * Adds the given document to the end of the working set list, if it is not already in the list.
@@ -155,37 +161,26 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("workingSetRemove", document);
     }
 
-    /**
-     * If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
-     * editing" means either the file is in the working set, and/or the file is currently open in
-     * the editor UI.
-     * @param {!FileEntry} fileEntry
-     * @return {?Document}
-     */
-    function getDocumentForFile(fileEntry) {
-        if (_currentDocument && _currentDocument.file.fullPath === fileEntry.fullPath) {
-            return _currentDocument;
-        }
+    // /**
+    //  * If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
+    //  * editing" means either the file is in the working set, and/or the file is currently open in
+    //  * the editor UI.
+    //  * @param {!FileEntry} fileEntry
+    //  * @return {?Document}
+    //  */
+    // function getDocumentForFile(fileEntry) {
+    //     if (_currentDocument && _currentDocument.file.fullPath === fileEntry.fullPath) {
+    //         return _currentDocument;
+    //     }
 
-        var wsIndex = findInWorkingSet(fileEntry.fullPath);
-        if (wsIndex !== -1) {
-            return _workingSet[wsIndex];
-        }
+    //     var wsIndex = findInWorkingSet(fileEntry.fullPath);
+    //     if (wsIndex !== -1) {
+    //         return _workingSet[wsIndex];
+    //     }
         
-        return null;
-    }
+    //     return null;
+    // }
 
-    /** If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
-     * editing" means either the file is in the working set, and/or the file is currently open in
-     * the editor UI.
-     * @param {!string} fullPath
-     * @return {?Document}
-    */
-    function getDocumentForPath(fullPath) {
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-        return getDocumentForFile(fileEntry);
-    }
-    
     /** 
      * If the given file is 'open' for editing, return the contents of the editor (which could
      * be different from the contents of the file, if the editor contains unsaved changes). If
@@ -194,19 +189,23 @@ define(function (require, exports, module) {
      * @return {Deferred} A Deferred object that will be resolved with the contents of the document,
      *      or rejected with a FileError if the file is not yet open and can't be read from disk.
      */
-    function getDocumentContents(fullPath) {
-        var doc = getDocumentForPath(fullPath);
-        
-        if (doc && doc.editor) {
-            var result = new $.Deferred();
-            
-            result.resolve(doc.getText());
-            return result;
+    function getDocument(fullPath) {
+        var result = new $.Deferred();
+        var doc = _openDocuments[fullPath];
+        if (doc) {
+            result.resolve(doc);
         } else {
             var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            
-            return FileUtils.readAsText(fileEntry);
+            FileUtils.readAsText(fileEntry)
+                .done(function (rawText, readTimestamp) {
+                    doc = new Document(fileEntry, readTimestamp, rawText);
+                    result.resolve(doc);
+                })
+                .fail(function (error) {
+                    result.reject(error);
+                });
         }
+        return result;
     }
     
     
@@ -219,14 +218,12 @@ define(function (require, exports, module) {
      * 
      * @param {!Document} document  The document whose editor should be shown. May or may not
      *      already be in the working set.
-     * @return {$.Deferred}  A Deferred that is resolved once the Document is loaded and displayed
-     *      in the UI, or rejected - after showing error UI - if the file could not be loaded.
      */
     function showInEditor(document) {
         
         // If this file is already in editor, do nothing
         if (_currentDocument === document) {
-            return (new $.Deferred()).resolve();
+            return;
         }
         
         // If file not within project tree, add it to working set right now (don't wait for it to
@@ -235,33 +232,10 @@ define(function (require, exports, module) {
             addToWorkingSet(document);
         }
         
-        // Ensure an editor exists for this document
-        var result = new $.Deferred();
-        if (document.editor) {
-            result.resolve();
-        } else {
-            // Editor doesn't exist; load the file (async) and populate a new Editor with it
-            EditorManager.createFullEditorForDocument(document)
-                .done(function () {
-                    result.resolve();
-                })
-                .fail(function (fileError) {
-                    FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
-                        _removeFromWorkingSet(document);
-                        EditorManager.focusEditor();
-                        result.reject(fileError);
-                    });
-                });
-        }
-        
         // Make it the current document
-        result.done(function () {
-            _currentDocument = document;
-            $(exports).triggerHandler("currentDocumentChange");
-            // (this event triggers EditorManager to actually switch editors in the UI)
-        });
-        
-        return result;
+        _currentDocument = document;
+        $(exports).triggerHandler("currentDocumentChange");
+        // (this event triggers EditorManager to actually switch editors in the UI)
     }
     
     /** Closes the currently visible document, if any */
@@ -345,23 +319,136 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
+     */
+    function EditableDocumentModel(document, editor) {
+        this._document = document;
+        
+        this._editor = editor;
+        $(editor).on("change", this._handleEditorChange.bind(this));
+    }
+    EditableDocumentModel.prototype._document = null;
+    /**
+     * Editor object representing the full-size editor UI for this document. Null if Document was
+     * restored from persisted working set but hasn't been opened in the UI yet.
+     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
+     * UI-related actions that Document does not provide any APIs for.
+     * @type {?Editor}
+     */
+    EditableDocumentModel.prototype._editor = null;
+
+    /**
+     * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
+     * match the document's current line-ending style.
+     * @param {!string} text The text to replace the contents of the document with.
+     */
+    EditableDocumentModel.prototype.setText = function (text) {
+        this._editor._setText(text);
+    };
+    EditableDocumentModel.prototype.getText = function (text) {
+        // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
+        // endings preferred by the document, if necessary
+        var codeMirrorText = this._editor._getText();
+        if (this._document._lineEndings === FileUtils.LINE_ENDINGS_LF) {
+            return codeMirrorText;
+        } else {
+            return codeMirrorText.replace(/\n/g, "\r\n");
+        }
+    };
+    
+    /**
+     * @private
+     */
+    EditableDocumentModel.prototype._handleEditorChange = function () {
+        // On any change, mark the file dirty. In the future, we should make it so that if you
+        // undo back to the last saved state, we mark the file clean.
+        var wasDirty = this._document.isDirty;
+        this._document.isDirty = true;
+
+        // If file just became dirty, notify listeners, and add it to working set (if not already there)
+        if (!wasDirty) {
+            $(exports).triggerHandler("dirtyFlagChange", [this._document]);
+            addToWorkingSet(this._document);
+        }
+        
+        // Notify that Document's text has changed
+        $(this._document).triggerHandler("change", [this._document]);
+    };
+    
+    
+    /**
+     * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
+     *
+     * Document dispatches one event:
+     *   change -- When the value of getText() changes for any reason (including edits, undo/redo,
+     *      or syncing from external changes)
+     *
      * @param {!FileEntry} file  The file being edited. Need not lie within the project.
      */
-    function Document(file) {
+    function Document(file, initialTimestamp, rawText) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
             throw new Error("Document constructor must be called with 'new'");
         }
-        if (getDocumentForFile(file)) {
+        if (_openDocuments[file.fullPath]) {
             throw new Error("Creating a document when one already exists, for: " + file);
         }
         
         this.file = file;
+        this._text = rawText;
+        this.diskTimestamp = initialTimestamp;
+        this.isDirty = false;
+        
+        // Sniff line-ending style
+        this._sniffLineEndings();
+    }
+    
+    Document.prototype._refCount = 0;
+    
+    Document.prototype.addRef = function () {
+        console.log("+++REF+++ "+this);
+        
+        if (this._refCount === 0) {
+            if (_openDocuments[this.file.fullPath]) {
+                throw new Error("Document for this path already in _openDocuments!");
+            }
+            _openDocuments[this.file.fullPath] = this;
+        }
+        this._refCount++;
+    }
+    Document.prototype.releaseRef = function () {
+        console.log("---REF--- "+this);
+        
+        this._refCount--;
+        if (this._refCount < 0) {
+            throw new Error("Document ref count has fallen below zero!");
+        }
+        if (this._refCount === 0) {
+            if (!_openDocuments[this.file.fullPath]) {
+                throw new Error("Document with references was not in _openDocuments!");
+            }
+            delete _openDocuments[this.file.fullPath];
+        }
+    }
+    
+    Document.prototype._sniffLineEndings = function () {
+        this._lineEndings = FileUtils.sniffLineEndings(this.getText());
+        if (!this._lineEndings) {
+            this._lineEndings = FileUtils.getPlatformLineEndings();
+        }
+    }
+    
+    Document.prototype.makeEditable = function (fullSizeEditor) {
+        if (this._model) {
+            console.log("### Document is already editable!");
+        } else {
+            this._text = null;
+            this._model = new EditableDocumentModel(this, fullSizeEditor);
+        }
     }
     
     /**
-     * The FileEntry for the document being edited. Need not lie within the project.
+     * The FileEntry for this document. Need not lie within the project.
      * @type {!FileEntry}
      */
     Document.prototype.file = null;
@@ -381,14 +468,14 @@ define(function (require, exports, module) {
     Document.prototype.diskTimestamp = null;
     
     /**
-     * Editor object representing the full-size editor UI for this document. Null if Document was
-     * restored from persisted working set but hasn'r been opened in the UI yet.
-     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
-     * UI-related actions that Document does not provide any APIs for.
-     * @type {?Editor}
+     * @type {string}
      */
-    Document.prototype.editor = null;
-
+    Document.prototype._text = null;
+    /**
+     * @type {EditableDocumentModel}
+     */
+    Document.prototype._model = null;
+    
     /**
      * Null only of editor is not open yet. If a Document is created on empty text, or text with
      * inconsistent line endings, the Document defaults to the current platform's standard endings.
@@ -397,59 +484,16 @@ define(function (require, exports, module) {
     Document.prototype._lineEndings = null;
 
     /**
-     * @private
-     * NOTE: this is actually "semi-private"; EditorManager also accesses this method. But no one
-     * other than DocumentManager and EditorManager should access it.
-     *
-     * Initialize the editor instance for this file.
-     * @param {!Editor} editor  The editor that will maintain the document state (current text
-     *          and undo stack). It is assumed that the editor text has already been initialized
-     *          with the file's contents.
-     * @param {!Date} initialTimestamp  Timestamp of file at the time we read its contents from disk.
-     *          Required if editor is passed.
-     * @perem {!string} rawText  Original text read from disk, beore handing to CodeMirror.
-     */
-    Document.prototype._setEditor = function (editor, initialTimestamp, rawText) {
-        // Editor can only be assigned once per Document
-        console.assert(!this.editor);
-        
-        this.editor = editor;
-        this.diskTimestamp = initialTimestamp;
-        
-        // Dirty-bit tracking
-        $(editor).on("change", this._handleEditorChange.bind(this));
-        this.isDirty = false;
-        
-        // Sniff line-ending style
-        this._lineEndings = FileUtils.sniffLineEndings(rawText);
-        if (!this._lineEndings) {
-            this._lineEndings = FileUtils.getPlatformLineEndings();
-        }
-    };
-    
-    /**
      * @return {string} The document's current contents; may not be saved to disk 
      *  yet. Returns null if the file was not yet read and no editor was 
      *  created.
      */
     Document.prototype.getText = function () {
-        // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
-        // endings preferred by the document, if necessary
-        var codeMirrorText = this.editor.getText();
-        if (this._lineEndings === FileUtils.LINE_ENDINGS_LF) {
-            return codeMirrorText;
+        if (this._model) {
+            return this._model.getText();
         } else {
-            return codeMirrorText.replace(/\n/g, "\r\n");
+            return this._text;
         }
-    };
-    
-    /**
-     * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
-     * match the document's current line-ending style.
-     * @param {!string} text The text to replace the contents of the document with.
-     */
-    Document.prototype.setText = function (text) {
-        this.editor.setText(text);
     };
     
     /**
@@ -460,42 +504,24 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
-        this.editor.resetText(text);
-        
+        if (this._model) {
+            this._model._editor._resetText(text);
+            // model's editor triggers "change" event for us
+        } else {
+            this._text = text;
+            $(this).triggerHandler("change", [this]);
+        }
         this._markClean();
         this.diskTimestamp = newTimestamp;
         
         // Re-sniff line-ending style too
-        this._lineEndings = FileUtils.sniffLineEndings(text);
-        if (!this._lineEndings) {
-            this._lineEndings = FileUtils.getPlatformLineEndings();
-        }
-    };
-    
-    /**
-     * @private
-     */
-    Document.prototype._handleEditorChange = function () {
-        // On any change, mark the file dirty. In the future, we should make it so that if you
-        // undo back to the last saved state, we mark the file clean.
-        var wasDirty = this.isDirty;
-        this.isDirty = true;
-
-        // If file just became dirty, notify listeners, and add it to working set (if not already there)
-        if (!wasDirty) {
-            $(exports).triggerHandler("dirtyFlagChange", this);
-            addToWorkingSet(this);
-        }
+        this._sniffLineEndings();
     };
     
     /**
      * @private
      */
     Document.prototype._markClean = function () {
-        if (!this.editor) {
-            return;
-        }
-
         this.isDirty = false;
         $(exports).triggerHandler("dirtyFlagChange", this);
     };
@@ -505,6 +531,10 @@ define(function (require, exports, module) {
      * document not dirty and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function () {
+        if (!this._model) {
+            console.log("### Error: cannot save a Document that is not modifiable!");
+        }
+        
         this._markClean();
         $(exports).triggerHandler("documentSaved", this);
         
@@ -526,22 +556,22 @@ define(function (require, exports, module) {
     };
     
     
-    /**
-     * Returns a Document for the given file: the existing Document if the given file is 'open' for
-     * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
-     * Use getDocumentForPath() or getDocumentForFile() if you *only* care about Documents that are
-     * already open.
-     * @param {!string} fullPath
-     * @return {!Document}
-    */
-    function getOrCreateDocumentForPath(fullPath) {
-        var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-        var doc = getDocumentForFile(fileEntry);
-        if (!doc) {
-            doc = new Document(fileEntry);
-        }
-        return doc;
-    }
+    // /**
+    //  * Returns a Document for the given file: the existing Document if the given file is 'open' for
+    //  * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
+    //  * Use getDocumentForPath() or getDocumentForFile() if you *only* care about Documents that are
+    //  * already open.
+    //  * @param {!string} fullPath
+    //  * @return {!Document}
+    // */
+    // function getOrCreateDocumentForPath(fullPath) {
+    //     var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+    //     var doc = getDocumentForFile(fileEntry);
+    //     if (!doc) {
+    //         doc = new Document(fileEntry);
+    //     }
+    //     return doc;
+    // }
     
     
     /**
@@ -575,31 +605,44 @@ define(function (require, exports, module) {
     function _init() {
         var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
 
-        if (!prefs.files) {
+        // if (!prefs.files) {
             return;
-        }
+        // }
 
         var projectRoot = ProjectManager.getProjectRoot(),
             filesToOpen = [],
-            activeFile;
+            activeDoc;
 
-        // in parallel, check if files exist
+        // in parallel, load working set files
         // TODO: (issue #298) delay this check until it becomes the current document?
-        function checkOneFile(value, index) {
+        function loadOneFile(value, index) {
             var oneFileResult = new $.Deferred();
             
-            // check if the file still exists (not an error if it doesn't, though)
-            projectRoot.getFile(value.file, {},
-                function (fileEntry) {
-                    // maintain original sequence
-                    filesToOpen[index] = fileEntry;
+            // // check if the file still exists (not an error if it doesn't, though)
+            // projectRoot.getFile(value.file, {},
+            //     function (fileEntry) {
+            //         // maintain original sequence
+            //         filesToOpen[index] = fileEntry;
 
+            //         if (value.active) {
+            //             activeFile = fileEntry;
+            //         }
+            //         oneFileResult.resolve();
+            //     },
+            //     function (error) {
+            //         filesToOpen[index] = null;
+            //         oneFileResult.resolve();
+            //     });
+            
+            getDocument(value.file)
+                .done(function (doc) {
+                    filesToOpen[index] = doc;
                     if (value.active) {
-                        activeFile = fileEntry;
+                        activeDoc = doc;
                     }
                     oneFileResult.resolve();
-                },
-                function (error) {
+                })
+                .fail(function (error) {
                     filesToOpen[index] = null;
                     oneFileResult.resolve();
                 });
@@ -616,12 +659,7 @@ define(function (require, exports, module) {
             // Add all existing files to the working set
             filesToOpen.forEach(function (value, index) {
                 if (value) {
-                    doc = new Document(value);
-                    addToWorkingSet(doc);
-
-                    if (value === activeFile) {
-                        activeDoc = doc;
-                    }
+                    addToWorkingSet(value);
                 }
             });
 
@@ -631,7 +669,8 @@ define(function (require, exports, module) {
             }
 
             if (activeDoc) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
+                // CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
+                showInEditor(activeDoc);
             }
         });
     }
@@ -640,10 +679,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
-    exports.getOrCreateDocumentForPath = getOrCreateDocumentForPath;
-    exports.getDocumentForPath = getDocumentForPath;
-    exports.getDocumentForFile = getDocumentForFile;
-    exports.getDocumentContents = getDocumentContents;
+    exports.getDocument = getDocument;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;
