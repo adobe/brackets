@@ -360,16 +360,6 @@ define(function (require, exports, module) {
         return this._codeMirror.totalHeight(includePadding);
     };
 
-
-    /**
-     * Gets the total number of displayed lines for the document (not the viewport).
-     * This function accounts for extra lines due to word wrapping if wordWrapping is enabled.
-     * @returns {!number} height in lines
-     */
-    Editor.prototype.heightInLines = function () {
-        return this._codeMirror.heightInLines();
-    };
-
     /**
      * Gets the scroller element from the editor.
      * @returns {!HTMLDivElement} scroller
