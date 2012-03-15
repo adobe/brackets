@@ -86,7 +86,8 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineContent) {
-                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height, inlineContent);
+                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height,
+                                            inlineContent.onClosed, inlineContent);
                 inlineContent.onAdded(inlineId);
             });
         }
@@ -195,7 +196,7 @@ define(function (require, exports, module) {
      * @param {!FileEntry} sourceFile  The file from which the text was drawn. Ties the inline editor
      *      back to the full editor from which edits can be saved; also determines the editor's mode.
      *
-     * @returns {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number)}}
+     * @returns {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
      */
     function createInlineEditorForDocument(hostEditor, doc, range) {
         // Container to hold editor & render its stylized frame
@@ -206,11 +207,17 @@ define(function (require, exports, module) {
         function closeThisInline(inlineEditor) {
             var shouldMoveFocus = inlineEditor.hasFocus();
             _closeInlineWidget(hostEditor, myInlineId, shouldMoveFocus);
-            _syncGutterWidths(hostEditor);
-            inlineEditor.destroy(); //release ref on Document
+            // _closeInlineWidget() causes afterClosed() to get run
         }
         
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
+        
+        // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+        function afterClosed() {
+            console.log("Inline editor is being destroyed!");
+            _syncGutterWidths(hostEditor);
+            inlineEditor.destroy(); //release ref on Document
+        }
         
         // Update the inline editor's height when the number of lines change
         var prevHeight;
@@ -272,7 +279,7 @@ define(function (require, exports, module) {
             inlineEditor.focus();
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
+        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded, onClosed: afterClosed };
     }
     
     

@@ -86,8 +86,8 @@ define(function (require, exports, module) {
      * Stops tracking an editor after being removed from the document.
      * @private
      */
-    function _inlineEditorRemoved(event) {
-        var indexOf = _htmlToCSSProviderContent.indexOf(event.target);
+    function _inlineEditorRemoved(inlineContent) {
+        var indexOf = _htmlToCSSProviderContent.indexOf(inlineContent);
         
         if (indexOf >= 0) {
             _htmlToCSSProviderContent.splice(indexOf, 1);
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
      * @return {$.Promise} a promise that will be resolved with:
-     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(editor, pos) {
@@ -229,7 +229,12 @@ define(function (require, exports, module) {
                     var inlineInfo = _showTextRangeInInlineEditor(editor, rule.document, rule.lineStart, rule.lineEnd);
                     
                     // track inlineEditor content removal
-                    inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
+                    var origOnClosed = inlineInfo.onClosed;
+                    inlineInfo.onClosed = function () {
+                        origOnClosed();
+                        _inlineEditorRemoved(inlineInfo.content);
+                    }
+                    
                     _createInlineEditorDecorations(inlineInfo.editor, rule.document);
                     
                     _htmlToCSSProviderContent.push(inlineInfo.content);

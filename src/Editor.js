@@ -456,6 +456,7 @@ define(function (require, exports, module) {
         this._codeMirror.setSelection(start, end);
     };
 
+
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
      * @returns {!number}
@@ -495,15 +496,22 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!DOMElement} domContent  DOM node of widget UI to insert.
      * @param {number} initialHeight  Initial height to accomodate.
+     * @param {function()} closeCallback  Function called when inline is closed, either automatically
+     *          by CodeMirror, or by this host Editor closing, or manually via removeInlineWidget().
      * @param {Object} data  Extra data to track along with the widget. Accessible later via
      *          {@link #getInlineWidgets()}.
      * @return {number} id for this inline widget instance; unique to this Editor
      */
-    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, data) {
+    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, closeCallback, data) {
         // Now add the new widget
         var self = this;
         var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
             self._removeInlineWidgetInternal(id);
+            
+            // TODO: remove timeout once issue #454 is fixed
+            setTimeout(function () {
+                closeCallback();
+            }, 0);
         });
         this._inlineWidgets.push({ id: inlineId, data: data });
         
