@@ -192,7 +192,7 @@ define(function (require, exports, module) {
         setTimeout(function () {
             var document = DocumentManager.getDocumentForFile(fileEntry);
             _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
-            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), document.isDirty);
+            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), document ? document.isDirty : false);
             filenameDiv.css("visibility", "");
         }, 0);
     }
