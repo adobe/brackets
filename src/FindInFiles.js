@@ -62,7 +62,8 @@ define(function (require, exports, module) {
     * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
     */
     FindInFilesDialog.prototype.showDialog = function () {
-        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
+//        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
+        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em">';
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
         var searchField = $('input#findInFilesInput');
@@ -192,6 +193,12 @@ define(function (require, exports, module) {
             $("#search-results .table-container")
                 .empty()
                 .append(resultTable);
+            
+            $("#search-results .close")
+                .one("click", function () {
+                    $searchResultsDiv.hide();
+                    EditorManager.resizeEditor();
+                });
             
             $searchResultsDiv.show();
         } else {
