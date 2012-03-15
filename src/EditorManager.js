@@ -203,8 +203,9 @@ define(function (require, exports, module) {
         $(inlineContent).addClass("inlineCodeEditor");
         
         var myInlineId;   // (id is set when afterAdded() runs)
-        function closeThisInline(inlineEditor, closedIndirectly) {
-            _closeInlineWidget(hostEditor, myInlineId, !closedIndirectly);
+        function closeThisInline(inlineEditor) {
+            var shouldMoveFocus = inlineEditor.hasFocus();
+            _closeInlineWidget(hostEditor, myInlineId, shouldMoveFocus);
             _syncGutterWidths(hostEditor);
             inlineEditor.destroy(); //release ref on Document
         }
@@ -232,7 +233,7 @@ define(function (require, exports, module) {
         
         // If anyone else touches the main editor, or if the main editor is closed, then we close too
         $(inlineEditor).on("lostSync", function () {
-            closeThisInline(inlineEditor, true);
+            closeThisInline(inlineEditor);
         });
         
         // Some tasks have to wait until we've been parented into the outer editor
