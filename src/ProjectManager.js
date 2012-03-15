@@ -184,14 +184,9 @@ define(function (require, exports, module) {
                             return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
                         } else {
                             // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
-                            var a1 = $(a),
-                                b1 = $(b);
-                            if (!a1 || !b1) {
-                                return 0;
-                            }
-                            var a2 = (a1.hasClass("jstree-open") || a1.hasClass("jstree-closed") ? "0" : "1") + this.get_text(a).toLowerCase(),
-                                b2 = (b1.hasClass("jstree-open") || b1.hasClass("jstree-closed") ? "0" : "1") + this.get_text(b).toLowerCase();
-                            return (a2 > b2) ? 1 : -1;
+                            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+                            return (a1 > b1) ? 1 : -1;
                         }
                     }
                 }
