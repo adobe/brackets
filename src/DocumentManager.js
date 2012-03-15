@@ -115,7 +115,8 @@ define(function (require, exports, module) {
      */
     function getAllOpenDocuments() {
         var result = [];
-        for (var path in _openDocuments) {
+        var path;
+        for (path in _openDocuments) {
             if (_openDocuments.hasOwnProperty(path)) {
                 result.push(_openDocuments[path]);
             }
@@ -161,33 +162,6 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("workingSetRemove", document);
     }
 
-    /** 
-     * If the given file is 'open' for editing, return the contents of the editor (which could
-     * be different from the contents of the file, if the editor contains unsaved changes). If
-     * the given file is not open for editing, read the contents off disk.
-     * @param {!string} fullPath
-     * @return {Deferred} A Deferred object that will be resolved with the contents of the document,
-     *      or rejected with a FileError if the file is not yet open and can't be read from disk.
-     */
-    function getDocument(fullPath) {
-        var result = new $.Deferred();
-        var doc = _openDocuments[fullPath];
-        if (doc) {
-            result.resolve(doc);
-        } else {
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            FileUtils.readAsText(fileEntry)
-                .done(function (rawText, readTimestamp) {
-                    doc = new Document(fileEntry, readTimestamp, rawText);
-                    result.resolve(doc);
-                })
-                .fail(function (error) {
-                    result.reject(error);
-                });
-        }
-        return result;
-    }
-    
     
     /**
      * Displays the given file in the editor pane; this may occur asynchronously if the file has
@@ -236,9 +210,9 @@ define(function (require, exports, module) {
      * may or may not be in the working set). Discards any unsaved changes if isDirty - it is
      * expected that the UI has already confirmed with the user before calling us.
      *
-     * This will select a different file for editing if the document was the current one (if possible;
-     * in some cases, the editor may be left blank instead). This will also remove the doc from the
-     * working set if it was in the set.
+     * This will change currentDocument if this document was current one (if possible; in some cases,
+     * the editor may be left blank instead). This will also remove the doc from the working set if
+     * it was in the set.
      *
      * @param {!Document} document
      */
@@ -317,7 +291,7 @@ define(function (require, exports, module) {
         }
         
         this.file = file;
-        this.refreshText(rawText);
+        this.refreshText(rawText, initialTimestamp);
     }
     
     Document.prototype._refCount = 0;
@@ -374,7 +348,7 @@ define(function (require, exports, module) {
             _openDocuments[this.file.fullPath] = this;
         }
         this._refCount++;
-    }
+    };
     Document.prototype.releaseRef = function () {
         console.log("---REF--- "+this);
         
@@ -389,20 +363,21 @@ define(function (require, exports, module) {
             }
             delete _openDocuments[this.file.fullPath];
         }
-    }
+    };
     
-    Document.prototype.makeEditable = function (fullSizeEditor) {
+    /** ...assumes Editor already has our text... */
+    Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
-            console.log("### Document is already editable!");
+            throw new Error("Document is already editable");
         } else {
             this._text = null;
-            this._masterEditor = fullSizeEditor;
-            $(fullSizeEditor).on("change", this._handleEditorChange.bind(this));
+            this._masterEditor = masterEditor;
+            $(masterEditor).on("change", this._handleEditorChange.bind(this));
         }
-    }
-    Document.prototype.makeNonEditable = function () {
+    };
+    Document.prototype._makeNonEditable = function () {
         if (!this._masterEditor) {
-            console.log("### Document is already non-editable!");
+            throw new Error("Document is already non-editable");
         } else {
             this._text = this.getText();
             this._masterEditor = null;
@@ -415,7 +390,7 @@ define(function (require, exports, module) {
                 this.refreshText("");
             }
         }
-    }
+    };
     
     /**
      * @return {string} The document's current contents; may not be saved to disk 
@@ -528,8 +503,44 @@ define(function (require, exports, module) {
     
     /* (pretty toString(), to aid debugging) */
     Document.prototype.toString = function () {
-        return "[Document " + this.file.fullPath + " " + (this.isDirty ? "(dirty!)" : "(clean)") + "]";
+        var dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
+        var editorInfo = (this._masterEditor ? " Editable" : " Non-editable");
+        var refInfo = " refs:" + this._refCount;
+        return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };
+    
+    
+    /**
+     * Gets an existing open Document for the given file, or creates a new one if the Document is
+     * not currently open. (Open essentially means rooted in the UI somewhere). Note: do not call the
+     * Document constructor directly. Always use this method to get Documents.
+     *
+     * If you are going to hang onto the Document for more than just the duration of a command - e.g.
+     * if you are going to display its contents in a piece of UI - then you must addRef() the Document
+     * and listen for changes on it. Opening the Document in an Editor automatically takes care of
+     * this.
+     * @param {!string} fullPath
+     * @return {Deferred} A Deferred object that will be resolved with the Document, or rejected
+     *      with a FileError if the file is not yet open and can't be read from disk.
+     */
+    function getDocumentForPath(fullPath) {
+        var result = new $.Deferred();
+        var doc = _openDocuments[fullPath];
+        if (doc) {
+            result.resolve(doc);
+        } else {
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            FileUtils.readAsText(fileEntry)
+                .done(function (rawText, readTimestamp) {
+                    doc = new Document(fileEntry, readTimestamp, rawText);
+                    result.resolve(doc);
+                })
+                .fail(function (fileError) {
+                    result.reject(fileError);
+                });
+        }
+        return result;
+    }
     
     
     /**
@@ -577,7 +588,7 @@ define(function (require, exports, module) {
             var oneFileResult = new $.Deferred();
             
             // load files into Documents; silently ignore if file no longer exists
-            getDocument(value.file)
+            getDocumentForPath(value.file)
                 .done(function (doc) {
                     filesToOpen[index] = doc;
                     if (value.active) {
@@ -605,7 +616,7 @@ define(function (require, exports, module) {
             //  2. make adding to the working set addRef() the Doc (NJ didn't like this - EditorManager should own Doc rooting)
             //  3. the set of Docs we keep in syn is the union openDocs (all Doccs with > 0 refCount) PLUS anything else in the working set
             //     (which is sort of a loophole that's otherwise equivalent to option 2)
-            //  4. make the working set a list of filenames instead of Docs; complicates live for WorkingSetView though, since
+            //---> make the working set a list of filenames instead of Docs; complicates live for WorkingSetView though, since
             //     it also cares if they're dirty and you can only find that out from a Doc
             filesToOpen.forEach(function (doc, index) {
                 if (doc) {
@@ -630,7 +641,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
-    exports.getDocument = getDocument;
+    exports.getDocumentForPath = getDocumentForPath;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;

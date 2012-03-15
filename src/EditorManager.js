@@ -48,6 +48,8 @@ define(function (require, exports, module) {
      * based on the given filename's extension (the actual file on disk is never examined). The
      * editor is appended to the given container as a visible child.
      * @param {!Document} doc  The text content of the editor.
+     * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the private "master"
+     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave."
      * @param {!string} fileNameToSelectMode  A filename from which to infer the editor's mode. May
      *          include path too.
      * @param {!jQueryObject} container  Container to add the editor to.
@@ -55,7 +57,7 @@ define(function (require, exports, module) {
                 on context)
      * @return {Editor} the newly created editor.
      */
-    function _createEditorFromDocument(doc, container, onInlineGesture) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
@@ -67,7 +69,7 @@ define(function (require, exports, module) {
             }
         };
 
-        return new Editor(doc, mode, container, extraKeys);
+        return new Editor(doc, makeMasterEditor, mode, container, extraKeys);
     }
     
     /** Bound to Ctrl+E on outermost editors */
@@ -172,10 +174,8 @@ define(function (require, exports, module) {
     function _createFullEditorForDocument(document) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
-        var editor = _createEditorFromDocument(document, container, _openInlineWidget);
+        var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
         $(editor._codeMirror.getWrapperElement()).css("display", "none");
-        
-        document.makeEditable(editor);
     }
     
     function getCurrentFullEditor() {
@@ -202,14 +202,14 @@ define(function (require, exports, module) {
         var inlineContent = document.createElement('div');
         $(inlineContent).addClass("inlineCodeEditor");
         
-        var myInlineId;  // id is set when afterAdded() runs
-        function closeThisInline(closedIndirectly) {
+        var myInlineId;   // (id is set when afterAdded() runs)
+        function closeThisInline(inlineEditor, closedIndirectly) {
             _closeInlineWidget(hostEditor, myInlineId, !closedIndirectly);
             _syncGutterWidths(hostEditor);
             inlineEditor.destroy(); //release ref on Document
         }
         
-        var inlineEditor = _createEditorFromDocument(doc, inlineContent, closeThisInline);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
         
         // Update the inline editor's height when the number of lines change
         var prevLineCount;
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
         
         // If anyone else touches the main editor, or if the main editor is closed, then we close too
         $(inlineEditor).on("lostSync", function () {
-            closeThisInline(true);
+            closeThisInline(inlineEditor, true);
         });
         
         // Some tasks have to wait until we've been parented into the outer editor

@@ -225,7 +225,7 @@ define(function (require, exports, module) {
         function _loadFileAndScan(fullPath, selector) {
             var result = new $.Deferred();
             
-            DocumentManager.getDocument(fullPath)
+            DocumentManager.getDocumentForPath(fullPath)
                 .done(function (doc) {
                     var localResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
                     var fileEntry = new NativeFileSystem.FileEntry(fullPath);

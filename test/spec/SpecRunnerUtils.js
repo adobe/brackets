@@ -30,23 +30,31 @@ define(function (require, exports, module) {
         return path.join("/");
     }
     
-    function createDummyDocument(initialContent) {
-        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_" + nextDummyFileSuffix + ".js");
-        nextDummyFileSuffix++;
-        var realDocument = new DocumentManager.Document(dummyFile, 0, initialContent);
+    /**
+     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
+     * never be set as the currentDocument or added to the working set.
+     */
+    function createMockDocument(initialContent) {
+        // Use unique filename to avoid collissions in open documents list
+        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
         
-        realDocument.addRef = function () {};
-        realDocument.releaseRef = function () {};
-        realDocument._handleEditorChange = function () {
+        var docToShim = new DocumentManager.Document(dummyFile, 0, initialContent);
+        
+        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
+        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
+        docToShim.addRef = function () {};
+        docToShim.releaseRef = function () {};
+        
+        // Prevent adding doc to working set
+        docToShim._handleEditorChange = function () {
             this.isDirty = true;
             $(this).triggerHandler("change", [this]);
         };
-        realDocument.notifySaved = function () {
+        docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
         };
-        return realDocument;
+        return docToShim;
     }
-    var nextDummyFileSuffix = 1;
 
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
@@ -106,7 +114,7 @@ define(function (require, exports, module) {
     exports.getTestRoot             = getTestRoot;
     exports.getTestPath             = getTestPath;
     exports.getBracketsSourceRoot   = getBracketsSourceRoot;
-    exports.createDummyDocument     = createDummyDocument;
+    exports.createMockDocument      = createMockDocument;
     exports.createTestWindowAndRun  = createTestWindowAndRun;
     exports.closeTestWindow         = closeTestWindow;
     exports.loadProjectInTestWindow = loadProjectInTestWindow;

@@ -88,7 +88,7 @@ define(function (require, exports, module) {
             PerfUtils.addMeasurement("Open File: " + fullPath);
         });
         
-        DocumentManager.getDocument(fullPath)
+        DocumentManager.getDocumentForPath(fullPath)
             .done(function (doc) {
                 DocumentManager.showInEditor(doc);
                 result.resolve(doc);
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
                     EditorManager.focusEditor();
                     result.reject();
                 });
-            })
+            });
 
         return result;
     }

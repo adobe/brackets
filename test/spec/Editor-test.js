@@ -18,11 +18,11 @@ define(function (require, exports, module) {
         var myDocument, myEditor;
         beforeEach(function () {
             // create dummy Document for the Editor
-            myDocument = SpecRunnerUtils.createDummyDocument(content);
+            myDocument = SpecRunnerUtils.createMockDocument(content);
             
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
-            myEditor = new Editor(myDocument, "", $("#editor").get(0), {});
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
         });
 
         afterEach(function () {

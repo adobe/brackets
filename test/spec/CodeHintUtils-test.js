@@ -19,9 +19,9 @@ define(function (require, exports, module) {
     beforeEach(function () {
         // init Editor instance (containing a CodeMirror instance)
         $("body").append("<div id='editor'/>");
-        myDocument = SpecRunnerUtils.createDummyDocument("");
-        myEditor = new Editor(myDocument, "", $("#editor").get(0), {});
-        myDocument.makeEditable(myEditor);
+        myDocument = SpecRunnerUtils.createMockDocument("");
+        myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+        myDocument._makeEditable(myEditor);
     });
 
     afterEach(function () {

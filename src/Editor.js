@@ -175,13 +175,16 @@ define(function (require, exports, module) {
      * based on the given filename's extension (the actual file on disk is never examined).
      *
      * @param {!Document} document  
+     * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the private "master"
+     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
+     *          secondary editor.
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)} additionalKeys  Mapping of keyboard shortcuts to
      *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
      */
-    function Editor(document, mode, container, additionalKeys) {
+    function Editor(document, makeMasterEditor, mode, container, additionalKeys) {
         var self = this;
         
         console.log("Create editor for "+document);
@@ -189,10 +192,13 @@ define(function (require, exports, module) {
         // Attach to document
         this.document = document;
         document.addRef();
-        this._handleDocumentChangeWrapper = function () {   // store anonymous fn so we can remove later
+        this._handleDocumentChangeWrapper = function () {   // store so we can remove later
             self._handleDocumentChange();
         };
         $(document).on("change", this._handleDocumentChangeWrapper);
+        // TODO: a ways back, we said the right answer here is to overwrite instance method with .bind() result... works?
+        
+        // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
         this._inlineWidgets = [];
         
@@ -270,12 +276,16 @@ define(function (require, exports, module) {
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
         
-        // Initially populate with text. This will send a spurious change event, but only our listener
-        // is attached yet; so we need to make sure this is understood as a 'sync from document' case,
-        // not a genuine edit
+        // Initially populate with text. This will send a spurious change event, so need to make
+        // sure this is understood as a 'sync from document' case, not a genuine edit
         this._duringSync = true;
         this._resetText(document.getText());
         this._duringSync = false;
+        
+        // Now that we're fully initialized, we can point the document back at us if needed
+        if (makeMasterEditor) {
+            document._makeEditable(this);
+        }
     }
     
     Editor.prototype.destroy = function () {
@@ -289,9 +299,9 @@ define(function (require, exports, module) {
         $(this.document).off("change", this._handleDocumentChangeWrapper);
         
         if (this.document._masterEditor === this) {
-            this.document.makeNonEditable();
+            this.document._makeNonEditable();
         }
-    }
+    };
     
     // There are several kinds of spurious changes we need to worry about:
     // - if we're the master editor, document changes should be ignored becuase we always already have
@@ -324,7 +334,8 @@ define(function (require, exports, module) {
             this.document.setText(this._getText());
             this._duringSync = false;
         }
-    }
+    };
+    
     Editor.prototype._duringSync = false;
     
     Editor.prototype._handleDocumentChange = function () {
@@ -350,7 +361,9 @@ define(function (require, exports, module) {
             // this.setText(this.document.getText());
             // this._duringSync = false;
         }
-    }
+    };
+    
+    Editor.prototype._handleDocumentChangeWrapper = null;
     
     
     /**
