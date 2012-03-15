@@ -64,6 +64,12 @@ define(function (require, exports, module) {
             },
             "Cmd-E" : function (editor) {
                 onInlineGesture(editor);
+            },
+            "Shift-Ctrl-F" : function () {
+                // No-op, handled in FindInFiles.js
+            },
+            "Shift-Cmd-F" : function () {
+                // No-op, handled in FindInFiles.js
             }
         };
 

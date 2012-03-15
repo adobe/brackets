@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         PerfUtils               = require("PerfUtils"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
+        FindInFiles             = require("FindInFiles"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project
@@ -151,6 +152,7 @@ define(function (require, exports, module) {
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
+                    {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],
