@@ -18,6 +18,9 @@
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
+ *    - lostSync -- When the backing Document changes in such a way that this Editor is no longer
+ *          able to stay in sync with the text. Only fired by secondary (inline) editors. This will
+ *          go away completely once we have full cross-Editor syncing.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(editorInstance).on("eventname", handler);
@@ -181,12 +184,15 @@ define(function (require, exports, module) {
     function Editor(document, mode, container, additionalKeys) {
         var self = this;
         
+        console.log("Create editor for "+document);
+        
         // Attach to document
         this.document = document;
         document.addRef();
-        $(document).on("change", function () {
+        this._handleDocumentChangeWrapper = function () {   // store anonymous fn so we can remove later
             self._handleDocumentChange();
-        });
+        };
+        $(document).on("change", this._handleDocumentChangeWrapper);
         
         this._inlineWidgets = [];
         
@@ -266,12 +272,18 @@ define(function (require, exports, module) {
     }
     
     Editor.prototype.destroy = function () {
+        console.log("Destroy editor for "+this.document);
+        
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
         $(this._codeMirror.getWrapperElement()).remove();
         
         this.document.releaseRef();
-        // FIXME: do we need to do something MORE special if this is the "master" Editor???
+        $(this.document).off("change", this._handleDocumentChangeWrapper);
+        
+        if (this.document._model && this.document._model._editor === this) {
+            this.document.makeNonEditable();
+        }
     }
     
     // There are several kinds of spurious changes we need to worry about:
@@ -282,21 +294,23 @@ define(function (require, exports, module) {
     // - if we're a secondary editor, document changes should be ignored if they were caused by us sending
     //   the document an editor change that originated with us
     Editor.prototype._handleEditorChange = function () {
-        // we're just syncing from the Document, so don't echo back TO the Document
+        // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
         }
         
-        // Force creation of "master" editor backing the model, if doesn't exist yet
+        // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
         if (!this.document._model) {
             EditorManager._createFullEditorForDocument(this.document);
         }
         
         if (this.document._model._editor === this) {
+            // Master editor:
             // we're the ground truth; nothing else to do, since everyone else will sync from us
             // note: this change might have been a real edit made by the user, OR this might have
             // been a change synced from another editor
         } else {
+            // Secondary editor:
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
             this._duringSync = true;
@@ -307,16 +321,24 @@ define(function (require, exports, module) {
     Editor.prototype._duringSync = false;
     
     Editor.prototype._handleDocumentChange = function () {
-        // we're just syncing to the Document, so don't echo back FROM the Document
+        // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
         }
         
         if (this.document._model && this.document._model._editor === this) {
+            // Master editor:
             // we're the ground truth; Document change is just echoing that our editor changed
         } else {
-            // we're not the ground truth, so sync from the Document
-            console.log("#### We don't yet support syncing a secondary editor from the model's main editor!");
+            // Secondary editor:
+            // we're not the ground truth; and if we got here, this was a Document change that
+            // didn't come from us (e.g. a sync from another editor, a direct programmatic change
+            // to the document, or a sync from external disk changes)... so sync from the Document
+            
+            // Syncing from Document / main editor back to inline editors is NOT supported yet!
+            $(this).triggerHandler("lostSync");
+            
+            // FUTURE: do full cross-editor syncing without losing visible range, scroll pos, etc.
             // this._duringSync = true;
             // this.setText(this.document.getText());
             // this._duringSync = false;
@@ -372,16 +394,6 @@ define(function (require, exports, module) {
         // Make sure we can't undo back to the empty state before setValue()
         this._codeMirror.clearHistory();
     };
-    
-    // /**
-    //  * Copies the state of changedEditor into this editor.
-    //  * NOTE: for now, all we do is copy the contents from one editor to the other. The undo/redo
-    //  * history and other details will differ.
-    //  * @param {Editor} changedEditor
-    //  */
-    // Editor.prototype.syncFrom = function (changedEditor) {
-    //     this._codeMirror.setValue(changedEditor._codeMirror.getValue());
-    // };
     
     
     /**

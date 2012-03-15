@@ -409,6 +409,7 @@ define(function (require, exports, module) {
         console.log("+++REF+++ "+this);
         
         if (this._refCount === 0) {
+            console.log("+++ adding to open list");
             if (_openDocuments[this.file.fullPath]) {
                 throw new Error("Document for this path already in _openDocuments!");
             }
@@ -424,6 +425,7 @@ define(function (require, exports, module) {
             throw new Error("Document ref count has fallen below zero!");
         }
         if (this._refCount === 0) {
+            console.log("--- removing from open list");
             if (!_openDocuments[this.file.fullPath]) {
                 throw new Error("Document with references was not in _openDocuments!");
             }
@@ -444,6 +446,22 @@ define(function (require, exports, module) {
         } else {
             this._text = null;
             this._model = new EditableDocumentModel(this, fullSizeEditor);
+        }
+    }
+    Document.prototype.makeNonEditable = function () {
+        if (!this._model) {
+            console.log("### Document is already non-editable!");
+        } else {
+            this._text = this.getText();
+            this._model = null;
+            
+            // Currently, we close all secondary (inline) editors when the main editor is closed
+            // or modified/refreshed in any way. So, treat closing just like modifying.
+            // TODO: auto-revert the text when closing the main editor without saving changes
+            if (this.isDirty) {
+                console.log("Closing main editor and discarding changes!");
+                this.refreshText("");
+            }
         }
     }
     
@@ -554,24 +572,6 @@ define(function (require, exports, module) {
     Document.prototype.toString = function () {
         return "[Document " + this.file.fullPath + " " + (this.isDirty ? "(dirty!)" : "(clean)") + "]";
     };
-    
-    
-    // /**
-    //  * Returns a Document for the given file: the existing Document if the given file is 'open' for
-    //  * editing, or creates a new one otherwise. This is the preferred way to create a new Document.
-    //  * Use getDocumentForPath() or getDocumentForFile() if you *only* care about Documents that are
-    //  * already open.
-    //  * @param {!string} fullPath
-    //  * @return {!Document}
-    // */
-    // function getOrCreateDocumentForPath(fullPath) {
-    //     var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-    //     var doc = getDocumentForFile(fileEntry);
-    //     if (!doc) {
-    //         doc = new Document(fileEntry);
-    //     }
-    //     return doc;
-    // }
     
     
     /**

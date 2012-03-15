@@ -90,18 +90,21 @@ define(function (require, exports, module) {
         }
     }
     
-    function _closeInlineWidget(hostEditor, inlineId) {
-        // Place cursor back on the line just above the inline (the line from which it was opened)
-        // If cursor's already on that line, leave it be to preserve column position
-        var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
-        var cursorLine = hostEditor.getCursorPos().line;
-        if (cursorLine !== widgetLine) {
-            hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
+    function _closeInlineWidget(hostEditor, inlineId, moveFocus) {
+        if (moveFocus) {
+            // Place cursor back on the line just above the inline (the line from which it was opened)
+            // If cursor's already on that line, leave it be to preserve column position
+            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
+            var cursorLine = hostEditor.getCursorPos().line;
+            if (cursorLine !== widgetLine) {
+                hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
+            }
+            
+            hostEditor.focus();
         }
         
         hostEditor.removeInlineWidget(inlineId);
         
-        hostEditor.focus();
     }
     
     function registerInlineEditProvider(provider) {
@@ -199,8 +202,8 @@ define(function (require, exports, module) {
         $(inlineContent).addClass("inlineCodeEditor");
         
         var myInlineId;  // id is set when afterAdded() runs
-        function closeThisInline() {
-            _closeInlineWidget(hostEditor, myInlineId);
+        function closeThisInline(closedIndirectly) {
+            _closeInlineWidget(hostEditor, myInlineId, !closedIndirectly);
             _syncGutterWidths(hostEditor);
             inlineEditor.destroy(); //release ref on Document
         }
@@ -224,17 +227,11 @@ define(function (require, exports, module) {
         $(inlineEditor).on("change", function () {
             // Size editor to current contents
             sizeInlineEditorToContents();
-            
-            // // Wire up to Document and its main full-size editor
-            // if (doc.editor) {
-            //     // Full editor already open: sync change now
-            //     doc.editor.syncFrom(inlineEditor);
-            // } else {
-            //     // Full editor not yet open: load & open it, then sync this change once done
-            //     // Begin syncing from inline to full editor
-            //     _createFullEditorForDocument(doc);
-            //     doc.editor.syncFrom(inlineEditor);
-            // }
+        });
+        
+        // If anyone else touches the main editor, or if the main editor is closed, then we close too
+        $(inlineEditor).on("lostSync", function () {
+            closeThisInline(true);
         });
         
         // Some tasks have to wait until we've been parented into the outer editor
@@ -279,8 +276,8 @@ define(function (require, exports, module) {
     
     
     /**
-     * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in
-     * the working set). Otherwise does nothing.
+     * Disposes the given document's full-size editor if the doc is no longer "open" in the UI (visible
+     * or in the working set). Otherwise does nothing.
      * @param {!Document} document
      */
     function _destroyEditorIfUnneeded(document) {
@@ -292,7 +289,7 @@ define(function (require, exports, module) {
         
         // If outgoing editor is no longer needed, dispose it
         if (DocumentManager.getCurrentDocument() !== document && DocumentManager.findInWorkingSet(document.file.fullPath) === -1) {
-            // Destroy the editor widget (which un-ref-counts the Document)
+            // Destroy the editor widget (which un-ref-counts the Document and reverts document to read-only mode)
             editor.destroy();
             
             // Our callers should really ensure this, but just for safety...
@@ -437,7 +434,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the currently focused editor instance.
-     * @returns {{editor:Editor, source:FileEntry}}
+     * @returns {Editor}
      */
     function getFocusedEditor() {
         if (_currentEditor) {
@@ -462,9 +459,6 @@ define(function (require, exports, module) {
         return null;
     }
     
-    function getDocumentForEditor() {
-        //
-    }
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
