@@ -1,11 +1,16 @@
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
+/*global define: false, $: false,  describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
 define(function (require, exports, module) {
     'use strict';
     
-    var FileUtils   = require("FileUtils");
+    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
+        Commands            = require("Commands"),
+        FileUtils           = require("FileUtils");
     
-    var TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences",
+    var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
+        OPEN_TAG                = "{{",
+        CLOSE_TAG               = "}}",
+        RE_MARKER               = /[^\\]?\{\{(\d+)[^\\]?\}\}/g,
         testWindow;
     
     function getTestRoot() {
@@ -31,6 +36,10 @@ define(function (require, exports, module) {
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
             testWindow = window.open(getBracketsSourceRoot() + "/index.html");
+            
+            testWindow.executeCommand = function executeCommand(cmd, args) {
+                return testWindow.brackets.test.CommandManager.execute(cmd, args);
+            };
         });
 
         // FIXME (issue #249): Need an event or something a little more reliable...
@@ -80,6 +89,105 @@ define(function (require, exports, module) {
         // wait for file system to finish loading
         waitsFor(function () { return isReady; }, "loadProject() timeout", 1000);
     }
+    
+    /**
+     * Parses offsets from text offset markup (e.g. "{{1}}" for offset 1).
+     * @param {!string} in Text to parse
+     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:string}} 
+     */
+    function parseOffsetsFromText(text) {
+        var offsets = [],
+            output  = [],
+            i       = 0,
+            line    = 0,
+            char    = 0,
+            ch      = null,
+            length  = text.length,
+            exec    = null,
+            found   = false;
+        
+        while (i < length) {
+            found = false;
+            
+            if (text.slice(i, i + OPEN_TAG.length) === OPEN_TAG) {
+                // find "{{[0-9]+}}"
+                RE_MARKER.lastIndex = i;
+                exec = RE_MARKER.exec(text);
+                found = (exec !== null);
+                
+                if (found) {
+                    // record offset info
+                    offsets[exec[1]] = {line: line, ch: ch};
+                    
+                    // advance
+                    i += exec[0].length;
+                }
+            }
+            
+            if (!found) {
+                char = text.substr(i, 1);
+                output.push(char);
+                
+                if (char === '\n') {
+                    line++;
+                    ch = 0;
+                } else {
+                    ch++;
+                }
+                
+                i++;
+            }
+        }
+        
+        return {offsets: offsets, text: output.join("")};
+    }
+    
+    /**
+     * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
+     * @param {!FileEntry} entry File to open
+     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:string}} 
+     */
+    function parseOffsetsFromFile(entry) {
+        var result = new $.Deferred();
+        
+        FileUtils.readAsText(entry).done(function (text) {
+            result.resolve(parseOffsetsFromText(text));
+        }).fail(function (err) {
+            result.reject(err);
+        });
+        
+        return result.promise();
+    }
+    
+    /**
+     * Opens a file path in the test window and parses offset markup (e.g. "{{1}}" for offset 1).
+     * @param {!string} text Text to parse
+     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, document:{!Document}}} 
+     */
+    function openFileWithOffsets(path) {
+        var result = new $.Deferred();
+        
+        var fileOpen = testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path})
+            .done(function (doc) {
+                var text = doc.getText();
+                
+                // parse offset data
+                var info = parseOffsetsFromText(text);
+                
+                // reset document to remove offset markup
+                doc.editor.resetText(info.text);
+                
+                // return document with offset info
+                info.document = doc;
+                
+                result.resolve(info);
+            })
+            .fail(function () {
+                result.reject();
+            });
+        
+        return result.promise();
+    }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
@@ -89,4 +197,5 @@ define(function (require, exports, module) {
     exports.createTestWindowAndRun  = createTestWindowAndRun;
     exports.closeTestWindow         = closeTestWindow;
     exports.loadProjectInTestWindow = loadProjectInTestWindow;
+    exports.openFileWithOffsets     = openFileWithOffsets;
 });
