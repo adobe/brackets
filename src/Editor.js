@@ -295,6 +295,16 @@ define(function (require, exports, module) {
         this._codeMirror.clearHistory();
     };
     
+    /**
+     * Copies the state of changedEditor into this editor.
+     * NOTE: for now, all we do is copy the contents from one editor to the other. The undo/redo
+     * history and other details will differ.
+     * @param {Editor} changedEditor
+     */
+    Editor.prototype.syncFrom = function (changedEditor) {
+        this._codeMirror.setValue(changedEditor._codeMirror.getValue());
+    };
+    
     
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
@@ -335,6 +345,38 @@ define(function (require, exports, module) {
     Editor.prototype.setSelection = function (start, end) {
         this._codeMirror.setSelection(start, end);
     };
+
+    /**
+     * Gets the total number of lines in the the document (includes lines not visible in the viewport)
+     * @returns {!number}
+     */
+    Editor.prototype.lineCount = function () {
+        return this._codeMirror.lineCount();
+    };
+
+    /* Hides the specified line number in the editor
+     * @param {!number}
+     */
+    Editor.prototype.hideLine = function (lineNumber) {
+        return this._codeMirror.hideLine(lineNumber);
+    };
+
+    /**
+     * Gets the total height of the document in pixels (not the viewport)
+     * @param {!boolean} includePadding
+     * @returns {!number} height in pixels
+     */
+    Editor.prototype.totalHeight = function (includePadding) {
+        return this._codeMirror.totalHeight(includePadding);
+    };
+
+    /**
+     * Gets the scroller element from the editor.
+     * @returns {!HTMLDivElement} scroller
+     */
+    Editor.prototype.getScrollerElement = function () {
+        return this._codeMirror.getScrollerElement();
+    };
     
     
     /**
@@ -348,20 +390,11 @@ define(function (require, exports, module) {
      * @return {number} id for this inline widget instance; unique to this Editor
      */
     Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, data) {
-        // If any other inline widget is alrady open on this line, CodeMirror will automatically
-        // close it. We don't want to leak an _inlineWidgets entry, so check for this case and
-        // remove it manually instead.
-        var i;
-        for (i = 0; i < this._inlineWidgets.length; i++) {
-            var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
-            if (info.line === pos.line) {
-                this.removeInlineWidget(this._inlineWidgets[i].id);
-                break;
-            }
-        }
-        
         // Now add the new widget
-        var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight);
+        var self = this;
+        var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
+            self._removeInlineWidgetInternal(id);
+        });
         this._inlineWidgets.push({ id: inlineId, data: data });
         
         return inlineId;
@@ -372,8 +405,15 @@ define(function (require, exports, module) {
      * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype.removeInlineWidget = function (inlineId) {
+        // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
         this._codeMirror.removeInlineWidget(inlineId);
-        
+    };
+    
+    /**
+     * Cleans up the given inline widget from our internal list of widgets.
+     * @param {number} inlineId  id returned by addInlineWidget().
+     */
+    Editor.prototype._removeInlineWidgetInternal = function (inlineId) {
         var i;
         for (i = 0; i < this._inlineWidgets.length; i++) {
             if (this._inlineWidgets[i].id === inlineId) {
@@ -391,6 +431,16 @@ define(function (require, exports, module) {
     Editor.prototype.getInlineWidgets = function () {
         return this._inlineWidgets;
     };
+
+    /**
+     * Sets the height of the inline widget for this editor. The inline editor is identified by id.
+     * @param {!number} id
+     * @param {!height} height
+     * @param {boolean} ensureVisible
+     */
+    Editor.prototype.setInlineWidgetHeight = function (id, height, ensureVisible) {
+        this._codeMirror.setInlineWidgetHeight(id, height, ensureVisible);
+    };
     
     
     /** Gives focus to the editor control */
@@ -398,6 +448,18 @@ define(function (require, exports, module) {
         this._codeMirror.focus();
     };
     
+    /** Returns true if the editor has focus */
+    Editor.prototype.hasFocus = function () {
+        // The CodeMirror instance wrapper has a "CodeMirror-focused" class set when focused
+        return $(this._codeMirror.getWrapperElement()).hasClass("CodeMirror-focused");
+    };
+    
+    /**
+     * Refreshes the editor control
+     */
+    Editor.prototype.refresh = function () {
+        this._codeMirror.refresh();
+    };
     
     
     /**

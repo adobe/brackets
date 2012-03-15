@@ -34,7 +34,9 @@ define(function (require, exports, module) {
         Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
-        PerfUtils           = require("PerfUtils");
+        PerfUtils           = require("PerfUtils"),
+        ViewUtils           = require("ViewUtils"),
+        FileUtils           = require("FileUtils");
     
     /**
      * @private
@@ -241,6 +243,10 @@ define(function (require, exports, module) {
                 });
         });
         
+        result.always(function () {
+            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+        });
+        
         return result;
     }
     
@@ -345,6 +351,8 @@ define(function (require, exports, module) {
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
                 }
+                
+                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(
@@ -367,12 +375,7 @@ define(function (require, exports, module) {
         var loadedPath = window.location.pathname;
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
-        // On Windows, when loading from a file, window.location.pathname has
-        // a leading '/'. Remove that here.
-        // TODO (issue #267): This will be obsolete when Brackets can support no project
-        if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":") {
-            bracketsSrc = bracketsSrc.substr(1);
-        }
+        bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
 
         return bracketsSrc;
     }
@@ -486,7 +489,7 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 // Pop up a folder browse dialog
-                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
+                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
