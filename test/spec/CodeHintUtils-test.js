@@ -21,7 +21,6 @@ define(function (require, exports, module) {
         $("body").append("<div id='editor'/>");
         myDocument = SpecRunnerUtils.createMockDocument("");
         myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
-        myDocument._makeEditable(myEditor);
     });
 
     afterEach(function () {
