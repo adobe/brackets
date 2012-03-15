@@ -180,13 +180,13 @@ define(function (require, exports, module) {
                         // file because jsTree insists on loading one itself)
                     strings : { loading : "Loading ...", new_node : "New node" },
                     sort :  function (a, b) {
-                        if (brackets.platform === "mac") {
-                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
-                        } else {
+                        if (brackets.platform === "win") {
                             // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
                             var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
                                 b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
                             return (a1 > b1) ? 1 : -1;
+                        } else {
+                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
                         }
                     }
                 }
