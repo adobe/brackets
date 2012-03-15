@@ -178,8 +178,9 @@ define(function (require, exports, module) {
         document.makeEditable(editor);
     }
     
-    function getFullEditorForDocument(document) {
-        return document._model && document._model._editor;
+    function getCurrentFullEditor() {
+        // This *should* always be equivalent to DocumentManager.getCurrentDocument()._masterEditor
+        return _currentEditor;
     }
 
     
@@ -281,7 +282,7 @@ define(function (require, exports, module) {
      * @param {!Document} document
      */
     function _destroyEditorIfUnneeded(document) {
-        var editor = document._model && document._model._editor;
+        var editor = document._masterEditor;
 
         if (!editor) {
             return;
@@ -340,7 +341,7 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _currentEditor = document._model._editor;
+        _currentEditor = document._masterEditor;
         
         $(_currentEditor._codeMirror.getWrapperElement()).css("display", "");
         
@@ -363,7 +364,7 @@ define(function (require, exports, module) {
         }
         
         // Ensure a main editor exists for this document to show in the UI
-        if (!document._model) {
+        if (!document._masterEditor) {
             // Editor doesn't exist: populate a new Editor with the text
             _createFullEditorForDocument(document);
         }
@@ -469,7 +470,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
-    exports.getFullEditorForDocument = getFullEditorForDocument;
+    exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports.focusEditor = focusEditor;

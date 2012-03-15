@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
-     * document always has a full-size editor associated with it (i.e. Document.editor != null).
+     * document always has a full-size editor associated with it (Document._masterEditor != null).
      * @return {?Document}
      */
     function getCurrentDocument() {
@@ -160,26 +160,6 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", document);
     }
-
-    // /**
-    //  * If the given file is 'open' for editing, returns its Document. Else returns null. "Open for
-    //  * editing" means either the file is in the working set, and/or the file is currently open in
-    //  * the editor UI.
-    //  * @param {!FileEntry} fileEntry
-    //  * @return {?Document}
-    //  */
-    // function getDocumentForFile(fileEntry) {
-    //     if (_currentDocument && _currentDocument.file.fullPath === fileEntry.fullPath) {
-    //         return _currentDocument;
-    //     }
-
-    //     var wsIndex = findInWorkingSet(fileEntry.fullPath);
-    //     if (wsIndex !== -1) {
-    //         return _workingSet[wsIndex];
-    //     }
-        
-    //     return null;
-    // }
 
     /** 
      * If the given file is 'open' for editing, return the contents of the editor (which could
@@ -319,64 +299,6 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     */
-    function EditableDocumentModel(document, editor) {
-        this._document = document;
-        
-        this._editor = editor;
-        $(editor).on("change", this._handleEditorChange.bind(this));
-    }
-    EditableDocumentModel.prototype._document = null;
-    /**
-     * Editor object representing the full-size editor UI for this document. Null if Document was
-     * restored from persisted working set but hasn't been opened in the UI yet.
-     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
-     * UI-related actions that Document does not provide any APIs for.
-     * @type {?Editor}
-     */
-    EditableDocumentModel.prototype._editor = null;
-
-    /**
-     * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
-     * match the document's current line-ending style.
-     * @param {!string} text The text to replace the contents of the document with.
-     */
-    EditableDocumentModel.prototype.setText = function (text) {
-        this._editor._setText(text);
-    };
-    EditableDocumentModel.prototype.getText = function (text) {
-        // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
-        // endings preferred by the document, if necessary
-        var codeMirrorText = this._editor._getText();
-        if (this._document._lineEndings === FileUtils.LINE_ENDINGS_LF) {
-            return codeMirrorText;
-        } else {
-            return codeMirrorText.replace(/\n/g, "\r\n");
-        }
-    };
-    
-    /**
-     * @private
-     */
-    EditableDocumentModel.prototype._handleEditorChange = function () {
-        // On any change, mark the file dirty. In the future, we should make it so that if you
-        // undo back to the last saved state, we mark the file clean.
-        var wasDirty = this._document.isDirty;
-        this._document.isDirty = true;
-
-        // If file just became dirty, notify listeners, and add it to working set (if not already there)
-        if (!wasDirty) {
-            $(exports).triggerHandler("dirtyFlagChange", [this._document]);
-            addToWorkingSet(this._document);
-        }
-        
-        // Notify that Document's text has changed
-        $(this._document).triggerHandler("change", [this._document]);
-    };
-    
-    
-    /**
-     * @constructor
      * A single editable document, e.g. an entry in the working set list. Documents are unique per
      * file, so it IS safe to compare them with '==' or '==='.
      *
@@ -395,16 +317,52 @@ define(function (require, exports, module) {
         }
         
         this.file = file;
-        this._text = rawText;
-        this.diskTimestamp = initialTimestamp;
-        this.isDirty = false;
-        
-        // Sniff line-ending style
-        this._sniffLineEndings();
+        this.refreshText(rawText);
     }
     
     Document.prototype._refCount = 0;
     
+    /**
+     * The FileEntry for this document. Need not lie within the project.
+     * @type {!FileEntry}
+     */
+    Document.prototype.file = null;
+    
+    /**
+     * Whether this document has unsaved changes or not.
+     * When this changes on any Document, DocumentManager dispatches a "dirtyFlagChange" event.
+     * @type {boolean}
+     */
+    Document.prototype.isDirty = false;
+    
+    /**
+     * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
+     * it means the file was modified by an app other than Brackets.
+     * @type {?Date}
+     */
+    Document.prototype.diskTimestamp = null;
+    
+    /**
+     * @type {string}
+     */
+    Document.prototype._text = null;
+    
+    /**
+     * Editor object representing the full-size editor UI for this document. Null if Document was
+     * restored from persisted working set but hasn't been opened in the UI yet.
+     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
+     * UI-related actions that Document does not provide any APIs for.
+     * @type {?Editor}
+     */
+    Document.prototype._masterEditor = null;
+    
+    /**
+     * Null only of editor is not open yet. If a Document is created on empty text, or text with
+     * inconsistent line endings, the Document defaults to the current platform's standard endings.
+     * @type {null|FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
+     */
+    Document.prototype._lineEndings = null;
+
     Document.prototype.addRef = function () {
         console.log("+++REF+++ "+this);
         
@@ -433,27 +391,21 @@ define(function (require, exports, module) {
         }
     }
     
-    Document.prototype._sniffLineEndings = function () {
-        this._lineEndings = FileUtils.sniffLineEndings(this.getText());
-        if (!this._lineEndings) {
-            this._lineEndings = FileUtils.getPlatformLineEndings();
-        }
-    }
-    
     Document.prototype.makeEditable = function (fullSizeEditor) {
-        if (this._model) {
+        if (this._masterEditor) {
             console.log("### Document is already editable!");
         } else {
             this._text = null;
-            this._model = new EditableDocumentModel(this, fullSizeEditor);
+            this._masterEditor = fullSizeEditor;
+            $(fullSizeEditor).on("change", this._handleEditorChange.bind(this));
         }
     }
     Document.prototype.makeNonEditable = function () {
-        if (!this._model) {
+        if (!this._masterEditor) {
             console.log("### Document is already non-editable!");
         } else {
             this._text = this.getText();
-            this._model = null;
+            this._masterEditor = null;
             
             // Currently, we close all secondary (inline) editors when the main editor is closed
             // or modified/refreshed in any way. So, treat closing just like modifying.
@@ -466,53 +418,37 @@ define(function (require, exports, module) {
     }
     
     /**
-     * The FileEntry for this document. Need not lie within the project.
-     * @type {!FileEntry}
-     */
-    Document.prototype.file = null;
-    
-    /**
-     * Whether this document has unsaved changes or not.
-     * When this changes on any Document, DocumentManager dispatches a "dirtyFlagChange" event.
-     * @type {boolean}
-     */
-    Document.prototype.isDirty = false;
-    
-    /**
-     * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
-     * it means the file was modified by an app other than Brackets.
-     * @type {?Date}
-     */
-    Document.prototype.diskTimestamp = null;
-    
-    /**
-     * @type {string}
-     */
-    Document.prototype._text = null;
-    /**
-     * @type {EditableDocumentModel}
-     */
-    Document.prototype._model = null;
-    
-    /**
-     * Null only of editor is not open yet. If a Document is created on empty text, or text with
-     * inconsistent line endings, the Document defaults to the current platform's standard endings.
-     * @type {null|FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
-     */
-    Document.prototype._lineEndings = null;
-
-    /**
      * @return {string} The document's current contents; may not be saved to disk 
      *  yet. Returns null if the file was not yet read and no editor was 
      *  created.
      */
     Document.prototype.getText = function () {
-        if (this._model) {
-            return this._model.getText();
+        if (this._masterEditor) {
+            // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
+            // endings preferred by the document, if necessary
+            var codeMirrorText = this._masterEditor._getText();
+            if (this._lineEndings === FileUtils.LINE_ENDINGS_LF) {
+                return codeMirrorText;
+            } else {
+                return codeMirrorText.replace(/\n/g, "\r\n");
+            }
         } else {
             return this._text;
         }
     };
+    
+    /**
+     * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
+     * match the document's current line-ending style.
+     * @param {!string} text The text to replace the contents of the document with.
+     */
+    Document.prototype.setText = function (text) {
+        if (!this._masterEditor) {
+            throw new Error("Cannot mutate a Document before it has been assigned a master Editor");
+        }
+        this._masterEditor._setText(text);
+    };
+    
     
     /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
@@ -522,9 +458,9 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
-        if (this._model) {
-            this._model._editor._resetText(text);
-            // model's editor triggers "change" event for us
+        if (this._masterEditor) {
+            this._masterEditor._resetText(text);
+            // _handleEditorChange() triggers "change" event for us
         } else {
             this._text = text;
             $(this).triggerHandler("change", [this]);
@@ -532,8 +468,30 @@ define(function (require, exports, module) {
         this._markClean();
         this.diskTimestamp = newTimestamp;
         
-        // Re-sniff line-ending style too
-        this._sniffLineEndings();
+        // Sniff line-ending style
+        this._lineEndings = FileUtils.sniffLineEndings(this.getText());
+        if (!this._lineEndings) {
+            this._lineEndings = FileUtils.getPlatformLineEndings();
+        }
+    };
+    
+    /**
+     * @private
+     */
+    Document.prototype._handleEditorChange = function () {
+        // On any change, mark the file dirty. In the future, we should make it so that if you
+        // undo back to the last saved state, we mark the file clean.
+        var wasDirty = this.isDirty;
+        this.isDirty = true;
+
+        // If file just became dirty, notify listeners, and add it to working set (if not already there)
+        if (!wasDirty) {
+            $(exports).triggerHandler("dirtyFlagChange", [this]);
+            addToWorkingSet(this);
+        }
+        
+        // Notify that Document's text has changed
+        $(this).triggerHandler("change", [this]);
     };
     
     /**
@@ -549,7 +507,7 @@ define(function (require, exports, module) {
      * document not dirty and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function () {
-        if (!this._model) {
+        if (!this._masterEditor) {
             console.log("### Error: cannot save a Document that is not modifiable!");
         }
         

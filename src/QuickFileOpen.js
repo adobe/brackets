@@ -183,7 +183,7 @@ define(function (require, exports, module) {
                     if (query.charAt(0) === ":") {
                         var lineNumber = parseInt(query.slice(1, query.length), 10);
                         if (!isNaN(lineNumber)) {
-                            var editor = EditorManager.getFullEditorForDocument(DocumentManager.getCurrentDocument());
+                            var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(lineNumber - 1, 0);
                         }
                     } else {

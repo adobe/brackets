@@ -74,7 +74,7 @@ define(function (require, exports, module) {
                             row.addClass("selected");
                             selectedRow = row;
                             
-                            var editor = EditorManager.getFullEditorForDocument(currentDoc);
+                            var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(item.line - 1, item.character - 1);
                             EditorManager.focusEditor();
                         });

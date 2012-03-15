@@ -175,7 +175,7 @@ define(function (require, exports, module) {
      * based on the given filename's extension (the actual file on disk is never examined).
      *
      * @param {!Document} document  
-     * @param {!string} mode  Syntax-highlighting language mode.
+     * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)} additionalKeys  Mapping of keyboard shortcuts to
@@ -243,6 +243,13 @@ define(function (require, exports, module) {
             }
         }
         
+        // We'd like null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
+        // unrecognized mode, but it complains on the console in that fallback case: so, convert
+        // here so we're always explicit, avoiding console noise.
+        if (!mode) {
+            mode = "text/plain";
+        }
+        
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
@@ -281,7 +288,7 @@ define(function (require, exports, module) {
         this.document.releaseRef();
         $(this.document).off("change", this._handleDocumentChangeWrapper);
         
-        if (this.document._model && this.document._model._editor === this) {
+        if (this.document._masterEditor === this) {
             this.document.makeNonEditable();
         }
     }
@@ -300,11 +307,11 @@ define(function (require, exports, module) {
         }
         
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
-        if (!this.document._model) {
+        if (!this.document._masterEditor) {
             EditorManager._createFullEditorForDocument(this.document);
         }
         
-        if (this.document._model._editor === this) {
+        if (this.document._masterEditor === this) {
             // Master editor:
             // we're the ground truth; nothing else to do, since everyone else will sync from us
             // note: this change might have been a real edit made by the user, OR this might have
@@ -314,7 +321,7 @@ define(function (require, exports, module) {
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
             this._duringSync = true;
-            this.document._model.setText(this._getText());
+            this.document.setText(this._getText());
             this._duringSync = false;
         }
     }
@@ -326,7 +333,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        if (this.document._model && this.document._model._editor === this) {
+        if (this.document._masterEditor === this) {
             // Master editor:
             // we're the ground truth; Document change is just echoing that our editor changed
         } else {
