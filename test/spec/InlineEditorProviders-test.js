@@ -77,12 +77,26 @@ define(function (require, exports, module) {
                     return docs["test1.html"].editor.getInlineWidgets().length > 0;
                 }, "inline editor timeout", 1000);
                 
+                var widgetHeight;
                 runs(function () {
                     inlineData = test1html.editor.getInlineWidgets()[0].data;
+                    widgetHeight = inlineData.editor.totalHeight(true);
                     var inlinePos = inlineData.editor.getCursorPos();
                     expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
+                    expect(inlineData.editor.lineCount()).toBe(8);
                 });
+
+                // verify widget resizes when contents is changed
+                runs(function () {
+                    var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
+                    inlineData.editor.setText(inlineData.editor.getText() + newLines);
+                    expect(inlineData.editor.lineCount()).toBe(13);
+                    expect(inlineData.editor.totalHeight(true)).toBeGreaterThan(widgetHeight);
+                });
+
+
             });
+
         });
     });
 });
