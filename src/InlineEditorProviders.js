@@ -37,7 +37,10 @@ define(function (require, exports, module) {
      * @private
      */
     function _showDirtyIndicator($indicatorDiv, isDirty) {
-        $indicatorDiv.css("visibility", isDirty ? "" : "hidden");
+        // Show or hide the dirty indicator by adjusting
+        // the width of the div. The "hidden" width is 
+        // 4 pixels to make the padding look correct.
+        $indicatorDiv.css("width", isDirty ? 16 : 4);
     }
     
     /**
@@ -178,7 +181,7 @@ define(function (require, exports, module) {
     function _createInlineEditorDecorations(editor, fileEntry) {
         // create the filename div
         var filenameDiv = $('<div class="filename" style="visibility: hidden"/>')
-            .append('<div class="dirty-indicator" style="visibility: hidden"/>')
+            .append('<div class="dirty-indicator"/>')
             .append(fileEntry.name);
         
         // add inline editor styling
