@@ -214,14 +214,13 @@ define(function (require, exports, module) {
         var inlineEditor = _createEditorFromText(text, sourceFile.fullPath, inlineContent, closeThisInline);
 
         // Update the inline editor's height when the number of lines change
-        var prevLineCount;
+        var prevHeight;
         function sizeInlineEditorToContents() {
-            var lineCount = inlineEditor.lineCount();
-            if (lineCount !== prevLineCount) {
-                prevLineCount = lineCount;
-                var widgetHeight = inlineEditor.totalHeight(true);
-                hostEditor.setInlineWidgetHeight(myInlineId, widgetHeight, true);
-                $(inlineEditor.getScrollerElement()).height(widgetHeight);
+            var height = inlineEditor.totalHeight(true);
+            if (height !== prevHeight) {
+                prevHeight = height;
+                hostEditor.setInlineWidgetHeight(myInlineId, height, true);
+                $(inlineEditor.getScrollerElement()).height(height);
                 inlineEditor.refresh();
             }
         }
