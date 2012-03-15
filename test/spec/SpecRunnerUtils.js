@@ -3,7 +3,9 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var FileUtils   = require("FileUtils");
+    var FileUtils          = require("FileUtils"),
+        NativeFileSystem   = require("NativeFileSystem").NativeFileSystem,
+        DocumentManager    = require("DocumentManager");
     
     var TEST_PREFERENCES_KEY = "com.adobe.brackets.test.preferences",
         testWindow;
@@ -27,10 +29,28 @@ define(function (require, exports, module) {
         path.push("src");
         return path.join("/");
     }
+    
+    function createDummyDocument(initialContent) {
+        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_" + nextDummyFileSuffix + ".js");
+        nextDummyFileSuffix++;
+        var realDocument = new DocumentManager.Document(dummyFile, 0, initialContent);
+        
+        realDocument.addRef = function () {};
+        realDocument.releaseRef = function () {};
+        realDocument._handleEditorChange = function () {
+            this.isDirty = true;
+            $(this).triggerHandler("change", [this]);
+        };
+        realDocument.notifySaved = function () {
+            throw new Error("Cannot notifySaved() a unit-test dummy Document");
+        };
+        return realDocument;
+    }
+    var nextDummyFileSuffix = 1;
 
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
-            testWindow = window.open(getBracketsSourceRoot() + "/index.html");
+            testWindow = window.open(getBracketsSourceRoot() + "/index.html", "_blank", "left=400,top=200,width=1000,height=700");
         });
 
         // FIXME (issue #249): Need an event or something a little more reliable...
@@ -86,6 +106,7 @@ define(function (require, exports, module) {
     exports.getTestRoot             = getTestRoot;
     exports.getTestPath             = getTestPath;
     exports.getBracketsSourceRoot   = getBracketsSourceRoot;
+    exports.createDummyDocument     = createDummyDocument;
     exports.createTestWindowAndRun  = createTestWindowAndRun;
     exports.closeTestWindow         = closeTestWindow;
     exports.loadProjectInTestWindow = loadProjectInTestWindow;

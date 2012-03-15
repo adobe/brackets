@@ -9,23 +9,29 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeHintUtils = require("CodeHintUtils"),
-        Editor        = require("Editor").Editor;
+    var CodeHintUtils   = require("CodeHintUtils"),
+        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+        Editor          = require("Editor").Editor;
     
     //Use a clean version of the editor each time
+    var myDocument;
     var myEditor;
     beforeEach(function () {
-        // init CodeMirror instance
+        // init Editor instance (containing a CodeMirror instance)
         $("body").append("<div id='editor'/>");
-        myEditor = new Editor("", "", $("#editor").get(0), {});
+        myDocument = SpecRunnerUtils.createDummyDocument("");
+        myEditor = new Editor(myDocument, "", $("#editor").get(0), {});
+        myDocument.makeEditable(myEditor);
     });
 
     afterEach(function () {
-        $("#editor").remove();
+        myEditor.destroy();
         myEditor = null;
+        $("#editor").remove();
+        myDocument = null;
     });
     
-    function getContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
+    function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
         pos.line = linesBefore.length;
         pos.ch = hintLineBefore.length;
         var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
@@ -33,7 +39,10 @@ define(function (require, exports, module) {
         if (linesAfter) {
             finalLines = finalLines.concat(linesAfter);
         }
-        return finalLines.join("\n");
+        
+        var content = finalLines.join("\n");
+        // myDocument.setText(content);
+        myEditor._setText(content);
     }
     
     
@@ -54,184 +63,168 @@ define(function (require, exports, module) {
             
             it("should find an attribute as a tag is getting typed", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p class="');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class"));
             });
             
             it("should find an attribute as it's added to a tag", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>', '<div class="clearfix">'],
                     '<p id="', '>test</p>',
                     [ '</div>', '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "id"));
             });
             
             it("should find an attribute as the value is typed", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>', '<div class="clearfix">'],
                     '<p id="one', '>test</p>',
                     [ '</div>', '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "id", "one"));
             });
             
             it("should not find an attribute as text is added", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p id="foo">tricky="', '</p>',
                     [ '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
             it("should find the attribute value if present", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p class="foo"', '></p>',
                     [ '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p class="foo', ' bar"></p>',
                     [ '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
             });
             
             it("should find the attribute value even when there is space around the =", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p class = "foo"', '></p>',
                     [ '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
             it("should find the attribute value when the IP is after the =", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p class=', '"foo"></p>',
                     [ '</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class", "foo"));
             });
             
             it("should find the tagname as it's typed", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<di');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 2, "di"));
             });
             
             it("should hint tagname as the open < is typed", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<p>test</p><');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME));
             });
             
             it("should find the tagname of the current tag if two tags are right next to each other", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<div><span');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 4, "span"));
             });
             
             it("should hint attributes even if there is a lot of space between the tag name and the next attr name", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<div><li  ', '  id="foo"');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "li"));
             });
             
             it("should find the tagname as space is typed before the attr name is added", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<div><span ');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "span"));
             });
             
             it("should not hint anything after the tag is closed", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<div><span>');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
             it("should not hint anything after a closing tag", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
                     '<div><span></span>', '</div>',
                     ['</body>', '</html>']);
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
             
             it("should not hint anything inside a closing tag", function () {
                 var pos = {"ch": 0, "line": 0};
-                var content = getContentAndUpdatePos(pos,
+                setContentAndUpdatePos(pos,
                     ['<html>', '<body>', '<div id="test" class="foo"></div>'],
                     '</body></ht', 'ml>');
                 
-                myEditor.setText(content);
                 var tag = CodeHintUtils.getTagInfo(myEditor, pos);
                 expect(tag).toEqual(CodeHintUtils.createTagInfo());
             });
