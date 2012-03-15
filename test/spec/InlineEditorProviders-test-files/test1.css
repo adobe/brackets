@@ -1,8 +1,8 @@
-div {
+{{0}}div {
     margin: 0;
     padding: 0;
 }
 
-.foo {
+{{1}}.foo {
     color: #f00;
 }
