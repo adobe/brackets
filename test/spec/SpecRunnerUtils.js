@@ -139,7 +139,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return {offsets: offsets, text: output.join("")};
+        return {offsets: offsets, text: output.join(""), original: text};
     }
     
     /**
@@ -187,6 +187,30 @@ define(function (require, exports, module) {
             });
         
         return result.promise();
+    }
+    
+    function saveFileWithoutOffsets(path) {
+        var result = new $.Deferred(),
+            fileEntry = new NativeFileSystem.FileEntry(path);
+        
+        parseOffsetsFromFile(fileEntry).done(function (info) {
+            // Write TODO
+            result.resolve(info);
+        });
+        
+        return result.promise();
+    }
+    
+    /**
+     * Set editor cursor position to the given offset then activate an inline editor.
+     * @param {!Editor} editor
+     * @param {!{{line:number, ch:number}}} 
+     */
+    function openInlineEditorAtOffset(editor, offset) {
+        editor.setCursorPos(offset.line, offset.ch);
+        
+        // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
+        testWindow.brackets.test.EditorManager._openInlineWidget(editor);
     }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;

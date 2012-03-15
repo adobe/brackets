@@ -51,11 +51,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return info && !err; }, "FILE_OPEN timeout", 1000);
                 
                 runs(function () {
-                    var offset0 = info.offsets[0];
-                    editor.setCursorPos(offset0.line, offset0.ch);
-                    
-                    // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
-                    EditorManager._openInlineWidget(editor);
+                    SpecRunnerUtils.openInlineEditorAtOffset(editor, info.offsets[0]);
                 });
                 
                 waitsFor(function () {
