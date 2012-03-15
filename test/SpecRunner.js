@@ -21,6 +21,7 @@ define(function (require, exports, module) {
     require("spec/NativeFileSystem-test.js");
     require("spec/PreferencesManager-test.js");
     require("spec/Editor-test.js");
+    require("spec/EditorManager-test.js");
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
     require("spec/KeyMap-test.js");

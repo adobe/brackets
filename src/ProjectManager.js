@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                 }
                 return false;
             });
-        } else {
+        } else if( _projectTree !== null ) {
             _projectTree.jstree("deselect_all");
         }
     });
