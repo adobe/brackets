@@ -563,9 +563,9 @@ define(function (require, exports, module) {
     function _init() {
         var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
 
-        // if (!prefs.files) {
+        if (!prefs.files) {
             return;
-        // }
+        }
 
         var projectRoot = ProjectManager.getProjectRoot(),
             filesToOpen = [],
@@ -576,22 +576,7 @@ define(function (require, exports, module) {
         function loadOneFile(value, index) {
             var oneFileResult = new $.Deferred();
             
-            // // check if the file still exists (not an error if it doesn't, though)
-            // projectRoot.getFile(value.file, {},
-            //     function (fileEntry) {
-            //         // maintain original sequence
-            //         filesToOpen[index] = fileEntry;
-
-            //         if (value.active) {
-            //             activeFile = fileEntry;
-            //         }
-            //         oneFileResult.resolve();
-            //     },
-            //     function (error) {
-            //         filesToOpen[index] = null;
-            //         oneFileResult.resolve();
-            //     });
-            
+            // load files into Documents; silently ignore if file no longer exists
             getDocument(value.file)
                 .done(function (doc) {
                     filesToOpen[index] = doc;
@@ -608,16 +593,24 @@ define(function (require, exports, module) {
             return oneFileResult;
         }
 
-        var result = Async.doInParallel(prefs.files, checkOneFile, false);
+        var result = Async.doInParallel(prefs.files, loadOneFile, false);
 
         result.done(function () {
-            var activeDoc,
-                doc;
-
             // Add all existing files to the working set
-            filesToOpen.forEach(function (value, index) {
-                if (value) {
-                    addToWorkingSet(value);
+            // FIXME: for now, we're creating editors for them too at startup; otherwise nothing
+            // keeps the Documents we just created alive, and thus the working set would contain
+            // Documents that are not actually kept up to date
+            // Possible fixes:
+            //  1. be ok with working set Docs being "stale"; refresh them before loading if they don't have a backing editor
+            //  2. make adding to the working set addRef() the Doc (NJ didn't like this - EditorManager should own Doc rooting)
+            //  3. the set of Docs we keep in syn is the union openDocs (all Doccs with > 0 refCount) PLUS anything else in the working set
+            //     (which is sort of a loophole that's otherwise equivalent to option 2)
+            //  4. make the working set a list of filenames instead of Docs; complicates live for WorkingSetView though, since
+            //     it also cares if they're dirty and you can only find that out from a Doc
+            filesToOpen.forEach(function (doc, index) {
+                if (doc) {
+                    addToWorkingSet(doc);
+                    showInEditor(doc);
                 }
             });
 
