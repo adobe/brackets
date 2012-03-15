@@ -33,6 +33,17 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Shows or hides the dirty indicator
+     * @private
+     */
+    function _showDirtyIndicator($indicatorDiv, isDirty) {
+        // Show or hide the dirty indicator by adjusting
+        // the width of the div. The "hidden" width is 
+        // 4 pixels to make the padding look correct.
+        $indicatorDiv.css("width", isDirty ? 16 : 4);
+    }
+    
+    /**
      * Returns editor holder width (not CodeMirror's width).
      * @private
      */
@@ -54,6 +65,24 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Respond to dirty flag change event. If the dirty flag is associated with an inline editor,
+     * show (or hide) the dirty indicator.
+     * @private
+     */
+    function _dirtyFlagChangeHandler(event, doc) {
+        
+        _htmlToCSSProviderContent.forEach(function (value) {
+            var $filenameDiv = $(value).find(".filename");
+            // This only checks filename here. If there are multiple documents with the same filename
+            // (in different directories), this test will fail.
+            // TODO: This needs to be fixed by connecting this method with a specific inline editor's state
+            if ($filenameDiv.text() === doc.file.name) {
+                _showDirtyIndicator($filenameDiv.find(".dirty-indicator"), doc.isDirty);
+            }
+        });
+    }
+    
+    /**
      * Stops tracking an editor after being removed from the document.
      * @private
      */
@@ -66,7 +95,8 @@ define(function (require, exports, module) {
         
         // stop listening for resize when all inline editors are closed
         if (_htmlToCSSProviderContent.length === 0) {
-            $(window).unbind("resize", _updateAllFilenames);
+            $(window).off("resize", _updateAllFilenames);
+            $(DocumentManager).off("dirtyFlagChange", _dirtyFlagChangeHandler);
         }
     }
 
@@ -137,9 +167,11 @@ define(function (require, exports, module) {
      * TODO (issue #424): move to createInlineEditorFromText()
      * @private
      */
-    function _createInlineEditorDecorations(editor, filename) {
+    function _createInlineEditorDecorations(editor, doc) {
         // create the filename div
-        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>').text(filename);
+        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>')
+            .append('<div class="dirty-indicator"/>')
+            .append(doc.file.name);
         
         // add inline editor styling
         $(editor.getScrollerElement())
@@ -151,6 +183,7 @@ define(function (require, exports, module) {
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
             _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), doc.isDirty);
             filenameDiv.css("visibility", "");
         }, 0);
     }
@@ -197,14 +230,15 @@ define(function (require, exports, module) {
                     
                     // track inlineEditor content removal
                     inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
-                    _createInlineEditorDecorations(inlineInfo.editor, rule.document.file.name);
+                    _createInlineEditorDecorations(inlineInfo.editor, rule.document);
                     
                     _htmlToCSSProviderContent.push(inlineInfo.content);
                     
-                    // Manaully position filename div's. Can't use CSS positioning in this case
+                    // Manually position filename div's. Can't use CSS positioning in this case
                     // since the label is relative to the window boundary, not CodeMirror.
                     if (_htmlToCSSProviderContent.length > 0) {
-                        $(window).bind("resize", _updateAllFilenames);
+                        $(window).on("resize", _updateAllFilenames);
+                        $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
                     }
                     
                     result.resolve(inlineInfo);

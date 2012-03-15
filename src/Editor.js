@@ -500,21 +500,11 @@ define(function (require, exports, module) {
      * @return {number} id for this inline widget instance; unique to this Editor
      */
     Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, data) {
-        // If any other inline widget is alrady open on this line, CodeMirror will automatically
-        // close it. Also, CodeMirror may have already disposed of one of the existing widgets due
-        // to an edit. We don't want to leak an _inlineWidgets entry, so check for these cases and
-        // remove it manually instead. When we fix issue #426 this should no longer be necessary here.
-        var i;
-        for (i = 0; i < this._inlineWidgets.length; i++) {
-            var info = this._codeMirror.getInlineWidgetInfo(this._inlineWidgets[i].id);
-            if (!info || (info.line === pos.line)) {
-                this.removeInlineWidget(this._inlineWidgets[i].id);
-                break;
-            }
-        }
-        
         // Now add the new widget
-        var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight);
+        var self = this;
+        var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
+            self._removeInlineWidgetInternal(id);
+        });
         this._inlineWidgets.push({ id: inlineId, data: data });
         
         return inlineId;
@@ -525,8 +515,15 @@ define(function (require, exports, module) {
      * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype.removeInlineWidget = function (inlineId) {
+        // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
         this._codeMirror.removeInlineWidget(inlineId);
-        
+    };
+    
+    /**
+     * Cleans up the given inline widget from our internal list of widgets.
+     * @param {number} inlineId  id returned by addInlineWidget().
+     */
+    Editor.prototype._removeInlineWidgetInternal = function (inlineId) {
         var i;
         for (i = 0; i < this._inlineWidgets.length; i++) {
             if (this._inlineWidgets[i].id === inlineId) {
