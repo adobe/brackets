@@ -5,7 +5,8 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         Commands            = require("Commands"),
-        FileUtils           = require("FileUtils");
+        FileUtils           = require("FileUtils"),
+        Async               = require("Async");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
@@ -93,7 +94,7 @@ define(function (require, exports, module) {
     /**
      * Parses offsets from text offset markup (e.g. "{{1}}" for offset 1).
      * @param {!string} in Text to parse
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:string}} 
+     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, text:string, original:string}} 
      */
     function parseOffsetsFromText(text) {
         var offsets = [],
@@ -101,7 +102,7 @@ define(function (require, exports, module) {
             i       = 0,
             line    = 0,
             char    = 0,
-            ch      = null,
+            ch      = 0,
             length  = text.length,
             exec    = null,
             found   = false;
@@ -143,15 +144,35 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Creates absolute paths based on the test window's current project
+     * @param {!{Array.<string>}} paths Project relative file paths to convert
+     * @return {!{Array.<string>}}
+     */
+    function makeAbsolute(paths) {
+        var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
+        
+        if (Array.isArray(paths)) {
+            return paths.map(function (path) {
+                return fullPath + path;
+            });
+        } else {
+            return fullPath + paths;
+        }
+    }
+    
+    /**
      * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
      * @param {!FileEntry} entry File to open
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:string}} 
+     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}} 
      */
     function parseOffsetsFromFile(entry) {
         var result = new $.Deferred();
         
         FileUtils.readAsText(entry).done(function (text) {
-            result.resolve(parseOffsetsFromText(text));
+            var info = parseOffsetsFromText(text);
+            info.fileEntry = entry;
+            
+            result.resolve(info);
         }).fail(function (err) {
             result.reject(err);
         });
@@ -160,45 +181,103 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Opens a file path in the test window and parses offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!string} text Text to parse
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, document:{!Document}}} 
+     * Opens project relative file paths in the test window
+     * @param {!{Array.<string>}} paths Project relative file paths to open
+     * @return {!{Array.<string>}}
      */
-    function openFileWithOffsets(path) {
-        var result = new $.Deferred();
+    function openProjectFiles(paths) {
+        var result = new $.Deferred(),
+            fullpaths = makeAbsolute(paths),
+            docs = [];
         
-        var fileOpen = testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path})
-            .done(function (doc) {
-                var text = doc.getText();
-                
-                // parse offset data
-                var info = parseOffsetsFromText(text);
-                
-                // reset document to remove offset markup
-                doc.editor.resetText(info.text);
-                
-                // return document with offset info
-                info.document = doc;
-                
-                result.resolve(info);
-            })
-            .fail(function () {
-                result.reject();
+        if (!Array.isArray(fullpaths)) {
+            fullpaths = [fullpaths];
+        }
+        
+        Async.doSequentially(fullpaths, function (path, i) {
+            var one = new $.Deferred();
+            
+            testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path}).done(function (doc) {
+                docs[paths[i]] = docs[i] = doc;
+                one.resolve();
+            }).fail(function () {
+                one.reject();
             });
+            
+            return one.promise();
+        }, false).done(function () {
+            result.resolve(docs);
+        }).fail(function () {
+            result.reject();
+        });
         
         return result.promise();
     }
     
+    /**
+     * Opens a file path, parses offset markup then saves the results to the original file.
+     * @param {!string} path Project relative file path to open
+     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}} 
+     */
     function saveFileWithoutOffsets(path) {
         var result = new $.Deferred(),
             fileEntry = new NativeFileSystem.FileEntry(path);
         
         parseOffsetsFromFile(fileEntry).done(function (info) {
-            // Write TODO
-            result.resolve(info);
+            // rewrite file without offset markup
+            FileUtils.writeText(fileEntry, info.text).done(function () {
+                result.resolve(info);
+            }).fail(function () {
+                result.reject();
+            });
+        }).fail(function () {
+            result.reject();
         });
         
         return result.promise();
+    }
+    
+    
+    /**
+     * Opens an array of file paths, parses offset markup then saves the results to each original file.
+     * @param {!Array.<string>} paths Project relative file paths to open
+     * @return {!Array.<{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}>} 
+     */
+    function saveFilesWithoutOffsets(paths) {
+        var result = new $.Deferred(),
+            infos  = [],
+            fullpaths = makeAbsolute(paths);
+        
+        if (!Array.isArray(fullpaths)) {
+            fullpaths = [fullpaths];
+        }
+        
+        var parallel = Async.doSequentially(fullpaths, function (path, i) {
+            var one = new $.Deferred();
+        
+            saveFileWithoutOffsets(path).done(function (info) {
+                infos[paths[i]] = infos[i] = info;
+                one.resolve();
+            }).fail(function () {
+                one.reject();
+            });
+        
+            return one.promise();
+        }, false);
+        
+        parallel.done(function () {
+            result.resolve(infos);
+        }).fail(function () {
+            result.reject();
+        });
+        
+        return result.promise();
+    }
+    
+    function saveFilesWithOffsets(infos) {
+        return Async.doInParallel(infos, function (info) {
+            return FileUtils.writeText(info.fileEntry, info.original);
+        }, false);
     }
     
     /**
@@ -215,11 +294,15 @@ define(function (require, exports, module) {
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
-    exports.getTestRoot             = getTestRoot;
-    exports.getTestPath             = getTestPath;
-    exports.getBracketsSourceRoot   = getBracketsSourceRoot;
-    exports.createTestWindowAndRun  = createTestWindowAndRun;
-    exports.closeTestWindow         = closeTestWindow;
-    exports.loadProjectInTestWindow = loadProjectInTestWindow;
-    exports.openFileWithOffsets     = openFileWithOffsets;
+    exports.getTestRoot                 = getTestRoot;
+    exports.getTestPath                 = getTestPath;
+    exports.getBracketsSourceRoot       = getBracketsSourceRoot;
+    exports.createTestWindowAndRun      = createTestWindowAndRun;
+    exports.closeTestWindow             = closeTestWindow;
+    exports.loadProjectInTestWindow     = loadProjectInTestWindow;
+    exports.openProjectFiles            = openProjectFiles;
+    exports.openInlineEditorAtOffset    = openInlineEditorAtOffset;
+    exports.saveFilesWithOffsets        = saveFilesWithOffsets;
+    exports.saveFilesWithoutOffsets     = saveFilesWithoutOffsets;
+    exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
 });

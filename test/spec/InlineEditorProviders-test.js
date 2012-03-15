@@ -15,7 +15,8 @@ define(function (require, exports, module) {
     describe("InlineEditorProviders", function () {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
-            testWindow;
+            testWindow,
+            infos;
 
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
@@ -26,40 +27,60 @@ define(function (require, exports, module) {
         });
 
         afterEach(function () {
+            // revert files to original content with offset markup
+            SpecRunnerUtils.saveFilesWithOffsets(infos);
             SpecRunnerUtils.closeTestWindow();
         });
 
         describe("htmlToCSSProvider", function () {
 
-            it("TODO", function () {
-                var info        = null,
-                    editor      = null,
+            it("Opens a type selector", function () {
+                var docs        = null,
+                    test1html   = null,
                     err         = false,
                     inlineData  = null;
                 
+                // load project to set CSSUtils scope
                 runs(function () {
-                    SpecRunnerUtils.openFileWithOffsets(testPath + "/test1.html")
-                        .done(function (result) {
-                            info = result;
-                            editor = info.document.editor;
-                        })
-                        .fail(function () {
-                            err = true;
-                        });
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
                 });
                 
-                waitsFor(function () { return info && !err; }, "FILE_OPEN timeout", 1000);
+                // rewrite files without offsets
+                runs(function () {
+                    SpecRunnerUtils.saveFilesWithoutOffsets(["test1.html", "test1.css"]).done(function (fileInfos) {
+                        infos = fileInfos;
+                    }).fail(function () {
+                        err = true;
+                    });
+                });
+                
+                waitsFor(function () { return (infos !== null) && !err; }, "rewrite timeout", 1000);
                 
                 runs(function () {
-                    SpecRunnerUtils.openInlineEditorAtOffset(editor, info.offsets[0]);
+                    // open test1.html
+                    SpecRunnerUtils.openProjectFiles(["test1.html"]).done(function (documents) {
+                        docs = documents;
+                        test1html = docs["test1.html"];
+                    }).fail(function () {
+                        err = true;
+                    });
+                });
+                
+                waitsFor(function () { return (docs !== null) && !err; }, "FILE_OPEN timeout", 1000);
+                
+                runs(function () {
+                    // open inline editor at <div...>
+                    SpecRunnerUtils.openInlineEditorAtOffset(docs["test1.html"].editor, infos["test1.html"].offsets[0]);
                 });
                 
                 waitsFor(function () {
-                    return editor.getInlineWidgets().length > 0;
+                    return docs["test1.html"].editor.getInlineWidgets().length > 0;
                 }, "inline editor timeout", 1000);
                 
                 runs(function () {
-                    inlineData = editor.getInlineWidgets()[0].data;
+                    inlineData = test1html.editor.getInlineWidgets()[0].data;
+                    var inlinePos = inlineData.editor.getCursorPos();
+                    expect(inlinePos).toEqual(infos["test1.css"].offsets[0]);
                 });
             });
         });

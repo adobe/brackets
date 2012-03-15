@@ -159,5 +159,6 @@ define(function (require, exports, module) {
     exports.showFileOpenError        = showFileOpenError;
     exports.getFileErrorString       = getFileErrorString;
     exports.readAsText               = readAsText;
+    exports.writeText                = writeText;
     exports.convertToNativePath      = convertToNativePath;
 });
