@@ -26,7 +26,26 @@ define(function (require, exports, module) {
         CommandManager      = require("CommandManager"),
         EditorManager       = require("EditorManager"),
         Commands            = require("Commands"),
-        ProjectManager      = require("ProjectManager");
+        ProjectManager      = require("ProjectManager"),
+        QuickOpenJSSymbol   = require("QuickOpenJSSymbol");
+
+
+    var providers = [];
+
+    function addProvider(provider) {
+        providers.push(provider);
+    }
+
+    function QuickOpenProvider( fileTypes, sortAndFilter, match, itemFocus, itemSelect, resultsFormatter, trigger, combineWithFileSearch){
+        this.fileTypes = []; // default: all
+        this.sortAndFilter = sortAndFilter;
+        this.match = match;
+        this.itemFocus = itemFocus;
+        this.itemSelect = itemSelect;
+        this.trigger = trigger;
+        this.resultsFormatter = resultsFormatter;
+        this.combineWithFileSearch = combineWithFileSearch
+    }
 
     /**
     * FileLocation class
@@ -37,7 +56,7 @@ define(function (require, exports, module) {
         this.fullPath = fullPath;
         this.line = line;
         this.column = column;
-        this.functionName = functionName
+        this.functionName = functionName;
     }
 
     /**
@@ -77,7 +96,7 @@ define(function (require, exports, module) {
 
         if(this.fileLocation && !this.fileLocation.function) {
             // extract line number
-            var regInfo = query.match(/(!?:)(\d+)/);
+            var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
             if(regInfo) {
                 this.fileLocation.line = regInfo[2] - 1;
             } else {
@@ -200,7 +219,7 @@ define(function (require, exports, module) {
                 }
 
                 // Create the auto suggest list of filenames
-                that._generateFunctionList();
+                that.functionList = QuickOpenJSSymbol.generateFunctionList();
                 suggestList = filelistResult.concat(that.functionList);
 
                 that.searchField.smartAutoComplete({
@@ -230,7 +249,7 @@ define(function (require, exports, module) {
                             // TODO: make function
                             var from = {line: that.fileLocation.line, ch: that.fileLocation.column};
                             var to = {line: that.fileLocation.line, ch: that.fileLocation.column + that.fileLocation.functionName.length};
-                            DocumentManager.getCurrentDocument().setSelection(from, to);
+                            DocumentManager.getCurrentDocument().editor.setSelection(from, to);
                         }
                     },
 
@@ -280,32 +299,7 @@ define(function (require, exports, module) {
         this.fileLocation.line = undefined;
     }
 
-    QuickNavigateDialog.prototype._generateFunctionList = function () {
-        this.functionList = [];
 
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var docText = doc.getText();
-        
-        var regex = new RegExp(/(function\b)(.+)\b\(/gi);
-        var info, i, line;
-
-        var lines = docText.split("\n");
-
-        for (i = 0; i < lines.length; i++) {
-            line = lines[i];
-            info = regex.exec(line);
-
-            if (info) {
-                var funcName = $.trim(info[2]);
-                this.functionList.push(new FileLocation(null, i, line.indexOf(funcName), funcName));
-                //console.log(info[2]);
-            }
-        }
-    }
 
         
     /**
@@ -327,11 +321,11 @@ define(function (require, exports, module) {
                     if (fileLocation.functionName) {
                         var from = {line: fileLocation.line, ch: fileLocation.column};
                         var to = {line: fileLocation.line, ch: fileLocation.column + fileLocation.functionName.length};
-                        DocumentManager.getCurrentDocument().setSelection(from, to);
+                        DocumentManager.getCurrentDocument().editor.setSelection(from, to);
                     } else if (fileLocation.line) {
                         var from = {line: fileLocation.line, ch: 0};
                         var to = {line: fileLocation.line, ch: 0};
-                        DocumentManager.getCurrentDocument().setSelection(from, to);
+                        DocumentManager.getCurrentDocument().editor.setSelection(from, to);
                     }
 
                     EditorManager.focusEditor();
@@ -340,4 +334,8 @@ define(function (require, exports, module) {
     }
 
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE, doFileSearch);
+
+
+    exports.FileLocation = FileLocation;
+    exports.QuickOpenProvider = QuickOpenProvider;
 });
