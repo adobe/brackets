@@ -163,10 +163,11 @@ define(function (require, exports, module) {
             // Show result summary in header
             $("#search-result-summary")
                 .text(" - " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
-                      " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : ""));
+                      " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : "") +
+                     (numMatches > 100 ? " (showing the first 100 matches)" : ""));
             
-            searchResults.forEach(function (item) {
-                if (item) {
+            searchResults.forEach(function (item, i) {
+                if (item && i < 100) {
                     var makeCell = function (content) {
                         return $("<td/>").html(content);
                     };
@@ -190,7 +191,7 @@ define(function (require, exports, module) {
                     item.matches.forEach(function (match) {
                         var row = $("<tr/>")
                             .append(makeCell(" "))      // Indent
-                            .append(makeCell("line: " + (match.start.line + 1)))
+                            .append(makeCell("line: " + (match.start.line + 1)).css("width", 60))
                             .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
                             .appendTo(resultTable);
                         
