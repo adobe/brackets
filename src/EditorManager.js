@@ -509,8 +509,11 @@ define(function (require, exports, module) {
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);
     
+    // For unit tests
+    exports._openInlineWidget = _openInlineWidget;
+    exports._closeInlineWidget = _closeInlineWidget;
+    
     // Define public API
-    exports._openInlineWidget = _openInlineWidget; /* for inline editor unit tests */
     exports.setEditorHolder = setEditorHolder;
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;

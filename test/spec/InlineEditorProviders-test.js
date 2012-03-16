@@ -12,6 +12,7 @@ define(function (require, exports, module) {
         EditorManager,      // loaded from brackets.test
         FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
+        FileUtils       = require("FileUtils"),
         SpecRunnerUtils = require("./SpecRunnerUtils.js");
 
     describe("InlineEditorProviders", function () {
@@ -109,7 +110,9 @@ define(function (require, exports, module) {
             });
     
             afterEach(function () {
-                waits(2000);
+                //debug visual confirmation of inline editor
+                //waits(1000);
+                
                 // revert files to original content with offset markup
                 SpecRunnerUtils.saveFilesWithOffsets(inlineTest.infos);
                 SpecRunnerUtils.closeTestWindow();
@@ -148,6 +151,31 @@ define(function (require, exports, module) {
                     
                     // verify cursor position in inline editor
                     expect(inlinePos).toEqual(inlineTest.infos["test1.css"].offsets[2]);
+                });
+            });
+
+            it("Closes, removes the inline widget and restores focus", function () {
+                initInlineTest("test1.html", 0);
+                
+                var fullEditor, inlineWidget, inlinePos, savedPos;
+                
+                runs(function () {
+                    fullEditor =  EditorManager.getCurrentFullEditor();
+                    savedPos = fullEditor.getCursorPos();
+                    inlineWidget = fullEditor.getInlineWidgets()[0];
+                    inlinePos = inlineWidget.data.editor.getCursorPos();
+                    
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(inlineTest.infos["test1.css"].offsets[0]);
+                    
+                    // close the editor
+                    EditorManager._closeInlineWidget(fullEditor, inlineWidget.id, true);
+                    
+                    // verify no inline widgets 
+                    expect(fullEditor.getInlineWidgets().length).toBe(0);
+                    
+                    // verify full editor cursor restored
+                    expect(savedPos).toEqual(fullEditor.getCursorPos());
                 });
             });
 
@@ -191,6 +219,8 @@ define(function (require, exports, module) {
                 runs(function () {
                     // change inline editor content
                     var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
+                    
+                    // set text on the editor, can't mutate document directly at this point
                     inlineData.editor._setText(inlineDoc.getText() + newLines);
                     
                     // verify widget resizes when contents is changed
@@ -229,6 +259,56 @@ TypeError: Cannot read property 'line' of undefined
                     // verify widget resizes when contents is changed
                     expect(inlineData.editor.lineCount()).toBe(2);
                     expect(inlineData.editor.totalHeight(true)).toBeLessThan(widgetHeight);
+                });
+            });
+            
+            it("Save changes from inline editor ", function () {
+                initInlineTest("test1.html", 1);
+                
+                var saved = false,
+                    err = false,
+                    inlineData,
+                    inlineDoc,
+                    newText,
+                    savedText;
+                
+                runs(function () {
+                    inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
+                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
+                        inlineDoc = doc;
+                    });
+                });
+                
+                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
+                
+                runs(function () {
+                    // set text on the editor, can't mutate document directly at this point
+                    newText = inlineDoc.getText() + "\n/* jasmine was here */";
+                    inlineData.editor._setText(newText);
+                    
+                    // execute file save command
+                    testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
+                        saved = true;
+                    }).fail(function () {
+                        err = true;
+                    });
+                });
+                
+                waitsFor(function () { return saved && !err; }, "save timeout", 1000);
+                
+                runs(function () {
+                    // read saved file contents
+                    FileUtils.readAsText(inlineDoc.file).done(function (text) {
+                        savedText = text;
+                    }).fail(function () {
+                        err = true;
+                    });
+                });
+                
+                waitsFor(function () { return savedText !== null; }, "readAsText timeout", 1000);
+                
+                runs(function () {
+                    expect(savedText).toEqual(newText);
                 });
             });
 
