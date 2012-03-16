@@ -91,6 +91,9 @@ define(function (require, exports, module) {
                 that._close(query);
             }
         })
+            .blur(function () {
+                that._close(null);
+            })
             .focus();
         
         return this.result;
