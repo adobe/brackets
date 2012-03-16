@@ -6,3 +6,7 @@
 {{1}}.foo {
     color: #f00;
 }
+
+{{2}}#myDiv {
+    display: block;
+}
