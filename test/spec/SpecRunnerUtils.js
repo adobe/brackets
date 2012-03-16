@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         // Use unique filename to avoid collissions in open documents list
         var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
         
-        var docToShim = new DocumentManager.Document(dummyFile, 0, initialContent);
+        var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
         
         // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
         // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())

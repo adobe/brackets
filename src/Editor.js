@@ -8,7 +8,15 @@
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
  * functionality and provides APIs that cleanly pass through the bits of CodeMirror that the rest
- * of our codebase may want to interact with.
+ * of our codebase may want to interact with. An Editor is always backed by a Document, and stays
+ * in sync with its content; because Editor keeps the Document alive, it's important to always
+ * destroy() an Editor that's going away so it can release its Document ref.
+ *
+ * For now, there's a distinction between the "master" Editor for a Document - which secretly acts
+ * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
+ * which, via Document, sync their changes to and from that master.
+ * Note: in sprint 5, secondary Editors only sync TO the Document; they cannot sync FROM the Document
+ * if anyone else changes it (see lostSync event below).
  *
  * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
  * but this is considered deprecated and may go away.
@@ -171,11 +179,13 @@ define(function (require, exports, module) {
     
 
     /**
-     * Creates a new CodeMirror editor instance containing the given Document's text. The editor's mode is set
-     * based on the given filename's extension (the actual file on disk is never examined).
+     * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
+     * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
+     * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
+     * Document modifiable.
      *
      * @param {!Document} document  
-     * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the private "master"
+     * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
      *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
      *          secondary editor.
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
@@ -187,16 +197,11 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, mode, container, additionalKeys) {
         var self = this;
         
-        console.log("Create editor for "+document);
-        
         // Attach to document
         this.document = document;
         document.addRef();
-        this._handleDocumentChangeWrapper = function () {   // store so we can remove later
-            self._handleDocumentChange();
-        };
-        $(document).on("change", this._handleDocumentChangeWrapper);
-        // TODO: a ways back, we said the right answer here is to overwrite instance method with .bind() result... works?
+        this._handleDocumentChange = this._handleDocumentChange.bind(this); // store bound version to we can remove listener later
+        $(document).on("change", this._handleDocumentChange);
         
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
@@ -288,28 +293,32 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Removes this editor from the DOM and detaches from the Document. If this is the "master"
+     * Editor that is secretly providing the Document's backing state, then the Document reverts to
+     * a read-only string-backed mode.
+     */
     Editor.prototype.destroy = function () {
-        console.log("Destroy editor for "+this.document);
-        
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
         $(this._codeMirror.getWrapperElement()).remove();
         
         this.document.releaseRef();
-        $(this.document).off("change", this._handleDocumentChangeWrapper);
+        $(this.document).off("change", this._handleDocumentChange);
         
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
         }
     };
     
-    // There are several kinds of spurious changes we need to worry about:
-    // - if we're the master editor, document changes should be ignored becuase we always already have
-    //   the text (either the change originated with us, or it has already been set into us by Document)
-    // - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
-    //   to a document change
-    // - if we're a secondary editor, document changes should be ignored if they were caused by us sending
-    //   the document an editor change that originated with us
+    /**
+     * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
+     * There are several cases where we want to ignore a CodeMirror change:
+     *  - if we're the master editor, editor changes can be ignored because Document is already listening
+     *    for our changes
+     *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
+     *    to a Document change
+     */
     Editor.prototype._handleEditorChange = function () {
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
@@ -321,12 +330,7 @@ define(function (require, exports, module) {
             EditorManager._createFullEditorForDocument(this.document);
         }
         
-        if (this.document._masterEditor === this) {
-            // Master editor:
-            // we're the ground truth; nothing else to do, since everyone else will sync from us
-            // note: this change might have been a real edit made by the user, OR this might have
-            // been a change synced from another editor
-        } else {
+        if (this.document._masterEditor !== this) {
             // Secondary editor:
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
@@ -334,20 +338,27 @@ define(function (require, exports, module) {
             this.document.setText(this._getText());
             this._duringSync = false;
         }
+        // Else, Master editor:
+        // we're the ground truth; nothing else to do, since everyone else will sync from us
+        // note: this change might have been a real edit made by the user, OR this might have
+        // been a change synced from another editor
     };
     
-    Editor.prototype._duringSync = false;
-    
+    /**
+     * Responds to changes in the Document's text, syncing the changes into our CodeMirror instance.
+     * There are several cases where we want to ignore a Document change:
+     *  - if we're the master editor, Document changes should be ignored becuase we already have the right
+     *    text (either the change originated with us, or it has already been set into us by Document)
+     *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
+     *    the document an editor change that originated with us
+     */
     Editor.prototype._handleDocumentChange = function () {
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
         }
         
-        if (this.document._masterEditor === this) {
-            // Master editor:
-            // we're the ground truth; Document change is just echoing that our editor changed
-        } else {
+        if (this.document._masterEditor !== this) {
             // Secondary editor:
             // we're not the ground truth; and if we got here, this was a Document change that
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
@@ -361,9 +372,10 @@ define(function (require, exports, module) {
             // this.setText(this.document.getText());
             // this._duringSync = false;
         }
+        // Else, Master editor:
+        // we're the ground truth; nothing to do since Document change is just echoing that our
+        // editor changes
     };
-    
-    Editor.prototype._handleDocumentChangeWrapper = null;
     
     
     /**
@@ -573,7 +585,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Refreshes the editor control
+     * Re-renders the editor UI
      */
     Editor.prototype.refresh = function () {
         this._codeMirror.refresh();
@@ -581,9 +593,17 @@ define(function (require, exports, module) {
     
     
     /**
+     * The Document we're bound to
      * @type {!Document}
      */
     Editor.prototype.document = null;
+    
+    /**
+     * If true, we're in the middle of syncing to/from the Document. Used to ignore spurious change
+     * events caused by us (vs. change events caused by others, which we need to pay attention to).
+     * @type {!boolean}
+     */
+    Editor.prototype._duringSync = false;
     
     /**
      * @private

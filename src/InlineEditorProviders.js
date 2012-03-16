@@ -101,10 +101,10 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Show a range of text in an inline editor.
+     * Create an inline Editor UI showing a range of text within the given Document
      * 
      * @param {!Editor} parentEditor The parent editor that will contain the inline editor
-     * @param {!FileEntry} fileEntry File containing inline content
+     * @param {!Document} doc Document for the inline content
      * @param {!Number} startLine The first line to be shown in the inline editor 
      * @param {!Number} endLine The last line to be shown in the inline editor
      */

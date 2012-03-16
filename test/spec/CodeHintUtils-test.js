@@ -40,7 +40,6 @@ define(function (require, exports, module) {
         }
         
         var content = finalLines.join("\n");
-        // myDocument.setText(content);
         myEditor._setText(content);
     }
     

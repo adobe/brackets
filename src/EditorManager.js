@@ -44,14 +44,11 @@ define(function (require, exports, module) {
     var _inlineEditProviders = [];
     
     /**
-     * Creates a new CodeMirror editor instance containing the given text. The editor's mode is set
-     * based on the given filename's extension (the actual file on disk is never examined). The
-     * editor is appended to the given container as a visible child.
-     * @param {!Document} doc  The text content of the editor.
-     * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the private "master"
-     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave."
-     * @param {!string} fileNameToSelectMode  A filename from which to infer the editor's mode. May
-     *          include path too.
+     * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
+     * file extension. The editor is appended to the given container as a visible child.
+     * @param {!Document} doc  Document for the Editor's content
+     * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
+     *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!function} onInlineGesture  Handler for Ctrl+E command (open/close inline, depending
                 on context)
@@ -93,6 +90,14 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Removes the given widget UI from the given hostEdtior (agnostic of what the widget's content
+     * is). The widget's onClosed() callback will be run as a result.
+     * @param {!Editor} hostEditor
+     * @param {!number} inlineId
+     * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
+     *      near the inline's location.
+     */
     function _closeInlineWidget(hostEditor, inlineId, moveFocus) {
         if (moveFocus) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
@@ -116,9 +121,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Given a host editor, return a list of all its open inline editors. (Ignoring any other
+     * Given a host editor, return a list of all its open inline Editors. (Ignoring any other
      * inline widgets that might be open).
      * @param {!Editor} hostEditor
+     * @return {Array.<Editor>}
      */
     function _getInlineEditors(hostEditor) {
         var inlineEditors = [];
@@ -166,8 +172,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Creates a new "full-size" (not inline) Editor from the Document's file, and sets it as the
-     * Document's main editor. The editor is not yet visible; to show it, call
+     * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
+     * Document's master backing editor. The editor is not yet visible; to show it, call
      * DocumentManager.showInEditor().
      * Semi-private: should not be called outside this module other than by Editor.
      * @param {!Document} document  Document whose main/full Editor to create
@@ -179,6 +185,7 @@ define(function (require, exports, module) {
         $(editor._codeMirror.getWrapperElement()).css("display", "none");
     }
     
+    /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
     function getCurrentFullEditor() {
         // This *should* always be equivalent to DocumentManager.getCurrentDocument()._masterEditor
         return _currentEditor;
@@ -186,17 +193,16 @@ define(function (require, exports, module) {
 
     
     /**
-     * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
-     * is set based on the given filename's extension (the actual file on disk is never examined).
-     * The editor is not yet visible.
+     * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
+     * based on the file extension. The editor is not yet visible or attached to a host editor.
      * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
-     * @param {!string} text  The text content of the editor.
+     * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
-     * @param {!FileEntry} sourceFile  The file from which the text was drawn. Ties the inline editor
-     *      back to the full editor from which edits can be saved; also determines the editor's mode.
      *
-     * @returns {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
+     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
+     * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
+     * also understood by Editor.addInlineWidget()... since it now contains methods & such.
      */
     function createInlineEditorForDocument(hostEditor, doc, range) {
         // Container to hold editor & render its stylized frame
@@ -204,12 +210,15 @@ define(function (require, exports, module) {
         $(inlineContent).addClass("inlineCodeEditor");
         
         var myInlineId;   // (id is set when afterAdded() runs)
+        
+        // Used to manually trigger closing this inline
         function closeThisInline(inlineEditor) {
             var shouldMoveFocus = inlineEditor.hasFocus();
             _closeInlineWidget(hostEditor, myInlineId, shouldMoveFocus);
             // _closeInlineWidget() causes afterClosed() to get run
         }
         
+        // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
         
         // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
@@ -237,7 +246,7 @@ define(function (require, exports, module) {
             sizeInlineEditorToContents();
         });
         
-        // If anyone else touches the main editor, or if the main editor is closed, then we close too
+        // If anyone else touches the Document, close this editor since it has fallen out of date
         $(inlineEditor).on("lostSync", function () {
             closeThisInline(inlineEditor);
         });
@@ -284,9 +293,16 @@ define(function (require, exports, module) {
     
     
     /**
-     * Disposes the given document's full-size editor if the doc is no longer "open" in the UI (visible
-     * or in the working set). Otherwise does nothing.
-     * @param {!Document} document
+     * Disposes the given Document's full-size editor if the doc is no longer "open" from the user's
+     * standpoint - not in the working set and not currentDocument).
+     * 
+     * Destroying the full-size editor releases ONE ref to the Document; if inline editors or other
+     * UI elements are still referencing the Document it will still be 'open' (kept alive) from
+     * DocumentManager's standpoint. However, destroying the full-size editor does remove the backing
+     * "master" editor from the Document, rendering it immutable until either inline-editor edits or
+     * currentDocument change triggers _createFullEditorForDocument() full-size editor again.
+     *
+     * @param {!Document} document Document whose "master" editor we may destroy
      */
     function _destroyEditorIfUnneeded(document) {
         var editor = document._masterEditor;
@@ -297,7 +313,7 @@ define(function (require, exports, module) {
         
         // If outgoing editor is no longer needed, dispose it
         if (DocumentManager.getCurrentDocument() !== document && DocumentManager.findInWorkingSet(document.file.fullPath) === -1) {
-            // Destroy the editor widget (which un-ref-counts the Document and reverts document to read-only mode)
+            // Destroy the editor widget (which un-refs the Document and reverts it to read-only mode)
             editor.destroy();
             
             // Our callers should really ensure this, but just for safety...
@@ -308,7 +324,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Focus the currently visible editor. If no editor visible, does nothing. */
+    /** Focus the currently visible full-size editor. If no editor visible, does nothing. */
     function focusEditor() {
         if (_currentEditor) {
             _currentEditor.focus();

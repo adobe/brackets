@@ -6,14 +6,29 @@
 /*global define: false, $: false */
 
 /**
- * DocumentManager is the model for the set of currently 'open' files and their contents. It controls
- * which file is currently shown in the editor, the dirty bit for all files, and the list of documents
- * in the working set.
+ * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
+ * the working set, and the notion of which Document is currently shown in the main editor UI area.
  * 
- * Each Document also encapsulates the editor widget for that file, which in turn controls each file's
- * contents and undo history. (So this is not a perfectly clean, headless model, but that's unavoidable
- * because the document state is tied up in the CodeMirror UI). We share ownership of the editor objects
- * with EditorManager, which creates, shows/hides, resizes, and disposes the editors.
+ * Document is the model for a file's contents; it dispatches events whenever those contents change.
+ * To transiently inspect a file's content, simply get a Document and call getText() on it. However,
+ * to be notified of Document changes or to modify a Document, you MUST call addRef() to ensure the
+ * Document instance 'stays alive' and is shared by all other who read/modify that file. ('Open'
+ * Documents are all Documents that are 'kept alive', i.e. have ref count > 0).
+ *
+ * To get a Document, call getDocumentForPath(); never new up a Document yourself.
+ * 
+ * Secretly, a Document may use an Editor instance to act as the model for its internal state. (This
+ * is unavoidable because CodeMirror does not separate its model from its UI). Documents are not
+ * modifiable until they have a backing 'master Editor'. Creation of the backing Editor is owned by
+ * EditorManager. A Document only gets a backing Editor if it becomes the currentDocument, or if edits
+ * occur in any Editor (inline or full-sized) bound to the Document; there is currently no other way
+ * to ensure a Document is modifiable.
+ *
+ * A non-modifiable Document may still dispatch change notifications, if the Document was changed
+ * externally on disk.
+ *
+ * Aside from the text content, Document tracks a few pieces of metadata - notably, whether there are
+ * any unsaved changes.
  *
  * This module dispatches several events:
  *    - dirtyFlagChange -- When any Document's isDirty flag changes. The 2nd arg to the listener is the
@@ -56,7 +71,7 @@ define(function (require, exports, module) {
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
-     * document always has a full-size editor associated with it (Document._masterEditor != null).
+     * document always has backing Editor (Document._masterEditor != null) and is thus modifiable.
      * @return {?Document}
      */
     function getCurrentDocument() {
@@ -70,7 +85,7 @@ define(function (require, exports, module) {
     var _workingSet = [];
     
     /**
-     * Maps Document.file.fullPath -> Document
+     * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
      * @private
      * @type {Object.<string, Document>}
      */
@@ -110,7 +125,9 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns all documents that are open in editors (both inline editors and main editors).
+     * Returns all Documents that are 'open' in the UI somewhere (for now, this means open in an
+     * inline editor and/or a full-size editor). Only these Documents can be modified, and only
+     * these Documents are synced with external changes on disk.
      * @return {Array.<Document>}
      */
     function getAllOpenDocuments() {
@@ -164,18 +181,17 @@ define(function (require, exports, module) {
 
     
     /**
-     * Displays the given file in the editor pane; this may occur asynchronously if the file has
-     * not been opened before. After the file is loaded and an editor is created, the value of
-     * getCurrentDocument() changes, firing currentDocumentChange and triggering listeners elsewhere
-     * to update the selection in the file tree / working set UI, etc.
-     * This call may also add the item to the working set list.
+     * Displays the given Document in the editor pane (indirectly: this merely changes the value of
+     * getCurrentDocument(), firing currentDocumentChange and triggering listeners elsewhere to
+     * show/hide Editors, update the selection in the file tree / working set UI, etc.). This call
+     * may also add the item to the working set list.
      * 
-     * @param {!Document} document  The document whose editor should be shown. May or may not
-     *      already be in the working set.
+     * @param {!Document} document  The Document to make current. May or may not already be in the
+     *      working set.
      */
     function showInEditor(document) {
         
-        // If this file is already in editor, do nothing
+        // If this doc is already current, do nothing
         if (_currentDocument === document) {
             return;
         }
@@ -192,7 +208,7 @@ define(function (require, exports, module) {
         // (this event triggers EditorManager to actually switch editors in the UI)
     }
     
-    /** Closes the currently visible document, if any */
+    /** Closes the currently visible document, if any, changing currentDocument to null */
     function _clearEditor() {
         // If editor already blank, do nothing
         if (!_currentDocument) {
@@ -213,6 +229,10 @@ define(function (require, exports, module) {
      * This will change currentDocument if this document was current one (if possible; in some cases,
      * the editor may be left blank instead). This will also remove the doc from the working set if
      * it was in the set.
+     *
+     * TODO: disentangle the notion of closing the main editor vs. totally destroying a Document (e.g.
+     * because it has been deleted on disk). The latter can happen even when there's no main editor,
+     * and not in the working set.
      *
      * @param {!Document} document
      */
@@ -273,14 +293,17 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     * A single editable document, e.g. an entry in the working set list. Documents are unique per
-     * file, so it IS safe to compare them with '==' or '==='.
+     * Model for the contents of a single file and its current modification state.
+     * See DocumentManager documentation for important usage notes.
      *
      * Document dispatches one event:
      *   change -- When the value of getText() changes for any reason (including edits, undo/redo,
-     *      or syncing from external changes)
+     *      or syncing from external changes). If you listen for this event, you MUST also
+     *      addRef() the document (and releaseRef() it whenever you stop listening).
      *
-     * @param {!FileEntry} file  The file being edited. Need not lie within the project.
+     * @param {!FileEntry} file  Need not lie within the project.
+     * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
+     * @param {!string} rawText  Text content of the file.
      */
     function Document(file, initialTimestamp, rawText) {
         if (!(this instanceof Document)) {  // error if constructor called without 'new'
@@ -294,6 +317,10 @@ define(function (require, exports, module) {
         this.refreshText(rawText, initialTimestamp);
     }
     
+    /**
+     * Number of clients who want this Document to stay alive. The Document is listed in
+     * DocumentManager._openDocuments whenever refCount > 0.
+     */
     Document.prototype._refCount = 0;
     
     /**
@@ -317,31 +344,32 @@ define(function (require, exports, module) {
     Document.prototype.diskTimestamp = null;
     
     /**
-     * @type {string}
+     * The text contents of the file, or null if our backing model is _masterEditor.
+     * @type {?string}
      */
     Document.prototype._text = null;
     
     /**
-     * Editor object representing the full-size editor UI for this document. Null if Document was
-     * restored from persisted working set but hasn't been opened in the UI yet.
-     * Note: where Document and Editor APIs overlap, prefer Document. Only use Editor directly for
-     * UI-related actions that Document does not provide any APIs for.
+     * Editor object representing the full-size editor UI for this document. May be null if Document
+     * has not yet been modified or been the currentDocument; in that case, our backing model is the
+     * string _text.
      * @type {?Editor}
      */
     Document.prototype._masterEditor = null;
     
     /**
-     * Null only of editor is not open yet. If a Document is created on empty text, or text with
-     * inconsistent line endings, the Document defaults to the current platform's standard endings.
-     * @type {null|FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
+     * The content's line-endings style. If a Document is created on empty text, or text with
+     * inconsistent line endings, defaults to the current platform's standard endings.
+     * @type {FileUtils.LINE_ENDINGS_CRLF|FileUtils.LINE_ENDINGS_LF}
      */
     Document.prototype._lineEndings = null;
 
+    /** Add a ref to keep this Document alive */
     Document.prototype.addRef = function () {
-        console.log("+++REF+++ "+this);
+        //console.log("+++REF+++ "+this);
         
         if (this._refCount === 0) {
-            console.log("+++ adding to open list");
+            //console.log("+++ adding to open list");
             if (_openDocuments[this.file.fullPath]) {
                 throw new Error("Document for this path already in _openDocuments!");
             }
@@ -349,15 +377,16 @@ define(function (require, exports, module) {
         }
         this._refCount++;
     };
+    /** Remove a ref that was keeping this Document alive */
     Document.prototype.releaseRef = function () {
-        console.log("---REF--- "+this);
+        //console.log("---REF--- "+this);
         
         this._refCount--;
         if (this._refCount < 0) {
             throw new Error("Document ref count has fallen below zero!");
         }
         if (this._refCount === 0) {
-            console.log("--- removing from open list");
+            //console.log("--- removing from open list");
             if (!_openDocuments[this.file.fullPath]) {
                 throw new Error("Document with references was not in _openDocuments!");
             }
@@ -365,7 +394,11 @@ define(function (require, exports, module) {
         }
     };
     
-    /** ...assumes Editor already has our text... */
+    /**
+     * Attach a backing Editor to the Document, enabling setText() to be called. Assumes Editor has
+     * already been initialized with the value of getText(). ONLY Editor should call this (and only
+     * when EditorManager has told it to act as the master editor).
+     */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
             throw new Error("Document is already editable");
@@ -375,6 +408,12 @@ define(function (require, exports, module) {
             $(masterEditor).on("change", this._handleEditorChange.bind(this));
         }
     };
+    
+    /**
+     * Detach the backing Editor from the Document, disallowing setText(). The text content is
+     * stored back onto _text so other Document clients continue to have read-only access. ONLY
+     * Editor.destroy() should call this.
+     */
     Document.prototype._makeNonEditable = function () {
         if (!this._masterEditor) {
             throw new Error("Document is already non-editable");
@@ -382,20 +421,19 @@ define(function (require, exports, module) {
             this._text = this.getText();
             this._masterEditor = null;
             
-            // Currently, we close all secondary (inline) editors when the main editor is closed
-            // or modified/refreshed in any way. So, treat closing just like modifying.
-            // TODO: auto-revert the text when closing the main editor without saving changes
+            // FUTURE: If main editor was closed without saving changes, we should revert _text to
+            // what's on disk. But since we currently close all secondary editors when anyone else
+            // touches the Document content, there's no point in doing that yet. Just change the text
+            // to a dummy value to trigger that closing.
             if (this.isDirty) {
-                console.log("Closing main editor and discarding changes!");
                 this.refreshText("");
             }
         }
     };
     
     /**
-     * @return {string} The document's current contents; may not be saved to disk 
-     *  yet. Returns null if the file was not yet read and no editor was 
-     *  created.
+     * @return {string} The document's current contents; may not be saved to disk yet. Whenever this
+     * value changes, the Document dispatches a "change" event.
      */
     Document.prototype.getText = function () {
         if (this._masterEditor) {
@@ -414,7 +452,9 @@ define(function (require, exports, module) {
     
     /**
      * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
-     * match the document's current line-ending style.
+     * match the document's current line-ending style. CANNOT be called unless the Document has a
+     * backing editor. Only Editor can ensure that is true; from anywhere else, it's unsafe to call
+     * setText() unless this is the currentDocument.
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function (text) {
@@ -422,13 +462,14 @@ define(function (require, exports, module) {
             throw new Error("Cannot mutate a Document before it has been assigned a master Editor");
         }
         this._masterEditor._setText(text);
+        // _handleEditorChange() triggers "change" event
     };
     
     
     /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
      * will be marked clean with a new timestamp, the undo/redo history is cleared, and we re-check
-     * the text's line-ending style.
+     * the text's line-ending style. CAN be called even if there is no backing editor.
      * @param {!string} text The text to replace the contents of the document with.
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
@@ -451,6 +492,8 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Handles changes from the master backing Editor. Changes are triggered either by direct edits
+     * to that Editor's UI, OR by our setText()/refreshText() methods.
      * @private
      */
     Document.prototype._handleEditorChange = function () {
@@ -483,7 +526,7 @@ define(function (require, exports, module) {
      */
     Document.prototype.notifySaved = function () {
         if (!this._masterEditor) {
-            console.log("### Error: cannot save a Document that is not modifiable!");
+            console.log("### Warning: saving a Document that is not modifiable!");
         }
         
         this._markClean();
@@ -512,13 +555,14 @@ define(function (require, exports, module) {
     
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
-     * not currently open. (Open essentially means rooted in the UI somewhere). Note: do not call the
-     * Document constructor directly. Always use this method to get Documents.
+     * not currently open ('open' means referenced by the UI somewhere). Always use this method to
+     * get Documents; do not call the Document constructor directly.
      *
      * If you are going to hang onto the Document for more than just the duration of a command - e.g.
      * if you are going to display its contents in a piece of UI - then you must addRef() the Document
-     * and listen for changes on it. Opening the Document in an Editor automatically takes care of
-     * this.
+     * and listen for changes on it. (Note: opening the Document in an Editor automatically manages
+     * refs and listeners for that Editor UI).
+     *
      * @param {!string} fullPath
      * @return {Deferred} A Deferred object that will be resolved with the Document, or rejected
      *      with a FileError if the file is not yet open and can't be read from disk.
