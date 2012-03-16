@@ -216,6 +216,7 @@ define(function (require, exports, module) {
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching rule.
+     *      Does not addRef() the documents returned in the array.
      */
     function findMatchingRules(selector) {
         var result          = new $.Deferred(),
