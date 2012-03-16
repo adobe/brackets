@@ -233,7 +233,7 @@ define(function (require, exports, module) {
                     inlineInfo.onClosed = function () {
                         origOnClosed();
                         _inlineEditorRemoved(inlineInfo.content);
-                    }
+                    };
                     
                     _createInlineEditorDecorations(inlineInfo.editor, rule.document);
                     
