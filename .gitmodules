@@ -7,6 +7,9 @@
 [submodule "src/thirdparty/jslint"]
 	path = src/thirdparty/jslint
 	url = git@github.com:douglascrockford/JSLint.git
+[submodule "src/thirdparty/smart-auto-complete"]
+	path = src/thirdparty/smart-auto-complete
+	url = git@github.com:laktek/jQuery-Smart-Auto-Complete.git
 [submodule "src/modules/LiveDevelopment"]
 	path = src/modules/LiveDevelopment
 	url = https://github.com/joelrbrandt/live-development.git

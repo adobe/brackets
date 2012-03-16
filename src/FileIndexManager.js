@@ -22,6 +22,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         PerfUtils           = require("PerfUtils"),
         ProjectManager      = require("ProjectManager"),
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings");
 
     /**
@@ -123,8 +124,8 @@ define(function (require, exports, module) {
     * Error dialog when max files in index is hit
     */
     function _showMaxFilesDialog() {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
+        return Dialogs.showModalDialog(
+            Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_MAX_FILES_TITLE,
             Strings.ERROR_MAX_FILES
         );
@@ -174,6 +175,11 @@ define(function (require, exports, module) {
 
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
+            // skip invisible directories on mac
+            if (brackets.platform === "mac" && dirEntry.name.charAt(0) === ".") {
+                return;
+            }
+
             state.dirInProgress[dirEntry.fullPath] = true;
             //console.log("started dir: " + dirEntry.fullPath);
 

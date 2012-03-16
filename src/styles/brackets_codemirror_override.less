@@ -73,16 +73,22 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
     }
     .filename {
         position: absolute;
+        #font > .sans-serif(normal, 12px, auto);
         top: 0;
         background: #FFF;
-        padding: 0px 4px 3px;
-        font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
-        font-size: 12px;
+        padding: 2px 6px 0 2px;
         border: solid #C0C0C0;
         border-width: 0px 1px 1px;
         border-bottom-right-radius: 3px 5px;
         border-bottom-left-radius: 3px 5px;
         z-index: 11;
+        
+        .dirty-indicator {
+            .bracketSprite;
+            display: inline-block;
+            background-position: 0 0;
+            padding-top: 3px;
+        }
     }
     .shadow {
         display: block;

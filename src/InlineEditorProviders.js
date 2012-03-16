@@ -15,6 +15,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CodeHintUtils       = require("CodeHintUtils"),
         CSSUtils            = require("CSSUtils"),
+        DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         ProjectManager      = require("ProjectManager");
@@ -29,6 +30,17 @@ define(function (require, exports, module) {
     function _updateInlineEditorFilename(holderWidth, filenameDiv) {
         var filenameWidth = $(filenameDiv).outerWidth();
         $(filenameDiv).css("left", holderWidth - filenameWidth - 40);
+    }
+    
+    /**
+     * Shows or hides the dirty indicator
+     * @private
+     */
+    function _showDirtyIndicator($indicatorDiv, isDirty) {
+        // Show or hide the dirty indicator by adjusting
+        // the width of the div. The "hidden" width is 
+        // 4 pixels to make the padding look correct.
+        $indicatorDiv.css("width", isDirty ? 16 : 4);
     }
     
     /**
@@ -53,6 +65,24 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Respond to dirty flag change event. If the dirty flag is associated with an inline editor,
+     * show (or hide) the dirty indicator.
+     * @private
+     */
+    function _dirtyFlagChangeHandler(event, doc) {
+        
+        _htmlToCSSProviderContent.forEach(function (value) {
+            var $filenameDiv = $(value).find(".filename");
+            // This only checks filename here. If there are multiple documents with the same filename
+            // (in different directories), this test will fail.
+            // This needs to be fixed once we have proper document<-->editor mapping.
+            if ($filenameDiv.text() === doc.file.name) {
+                _showDirtyIndicator($filenameDiv.find(".dirty-indicator"), doc.isDirty);
+            }
+        });
+    }
+    
+    /**
      * Stops tracking an editor after being removed from the document.
      * @private
      */
@@ -65,14 +95,15 @@ define(function (require, exports, module) {
         
         // stop listening for resize when all inline editors are closed
         if (_htmlToCSSProviderContent.length === 0) {
-            $(window).unbind("resize", _updateAllFilenames);
+            $(window).off("resize", _updateAllFilenames);
+            $(DocumentManager).off("dirtyFlagChange", _dirtyFlagChangeHandler);
         }
     }
 
     /**
      * Show a range of text in an inline editor.
      * 
-     * @param {!CodeMirror} parentEditor The parent editor that will contain the inline editor
+     * @param {!Editor} parentEditor The parent editor that will contain the inline editor
      * @param {!FileEntry} fileEntry File containing inline content
      * @param {!Number} startLine The first line to be shown in the inline editor 
      * @param {!Number} endLine The last line to be shown in the inline editor
@@ -80,32 +111,28 @@ define(function (require, exports, module) {
     function _showTextRangeInInlineEditor(parentEditor, fileEntry, startLine, endLine) {
         var result = new $.Deferred();
         
-        FileUtils.readAsText(fileEntry)
+        DocumentManager.getDocumentContents(fileEntry.fullPath)
             .done(function (text) {
                 var range = {
                     startLine: startLine,
                     endLine: endLine
                 };
-                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry.fullPath);
-                
-                var inlineEditor = inlineInfo.editor;
-                
-                // For Sprint 4, editor is a read-only view
-                inlineEditor.setOption("readOnly", true);
+                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry);
                 
                 result.resolve(inlineInfo);
             })
             .fail(function (fileError) {
-                console.log("Error reading as text: ", fileError);
+                console.log("Error getting document contents: ", fileError);
                 result.reject();
             });
-    
+
         return result.promise();
     }
     
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
      * surrounding that position, or "" if none is found.
+     * @param {!Editor} editor
      * @private
      */
     function _getSelectorName(editor, pos) {
@@ -148,11 +175,14 @@ define(function (require, exports, module) {
     
     /**
      * Create the shadowing and filename tab for an inline editor.
+     * TODO (issue #424): move to createInlineEditorFromText()
      * @private
      */
-    function _createInlineEditorDecorations(editor, filename) {
+    function _createInlineEditorDecorations(editor, fileEntry) {
         // create the filename div
-        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>').text(filename);
+        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>')
+            .append('<div class="dirty-indicator"/>')
+            .append(fileEntry.name);
         
         // add inline editor styling
         $(editor.getScrollerElement())
@@ -163,7 +193,9 @@ define(function (require, exports, module) {
         // update the current inline editor immediately
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
+            var document = DocumentManager.getDocumentForFile(fileEntry);
             _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), document ? document.isDirty : false);
             filenameDiv.css("visibility", "");
         }, 0);
     }
@@ -172,7 +204,7 @@ define(function (require, exports, module) {
      * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
      * CSS rules and show (one/all of them) in an inline editor.
      *
-     * @param {!CodeMirror} editor
+     * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
      * @return {$.Promise} a promise that will be resolved with:
      *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
@@ -180,19 +212,17 @@ define(function (require, exports, module) {
      */
     function htmlToCSSProvider(editor, pos) {
         // Only provide a CSS editor when cursor is in HTML content
-        if (editor.getOption("mode") !== "htmlmixed") {
+        if (editor._codeMirror.getOption("mode") !== "htmlmixed") {
             return null;
         }
-        var htmlmixedState = editor.getTokenAt(pos).state;
+        var htmlmixedState = editor._codeMirror.getTokenAt(pos).state;
         if (htmlmixedState.mode !== "html") {
             return null;
         }
         
         // Only provide CSS editor if the selection is an insertion point
-        var selStart = editor.getCursor(false),
-            selEnd = editor.getCursor(true);
-        
-        if (selStart.line !== selEnd.line || selStart.ch !== selEnd.ch) {
+        var sel = editor.getSelection(false);
+        if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
             return null;
         }
         
@@ -212,14 +242,15 @@ define(function (require, exports, module) {
                         .done(function (inlineInfo) {
                             // track inlineEditor content removal
                             inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
-                            _createInlineEditorDecorations(inlineInfo.editor, rule.source.name);
+                            _createInlineEditorDecorations(inlineInfo.editor, rule.source);
                             
                             _htmlToCSSProviderContent.push(inlineInfo.content);
                             
                             // Manaully position filename div's. Can't use CSS positioning in this case
                             // since the label is relative to the window boundary, not CodeMirror.
                             if (_htmlToCSSProviderContent.length > 0) {
-                                $(window).bind("resize", _updateAllFilenames);
+                                $(window).on("resize", _updateAllFilenames);
+                                $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
                             }
                             
                             result.resolve(inlineInfo);

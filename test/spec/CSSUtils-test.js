@@ -88,6 +88,24 @@ define(function (require, exports, module) {
                 });
             }
             
+            /**
+             * Similar to the above function, but instead checks the lines ranges for the entire selector *group*
+             * of the results returned by CSSUtils. For example, if a rule looks like ".foo,[newline].bar"
+             * and the caller asks for selector ".bar", this function checks against the entire range
+             * starting with the line ".foo. is on.
+             * 
+             * Expects the numbers of results to equal the length of 'ranges'; each entry in range gives 
+             * the {start, end} of the expected line range for that Nth result.
+             */
+            function expectGroupRanges(spec, cssCode, selector, ranges) {
+                var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
+                spec.expect(result.length).toEqual(ranges.length);
+                ranges.forEach(function (range, i) {
+                    spec.expect(result[i].selectorGroupStartLine).toEqual(range.start);
+                    spec.expect(result[i].ruleEndLine).toEqual(range.end);
+                });
+            }
+            
             it("should return correct start and end line numbers for simple rules", function () {
                 runs(function () {
                     init(this, simpleCssFileEntry);
@@ -111,6 +129,24 @@ define(function (require, exports, module) {
                         {start: 0, end: 2}, {start: 3, end: 5 }, {start: 7, end: 7},
                         {start: 8, end: 8}, {start: 10, end: 10}, {start: 10, end: 10}
                     ]);
+                });
+            });
+            
+            it("should return correct group range when selector group spans multiple lines", function () {
+                runs(function () {
+                    init(this, groupsFileEntry);
+                });
+                
+                runs(function () {
+                    expectGroupRanges(this, this.fileCssContent, ".a", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileCssContent, ".b", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileCssContent, ".c", [{start: 24, end: 29}]);
+                    expectGroupRanges(this, this.fileCssContent, ".d", [{start: 24, end: 29}]);
+                    
+                    expectGroupRanges(this, this.fileCssContent, ".f", [{start: 31, end: 31}]);
+                    expectGroupRanges(this, this.fileCssContent, ".g", [{start: 31, end: 34}]);
+                    expectGroupRanges(this, this.fileCssContent, ".h", [{start: 31, end: 34}]);
+                    
                 });
             });
         });
@@ -476,6 +512,44 @@ define(function (require, exports, module) {
                           ".foo:focus:hover { color:pink } \n" +
                           "div:focus.class3:hover { color:purple } \n" +
                           ":focus.class3:hover { color:gray }";
+                
+                var result = match(css, { tag: "div" });
+                expect(result.length).toBe(6);
+                result = matchAgain({ clazz: "foo" });
+                expect(result.length).toBe(5);
+                result = matchAgain({ id: "bar" });
+                expect(result.length).toBe(2);
+                
+                result = matchAgain({ clazz: "class3" });
+                expect(result.length).toBe(2);
+                
+                result = matchAgain({ tag: "hover" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ clazz: "hover" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ id: "hover" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ tag: "focus" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ clazz: "focus" });
+                expect(result.length).toBe(0);
+                result = matchAgain({ id: "focus" });
+                expect(result.length).toBe(0);
+            });
+            
+            it("should ignore pseudo-elements with arguments", function () {
+                // Note: not actually required for Sprint 4
+                var css = "div:nth-child(3) { color:red } \n" +
+                          ".foo:nth-child(3) { color:green } \n" +
+                          "div.foo:nth-child(3) { color:blue } \n" +
+                          "#bar:nth-child(3) { color:yellow } \n" +
+                          "div#bar:nth-child(3) { color:black } \n" +
+                          ".foo.class2:nth-child(3) { color:white } \n" +
+                          "div:nth-child(2n):nth-child(3) { color:cyan } \n" +
+                          "div.foo:nth-child(2n):nth-child(3) { color:brown } \n" +
+                          ".foo:nth-child(2n):nth-child(3) { color:pink } \n" +
+                          "div:nth-child(2n).class3:nth-child(3) { color:purple } \n" +
+                          ":nth-child(2n).class3:nth-child(3) { color:gray }";
                 
                 var result = match(css, { tag: "div" });
                 expect(result.length).toBe(6);
@@ -943,6 +1017,99 @@ define(function (require, exports, module) {
         }); // describe("Known Issues")    
 
 
+        describe("Working with unsaved changes", function () {
+            var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
+                CSSUtils,
+                DocumentManager,
+                FileViewController,
+                ProjectManager,
+                brackets;
+    
+            beforeEach(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                    // Load module instances from brackets.test
+                    brackets            = testWindow.brackets;
+                    CSSUtils            = testWindow.brackets.test.CSSUtils;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                    ProjectManager      = testWindow.brackets.test.ProjectManager;
+
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+
+            afterEach(function () {
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+            it("should return the correct offsets if the file has changed", function () {
+                var didOpen = false,
+                    gotError = false;
+                
+                runs(function () {
+                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                        .done(function () { didOpen = true; })
+                        .fail(function () { gotError = true; });
+                });
+                
+                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                
+                var rules = null;
+                
+                runs(function () {
+                    var doc = DocumentManager.getCurrentDocument();
+                    
+                    // Add several blank lines at the beginning of the text
+                    doc.setText("\n\n\n\n" + doc.getText());
+                    
+                    // Look for ".FIRSTGRADE"
+                    CSSUtils.findMatchingRules(".FIRSTGRADE")
+                        .done(function (result) { rules = result; });
+                });
+                
+                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                
+                runs(function () {
+                    expect(rules.length).toBe(1);
+                    expect(rules[0].lineStart).toBe(16);
+                    expect(rules[0].lineEnd).toBe(18);
+                });
+            });
+            
+            it("should return a newly created rule in an unsaved file", function () {
+                var didOpen = false,
+                    gotError = false;
+                
+                runs(function () {
+                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                        .done(function () { didOpen = true; })
+                        .fail(function () { gotError = true; });
+                });
+                
+                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                
+                var rules = null;
+                
+                runs(function () {
+                    var doc = DocumentManager.getCurrentDocument();
+                    
+                    // Add a new selector to the file
+                    doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                    
+                    // Look for the selector we just created
+                    CSSUtils.findMatchingRules(".TESTSELECTOR")
+                        .done(function (result) { rules = result; });
+                });
+                
+                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                
+                runs(function () {
+                    expect(rules.length).toBe(1);
+                    expect(rules[0].lineStart).toBe(24);
+                    expect(rules[0].lineEnd).toBe(26);
+                });
+            });
+        });
     }); //describe("CSS Parsing")
     
 });

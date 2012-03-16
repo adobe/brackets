@@ -225,8 +225,8 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    margin: 0px 0px 0px 8px;
-    padding: 0;
+    padding: 0px 0px 0px 8px;
+    margin: 0;
     overflow: auto;
     
     ul { margin-top: 0; }
@@ -351,4 +351,35 @@ a, img {
 
 .CodeMirror-searching {
   background-color: inherit;
+}
+
+.smart_autocomplete_container {
+    
+    border: 1px solid #999;
+    background-color: #FFFFFF;
+
+    /* smart auto complete doesn't correctly position the container
+     * so these specific padding and margin values are necessary*/
+    padding: 0px 8px 0px 0px;
+    margin: 9px 0px 0px 0px;
+
+    .quickOpenPath {
+        font-size: 11px;
+        color: gray;
+    }
+
+
+    li {
+        color: black;
+        border-bottom: 1px solid;
+        list-style: none;
+        cursor: pointer;
+        padding: 0px 2px 0px 4px;
+    }
+}
+
+
+li.smart_autocomplete_highlight {
+    background-color: #5fa3e0;
+
 }

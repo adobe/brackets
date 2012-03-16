@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, $: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -252,13 +252,17 @@ define(function (require, exports, module) {
      *      className:          string:"="
      *      className:string    string:""open-files-disclosure-arrow""
      *      className:tag       string:"></span>"
-     * @param {CodeMirror} editor An instance of a CodeMirror editor
-     * @param {{ch: number, line: number}} pos  A CM pos (likely from editor.getCursor())
+     * @param {Editor} editor An instance of a Brackets editor
+     * @param {{ch: number, line: number}} constPos  A CM pos (likely from editor.getCursor())
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.
      */
-    function getTagInfo(editor, pos) {
-        var ctx = _getInitialContext(editor, pos),
+    function getTagInfo(editor, constPos) {
+        //we're going to changing pos a lot, but we don't want to mess up
+        //the pos the caller passed in so we use extend to make a safe copy of it.	
+        //This is what pass by value in c++ would do.	
+        var pos = $.extend(constPos),
+            ctx = _getInitialContext(editor._codeMirror, pos),
             offset = _offsetInToken(ctx),
             tagInfo,
             tokenType;

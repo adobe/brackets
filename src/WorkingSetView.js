@@ -18,7 +18,8 @@ define(function (require, exports, module) {
         Commands              = require("Commands"),
         EditorManager         = require("EditorManager"),
         FileViewController    = require("FileViewController"),
-        NativeFileSystem      = require("NativeFileSystem").NativeFileSystem;
+        NativeFileSystem      = require("NativeFileSystem").NativeFileSystem,
+        ViewUtils             = require("ViewUtils");
     
     
     /** Each list item in the working set stores a references to the related document in the list item's data.  
@@ -36,6 +37,8 @@ define(function (require, exports, module) {
             $("#open-files-container").show();
             $("#open-files-divider").show();
         }
+        
+        ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
     }
     
     /** 

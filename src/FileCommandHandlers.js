@@ -19,6 +19,7 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         FileUtils           = require("FileUtils"),
         Async               = require("Async"),
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         PreferencesManager  = require("PreferencesManager"),
         PerfUtils           = require("PerfUtils");
@@ -71,7 +72,7 @@ define(function (require, exports, module) {
      * @private
      * Creates a document and displays an editor for the specified file path.
      * @param {!string} fullPath
-     * @return {Deferred} a jQuery Deferred that will be resolved with a new 
+     * @return {Deferred} a jQuery Deferred that will be resolved with a
      *  document for the specified file path, or rejected if the file can not be read.
      */
     function doOpen(fullPath) {
@@ -87,27 +88,16 @@ define(function (require, exports, module) {
             PerfUtils.addMeasurement("Open File: " + fullPath);
         });
         
-        var doc = DocumentManager.getDocumentForPath(fullPath);
-        if (doc) {
-            // File already open - don't need to load it, just switch to it in the UI
-            DocumentManager.showInEditor(doc);
-            result.resolve(doc);
-            
-        } else {
-            // File wasn't open before, so we must create a new document for it
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
-            var docResult = EditorManager.createDocumentAndEditor(fileEntry);
-
-            docResult.done(function (doc) {
-                DocumentManager.showInEditor(doc);
+        var doc = DocumentManager.getOrCreateDocumentForPath(fullPath);
+        
+        // This will load the file if it was never open before, and then switch to it
+        DocumentManager.showInEditor(doc)
+            .done(function () {
                 result.resolve(doc);
-            });
-            
-            docResult.fail(function (error) {
-                FileUtils.showFileOpenError(error.code, fullPath);
+            })
+            .fail(function (fileError) {
                 result.reject();
             });
-        }
 
         return result;
     }
@@ -134,12 +124,13 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            // TODO (issue #117): we're relying on this to not be asynchronous--is that safe?
+            // TODO (issue #117): we're relying on this to not be asynchronous ('result' not set until
+            // dialog is dismissed); won't work in a browser-based version
             NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                ["htm", "html", "js", "css"], function (files) {
+                null, function (files) {
                     if (files.length > 0) {
                         result = doOpen(files[0])
-                            .done(function updateDefualtOpenDialogFullPath(doc) {
+                            .always(function updateDefualtOpenDialogFullPath(doc) {
                                 var url = PathUtils.parseUrl(doc.file.fullPath);
                                 //reconstruct the url but use the directory and stop there
                                 _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
@@ -238,8 +229,8 @@ define(function (require, exports, module) {
     }
     
     function showSaveFileError(code, path) {
-        return brackets.showModalDialog(
-            brackets.DIALOG_ID_ERROR,
+        return Dialogs.showModalDialog(
+            Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
@@ -306,7 +297,14 @@ define(function (require, exports, module) {
             doc = commandData.doc;
         }
         if (!doc) {
-            doc = DocumentManager.getCurrentDocument();
+            var focusedEditor = EditorManager.getFocusedEditor();
+            
+            if (focusedEditor) {
+                doc = DocumentManager.getDocumentForFile(focusedEditor.source);
+            }
+            
+            // The doSave() method called below does a null check on doc and makes sure the
+            // document is dirty before saving.
         }
         
         return doSave(doc);
@@ -368,14 +366,14 @@ define(function (require, exports, module) {
         if (doc.isDirty) {
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
-            brackets.showModalDialog(
-                brackets.DIALOG_ID_SAVE_CLOSE,
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename)
             ).done(function (id) {
-                if (id === brackets.DIALOG_BTN_CANCEL) {
+                if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
-                } else if (id === brackets.DIALOG_BTN_OK) {
+                } else if (id === Dialogs.DIALOG_BTN_OK) {
                     doSave(doc)
                         .done(function () {
                             doClose(doc);
@@ -442,14 +440,14 @@ define(function (require, exports, module) {
             });
             message += "</ul>";
             
-            brackets.showModalDialog(
-                brackets.DIALOG_ID_SAVE_CLOSE,
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
                 message
             ).done(function (id) {
-                if (id === brackets.DIALOG_BTN_CANCEL) {
+                if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
-                } else if (id === brackets.DIALOG_BTN_OK) {
+                } else if (id === Dialogs.DIALOG_BTN_OK) {
                     // Save all unsaved files, then if that succeeds, close all
                     saveAll().done(function () {
                         result.resolve();

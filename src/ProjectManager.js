@@ -31,9 +31,12 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         CommandManager      = require("CommandManager"),
         Commands            = require("Commands"),
+        Dialogs             = require("Dialogs"),
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
-        PerfUtils           = require("PerfUtils");
+        PerfUtils           = require("PerfUtils"),
+        ViewUtils           = require("ViewUtils"),
+        FileUtils           = require("FileUtils");
     
     /**
      * @private
@@ -53,9 +56,9 @@ define(function (require, exports, module) {
      * Used to initialize jstree state
      */
     var _projectInitialLoad = {
-        previous : [],
-        id : 0,
-        fullPathToIdMap : {}
+        previous        : [],   /* array of arrays containing full paths to open at each depth of the tree */
+        id              : 0,    /* incrementing id */
+        fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
     $(FileViewController).on("documentSelectionFocusChange", function (event) {
@@ -172,13 +175,23 @@ define(function (require, exports, module) {
         _projectTree = projectTreeContainer
             .jstree(
                 {
-                    plugins : ["ui", "themes", "json_data", "crrm"],
+                    plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                     json_data : { data: treeDataProvider, correct_state: false },
                     core : { animation: 0 },
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                         //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                         // file because jsTree insists on loading one itself)
-                    strings : { loading : "Loading ...", new_node : "New node" }
+                    strings : { loading : "Loading ...", new_node : "New node" },
+                    sort :  function (a, b) {
+                        if (brackets.platform === "win") {
+                            // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+                            return (a1 > b1) ? 1 : -1;
+                        } else {
+                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        }
+                    }
                 }
             )
             .bind(
@@ -199,11 +212,16 @@ define(function (require, exports, module) {
                     if (_projectInitialLoad.previous.length > 0) {
                         // load previously open nodes by increasing depth
                         var toOpenPaths = _projectInitialLoad.previous.shift(),
-                            toOpenIds   = [];
+                            toOpenIds   = [],
+                            node        = null;
         
                         // use path to lookup ID
                         $.each(toOpenPaths, function (index, value) {
-                            toOpenIds.push(_projectInitialLoad.fullPathToIdMap[value]);
+                            node = _projectInitialLoad.fullPathToIdMap[value];
+                            
+                            if (node) {
+                                toOpenIds.push(node);
+                            }
                         });
         
                         // specify nodes to open and load
@@ -211,6 +229,7 @@ define(function (require, exports, module) {
                         _projectTree.jstree("reload_nodes", false);
                     }
                     if (_projectInitialLoad.previous.length === 0) {
+                        // resolve after all paths are opened
                         result.resolve();
                     }
                 }
@@ -231,6 +250,10 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
+        });
+        
+        result.always(function () {
+            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
         });
         
         return result;
@@ -337,10 +360,12 @@ define(function (require, exports, module) {
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
                 }
+                
+                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
-                brackets.showModalDialog(
-                    brackets.DIALOG_ID_ERROR,
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
                     Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, dirEntry.fullPath, error.code)
                 );
@@ -359,12 +384,7 @@ define(function (require, exports, module) {
         var loadedPath = window.location.pathname;
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
-        // On Windows, when loading from a file, window.location.pathname has
-        // a leading '/'. Remove that here.
-        // TODO (issue #267): This will be obsolete when Brackets can support no project
-        if (bracketsSrc[0] === '/' && bracketsSrc[2] === ":") {
-            bracketsSrc = bracketsSrc.substr(1);
-        }
+        bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
 
         return bracketsSrc;
     }
@@ -393,7 +413,6 @@ define(function (require, exports, module) {
             rootPath = prefs.projectPath;
             isFirstProjectOpen = true;
 
-            // TODO (issue #100): handle missing paths
             _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
@@ -443,8 +462,8 @@ define(function (require, exports, module) {
                     });
                 },
                 function (error) {
-                    brackets.showModalDialog(
-                        brackets.DIALOG_ID_ERROR,
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
                         Strings.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
@@ -479,7 +498,7 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 // Pop up a folder browse dialog
-                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
+                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
@@ -491,8 +510,8 @@ define(function (require, exports, module) {
                         }
                     },
                     function (error) {
-                        brackets.showModalDialog(
-                            brackets.DIALOG_ID_ERROR,
+                        Dialogs.showModalDialog(
+                            Dialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LOADING_PROJECT,
                             Strings.format(Strings.OPEN_DIALOG_ERROR, error.code)
                         );
@@ -596,8 +615,8 @@ define(function (require, exports, module) {
                 // We may want to add checks for those here.
                 // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
                 if (data.rslt.name.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
-                    brackets.showModalDialog(
-                        brackets.DIALOG_ID_ERROR,
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
                         Strings.INVALID_FILENAME_TITLE,
                         Strings.INVALID_FILENAME_MESSAGE
                     );
@@ -618,8 +637,8 @@ define(function (require, exports, module) {
                     function (error) {
                         if ((error.code === FileError.PATH_EXISTS_ERR)
                                 || (error.code === FileError.TYPE_MISMATCH_ERR)) {
-                            brackets.showModalDialog(
-                                brackets.DIALOG_ID_ERROR,
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
                                 Strings.INVALID_FILENAME_TITLE,
                                 Strings.format(Strings.FILE_ALREADY_EXISTS, data.rslt.name)
                             );
@@ -629,8 +648,8 @@ define(function (require, exports, module) {
                                              Strings.format(String.GENERIC_ERROR, error.code);
                             var errMsg = Strings.format(Strings.ERROR_CREATING_FILE, data.rslt.name, errString);
                           
-                            brackets.showModalDialog(
-                                brackets.DIALOG_ID_ERROR,
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_CREATING_FILE_TITLE,
                                 errMsg
                             );
