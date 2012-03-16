@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         Strings             = require("strings"),
         FileViewController  = require("FileViewController"),
         PerfUtils           = require("PerfUtils"),
+        ViewUtils           = require("ViewUtils"),
         FileUtils           = require("FileUtils");
     
     /**
@@ -174,13 +175,23 @@ define(function (require, exports, module) {
         _projectTree = projectTreeContainer
             .jstree(
                 {
-                    plugins : ["ui", "themes", "json_data", "crrm"],
+                    plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                     json_data : { data: treeDataProvider, correct_state: false },
                     core : { animation: 0 },
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                         //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                         // file because jsTree insists on loading one itself)
-                    strings : { loading : "Loading ...", new_node : "New node" }
+                    strings : { loading : "Loading ...", new_node : "New node" },
+                    sort :  function (a, b) {
+                        if (brackets.platform === "win") {
+                            // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+                            return (a1 > b1) ? 1 : -1;
+                        } else {
+                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        }
+                    }
                 }
             )
             .bind(
@@ -239,6 +250,10 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
+        });
+        
+        result.always(function () {
+            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
         });
         
         return result;
@@ -345,6 +360,8 @@ define(function (require, exports, module) {
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
                 }
+                
+                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(
@@ -368,7 +385,7 @@ define(function (require, exports, module) {
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
         bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
-        
+
         return bracketsSrc;
     }
     
@@ -481,7 +498,7 @@ define(function (require, exports, module) {
         CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
             .done(function () {
                 // Pop up a folder browse dialog
-                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", null, null,
+                NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
