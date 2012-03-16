@@ -198,7 +198,7 @@ define(function (require, exports, module) {
                             CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
                                 .done(function (doc) {
                                     // Opened document is now the focused editor
-                                    EditorManager.getFocusedEditor().editor.setSelection(match.start, match.end);
+                                    EditorManager.getFocusedEditor().setSelection(match.start, match.end);
                                 });
                         });
                     });
@@ -256,9 +256,9 @@ define(function (require, exports, module) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
                                 var result = new $.Deferred();
                                 
-                                DocumentManager.getDocumentContents(fileInfo.fullPath)
-                                    .done(function (contents) {
-                                        var matches = _getSearchMatches(contents, queryExpr);
+                                DocumentManager.getDocumentForPath(fileInfo.fullPath)
+                                    .done(function (doc) {
+                                        var matches = _getSearchMatches(doc.getText(), queryExpr);
                                         
                                         if (matches && matches.length) {
                                             searchResults.push({
