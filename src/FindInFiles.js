@@ -2,11 +2,20 @@
  * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, PathUtils */
 
 /*
-*/
+ * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
+ * the project.
+ * 
+ * The keyboard shortcut is Cmd(Ctrl)-Shift-F.
+ *
+ * FUTURE:
+ *  - Proper UI for both dialog and results
+ *  - Refactor dialog class and share with Quick File Open
+ *  - Search files in working set that are *not* in the project
+ */
 
 
 define(function (require, exports, module) {
@@ -19,7 +28,7 @@ define(function (require, exports, module) {
         EditorManager       = require("EditorManager"),
         FileIndexManager    = require("FileIndexManager");
 
-    // Much of this file was copied from QuickFileOpen. We should have a common dialog
+    // This dialog class was mostly copied from QuickFileOpen. We should have a common dialog
     // class that everyone can use.
     
     /**
@@ -62,8 +71,7 @@ define(function (require, exports, module) {
     * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
     */
     FindInFilesDialog.prototype.showDialog = function () {
-//        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
-        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em">';
+        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
         var searchField = $('input#findInFilesInput');
@@ -98,7 +106,6 @@ define(function (require, exports, module) {
         var trimmedContents = contents;
         var startPos = 0;
         var matchStart;
-        var matchLength = contents.match(queryExpr)[0].length;
         var matches = [];
         
         function getLineNum(offset) {
@@ -111,7 +118,9 @@ define(function (require, exports, module) {
         
         while ((matchStart = trimmedContents.search(queryExpr)) !== -1) {
             var lineNum = getLineNum(matchStart + startPos);
+            var line = getLine(lineNum);
             var ch = matchStart - trimmedContents.substr(0, matchStart).lastIndexOf("\n") - 1; // 0 based pos
+            var matchLength = trimmedContents.match(queryExpr)[0].length;
             
             // ch is realtive to trimmedContents. If there are multiple matches on a line, any match
             // past the first needs to be adjusted here.
@@ -119,11 +128,14 @@ define(function (require, exports, module) {
                 var textBefore = contents.substr(0, startPos);
                 ch += (textBefore.length - textBefore.lastIndexOf("\n") - 1);
             }
-                
+            
+            // Don't store more than 200 chars per line
+            line = line.substr(0, Math.min(200, line.length));
+            
             matches.push({
                 start: {line: lineNum, ch: ch},
                 end: {line: lineNum, ch: ch + matchLength},
-                line: getLine(lineNum)
+                line: line
             });
             trimmedContents = trimmedContents.substr(matchStart + matchLength);
             startPos += matchStart + matchLength;
@@ -147,7 +159,8 @@ define(function (require, exports, module) {
             
             // Show result summary in header
             $("#search-result-summary")
-                .text(" - " + numMatches + " matches in " + searchResults.length + " files");
+                .text(" - " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
+                      " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : ""));
             
             searchResults.forEach(function (item) {
                 if (item) {
@@ -208,6 +221,20 @@ define(function (require, exports, module) {
         EditorManager.resizeEditor();
     }
     
+    function _getQueryRegExp(query) {
+        // If query is a regular expression, use it directly
+        var isRE = query.match(/^\/(.*)\/(g|i)*$/);
+        if (isRE) {
+            return new RegExp(isRE[1], isRE[2]);
+        }
+
+        // Query is a string. Turn it into a case-insensitive regexp
+        
+        // Escape regex special chars
+        query = query.replace(/(\(|\)|\{|\}|\[|\]|\.|\^|\$|\||\?|\+|\*)/g, "\\$1");
+        return new RegExp(query, "i");
+    }
+    
     /**
     * Displays a non-modal embedded dialog above the code mirror editor that allows the user to do
     * a find operation across all files in the project.
@@ -220,7 +247,7 @@ define(function (require, exports, module) {
         dialog.showDialog()
             .done(function (query) {
                 if (query) {
-                    var queryExpr = new RegExp(query, "i"); // TODO: handle regular expression search
+                    var queryExpr = _getQueryRegExp(query);
                     FileIndexManager.getFileInfoList("all")
                         .done(function (fileListResult) {
                             Async.doInParallel(fileListResult, function (fileInfo) {
