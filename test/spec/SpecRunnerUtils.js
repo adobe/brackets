@@ -6,7 +6,8 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         Commands            = require("Commands"),
         FileUtils           = require("FileUtils"),
-        Async               = require("Async");
+        Async               = require("Async"),
+        DocumentManager    = require("DocumentManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
@@ -33,10 +34,36 @@ define(function (require, exports, module) {
         path.push("src");
         return path.join("/");
     }
+    
+    /**
+     * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
+     * never be set as the currentDocument or added to the working set.
+     */
+    function createMockDocument(initialContent) {
+        // Use unique filename to avoid collissions in open documents list
+        var dummyFile = new NativeFileSystem.FileEntry("_unitTestDummyFile_.js");
+        
+        var docToShim = new DocumentManager.Document(dummyFile, new Date(), initialContent);
+        
+        // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
+        // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
+        docToShim.addRef = function () {};
+        docToShim.releaseRef = function () {};
+        
+        // Prevent adding doc to working set
+        docToShim._handleEditorChange = function () {
+            this.isDirty = true;
+            $(this).triggerHandler("change", [this]);
+        };
+        docToShim.notifySaved = function () {
+            throw new Error("Cannot notifySaved() a unit-test dummy Document");
+        };
+        return docToShim;
+    }
 
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
-            testWindow = window.open(getBracketsSourceRoot() + "/index.html");
+            testWindow = window.open(getBracketsSourceRoot() + "/index.html", "_blank", "left=400,top=200,width=1000,height=700");
             
             testWindow.executeCommand = function executeCommand(cmd, args) {
                 return testWindow.brackets.test.CommandManager.execute(cmd, args);
@@ -331,6 +358,7 @@ define(function (require, exports, module) {
     exports.getTestRoot                 = getTestRoot;
     exports.getTestPath                 = getTestPath;
     exports.getBracketsSourceRoot       = getBracketsSourceRoot;
+    exports.createMockDocument          = createMockDocument;
     exports.createTestWindowAndRun      = createTestWindowAndRun;
     exports.closeTestWindow             = closeTestWindow;
     exports.loadProjectInTestWindow     = loadProjectInTestWindow;

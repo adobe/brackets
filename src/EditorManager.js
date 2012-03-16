@@ -44,19 +44,18 @@ define(function (require, exports, module) {
     var _inlineEditProviders = [];
     
     /**
-     * Creates a new CodeMirror editor instance containing the given text. The editor's mode is set
-     * based on the given filename's extension (the actual file on disk is never examined). The
-     * editor is appended to the given container as a visible child.
-     * @param {!string} text  The text content of the editor.
-     * @param {!string} fileNameToSelectMode  A filename from which to infer the editor's mode. May
-     *          include path too.
+     * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
+     * file extension. The editor is appended to the given container as a visible child.
+     * @param {!Document} doc  Document for the Editor's content
+     * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
+     *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!function} onInlineGesture  Handler for Ctrl+E command (open/close inline, depending
                 on context)
      * @return {Editor} the newly created editor.
      */
-    function _createEditorFromText(text, fileNameToSelectMode, container, onInlineGesture) {
-        var mode = EditorUtils.getModeFromFileExtension(fileNameToSelectMode);
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture) {
+        var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
             "Ctrl-E" : function (editor) {
@@ -67,7 +66,7 @@ define(function (require, exports, module) {
             }
         };
 
-        return new Editor(text, mode, container, extraKeys);
+        return new Editor(doc, makeMasterEditor, mode, container, extraKeys);
     }
     
     /**
@@ -95,7 +94,8 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineContent) {
-                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height, inlineContent);
+                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height,
+                                            inlineContent.onClosed, inlineContent);
                 inlineContent.onAdded(inlineId);
                 result.resolve();
             }).fail(function () {
@@ -108,18 +108,29 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    function _closeInlineWidget(hostEditor, inlineId) {
-        // Place cursor back on the line just above the inline (the line from which it was opened)
-        // If cursor's already on that line, leave it be to preserve column position
-        var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
-        var cursorLine = hostEditor.getCursorPos().line;
-        if (cursorLine !== widgetLine) {
-            hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
+    /**
+     * Removes the given widget UI from the given hostEdtior (agnostic of what the widget's content
+     * is). The widget's onClosed() callback will be run as a result.
+     * @param {!Editor} hostEditor
+     * @param {!number} inlineId
+     * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
+     *      near the inline's location.
+     */
+    function _closeInlineWidget(hostEditor, inlineId, moveFocus) {
+        if (moveFocus) {
+            // Place cursor back on the line just above the inline (the line from which it was opened)
+            // If cursor's already on that line, leave it be to preserve column position
+            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
+            var cursorLine = hostEditor.getCursorPos().line;
+            if (cursorLine !== widgetLine) {
+                hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
+            }
+            
+            hostEditor.focus();
         }
         
         hostEditor.removeInlineWidget(inlineId);
         
-        hostEditor.focus();
     }
     
     function registerInlineEditProvider(provider) {
@@ -128,9 +139,10 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Given a host editor, return a list of all its open inline editors. (Ignoring any other
+     * Given a host editor, return a list of all its open inline Editors. (Ignoring any other
      * inline widgets that might be open).
      * @param {!Editor} hostEditor
+     * @return {Array.<Editor>}
      */
     function _getInlineEditors(hostEditor) {
         var inlineEditors = [];
@@ -177,69 +189,64 @@ define(function (require, exports, module) {
     
     
     /**
-     * Creates a new "full-size" (not inline) Editor from the Document's file, and sets it as the
-     * Document's main editor. The editor is not yet visible; to show it, call
-     * DocumentManager.showInEditor().
+     * @private
+     * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
+     * Document's master backing editor. The editor is not yet visible; to show it, use
+     * DocumentManager.setCurrentDocument().
+     * Semi-private: should not be called outside this module other than by Editor.
      * @param {!Document} document  Document whose main/full Editor to create
-     * @return {Deferred} a jQuery Deferred that will be resolved once Document.editor is populated,
-     *      or rejected with a FileError if the file cannot be read. Does not show any error UI.
      */
-    function createFullEditorForDocument(document) {
-        var result = new $.Deferred(),
-            reader = FileUtils.readAsText(document.file);
-            
-        reader.done(function (text, readTimestamp) {
-            // Create editor; make it initially invisible
-            var container = _editorHolder.get(0);
-            var editor = _createEditorFromText(text, document.file.fullPath, container, _openInlineWidget);
-            $(editor._codeMirror.getWrapperElement()).css("display", "none");
-            
-            document._setEditor(editor, readTimestamp, text);
-            result.resolve();
-        });
-        reader.fail(function (error) {
-            result.reject(error);
-        });
-        
-        return result;
+    function _createFullEditorForDocument(document) {
+        // Create editor; make it initially invisible
+        var container = _editorHolder.get(0);
+        var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
+        $(editor._codeMirror.getWrapperElement()).css("display", "none");
+    }
+    
+    /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
+    function getCurrentFullEditor() {
+        // This *should* always be equivalent to DocumentManager.getCurrentDocument()._masterEditor
+        return _currentEditor;
     }
 
     
     /**
-     * Creates a new inline CodeMirror editor instance containing the given text. The editor's mode
-     * is set based on the given filename's extension (the actual file on disk is never examined).
-     * The editor is not yet visible.
+     * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
+     * based on the file extension. The editor is not yet visible or attached to a host editor.
      * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
-     * @param {!string} text  The text content of the editor.
+     * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
-     * @param {!FileEntry} sourceFile  The file from which the text was drawn. Ties the inline editor
-     *      back to the full editor from which edits can be saved; also determines the editor's mode.
      *
-     * @returns {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
+     * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
+     * also understood by Editor.addInlineWidget()... since it now contains methods & such.
      */
-    function createInlineEditorFromText(hostEditor, text, range, sourceFile) {
+    function createInlineEditorForDocument(hostEditor, doc, range) {
         // Container to hold editor & render its stylized frame
         var inlineContent = document.createElement('div');
         $(inlineContent).addClass("inlineCodeEditor");
         
-        var myInlineId;  // id is set when afterAdded() runs
-        function closeThisInline() {
-            _closeInlineWidget(hostEditor, myInlineId);
-            _syncGutterWidths(hostEditor);
+        var myInlineId;   // (id is set when afterAdded() runs)
+        
+        // Used to manually trigger closing this inline
+        function closeThisInline(inlineEditor) {
+            var shouldMoveFocus = inlineEditor.hasFocus();
+            _closeInlineWidget(hostEditor, myInlineId, shouldMoveFocus);
+            // _closeInlineWidget() causes afterClosed() to get run
         }
         
-        var inlineEditor = _createEditorFromText(text, sourceFile.fullPath, inlineContent, closeThisInline);
-
+        // Create the Editor
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
+        
         // Update the inline editor's height when the number of lines change
-        var prevLineCount;
+        var prevHeight;
         function sizeInlineEditorToContents() {
-            var lineCount = inlineEditor.lineCount();
-            if (lineCount !== prevLineCount) {
-                prevLineCount = lineCount;
-                var widgetHeight = inlineEditor.totalHeight(true);
-                hostEditor.setInlineWidgetHeight(myInlineId, widgetHeight, true);
-                $(inlineEditor.getScrollerElement()).height(widgetHeight);
+            var height = inlineEditor.totalHeight(true);
+            if (height !== prevHeight) {
+                prevHeight = height;
+                hostEditor.setInlineWidgetHeight(myInlineId, height, true);
+                $(inlineEditor.getScrollerElement()).height(height);
                 inlineEditor.refresh();
             }
         }
@@ -248,26 +255,11 @@ define(function (require, exports, module) {
         $(inlineEditor).on("change", function () {
             // Size editor to current contents
             sizeInlineEditorToContents();
-            
-            // Wire up to Document and its main full-size editor
-            var doc = DocumentManager.getOrCreateDocumentForPath(sourceFile.fullPath);
-            
-            if (doc.editor) {
-                // Full editor already open: sync change now
-                doc.editor.syncFrom(inlineEditor);
-            } else {
-                // Full editor not yet open: load & open it, then sync this change once done
-                createFullEditorForDocument(doc)
-                    .done(function () {
-                        // Begin syncing from inline to full editor
-                        doc.editor.syncFrom(inlineEditor);
-                    })
-                    .fail(function (fileError) {
-                        FileUtils.showFileOpenError(fileError.code, doc.file.fullPath).done(function () {
-                            closeThisInline();
-                        });
-                    });
-            }
+        });
+        
+        // If anyone else touches the Document, close this editor since it has fallen out of date
+        $(inlineEditor).on("lostSync", function () {
+            closeThisInline(inlineEditor);
         });
         
         // Some tasks have to wait until we've been parented into the outer editor
@@ -307,28 +299,40 @@ define(function (require, exports, module) {
             inlineEditor.focus();
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded };
+        // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+        function afterClosed() {
+            //console.log("Inline editor is being destroyed!");
+            _syncGutterWidths(hostEditor);
+            inlineEditor.destroy(); //release ref on Document
+        }
+        
+        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded, onClosed: afterClosed };
     }
     
     
     /**
-     * Disposes the given document's editor if the doc is no longer "open" in the UI (visible or in
-     * the working set). Otherwise does nothing.
-     * @param {!Document} document
+     * Disposes the given Document's full-size editor if the doc is no longer "open" from the user's
+     * standpoint - not in the working set and not currentDocument).
+     * 
+     * Destroying the full-size editor releases ONE ref to the Document; if inline editors or other
+     * UI elements are still referencing the Document it will still be 'open' (kept alive) from
+     * DocumentManager's standpoint. However, destroying the full-size editor does remove the backing
+     * "master" editor from the Document, rendering it immutable until either inline-editor edits or
+     * currentDocument change triggers _createFullEditorForDocument() full-size editor again.
+     *
+     * @param {!Document} document Document whose "master" editor we may destroy
      */
     function _destroyEditorIfUnneeded(document) {
-        var editor = document.editor;
+        var editor = document._masterEditor;
 
         if (!editor) {
             return;
         }
         
         // If outgoing editor is no longer needed, dispose it
-        if (!DocumentManager.getDocumentForFile(document.file)) {
-            
-            // Destroy the editor widget: CodeMirror docs for getWrapperElement() say all you have to do
-            // is "Remove this from your tree to delete an editor instance."
-            $(editor._codeMirror.getWrapperElement()).remove();
+        if (DocumentManager.getCurrentDocument() !== document && DocumentManager.findInWorkingSet(document.file.fullPath) === -1) {
+            // Destroy the editor widget (which un-refs the Document and reverts it to read-only mode)
+            editor.destroy();
             
             // Our callers should really ensure this, but just for safety...
             if (_currentEditor === editor) {
@@ -338,7 +342,7 @@ define(function (require, exports, module) {
         }
     }
 
-    /** Focus the currently visible editor. If no editor visible, does nothing. */
+    /** Focus the currently visible full-size editor. If no editor visible, does nothing. */
     function focusEditor() {
         if (_currentEditor) {
             _currentEditor.focus();
@@ -378,7 +382,7 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _currentEditor = document.editor;
+        _currentEditor = document._masterEditor;
         
         $(_currentEditor._codeMirror.getWrapperElement()).css("display", "");
         
@@ -399,10 +403,11 @@ define(function (require, exports, module) {
             $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
-
-        // DocumentManager should have already ensured that we've created an Editor
-        if (!document.editor) {
-            throw new Error("Trying to show a currentDocument without an Editor!");
+        
+        // Ensure a main editor exists for this document to show in the UI
+        if (!document._masterEditor) {
+            // Editor doesn't exist: populate a new Editor with the text
+            _createFullEditorForDocument(document);
         }
         
         _doShow(document);
@@ -469,6 +474,34 @@ define(function (require, exports, module) {
         _editorHolder = holder;
     }
     
+    /**
+     * Returns the currently focused editor instance.
+     * @returns {Editor}
+     */
+    function getFocusedEditor() {
+        if (_currentEditor) {
+            var focusedInline;
+            
+            // See if any inlines have focus
+            _currentEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget.data.editor && widget.data.editor.hasFocus()) {
+                    focusedInline = widget.data.editor;
+                }
+            });
+            
+            if (focusedInline) {
+                return focusedInline;
+            }
+            
+            if (_currentEditor.hasFocus()) {
+                return _currentEditor;
+            }
+        }
+        
+        return null;
+    }
+    
+    
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
@@ -479,9 +512,11 @@ define(function (require, exports, module) {
     // Define public API
     exports._openInlineWidget = _openInlineWidget; /* for inline editor unit tests */
     exports.setEditorHolder = setEditorHolder;
-    exports.createFullEditorForDocument = createFullEditorForDocument;
-    exports.createInlineEditorFromText = createInlineEditorFromText;
+    exports.getCurrentFullEditor = getCurrentFullEditor;
+    exports.createInlineEditorForDocument = createInlineEditorForDocument;
+    exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports.focusEditor = focusEditor;
+    exports.getFocusedEditor = getFocusedEditor;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
 });

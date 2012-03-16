@@ -8,33 +8,41 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Editor      = require("Editor").Editor,
-        EditorUtils = require("EditorUtils");
+    var Editor          = require("Editor").Editor,
+        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+        EditorUtils     = require("EditorUtils");
 
     describe("Editor", function () {
         var content = 'Brackets is going to be awesome!\n';
 
+        var myDocument, myEditor;
+        beforeEach(function () {
+            // create dummy Document for the Editor
+            myDocument = SpecRunnerUtils.createMockDocument(content);
+            
+            // create Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+        });
+
+        afterEach(function () {
+            myEditor.destroy();
+            myEditor = null;
+            $("#editor").remove();
+            myDocument = null;
+        });
+        
+
         describe("Editor wrapper", function () {
-            var myEditor;
-
-            beforeEach(function () {
-                // init Editor instance (containing a CodeMirror instance)
-                $("body").append("<div id='editor'/>");
-                myEditor = new Editor(content, "", $("#editor").get(0), {});
-            });
-
-            afterEach(function () {
-                $("#editor").remove();
-                myEditor = null;
-            });
 
             it("should initialize with content", function () {
                 // verify editor content
-                expect(myEditor.getText()).toEqual(content);
+                expect(myEditor._getText()).toEqual(content);
             });
         });
             
         describe("File extension to mode mapping", function () {
+            
             it("should switch to the HTML mode for files ending in .html", function () {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("file:///only/testing/the/path.html");
@@ -57,6 +65,18 @@ define(function (require, exports, module) {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("test.foo");
                 expect(mode).toEqual("");
+            });
+        });
+        
+        describe("Focus", function () {
+            
+            it("should not have focus until explicitly set", function () {
+                expect(myEditor.hasFocus()).toBe(false);
+            });
+            
+            it("should be able to detect when it has focus", function () {
+                myEditor.focus();
+                expect(myEditor.hasFocus()).toBe(true);
             });
         });
     });
