@@ -11,6 +11,7 @@ define(function (require, exports, module) {
     var Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
         FileIndexManager,   // loaded from brackets.test
+        DocumentManager,    // loaded from brackets.test
         SpecRunnerUtils = require("./SpecRunnerUtils.js");
 
     describe("InlineEditorProviders", function () {
@@ -71,8 +72,10 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // open inline editor at <div...>
+                DocumentManager.setCurrentDocument(inlineTest.docs[openFile]);
+                var editor = EditorManager.getCurrentFullEditor();
                 var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
-                    inlineTest.docs[openFile].editor,
+                    editor,
                     inlineTest.infos[openFile].offsets[openOffset]
                 );
                 
@@ -100,11 +103,13 @@ define(function (require, exports, module) {
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileIndexManager    = testWindow.brackets.test.FileIndexManager;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
                     inlineTest          = {infos: null, docs: null};
                 });
             });
     
             afterEach(function () {
+                waits(2000);
                 // revert files to original content with offset markup
                 SpecRunnerUtils.saveFilesWithOffsets(inlineTest.infos);
                 SpecRunnerUtils.closeTestWindow();
@@ -114,8 +119,7 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 0);
                 
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    var inlineData = test1html.editor.getInlineWidgets()[0].data;
+                    var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
                     var inlinePos = inlineData.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
@@ -127,8 +131,7 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 1);
                 
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    var inlineData = test1html.editor.getInlineWidgets()[0].data;
+                    var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
                     var inlinePos = inlineData.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
@@ -140,8 +143,7 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 2);
                 
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    var inlineData = test1html.editor.getInlineWidgets()[0].data;
+                    var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
                     var inlinePos = inlineData.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
@@ -153,10 +155,8 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 3, false);
                 
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    
                     // verify cursor position in inline editor
-                    expect(test1html.editor.getInlineWidgets().length).toBe(0);
+                    expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
                 });
             });
 
@@ -164,27 +164,34 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 4, false);
                 
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    
                     // verify cursor position in inline editor
-                    expect(test1html.editor.getInlineWidgets().length).toBe(0);
+                    expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
                 });
             });
             
             it("Increases size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
+                var inlineData, widgetHeight, inlineDoc;
+                
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    var inlineData = test1html.editor.getInlineWidgets()[0].data;
-                    var widgetHeight = inlineData.editor.totalHeight(true);
+                    inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
+                    widgetHeight = inlineData.editor.totalHeight(true);
                     
                     // verify original line count
                     expect(inlineData.editor.lineCount()).toBe(12);
                     
+                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
+                        inlineDoc = doc;
+                    });
+                });
+                
+                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
+                
+                runs(function () {
                     // change inline editor content
                     var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
-                    inlineData.editor.setText(inlineData.editor.getText() + newLines);
+                    inlineData.editor._setText(inlineDoc.getText() + newLines);
                     
                     // verify widget resizes when contents is changed
                     expect(inlineData.editor.lineCount()).toBe(17);
@@ -195,10 +202,11 @@ define(function (require, exports, module) {
             xit("Decreases size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
+                var inlineData, widgetHeight, inlineDoc;
+                
                 runs(function () {
-                    var test1html = inlineTest.docs["test1.html"];
-                    var inlineData = test1html.editor.getInlineWidgets()[0].data;
-                    var widgetHeight = inlineData.editor.totalHeight(true);
+                    inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
+                    widgetHeight = inlineData.editor.totalHeight(true);
                     
                     // verify original line count
                     expect(inlineData.editor.lineCount()).toBe(12);
@@ -208,7 +216,15 @@ define(function (require, exports, module) {
 TypeError: Cannot read property 'line' of undefined
     at posEq (file:///Users/jasonsj/Github/brackets-app/brackets/src/thirdparty/CodeMirror2/lib/codemirror.js:3190:33)
 */
-                    inlineData.editor.setText("div{}\n");
+                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
+                        inlineDoc = doc;
+                    });
+                });
+                
+                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
+                
+                runs(function () {
+                    inlineData.editor._setText("div{}\n");
                     
                     // verify widget resizes when contents is changed
                     expect(inlineData.editor.lineCount()).toBe(2);
