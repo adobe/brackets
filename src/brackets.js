@@ -42,13 +42,13 @@ define(function (require, exports, module) {
         PerfUtils               = require("PerfUtils"),
         FileIndexManager        = require("FileIndexManager"),
         QuickFileOpen           = require("QuickFileOpen"),
-        FindInFiles             = require("FindInFiles"),
         Menus                   = require("Menus");
     
     //Load modules the self-register and just need to get included in the main project
     require("JSLint");
     require("CodeHintManager");
     require("DebugCommandHandlers");
+    require("FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
     //
