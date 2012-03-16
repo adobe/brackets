@@ -6,7 +6,7 @@
 /*global define: false, $: false */
 
 /**
- * Responsible for coordinating file seletion between views by permitting only one view
+ * Responsible for coordinating file selection between views by permitting only one view
  * to show the current file selection at a time. Currently, only WorkingSetView and 
  * ProjectManager can show file selection. In general the WorkingSetView takes higher
  * priority until the user selects a file in the ProjectManager.
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
+    $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
         _fileSelectionFocus = WORKING_SET_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });

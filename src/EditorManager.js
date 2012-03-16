@@ -312,7 +312,9 @@ define(function (require, exports, module) {
         }
         
         // If outgoing editor is no longer needed, dispose it
-        if (DocumentManager.getCurrentDocument() !== document && DocumentManager.findInWorkingSet(document.file.fullPath) === -1) {
+        var isCurrentDocument = (DocumentManager.getCurrentDocument() === document);
+        var isInWorkingSet = (DocumentManager.findInWorkingSet(document.file) !== -1);
+        if (!isCurrentDocument && !isInWorkingSet) {
             // Destroy the editor widget (which un-refs the Document and reverts it to read-only mode)
             editor.destroy();
             
@@ -423,23 +425,27 @@ define(function (require, exports, module) {
     }
     
     /** Handles removals from DocumentManager's working set list */
-    function _onWorkingSetRemove(event, removedDoc) {
+    function _onWorkingSetRemove(event, removedFile) {
         // There's one case where an editor should be disposed even though the current document
         // didn't change: removing a document from the working set (via the "X" button). (This may
         // also cover the case where the document WAS current, if the editor-swap happens before the
         // removal from the working set.
-        _destroyEditorIfUnneeded(removedDoc);
+        var doc = DocumentManager.getOpenDocumentForPath(removedFile.fullPath);
+        if (doc) {
+            _destroyEditorIfUnneeded(doc);
+        }
+        // else, file was listed in working set but never shown in the editor - ignore
     }
     // Note: there are several paths that can lead to an editor getting destroyed
-    //  - file was in working set, but not open; then closed (via working set "X" button)
+    //  - file was in working set, but not in current editor; then closed (via working set "X" button)
     //      --> handled by _onWorkingSetRemove()
-    //  - file was open, but not in working set; then navigated away from
+    //  - file was in current editor, but not in working set; then navigated away from
     //      --> handled by _onCurrentDocumentChange()
-    //  - file was open, but not in working set; then closed (via File > Close) (and thus implicitly
-    //    navigated away from)
+    //  - file was in current editor, but not in working set; then closed (via File > Close) (and thus
+    //    implicitly navigated away from)
     //      --> handled by _onCurrentDocumentChange()
-    //  - file was open AND in working set; then closed (via File > Close OR working set "X" button)
-    //    (and thus implicitly navigated away from)
+    //  - file was in current editor AND in working set; then closed (via File > Close OR working set
+    //    "X" button) (and thus implicitly navigated away from)
     //      --> handled by _onWorkingSetRemove() currently, but could be _onCurrentDocumentChange()
     //      just as easily (depends on the order of events coming from DocumentManager)
     
