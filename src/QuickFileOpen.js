@@ -183,7 +183,8 @@ define(function (require, exports, module) {
                     if (query.charAt(0) === ":") {
                         var lineNumber = parseInt(query.slice(1, query.length), 10);
                         if (!isNaN(lineNumber)) {
-                            DocumentManager.getCurrentDocument().editor.setCursorPos(lineNumber - 1, 0);
+                            var editor = EditorManager.getCurrentFullEditor();
+                            editor.setCursorPos(lineNumber - 1, 0);
                         }
                     } else {
                         CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});

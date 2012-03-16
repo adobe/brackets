@@ -75,6 +75,7 @@ define(function (require, exports, module) {
         FileCommandHandlers     : FileCommandHandlers,
         FileViewController      : FileViewController,
         DocumentManager         : DocumentManager,
+        EditorManager           : EditorManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("CommandManager"),
