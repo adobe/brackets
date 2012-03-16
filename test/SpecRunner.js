@@ -27,6 +27,7 @@ define(function (require, exports, module) {
     require("spec/FileIndexManager-test.js");
     require("spec/CodeHintUtils-test.js");
     require("spec/CSSUtils-test.js");
+    require("spec/InlineEditorProviders-test.js");
 
     // Clean up preferencesKey
     $(window).unload(function () {

@@ -46,7 +46,32 @@ define(function (require, exports, module) {
             reader.readAsText(file, "utf8");
         });
 
-        return result;
+        return result.promise();
+    }
+    
+    /**
+     * Asynchronously writes a file as UTF-8 encoded text.
+     * @param {!FileEntry} fileEntry
+     * @param {!string} text
+     * @return {Deferred} a jQuery Deferred that will be resolved when
+     * file writing completes, or rejected with a FileError.
+     */
+    function writeText(fileEntry, text) {
+        var result = new $.Deferred();
+        
+        fileEntry.createWriter(function (fileWriter) {
+            fileWriter.onwriteend = function (e) {
+                result.resolve();
+            };
+            fileWriter.onerror = function (err) {
+                result.reject(err);
+            };
+
+            // TODO (issue #241): NativeFileSystem.BlobBulder
+            fileWriter.write(text);
+        });
+        
+        return result.promise();
     }
 
     /** @const */
@@ -134,5 +159,6 @@ define(function (require, exports, module) {
     exports.showFileOpenError        = showFileOpenError;
     exports.getFileErrorString       = getFileErrorString;
     exports.readAsText               = readAsText;
+    exports.writeText                = writeText;
     exports.convertToNativePath      = convertToNativePath;
 });

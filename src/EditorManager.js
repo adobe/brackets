@@ -492,6 +492,7 @@ define(function (require, exports, module) {
     window.addEventListener("resize", _updateEditorSize, true);
     
     // Define public API
+    exports._openInlineWidget = _openInlineWidget;
     exports.setEditorHolder = setEditorHolder;
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
