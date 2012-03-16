@@ -151,13 +151,51 @@ define(function (require, exports, module) {
     function makeAbsolute(paths) {
         var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
         
-        if (Array.isArray(paths)) {
-            return paths.map(function (path) {
-                return fullPath + path;
-            });
-        } else {
-            return fullPath + paths;
+        function prefixProjectPath(path) {
+            if (path.indexOf(fullPath) === 0) {
+                return path;
+            }
+            
+            return fullPath + path;
         }
+        
+        if (Array.isArray(paths)) {
+            return paths.map(prefixProjectPath);
+        } else {
+            return prefixProjectPath(paths);
+        }
+    }
+    
+    /**
+     * Creates relative paths based on the test window's current project
+     * @param {!{Array.<string>}} paths Absolute file paths to convert
+     * @return {!{Array.<string>}}
+     */
+    function makeRelative(paths) {
+        var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath,
+            fullPathLength = fullPath.length;
+        
+        function removeProjectPath(path) {
+            if (path.indexOf(fullPath) === 0) {
+                return path.slice(fullPathLength);
+            }
+            
+            return path;
+        }
+        
+        if (Array.isArray(paths)) {
+            return paths.map(removeProjectPath);
+        } else {
+            return removeProjectPath(paths);
+        }
+    }
+    
+    function makeArray(arg) {
+        if (!Array.isArray(arg)) {
+            return [arg];
+        }
+        
+        return arg;
     }
     
     /**
@@ -187,18 +225,15 @@ define(function (require, exports, module) {
      */
     function openProjectFiles(paths) {
         var result = new $.Deferred(),
-            fullpaths = makeAbsolute(paths),
+            fullpaths = makeArray(makeAbsolute(paths)),
+            keys = makeArray(makeRelative(paths)),
             docs = [];
-        
-        if (!Array.isArray(fullpaths)) {
-            fullpaths = [fullpaths];
-        }
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
             testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path}).done(function (doc) {
-                docs[paths[i]] = docs[i] = doc;
+                docs[keys[i]] = docs[i] = doc;
                 one.resolve();
             }).fail(function () {
                 one.reject();
@@ -240,23 +275,20 @@ define(function (require, exports, module) {
     
     /**
      * Opens an array of file paths, parses offset markup then saves the results to each original file.
-     * @param {!Array.<string>} paths Project relative file paths to open
+     * @param {!Array.<string>} paths Project relative or absolute file paths to open
      * @return {!Array.<{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}>} 
      */
     function saveFilesWithoutOffsets(paths) {
         var result = new $.Deferred(),
             infos  = [],
-            fullpaths = makeAbsolute(paths);
-        
-        if (!Array.isArray(fullpaths)) {
-            fullpaths = [fullpaths];
-        }
+            fullpaths = makeArray(makeAbsolute(paths)),
+            keys = makeArray(makeRelative(paths));
         
         var parallel = Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
         
             saveFileWithoutOffsets(path).done(function (info) {
-                infos[paths[i]] = infos[i] = info;
+                infos[keys[i]] = infos[i] = info;
                 one.resolve();
             }).fail(function () {
                 one.reject();
@@ -284,12 +316,14 @@ define(function (require, exports, module) {
      * Set editor cursor position to the given offset then activate an inline editor.
      * @param {!Editor} editor
      * @param {!{{line:number, ch:number}}} 
+     * @return {$.Promise} a promise that will be resolved when an inline 
+     *  editor is created or rejected when no inline editors are available.
      */
     function openInlineEditorAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
         
         // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
-        testWindow.brackets.test.EditorManager._openInlineWidget(editor);
+        return testWindow.brackets.test.EditorManager._openInlineWidget(editor);
     }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;

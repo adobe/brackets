@@ -70,15 +70,26 @@ define(function (require, exports, module) {
         return new Editor(text, mode, container, extraKeys);
     }
     
-    /** Bound to Ctrl+E on outermost editors */
+    /**
+     * @private
+     * Bound to Ctrl+E on outermost editors.
+     * @return {$.Promise} a promise that will be resolved when an inline 
+     *  editor is created or rejected when no inline editors are available.
+     */
     function _openInlineWidget(editor) {
         // Run through inline-editor providers until one responds
-        var pos = editor.getCursorPos();
-        var inlinePromise;
-        var i;
+        var pos = editor.getCursorPos(),
+            inlinePromise,
+            i,
+            result = new $.Deferred();
+        
         for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
             var provider = _inlineEditProviders[i];
             inlinePromise = provider(editor, pos);
+            
+            if (inlinePromise) {
+                break;
+            }
         }
         
         // If one of them will provide a widget, show it inline once ready
@@ -86,8 +97,15 @@ define(function (require, exports, module) {
             inlinePromise.done(function (inlineContent) {
                 var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height, inlineContent);
                 inlineContent.onAdded(inlineId);
+                result.resolve();
+            }).fail(function () {
+                result.reject();
             });
+        } else {
+            result.reject();
         }
+        
+        return result.promise();
     }
     
     function _closeInlineWidget(hostEditor, inlineId) {
@@ -459,7 +477,7 @@ define(function (require, exports, module) {
     window.addEventListener("resize", _updateEditorSize, true);
     
     // Define public API
-    exports._openInlineWidget = _openInlineWidget;
+    exports._openInlineWidget = _openInlineWidget; /* for inline editor unit tests */
     exports.setEditorHolder = setEditorHolder;
     exports.createFullEditorForDocument = createFullEditorForDocument;
     exports.createInlineEditorFromText = createInlineEditorFromText;
