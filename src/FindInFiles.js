@@ -166,8 +166,10 @@ define(function (require, exports, module) {
                       " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : "") +
                      (numMatches > 100 ? " (showing the first 100 matches)" : ""));
             
-            searchResults.forEach(function (item, i) {
-                if (item && i < 100) {
+            var resultsDisplayed = 0;
+            
+            searchResults.forEach(function (item) {
+                if (item && resultsDisplayed < 100) {
                     var makeCell = function (content) {
                         return $("<td/>").html(content);
                     };
@@ -189,19 +191,22 @@ define(function (require, exports, module) {
                     
                     // Add row for each match in file
                     item.matches.forEach(function (match) {
-                        var row = $("<tr/>")
-                            .append(makeCell(" "))      // Indent
-                            .append(makeCell("line: " + (match.start.line + 1)).css("width", 60))
-                            .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
-                            .appendTo(resultTable);
-                        
-                        row.click(function () {
-                            CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
-                                .done(function (doc) {
-                                    // Opened document is now the focused editor
-                                    EditorManager.getFocusedEditor().setSelection(match.start, match.end);
-                                });
-                        });
+                        if (resultsDisplayed < 100) {
+                            var row = $("<tr/>")
+                                .append(makeCell(" "))      // Indent
+                                .append(makeCell("line: " + (match.start.line + 1)).css("width", 60))
+                                .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
+                                .appendTo(resultTable);
+                            
+                            row.click(function () {
+                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
+                                    .done(function (doc) {
+                                        // Opened document is now the focused editor
+                                        EditorManager.getFocusedEditor().setSelection(match.start, match.end);
+                                    });
+                            });
+                            resultsDisplayed++;
+                        }
                     });
                     
                 }
