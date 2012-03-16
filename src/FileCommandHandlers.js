@@ -88,9 +88,10 @@ define(function (require, exports, module) {
             PerfUtils.addMeasurement("Open File: " + fullPath);
         });
         
+        // Load the file if it was never open before, and then switch to it in the UI
         DocumentManager.getDocumentForPath(fullPath)
             .done(function (doc) {
-                DocumentManager.showInEditor(doc);
+                DocumentManager.setCurrentDocument(doc);
                 result.resolve(doc);
             })
             .fail(function (fileError) {

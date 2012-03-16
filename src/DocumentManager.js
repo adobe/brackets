@@ -181,15 +181,14 @@ define(function (require, exports, module) {
 
     
     /**
-     * Displays the given Document in the editor pane (indirectly: this merely changes the value of
-     * getCurrentDocument(), firing currentDocumentChange and triggering listeners elsewhere to
-     * show/hide Editors, update the selection in the file tree / working set UI, etc.). This call
-     * may also add the item to the working set list.
+     * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
+     * causes this Document's main editor UI to be shown in the editor pane, updates the selection
+     * in the file tree / working set UI, etc. This call may also add the item to the working set.
      * 
      * @param {!Document} document  The Document to make current. May or may not already be in the
      *      working set.
      */
-    function showInEditor(document) {
+    function setCurrentDocument(document) {
         
         // If this doc is already current, do nothing
         if (_currentDocument === document) {
@@ -208,8 +207,8 @@ define(function (require, exports, module) {
         // (this event triggers EditorManager to actually switch editors in the UI)
     }
     
-    /** Closes the currently visible document, if any, changing currentDocument to null */
-    function _clearEditor() {
+    /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
+    function _clearCurrentDocument() {
         // If editor already blank, do nothing
         if (!_currentDocument) {
             return;
@@ -262,9 +261,9 @@ define(function (require, exports, module) {
             
             // Switch editor to next document (or blank it out)
             if (nextDocument) {
-                showInEditor(nextDocument);
+                setCurrentDocument(nextDocument);
             } else {
-                _clearEditor();
+                _clearCurrentDocument();
             }
         }
         
@@ -424,7 +423,8 @@ define(function (require, exports, module) {
             // FUTURE: If main editor was closed without saving changes, we should revert _text to
             // what's on disk. But since we currently close all secondary editors when anyone else
             // touches the Document content, there's no point in doing that yet. Just change the text
-            // to a dummy value to trigger that closing.
+            // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
+            // should probably live in FileCommandHandlers.handleFileClose().
             if (this.isDirty) {
                 this.refreshText("");
             }
@@ -485,7 +485,7 @@ define(function (require, exports, module) {
         this.diskTimestamp = newTimestamp;
         
         // Sniff line-ending style
-        this._lineEndings = FileUtils.sniffLineEndings(this.getText());
+        this._lineEndings = FileUtils.sniffLineEndings(text);
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
@@ -665,7 +665,7 @@ define(function (require, exports, module) {
             filesToOpen.forEach(function (doc, index) {
                 if (doc) {
                     addToWorkingSet(doc);
-                    showInEditor(doc);
+                    setCurrentDocument(doc);    // force creation of backing Editor to keep doc alive
                 }
             });
 
@@ -676,7 +676,7 @@ define(function (require, exports, module) {
 
             if (activeDoc) {
                 // CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
-                showInEditor(activeDoc);
+                setCurrentDocument(activeDoc);
             }
         });
     }
@@ -689,7 +689,7 @@ define(function (require, exports, module) {
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;
-    exports.showInEditor = showInEditor;
+    exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeDocument = closeDocument;
     exports.closeAll = closeAll;

@@ -173,8 +173,8 @@ define(function (require, exports, module) {
     /**
      * @private
      * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
-     * Document's master backing editor. The editor is not yet visible; to show it, call
-     * DocumentManager.showInEditor().
+     * Document's master backing editor. The editor is not yet visible; to show it, use
+     * DocumentManager.setCurrentDocument().
      * Semi-private: should not be called outside this module other than by Editor.
      * @param {!Document} document  Document whose main/full Editor to create
      */
@@ -220,13 +220,6 @@ define(function (require, exports, module) {
         
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
-        
-        // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
-        function afterClosed() {
-            console.log("Inline editor is being destroyed!");
-            _syncGutterWidths(hostEditor);
-            inlineEditor.destroy(); //release ref on Document
-        }
         
         // Update the inline editor's height when the number of lines change
         var prevHeight;
@@ -286,6 +279,13 @@ define(function (require, exports, module) {
             sizeInlineEditorToContents();
             
             inlineEditor.focus();
+        }
+        
+        // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+        function afterClosed() {
+            console.log("Inline editor is being destroyed!");
+            _syncGutterWidths(hostEditor);
+            inlineEditor.destroy(); //release ref on Document
         }
         
         return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded, onClosed: afterClosed };

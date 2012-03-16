@@ -184,6 +184,8 @@ define(function (require, exports, module) {
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
      * Document modifiable.
      *
+     * ALWAYS call destroy() when you are done with an Editor - otherwise it will leak a Document ref.
+     *
      * @param {!Document} document  
      * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
      *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
@@ -273,10 +275,9 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        $(this).on("keyEvent", _checkElectricChars);
-        $(this).on("change", function () {
-            self._handleEditorChange();
-        });
+        $(this)
+            .on("keyEvent", _checkElectricChars)
+            .on("change", this._handleEditorChange.bind(this));
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
         this._codeMirror.setOption("mode", mode);
@@ -303,12 +304,19 @@ define(function (require, exports, module) {
         // tree to delete an editor instance."
         $(this._codeMirror.getWrapperElement()).remove();
         
+        // Disconnect from Document
         this.document.releaseRef();
         $(this.document).off("change", this._handleDocumentChange);
         
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
         }
+        
+        // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
+        // run, at least, since they may also need to release Document refs
+        this._inlineWidgets.forEach(function (inlineInfo) {
+            inlineInfo.closeCallback();
+        });
     };
     
     /**
@@ -525,7 +533,7 @@ define(function (require, exports, module) {
                 closeCallback();
             }, 0);
         });
-        this._inlineWidgets.push({ id: inlineId, data: data });
+        this._inlineWidgets.push({ id: inlineId, data: data, closeCallback: closeCallback });
         
         return inlineId;
     };
