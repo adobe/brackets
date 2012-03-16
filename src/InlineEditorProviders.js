@@ -75,7 +75,7 @@ define(function (require, exports, module) {
             var $filenameDiv = $(value).find(".filename");
             // This only checks filename here. If there are multiple documents with the same filename
             // (in different directories), this test will fail.
-            // This needs to be fixed once we have proper document<-->editor mapping.
+            // TODO: This needs to be fixed by connecting this method with a specific inline editor's state
             if ($filenameDiv.text() === doc.file.name) {
                 _showDirtyIndicator($filenameDiv.find(".dirty-indicator"), doc.isDirty);
             }
@@ -86,8 +86,8 @@ define(function (require, exports, module) {
      * Stops tracking an editor after being removed from the document.
      * @private
      */
-    function _inlineEditorRemoved(event) {
-        var indexOf = _htmlToCSSProviderContent.indexOf(event.target);
+    function _inlineEditorRemoved(inlineContent) {
+        var indexOf = _htmlToCSSProviderContent.indexOf(inlineContent);
         
         if (indexOf >= 0) {
             _htmlToCSSProviderContent.splice(indexOf, 1);
@@ -101,32 +101,21 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Show a range of text in an inline editor.
+     * Create an inline Editor UI showing a range of text within the given Document
      * 
      * @param {!Editor} parentEditor The parent editor that will contain the inline editor
-     * @param {!FileEntry} fileEntry File containing inline content
+     * @param {!Document} doc Document for the inline content
      * @param {!Number} startLine The first line to be shown in the inline editor 
      * @param {!Number} endLine The last line to be shown in the inline editor
      */
-    function _showTextRangeInInlineEditor(parentEditor, fileEntry, startLine, endLine) {
-        var result = new $.Deferred();
+    function _showTextRangeInInlineEditor(parentEditor, doc, startLine, endLine) {
+        var range = {
+            startLine: startLine,
+            endLine: endLine
+        };
         
-        DocumentManager.getDocumentContents(fileEntry.fullPath)
-            .done(function (text) {
-                var range = {
-                    startLine: startLine,
-                    endLine: endLine
-                };
-                var inlineInfo = EditorManager.createInlineEditorFromText(parentEditor, text, range, fileEntry);
-                
-                result.resolve(inlineInfo);
-            })
-            .fail(function (fileError) {
-                console.log("Error getting document contents: ", fileError);
-                result.reject();
-            });
-
-        return result.promise();
+        var inlineInfo = EditorManager.createInlineEditorForDocument(parentEditor, doc, range);
+        return inlineInfo;
     }
     
     /**
@@ -178,11 +167,11 @@ define(function (require, exports, module) {
      * TODO (issue #424): move to createInlineEditorFromText()
      * @private
      */
-    function _createInlineEditorDecorations(editor, fileEntry) {
+    function _createInlineEditorDecorations(editor, doc) {
         // create the filename div
         var filenameDiv = $('<div class="filename" style="visibility: hidden"/>')
             .append('<div class="dirty-indicator"/>')
-            .append(fileEntry.name);
+            .append(doc.file.name);
         
         // add inline editor styling
         $(editor.getScrollerElement())
@@ -193,9 +182,8 @@ define(function (require, exports, module) {
         // update the current inline editor immediately
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
-            var document = DocumentManager.getDocumentForFile(fileEntry);
             _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
-            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), document ? document.isDirty : false);
+            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), doc.isDirty);
             filenameDiv.css("visibility", "");
         }, 0);
     }
@@ -207,7 +195,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
      * @return {$.Promise} a promise that will be resolved with:
-     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number)}}
+     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(editor, pos) {
@@ -238,26 +226,27 @@ define(function (require, exports, module) {
                 if (rules && rules.length > 0) {
                     var rule = rules[0];  // For Sprint 4 we use the first match only
                     
-                    _showTextRangeInInlineEditor(editor, rule.source, rule.lineStart, rule.lineEnd)
-                        .done(function (inlineInfo) {
-                            // track inlineEditor content removal
-                            inlineInfo.content.addEventListener("DOMNodeRemovedFromDocument", _inlineEditorRemoved);
-                            _createInlineEditorDecorations(inlineInfo.editor, rule.source);
-                            
-                            _htmlToCSSProviderContent.push(inlineInfo.content);
-                            
-                            // Manaully position filename div's. Can't use CSS positioning in this case
-                            // since the label is relative to the window boundary, not CodeMirror.
-                            if (_htmlToCSSProviderContent.length > 0) {
-                                $(window).on("resize", _updateAllFilenames);
-                                $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
-                            }
-                            
-                            result.resolve(inlineInfo);
-                        })
-                        .fail(function () {
-                            result.reject();
-                        });
+                    var inlineInfo = _showTextRangeInInlineEditor(editor, rule.document, rule.lineStart, rule.lineEnd);
+                    
+                    // track inlineEditor content removal
+                    var origOnClosed = inlineInfo.onClosed;
+                    inlineInfo.onClosed = function () {
+                        origOnClosed();
+                        _inlineEditorRemoved(inlineInfo.content);
+                    };
+                    
+                    _createInlineEditorDecorations(inlineInfo.editor, rule.document);
+                    
+                    _htmlToCSSProviderContent.push(inlineInfo.content);
+                    
+                    // Manually position filename div's. Can't use CSS positioning in this case
+                    // since the label is relative to the window boundary, not CodeMirror.
+                    if (_htmlToCSSProviderContent.length > 0) {
+                        $(window).on("resize", _updateAllFilenames);
+                        $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
+                    }
+                    
+                    result.resolve(inlineInfo);
                 } else {
                     // No matching rules were found.
                     result.reject();
