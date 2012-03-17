@@ -525,13 +525,14 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!DOMElement} domContent  DOM node of widget UI to insert.
      * @param {number} initialHeight  Initial height to accomodate.
+     * @param {function()} parentShowCallback  Function called when parent of inline is made visible.
      * @param {function()} closeCallback  Function called when inline is closed, either automatically
      *          by CodeMirror, or by this host Editor closing, or manually via removeInlineWidget().
      * @param {Object} data  Extra data to track along with the widget. Accessible later via
      *          {@link #getInlineWidgets()}.
      * @return {number} id for this inline widget instance; unique to this Editor
      */
-    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, closeCallback, data) {
+    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, parentShowCallback, closeCallback, data) {
         // Now add the new widget
         var self = this;
         var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
@@ -542,7 +543,7 @@ define(function (require, exports, module) {
                 closeCallback();
             }, 0);
         });
-        this._inlineWidgets.push({ id: inlineId, data: data, closeCallback: closeCallback });
+        this._inlineWidgets.push({ id: inlineId, data: data, parentShowCallback: parentShowCallback, closeCallback: closeCallback });
         
         return inlineId;
     };
@@ -608,6 +609,21 @@ define(function (require, exports, module) {
         this._codeMirror.refresh();
     };
     
+    /**
+     * Shows or hides the editor
+     * @param {boolean} shouldShow true to show the editor, false to hide it
+     */
+    Editor.prototype.show = function (shouldShow) {
+        $(this._codeMirror.getWrapperElement()).css("display", (shouldShow ? "" : "none"));
+        this._codeMirror.refresh();
+        if (shouldShow) {
+            this._inlineWidgets.forEach(function (widget) {
+                if (widget.parentShowCallback) {
+                    widget.parentShowCallback();
+                }
+            });
+        }
+    };
     
     /**
      * The Document we're bound to
