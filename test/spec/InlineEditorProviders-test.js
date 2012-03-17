@@ -118,7 +118,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.closeTestWindow();
             });
 
-            it("Opens a type selector", function () {
+            it("should open a type selector", function () {
                 initInlineTest("test1.html", 0);
                 
                 runs(function () {
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("Opens a class selector", function () {
+            it("should open a class selector", function () {
                 initInlineTest("test1.html", 1);
                 
                 runs(function () {
@@ -142,7 +142,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("Opens an id selector", function () {
+            it("should open an id selector", function () {
                 initInlineTest("test1.html", 2);
                 
                 runs(function () {
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("Closes, removes the inline widget and restores focus", function () {
+            it("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
                 var fullEditor, inlineWidget, inlinePos, savedPos;
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("Does not open an inline editor when positioned on textContent", function () {
+            it("should not open an inline editor when positioned on textContent", function () {
                 initInlineTest("test1.html", 3, false);
                 
                 runs(function () {
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("Does not open an inline editor when positioned on a tag in a comment", function () {
+            it("should not open an inline editor when positioned on a tag in a comment", function () {
                 initInlineTest("test1.html", 4, false);
                 
                 runs(function () {
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("Increases size based on content", function () {
+            it("should increase size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
                 var inlineData, widgetHeight, inlineDoc;
@@ -229,7 +229,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("Decreases size based on content", function () {
+            xit("should decrease size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
                 var inlineData, widgetHeight, inlineDoc;
@@ -262,18 +262,18 @@ TypeError: Cannot read property 'line' of undefined
                 });
             });
             
-            it("Save changes from inline editor ", function () {
+            it("should save changes in the inline editor ", function () {
                 initInlineTest("test1.html", 1);
                 
                 var saved = false,
                     err = false,
-                    inlineData,
+                    inlineEditor,
                     inlineDoc,
-                    newText,
+                    newText = "\n/* jasmine was here */",
                     savedText;
                 
                 runs(function () {
-                    inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
                     DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
                         inlineDoc = doc;
                     });
@@ -283,8 +283,8 @@ TypeError: Cannot read property 'line' of undefined
                 
                 runs(function () {
                     // set text on the editor, can't mutate document directly at this point
-                    newText = inlineDoc.getText() + "\n/* jasmine was here */";
-                    inlineData.editor._setText(newText);
+                    inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
+                    newText = inlineDoc.getText();
                     
                     // execute file save command
                     testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
@@ -309,6 +309,75 @@ TypeError: Cannot read property 'line' of undefined
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
+                });
+            });
+            
+            it("should not save changes in the host editor", function () {
+                initInlineTest("test1.html", 1);
+                
+                var saved = false,
+                    err = false,
+                    hostEditor,
+                    inlineEditor,
+                    inlineDoc,
+                    newInlineText = "/* jasmine was inline */\n",
+                    newHostText = "/* jasmine was here */\n",
+                    savedInlineText,
+                    savedHostText;
+                
+                runs(function () {
+                    hostEditor = EditorManager.getCurrentFullEditor();
+                    inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
+                    
+                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
+                        inlineDoc = doc;
+                    });
+                });
+                
+                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
+                
+                runs(function () {
+                    // set text on the host editor
+                    hostEditor._codeMirror.replaceRange(newHostText, hostEditor.getCursorPos());
+                    newHostText = hostEditor.document.getText();
+                    
+                    // set text on the inline editor, can't mutate document directly at this point
+                    inlineEditor._codeMirror.replaceRange(newInlineText, inlineEditor.getCursorPos());
+                    newInlineText = inlineDoc.getText();
+                    
+                    // execute file save command
+                    testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
+                        saved = true;
+                    }).fail(function () {
+                        err = true;
+                    });
+                });
+                
+                waits(3000);
+                
+                waitsFor(function () { return saved && !err; }, "save timeout", 1000);
+                
+                runs(function () {
+                    // read saved inline file contents
+                    FileUtils.readAsText(inlineDoc.file).done(function (text) {
+                        savedInlineText = text;
+                    }).fail(function () {
+                        err = true;
+                    });
+                    
+                    // read saved host editor file contents
+                    FileUtils.readAsText(hostEditor.document.file).done(function (text) {
+                        savedHostText = text;
+                    }).fail(function () {
+                        err = true;
+                    });
+                });
+                
+                waitsFor(function () { return savedInlineText !== null && savedHostText !== null; }, "readAsText timeout", 1000);
+                
+                runs(function () {
+                    expect(savedInlineText).toEqual(newInlineText);
+                    expect(savedHostText).toEqual(inlineTest.infos["test1.html"].text);
                 });
             });
 
