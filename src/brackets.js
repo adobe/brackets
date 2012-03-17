@@ -16,15 +16,6 @@
  * a global object, window.brackets.
  */
 
-// load module packages
-// this must be done in the global scope
-require.config({
-    "packages": [{
-        "name": "LiveDevelopment",
-        "location": "modules/LiveDevelopment"
-    }]
-});
-
 define(function (require, exports, module) {
     'use strict';
     
@@ -35,7 +26,7 @@ define(function (require, exports, module) {
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
     // load modules
-    require("LiveDevelopment");
+    require("LiveDevelopment/main");
 
     
     // Load dependent modules
