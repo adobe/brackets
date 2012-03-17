@@ -200,14 +200,14 @@ define(function (require, exports, module) {
             it("should increase size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
-                var inlineData, widgetHeight, inlineDoc;
+                var inlineEditor, widgetHeight, inlineDoc;
                 
                 runs(function () {
-                    inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
-                    widgetHeight = inlineData.editor.totalHeight(true);
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                    widgetHeight = inlineEditor.totalHeight(true);
                     
                     // verify original line count
-                    expect(inlineData.editor.lineCount()).toBe(12);
+                    expect(inlineEditor.lineCount()).toBe(12);
                     
                     DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
                         inlineDoc = doc;
@@ -220,45 +220,42 @@ define(function (require, exports, module) {
                     // change inline editor content
                     var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
                     
-                    // set text on the editor, can't mutate document directly at this point
-                    inlineData.editor._setText(inlineDoc.getText() + newLines);
+                    // insert new lines at current cursor position
+                    // can't mutate document directly at this point
+                    inlineEditor._codeMirror.replaceRange(
+                        newLines,
+                        inlineEditor.getCursorPos()
+                    );
                     
                     // verify widget resizes when contents is changed
-                    expect(inlineData.editor.lineCount()).toBe(17);
-                    expect(inlineData.editor.totalHeight(true)).toBeGreaterThan(widgetHeight);
+                    expect(inlineEditor.lineCount()).toBe(17);
+                    expect(inlineEditor.totalHeight(true)).toBeGreaterThan(widgetHeight);
                 });
             });
             
-            xit("should decrease size based on content", function () {
+            it("should decrease size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
-                var inlineData, widgetHeight, inlineDoc;
+                var inlineEditor, widgetHeight, inlineDoc;
                 
                 runs(function () {
-                    inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
-                    widgetHeight = inlineData.editor.totalHeight(true);
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                    widgetHeight = inlineEditor.totalHeight(true);
                     
                     // verify original line count
-                    expect(inlineData.editor.lineCount()).toBe(12);
+                    expect(inlineEditor.lineCount()).toBe(12);
                     
-                    // change inline editor content
-/*
-TypeError: Cannot read property 'line' of undefined
-    at posEq (file:///Users/jasonsj/Github/brackets-app/brackets/src/thirdparty/CodeMirror2/lib/codemirror.js:3190:33)
-*/
-                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
-                        inlineDoc = doc;
-                    });
-                });
-                
-                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
-                
-                runs(function () {
-                    inlineData.editor._setText("div{}\n");
+                    // replace the entire .foo rule with an empty string
+                    // set text on the editor, can't mutate document directly at this point
+                    inlineEditor._codeMirror.replaceRange(
+                        "",
+                        inlineEditor.getCursorPos(),
+                        inlineTest.infos["test1.css"].offsets[3]
+                    );
                     
                     // verify widget resizes when contents is changed
-                    expect(inlineData.editor.lineCount()).toBe(2);
-                    expect(inlineData.editor.totalHeight(true)).toBeLessThan(widgetHeight);
+                    expect(inlineEditor.lineCount()).toBe(10);
+                    expect(inlineEditor.totalHeight(true)).toBeLessThan(widgetHeight);
                 });
             });
             
@@ -282,7 +279,8 @@ TypeError: Cannot read property 'line' of undefined
                 waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
                 
                 runs(function () {
-                    // set text on the editor, can't mutate document directly at this point
+                    // insert text at the inline editor's cursor position
+                    // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
                     newText = inlineDoc.getText();
                     
@@ -337,11 +335,12 @@ TypeError: Cannot read property 'line' of undefined
                 waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
                 
                 runs(function () {
-                    // set text on the host editor
+                    // insert text at the host editor's cursor position
                     hostEditor._codeMirror.replaceRange(newHostText, hostEditor.getCursorPos());
                     newHostText = hostEditor.document.getText();
                     
-                    // set text on the inline editor, can't mutate document directly at this point
+                    // insert text at the inline editor's cursor position
+                    // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newInlineText, inlineEditor.getCursorPos());
                     newInlineText = inlineDoc.getText();
                     
@@ -352,8 +351,6 @@ TypeError: Cannot read property 'line' of undefined
                         err = true;
                     });
                 });
-                
-                waits(3000);
                 
                 waitsFor(function () { return saved && !err; }, "save timeout", 1000);
                 
