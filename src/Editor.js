@@ -15,20 +15,17 @@
  * For now, there's a distinction between the "master" Editor for a Document - which secretly acts
  * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
  * which, via Document, sync their changes to and from that master.
- * Note: in sprint 5, secondary Editors only sync TO the Document; they cannot sync FROM the Document
- * if anyone else changes it (see lostSync event below).
  *
  * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
  * but this is considered deprecated and may go away.
  *  
  * The Editor object dispatches the following events:
- *    - change -- When the text of the editor changes (including due to undo/redo)
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
- *    - lostSync -- When the backing Document changes in such a way that this Editor is no longer
- *          able to stay in sync with the text. Only fired by secondary (inline) editors. This will
- *          go away completely once we have full cross-Editor syncing.
+ *
+ * Note that the Editor also dispatches "change" events internally, but you should listen for those 
+ * on Documents, not Editors.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(editorInstance).on("eventname", handler);
@@ -193,7 +190,7 @@ define(function (require, exports, module) {
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
-     * @param {!Object<string, function(Editor)} additionalKeys  Mapping of keyboard shortcuts to
+     * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
      *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
      */
     function Editor(document, makeMasterEditor, mode, container, additionalKeys) {
@@ -319,6 +316,21 @@ define(function (require, exports, module) {
         });
     };
     
+    Editor.prototype._applyChangesToEditor = function (editor, changeList) {
+        // FUTURE: Technically we should go through the editor's document. However, we need to access
+        // a CodeMirror API to make sure that the edits get batched properly, and it's not clear
+        // that we want that exact API exposed in Document yet. So for now we just talk to
+        // the editor directly. Eventually we will factor this out into a model API once we 
+        // have an actual central model.
+        var cm = editor._codeMirror;
+        cm.operation(function () {
+            var change;
+            for (change = changeList; change; change = change.next) {
+                cm.replaceRange(change.text.join('\n'), change.from, change.to);
+            }
+        });
+    };
+    
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
      * There are several cases where we want to ignore a CodeMirror change:
@@ -327,7 +339,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
      *    to a Document change
      */
-    Editor.prototype._handleEditorChange = function () {
+    Editor.prototype._handleEditorChange = function (event, editor, changeList) {
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
@@ -342,8 +354,9 @@ define(function (require, exports, module) {
             // Secondary editor:
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
+            // (which will directly push the change into the master editor).
             this._duringSync = true;
-            this.document.setText(this._getText());
+            this._applyChangesToEditor(this.document._masterEditor, changeList);
             this._duringSync = false;
         }
         // Else, Master editor:
@@ -360,7 +373,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
      *    the document an editor change that originated with us
      */
-    Editor.prototype._handleDocumentChange = function () {
+    Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -372,16 +385,12 @@ define(function (require, exports, module) {
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
             
-            // Syncing from Document / main editor back to inline editors is NOT supported yet!
-            $(this).triggerHandler("lostSync");
-            
-            // FUTURE: do full cross-editor syncing without losing visible range, scroll pos, etc.
-            // this._duringSync = true;
-            // this.setText(this.document.getText());
-            // this._duringSync = false;
+            this._duringSync = true;
+            this._applyChangesToEditor(this, changeList);
+            this._duringSync = false;
         }
         // Else, Master editor:
-        // we're the ground truth; nothing to do since Document change is just echoing that our
+        // we're the ground truth; nothing to do since Document change is just echoing our
         // editor changes
     };
     
@@ -394,8 +403,8 @@ define(function (require, exports, module) {
         var self = this;
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
-        this._codeMirror.setOption("onChange", function () {
-            $(self).triggerHandler("change");
+        this._codeMirror.setOption("onChange", function (instance, changeList) {
+            $(self).triggerHandler("change", [self, changeList]);
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);

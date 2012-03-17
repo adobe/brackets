@@ -51,9 +51,9 @@ define(function (require, exports, module) {
         docToShim.releaseRef = function () {};
         
         // Prevent adding doc to working set
-        docToShim._handleEditorChange = function () {
+        docToShim._handleEditorChange = function (event, editor, changeList) {
             this.isDirty = true;
-            $(this).triggerHandler("change", [this]);
+            $(this).triggerHandler("change", [this, changeList]);
         };
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");

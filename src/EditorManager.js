@@ -239,11 +239,6 @@ define(function (require, exports, module) {
             sizeInlineEditorToContents();
         });
         
-        // If anyone else touches the Document, close this editor since it has fallen out of date
-        $(inlineEditor).on("lostSync", function () {
-            closeThisInline(inlineEditor);
-        });
-        
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
             myInlineId = inlineId;
