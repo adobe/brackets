@@ -15,7 +15,6 @@
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
  */
-
 define(function (require, exports, module) {
     'use strict';
     
@@ -25,9 +24,8 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
-    // load modules
+    // Load LiveDeveopment
     require("LiveDevelopment/main");
-
     
     // Load dependent modules
     var ProjectManager          = require("ProjectManager"),
