@@ -222,25 +222,23 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Closes the given document (which may or may not be the current document in the editor UI, and
-     * may or may not be in the working set). Discards any unsaved changes if isDirty - it is
-     * expected that the UI has already confirmed with the user before calling us.
+     * Closes the full editor for the given file (if it has ever been open), and removes it from the
+     * working set (if was in it). Discards any unsaved changes if isDirty - it is expected that the
+     * UI has already confirmed with the user before calling this.
      *
-     * This will change currentDocument if this document was current one (if possible; in some cases,
-     * the editor may be left blank instead). This will also remove the doc from the working set if
-     * it was in the set.
+     * Changes currentDocument if this file was the current document (may change to null).
      *
      * TODO: disentangle the notion of closing the main editor vs. totally destroying a Document (e.g.
      * because it has been deleted on disk). The latter can happen even when there's no main editor,
      * and not in the working set.
      *
-     * @param {!Document} document
+     * @param {!FileEntry} file
      */
-    function closeDocument(document) {
+    function closeFullEditor(file) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
-        if (_currentDocument === document) {
-            var wsIndex = findInWorkingSet(document.file.fullPath);
+        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+            var wsIndex = findInWorkingSet(file.fullPath);
             
             // Decide which doc to show in editor after this one
             var nextFile;
@@ -262,20 +260,19 @@ define(function (require, exports, module) {
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
-                // setCurrentDocument(nextFile);
-                // FIXME: execute Commands.FILE_OPEN ??
-                _clearCurrentDocument();
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath });
+                // TODO: need to async wait for this? what if there's an error opening it?
             } else {
                 _clearCurrentDocument();
             }
         }
         
         // (Now we're guaranteed that the current document is not the one we're closing)
-        console.assert(_currentDocument !== document);
+        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
-        _removeFromWorkingSet(document.file);
+        _removeFromWorkingSet(file);
         
         // Note: EditorManager will dispose the closed document's now-unneeded editor either in
         // response to the editor-swap call above, or the _removeFromWorkingSet() call, depending on
@@ -283,13 +280,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Equivalent to calling closeDocument() for all Documents. Same caveat: this discards any
+     * Equivalent to calling closeFullEditor() for all Documents. Same caveat: this discards any
      * unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        var allDocs = getAllOpenDocuments();
+        _clearCurrentDocument();
         
-        allDocs.forEach(closeDocument);
+        var wsClone = _workingSet.slice(0);  // can't delete from the same array we're iterating
+        wsClone.forEach(_removeFromWorkingSet);
     }
     
     
@@ -694,7 +692,7 @@ define(function (require, exports, module) {
     exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
-    exports.closeDocument = closeDocument;
+    exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
 
     // Register preferences callback

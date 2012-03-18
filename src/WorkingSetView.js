@@ -68,7 +68,9 @@ define(function (require, exports, module) {
                     if (doc) {
                         CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
                     } else {
-                        // FIXME: still must remove from working set!
+                        // No need for confirmation prompt here: no doc for this file
+                        // TODO: roll this functionality into FILE_CLOSE?
+                        DocumentManager.closeFullEditor(file);
                     }
                 });
         }

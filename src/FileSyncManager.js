@@ -169,7 +169,8 @@ define(function (require, exports, module) {
      */
     function closeDeletedDocs() {
         toClose.forEach(function (doc) {
-            DocumentManager.closeDocument(doc);
+            // TODO: should be Document.destroy() or something instead
+            DocumentManager.closeFullEditor(doc.file);
         });
     }
     
@@ -223,7 +224,8 @@ define(function (require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
                             // Discard - close editor
-                            DocumentManager.closeDocument(doc);
+                            // TODO: should be Document.destroy() or something instead
+                            DocumentManager.closeFullEditor(doc.file);
                             result.resolve();
                         } else {
                             // Discard - load changes from disk
@@ -294,6 +296,7 @@ define(function (require, exports, module) {
         // Each phase fully completes (asynchronously) before the next one begins.
         
         // 1) Check for external modifications
+        // TODO: actually need to check the UNION of this & the working set list!!!
         var allDocs = DocumentManager.getAllOpenDocuments();
         
         findExternalChanges(allDocs)

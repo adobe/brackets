@@ -313,7 +313,7 @@ define(function (require, exports, module) {
         
         // If outgoing editor is no longer needed, dispose it
         var isCurrentDocument = (DocumentManager.getCurrentDocument() === document);
-        var isInWorkingSet = (DocumentManager.findInWorkingSet(document.file) !== -1);
+        var isInWorkingSet = (DocumentManager.findInWorkingSet(document.file.fullPath) !== -1);
         if (!isCurrentDocument && !isInWorkingSet) {
             // Destroy the editor widget (which un-refs the Document and reverts it to read-only mode)
             editor.destroy();

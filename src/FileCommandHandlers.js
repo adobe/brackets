@@ -324,8 +324,8 @@ define(function (require, exports, module) {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
         return Async.doSequentially(
-            DocumentManager.getWorkingSet(), 
-            function(file) {
+            DocumentManager.getWorkingSet(),
+            function (file) {
                 var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
                 if (doc) {
                     return doSave(doc);
@@ -334,7 +334,8 @@ define(function (require, exports, module) {
                     return (new $.Deferred()).resolve();
                 }
             },
-            false);
+            false
+        );
     }
     
 
@@ -357,7 +358,7 @@ define(function (require, exports, module) {
         function doClose(doc) {
             if (!commandData || !commandData.promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeDocument(doc);
+                DocumentManager.closeFullEditor(doc.file);
             
                 EditorManager.focusEditor();
             }

@@ -199,8 +199,6 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, mode, container, additionalKeys) {
         var self = this;
         
-        console.log("Creating Editor for "+document);
-        
         // Attach to document
         this.document = document;
         document.addRef();
