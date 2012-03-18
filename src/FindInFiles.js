@@ -119,18 +119,12 @@ define(function (require, exports, module) {
             return contents.split("\n")[lineNum];
         }
         
-        while ((matchStart = trimmedContents.search(queryExpr)) !== -1) {
-            var lineNum = getLineNum(matchStart + startPos);
+        var match;
+        while ((match = queryExpr.exec(contents)) !== null) {
+            var lineNum = getLineNum(match.index);
             var line = getLine(lineNum);
-            var ch = matchStart - trimmedContents.substr(0, matchStart).lastIndexOf("\n") - 1; // 0 based pos
-            var matchLength = trimmedContents.match(queryExpr)[0].length;
-            
-            // ch is realtive to trimmedContents. If there are multiple matches on a line, any match
-            // past the first needs to be adjusted here.
-            if (trimmedContents.lastIndexOf("\n", matchStart) === -1) {
-                var textBefore = contents.substr(0, startPos);
-                ch += (textBefore.length - textBefore.lastIndexOf("\n") - 1);
-            }
+            var ch = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
+            var matchLength = match[0].length;
             
             // Don't store more than 200 chars per line
             line = line.substr(0, Math.min(200, line.length));
@@ -140,10 +134,8 @@ define(function (require, exports, module) {
                 end: {line: lineNum, ch: ch + matchLength},
                 line: line
             });
-            trimmedContents = trimmedContents.substr(matchStart + matchLength);
-            startPos += matchStart + matchLength;
         }
-        
+
         return matches;
     }
         
@@ -234,14 +226,19 @@ define(function (require, exports, module) {
         // If query is a regular expression, use it directly
         var isRE = query.match(/^\/(.*)\/(g|i)*$/);
         if (isRE) {
-            return new RegExp(isRE[1], isRE[2]);
+            // Make sure the 'g' flag is set
+            var flags = isRE[2] || "g";
+            if (flags.search("g") === -1) {
+                flags += "g";
+            }
+            return new RegExp(isRE[1], flags);
         }
 
         // Query is a string. Turn it into a case-insensitive regexp
         
         // Escape regex special chars
         query = query.replace(/(\(|\)|\{|\}|\[|\]|\.|\^|\$|\||\?|\+|\*)/g, "\\$1");
-        return new RegExp(query, "i");
+        return new RegExp(query, "gi");
     }
     
     /**
