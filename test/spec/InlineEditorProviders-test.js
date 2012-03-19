@@ -23,6 +23,17 @@ define(function (require, exports, module) {
         /* @type {{infos:Array, docs:Array.<Document>}} */
         var inlineTest = null;
         
+        /**
+         * Performs setup for an inline editor test. Parses offsets for all files in
+         * the test project (testPath) and saves files back to disk without offset markup.
+         * When finished, open an editor for the specified project relative file path
+         * then attempts opens an inline editor at the given offset. Offset information is
+         * stored in inlineTest.infos.
+         * 
+         * @param {!string} openFile Project relative file path to open in a main editor.
+         * @param {!number} openOffset The offset index location within openFile to open an inline editor.
+         * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
+         */
         function initInlineTest(openFile, openOffset, expectInline) {
             var allFiles,
                 err = false,
@@ -63,7 +74,6 @@ define(function (require, exports, module) {
             waitsFor(function () { return (inlineTest.infos !== null) && !err; }, "rewrite timeout", 1000);
             
             runs(function () {
-                // open test1.html
                 SpecRunnerUtils.openProjectFiles(openFile).done(function (documents) {
                     inlineTest.docs = documents;
                 }).fail(function () {
