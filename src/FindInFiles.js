@@ -15,6 +15,7 @@
  *  - Proper UI for both dialog and results
  *  - Refactor dialog class and share with Quick File Open
  *  - Search files in working set that are *not* in the project
+ *  - Handle matches that span mulitple lines
  */
 
 
@@ -67,8 +68,8 @@ define(function (require, exports, module) {
     };
         
     /**
-    * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
-    * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
+    * Shows the search dialog 
+    * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function () {
         var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
@@ -96,7 +97,7 @@ define(function (require, exports, module) {
             })
             .focus();
         
-        return this.result;
+        return this.result.promise();
     };
 
 
@@ -186,7 +187,7 @@ define(function (require, exports, module) {
                         if (resultsDisplayed < 100) {
                             var row = $("<tr/>")
                                 .append(makeCell(" "))      // Indent
-                                .append(makeCell("line: " + (match.start.line + 1)).css("width", 60))
+                                .append(makeCell("line: " + (match.start.line + 1)))
                                 .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
                                 .appendTo(resultTable);
                             
@@ -277,7 +278,7 @@ define(function (require, exports, module) {
                                         result.resolve();
                                     });
                                 
-                                return result;
+                                return result.promise();
                             })
                                 .done(function () {
                                     console.dir(searchResults);
