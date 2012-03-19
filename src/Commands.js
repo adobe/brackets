@@ -20,7 +20,9 @@ define(function (require, exports, module) {
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
     exports.FILE_RELOAD = "file.reload";
     exports.FILE_QUIT = "file.quit";
-    exports.FILE_QUICK_NAVIGATE = "file.quickNaviate";
+    exports.FILE_QUICK_NAVIGATE_FILE = "file.quickNaviateFile";
+    exports.FILE_QUICK_NAVIGATE_DEFINITION = "file.quickNaviateDefinition";
+    exports.FILE_QUICK_NAVIGATE_LINE = "file.quickNaviateLine";
     exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
     exports.DEBUG_JSLINT = "debug.jslint";
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";

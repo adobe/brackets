@@ -22,6 +22,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         PerfUtils           = require("PerfUtils"),
         ProjectManager      = require("ProjectManager"),
+        DocumentManager     = require("DocumentManager"),
         Dialogs             = require("Dialogs"),
         Strings             = require("strings");
 
@@ -30,6 +31,9 @@ define(function (require, exports, module) {
      * and the value is a FileIndex. 
      */
     var _indexList = {};
+
+    // todo comments
+    var fileInfoMap = {};
 
     /**
      * Tracks whether _indexList should be considered dirty and invalid. Calls that access
@@ -64,6 +68,8 @@ define(function (require, exports, module) {
     function FileInfo(entry) {
         this.name = entry.name;
         this.fullPath = entry.fullPath;
+        this.dataMap = {};
+        this.dirty = true;
     }
 
 
@@ -110,8 +116,14 @@ define(function (require, exports, module) {
             return;
         }
 
+        // Paths should be unique
+        if (fileInfoMap.hasOwnProperty(entry.fullPath)) {
+            throw new Error("Duplicate file added to file index");
+        }
+
         var fileInfo = new FileInfo(entry);
         //console.log(entry.name);
+        fileInfoMap[entry.fullPath] = fileInfo;
   
         $.each(_indexList, function (indexName, index) {
             if (index.filterFunction(entry)) {
@@ -242,6 +254,7 @@ define(function (require, exports, module) {
     * @private
     */
     function _clearIndexes() {
+        fileInfoMap = {};
         $.each(_indexList, function (indexName, index) {
             index.fileInfos = [];
         });
@@ -250,7 +263,7 @@ define(function (require, exports, module) {
     /**
      * Markes all file indexes dirty
      */
-    function markDirty() {
+    function markIndexesDirty() {
         _indexListDirty = true;
     }
 
@@ -313,6 +326,26 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+
+    // TODO comments
+    function getFileInfo(path) {
+        return fileInfoMap[path];
+    }
+
+    // TODO comments
+    function setFileInfoData(fileInfo, key, data) {
+        fileInfo.dataMap[key] = data;
+    }
+
+    // TODO comments
+    function getFileInfoData(path, key) {
+        var fileInfo = getFileInfo(path);
+        if (fileInfo) {
+            return fileInfo.dataMap[key];
+        } else {
+            return null;
+        }
+    }
     
     /**
      * Calls the filterFunction on every in the index specified by indexName
@@ -334,7 +367,7 @@ define(function (require, exports, module) {
                 getFileInfoList(indexName)
                     .done(function (fileList) {
                         resultList = fileList.filter(function (fileInfo) {
-                            return filterFunction(fileInfo.name);
+                            return filterFunction(fileInfo);
                         });
 
                         result.resolve(resultList);
@@ -351,8 +384,8 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
      */
     function getFilenameMatches(indexName, filename) {
-        return getFilteredList(indexName, function (item) {
-            return item === filename;
+        return getFilteredList(indexName, function (fileInfo) {
+            return fileInfo.name === filename;
         });
     }
     
@@ -376,12 +409,23 @@ define(function (require, exports, module) {
     );
     
     $(ProjectManager).on("projectRootChanged", function (event, projectRoot) {
-        markDirty();
+        markIndexesDirty();
     });
 
-    exports.markDirty = markDirty;
+    $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
+        var fileInfo = getFileInfo(doc.file.fullPath);
+        if (fileInfo) {
+            fileInfo.dirty = true;
+        }
+    });
+
+
+    exports.markIndexesDirty = markIndexesDirty;
     exports.getFileInfoList = getFileInfoList;
     exports.getFilenameMatches = getFilenameMatches;
+    exports.getFileInfo = getFileInfo;
+    exports.getFileInfoData = getFileInfoData;
+    exports.setFileInfoData = setFileInfoData;
 
 
 });

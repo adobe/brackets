@@ -150,7 +150,9 @@ define(function (require, exports, module) {
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
-                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
+                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE_FILE},
+                    {"Ctrl-T": Commands.FILE_QUICK_NAVIGATE_DEFINITION},
+                    {"Ctrl-G": Commands.FILE_QUICK_NAVIGATE_LINE},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],
@@ -169,7 +171,7 @@ define(function (require, exports, module) {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
-                FileIndexManager.markDirty();
+                FileIndexManager.markIndexesDirty();
             });
             
             $(window).unload(function () {
