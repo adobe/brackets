@@ -77,7 +77,7 @@ define(function GotoAgent(require, exports, module) {
      */
     function _makeJSTarget(targets, callFrame) {
         var script = ScriptAgent.scriptWithId(callFrame.location.scriptId);
-        if (script.url) {
+        if (script && script.url) {
             var target = {};
             var url = script.url;
             url += ":" + callFrame.location.lineNumber + "," + callFrame.location.columnNumber;
