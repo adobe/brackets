@@ -36,7 +36,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var DocumentManager = require("DocumentManager");
     var EditorManager = require("EditorManager");
-    var NativeFileSystem = require("NativeFileSystem").NativeFileSystem;
+    var NativeApp = require("NativeApp").NativeApp;
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -183,7 +183,7 @@ define(function LiveDevelopment(require, exports, module) {
                     return;
                 }
                 if (!browserStarted) {
-                    NativeFileSystem.openLiveBrowser(doc.root.url);
+                    NativeApp.openLiveBrowser(doc.root.url);
                     browserStarted = true;
                 }
                 setTimeout(function retryConnect() {

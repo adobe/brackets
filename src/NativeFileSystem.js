@@ -11,29 +11,6 @@ define(function (require, exports, module) {
     var Async = require("Async");
 
     var NativeFileSystem = {
-
-        /** openLiveBrowser
-         *
-         * @param {string} url
-         * @param {function(...)} successCallback
-         * @param {function(...)} errorCallback
-         */
-        openLiveBrowser: function (url,
-                                  successCallback,
-                                  errorCallback)
-        {
-            brackets.fs.openLiveBrowser(url,
-                function onRun(err) {
-                    if (!err) {
-                        if (successCallback)
-                            successCallback();
-                    } else {
-                        if (errorCallback)
-                           errorCallback(NativeFileSystem._nativeToFileError(err));
-                    }
-                });
-        },
-
         
         /** 
          * Amount of time we wait for async calls to return (in milliseconds)
