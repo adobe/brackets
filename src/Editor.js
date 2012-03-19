@@ -324,9 +324,17 @@ define(function (require, exports, module) {
         // have an actual central model.
         var cm = editor._codeMirror;
         cm.operation(function () {
-            var change;
+            var change, newText;
             for (change = changeList; change; change = change.next) {
-                cm.replaceRange(change.text.join('\n'), change.from, change.to);
+                newText = change.text.join('\n');
+                if (!change.from || !change.to) {
+                    if (change.from || change.to) {
+                        console.log("Editor._applyChangesToEditor(): Change record received with only one end undefined--replacing entire text");
+                    }
+                    cm.setValue(newText);
+                } else {
+                    cm.replaceRange(newText, change.from, change.to);
+                }
             }
         });
     };

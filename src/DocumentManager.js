@@ -490,7 +490,10 @@ define(function (require, exports, module) {
             this._text = text;
             // We fake a change record here that looks like CodeMirror's text change records, but
             // omits "from" and "to", by which we mean the entire text has changed.
-            $(this).triggerHandler("change", [this, {text: text}]);
+            // TODO: Dumb to split it here just to join it again in the change handler, but this is
+            // the CodeMirror change format. Should we document our change format to allow this to
+            // either be an array of lines or a single string?
+            $(this).triggerHandler("change", [this, {text: text.split("\n")}]);
         }
         this._markClean();
         this.diskTimestamp = newTimestamp;
