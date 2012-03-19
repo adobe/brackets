@@ -5,15 +5,7 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
-/*
-	Thoughts on extension. Each type of quick open:
-		- generates a list of items
-		- specifies an action if that item is choosen
-		- specifies if it selects on top of a file selection
-		- specifies the list renderer
-		- specifies the match function and sort function
-		- specifies the file types it works on
-*/
+
 
 define(function (require, exports, module) {
     'use strict';
@@ -66,7 +58,6 @@ define(function (require, exports, module) {
     }
 
 
-    // TODO comments
     // create function list and caches it in FileIndexMangage
     function createCachedFunctionList() {
         var doc = DocumentManager.getCurrentDocument();
@@ -135,8 +126,7 @@ define(function (require, exports, module) {
 
     function itemFocus(selectedItem) {
 	    setLocationFromFunctionName($(selectedItem).text());
-
-	    // TODO: make function
+        
 	    var from = {line: fileLocation.line, ch: fileLocation.column};
 	    var to = {line: fileLocation.line, ch: fileLocation.column + fileLocation.functionName.length};
 	    DocumentManager.getCurrentDocument().editor.setSelection(from, to);
@@ -189,15 +179,6 @@ define(function (require, exports, module) {
         this.fileLocation.line = undefined;
     }
 
-
-    function doDefinitionSearch() {
-
-        var dialog = new QuickNavigateDialog();
-        dialog.showDialog("@")
-            .done(function (fileLocation) {
-               
-            });
-    }
 
     exports.getProvider = getProvider;
 
