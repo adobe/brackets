@@ -54,7 +54,7 @@ define(function (require, exports, module) {
                 expect(doc).toBeNull();
             });
             
-            it("should should create a new doc if it's not open and sync it with the inline text when a change is made", function () {
+            it("should create a new doc if it's not open and sync it with the inline text when a change is made", function () {
                 var fileEntry = new NativeFileSystem.FileEntry(this.path + "/test.css");
                 var inlineInfo = EditorManager.createInlineEditorFromText(myEditor, content, null, fileEntry);
                 var doc = DocumentManager.getDocumentForFile(fileEntry);
@@ -75,7 +75,7 @@ define(function (require, exports, module) {
                 expect(doc.editor.getText()).toEqual(newCss);
             });
             
-            it("should should sync even if the contents of the inline are all deleted", function () {
+            it("should sync even if the contents of the inline are all deleted", function () {
                 var fileEntry = new NativeFileSystem.FileEntry(this.path + "/test.css");
                 var inlineInfo = EditorManager.createInlineEditorFromText(myEditor, content, null, fileEntry);
                 
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 expect(doc.editor.getText()).toEqual("");
             });
             
-            it("should should sync after an undoing and redoing an edit", function () {
+            it("should sync after an undoing and redoing an edit", function () {
                 var fileEntry = new NativeFileSystem.FileEntry(this.path + "/test.css");
                 var doc = DocumentManager.getOrCreateDocumentForPath(fileEntry.fullPath);
                 DocumentManager.addToWorkingSet(doc);
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
                 expect(doc.editor.getText()).toEqual(newCss);
             });
             
-            it("should should sync multiple edits in the inline", function () {
+            it("should sync multiple edits in the inline", function () {
                 var fileEntry = new NativeFileSystem.FileEntry(this.path + "/test.css");
                 var inlineInfo = EditorManager.createInlineEditorFromText(myEditor, content, null, fileEntry);
                 var doc = DocumentManager.getOrCreateDocumentForPath(fileEntry.fullPath);
@@ -116,8 +116,9 @@ define(function (require, exports, module) {
             });
             
             
-            /* we don't support synching the other way yet, do don't test that direction
-            it("should should sync changes from the main document back to the inline editor", function () {
+            /* we don't currently support syncing from the other direction, so when that gets
+               added, then this unit test should get reversed and more added for that story */
+            it("should *NOT* sync changes from the main document back to the inline editor", function () {
                 var fileEntry = new NativeFileSystem.FileEntry(this.path + "/test.css");
                 var inlineInfo = EditorManager.createInlineEditorFromText(myEditor, content, null, fileEntry);
                 
@@ -125,9 +126,9 @@ define(function (require, exports, module) {
                 var doc = DocumentManager.getDocumentForFile(fileEntry);
                 newCss = "h1 {\n    background-color: #0F0;\n}";
                 doc.setText(newCss);
-                expect(inlineInfo.editor.getText()).toEqual(newCss);
+                expect(inlineInfo.editor.getText()).not.toEqual(newCss);
             });
-            */
+
         });
     });
 });
