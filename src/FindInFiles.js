@@ -16,6 +16,8 @@
  *  - Refactor dialog class and share with Quick File Open
  *  - Search files in working set that are *not* in the project
  *  - Handle matches that span mulitple lines
+ *  - Refactor UI from functionality to enable unit testing
+ *  - Cache result of getLine()
  */
 
 
@@ -117,6 +119,7 @@ define(function (require, exports, module) {
         }
         
         function getLine(lineNum) {
+            // Future: cache result 
             return contents.split("\n")[lineNum];
         }
         
