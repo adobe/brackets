@@ -171,6 +171,7 @@ define(function (require, exports, module) {
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
                 FileIndexManager.markDirty();
+                ProjectManager.reloadProject();
             });
             
             $(window).unload(function () {
