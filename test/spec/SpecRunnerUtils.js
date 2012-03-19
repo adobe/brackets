@@ -172,8 +172,8 @@ define(function (require, exports, module) {
     
     /**
      * Creates absolute paths based on the test window's current project
-     * @param {!{Array.<string>}} paths Project relative file paths to convert
-     * @return {!{Array.<string>}}
+     * @param {!Array.<string>|string} paths Project relative file path(s) to convert. May pass a single string path or array.
+     * @return {!Array.<string>|string} Absolute file path(s)
      */
     function makeAbsolute(paths) {
         var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
@@ -194,9 +194,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Creates relative paths based on the test window's current project
-     * @param {!{Array.<string>}} paths Absolute file paths to convert
-     * @return {!{Array.<string>}}
+     * Creates relative paths based on the test window's current project. Any paths,
+     * without the current project path prefix are not converted.
+     * @param {!Array.<string>|string} paths Absolute file path(s) to convert. May pass a single string path or array.
+     * @return {!Array.<string>|string} Relative file path(s)
      */
     function makeRelative(paths) {
         var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath,
@@ -204,7 +205,7 @@ define(function (require, exports, module) {
         
         function removeProjectPath(path) {
             if (path.indexOf(fullPath) === 0) {
-                return path.slice(fullPathLength);
+                return path.substring(fullPathLength);
             }
             
             return path;
@@ -254,13 +255,13 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
-            docs = [];
+            docs = {};
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
             testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path}).done(function (doc) {
-                docs[keys[i]] = docs[i] = doc;
+                docs[keys[i]] = doc;
                 one.resolve();
             }).fail(function () {
                 one.reject();
@@ -302,12 +303,13 @@ define(function (require, exports, module) {
     
     /**
      * Opens an array of file paths, parses offset markup then saves the results to each original file.
-     * @param {!Array.<string>} paths Project relative or absolute file paths to open
-     * @return {!Array.<{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}>} 
+     * @param {!Array.<string>|string} paths Project relative or absolute file paths to open. May pass a single string path or array.
+     * @return {!Array.<{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}>}
+     *  Array of offset information indexed by relative file path.
      */
     function saveFilesWithoutOffsets(paths) {
         var result = new $.Deferred(),
-            infos  = [],
+            infos  = {},
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths));
         
@@ -315,7 +317,7 @@ define(function (require, exports, module) {
             var one = new $.Deferred();
         
             saveFileWithoutOffsets(path).done(function (info) {
-                infos[keys[i]] = infos[i] = info;
+                infos[keys[i]] = info;
                 one.resolve();
             }).fail(function () {
                 one.reject();

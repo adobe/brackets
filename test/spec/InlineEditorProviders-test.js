@@ -84,9 +84,10 @@ define(function (require, exports, module) {
             waitsFor(function () { return (inlineTest.docs !== null) && !err; }, "FILE_OPEN timeout", 1000);
             
             runs(function () {
-                // open inline editor at <div...>
                 DocumentManager.setCurrentDocument(inlineTest.docs[openFile]);
                 var editor = EditorManager.getCurrentFullEditor();
+                
+                // open inline editor at specified offset index
                 var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
                     editor,
                     inlineTest.infos[openFile].offsets[openOffset]
@@ -212,7 +213,7 @@ define(function (require, exports, module) {
             it("should increase size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
-                var inlineEditor, widgetHeight, inlineDoc;
+                var inlineEditor, widgetHeight;
                 
                 runs(function () {
                     inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
@@ -221,14 +222,6 @@ define(function (require, exports, module) {
                     // verify original line count
                     expect(inlineEditor.lineCount()).toBe(12);
                     
-                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
-                        inlineDoc = doc;
-                    });
-                });
-                
-                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
-                
-                runs(function () {
                     // change inline editor content
                     var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
                     
@@ -248,7 +241,7 @@ define(function (require, exports, module) {
             it("should decrease size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
-                var inlineEditor, widgetHeight, inlineDoc;
+                var inlineEditor, widgetHeight;
                 
                 runs(function () {
                     inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
@@ -276,25 +269,23 @@ define(function (require, exports, module) {
                 
                 var saved = false,
                     err = false,
+                    hostEditor,
                     inlineEditor,
-                    inlineDoc,
                     newText = "\n/* jasmine was here */",
                     savedText;
                 
                 runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
-                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
-                        inlineDoc = doc;
-                    });
-                });
-                
-                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
-                
-                runs(function () {
+                    hostEditor = EditorManager.getCurrentFullEditor();
+                    inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
+                    
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
-                    newText = inlineDoc.getText();
+                    newText = inlineEditor.document.getText();
+                    
+                    // verify isDirty flag
+                    expect(inlineEditor.document.isDirty).toBeTruthy();
+                    expect(hostEditor.document.isDirty).toBeFalsy();
                     
                     // execute file save command
                     testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
@@ -308,7 +299,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // read saved file contents
-                    FileUtils.readAsText(inlineDoc.file).done(function (text) {
+                    FileUtils.readAsText(inlineEditor.document.file).done(function (text) {
                         savedText = text;
                     }).fail(function () {
                         err = true;
@@ -319,6 +310,10 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
+                    
+                    // verify isDirty flag
+                    expect(inlineEditor.document.isDirty).toBeFalsy();
+                    expect(hostEditor.document.isDirty).toBeFalsy();
                 });
             });
             
@@ -329,7 +324,6 @@ define(function (require, exports, module) {
                     err = false,
                     hostEditor,
                     inlineEditor,
-                    inlineDoc,
                     newInlineText = "/* jasmine was inline */\n",
                     newHostText = "/* jasmine was here */\n",
                     savedInlineText,
@@ -339,14 +333,6 @@ define(function (require, exports, module) {
                     hostEditor = EditorManager.getCurrentFullEditor();
                     inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
                     
-                    DocumentManager.getDocumentForPath(testPath + "/test1.css").done(function (doc) {
-                        inlineDoc = doc;
-                    });
-                });
-                
-                waitsFor(function () { return inlineDoc !== null; }, "getDocumentForPath timeout", 1000);
-                
-                runs(function () {
                     // insert text at the host editor's cursor position
                     hostEditor._codeMirror.replaceRange(newHostText, hostEditor.getCursorPos());
                     newHostText = hostEditor.document.getText();
@@ -354,7 +340,11 @@ define(function (require, exports, module) {
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newInlineText, inlineEditor.getCursorPos());
-                    newInlineText = inlineDoc.getText();
+                    newInlineText = inlineEditor.document.getText();
+                    
+                    // verify isDirty flag
+                    expect(inlineEditor.document.isDirty).toBeTruthy();
+                    expect(hostEditor.document.isDirty).toBeTruthy();
                     
                     // execute file save command
                     testWindow.executeCommand(Commands.FILE_SAVE).done(function () {
@@ -368,7 +358,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     // read saved inline file contents
-                    FileUtils.readAsText(inlineDoc.file).done(function (text) {
+                    FileUtils.readAsText(inlineEditor.document.file).done(function (text) {
                         savedInlineText = text;
                     }).fail(function () {
                         err = true;
@@ -387,6 +377,10 @@ define(function (require, exports, module) {
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
                     expect(savedHostText).toEqual(inlineTest.infos["test1.html"].text);
+                    
+                    // verify isDirty flag
+                    expect(inlineEditor.document.isDirty).toBeFalsy();
+                    expect(hostEditor.document.isDirty).toBeTruthy();
                 });
             });
 
