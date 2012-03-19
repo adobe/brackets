@@ -85,10 +85,6 @@ define(function (require, exports, module) {
         for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
             var provider = _inlineEditProviders[i];
             inlinePromise = provider(editor, pos);
-            
-            if (inlinePromise) {
-                break;
-            }
         }
         
         // If one of them will provide a widget, show it inline once ready

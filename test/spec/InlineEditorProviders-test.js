@@ -18,8 +18,10 @@ define(function (require, exports, module) {
     describe("InlineEditorProviders", function () {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
-            testWindow,
-            inlineTest = null; /*{infos:[],docs:[]}*/
+            testWindow;
+        
+        /* @type {{infos:Array, docs:Array.<Document>}} */
+        var inlineTest = null;
         
         function initInlineTest(openFile, openOffset, expectInline) {
             var allFiles,
