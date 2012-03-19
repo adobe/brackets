@@ -169,7 +169,7 @@ define(function (require, exports, module) {
                 docList[1]._markClean();
                                 
                 // make the first one active
-                DocumentManager.showInEditor(docList[0]);
+                DocumentManager.setCurrentDocument(docList[0]);
                                 
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
