@@ -1,0 +1,180 @@
+/*
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * @author Jonathan Diehl <jdiehl@adobe.com>
+ */
+
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $ */
+
+/**
+ * GotoAgent constructs and responds to the in-browser goto dialog.
+ */
+define(function GotoAgent(require, exports, module) {
+    'use strict';
+
+    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
+    var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
+    var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
+
+    var DocumentManager = require("DocumentManager");
+    var EditorManager = require("EditorManager");
+
+    /** Return the URL without the query string
+     * @param {string} URL
+     */
+    function _urlWithoutQueryString(url) {
+        var index = url.search(/[#\?]/);
+        if (index >= 0) {
+            url = url.substr(0, index);
+        }
+        return url;
+    }
+
+    /** Get the file component of the given url
+     * @param {string} URL
+     */
+    function _fileFromURL(url) {
+        var comp = url.split('/');
+        return comp[comp.length - 1];
+    }
+
+    /** Make the given node a target for goto
+     * @param [] targets array
+     * @param {DOMNode} node
+     */
+    function _makeHTMLTarget(targets, node) {
+        if (node.location) {
+            var target = {};
+            var url = DOMAgent.url;
+            var location = node.location;
+            if (node.canHaveChildren()) location += node.length;
+            url += ":" + location;
+            var name = "&lt;" + node.name + "&gt;";
+            var file = _fileFromURL(url);
+            targets.push({"type": "html", "url": url, "name": name, "file": file});
+        }
+    }
+
+    /** Make the given css rule a target for goto
+     * @param [] targets array
+     * @param {CSS.Rule} node
+     */
+    function _makeCSSTarget(targets, rule) {
+        if (rule.sourceURL) {
+            var target = {};
+            var url = rule.sourceURL;
+            url += ":" + rule.style.range.start;
+            var name = rule.selectorText;
+            var file = _fileFromURL(url);
+            targets.push({"type": "css", "url": url, "name": name, "file": file});
+        }
+    }
+
+    /** Make the given javascript callFrame the target for goto
+     * @param [] targets array
+     * @param {Debugger.CallFrame} node
+     */
+    function _makeJSTarget(targets, callFrame) {
+        var script = ScriptAgent.scriptWithId(callFrame.location.scriptId);
+        if (script && script.url) {
+            var target = {};
+            var url = script.url;
+            url += ":" + callFrame.location.lineNumber + "," + callFrame.location.columnNumber;
+            var name = callFrame.functionName;
+            if (name === "") {
+                name = "anonymous function";
+            }
+            var file = _fileFromURL(url);
+            targets.push({"type": "js", "url": url, "name": name, "file": file});
+        }
+    }
+
+    /** Gather options where to go to from the given source node */
+    function _onRemoteShowGoto(res) {
+        // res = {nodeId, name, value}
+        var node = DOMAgent.nodeWithId(res.nodeId);
+
+        // get all css rules that apply to the given node
+        Inspector.CSS.getMatchedStylesForNode(node.nodeId, function onMatchedStyles(res) {
+            var i, callFrame, name, script, url, rule, targets = [];
+            _makeHTMLTarget(targets, node);
+            for (i in node.trace) {
+                _makeJSTarget(targets, node.trace[i]);
+            }
+            for (i in res.matchedCSSRules) {
+                _makeCSSTarget(targets, res.matchedCSSRules[i]);
+            }
+            RemoteAgent.call("showGoto", targets);
+        });
+    }
+
+    /** Point the master editor to the given location
+     * @param {integer} location in file
+     */
+    function openLocation(location) {
+        var editor = EditorManager.getCurrentFullEditor();
+        var codeMirror = editor._codeMirror;
+        if (typeof location === "number") {
+            location = codeMirror.posFromIndex(location);
+        }
+        codeMirror.setCursor(location);
+        codeMirror.setLineClass(location.line, "flash");
+        setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+    }
+
+    /** Open the editor at the given url and editor location
+     * @param {string} url
+     * @param {integer} optional location in file
+     */
+    function open(url, location) {
+        console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
+        url = _urlWithoutQueryString(url);
+        var path = url.substr(7);
+        var promise = DocumentManager.getDocumentForPath(path);
+        promise.done(function onDone(doc) {
+            DocumentManager.setCurrentDocument(doc);
+            if (location) {
+                openLocation(location);
+            }
+        });
+        promise.fail(function onErr(err) {
+            console.error(err);
+        });
+    }
+
+    /** Go to the given source node */
+    function _onRemoteGoto(res) {
+        // res = {nodeId, name, value}
+        var location, url = res.value;
+        var matches = /^(.*):([^:]+)$/.exec(url);
+        if (matches) {
+            url = matches[1];
+            location = matches[2].split(',');
+            if (location.length === 1) {
+                location = parseInt(location[0], 10);
+            } else {
+                location = { line: parseInt(location[0], 10), ch: parseInt(location[1], 10) };
+            }
+        }
+        open(url, location);
+    }
+
+    /** Initialize the agent */
+    function load() {
+        Inspector.on("RemoteAgent.showgoto", _onRemoteShowGoto);
+        Inspector.on("RemoteAgent.goto", _onRemoteGoto);
+    }
+
+    /** Initialize the agent */
+    function unload() {
+        Inspector.off("RemoteAgent.showgoto", _onRemoteShowGoto);
+        Inspector.off("RemoteAgent.goto", _onRemoteGoto);
+    }
+
+    // Export public functions
+    exports.openLocation = openLocation;
+    exports.open = open;
+    exports.load = load;
+    exports.unload = unload;
+});
