@@ -180,17 +180,15 @@ function RemoteFunctions() {
 
     // trigger goto on alt-click
     function _onClick(event) {
+        _hideDialog();
         if (event.metaKey && event.toElement) {
             event.preventDefault();
             event.stopPropagation();
-            _hideDialog();
             _target = event.toElement;
             _trigger(_target, "showgoto", 1, true);
-        }
-        if (event.altKey && event.toElement && event.toElement.childNodes.length === 1) {
+        } else if (event.altKey && event.toElement && event.toElement.childNodes.length === 1) {
             event.preventDefault();
             event.stopPropagation();
-            _hideDialog();
             _target = event.toElement;
             _showEdit(_target.childNodes[0].nodeValue);
         }
