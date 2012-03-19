@@ -112,7 +112,7 @@ a, img {
     }
 }
     
-#jslint-results {
+#jslint-results, #search-results {
     display: none;
     height: 200px;
     border-top-style: solid;
@@ -125,6 +125,11 @@ a, img {
         padding-bottom: @base-padding / 2;
         font-size: 0.9em;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
+
+        .close {
+            position: absolute;
+            right: 10px;
+        }
     }
     
     .table-container {
@@ -134,6 +139,10 @@ a, img {
         td {
             padding-left: @base-padding;
             padding-right: @base-padding;
+        }
+        
+        .highlight {
+            background: #d2dcf8;
         }
         
         tr.selected td {
