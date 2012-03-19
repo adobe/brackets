@@ -49,6 +49,7 @@ define(function (require, exports, module) {
      * @param {bool} canClose
      */
     function _updateFileStatusIcon(listElement, isDirty, canClose) {
+        
         var fileStatusIcon = listElement.find(".file-status-icon");
         var showIcon = isDirty || canClose;
 
@@ -111,11 +112,9 @@ define(function (require, exports, module) {
         $("#open-files-container > ul").append(newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
-        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        var isDirty = (docIfOpen && docIfOpen.isDirty);
 
         // Update the listItem's apperance
-        _updateFileStatusIcon(newItem, isDirty, false);
+        _updateFileStatusIcon(newItem, isOpenAndDirty(file), false);
         _updateListItemSelection(newItem, curDoc);
 
         newItem.click(function () {
@@ -124,12 +123,17 @@ define(function (require, exports, module) {
 
         newItem.hover(
             function () {
-                _updateFileStatusIcon($(this), isDirty, true);
+                _updateFileStatusIcon($(this), isOpenAndDirty(file), true);
             },
             function () {
-                _updateFileStatusIcon($(this), isDirty, false);
+                _updateFileStatusIcon($(this), isOpenAndDirty(file), false);
             }
         );
+    }
+    
+    function isOpenAndDirty(file) {
+        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        return (docIfOpen && docIfOpen.isDirty);
     }
     
     /** 

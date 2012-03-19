@@ -425,9 +425,12 @@ define(function (require, exports, module) {
     function handleFileCloseAll(commandData) {
         var result = new $.Deferred();
         
-        var unsavedDocs = DocumentManager.getWorkingSet().filter(function (file) {
+        var unsavedDocs = [];
+        DocumentManager.getWorkingSet().forEach(function (file) {
             var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-            return (doc && doc.isDirty);
+            if (doc && doc.isDirty) {
+                unsavedDocs.push(doc);
+            }
         });
         
         if (unsavedDocs.length === 0) {
