@@ -38,7 +38,9 @@ define(function (require, exports, module) {
     var origDoc;
     var origCursorPos;
 
-    function QuickOpenProvider(name, fileTypes, filter, match, itemFocus, itemSelect, resultsFormatter, trigger, combineWithFileSearch) {
+    function QuickOpenProvider(name, fileTypes, filter, match, itemFocus, itemSelect,
+        resultsFormatter, trigger, combineWithFileSearch) {
+        
         this.name = name;
         this.fileTypes = []; // default: all
         this.filter = filter;
@@ -70,8 +72,6 @@ define(function (require, exports, module) {
     function FileLocation(fullPath, line, column, functionName) {
         this.fullPath = fullPath;
         this.line = line;
-        this.column = column;
-        this.functionName = functionName;
     }
 
     /**
@@ -92,11 +92,17 @@ define(function (require, exports, module) {
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div>' + template + '</div>';
+        this.dialog.innerHTML = '<div align="center">' + template + '</div>';
     };
 
-    function _filenameFromPath(path) {
-        return path.slice(path.lastIndexOf("/") + 1, path.length);
+    function _filenameFromPath(path, includeExtension) {
+        var end;
+        if(includeExtension) {
+            end = path.length;
+        } else {
+            end = path.lastIndexOf(".");
+        }
+        return path.slice(path.lastIndexOf("/") + 1, end);
     }
     
     /**
@@ -135,6 +141,7 @@ define(function (require, exports, module) {
         EditorManager.focusEditor();
     };
 
+    // TODO: selectedItem not used right now. Fix
     QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
         if (currentProvider) {
             currentProvider.itemFocus(selectedItem);
@@ -170,22 +177,32 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (itemInfo) {
             // match query against filename only (not the full path)
             var path = itemInfo.fullPath;
-            var filename = _filenameFromPath(path);
+            var filename = _filenameFromPath(path, true);
             if (filename.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
                 return path;
             } else {
                 return null;
             }
         }).sort(function (a, b) {
-            // sort by filename
-            var filenameA = _filenameFromPath(a).toLowerCase();
-            var filenameB = _filenameFromPath(b).toLowerCase();
+            // TODO: this can be written more optimally
+            // sort by filename without extension
+            var filenameA = _filenameFromPath(a, false).toLowerCase();
+            var filenameB = _filenameFromPath(b, false).toLowerCase();
             if (filenameA < filenameB) {
                 return -1;
             } else if (filenameA > filenameB) {
                 return 1;
             } else {
-                return 0;
+                // filename is the name so compare including extension
+                var filenameA = _filenameFromPath(a, true).toLowerCase();
+                var filenameB = _filenameFromPath(b, true).toLowerCase();
+                if (filenameA < filenameB) {
+                    return -1;
+                } else if (filenameA > filenameB) {
+                    return 1;
+                } else {
+                    return 0;
+                }
             }
         });
 
@@ -266,7 +283,7 @@ define(function (require, exports, module) {
                     itemFocus: function (ev, selectedItem) { that._handleItemFocus(selectedItem); },
                     keydown: function (e) {
                         // close the dialog when the ENTER (13) or ESC (27) key is pressed
-                        if ((e.keyCode === 13 && !$(".smart_autocomplete_container").is(":visible")) || e.keyCode === 27) {
+                        if (e.keyCode === 13 || e.keyCode === 27) {
                             e.stopPropagation();
                             e.preventDefault();
 
@@ -286,6 +303,17 @@ define(function (require, exports, module) {
                             
                             that._close();
                         }
+
+                        // Remove current provider if the query stops matching
+                        var query = that.searchField.val();
+                        if (currentProvider && !currentProvider.match(query)) {
+                            currentProvider = null;
+                        }
+
+                        if ($(".smart_autocomplete_highlight").length === 0) {
+                            that._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+                        }
+                        
                     }
 
         
@@ -326,8 +354,6 @@ define(function (require, exports, module) {
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE_DEFINITION, doDdefinitionSearch);
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE_LINE, doGotoLine);
 
-
-    exports.FileLocation = FileLocation;
     exports.QuickOpenProvider = QuickOpenProvider;
     exports.addProvider = addProvider;
 });

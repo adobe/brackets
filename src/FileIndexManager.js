@@ -69,7 +69,7 @@ define(function (require, exports, module) {
         this.name = entry.name;
         this.fullPath = entry.fullPath;
         this.dataMap = {};
-        this.dirty = true;
+        this.dirty = false;
     }
 
 
@@ -154,12 +154,22 @@ define(function (require, exports, module) {
             throw new Error("Bad dirEntry passed to _scanDirectorySubTree");
         }
 
+        // Clears the fileInfo array for all the indexes in _indexList
+        $.each(_indexList, function (indexName, index) {
+            index.fileInfos = [];
+        });
+
+        // Remember files we saw in the last scan so the dataMap for each fileInfo can be
+        // retained between separate directory scans
+        var oldFileInfoMap = fileInfoMap;
+        fileInfoMap = {};
+
         // keep track of directories as they are asynchronously read. We know we are done
         // when dirInProgress becomes empty again.
         var state = { fileCount: 0,
                       dirInProgress: {},    // directory names that are in progress of being read
                       dirError: {},         // directory names with read errors. key=dir path, value=error
-                      maxFilesHit: false    // used to show warning dialog only once
+                      maxFilesHit: false,    // used to show warning dialog only once
                     };
 
         var deferred = new $.Deferred();
@@ -216,6 +226,12 @@ define(function (require, exports, module) {
                             _addFileToIndexes(entry);
                             state.fileCount++;
 
+                            // Retain dataMap between different calls of _scanDirectoryRecurse by copying over
+                            // the dataMap for files that still exist
+                            if (oldFileInfoMap.hasOwnProperty(entry.fullPath)){
+                                fileInfoMap[entry.fullPath].dataMap = oldFileInfoMap[entry.fullPath].dataMap;
+                            }
+
                         } else if (entry.isDirectory) {
                             _scanDirectoryRecurse(entry);
                         }
@@ -249,16 +265,6 @@ define(function (require, exports, module) {
     }
     
 
-    /**
-    * Clears the fileInfo array for all the indexes in _indexList
-    * @private
-    */
-    function _clearIndexes() {
-        fileInfoMap = {};
-        $.each(_indexList, function (indexName, index) {
-            index.fileInfos = [];
-        });
-    }
 
     /**
      * Markes all file indexes dirty
@@ -289,8 +295,6 @@ define(function (require, exports, module) {
         var rootDir = ProjectManager.getProjectRoot();
         if (_indexListDirty) {
             PerfUtils.markStart("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
-
-            _clearIndexes();
 
             return _scanDirectorySubTree(rootDir)
                 .done(function () {
@@ -338,13 +342,8 @@ define(function (require, exports, module) {
     }
 
     // TODO comments
-    function getFileInfoData(path, key) {
-        var fileInfo = getFileInfo(path);
-        if (fileInfo) {
-            return fileInfo.dataMap[key];
-        } else {
-            return null;
-        }
+    function getFileInfoData(fileInfo, key) {
+        return fileInfo.dataMap[key];
     }
     
     /**

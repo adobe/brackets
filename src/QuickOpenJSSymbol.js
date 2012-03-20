@@ -16,15 +16,15 @@ define(function (require, exports, module) {
 
 	var functionList = []; // array of FileLocations
 
-   /** TODO: this is duplicated in QuickFileOpen because we can't have a circular dependency. Solve later.
+   /** 
     * FileLocation class
     * @constructor
-    *
     */
-    function FileLocation(fullPath, line, column, functionName) {
+    function FileLocation(fullPath, line, chFrom, chTo, functionName) {
         this.fullPath = fullPath;
         this.line = line;
-        this.column = column;
+        this.chFrom = chFrom;
+        this.chTo = chTo;
         this.functionName = functionName;
     }
 
@@ -75,20 +75,48 @@ define(function (require, exports, module) {
 	    	functionList = [];
 	        var docText = doc.getText();
 	        
-	        var regex = new RegExp(/(function\b)(.+)\b\(.*\)/gi);
-	        var info, i, line;
+	        var regexA = new RegExp(/(function\b)(.+)\b\(.*?\)/gi);  // recognizes the form: function functionName()
+            var regexB = new RegExp(/(.+)=\sfunction\s(\(.*?\))/gi); // recognizes the form: functionName = function()
+            var regexC = new RegExp(/(.+:\sfunction\s\(.*?\))/gi); // recognizes the form: functionName: function()
+	        var infoA, infoB, infoC, i, line;
+            var funcName;
 
 	        var lines = docText.split("\n");
 
 	        for (i = 0; i < lines.length; i++) {
 	            line = lines[i];
-	            info = regex.exec(line);
 
-	            if (info) {
-	                var funcName = $.trim(info[0]);
-	                functionList.push(new FileLocation(null, i, line.indexOf(funcName), funcName));
-	                //console.log(info[2]);
+	            infoA = regexA.exec(line);
+	            if (infoA) {
+	                var funcName = $.trim(infoA[0]);
+                    var chFrom = line.indexOf(funcName);
+                    var chTo = chFrom + funcName.length;
+	                functionList.push(new FileLocation(null, i, chFrom, chTo, funcName));
 	            }
+
+                infoB = regexB.exec(line);
+                if (infoB) {
+                    var pattern = $.trim(infoB[1]);
+                    var params = infoB[2];
+                    var dotIndex = pattern.lastIndexOf(".");
+                    if (dotIndex !== -1) {
+                        funcName = pattern.slice(dotIndex + 1, pattern.length);
+                    } else {
+                        funcName = pattern;
+                    }
+
+                    var chFrom = line.indexOf(funcName);
+                    var chTo = chFrom + funcName.length;
+                    functionList.push(new FileLocation(null, i, chFrom, chTo, funcName + params));
+                }
+
+                infoC = regexC.exec(line);
+                if (infoC) {
+                    var funcName = $.trim(infoC[1]);
+                    var chFrom = line.indexOf(funcName);
+                    var chTo = chFrom + funcName.length;
+                    functionList.push(new FileLocation(null, i, chFrom, chTo, funcName));
+                }
 	        }
 
 	        FileIndexManager.setFileInfoData(fileInfo, "JavaScriptFunctionList", functionList);
@@ -126,18 +154,16 @@ define(function (require, exports, module) {
 
     function itemFocus(selectedItem) {
 	    setLocationFromFunctionName($(selectedItem).text());
-        
-	    var from = {line: fileLocation.line, ch: fileLocation.column};
-	    var to = {line: fileLocation.line, ch: fileLocation.column + fileLocation.functionName.length};
-	    DocumentManager.getCurrentDocument().editor.setSelection(from, to);
+
+        if (fileLocation.line) {
+    	    var from = {line: fileLocation.line, ch: fileLocation.chFrom};
+    	    var to = {line: fileLocation.line, ch: fileLocation.chTo};
+    	    DocumentManager.getCurrentDocument().editor.setSelection(from, to);
+        }
     }
 
     function itemSelect(selectedItem) {
-        if (fileLocation.functionName) {
-            var from = {line: fileLocation.line, ch: fileLocation.column};
-            var to = {line: fileLocation.line, ch: fileLocation.column + fileLocation.functionName.length};
-            DocumentManager.getCurrentDocument().editor.setSelection(from, to);
-        }
+        itemFocus(selectedItem);
     }
 
     function resultsFormatter(item, query) {
@@ -176,7 +202,7 @@ define(function (require, exports, module) {
             }
         }
 
-        this.fileLocation.line = undefined;
+        fileLocation.line = undefined;
     }
 
 
