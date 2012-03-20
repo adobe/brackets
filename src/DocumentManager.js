@@ -547,7 +547,7 @@ define(function (require, exports, module) {
     /* (pretty toString(), to aid debugging) */
     Document.prototype.toString = function () {
         var dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
-        var editorInfo = (this._masterEditor ? " Editable" : " Non-editable");
+        var editorInfo = (this._masterEditor ? " (Editable)" : " (Non-editable)");
         var refInfo = " refs:" + this._refCount;
         return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };

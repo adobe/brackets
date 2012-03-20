@@ -49,7 +49,6 @@ define(function (require, exports, module) {
      * @param {bool} canClose
      */
     function _updateFileStatusIcon(listElement, isDirty, canClose) {
-        
         var fileStatusIcon = listElement.find(".file-status-icon");
         var showIcon = isDirty || canClose;
 
@@ -77,8 +76,9 @@ define(function (require, exports, module) {
 
         // Set icon's class
         if (fileStatusIcon) {
-            fileStatusIcon.toggleClass("dirty", isDirty);
-            fileStatusIcon.toggleClass("canClose", canClose);
+            // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
+            fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
+            fileStatusIcon.toggleClass("canClose", Boolean(canClose));
         }
     }
     
@@ -90,7 +90,9 @@ define(function (require, exports, module) {
      */
     function _updateListItemSelection(listItem, selectedDoc) {
         var shouldBeSelected = (selectedDoc && $(listItem).data(_FILE_KEY).fullPath === selectedDoc.file.fullPath);
-        $(listItem).toggleClass("selected", shouldBeSelected);
+        
+        // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
+        $(listItem).toggleClass("selected", Boolean(shouldBeSelected));
     }
 
     function isOpenAndDirty(file) {
