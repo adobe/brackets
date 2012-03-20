@@ -113,7 +113,7 @@ define(function (require, exports, module) {
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
-           return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
+            return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
         });
         
         function checkWorkingSetFile(file) {

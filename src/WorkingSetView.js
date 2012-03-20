@@ -93,6 +93,11 @@ define(function (require, exports, module) {
         $(listItem).toggleClass("selected", shouldBeSelected);
     }
 
+    function isOpenAndDirty(file) {
+        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        return (docIfOpen && docIfOpen.isDirty);
+    }
+    
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
@@ -128,11 +133,6 @@ define(function (require, exports, module) {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), false);
             }
         );
-    }
-    
-    function isOpenAndDirty(file) {
-        var docIfOpen = DocumentManager.getOpenDocumentForPath(file.fullPath);
-        return (docIfOpen && docIfOpen.isDirty);
     }
     
     /** 
