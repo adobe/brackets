@@ -173,7 +173,7 @@ define(function (require, exports, module) {
         var state = { fileCount: 0,
                       dirInProgress: {},    // directory names that are in progress of being read
                       dirError: {},         // directory names with read errors. key=dir path, value=error
-                      maxFilesHit: false,    // used to show warning dialog only once
+                      maxFilesHit: false    // used to show warning dialog only once
                     };
 
         var deferred = new $.Deferred();
@@ -232,7 +232,7 @@ define(function (require, exports, module) {
 
                             // Retain dataMap between different calls of _scanDirectoryRecurse by copying over
                             // the dataMap for files that still exist
-                            if (old_fileInfoMap.hasOwnProperty(entry.fullPath)){
+                            if (old_fileInfoMap.hasOwnProperty(entry.fullPath)) {
                                 _fileInfoMap[entry.fullPath]._dataMap = old_fileInfoMap[entry.fullPath]._dataMap;
                             }
 

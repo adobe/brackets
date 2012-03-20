@@ -6,8 +6,9 @@
 /*global define, $ */
 
 /*
-* Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
-* Uses FileIndexManger to supply the file list and registers Commands.FILE_QUICK_NAVIGATE with Brackets.
+* Displays an auto suggest popup list of files to allow the user to quickly navigate to a file and lines
+* within a file.
+* Uses FileIndexManger to supply the file list.
 * 
 * TODO (issue 333) - currently jquery smart auto complete is used for the popup list. While it mostly works
 * it has several issues, so it should be replace with an alternative. Issues:
@@ -22,24 +23,57 @@ define(function (require, exports, module) {
     'use strict';
     
     var FileIndexManager    = require("FileIndexManager"),
+        JSLint              = require("JSLint"),
         DocumentManager     = require("DocumentManager"),
         CommandManager      = require("CommandManager"),
         EditorManager       = require("EditorManager"),
         Commands            = require("Commands"),
         QuickOpenJSSymbol   = require("QuickOpenJSSymbol"),
         ProjectManager      = require("ProjectManager");
+    
+    /**
+     * FileLocation class
+     * @constructor
+     * @param {string} fullPath
+     * @param {number} line
+     */
+    function FileLocation(fullPath, line) {
+        this.line = line;
+    }
 
+    /** @type Array.<QuickOpenPlugin> */
+    var plugins = [];
 
-    var providers = [];
-    var currentProvider = null;
+    /** @type {QuickOpenPlugin} */
+    var currentPlugin = null;
     var fileList;
-    var suggestList = [];
     var fileLocation = new FileLocation();
-    var origDoc;
+
+    /**
+     * Rembers the current document that was displayed when showDialog() was called
+     * The current document is restored if the user presses escape
+     * @type {string} fullpath
+     */
+    var origDocPath;
+
+    /**
+     * Rembers the current cursor location that was present when showDialog() was called
+     * The cursor position s restored if the user presses escape
+     * @type {!{line:number, ch:number}}
+     */
     var origCursorPos;
 
-    function QuickOpenProvider(name, fileTypes, filter, match, itemFocus, itemSelect,
-        resultsFormatter, trigger, combineWithFileSearch) {
+    /**
+     * Defines API for new QuickOpen plguins
+     * @param {string} plugin name
+     * @param {Array.<string>} filetypes array. Example: ["js", "css", "txt"]
+     * @param {Function} filter takes a query string and returns an array of strings that match the query
+     * @param {Functon} match takes a query string and returns true if this plugin wants to provide results for this query
+     * @param {Functon} itemFocus performs an action when a result has focus
+     * @param {Functon} itemSelect performs an action when a result is choosen
+     * @param {Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search resuklts
+     */
+    function QuickOpenPlugin(name, fileTypes, filter, match, itemFocus, itemSelect, resultsFormatter) {
         
         this.name = name;
         this.fileTypes = []; // default: all
@@ -47,37 +81,28 @@ define(function (require, exports, module) {
         this.match = match;
         this.itemFocus = itemFocus;
         this.itemSelect = itemSelect;
-        this.trigger = trigger;
         this.resultsFormatter = resultsFormatter;
-        this.combineWithFileSearch = combineWithFileSearch;
     }
     
-    function addProvider(provider) {
-        providers.push(new QuickOpenProvider(provider.name,
-            provider.fileTypes,
-            provider.filter,
-            provider.match,
-            provider.itemFocus,
-            provider.itemSelect,
-            provider.resultsFormatter,
-            provider.trigger,
-            provider.combineWithFileSearch));
-    }
-
     /**
-    * FileLocation class
-    * @constructor
-    *
-    */
-    function FileLocation(fullPath, line, column, functionName) {
-        this.fullPath = fullPath;
-        this.line = line;
+     * Registers new QuickOpenPlugin
+     * @param {QuickOpenPlugin} plugin
+     */
+    function addQuickOpenPlugin(plugin) {
+        plugins.push(new QuickOpenPlugin(
+            plugin.name,
+            plugin.fileTypes,
+            plugin.filter,
+            plugin.match,
+            plugin.itemFocus,
+            plugin.itemSelect,
+            plugin.resultsFormatter
+        ));
     }
 
     /**
     * QuickNavigateDialog class
     * @constructor
-    *
     */
     function QuickNavigateDialog() {
         this.searchField = undefined; // defined when showDialog() is called
@@ -97,7 +122,7 @@ define(function (require, exports, module) {
 
     function _filenameFromPath(path, includeExtension) {
         var end;
-        if(includeExtension) {
+        if (includeExtension) {
             end = path.length;
         } else {
             end = path.lastIndexOf(".");
@@ -109,8 +134,8 @@ define(function (require, exports, module) {
      * Closes the search dialog and resolves the promise that showDialog returned
      */
     QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
-        if (currentProvider) {
-            currentProvider.itemSelect(selectedItem);
+        if (currentPlugin) {
+            currentPlugin.itemSelect(selectedItem);
         } else {
             var query = this.searchField.val();
 
@@ -124,7 +149,7 @@ define(function (require, exports, module) {
 
                 // Do navigation
                 if (fileLocation.fullPath) {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileLocation.fullPath});
+                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fileLocation.fullPath});
                 }
 
                 if (fileLocation.line) {
@@ -141,20 +166,59 @@ define(function (require, exports, module) {
         EditorManager.focusEditor();
     };
 
-    // TODO: selectedItem not used right now. Fix
+    /**
+     * Opens the file specified by selected item if there is no current plugin, otherwise defers handling
+     * to the currentPlugin
+     */
     QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
-        if (currentProvider) {
-            currentProvider.itemFocus(selectedItem);
+        if (currentPlugin) {
+            currentPlugin.itemFocus(selectedItem);
         } else {
             var fullPath = $(selectedItem).attr("data-fullpath");
             if (fullPath) {
                 fileLocation.fullPath = decodeURIComponent(fullPath);
-
-                // TODO: make function
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileLocation.fullPath, focusEditor: false});
             }
         }
     };
+
+    /**
+     * Close the dialog when the ENTER (13) or ESC (27) key is pressed
+     */
+    QuickNavigateDialog.prototype._handleKeyDown = function (e) {
+        if (e.keyCode === 13 || e.keyCode === 27) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            // clear the query on ESC key and restore document and cursor poisition
+            if (e.keyCode === 27) {
+                fileLocation = undefined;
+
+                // restore document and cursor position
+                if (origDocPath) {
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
+                        .done(function () {
+                            DocumentManager.getCurrentDocument().editor.setCursorPos(origCursorPos);
+                        });
+                }
+            } else if (e.keyCode === 13) {
+                // Select current item on ENTER key
+                this._handleItemSelect();
+            }
+            
+            this._close();
+        }
+
+        // Remove current plugin if the query stops matching
+        var query = this.searchField.val();
+        if (currentPlugin && !currentPlugin.match(query)) {
+            currentPlugin = null;
+        }
+
+        if ($(".smart_autocomplete_highlight").length === 0) {
+            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+        }    
+    }
 
 
     /**
@@ -167,6 +231,10 @@ define(function (require, exports, module) {
         }
         this.closed = true;
 
+        JSLint.setEnabled(true);
+
+        // for some odd reason I need to remove the dialog like this through the parent
+        // If I do it more directly listeners are not removed by the smart auto complete plugin
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
 
@@ -184,18 +252,19 @@ define(function (require, exports, module) {
                 return null;
             }
         }).sort(function (a, b) {
-            // TODO: this can be written more optimally
-            // sort by filename without extension
-            var filenameA = _filenameFromPath(a, false).toLowerCase();
-            var filenameB = _filenameFromPath(b, false).toLowerCase();
+            a = a.toLowerCase();
+            b = b.toLowerCase();
+            //first,  sort by filename without extension
+            var filenameA = _filenameFromPath(a, false);
+            var filenameB = _filenameFromPath(b, false);
             if (filenameA < filenameB) {
                 return -1;
             } else if (filenameA > filenameB) {
                 return 1;
             } else {
-                // filename is the name so compare including extension
-                var filenameA = _filenameFromPath(a, true).toLowerCase();
-                var filenameB = _filenameFromPath(b, true).toLowerCase();
+                // filename is the same, compare including extension
+                filenameA = _filenameFromPath(a, true);
+                filenameB = _filenameFromPath(b, true);
                 if (filenameA < filenameB) {
                     return -1;
                 } else if (filenameA > filenameB) {
@@ -209,31 +278,29 @@ define(function (require, exports, module) {
         return filteredList;
     }
 
-    // auto suggest list helper function
     function _handleFilter(query) {
         var i;
-        for (i = 0; i < providers.length; i++) {
-            var provider = providers[i];
-            if (provider.match(query)) {
-                currentProvider = provider;
-                return provider.filter(query);
+        for (i = 0; i < plugins.length; i++) {
+            var plugin = plugins[i];
+            if (plugin.match(query)) {
+                currentPlugin = plugin;
+                return plugin.filter(query);
             }
         }
 
-        currentProvider = null;
+        currentPlugin = null;
         return filterFileList(query);
     }
 
 
-    // auto suggest list helper function
     function _handleResultsFormatter(item) {
         var query = $('input#quickFileOpenSearch').val();
 
-        if (currentProvider) {
-            return currentProvider.resultsFormatter(item, query);
+        if (currentPlugin) {
+            return currentPlugin.resultsFormatter(item, query);
         } else {
             // Format filename result
-            var filename = _filenameFromPath(item);
+            var filename = _filenameFromPath(item, true);
             var rPath = ProjectManager.makeProjectRelativeIfPossible(item);
             var boldName = filename.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
             return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + boldName +
@@ -247,12 +314,15 @@ define(function (require, exports, module) {
     */
     QuickNavigateDialog.prototype.showDialog = function (initialValue) {
         var that = this;
-        var suggestList;
         this.result = new $.Deferred();
 
-        origDoc = DocumentManager.getCurrentDocument();
-        if (origDoc) {
-            origCursorPos = origDoc.editor.getCursorPos();
+        // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
+        JSLint.setEnabled(false);
+
+        var curDoc = DocumentManager.getCurrentDocument();
+        origDocPath = curDoc ? curDoc.file.fullPath : null;
+        if (curDoc) {
+            origCursorPos = curDoc.editor.getCursorPos();
         } else {
             origCursorPos = null;
         }
@@ -279,44 +349,9 @@ define(function (require, exports, module) {
                 });
         
                 that.searchField.bind({
-                    itemSelect: function (ev, selectedItem) { that._handleItemSelect(selectedItem); },
-                    itemFocus: function (ev, selectedItem) { that._handleItemFocus(selectedItem); },
-                    keydown: function (e) {
-                        // close the dialog when the ENTER (13) or ESC (27) key is pressed
-                        if (e.keyCode === 13 || e.keyCode === 27) {
-                            e.stopPropagation();
-                            e.preventDefault();
-
-                            // clear the query on ESC key and restore document and cursor poisition
-                            if (e.keyCode === 27) {
-                                that.fileLocation = undefined;
-
-                                // restore document and cursor position
-                                if (origDoc) {
-                                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDoc.file.fullPath});
-                                    origDoc.editor.setCursorPos(origCursorPos);
-                                }
-                            } else if (e.keyCode === 13) {
-                                // Select current item on ENTER key
-                                that._handleItemSelect();
-                            }
-                            
-                            that._close();
-                        }
-
-                        // Remove current provider if the query stops matching
-                        var query = that.searchField.val();
-                        if (currentProvider && !currentProvider.match(query)) {
-                            currentProvider = null;
-                        }
-
-                        if ($(".smart_autocomplete_highlight").length === 0) {
-                            that._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
-                        }
-                        
-                    }
-
-        
+                    itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
+                    itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
+                    keydown: function (e) { that._handleKeyDown(e); }
                 });
         
                 that.searchField.val(initialValue);
@@ -326,34 +361,33 @@ define(function (require, exports, module) {
         return this.result;
     };
 
-
-        
     function doFileSearch() {
         var dialog = new QuickNavigateDialog();
         dialog.showDialog();
     }
-
-    function doDdefinitionSearch() {
-        var dialog = new QuickNavigateDialog();
-        dialog.showDialog("@");
-    }
-
-
 
     function doGotoLine() {
         var dialog = new QuickNavigateDialog();
         dialog.showDialog(":");
     }
 
-    // TODO: in future we would dynamally discover quick open plugins and get their providers
-    var jsFuncProvider = QuickOpenJSSymbol.getProvider();
-    addProvider(jsFuncProvider);
+
+    // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plugin
+    function doDefinitionSearch() {
+        var dialog = new QuickNavigateDialog();
+        dialog.showDialog("@");
+    }
+
+
+
+    // TODO: in future we would dynamally discover quick open plugins and get their plugins
+    var jsFuncPlugin = QuickOpenJSSymbol.getPlugin();
+    addQuickOpenPlugin(jsFuncPlugin);
 
     // TODO: allow QuickOpenJS to register it's own commands and keybindings
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE_FILE, doFileSearch);
-    CommandManager.register(Commands.FILE_QUICK_NAVIGATE_DEFINITION, doDdefinitionSearch);
+    CommandManager.register(Commands.FILE_QUICK_NAVIGATE_DEFINITION, doDefinitionSearch);
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE_LINE, doGotoLine);
 
-    exports.QuickOpenProvider = QuickOpenProvider;
-    exports.addProvider = addProvider;
+    exports.addQuickOpenPlugin = addQuickOpenPlugin;
 });
