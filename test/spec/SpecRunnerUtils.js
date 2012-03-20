@@ -195,7 +195,7 @@ define(function (require, exports, module) {
     
     /**
      * Creates relative paths based on the test window's current project. Any paths,
-     * without the current project path prefix are not converted and excluded from the result(s).
+     * outside the project are included in the result, but left as absolute paths.
      * @param {!Array.<string>|string} paths Absolute file path(s) to convert. May pass a single string path or array.
      * @return {!Array.<string>|string} Relative file path(s)
      */
@@ -212,9 +212,7 @@ define(function (require, exports, module) {
         }
         
         if (Array.isArray(paths)) {
-            return paths.map(removeProjectPath).filter(function (element) {
-                return (element !== null);
-            });
+            return paths.map(removeProjectPath);
         } else {
             return removeProjectPath(paths);
         }
