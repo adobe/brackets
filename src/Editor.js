@@ -192,8 +192,10 @@ define(function (require, exports, module) {
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
      *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
+     * @param {{startLine: number, endLine: number}} range If specified, range of lines within the document
+     *          to display in this editor.
      */
-    function Editor(document, makeMasterEditor, mode, container, additionalKeys) {
+    function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
         var self = this;
         
         // Attach to document
@@ -285,6 +287,23 @@ define(function (require, exports, module) {
         this._resetText(document.getText());
         this._duringSync = false;
         
+        if (range) {
+            // Hide all lines other than those we want to show. We do this rather than trimming the
+            // text itself so that the editor still shows accurate line numbers.
+            this._codeMirror.operation(function () {
+                var i;
+                for (i = 0; i < range.startLine; i++) {
+                    self.hideLine(i);
+                }
+                var lineCount = self.lineCount();
+                for (i = range.endLine + 1; i < lineCount; i++) {
+                    self.hideLine(i);
+                }
+            });
+            this._visibleRange = range;
+            this.setCursorPos(range.startLine, 0);
+        }
+
         // Now that we're fully initialized, we can point the document back at us if needed
         if (makeMasterEditor) {
             document._makeEditable(this);
@@ -324,7 +343,7 @@ define(function (require, exports, module) {
         // have an actual central model.
         var cm = editor._codeMirror;
         cm.operation(function () {
-            var change, newText;
+            var change, newText, reshown = false;
             for (change = changeList; change; change = change.next) {
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
@@ -332,8 +351,34 @@ define(function (require, exports, module) {
                         console.log("Editor._applyChangesToEditor(): Change record received with only one end undefined--replacing entire text");
                     }
                     cm.setValue(newText);
+                    
+                    // The editor's visible range is no longer meaningful since the entire text was replaced.
+                    editor._visibleRange = null;
                 } else {
                     cm.replaceRange(newText, change.from, change.to);
+                    
+                    // If the editor is restricted to a specific visible range, update the visible range
+                    // end points if any content was added before them, and hide any new text that's outside
+                    // the visible range. Note that we don't rely on line handles for this since we
+                    // want to gracefully handle cases where the start or end line was deleted during a change.
+                    var range = editor._visibleRange;
+                    if (range) {
+                        var i, numAdded = change.text.length - (change.to.line - change.from.line + 1);
+                        if (change.to.line < range.startLine) {
+                            range.startLine += numAdded;
+                        }
+                        if (change.to.line < range.endLine) {
+                            range.endLine += numAdded;
+                        }
+                        for (i = change.from.line; i < change.from.line + change.text.length; i++) {
+                            if (i < range.startLine || i > range.endLine) {
+                                editor.hideLine(i);
+                            }
+                        }
+                        console.log("new visible range: " + editor._visibleRange.startLine + " - " + editor._visibleRange.endLine);
+                        // TODO: should double-check that the range of non-hidden lines after this matches up
+                        // with what we think _visibleRange is
+                    }
                 }
             }
         });
@@ -371,6 +416,20 @@ define(function (require, exports, module) {
         // we're the ground truth; nothing else to do, since everyone else will sync from us
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
+        
+        if (this._visibleRange) {
+            // We know all edits that happened in this editor must have been within the visible range. So
+            // all we need to do is adjust the end of the visible range to account for the total number of
+            // lines added/removed as the result of these edits.
+            var numAdded = 0, change;
+            for (change = changeList; change; change = change.next) {
+                numAdded += change.text.length - (change.to.line - change.from.line + 1);
+            }
+            this._visibleRange.endLine += numAdded;
+            console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
+            // TODO: should double-check that the range of non-hidden lines after this matches up
+            // with what we think _visibleRange is
+        }
     };
     
     /**
@@ -661,7 +720,11 @@ define(function (require, exports, module) {
      */
     Editor.prototype._inlineWidgets = null;
 
-
+    /**
+     * @private
+     * @type {{startLine: number, endLine: number}}
+     */
+    Editor.prototype._visibleRange = null;
 
     // Define public API
     exports.Editor = Editor;

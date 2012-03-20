@@ -54,7 +54,7 @@ define(function (require, exports, module) {
                 on context)
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
             }
         };
 
-        return new Editor(doc, makeMasterEditor, mode, container, extraKeys);
+        return new Editor(doc, makeMasterEditor, mode, container, extraKeys, range);
     }
     
     /** Bound to Ctrl+E on outermost editors */
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
         }
         
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range);
         
         // Update the inline editor's height when the number of lines change
         var prevHeight;
@@ -244,32 +244,7 @@ define(function (require, exports, module) {
         function afterAdded(inlineId) {
             myInlineId = inlineId;
             
-            // Hide all lines other than those we want to show. We do this rather than trimming the
-            // text itself so that the editor still shows accurate line numbers.
-            var didHideLines  = false;
-            if (range) {
-                inlineEditor._codeMirror.operation(function () {
-                    var i;
-                    for (i = 0; i < range.startLine; i++) {
-                        didHideLines  = true;
-                        inlineEditor.hideLine(i);
-                    }
-                    var lineCount = inlineEditor.lineCount();
-                    for (i = range.endLine + 1; i < lineCount; i++) {
-                        didHideLines  = true;
-                        inlineEditor.hideLine(i);
-                    }
-                });
-                inlineEditor.setCursorPos(range.startLine, 0);
-                _syncGutterWidths(hostEditor);
-            }
-            
-            // If we haven't hidden any lines (which would have caused an update already), 
-            // force the editor to update its display so we measure the correct height below
-            // when sizeInlineEditorToContents() calls totalHeight().
-            if (!didHideLines) {
-                inlineEditor.refresh();
-            }
+            _syncGutterWidths(hostEditor);
             
             // Set initial size
             sizeInlineEditorToContents();
