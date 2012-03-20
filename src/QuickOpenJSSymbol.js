@@ -67,9 +67,9 @@ define(function (require, exports, module) {
 
         var fileInfo = FileIndexManager.getFileInfo(doc.file.fullPath);
         var data = FileIndexManager.getFileInfoData(fileInfo, "JavaScriptFunctionList");
-        if(!fileInfo.dirty && data) {
+        if(fileInfo &&  data && !data.dirty && data.data !== null) {
         	// cached function list data is present and clean so use it
-        	functionList = data;
+        	functionList = data.data;
         } else {
         	// function list data is not cached or is dirty, so rebuild
 	    	functionList = [];
