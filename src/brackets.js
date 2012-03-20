@@ -50,6 +50,7 @@ define(function (require, exports, module) {
     require("JSLint");
     require("CodeHintManager");
     require("DebugCommandHandlers");
+    require("FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -154,6 +155,7 @@ define(function (require, exports, module) {
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
+                    {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],
