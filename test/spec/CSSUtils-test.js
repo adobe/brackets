@@ -126,8 +126,10 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expectRuleRanges(this, this.fileCssContent, "a", [
-                        {start: 0, end: 2}, {start: 3, end: 5 }, {start: 7, end: 7},
-                        {start: 8, end: 8}, {start: 10, end: 10}, {start: 10, end: 10}
+                        {start:  0, end:  2}, {start:  3, end:  5}, {start:  7, end:  7},
+                        {start:  8, end:  8}, {start: 10, end: 10}, {start: 10, end: 10},
+                        {start: 16, end: 19}, {start: 23, end: 25}, {start: 29, end: 32},
+                        {start: 33, end: 35}, {start: 38, end: 41}
                     ]);
                 });
             });

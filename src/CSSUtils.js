@@ -80,7 +80,7 @@ define(function (require, exports, module) {
                         selectorGroupStartLine = -1;
                     } else {
                         // detect non-crlf whitespace, comments on same line as '}'
-                        if (currentPosition < 0 && (token !== " ") &&
+                        if (currentPosition < 0 && (token.trim() !== "") &&
                                 !(style === "comment" && stream.start > 0 && lines[i].substr(0, stream.start).indexOf('}') !== -1)) {
                              
                             // start of a new selector, or comment above selector
