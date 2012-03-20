@@ -24,6 +24,8 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
+    // Load LiveDeveopment
+    require("LiveDevelopment/main");
     
     // Load dependent modules
     var ProjectManager          = require("ProjectManager"),
