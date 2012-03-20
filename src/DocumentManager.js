@@ -71,7 +71,7 @@ define(function (require, exports, module) {
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
-     * document always has backing Editor (Document._masterEditor != null) and is thus modifiable.
+     * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
      * @return {?Document}
      */
     function getCurrentDocument() {

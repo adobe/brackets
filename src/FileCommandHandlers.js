@@ -95,7 +95,7 @@ define(function (require, exports, module) {
                 result.resolve(doc);
             })
             .fail(function (fileError) {
-                FileUtils.showFileOpenError(fileError.code, document.file.fullPath).done(function () {
+                FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
                     EditorManager.focusEditor();
                     result.reject();
                 });

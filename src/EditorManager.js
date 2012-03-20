@@ -63,18 +63,31 @@ define(function (require, exports, module) {
             },
             "Cmd-E" : function (editor) {
                 onInlineGesture(editor);
+            },
+            "Shift-Ctrl-F" : function () {
+                // No-op, handled in FindInFiles.js
+            },
+            "Shift-Cmd-F" : function () {
+                // No-op, handled in FindInFiles.js
             }
         };
 
         return new Editor(doc, makeMasterEditor, mode, container, extraKeys);
     }
     
-    /** Bound to Ctrl+E on outermost editors */
+    /**
+     * @private
+     * Bound to Ctrl+E on outermost editors.
+     * @return {$.Promise} a promise that will be resolved when an inline 
+     *  editor is created or rejected when no inline editors are available.
+     */
     function _openInlineWidget(editor) {
         // Run through inline-editor providers until one responds
-        var pos = editor.getCursorPos();
-        var inlinePromise;
-        var i;
+        var pos = editor.getCursorPos(),
+            inlinePromise,
+            i,
+            result = new $.Deferred();
+        
         for (i = 0; i < _inlineEditProviders.length && !inlinePromise; i++) {
             var provider = _inlineEditProviders[i];
             inlinePromise = provider(editor, pos);
@@ -86,8 +99,15 @@ define(function (require, exports, module) {
                 var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height,
                                             inlineContent.onClosed, inlineContent);
                 inlineContent.onAdded(inlineId);
+                result.resolve();
+            }).fail(function () {
+                result.reject();
             });
+        } else {
+            result.reject();
         }
+        
+        return result.promise();
     }
     
     /**
@@ -283,7 +303,7 @@ define(function (require, exports, module) {
         
         // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
         function afterClosed() {
-            console.log("Inline editor is being destroyed!");
+            //console.log("Inline editor is being destroyed!");
             _syncGutterWidths(hostEditor);
             inlineEditor.destroy(); //release ref on Document
         }
@@ -497,8 +517,11 @@ define(function (require, exports, module) {
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);
     
-    // Define public API
+    // For unit tests
     exports._openInlineWidget = _openInlineWidget;
+    exports._closeInlineWidget = _closeInlineWidget;
+    
+    // Define public API
     exports.setEditorHolder = setEditorHolder;
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
