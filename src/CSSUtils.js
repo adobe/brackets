@@ -74,7 +74,7 @@ define(function (require, exports, module) {
                         if (token === ";") {
                             inAtRule = false;
                         }
-                    } else if (token === "@charset" || token === "@import") {
+                    } else if (token.match(/@(charset|import|namespace)/i)) {
                         inAtRule = true;
                         currentPosition = -1;  // reset so we don't get @rules following comments
                         selectorGroupStartLine = -1;
