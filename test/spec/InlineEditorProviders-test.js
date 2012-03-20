@@ -18,26 +18,26 @@ define(function (require, exports, module) {
     describe("InlineEditorProviders", function () {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
-            testWindow;
-        
-        /* @type {{infos:Array, docs:Array.<Document>}} */
-        var inlineTest = null;
+            testWindow,
+            initInlineTest;
         
         /**
-         * Performs setup for an inline editor test. Parses offsets for all files in
+         * Performs setup for an inline editor test. Parses offsets (saved to Spec.offsets) for all files in
          * the test project (testPath) and saves files back to disk without offset markup.
          * When finished, open an editor for the specified project relative file path
-         * then attempts opens an inline editor at the given offset. Offset information is
-         * stored in inlineTest.infos.
+         * then attempts opens an inline editor at the given offset. Installs an after()
+         * function restore all file content back to original state with offset markup.
          * 
          * @param {!string} openFile Project relative file path to open in a main editor.
          * @param {!number} openOffset The offset index location within openFile to open an inline editor.
          * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
          */
-        function initInlineTest(openFile, openOffset, expectInline) {
+        var _initInlineTest = function (openFile, openOffset, expectInline) {
             var allFiles,
+                hostOpened = false,
                 err = false,
-                inlineOpened = null;
+                inlineOpened = null,
+                spec = this;
             
             expectInline = (expectInline !== undefined) ? expectInline : true;
             
@@ -65,32 +65,31 @@ define(function (require, exports, module) {
                 
                 // parse offsets and save
                 SpecRunnerUtils.saveFilesWithoutOffsets(allFiles).done(function (offsetInfos) {
-                    inlineTest.infos = offsetInfos;
+                    spec.infos = offsetInfos;
                 }).fail(function () {
                     err = true;
                 });
             });
             
-            waitsFor(function () { return (inlineTest.infos !== null) && !err; }, "rewrite timeout", 1000);
+            waitsFor(function () { return (spec.infos !== null) && !err; }, "rewrite timeout", 1000);
             
             runs(function () {
                 SpecRunnerUtils.openProjectFiles(openFile).done(function (documents) {
-                    inlineTest.docs = documents;
+                    hostOpened = true;
                 }).fail(function () {
                     err = true;
                 });
             });
             
-            waitsFor(function () { return (inlineTest.docs !== null) && !err; }, "FILE_OPEN timeout", 1000);
+            waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
             
             runs(function () {
-                DocumentManager.setCurrentDocument(inlineTest.docs[openFile]);
                 var editor = EditorManager.getCurrentFullEditor();
                 
                 // open inline editor at specified offset index
                 var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
                     editor,
-                    inlineTest.infos[openFile].offsets[openOffset]
+                    spec.infos[openFile].offsets[openOffset]
                 );
                 
                 inlineEditorResult.done(function () {
@@ -103,7 +102,19 @@ define(function (require, exports, module) {
             waitsFor(function () {
                 return (inlineOpened !== null) && (inlineOpened === expectInline);
             }, "inline editor timeout", 1000);
-        }
+            
+            spec.after(function () {
+                var done = false;
+                
+                runs(function () {
+                    SpecRunnerUtils.saveFilesWithOffsets(spec.infos).done(function () {
+                        done = true;
+                    });
+                });
+                
+                waitsFor(function () { return done; }, "saveFilesWithOffsets timeout", 1000);
+            });
+        };
 
         /*
          * Note that the bulk of selector matching tests are in CSSutils-test.js.
@@ -112,13 +123,13 @@ define(function (require, exports, module) {
         describe("htmlToCSSProvider", function () {
 
             beforeEach(function () {
+                initInlineTest = _initInlineTest.bind(this);
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow          = w;
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileIndexManager    = testWindow.brackets.test.FileIndexManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
-                    inlineTest          = {infos: null, docs: null};
                 });
             });
     
@@ -127,7 +138,6 @@ define(function (require, exports, module) {
                 //waits(1000);
                 
                 // revert files to original content with offset markup
-                SpecRunnerUtils.saveFilesWithOffsets(inlineTest.infos);
                 SpecRunnerUtils.closeTestWindow();
             });
 
@@ -139,7 +149,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineData.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(inlineTest.infos["test1.css"].offsets[0]);
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
                 });
             });
 
@@ -151,7 +161,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineData.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(inlineTest.infos["test1.css"].offsets[1]);
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[1]);
                 });
             });
 
@@ -163,7 +173,7 @@ define(function (require, exports, module) {
                     var inlinePos = inlineData.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(inlineTest.infos["test1.css"].offsets[2]);
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[2]);
                 });
             });
 
@@ -179,7 +189,7 @@ define(function (require, exports, module) {
                     inlinePos = inlineWidget.data.editor.getCursorPos();
                     
                     // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(inlineTest.infos["test1.css"].offsets[0]);
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
                     
                     // close the editor
                     EditorManager._closeInlineWidget(fullEditor, inlineWidget.id, true);
@@ -255,7 +265,7 @@ define(function (require, exports, module) {
                     inlineEditor._codeMirror.replaceRange(
                         "",
                         inlineEditor.getCursorPos(),
-                        inlineTest.infos["test1.css"].offsets[3]
+                        this.infos["test1.css"].offsets[3]
                     );
                     
                     // verify widget resizes when contents is changed
@@ -376,7 +386,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
-                    expect(savedHostText).toEqual(inlineTest.infos["test1.html"].text);
+                    expect(savedHostText).toEqual(this.infos["test1.html"].text);
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeFalsy();

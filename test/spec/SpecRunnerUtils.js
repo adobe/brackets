@@ -120,8 +120,8 @@ define(function (require, exports, module) {
     
     /**
      * Parses offsets from text offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!string} in Text to parse
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, text:string, original:string}} 
+     * @param {!string} text Text to parse
+     * @return {!{offsets:!Array.<{line:number, ch:number}>, text:!string, original:!string}} 
      */
     function parseOffsetsFromText(text) {
         var offsets = [],
@@ -195,7 +195,7 @@ define(function (require, exports, module) {
     
     /**
      * Creates relative paths based on the test window's current project. Any paths,
-     * without the current project path prefix are not converted.
+     * without the current project path prefix are not converted and excluded from the result(s).
      * @param {!Array.<string>|string} paths Absolute file path(s) to convert. May pass a single string path or array.
      * @return {!Array.<string>|string} Relative file path(s)
      */
@@ -212,7 +212,9 @@ define(function (require, exports, module) {
         }
         
         if (Array.isArray(paths)) {
-            return paths.map(removeProjectPath);
+            return paths.map(removeProjectPath).filter(function (element) {
+                return (element !== null);
+            });
         } else {
             return removeProjectPath(paths);
         }
@@ -229,7 +231,9 @@ define(function (require, exports, module) {
     /**
      * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
      * @param {!FileEntry} entry File to open
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}} 
+     * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
+     *  the file text without offset markup, the original file content, and the corresponding
+     *  file entry.
      */
     function parseOffsetsFromFile(entry) {
         var result = new $.Deferred();
@@ -248,8 +252,9 @@ define(function (require, exports, module) {
     
     /**
      * Opens project relative file paths in the test window
-     * @param {!{Array.<string>}} paths Project relative file paths to open
-     * @return {!{Array.<string>}}
+     * @param {!(Array.<string>|string)} paths Project relative file path(s) to open
+     * @return {!$.Promise} A promise resolved with a mapping of project-relative path
+     *  keys to a corresponding Document
      */
     function openProjectFiles(paths) {
         var result = new $.Deferred(),
@@ -280,7 +285,7 @@ define(function (require, exports, module) {
     /**
      * Opens a file path, parses offset markup then saves the results to the original file.
      * @param {!string} path Project relative file path to open
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}} 
+     * @return {$.Promise} A promise resolved with the offset information results of parseOffsetsFromFile.
      */
     function saveFileWithoutOffsets(path) {
         var result = new $.Deferred(),
@@ -304,8 +309,7 @@ define(function (require, exports, module) {
     /**
      * Opens an array of file paths, parses offset markup then saves the results to each original file.
      * @param {!Array.<string>|string} paths Project relative or absolute file paths to open. May pass a single string path or array.
-     * @return {!Array.<{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}>}
-     *  Array of offset information indexed by relative file path.
+     * @return {!$.Promise} A promised resolved with a map of offset information indexed by project-relative file path.
      */
     function saveFilesWithoutOffsets(paths) {
         var result = new $.Deferred(),
@@ -335,8 +339,18 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Restore file content with offset markup. When using saveFileWithoutOffsets(), 
+     * remember to call this function during spec teardown (after()).
+     * @param {$.Promise} A promise resolved when all files are re-written to their original content.
+     */
     function saveFilesWithOffsets(infos) {
-        return Async.doInParallel(infos, function (info) {
+        var arr = [];
+        $.each(infos, function (index, value) {
+            arr.push(value);
+        });
+        
+        return Async.doInParallel(arr, function (info) {
             return FileUtils.writeText(info.fileEntry, info.original);
         }, false);
     }
@@ -344,7 +358,7 @@ define(function (require, exports, module) {
     /**
      * Set editor cursor position to the given offset then activate an inline editor.
      * @param {!Editor} editor
-     * @param {!{{line:number, ch:number}}} 
+     * @param {!{line:number, ch:number}} offset
      * @return {$.Promise} a promise that will be resolved when an inline 
      *  editor is created or rejected when no inline editors are available.
      */
