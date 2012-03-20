@@ -70,7 +70,6 @@ define(function (require, exports, module) {
                         CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
                     } else {
                         // No need for confirmation prompt here: no doc for this file
-                        // TODO: roll this functionality into FILE_CLOSE?
                         DocumentManager.closeFullEditor(file);
                     }
                 });

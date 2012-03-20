@@ -261,7 +261,6 @@ define(function (require, exports, module) {
             // Switch editor to next document (or blank it out)
             if (nextFile) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath });
-                // TODO: need to async wait for this? what if there's an error opening it?
             } else {
                 _clearCurrentDocument();
             }
@@ -339,7 +338,7 @@ define(function (require, exports, module) {
     /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
      * it means the file was modified by an app other than Brackets.
-     * @type {?Date}
+     * @type {!Date}
      */
     Document.prototype.diskTimestamp = null;
     

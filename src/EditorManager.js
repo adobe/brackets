@@ -303,7 +303,6 @@ define(function (require, exports, module) {
         
         // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
         function afterClosed() {
-            //console.log("Inline editor is being destroyed!");
             _syncGutterWidths(hostEditor);
             inlineEditor.destroy(); //release ref on Document
         }
