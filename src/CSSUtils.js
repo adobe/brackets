@@ -75,6 +75,13 @@ define(function (require, exports, module) {
                             inAtRule = false;
                         }
                     } else if (token.match(/@(charset|import|namespace)/i)) {
+                        // This code only handles @rules in this format:
+                        //   @rule ... ;
+                        //
+                        // This code does not handle @rules that use this format:
+                        //    @rule ... { ... }
+                        // such as @media (which is handled elsewhere) @page,
+                        // @keyframes (also -webkit-keyframes, etc.), and @font-face.
                         inAtRule = true;
                         currentPosition = -1;  // reset so we don't get @rules following comments
                         selectorGroupStartLine = -1;
