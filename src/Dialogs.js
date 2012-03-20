@@ -97,21 +97,22 @@ define(function (require, exports, module) {
         // type happen to show up, they can appear at the same time. (This is an edge case that
         // shouldn't happen often, but we can't prevent it from happening since everything is
         // asynchronous.)
-        var dlg = $("." + dlgClass + ".template")
+        var $dlg = $("." + dlgClass + ".template")
             .clone()
             .removeClass("template")
             .addClass("instance")
             .appendTo(document.body);
 
         // Set title and message
-        $(".dialog-title", dlg).html(title);
-        $(".dialog-message", dlg).html(message);
+        $(".dialog-title", $dlg).html(title);
+        $(".dialog-message", $dlg).html(message);
 
-        var handleKeyDown = _handleKeyDown.bind(dlg);
+        var handleKeyDown = _handleKeyDown.bind($dlg),
+            $primaryBtn = $dlg.find(".primary");
 
         // Pipe dialog-closing notification back to client code
-        dlg.one("hidden", function () {
-            var buttonId = dlg.data("buttonId");
+        $dlg.one("hidden", function () {
+            var buttonId = $dlg.data("buttonId");
             if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
                 buttonId = DIALOG_BTN_CANCEL;
             }
@@ -124,29 +125,33 @@ define(function (require, exports, module) {
             }, 0);
             
             // Remove the dialog instance from the DOM.
-            dlg.remove();
+            $dlg.remove();
 
             // Remove keydown event handler
             document.body.removeEventListener("keydown", handleKeyDown, true);
         }).one("shown", function () {
             // Set focus to the default button
-            var primaryBtn = dlg.find(".primary");
-
-            if (primaryBtn) {
-                primaryBtn.focus();
+            if ($primaryBtn) {
+                $primaryBtn.focus();
             }
 
             // Listen for dialog keyboard shortcuts
             document.body.addEventListener("keydown", handleKeyDown, true);
         });
         
+        // prevent focus from leaving the dialog
+        $dlg.bind("focusout", function (e) {
+            $primaryBtn.focus();
+            return false;
+        });
+        
         // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            _dismissDialog(dlg, $(this).attr("data-button-id"));
+        $dlg.one("click", ".dialog-button", function (e) {
+            _dismissDialog($dlg, $(this).attr("data-button-id"));
         });
 
         // Run the dialog
-        dlg.modal({
+        $dlg.modal({
             backdrop: "static",
             show: true,
             keyboard: true
