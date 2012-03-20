@@ -61,27 +61,26 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
-    // TY TODO TEST
-    // $(FileViewController).on("documentSelectionFocusChange", function (event) {
-    //     var curDoc = DocumentManager.getCurrentDocument();
-    //     if (curDoc
-    //             && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
-    //         $("#project-files-container li").is(function (index) {
-    //             var entry = $(this).data("entry");
+    $(FileViewController).on("documentSelectionFocusChange", function (event) {
+        var curDoc = DocumentManager.getCurrentDocument();
+        if (curDoc
+                && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
+            $("#project-files-container li").is(function (index) {
+                var entry = $(this).data("entry");
                 
-    //             if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
-    //                 //we don't want to trigger another selection change event, so manually deselect
-    //                 //and select without sending out notifications
-    //                 _projectTree.jstree("deselect_all");
-    //                 _projectTree.jstree("select_node", $(this), false);
-    //                 return true;
-    //             }
-    //             return false;
-    //         });
-    //     } else {
-    //         _projectTree.jstree("deselect_all");
-    //     }
-    // });
+                if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
+                    //we don't want to trigger another selection change event, so manually deselect
+                    //and select without sending out notifications
+                    _projectTree.jstree("deselect_all");
+                    _projectTree.jstree("select_node", $(this), false);
+                    return true;
+                }
+                return false;
+            });
+        } else if (_projectTree !== null) {
+            _projectTree.jstree("deselect_all");
+        }
+    });
     
     /**
      * Unique PreferencesManager clientID
@@ -99,7 +98,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns true if absPath lies within the project, false otherwise.
-     * FIXME (issue #263): Does not support paths containing ".."
+     * Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
         return (absPath.indexOf(_projectRoot.fullPath) === 0);
@@ -107,7 +106,7 @@ define(function (require, exports, module) {
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
-     * FIXME (issue #263): Does not support paths containing ".."
+     * Does not support paths containing ".."
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {
@@ -176,13 +175,23 @@ define(function (require, exports, module) {
         _projectTree = projectTreeContainer
             .jstree(
                 {
-                    plugins : ["ui", "themes", "json_data", "crrm"],
+                    plugins : ["ui", "themes", "json_data", "crrm", "sort"],
                     json_data : { data: treeDataProvider, correct_state: false },
                     core : { animation: 0 },
                     themes : { theme: "brackets", url: "styles/jsTreeTheme.css", dots: false, icons: false },
                         //(note: our actual jsTree theme CSS lives in brackets.less; we specify an empty .css
                         // file because jsTree insists on loading one itself)
-                    strings : { loading : "Loading ...", new_node : "New node" }
+                    strings : { loading : "Loading ...", new_node : "New node" },
+                    sort :  function (a, b) {
+                        if (brackets.platform === "win") {
+                            // Windows: prepend folder names with a '0' and file names with a '1' so folders are listed first
+                            var a1 = ($(a).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(a).toLowerCase(),
+                                b1 = ($(b).hasClass("jstree-leaf") ? "1" : "0") + this.get_text(b).toLowerCase();
+                            return (a1 > b1) ? 1 : -1;
+                        } else {
+                            return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
+                        }
+                    }
                 }
             )
             .bind(

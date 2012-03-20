@@ -23,6 +23,7 @@ define(function (require, exports, module) {
     exports.FILE_QUICK_NAVIGATE_FILE = "file.quickNaviateFile";
     exports.FILE_QUICK_NAVIGATE_DEFINITION = "file.quickNaviateDefinition";
     exports.FILE_QUICK_NAVIGATE_LINE = "file.quickNaviateLine";
+    exports.FIND_IN_FILES = "findInFiles";
     exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
     exports.DEBUG_JSLINT = "debug.jslint";
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";

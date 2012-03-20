@@ -25,21 +25,12 @@ define(function (require, exports, module) {
     var FileIndexManager    = require("FileIndexManager"),
         JSLint              = require("JSLint"),
         DocumentManager     = require("DocumentManager"),
-        CommandManager      = require("CommandManager"),
         EditorManager       = require("EditorManager"),
+        CommandManager      = require("CommandManager"),
         Commands            = require("Commands"),
         QuickOpenJSSymbol   = require("QuickOpenJSSymbol"),
         ProjectManager      = require("ProjectManager");
     
-    /**
-     * FileLocation class
-     * @constructor
-     * @param {string} fullPath
-     * @param {number} line
-     */
-    function FileLocation(fullPath, line) {
-        this.line = line;
-    }
 
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
@@ -47,7 +38,6 @@ define(function (require, exports, module) {
     /** @type {QuickOpenPlugin} */
     var currentPlugin = null;
     var fileList;
-    var fileLocation = new FileLocation();
 
     /**
      * Rembers the current document that was displayed when showDialog() was called
@@ -107,7 +97,6 @@ define(function (require, exports, module) {
     function QuickNavigateDialog() {
         this.searchField = undefined; // defined when showDialog() is called
         this.closed = false;
-        this.result = null; // $.Deferred, assigned by showShowDialog() resolved by _close()
     }
 
     /**
@@ -129,6 +118,16 @@ define(function (require, exports, module) {
         }
         return path.slice(path.lastIndexOf("/") + 1, end);
     }
+
+    function extractLineNumber(query) {
+        var result;
+        var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
+        if (regInfo) {
+            result = regInfo[2] - 1;   
+        }
+
+        return result;
+    }
     
     /**
      * Closes the search dialog and resolves the promise that showDialog returned
@@ -138,27 +137,25 @@ define(function (require, exports, module) {
             currentPlugin.itemSelect(selectedItem);
         } else {
             var query = this.searchField.val();
+            var fullPath = $(selectedItem).attr("data-fullpath");
 
-            // TODO rework this
-            if (fileLocation) {
-                // extract line number
-                var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
-                if (regInfo) {
-                    fileLocation.line = regInfo[2] - 1;
-                }
+            // extract line number
+            var cursor;
+            var gotoLine = extractLineNumber(query)
+            if (gotoLine) {
+                cursor = {line: gotoLine, ch: 0};      
+            }
 
-                // Do navigation
-                if (fileLocation.fullPath) {
-                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fileLocation.fullPath});
-                }
-
-                if (fileLocation.line) {
-                    var from = {line: fileLocation.line, ch: 0};
-                    var to = {line: fileLocation.line, ch: 0};
-                    DocumentManager.getCurrentDocument().editor.setSelection(from, to);
-                }
-
-                
+            // Do navigation
+            if (fullPath) {
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                    .done( function() {
+                        if (gotoLine) {
+                            EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                        }
+                    });
+            } else if (gotoLine) {
+                EditorManager.getCurrentFullEditor().setCursorPos(cursor);
             }
         }
 
@@ -176,8 +173,8 @@ define(function (require, exports, module) {
         } else {
             var fullPath = $(selectedItem).attr("data-fullpath");
             if (fullPath) {
-                fileLocation.fullPath = decodeURIComponent(fullPath);
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fileLocation.fullPath, focusEditor: false});
+                var fullPath = decodeURIComponent(fullPath);
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
         }
     };
@@ -186,19 +183,20 @@ define(function (require, exports, module) {
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
+        var query = this.searchField.val();
+
         if (e.keyCode === 13 || e.keyCode === 27) {
             e.stopPropagation();
             e.preventDefault();
 
             // clear the query on ESC key and restore document and cursor poisition
             if (e.keyCode === 27) {
-                fileLocation = undefined;
 
                 // restore document and cursor position
                 if (origDocPath) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
                         .done(function () {
-                            DocumentManager.getCurrentDocument().editor.setCursorPos(origCursorPos);
+                            EditorManager.getCurrentFullEditor().setCursorPos(origCursorPos);
                         });
                 }
             } else if (e.keyCode === 13) {
@@ -209,8 +207,14 @@ define(function (require, exports, module) {
             this._close();
         }
 
+        // extract line number
+        var gotoLine = extractLineNumber(query);
+        if (gotoLine) {
+            var cursor = {line: gotoLine, ch: 0};
+            EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+        }
+
         // Remove current plugin if the query stops matching
-        var query = this.searchField.val();
         if (currentPlugin && !currentPlugin.match(query)) {
             currentPlugin = null;
         }
@@ -237,8 +241,6 @@ define(function (require, exports, module) {
         // If I do it more directly listeners are not removed by the smart auto complete plugin
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
-
-        this.result.resolve(fileLocation);
     };
     
     function filterFileList(query) {
@@ -310,11 +312,9 @@ define(function (require, exports, module) {
         
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
-    * @returns {$.Promise} a promise that is resolved with the FileLocation when the dialog closes
     */
     QuickNavigateDialog.prototype.showDialog = function (initialValue) {
         var that = this;
-        this.result = new $.Deferred();
 
         // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
         JSLint.setEnabled(false);
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            origCursorPos = curDoc.editor.getCursorPos();
+            origCursorPos = EditorManager.getCurrentFullEditor().getCursorPos();
         } else {
             origCursorPos = null;
         }
@@ -357,8 +357,6 @@ define(function (require, exports, module) {
                 that.searchField.val(initialValue);
                 that.searchField.focus();
             });
-
-        return this.result;
     };
 
     function doFileSearch() {

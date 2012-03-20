@@ -88,15 +88,17 @@ define(function (require, exports, module) {
             PerfUtils.addMeasurement("Open File: " + fullPath);
         });
         
-        var doc = DocumentManager.getOrCreateDocumentForPath(fullPath);
-        
-        // This will load the file if it was never open before, and then switch to it
-        DocumentManager.showInEditor(doc)
-            .done(function () {
+        // Load the file if it was never open before, and then switch to it in the UI
+        DocumentManager.getDocumentForPath(fullPath)
+            .done(function (doc) {
+                DocumentManager.setCurrentDocument(doc);
                 result.resolve(doc);
             })
             .fail(function (fileError) {
-                result.reject();
+                FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                    EditorManager.focusEditor();
+                    result.reject();
+                });
             });
 
         return result;
@@ -304,11 +306,11 @@ define(function (require, exports, module) {
             var focusedEditor = EditorManager.getFocusedEditor();
             
             if (focusedEditor) {
-                doc = DocumentManager.getDocumentForFile(focusedEditor.source);
+                doc = focusedEditor.document;
             }
             
-            // The doSave() method called below does a null check on doc and makes sure the
-            // document is dirty before saving.
+            // doc may still be null, e.g. if no editors are open, but doSave() does a null check on
+            // doc and makes sure the document is dirty before saving.
         }
         
         return doSave(doc);

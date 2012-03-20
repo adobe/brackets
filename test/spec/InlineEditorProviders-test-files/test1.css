@@ -1,0 +1,12 @@
+{{0}}div {
+    margin: 0;
+    padding: 0;
+}
+
+{{1}}.foo {
+    color: #f00;
+}{{3}}
+
+{{2}}#myDiv {
+    display: block;
+}

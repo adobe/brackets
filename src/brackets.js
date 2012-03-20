@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     require("JSLint");
     require("CodeHintManager");
     require("DebugCommandHandlers");
+    require("FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -74,6 +75,7 @@ define(function (require, exports, module) {
         FileCommandHandlers     : FileCommandHandlers,
         FileViewController      : FileViewController,
         DocumentManager         : DocumentManager,
+        EditorManager           : EditorManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("CommandManager"),
@@ -153,6 +155,7 @@ define(function (require, exports, module) {
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE_FILE},
                     {"Ctrl-T": Commands.FILE_QUICK_NAVIGATE_DEFINITION},
                     {"Ctrl-G": Commands.FILE_QUICK_NAVIGATE_LINE},
+                    {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],

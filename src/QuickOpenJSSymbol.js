@@ -10,8 +10,9 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var QuickFileOpen        = require("QuickFileOpen"),
+    var QuickFileOpen       = require("QuickFileOpen"),
         FileIndexManager    = require("FileIndexManager"),
+        EditorManager       = require("EditorManager"),
         DocumentManager     = require("DocumentManager");
 
 
@@ -200,7 +201,7 @@ define(function (require, exports, module) {
         if (fileLocation) {
             var from = {line: fileLocation.line, ch: fileLocation.chFrom};
             var to = {line: fileLocation.line, ch: fileLocation.chTo};
-            DocumentManager.getCurrentDocument().editor.setSelection(from, to);
+            EditorManager.getCurrentFullEditor().setSelection(from, to);
         }
     }
 
