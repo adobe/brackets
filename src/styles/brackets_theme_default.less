@@ -88,13 +88,17 @@
     }
 }
 
+/*
+ * With Inconsolata, we need different font sizes on mac and windows. 14px looks good on mac, but 13px is too small.
+ * On Windows, 13px and 14px render at the same size. However, decenders (e.g. bottom of a 'g') get clipped at 14px.
+ */
 .code-font-win() {
     .code-font();
     font-size: 13px;
 }
 
 .code-font-mac() {
-    .code-font();
+    .code-font(); // default 14px works well on mac, so no change
 }
 
 .code-cursor() {
