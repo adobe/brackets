@@ -63,27 +63,38 @@
 @accent-hr: @bc-orange;
 @accent-link: @bc-violet;
 
-/* Code font formatting */
+/* Code font formatting
+ *
+ * NOTE (JRB): At this time, the font-family must be set in .code-font (not in one of the platform-specific versions).
+ * This is because, in order to get the web font to load early enough, we have a div called "dummy-text" that
+ * is styled with .code-font().
+ *
+ * The platform-specific selector gets added to the body tag at document ready time, so it may not happen soon
+ * enough to get the web font loaded. So, we can't rely on this selector to load web fonts in a platform-specific way
+ *
+ * An alternative (if we wanted platform-specific fonts) would be to have a dummy text div for EVERY web font, and
+ * then style those dummy text divs directly in brackets_fonts.less. However, this would result in us downloading
+ * all fonts for every platform. This probably isn't a huge performance problem, but isn't necessary at this time.
+ *
+ * Hopefully, once we get a high-quality default font, this problem will go away completely. :-)
+ */
 .code-font() {
-    .platform-win .CodeMirror-scroll {
-        color: @content-color;
-        font-size: 13px;
-        font-family: "Consolas";
+    color: @content-color;
+    font-size: 14px;
+    font-family: "InconsolataMedium";
 
-        pre {
-            line-height: 15px;
-        }
+    pre {
+        line-height: 15px;
     }
+}
 
-    .platform-mac .CodeMirror-scroll {
-        color: @content-color;
-        font-size: 14px;
-        font-family: "Ubuntu Mono", monospace;
+.code-font-win() {
+    .code-font();
+    font-size: 13px;
+}
 
-        pre {
-            line-height: 15px;
-        }
-    }
+.code-font-mac() {
+    .code-font();
 }
 
 .code-cursor() {

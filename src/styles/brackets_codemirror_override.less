@@ -4,7 +4,13 @@
     background-color: @background-color-3;
 }
 
-.code-font();
+.platform-mac .CodeMirror-scroll {
+    .code-font-mac();
+}
+
+.platform-win .CodeMirror-scroll {
+    .code-font-win();
+}
 
 .cm-s-default {
     .CodeMirror-cursor {
