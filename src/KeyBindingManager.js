@@ -17,6 +17,11 @@ define(function (require, exports, module) {
      * The currently installed keymap.
      */
     var _keymap = null;
+    
+    /**
+     * Allow clients to toggle key binding
+     */
+    var _enabled = true;
 
     /**
      * Install the specified keymap as the current keymap, overwriting the existing keymap.
@@ -34,15 +39,28 @@ define(function (require, exports, module) {
      * @return {boolean} true if the key was processed, false otherwise
      */
     function handleKey(key) {
-        if (_keymap && _keymap.map[key]) {
+        if (_enabled && _keymap && _keymap.map[key]) {
             CommandManager.execute(_keymap.map[key]);
             return true;
         }
         return false;
+    }
+    
+
+    /**
+     * Enable or disable key bindings. Clients such as dialogs may wish to disable 
+     * global key bindings temporarily.
+     *
+     * @param {string} A key-description string.
+     * @return {boolean} true if the key was processed, false otherwise
+     */
+    function setEnabled(value) {
+        _enabled = value;
     }
 
     
     // Define public API
     exports.installKeymap = installKeymap;
     exports.handleKey = handleKey;
+    exports.setEnabled = setEnabled;
 });
