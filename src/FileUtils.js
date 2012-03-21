@@ -105,6 +105,23 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Translates any line ending types in the given text to the be the single form specified
+     * @param {!string} text
+     * @param {null|LINE_ENDINGS_CRLF|LINE_ENDINGS_LF} lineEndings
+     * @return {string}
+     */
+    function translateLineEndings(text, lineEndings) {
+        if (lineEndings !== LINE_ENDINGS_CRLF && lineEndings !== LINE_ENDINGS_LF) {
+            lineEndings = getPlatformLineEndings();
+        }
+        
+        var eolStr = (lineEndings === LINE_ENDINGS_CRLF ? "\r\n" : "\n");
+        var findAnyEol = /\r\n|\r|\n/g;
+        
+        return text.replace(findAnyEol, eolStr);
+    }
+
     function getFileErrorString(code) {
         // There are a few error codes that we have specific error messages for. The rest are
         // displayed with a generic "(error N)" message.
@@ -156,6 +173,7 @@ define(function (require, exports, module) {
     exports.LINE_ENDINGS_LF          = LINE_ENDINGS_LF;
     exports.getPlatformLineEndings   = getPlatformLineEndings;
     exports.sniffLineEndings         = sniffLineEndings;
+    exports.translateLineEndings     = translateLineEndings;
     exports.showFileOpenError        = showFileOpenError;
     exports.getFileErrorString       = getFileErrorString;
     exports.readAsText               = readAsText;
