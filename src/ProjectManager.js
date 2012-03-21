@@ -98,7 +98,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns true if absPath lies within the project, false otherwise.
-     * FIXME (issue #263): Does not support paths containing ".."
+     * Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
         return (absPath.indexOf(_projectRoot.fullPath) === 0);
@@ -106,7 +106,7 @@ define(function (require, exports, module) {
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
      * unmodified.
-     * FIXME (issue #263): Does not support paths containing ".."
+     * Does not support paths containing ".."
      */
     function makeProjectRelativeIfPossible(absPath) {
         if (isWithinProject(absPath)) {

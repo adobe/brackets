@@ -73,45 +73,78 @@ define(function (require, exports, module) {
         function checkDoc(doc) {
             var result = new $.Deferred();
             
-            // Docs restored from last launch aren't really "open" yet, so skip those
-            if (!doc.diskTimestamp) {
-                result.resolve();
-            } else {
-                doc.file.getMetadata(
-                    function (metadata) {
-                        // Does file's timestamp differ from last sync time on the Document?
-                        if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
-                            if (doc.isDirty) {
-                                editConflicts.push(doc);
-                            } else {
-                                toReload.push(doc);
-                            }
-                        }
-                        result.resolve();
-                    },
-                    function (error) {
-                        // File has been deleted externally
-                        if (error.code === FileError.NOT_FOUND_ERR) {
-                            if (doc.isDirty) {
-                                deleteConflicts.push(doc);
-                            } else {
-                                toClose.push(doc);
-                            }
-                            result.resolve();
+            // Check file timestamp / existence
+            doc.file.getMetadata(
+                function (metadata) {
+                    // Does file's timestamp differ from last sync time on the Document?
+                    if (metadata.modificationTime.getTime() !== doc.diskTimestamp.getTime()) {
+                        if (doc.isDirty) {
+                            editConflicts.push(doc);
                         } else {
-                            // Some other error fetching metadata: treat as a real error
-                            console.log("Error checking modification status of " + doc.file.fullPath, error.code);
-                            result.reject();
+                            toReload.push(doc);
                         }
                     }
-                );
-            }
-            return result;
+                    result.resolve();
+                },
+                function (error) {
+                    // File has been deleted externally
+                    if (error.code === FileError.NOT_FOUND_ERR) {
+                        if (doc.isDirty) {
+                            deleteConflicts.push(doc);
+                        } else {
+                            toClose.push(doc);
+                        }
+                        result.resolve();
+                    } else {
+                        // Some other error fetching metadata: treat as a real error
+                        console.log("Error checking modification status of " + doc.file.fullPath, error.code);
+                        result.reject();
+                    }
+                }
+            );
+            return result.promise();
         }
         
         // Check all docs in parallel
         // (fail fast b/c we won't continue syncing if there was any error fetching timestamps)
         return Async.doInParallel(docs, checkDoc, true);
+    }
+    
+    /**
+     * Scans all the files in the working set that do not have Documents (and thus were not scanned
+     * by findExternalChanges()). If any were deleted on disk, removes them from the working set.
+     */
+    function syncUnopenWorkingSet() {
+        // We only care about working set entries that have never been open (have no Document).
+        var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
+            return !DocumentManager.getOpenDocumentForPath(wsFile.fullPath);
+        });
+        
+        function checkWorkingSetFile(file) {
+            var result = new $.Deferred();
+            
+            file.getMetadata(
+                function (metadata) {
+                    // File still exists
+                    result.resolve();
+                },
+                function (error) {
+                    // File has been deleted externally
+                    if (error.code === FileError.NOT_FOUND_ERR) {
+                        DocumentManager.closeFullEditor(file);
+                        result.resolve();
+                    } else {
+                        // Some other error fetching metadata: treat as a real error
+                        console.log("Error checking for deletion of " + file.fullPath, error.code);
+                        result.reject();
+                    }
+                }
+            );
+            return result.promise();
+        }
+        
+        // Check all these files in parallel
+        return Async.doInParallel(unopenWorkingSetFiles, checkWorkingSetFile, false);
     }
     
     
@@ -169,7 +202,8 @@ define(function (require, exports, module) {
      */
     function closeDeletedDocs() {
         toClose.forEach(function (doc) {
-            DocumentManager.closeDocument(doc);
+            // TODO (issue #474): should be Document.destroy() or something instead
+            DocumentManager.closeFullEditor(doc.file);
         });
     }
     
@@ -223,7 +257,8 @@ define(function (require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
                             // Discard - close editor
-                            DocumentManager.closeDocument(doc);
+                            // TODO (issue #474): should be Document.destroy() or something instead
+                            DocumentManager.closeFullEditor(doc.file);
                             result.resolve();
                         } else {
                             // Discard - load changes from disk
@@ -287,51 +322,61 @@ define(function (require, exports, module) {
         
         
         // Syncing proceeds in four phases:
-        //  1) Check all files for external modifications
-        //  2) Refresh all editors that are clean (if file changed on disk)
-        //  3) Close all editors that are clean (if file deleted on disk)
-        //  4) Prompt about any editors that are dirty (if file changed/deleted on disk)
+        //  1) Check all open files for external modifications
+        //  2) Check any other working set entries (that are not open) for deletion, and remove
+        //     from working set if deleted
+        //  3) Refresh all Documents that are clean (if file changed on disk)
+        //  4) Close all Documents that are clean (if file deleted on disk)
+        //  5) Prompt about any Documents that are dirty (if file changed/deleted on disk)
         // Each phase fully completes (asynchronously) before the next one begins.
+        
         
         // 1) Check for external modifications
         var allDocs = DocumentManager.getAllOpenDocuments();
         
         findExternalChanges(allDocs)
             .done(function () {
-                // 2) Reload clean docs as needed
-                reloadChangedDocs()
+                // 2) Check un-open working set entries for deletion (& "close" if needed)
+                syncUnopenWorkingSet()
                     .always(function () {
-                        // 3) Close clean docs as needed
-                        // This phase completes synchronously
-                        closeDeletedDocs();
+                        // If we were unable to check any un-open files for deletion, silently ignore
+                        // (after logging to console). This doesn't have any bearing on syncing truly
+                        // open Documents (which we've already successfully checked).
                         
-                        // 4) Prompt for dirty editors (conflicts)
-                        presentConflicts()
+                        // 3) Reload clean docs as needed
+                        reloadChangedDocs()
                             .always(function () {
-                                if (_restartPending) {
-                                    // Restart the sync if needed
-                                    _restartPending = false;
-                                    _alreadyChecking = false;
-                                    syncOpenDocuments();
-                                } else {
-                                    // We're really done!
-                                    _alreadyChecking = false;
-                                    
-                                    // If we showed a dialog, restore focus to editor
-                                    if (editConflicts.length > 0 || deleteConflicts.length > 0) {
-                                        EditorManager.focusEditor();
-                                    }
-                                    
-                                    // (Any errors that ocurred during presentConflicts() have already
-                                    // shown UI & been dismissed, so there's no fail() handler here)
-                                }
+                                // 4) Close clean docs as needed
+                                // This phase completes synchronously
+                                closeDeletedDocs();
+                                
+                                // 5) Prompt for dirty editors (conflicts)
+                                presentConflicts()
+                                    .always(function () {
+                                        if (_restartPending) {
+                                            // Restart the sync if needed
+                                            _restartPending = false;
+                                            _alreadyChecking = false;
+                                            syncOpenDocuments();
+                                        } else {
+                                            // We're really done!
+                                            _alreadyChecking = false;
+                                            
+                                            // If we showed a dialog, restore focus to editor
+                                            if (editConflicts.length > 0 || deleteConflicts.length > 0) {
+                                                EditorManager.focusEditor();
+                                            }
+                                            
+                                            // (Any errors that ocurred during presentConflicts() have already
+                                            // shown UI & been dismissed, so there's no fail() handler here)
+                                        }
+                                    });
                             });
+                            // Note: if any auto-reloads failed, we silently ignore (after logging to console)
+                            // and we still continue onto phase 4 and try to process those files anyway.
+                            // (We'll retry the auto-reloads next time window is activated... and evenually
+                            // we'll also be double checking before each Save).
                     });
-                    // Note: if any auto-reloads failed, we silently ignore (after logging to console)
-                    // and we still continue onto phase 4 and try to process those files anyway.
-                    // (We'll retry the auto-reloads next time window is activated... and evenually
-                    // we'll also be double checking before each Save).
-                    
             }).fail(function () {
                 // Unable to fetch timestamps for some reason - silently ignore (after logging to console)
                 // (We'll retry next time window is activated... and evenually we'll also be double
