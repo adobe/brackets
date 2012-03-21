@@ -29,10 +29,10 @@ define(function (require, exports, module) {
                                    starts that this selector (e.g. .baz) is part of. Particularly relevant for
                                    groups that are on multiple lines.
          selectorGroupStartChar:   column in line where the selector group starts.
-         ruleStartLine:            line where the rules for the selector start
-         ruleStartChar:            column in line where the rules for the selector start
-         ruleEndLine:              line where the rules for the selector end
-         ruleEndChar:              column in the line where the rules for the selector end
+         declListStartLine:        line where the declaration list for the rule starts
+         declListStartChar:        column in line where the declaration list for the rule starts
+         declListEndLine:          line where the declaration list for the rule ends
+         declListEndChar:          column in the line where the declaration list for the rule ends
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
@@ -47,9 +47,9 @@ define(function (require, exports, module) {
         var currentSelector = "", currentPosition = -1, selectorStartLine;
         var token, style, stream, i, j;
 
-        var inRules = false;
+        var inDeclList = false, inAtRule = false;
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
-        var ruleStartLine = -1, ruleStartChar = -1;
+        var declListStartLine = -1, declListStartChar = -1;
 
         for (i = 0; i < lineCount; ++i) {
             if (currentSelector.trim() !== "") {
@@ -64,27 +64,51 @@ define(function (require, exports, module) {
 
                 // DEBUG STATEMENT -- printer(token, style, i, stream.start, state.stack);
 
-                if (state.stack.indexOf("{") === -1 && // not in a rule
+                if (state.stack.indexOf("{") === -1 && // not in a declaration list
                         (state.stack.length === 0 || state.stack[state.stack.length - 1] !== "@media") && // not parsing a media query
-                        ((style === null && token !== "{" && token !== "}" && token !== ",") || (style !== null && style !== "comment" && style !== "meta"))) { // not at a non-selector token
-                    // we're parsing a selector!
-                    if (currentPosition < 0) { // start of a new selector
-                        currentPosition = stream.start;
-                        selectorStartLine = i;
-                        if (selectorGroupStartLine < 0) {
-                            // this is the start of a new comma-separated selector group
-                            // (whenever we start parsing rules, we set selectorGroupStartLine to -1)
-                            selectorGroupStartLine = selectorStartLine;
-                            selectorGroupStartChar = currentPosition;
+                        ((style === null && token !== "{" && token !== "}" && token !== ",") || (style !== null))) { // not at a non-selector token
+
+                    // check for these special cases:
+                    if (inAtRule) {
+                        // once we're in at @rule, consume tokens until next semi-colon
+                        if (token === ";") {
+                            inAtRule = false;
                         }
+                    } else if (token.match(/@(charset|import|namespace)/i)) {
+                        // This code only handles @rules in this format:
+                        //   @rule ... ;
+                        //
+                        // This code does not handle @rules that use this format:
+                        //    @rule ... { ... }
+                        // such as @media (which is handled elsewhere) @page,
+                        // @keyframes (also -webkit-keyframes, etc.), and @font-face.
+                        inAtRule = true;
+                        currentPosition = -1;  // reset so we don't get @rules following comments
+                        selectorGroupStartLine = -1;
+                    } else {
+                        // detect non-crlf whitespace, comments on same line as '}'
+                        if (currentPosition < 0 && (token.trim() !== "") &&
+                                !(style === "comment" && stream.start > 0 && lines[i].substr(0, stream.start).indexOf('}') !== -1)) {
+                             
+                            // start of a new selector, or comment above selector
+                            currentSelector = "";
+                            currentPosition = stream.start;
+                            selectorStartLine = i;
+                            if (selectorGroupStartLine < 0) {
+                                // this is the start of a new comma-separated selector group
+                                // (whenever we start parsing a declaration list, we set selectorGroupStartLine to -1)
+                                selectorGroupStartLine = selectorStartLine;
+                                selectorGroupStartChar = currentPosition;
+                            }
+                        }
+                        currentSelector += token;
                     }
-                    currentSelector += token;
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
                         selectors.push({selector: currentSelector.trim(),
                                         line: selectorStartLine,
                                         character: currentPosition,
-                                        ruleEndLine: -1,
+                                        declListEndLine: -1,
                                         selectorEndLine: i,
                                         selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
                                         selectorGroupStartLine: selectorGroupStartLine,
@@ -94,27 +118,27 @@ define(function (require, exports, module) {
                     currentSelector = "";
                     currentPosition = -1;
 
-                    if (!inRules && state.stack.indexOf("{") > -1) { // just started parsing a rule
-                        inRules = true;
-                        ruleStartLine = i;
-                        ruleStartChar = stream.start;
+                    if (!inDeclList && state.stack.indexOf("{") > -1) { // just started parsing a declaration list
+                        inDeclList = true;
+                        declListStartLine = i;
+                        declListStartChar = stream.start;
 
-                        // Since we're now in a rule set, that means we also finished parsing the whole selector group.
+                        // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
                         // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
                         selectorGroupStartLine = -1;
                         selectorGroupStartChar = -1;
 
-                    } else if (inRules && state.stack.indexOf("{") === -1) {  // just finished parsing a rule
-                        inRules = false;
-                        // assign this rule position to every selector on the stack that doesn't have a rule start and end line
+                    } else if (inDeclList && state.stack.indexOf("{") === -1) {  // just finished parsing a declaration list
+                        inDeclList = false;
+                        // assign this declaration list position to every selector on the stack that doesn't have a declaration list start and end line
                         for (j = selectors.length - 1; j >= 0; j--) {
-                            if (selectors[j].ruleEndLine !== -1) {
+                            if (selectors[j].declListEndLine !== -1) {
                                 break;
                             } else {
-                                selectors[j].ruleStartLine = ruleStartLine;
-                                selectors[j].ruleStartChar = ruleStartChar;
-                                selectors[j].ruleEndLine = i;
-                                selectors[j].ruleEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
+                                selectors[j].declListStartLine = declListStartLine;
+                                selectors[j].declListStartChar = declListStartChar;
+                                selectors[j].declListEndLine = i;
+                                selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
                             }
                         }
                     }
@@ -159,7 +183,7 @@ define(function (require, exports, module) {
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
-     * @return {Array.<{line:number, ruleEndLine:number}>} Array of objects containing the start
+     * @return {Array.<{line:number, declListEndLine:number}>} Array of objects containing the start
      *      and end line numbers (0-based, inclusive range) for each matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
@@ -215,7 +239,7 @@ define(function (require, exports, module) {
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
      * @return {$.Promise} that will be resolved with an Array of objects containing the
-     *      source document, start line, and end line (0-based, inclusive range) for each matching rule.
+     *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
      *      Does not addRef() the documents returned in the array.
      */
     function findMatchingRules(selector) {
@@ -235,7 +259,7 @@ define(function (require, exports, module) {
                         selectors.push({
                             document: doc,
                             lineStart: value.selectorGroupStartLine,
-                            lineEnd: value.ruleEndLine
+                            lineEnd: value.declListEndLine
                         });
                     });
                     result.resolve();

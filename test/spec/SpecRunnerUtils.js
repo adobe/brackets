@@ -91,12 +91,12 @@ define(function (require, exports, module) {
         runs(function () {
             //we need to mark the documents as not dirty before we close
             //or the window will stay open prompting to save
-            var workingSet = testWindow.brackets.test.DocumentManager.getAllOpenDocuments();
-            workingSet.forEach(function resetDoc(ele, i, array) {
-                if (ele.isDirty) {
+            var openDocs = testWindow.brackets.test.DocumentManager.getAllOpenDocuments();
+            openDocs.forEach(function resetDoc(doc) {
+                if (doc.isDirty) {
                     //just refresh it back to it's current text. This will mark it
                     //clean to save
-                    ele.refreshText(ele.getText(), ele.diskTimestamp);
+                    doc.refreshText(doc.getText(), doc.diskTimestamp);
                 }
             });
             testWindow.close();
@@ -120,8 +120,8 @@ define(function (require, exports, module) {
     
     /**
      * Parses offsets from text offset markup (e.g. "{{1}}" for offset 1).
-     * @param {!string} in Text to parse
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, text:string, original:string}} 
+     * @param {!string} text Text to parse
+     * @return {!{offsets:!Array.<{line:number, ch:number}>, text:!string, original:!string}} 
      */
     function parseOffsetsFromText(text) {
         var offsets = [],
@@ -172,25 +172,66 @@ define(function (require, exports, module) {
     
     /**
      * Creates absolute paths based on the test window's current project
-     * @param {!{Array.<string>}} paths Project relative file paths to convert
-     * @return {!{Array.<string>}}
+     * @param {!Array.<string>|string} paths Project relative file path(s) to convert. May pass a single string path or array.
+     * @return {!Array.<string>|string} Absolute file path(s)
      */
     function makeAbsolute(paths) {
         var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
         
-        if (Array.isArray(paths)) {
-            return paths.map(function (path) {
-                return fullPath + path;
-            });
-        } else {
-            return fullPath + paths;
+        function prefixProjectPath(path) {
+            if (path.indexOf(fullPath) === 0) {
+                return path;
+            }
+            
+            return fullPath + path;
         }
+        
+        if (Array.isArray(paths)) {
+            return paths.map(prefixProjectPath);
+        } else {
+            return prefixProjectPath(paths);
+        }
+    }
+    
+    /**
+     * Creates relative paths based on the test window's current project. Any paths,
+     * outside the project are included in the result, but left as absolute paths.
+     * @param {!Array.<string>|string} paths Absolute file path(s) to convert. May pass a single string path or array.
+     * @return {!Array.<string>|string} Relative file path(s)
+     */
+    function makeRelative(paths) {
+        var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath,
+            fullPathLength = fullPath.length;
+        
+        function removeProjectPath(path) {
+            if (path.indexOf(fullPath) === 0) {
+                return path.substring(fullPathLength);
+            }
+            
+            return path;
+        }
+        
+        if (Array.isArray(paths)) {
+            return paths.map(removeProjectPath);
+        } else {
+            return removeProjectPath(paths);
+        }
+    }
+    
+    function makeArray(arg) {
+        if (!Array.isArray(arg)) {
+            return [arg];
+        }
+        
+        return arg;
     }
     
     /**
      * Parses offsets from a file using offset markup (e.g. "{{1}}" for offset 1).
      * @param {!FileEntry} entry File to open
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}} 
+     * @return {$.Promise} A promise resolved with a record that contains parsed offsets, 
+     *  the file text without offset markup, the original file content, and the corresponding
+     *  file entry.
      */
     function parseOffsetsFromFile(entry) {
         var result = new $.Deferred();
@@ -209,23 +250,21 @@ define(function (require, exports, module) {
     
     /**
      * Opens project relative file paths in the test window
-     * @param {!{Array.<string>}} paths Project relative file paths to open
-     * @return {!{Array.<string>}}
+     * @param {!(Array.<string>|string)} paths Project relative file path(s) to open
+     * @return {!$.Promise} A promise resolved with a mapping of project-relative path
+     *  keys to a corresponding Document
      */
     function openProjectFiles(paths) {
         var result = new $.Deferred(),
-            fullpaths = makeAbsolute(paths),
-            docs = [];
-        
-        if (!Array.isArray(fullpaths)) {
-            fullpaths = [fullpaths];
-        }
+            fullpaths = makeArray(makeAbsolute(paths)),
+            keys = makeArray(makeRelative(paths)),
+            docs = {};
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
             testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path}).done(function (doc) {
-                docs[paths[i]] = docs[i] = doc;
+                docs[keys[i]] = doc;
                 one.resolve();
             }).fail(function () {
                 one.reject();
@@ -244,7 +283,7 @@ define(function (require, exports, module) {
     /**
      * Opens a file path, parses offset markup then saves the results to the original file.
      * @param {!string} path Project relative file path to open
-     * @return {!{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}} 
+     * @return {$.Promise} A promise resolved with the offset information results of parseOffsetsFromFile.
      */
     function saveFileWithoutOffsets(path) {
         var result = new $.Deferred(),
@@ -267,23 +306,20 @@ define(function (require, exports, module) {
     
     /**
      * Opens an array of file paths, parses offset markup then saves the results to each original file.
-     * @param {!Array.<string>} paths Project relative file paths to open
-     * @return {!Array.<{offsets:{!Array.<{line:number, ch:number}>}, output:{!string}, original:{!string}, fileEntry:{!FileEntry}}>} 
+     * @param {!Array.<string>|string} paths Project relative or absolute file paths to open. May pass a single string path or array.
+     * @return {!$.Promise} A promised resolved with a map of offset information indexed by project-relative file path.
      */
     function saveFilesWithoutOffsets(paths) {
         var result = new $.Deferred(),
-            infos  = [],
-            fullpaths = makeAbsolute(paths);
-        
-        if (!Array.isArray(fullpaths)) {
-            fullpaths = [fullpaths];
-        }
+            infos  = {},
+            fullpaths = makeArray(makeAbsolute(paths)),
+            keys = makeArray(makeRelative(paths));
         
         var parallel = Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
         
             saveFileWithoutOffsets(path).done(function (info) {
-                infos[paths[i]] = infos[i] = info;
+                infos[keys[i]] = info;
                 one.resolve();
             }).fail(function () {
                 one.reject();
@@ -301,8 +337,18 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * Restore file content with offset markup. When using saveFileWithoutOffsets(), 
+     * remember to call this function during spec teardown (after()).
+     * @param {$.Promise} A promise resolved when all files are re-written to their original content.
+     */
     function saveFilesWithOffsets(infos) {
-        return Async.doInParallel(infos, function (info) {
+        var arr = [];
+        $.each(infos, function (index, value) {
+            arr.push(value);
+        });
+        
+        return Async.doInParallel(arr, function (info) {
             return FileUtils.writeText(info.fileEntry, info.original);
         }, false);
     }
@@ -310,13 +356,15 @@ define(function (require, exports, module) {
     /**
      * Set editor cursor position to the given offset then activate an inline editor.
      * @param {!Editor} editor
-     * @param {!{{line:number, ch:number}}} 
+     * @param {!{line:number, ch:number}} offset
+     * @return {$.Promise} a promise that will be resolved when an inline 
+     *  editor is created or rejected when no inline editors are available.
      */
     function openInlineEditorAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
         
         // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
-        testWindow.brackets.test.EditorManager._openInlineWidget(editor);
+        return testWindow.brackets.test.EditorManager._openInlineWidget(editor);
     }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
