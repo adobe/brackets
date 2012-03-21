@@ -201,8 +201,11 @@ define(function (require, exports, module) {
 
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
-            // skip invisible directories on mac
-            if (brackets.platform === "mac" && dirEntry.name.charAt(0) === ".") {
+            // skip invisible directories
+            // TODO: technically speaking on Mac and Unix systems use a beginning dot to denote
+            // a hidden directory. Windows uses a hidden attribute instead. We should get the hidden
+            // attribute of the directory rather than relying on the name here.
+            if (dirEntry.name[0] === ".") {
                 return;
             }
 
