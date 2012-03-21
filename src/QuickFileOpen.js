@@ -183,8 +183,6 @@ define(function (require, exports, module) {
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
-        var query = this.searchField.val();
-
         if (e.keyCode === 13 || e.keyCode === 27) {
             e.stopPropagation();
             e.preventDefault();
@@ -207,11 +205,13 @@ define(function (require, exports, module) {
             this._close();
         }
 
+        var query = this.searchField.val();
         // extract line number
         var gotoLine = extractLineNumber(query);
         if (gotoLine) {
-            var cursor = {line: gotoLine, ch: 0};
-            EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+            var from = {line: gotoLine, ch: 0};
+            var to = {line: gotoLine, ch: 99999};
+            EditorManager.getCurrentFullEditor().setSelection(from, to);
         }
 
         // Remove current plugin if the query stops matching
@@ -351,7 +351,7 @@ define(function (require, exports, module) {
                 that.searchField.bind({
                     itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
-                    keydown: function (e) { that._handleKeyDown(e); }
+                    keyIn: function (e) { that._handleKeyDown(e); }
                 });
         
                 that.searchField.val(initialValue);

@@ -230,10 +230,10 @@ define(function (require, exports, module) {
      * create a circular dependency
      */
     function getPlugin() {
-        var jsFuncProvider = {     name: "JavaScript functions",
-                                 fileTypes: ["js"],
-                                 filter: filter,
-                                 match: match,
+        var jsFuncProvider = {  name: "JavaScript functions",
+                                fileTypes: ["js"],
+                                filter: filter,
+                                match: match,
                                 itemFocus: itemFocus,
                                 itemSelect: itemSelect,
                                 resultsFormatter: resultsFormatter
