@@ -136,7 +136,7 @@ define(function (require, exports, module) {
                 inlineInfo.editor._setText(newCss);
                 newCss = "h1 {\n    background-color: #0F0;\n}";
                 cssDoc.setText(newCss);
-                expect(inlineInfo.editor._getText()).not.toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
+                expect(inlineInfo.editor._getText()).not.toEqual(newCss);
             });
 
         });
