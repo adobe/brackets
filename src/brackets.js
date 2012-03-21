@@ -184,6 +184,9 @@ define(function (require, exports, module) {
             });
         }
 
+        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
+        $("body").addClass("platform-" + brackets.platform);
+
 
         EditorManager.setEditorHolder($('#editorHolder'));
         InlineEditorProviders.init();
