@@ -63,13 +63,26 @@
 @accent-hr: @bc-orange;
 @accent-link: @bc-violet;
 
+/* Code font formatting */
 .code-font() {
-    color: @content-color;
-    font-size: 14px;
-    font-family: InconsolataMedium;
+    .platform-win .CodeMirror-scroll {
+        color: @content-color;
+        font-size: 13px;
+        font-family: "Consolas";
 
-    pre {
-        line-height: 15px;
+        pre {
+            line-height: 15px;
+        }
+    }
+
+    .platform-mac .CodeMirror-scroll {
+        color: @content-color;
+        font-size: 14px;
+        font-family: "Ubuntu Mono", monospace;
+
+        pre {
+            line-height: 15px;
+        }
     }
 }
 
