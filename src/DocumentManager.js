@@ -144,7 +144,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds the given document to the end of the working set list, if it is not already in the list.
+     * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor.
      * @param {!FileEntry} file
      */
@@ -162,8 +162,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Removes the given document from the working set list, if it was in the list. Does not change
-     * the editor even if this document is the one currently open;.
+     * Removes the given file from the working set list, if it was in the list. Does not change
+     * the current editor even if it's for this file.
      * @param {!FileEntry} file
      */
     function _removeFromWorkingSet(file) {
@@ -228,9 +228,9 @@ define(function (require, exports, module) {
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
-     * TODO: disentangle the notion of closing the main editor vs. totally destroying a Document (e.g.
-     * because it has been deleted on disk). The latter can happen even when there's no main editor,
-     * and not in the working set.
+     * TODO (issue #474): disentangle the notion of closing the main editor vs. totally destroying a
+     * Document (e.g. because it has been deleted on disk). The latter can happen even when there's
+     * no main editor, and not in the working set.
      *
      * @param {!FileEntry} file
      */
@@ -655,7 +655,7 @@ define(function (require, exports, module) {
                     filesToOpen[index] = null;
                     oneFileResult.resolve();
                 });
-                        
+            
             return oneFileResult;
         }
 

@@ -102,7 +102,7 @@ define(function (require, exports, module) {
                     }
                 }
             );
-            return result;
+            return result.promise();
         }
         
         // Check all docs in parallel
@@ -110,6 +110,10 @@ define(function (require, exports, module) {
         return Async.doInParallel(docs, checkDoc, true);
     }
     
+    /**
+     * Scans all the files in the working set that do not have Documents (and thus were not scanned
+     * by findExternalChanges()). If any were deleted on disk, removes them from the working set.
+     */
     function syncUnopenWorkingSet() {
         // We only care about working set entries that have never been open (have no Document).
         var unopenWorkingSetFiles = DocumentManager.getWorkingSet().filter(function (wsFile) {
@@ -136,7 +140,7 @@ define(function (require, exports, module) {
                     }
                 }
             );
-            return result;
+            return result.promise();
         }
         
         // Check all these files in parallel
@@ -198,7 +202,7 @@ define(function (require, exports, module) {
      */
     function closeDeletedDocs() {
         toClose.forEach(function (doc) {
-            // TODO: should be Document.destroy() or something instead
+            // TODO (issue #474): should be Document.destroy() or something instead
             DocumentManager.closeFullEditor(doc.file);
         });
     }
@@ -253,7 +257,7 @@ define(function (require, exports, module) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
                             // Discard - close editor
-                            // TODO: should be Document.destroy() or something instead
+                            // TODO (issue #474): should be Document.destroy() or something instead
                             DocumentManager.closeFullEditor(doc.file);
                             result.resolve();
                         } else {
@@ -328,7 +332,6 @@ define(function (require, exports, module) {
         
         
         // 1) Check for external modifications
-        // TODO: actually need to check the UNION of this & the working set list!!!
         var allDocs = DocumentManager.getAllOpenDocuments();
         
         findExternalChanges(allDocs)
