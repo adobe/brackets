@@ -253,7 +253,6 @@ define(function (require, exports, module) {
             DocumentManager.getDocumentForPath(fullPath)
                 .done(function (doc) {
                     var localResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
-                    var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                     
                     localResults.forEach(function (value) {
                         selectors.push({
