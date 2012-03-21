@@ -11,6 +11,7 @@ define(function (require, exports, module) {
     var DocumentManager     = require("DocumentManager"),
         EditorManager       = require("EditorManager"),
         Editor              = require("Editor").Editor,
+        FileUtils           = require("FileUtils"),
         NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = require("./SpecRunnerUtils.js");
 
@@ -82,7 +83,7 @@ define(function (require, exports, module) {
                 inlineInfo.editor._setText(newCss);
                 i = DocumentManager.findInWorkingSet(this.path + "/test.css");
                 expect(i).not.toEqual(-1);
-                expect(cssDoc.getText()).toEqual(newCss);
+                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
             });
             
             it("should use an already open doc and sync with it from the inline text when a change is made", function () {
@@ -90,7 +91,7 @@ define(function (require, exports, module) {
                 
                 var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
                 inlineInfo.editor._setText(newCss);
-                expect(cssDoc.getText()).toEqual(newCss);
+                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
             });
             
             it("should sync even if the contents of the inline are all deleted", function () {
@@ -105,13 +106,13 @@ define(function (require, exports, module) {
                 var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
                 
                 inlineInfo.editor._setText(newCss);
-                expect(cssDoc.getText()).toEqual(newCss);
+                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
                 
                 inlineInfo.editor._codeMirror.undo();
                 expect(cssDoc.getText()).toEqual(oldCss);
                 
                 inlineInfo.editor._codeMirror.redo();
-                expect(cssDoc.getText()).toEqual(newCss);
+                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
             });
             
             it("should sync multiple edits in the inline", function () {
@@ -121,7 +122,7 @@ define(function (require, exports, module) {
                 var i = 0;
                 for (i = 0; i < 10; i++) {
                     inlineInfo.editor._setText(curText);
-                    expect(cssDoc.getText()).toEqual(curText);
+                    expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(curText, cssDoc._lineEndings));
                     curText = curText + newCss + "\n\n";
                 }
             });
@@ -135,7 +136,7 @@ define(function (require, exports, module) {
                 inlineInfo.editor._setText(newCss);
                 newCss = "h1 {\n    background-color: #0F0;\n}";
                 cssDoc.setText(newCss);
-                expect(inlineInfo.editor._getText()).not.toEqual(newCss);
+                expect(inlineInfo.editor._getText()).not.toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
             });
 
         });
