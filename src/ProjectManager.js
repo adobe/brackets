@@ -235,7 +235,7 @@ define(function (require, exports, module) {
                 }
             )
             .bind(
-                "open_node.jstree close_node.jstree",
+                "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
                 }
@@ -257,14 +257,7 @@ define(function (require, exports, module) {
                     }
                 });
         });
- 
- /***       
-        result.always(function () {
-            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
-        });
-***/
-/***/
-        
+
         return result;
     }
     

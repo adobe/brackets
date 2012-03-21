@@ -27,7 +27,13 @@
 .jstree-brackets li > a {
     padding-left: @spriteSize18 + 10000;
     margin-left: -10000px;
-    width: 100% - @spriteSize18;
+
+    /* The width we really want is "100% - @spriteSize18". Currently, @spriteSize18
+     * is defined as 18px. But, Chrome does not yet support expressions and LESS
+     * assumes that this is a syntax error and interprets it as 82% (100% - 18%).
+     * So, this is a reasonable estimation for now.
+     */
+    width: 88%;
 }
 
 .jstree li { 
