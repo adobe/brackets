@@ -47,6 +47,7 @@ define(function (require, exports, module) {
     }
     
 
+    // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
     /**
      * Enable or disable key bindings. Clients such as dialogs may wish to disable 
      * global key bindings temporarily.
