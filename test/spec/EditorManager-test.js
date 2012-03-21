@@ -59,17 +59,12 @@ define(function (require, exports, module) {
                 EditorManager.setEditorHolder(null);
                 
                 htmlDoc._markClean();
-                DocumentManager.closeDocument(htmlDoc);
                 htmlDoc = null;
                 
                 cssDoc._markClean();
-                DocumentManager.closeDocument(cssDoc);
                 cssDoc = null;
                 
                 //Clear out the document manager
-                DocumentManager.getWorkingSet().forEach(function (doc) {
-                    doc._markClean();
-                });
                 DocumentManager.closeAll();
             });
             
