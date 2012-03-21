@@ -233,6 +233,12 @@ define(function (require, exports, module) {
                         result.resolve();
                     }
                 }
+            )
+            .bind(
+                "open_node.jstree close_node.jstree",
+                function (event, data) {
+                    ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                }
             );
 
         // jstree has a default event handler for dblclick that attempts to clear the
@@ -251,10 +257,13 @@ define(function (require, exports, module) {
                     }
                 });
         });
-        
+ 
+ /***       
         result.always(function () {
             ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
         });
+***/
+/***/
         
         return result;
     }
@@ -360,8 +369,6 @@ define(function (require, exports, module) {
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
                 }
-                
-                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(
