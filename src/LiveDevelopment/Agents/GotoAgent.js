@@ -17,8 +17,8 @@ define(function GotoAgent(require, exports, module) {
     var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
     var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
 
-    var DocumentManager = require("DocumentManager");
-    var EditorManager = require("EditorManager");
+    var DocumentManager = require("document/DocumentManager");
+    var EditorManager = require("editor/EditorManager");
 
     /** Return the URL without the query string
      * @param {string} URL

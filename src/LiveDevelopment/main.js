@@ -19,7 +19,7 @@
 define(function main(require, exports, module) {
     'use strict';
 
-    var DocumentManager = require("DocumentManager");
+    var DocumentManager = require("document/DocumentManager");
     var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 

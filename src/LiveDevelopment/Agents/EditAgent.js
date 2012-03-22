@@ -18,7 +18,7 @@ define(function EditAgent(require, exports, module) {
     var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
     var GotoAgent = require("LiveDevelopment/Agents/GotoAgent");
 
-    var EditorManager = require("EditorManager");
+    var EditorManager = require("editor/EditorManager");
 
     /** Find changed characters
      * @param {string} old value

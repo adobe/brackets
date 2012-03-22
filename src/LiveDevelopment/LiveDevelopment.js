@@ -34,9 +34,9 @@
 define(function LiveDevelopment(require, exports, module) {
     'use strict';
 
-    var DocumentManager = require("DocumentManager");
-    var EditorManager = require("EditorManager");
-    var NativeApp = require("NativeApp").NativeApp;
+    var DocumentManager = require("document/DocumentManager");
+    var EditorManager = require("editor/EditorManager");
+    var NativeApp = require("utils/NativeApp").NativeApp;
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
