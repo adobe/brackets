@@ -10,6 +10,8 @@
  */
 define(function (require, exports, module) {
     'use strict';
+    
+    var KeyBindingManager = require("KeyBindingManager");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -128,6 +130,7 @@ define(function (require, exports, module) {
 
             // Remove keydown event handler
             document.body.removeEventListener("keydown", handleKeyDown, true);
+            KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
             var primaryBtn = dlg.find(".primary");
@@ -138,6 +141,7 @@ define(function (require, exports, module) {
 
             // Listen for dialog keyboard shortcuts
             document.body.addEventListener("keydown", handleKeyDown, true);
+            KeyBindingManager.setEnabled(false);
         });
         
         // Click handler for buttons
