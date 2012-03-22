@@ -17,7 +17,7 @@ define(function (require, exports, module) {
 
     // Load test specs
     require("spec/LowLevelFileIO-test.js");
-    require("spec/FileCommandHandlers-test.js");
+    require("spec/DocumentCommandHandlers-test.js");
     require("spec/NativeFileSystem-test.js");
     require("spec/PreferencesManager-test.js");
     require("spec/Editor-test.js");

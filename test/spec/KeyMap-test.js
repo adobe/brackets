@@ -9,7 +9,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var KeyMap = require("KeyMap");
+    var KeyMap = require("command/KeyMap");
     
     describe("KeyMap", function () {
 

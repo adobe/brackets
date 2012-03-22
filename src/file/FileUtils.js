@@ -11,8 +11,8 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        Dialogs             = require("Dialogs"),
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings");
     
     /**

@@ -24,12 +24,12 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Async               = require("Async"),
-        CommandManager      = require("CommandManager"),
-        Commands            = require("Commands"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        FileIndexManager    = require("FileIndexManager");
+    var Async               = require("utils/Async"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        FileIndexManager    = require("project/FileIndexManager");
 
     // This dialog class was mostly copied from QuickFileOpen. We should have a common dialog
     // class that everyone can use.

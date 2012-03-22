@@ -17,15 +17,15 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var ProjectManager      = require("ProjectManager"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        Commands            = require("Commands"),
-        CommandManager      = require("CommandManager"),
-        Async               = require("Async"),
-        Dialogs             = require("Dialogs"),
+    var ProjectManager      = require("project/ProjectManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        Async               = require("utils/Async"),
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
-        FileUtils           = require("FileUtils");
+        FileUtils           = require("file/FileUtils");
 
     
     /**

@@ -8,11 +8,11 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        Editor              = require("Editor").Editor,
-        FileUtils           = require("FileUtils"),
-        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
+    var DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Editor              = require("editor/Editor").Editor,
+        FileUtils           = require("file/FileUtils"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = require("./SpecRunnerUtils.js");
 
     describe("EditorManager", function () {
