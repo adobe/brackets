@@ -8,12 +8,11 @@
 define(function (require, exports, module) {
     'use strict';
 
-    console.log("loading foo!");
-
-    require("secondary").bar();
+    console.log("and a file that foo depends on!");
 
     exports.bar = function bar() {
-        console.log("in bar in foo!");
+        console.log("in bar in secondary!");
+        setTimeout(function () { require("main").bar(); }, 300);
     };
 
 });
