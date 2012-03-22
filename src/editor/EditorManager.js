@@ -20,10 +20,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var FileUtils           = require("FileUtils"),
-        DocumentManager     = require("DocumentManager"),
-        Editor              = require("Editor").Editor,
-        EditorUtils         = require("EditorUtils"),
+    var FileUtils           = require("file/FileUtils"),
+        DocumentManager     = require("document/DocumentManager"),
+        Editor              = require("editor/Editor").Editor,
+        EditorUtils         = require("editor/EditorUtils"),
         Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */

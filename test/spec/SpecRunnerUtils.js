@@ -3,11 +3,11 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        Commands            = require("Commands"),
-        FileUtils           = require("FileUtils"),
-        Async               = require("Async"),
-        DocumentManager    = require("DocumentManager");
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        Commands            = require("command/Commands"),
+        FileUtils           = require("file/FileUtils"),
+        Async               = require("utils/Async"),
+        DocumentManager     = require("document/DocumentManager");
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",

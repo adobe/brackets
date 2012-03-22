@@ -11,7 +11,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var KeyBindingManager = require("KeyBindingManager");
+    var KeyBindingManager = require("command/KeyBindingManager");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",

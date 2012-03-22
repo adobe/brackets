@@ -47,15 +47,15 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        ProjectManager      = require("ProjectManager"),
-        EditorManager       = require("EditorManager"),
-        PreferencesManager  = require("PreferencesManager"),
-        FileUtils           = require("FileUtils"),
-        CommandManager      = require("CommandManager"),
-        Async               = require("Async"),
-        Editor              = require("Editor").Editor,
-        Commands            = require("Commands");
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = require("project/ProjectManager"),
+        EditorManager       = require("editor/EditorManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        FileUtils           = require("file/FileUtils"),
+        CommandManager      = require("command/CommandManager"),
+        Async               = require("utils/Async"),
+        Editor              = require("editor/Editor").Editor,
+        Commands            = require("command/Commands");
 
     /**
      * Unique PreferencesManager clientID
@@ -424,7 +424,7 @@ define(function (require, exports, module) {
             // what's on disk. But since we currently close all secondary editors when anyone else
             // touches the Document content, there's no point in doing that yet. Just change the text
             // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
-            // should probably live in FileCommandHandlers.handleFileClose().
+            // should probably live in DocumentCommandHandlers.handleFileClose().
             if (this.isDirty) {
                 this.refreshText("");
             }
@@ -521,7 +521,7 @@ define(function (require, exports, module) {
     };
     
     /** 
-     * Called when the document is saved (which currently happens in FileCommandHandlers). Marks the
+     * Called when the document is saved (which currently happens in DocumentCommandHandlers). Marks the
      * document not dirty and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function () {

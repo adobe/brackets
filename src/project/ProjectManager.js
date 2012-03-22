@@ -25,18 +25,18 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        PreferencesManager  = require("PreferencesManager"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        CommandManager      = require("CommandManager"),
-        Commands            = require("Commands"),
-        Dialogs             = require("Dialogs"),
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
-        FileViewController  = require("FileViewController"),
-        PerfUtils           = require("PerfUtils"),
-        ViewUtils           = require("ViewUtils"),
-        FileUtils           = require("FileUtils");
+        FileViewController  = require("project/FileViewController"),
+        PerfUtils           = require("utils/PerfUtils"),
+        ViewUtils           = require("utils/ViewUtils"),
+        FileUtils           = require("file/FileUtils");
     
     /**
      * @private

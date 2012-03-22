@@ -9,8 +9,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeHintUtils   = require("CodeHintUtils"),
-        EditorManager   = require("EditorManager");
+    var HTMLUtils     = require("language/HTMLUtils"),
+        EditorManager = require("editor/EditorManager");
     
     /**
      * @private
@@ -32,8 +32,8 @@ define(function (require, exports, module) {
      */
     function _checkForHint(editor) {
         var pos = editor.getCursor();
-        var tagInfo = CodeHintUtils.getTagInfo(editor, pos);
-        if (tagInfo.position.type === CodeHintUtils.ATTR_VALUE) {
+        var tagInfo = HTMLUtils.getTagInfo(editor, pos);
+        if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 _triggerClassHint(editor, pos, tagInfo);
             } else if (tagInfo.attr.name === "id") {

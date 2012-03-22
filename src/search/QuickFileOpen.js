@@ -21,12 +21,12 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var FileIndexManager    = require("FileIndexManager"),
-        DocumentManager     = require("DocumentManager"),
-        CommandManager      = require("CommandManager"),
-        EditorManager       = require("EditorManager"),
-        Commands            = require("Commands"),
-        ProjectManager      = require("ProjectManager");
+    var FileIndexManager    = require("project/FileIndexManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        CommandManager      = require("command/CommandManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Commands            = require("command/Commands"),
+        ProjectManager      = require("project/ProjectManager");
 
     /**
     * QuickNavigateDialog class

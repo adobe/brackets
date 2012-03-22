@@ -11,21 +11,21 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     
     // Load dependent modules
-    var CommandManager      = require("CommandManager"),
-        Commands            = require("Commands"),
-        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        ProjectManager      = require("ProjectManager"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        FileUtils           = require("FileUtils"),
-        Async               = require("Async"),
-        Dialogs             = require("Dialogs"),
+    var CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = require("project/ProjectManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
+        Async               = require("utils/Async"),
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
-        PreferencesManager  = require("PreferencesManager"),
-        PerfUtils           = require("PerfUtils");
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        PerfUtils           = require("utils/PerfUtils");
     
     /**
-     * Handlers for commands related to file handling (opening, saving, etc.)
+     * Handlers for commands related to document handling (opening, saving, etc.)
      */
     
     /** @type {jQueryObject} Container for label shown above editor */

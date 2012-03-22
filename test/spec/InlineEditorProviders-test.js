@@ -12,7 +12,7 @@ define(function (require, exports, module) {
         EditorManager,      // loaded from brackets.test
         FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
-        FileUtils       = require("FileUtils"),
+        FileUtils       = require("file/FileUtils"),
         SpecRunnerUtils = require("./SpecRunnerUtils.js");
 
     describe("InlineEditorProviders", function () {
