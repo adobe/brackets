@@ -10,8 +10,7 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var QuickFileOpen       = require("QuickFileOpen"),
-        FileIndexManager    = require("FileIndexManager"),
+    var FileIndexManager    = require("FileIndexManager"),
         EditorManager       = require("EditorManager"),
         DocumentManager     = require("DocumentManager");
 
@@ -193,7 +192,8 @@ define(function (require, exports, module) {
     }
 
     /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
+     * Select the selected item in the current document
+     * @param {string} selectedItem
      */
     function itemFocus(selectedItem) {
         var fileLocation = getLocationFromFunctionName($(selectedItem).text());
@@ -212,16 +212,6 @@ define(function (require, exports, module) {
         itemFocus(selectedItem);
     }
 
-    /**
-     *
-     *
-     */
-    function resultsFormatter(item, query) {
-        query = query.slice(query.indexOf("@") + 1, query.length);
-        var boldName = item.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
-        return "<li>" + boldName + "</li>";
-    }
-
 
     /**
      * Returns quick open plugin
@@ -236,7 +226,7 @@ define(function (require, exports, module) {
                                 match: match,
                                 itemFocus: itemFocus,
                                 itemSelect: itemSelect,
-                                resultsFormatter: resultsFormatter
+                                resultsFormatter: null // use default
                             };
 
         return jsFuncProvider;

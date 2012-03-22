@@ -29,6 +29,7 @@ define(function (require, exports, module) {
         CommandManager      = require("CommandManager"),
         Commands            = require("Commands"),
         QuickOpenJSSymbol   = require("QuickOpenJSSymbol"),
+        QuickOpenCSS        = require("QuickOpenCSS"),
         ProjectManager      = require("ProjectManager");
     
 
@@ -66,7 +67,7 @@ define(function (require, exports, module) {
     function QuickOpenPlugin(name, fileTypes, filter, match, itemFocus, itemSelect, resultsFormatter) {
         
         this.name = name;
-        this.fileTypes = []; // default: all
+        this.fileTypes = fileTypes; // empty array indicates all
         this.filter = filter;
         this.match = match;
         this.itemFocus = itemFocus;
@@ -281,10 +282,20 @@ define(function (require, exports, module) {
     }
 
     function _handleFilter(query) {
+        var curDoc = DocumentManager.getCurrentDocument();
+        if (!curDoc) {
+            return [];
+        }
+
+        var filename = _filenameFromPath(curDoc.file.fullPath, true );
+        var extension = filename.slice( filename.lastIndexOf(".") + 1, filename.length);
+
+
         var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
-            if (plugin.match(query)) {
+            var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
+            if (extensionMatch &&  plugin.match(query)) {
                 currentPlugin = plugin;
                 return plugin.filter(query);
             }
@@ -294,12 +305,19 @@ define(function (require, exports, module) {
         return filterFileList(query);
     }
 
+    function defaultResultsFormatter(item, query) {
+        query = query.slice(query.indexOf("@") + 1, query.length);
+        var boldName = item.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
+        return "<li>" + boldName + "</li>";
+    }
+
 
     function _handleResultsFormatter(item) {
         var query = $('input#quickFileOpenSearch').val();
 
         if (currentPlugin) {
-            return currentPlugin.resultsFormatter(item, query);
+            var formatter = currentPlugin.resultsFormatter ? currentPlugin.resultsFormatter : defaultResultsFormatter;
+            return formatter(item, query);
         } else {
             // Format filename result
             var filename = _filenameFromPath(item, true);
@@ -381,6 +399,9 @@ define(function (require, exports, module) {
     // TODO: in future we would dynamally discover quick open plugins and get their plugins
     var jsFuncPlugin = QuickOpenJSSymbol.getPlugin();
     addQuickOpenPlugin(jsFuncPlugin);
+
+    var cssSelectorsPlugin = QuickOpenCSS.getPlugin();
+    addQuickOpenPlugin(cssSelectorsPlugin);
 
     // TODO: allow QuickOpenJS to register it's own commands and keybindings
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE_FILE, doFileSearch);
