@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         Menus                   = require("command/Menus");
     
     //Load modules the self-register and just need to get included in the main project
-    require("language/JSLint");
+    require("language/JSLintUtils");
     require("editor/CodeHintManager");
     require("debug/DebugCommandHandlers");
     require("search/FindInFiles");
