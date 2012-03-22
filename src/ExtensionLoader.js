@@ -41,7 +41,7 @@ define(function (coreRequire, exports, module) {
 		}
     }
 
-	// TODO: get the directories from the filesystem
+	// TODO: get the directories from NativeFileSystem rather than the low-level filesystem
 	var extensionPath = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/")) + "/extensions";
 	console.log("the extension path is: " + extensionPath);
 
