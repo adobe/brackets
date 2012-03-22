@@ -49,12 +49,10 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
-        EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
-        Editor              = require("editor/Editor").Editor,
         Commands            = require("command/Commands");
 
     /**
