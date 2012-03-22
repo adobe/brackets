@@ -23,10 +23,10 @@ define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var DocumentManager     = require("DocumentManager"),
-        CommandManager      = require("CommandManager"),
-        EditorManager       = require("EditorManager"),
-        Commands            = require("Commands");
+    var DocumentManager     = require("document/DocumentManager"),
+        CommandManager      = require("command/CommandManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Commands            = require("command/Commands");
 
     /** 
      * Tracks whether a "currentDocumentChange" notification occured due to a call to 

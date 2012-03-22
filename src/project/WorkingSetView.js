@@ -13,13 +13,13 @@ define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var DocumentManager       = require("DocumentManager"),
-        CommandManager        = require("CommandManager"),
-        Commands              = require("Commands"),
-        EditorManager         = require("EditorManager"),
-        FileViewController    = require("FileViewController"),
-        NativeFileSystem      = require("NativeFileSystem").NativeFileSystem,
-        ViewUtils             = require("ViewUtils");
+    var DocumentManager       = require("document/DocumentManager"),
+        CommandManager        = require("command/CommandManager"),
+        Commands              = require("command/Commands"),
+        EditorManager         = require("editor/EditorManager"),
+        FileViewController    = require("project/FileViewController"),
+        NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
+        ViewUtils             = require("utils/ViewUtils");
     
     
     /** Each list item in the working set stores a references to the related document in the list item's data.  

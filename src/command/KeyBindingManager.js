@@ -11,7 +11,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var CommandManager = require("CommandManager");
+    var CommandManager = require("command/CommandManager");
     
     /**
      * The currently installed keymap.

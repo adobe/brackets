@@ -9,7 +9,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var NativeFileSystem        = require("NativeFileSystem").NativeFileSystem,
+    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
 
     describe("NativeFileSystem", function () {

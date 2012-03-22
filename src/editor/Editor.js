@@ -36,7 +36,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("EditorManager");
+    var EditorManager    = require("editor/EditorManager");
     
     
     /**

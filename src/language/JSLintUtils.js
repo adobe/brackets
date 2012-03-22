@@ -13,8 +13,8 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var DocumentManager         = require("DocumentManager"),
-        EditorManager           = require("EditorManager");
+    var DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager");
     
     var _enabled = true;
     

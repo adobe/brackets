@@ -9,8 +9,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var Commands                = require("Commands"),
-        CommandManager          = require("CommandManager");
+    var Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager");
     
     function init() {
         // Implements the File menu items
