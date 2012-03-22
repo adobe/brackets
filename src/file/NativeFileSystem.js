@@ -8,7 +8,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Async = require("Async");
+    var Async = require("utils/Async");
 
     var NativeFileSystem = {
         

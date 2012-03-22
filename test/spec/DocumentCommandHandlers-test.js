@@ -7,13 +7,13 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CommandManager,      // loaded from brackets.test
         Commands,            // loaded from brackets.test
-        FileCommandHandlers, // loaded from brackets.test
+        DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("./SpecRunnerUtils.js");
     
-    describe("FileCommandHandlers", function () {
+    describe("DocumentCommandHandlers", function () {
 
-        var testPath = SpecRunnerUtils.getTestPath("/spec/FileCommandHandlers-test-files"),
+        var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testWindow;
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
@@ -26,7 +26,7 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 CommandManager      = testWindow.brackets.test.CommandManager;
                 Commands            = testWindow.brackets.test.Commands;
-                FileCommandHandlers = testWindow.brackets.test.FileCommandHandlers;
+                DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
             });
         });

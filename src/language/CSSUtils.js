@@ -11,10 +11,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Async               = require("Async"),
-        DocumentManager     = require("DocumentManager"),
-        FileIndexManager    = require("FileIndexManager"),
-        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem;
+    var Async               = require("utils/Async"),
+        DocumentManager     = require("document/DocumentManager"),
+        FileIndexManager    = require("project/FileIndexManager"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
 
     /**
      * Extracts all CSS selectors from the given text
@@ -253,7 +253,6 @@ define(function (require, exports, module) {
             DocumentManager.getDocumentForPath(fullPath)
                 .done(function (doc) {
                     var localResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
-                    var fileEntry = new NativeFileSystem.FileEntry(fullPath);
                     
                     localResults.forEach(function (value) {
                         selectors.push({
