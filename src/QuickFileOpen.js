@@ -30,6 +30,7 @@ define(function (require, exports, module) {
         Commands            = require("Commands"),
         QuickOpenJSSymbol   = require("QuickOpenJSSymbol"),
         QuickOpenCSS        = require("QuickOpenCSS"),
+        QuickOpenHTML       = require("QuickOpenHTML"),
         ProjectManager      = require("ProjectManager");
     
 
@@ -59,10 +60,10 @@ define(function (require, exports, module) {
      * @param {string} plugin name
      * @param {Array.<string>} filetypes array. Example: ["js", "css", "txt"]
      * @param {Function} filter takes a query string and returns an array of strings that match the query
-     * @param {Functon} match takes a query string and returns true if this plugin wants to provide results for this query
+     * @param {?Functon} match takes a query string and returns true if this plugin wants to provide results for this query
      * @param {Functon} itemFocus performs an action when a result has focus
      * @param {Functon} itemSelect performs an action when a result is choosen
-     * @param {Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search resuklts
+     * @param {?Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search resuklts
      */
     function QuickOpenPlugin(name, fileTypes, filter, match, itemFocus, itemSelect, resultsFormatter) {
         
@@ -180,6 +181,26 @@ define(function (require, exports, module) {
         }
     };
 
+
+    QuickNavigateDialog.prototype._handleKeyIn = function (e, query) {
+        // extract line number
+        var gotoLine = extractLineNumber(query);
+        if (gotoLine) {
+            var from = {line: gotoLine, ch: 0};
+            var to = {line: gotoLine, ch: 99999};
+            EditorManager.getCurrentFullEditor().setSelection(from, to);
+        }
+
+        // Remove current plugin if the query stops matching
+        if (currentPlugin && !currentPlugin.match(query)) {
+            currentPlugin = null;
+        }
+
+        if ($(".smart_autocomplete_highlight").length === 0) {
+            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+        }    
+    }
+
     /**
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
@@ -204,25 +225,7 @@ define(function (require, exports, module) {
             }
             
             this._close();
-        }
-
-        var query = this.searchField.val();
-        // extract line number
-        var gotoLine = extractLineNumber(query);
-        if (gotoLine) {
-            var from = {line: gotoLine, ch: 0};
-            var to = {line: gotoLine, ch: 99999};
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
-        }
-
-        // Remove current plugin if the query stops matching
-        if (currentPlugin && !currentPlugin.match(query)) {
-            currentPlugin = null;
-        }
-
-        if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
-        }    
+        } 
     }
 
 
@@ -295,7 +298,7 @@ define(function (require, exports, module) {
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
             var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
-            if (extensionMatch &&  plugin.match(query)) {
+            if (extensionMatch &&  plugin.match && plugin.match(query)) {
                 currentPlugin = plugin;
                 return plugin.filter(query);
             }
@@ -369,7 +372,8 @@ define(function (require, exports, module) {
                 that.searchField.bind({
                     itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
-                    keyIn: function (e) { that._handleKeyDown(e); }
+                    keydown: function (e) { that._handleKeyDown(e); },
+                    keyIn: function (e, query) { that._handleKeyIn(e, query); }
                 });
         
                 that.searchField.val(initialValue);
@@ -402,6 +406,9 @@ define(function (require, exports, module) {
 
     var cssSelectorsPlugin = QuickOpenCSS.getPlugin();
     addQuickOpenPlugin(cssSelectorsPlugin);
+
+    var htmlIDPlugin = QuickOpenHTML.getPlugin();
+    addQuickOpenPlugin(htmlIDPlugin);
 
     // TODO: allow QuickOpenJS to register it's own commands and keybindings
     CommandManager.register(Commands.FILE_QUICK_NAVIGATE_FILE, doFileSearch);
