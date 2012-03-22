@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     brackets.test = {
         PreferencesManager      : require("preferences/PreferencesManager"),
         ProjectManager          : ProjectManager,
-        DocumentCommandHandlers     : DocumentCommandHandlers,
+        DocumentCommandHandlers : DocumentCommandHandlers,
         FileViewController      : FileViewController,
         DocumentManager         : DocumentManager,
         EditorManager           : EditorManager,
