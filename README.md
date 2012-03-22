@@ -1,3 +1,8 @@
+**Note:** This README file is specific to the HTML/CSS/JS source code for Brackets.
+For more general notes on how to use the current build of Brackets, see the
+README.md file in the parent folder (or, if you're on github, the
+[brackets-app repo](http://github.com/adobe/brackets-app)).
+
 Overview
 ========
 
