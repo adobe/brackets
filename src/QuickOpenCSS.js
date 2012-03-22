@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -69,12 +69,9 @@ define(function (require, exports, module) {
 
             var selector = itemInfo.selector;
 
-            // TODO: temp fix, for some reason there are comment lines in the result from
-            // CSSUtils.extractAllSelectors
+            // TODO: work around for issue #483
             if(selector[0] === "/" && selector[1] === "*")
                 return null;
-
-            console.log(selector);
 
             if (selector.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
                 return selector;
