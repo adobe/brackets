@@ -115,6 +115,11 @@ define(function (require, exports, module) {
         };
         
         var inlineInfo = EditorManager.createInlineEditorForDocument(parentEditor, doc, range);
+        
+        var $filename = $(document.createElement("div")).addClass("filename");
+        $filename.text(doc.file.name);
+        $(inlineInfo.content).prepend($filename);
+        
         return inlineInfo;
     }
     
@@ -176,8 +181,6 @@ define(function (require, exports, module) {
         // add inline editor styling
         // FIXME (jasonsj): #424, shadow only seems to work on scroller element and not on wrapper div
         $(editor.getScrollerElement())
-            .append('<div class="shadow top"/>')
-            .append('<div class="shadow bottom"/>')
             .append(filenameDiv);
 
         // update the current inline editor immediately
@@ -205,12 +208,25 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype = new InlineEditor();
     
     CSSInlineEditor.prototype.load = function (hostEditor) {
-        var htmlContent = document.createElement("div"),
-            ruleList = $("<ul class='pills pills-vertical pull-right'/>");
+        var self = this,
+            $htmlContent = $(document.createElement("div")).addClass("inlineEditor"),
+            $relatedContainer = $(document.createElement("div")).addClass("relatedContainer"),
+            $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related"),
+            $ruleList = $(document.createElement("ul")).appendTo($related),
+            $ruleItem,
+            $location;
         
         // create rule list
-        this._rules.forEach(function (rule) {
-            ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
+        this._rules.forEach(function (rule, i) {
+            $ruleItem = $(document.createElement("li")).appendTo($ruleList);
+            $ruleItem.text(rule.selector + " ");
+            $ruleItem.click(function () {
+                self.setSelectedRule(i);
+            });
+            
+            $location = $(document.createElement("span")).appendTo($ruleItem);
+            $location.addClass("location");
+            $location.text(rule.document.file.name + ":" + rule.lineStart);
         });
         
         // load first rule
@@ -218,12 +234,11 @@ define(function (require, exports, module) {
         
         // create an editor for the first rule
         var inlineInfo = _showTextRangeInInlineEditor(hostEditor, rule.document, rule.lineStart, rule.lineEnd);
-        var $htmlContent = $(htmlContent);
         $htmlContent.append(inlineInfo.content);
-        $htmlContent.append(ruleList);
+        $htmlContent.append($relatedContainer);
         
         // wrapper div for inline editor
-        this.htmlContent = htmlContent;
+        this.htmlContent = $htmlContent[0];
         
         // TODO (jasonsj): handle multiple editors
         this.height = inlineInfo.height;
@@ -258,7 +273,8 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.getSelectedRule = function () {
     };
     
-    CSSInlineEditor.prototype.setSelectedRule = function () {
+    CSSInlineEditor.prototype.setSelectedRule = function (index) {
+        console.log("setSelectedRule " + index);
     };
     
     CSSInlineEditor.prototype.nextRule = function () {

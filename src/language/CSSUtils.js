@@ -256,6 +256,7 @@ define(function (require, exports, module) {
                     
                     localResults.forEach(function (value) {
                         selectors.push({
+                            selector: value.selector,
                             document: doc,
                             lineStart: value.selectorGroupStartLine,
                             lineEnd: value.declListEndLine

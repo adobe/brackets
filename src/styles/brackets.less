@@ -318,14 +318,114 @@ a, img {
 }
 
 /* Styles for inline editors */
-.inlineCodeEditor {
+.inlineEditor {
     border-top:    1px solid #C0C0C0;
     border-bottom: 1px solid #C0C0C0;
+    min-width:     100%;
+    
+    .filename {
+        background-color: #F3F3F3;
+        font-family: "Lucida Grande";
+        font-size: 14px;
+        color: #656565;
+        padding: 10px;
+    }
+    .shadow {
+        display: block;
+        height: 6px;
+        width: 100%;
+        position: absolute;
+        content: " ";
+        left: 0;
+        z-index: 10;
+    }
+    .shadow.top {
+        top: 0px;
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+    }
+    .shadow.bottom {
+        bottom: -1px;
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+    }
 }
 
-.inlineCodeEditor .CodeMirror-scroll {
-    /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
-    overflow-x: hidden;
+.inlineCodeEditor {
+    /*
+    .CodeMirror-gutter {
+        z-index: 0;
+    }
+    */
+    .CodeMirror-scroll {
+        /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
+        overflow-x: hidden;
+    }
+    .cm-s-default {
+        background-color: #F3F3F3;
+    }
+    /*
+    .filename {
+        position: absolute;
+        #font > .sans-serif(normal, 12px, auto);
+        top: 0;
+        background: #FFF;
+        padding: 2px 6px 0 2px;
+        border: solid #C0C0C0;
+        border-width: 0px 1px 1px;
+        border-bottom-right-radius: 3px 5px;
+        border-bottom-left-radius: 3px 5px;
+        z-index: 11;
+        
+        .dirty-indicator {
+            .bracketSprite;
+            display: inline-block;
+            background-position: 0 0;
+            padding-top: 3px;
+        }
+    }
+    */
+}
+
+.relatedContainer {
+    /*width: 0;*/
+    position: absolute;
+    height: 100%;
+    top: 0;
+    right: 0;
+    /*overflow: hidden;*/
+    /*-webkit-transition: width 0.15s ease-out;*/
+    background: #f2f2f2;
+    
+    .related {
+        position: absolute;
+        top: 0;
+        left: 1px;
+        height: 100%;
+        width: 250px;
+        border-left-width: 1px;
+        border-left-width: 1px;
+        border-left-style: solid;
+        border-left-style: solid;
+        border-left-color: #ccc;
+        border-left-color: #ccc;
+        box-shadow: -1px 0 0 0 #fff;
+        font-size: 12px;
+        
+        ul {
+            margin: 0;
+            padding: 10px 15px;
+            list-style: none;
+            color: #656565;
+            
+            li {
+                margin-top: 5px;
+                white-space: nowrap;
+            }
+            
+            .location {
+                color: #acacac;
+            }
+        }
+    }
 }
 
 /* Styles for the search dialog--this is temporary, only for debugging */
