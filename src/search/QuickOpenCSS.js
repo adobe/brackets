@@ -54,7 +54,7 @@ define(function (require, exports, module) {
             }
         }
 
-        return result; 
+        return result;
     }
 
     /**
@@ -68,10 +68,6 @@ define(function (require, exports, module) {
         var filteredList = $.map(selectorList, function (itemInfo) {
 
             var selector = itemInfo.selector;
-
-            // TODO: work around for issue #483
-            if(selector[0] === "/" && selector[1] === "*")
-                return null;
 
             if (selector.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
                 return selector;

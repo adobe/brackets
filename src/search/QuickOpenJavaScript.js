@@ -2,7 +2,7 @@
  * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, CodeMirror */
 
 

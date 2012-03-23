@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         var result;
         var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
         if (regInfo) {
-            result = regInfo[2] - 1;   
+            result = regInfo[2] - 1;
         }
 
         return result;
@@ -143,15 +143,15 @@ define(function (require, exports, module) {
 
             // extract line number
             var cursor;
-            var gotoLine = extractLineNumber(query)
+            var gotoLine = extractLineNumber(query);
             if (gotoLine) {
-                cursor = {line: gotoLine, ch: 0};      
+                cursor = {line: gotoLine, ch: 0};
             }
 
             // Do navigation
             if (fullPath) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
-                    .done( function() {
+                    .done(function () {
                         if (gotoLine) {
                             EditorManager.getCurrentFullEditor().setCursorPos(cursor);
                         }
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
         } else {
             var fullPath = $(selectedItem).attr("data-fullpath");
             if (fullPath) {
-                var fullPath = decodeURIComponent(fullPath);
+                fullPath = decodeURIComponent(fullPath);
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
         }
@@ -198,8 +198,8 @@ define(function (require, exports, module) {
 
         if ($(".smart_autocomplete_highlight").length === 0) {
             this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
-        }    
-    }
+        }
+    };
 
     /**
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
@@ -225,8 +225,8 @@ define(function (require, exports, module) {
             }
             
             this._close();
-        } 
-    }
+        }
+    };
 
 
     /**
@@ -290,8 +290,8 @@ define(function (require, exports, module) {
             return [];
         }
 
-        var filename = _filenameFromPath(curDoc.file.fullPath, true );
-        var extension = filename.slice( filename.lastIndexOf(".") + 1, filename.length);
+        var filename = _filenameFromPath(curDoc.file.fullPath, true);
+        var extension = filename.slice(filename.lastIndexOf(".") + 1, filename.length);
 
 
         var i;
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
         var query = $('input#quickFileOpenSearch').val();
 
         if (currentPlugin) {
-            var formatter = currentPlugin.resultsFormatter ? currentPlugin.resultsFormatter : defaultResultsFormatter;
+            var formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
             return formatter(item, query);
         } else {
             // Format filename result

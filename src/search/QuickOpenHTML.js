@@ -2,7 +2,7 @@
  * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 
@@ -57,17 +57,17 @@ define(function (require, exports, module) {
             var docText = doc.getText();
             var lines = docText.split("\n");
 
-            var regex = new RegExp(/id\s?=\s?"(.*?)"/gi); 
+            var regex = new RegExp(/id\s?=\s?"(.*?)"/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
 
                 var info;
-                while (info = regex.exec(line)) {
+                while ((info = regex.exec(line)) !== null) {
                     id = info[1];
                     chFrom = line.indexOf(id);
                     chTo = chFrom + id.length;
-                    idList.push(new FileLocation( null, i, chFrom, chTo, id));
+                    idList.push(new FileLocation(null, i, chFrom, chTo, id));
                 }
             }
 
@@ -85,7 +85,7 @@ define(function (require, exports, module) {
             }
         }
 
-        return result; 
+        return result;
     }
 
     /**
