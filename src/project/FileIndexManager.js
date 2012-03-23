@@ -430,6 +430,7 @@ define(function (require, exports, module) {
     
     $(ProjectManager).on("projectRootChanged", function (event, projectRoot) {
         markIndexesDirty();
+        _fileInfoMap = {};
     });
 
     $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
