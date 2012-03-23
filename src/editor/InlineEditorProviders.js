@@ -221,7 +221,7 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        CSSUtils.findMatchingRules(selectorName)
+        CSSUtils.findMatchingRules(selectorName, editor.document)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
                     var rule = rules[0];  // For Sprint 4 we use the first match only

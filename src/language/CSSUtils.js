@@ -183,8 +183,8 @@ define(function (require, exports, module) {
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
-     * @return {Array.<{line:number, declListEndLine:number}>} Array of objects containing the start
-     *      and end line numbers (0-based, inclusive range) for each matched selector.
+     * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number}>} Array of objects
+     *      containing the start and end line numbers (0-based, inclusive range) for each matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
         var allSelectors = extractAllSelectors(text);
@@ -238,29 +238,46 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
+     * @param {!Document} htmlDocument An HTML file for context (so we can search <style> blocks)
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
      *      Does not addRef() the documents returned in the array.
      */
-    function findMatchingRules(selector) {
+    function findMatchingRules(selector, htmlDocument) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
-            selectors       = [];
+            resultSelectors = [];
+        
+        // Asynchronously search for matches in all the project's CSS files
+        findMatchingRulesInCSSFiles(selector, resultSelectors)
+            .done(function () {
+                // Synchronously search for matches in <style> blocks
+                findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
+                
+                result.resolve(resultSelectors);
+            })
+            .fail(function (error) {
+                result.reject(error);
+            });
+        
+        return result.promise();
+    }
+    
+    /** Finds matching selectors in CSS files; appends them to 'resultSelectors' */
+    function findMatchingRulesInCSSFiles(selector, resultSelectors) {
+        var result          = new $.Deferred(),
+            cssFilesResult  = FileIndexManager.getFileInfoList("css");
         
         function _loadFileAndScan(fullPath, selector) {
             var result = new $.Deferred();
             
             DocumentManager.getDocumentForPath(fullPath)
                 .done(function (doc) {
-                    var localResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
+                    // Find all matching rules for the given CSS file's content, and add them to the
+                    // overall search result
+                    var oneCSSFileResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
+                    addSelectorResults(resultSelectors, oneCSSFileResults, doc, 0);
                     
-                    localResults.forEach(function (value) {
-                        selectors.push({
-                            document: doc,
-                            lineStart: value.selectorGroupStartLine,
-                            lineEnd: value.declListEndLine
-                        });
-                    });
                     result.resolve();
                 })
                 .fail(function (error) {
@@ -274,17 +291,74 @@ define(function (require, exports, module) {
             Async.doInParallel(fileInfos, function (fileInfo, number) {
                 return _loadFileAndScan(fileInfo.fullPath, selector);
             })
-                .done(function () {
-                    result.resolve(selectors);
-                })
-                .fail(function (error) {
-                    console.log("Error reading CSS files.");
-                    result.reject(error);
-                });
+                .pipe(result.resolve, result.reject);
         });
         
         return result.promise();
     }
+    
+    /** Finds matching selectors in the <style> block of an HTML file; appends them to 'resultSelectors' */
+    function findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
+        // Find all <style> blocks in the HTML file
+        var styleBlocks = findStyleBlocksInHTML(htmlDocument.getText());
+        
+        styleBlocks.forEach(function (styleBlockInfo) {
+            // Find all matching rules for the given <style> block's content, and add them to the
+            // overall search result
+            var oneStyleBlockResults = _findAllMatchingSelectorsInText(styleBlockInfo.text, selector);
+            addSelectorResults(resultSelectors, oneStyleBlockResults, htmlDocument, styleBlockInfo.startLine);
+        });
+    }
+    
+    /**
+     * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
+     * appends those new objects to the given 'resultSelectors' Array.
+     */
+    function addSelectorResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
+        selectorsToAdd.forEach(function (selector) {
+            resultSelectors.push({
+                document: sourceDoc,
+                lineStart: selector.selectorGroupStartLine + lineOffset,
+                lineEnd: selector.declListEndLine + lineOffset
+            });
+        });
+    }
+    
+    /** Returns an Array of entries for all the <style> blocks in the given string of HTML */
+    function findStyleBlocksInHTML(htmlText) {
+        // FIXME: finding by regexp is fragile; this will break if any <style> tags are present
+        // inside comments, attribute value strings, or CDATA blocks
+        
+        // Note: [\s\S] is a way of saying "any char"; we can't use . because in JavaScript . never
+        // matches newlines
+        var styleBlockFinder = /<style>([\s\S]*?)<\/style>/g;
+        
+        var styleBlocks = [];
+        var styleBlockFindResult = styleBlockFinder.exec(htmlText);
+        while (styleBlockFindResult) {
+            var startIndex = styleBlockFindResult.index;
+            styleBlocks.push({
+                startLine: indexToLineNumber(htmlText, startIndex),
+                text: styleBlockFindResult[1]
+            });
+            styleBlockFindResult = styleBlockFinder.exec(htmlText);
+        }
+        return styleBlocks;
+    }
+    
+    /** Given an index into a string, returns that position's 0-based line number */
+    function indexToLineNumber(text, index) {
+        var newlineFinder = /\r?\n/g;
+        var newlines = 0;
+        
+        var newlineFindResult = newlineFinder.exec(text);
+        while (newlineFindResult && newlineFindResult.index <= index) {
+            newlines++;
+            newlineFindResult = newlineFinder.exec(text);
+        }
+        return newlines;
+    }
+    
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
