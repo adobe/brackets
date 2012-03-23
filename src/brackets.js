@@ -154,7 +154,7 @@ define(function (require, exports, module) {
                     {"Ctrl-W": Commands.FILE_CLOSE},
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE_FILE},
                     {"Ctrl-T": Commands.FILE_QUICK_NAVIGATE_DEFINITION},
-                    {"Ctrl-G": Commands.FILE_QUICK_NAVIGATE_LINE},
+                    {"Ctrl-L": Commands.FILE_QUICK_NAVIGATE_LINE},
                     {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
