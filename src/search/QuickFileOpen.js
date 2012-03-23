@@ -28,9 +28,9 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        QuickOpenJSSymbol   = require("QuickOpenJSSymbol"),
-        QuickOpenCSS        = require("QuickOpenCSS"),
-        QuickOpenHTML       = require("QuickOpenHTML"),
+        QuickOpenJSSymbol   = require("search/QuickOpenJavaScript"),
+        QuickOpenCSS        = require("search/QuickOpenCSS"),
+        QuickOpenHTML       = require("search/QuickOpenHTML"),
         ProjectManager      = require("project/ProjectManager");
     
 
