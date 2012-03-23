@@ -23,7 +23,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var FileIndexManager    = require("project/FileIndexManager"),
-        JSLint              = require("thirdparty/JSLint"),
+        JSLintUtils         = require("language/JSLintUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
@@ -239,7 +239,7 @@ define(function (require, exports, module) {
         }
         this.closed = true;
 
-        JSLint.setEnabled(true);
+        JSLintUtils.setEnabled(true);
 
         // for some odd reason I need to remove the dialog like this through the parent
         // If I do it more directly listeners are not removed by the smart auto complete plugin
@@ -338,7 +338,7 @@ define(function (require, exports, module) {
         var that = this;
 
         // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
-        JSLint.setEnabled(false);
+        JSLintUtils.setEnabled(false);
 
         var curDoc = DocumentManager.getCurrentDocument();
         origDocPath = curDoc ? curDoc.file.fullPath : null;

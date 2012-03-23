@@ -10,10 +10,10 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var FileIndexManager    = require("FileIndexManager"),
-        EditorManager       = require("EditorManager"),
-        CSSUtils            = require("CSSUtils"),
-        DocumentManager     = require("DocumentManager");
+    var FileIndexManager    = require("project/FileIndexManager"),
+        EditorManager       = require("editor/EditorManager"),
+        CSSUtils            = require("language/CSSUtils"),
+        DocumentManager     = require("document/DocumentManager");
 
 
     /**

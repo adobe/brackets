@@ -10,9 +10,9 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var FileIndexManager    = require("FileIndexManager"),
-        EditorManager       = require("EditorManager"),
-        DocumentManager     = require("DocumentManager");
+    var FileIndexManager    = require("project/FileIndexManager"),
+        EditorManager       = require("editor/EditorManager"),
+        DocumentManager     = require("document/DocumentManager");
 
 
    /** 
