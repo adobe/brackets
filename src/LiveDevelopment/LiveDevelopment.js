@@ -52,11 +52,13 @@ define(function LiveDevelopment(require, exports, module) {
         "remote": require("LiveDevelopment/Agents/RemoteAgent"),
         "network": require("LiveDevelopment/Agents/NetworkAgent"),
         "dom": require("LiveDevelopment/Agents/DOMAgent"),
-        "css": require("LiveDevelopment/Agents/CSSAgent"),
+        "css": require("LiveDevelopment/Agents/CSSAgent")
+        /* FUTURE 
         "script": require("LiveDevelopment/Agents/ScriptAgent"),
         "highlight": require("LiveDevelopment/Agents/HighlightAgent"),
         "goto": require("LiveDevelopment/Agents/GotoAgent"),
         "edit": require("LiveDevelopment/Agents/EditAgent")
+        */
     };
 
     var _liveDocument; // the live document
@@ -87,6 +89,7 @@ define(function LiveDevelopment(require, exports, module) {
         switch (doc.extension) {
         case "css":
             return CSSDocument;
+        /* FUTURE:
         case "js":
             return JSDocument;
         case "html":
@@ -94,7 +97,10 @@ define(function LiveDevelopment(require, exports, module) {
             return HTMLDocument;
         default:
             throw "Invalid document type: " + doc.extension;
+        */
         }
+        
+        return null;
     }
 
     /** Close a live document */
@@ -111,7 +117,9 @@ define(function LiveDevelopment(require, exports, module) {
     function _openDocument(doc, editor) {
         _closeDocument();
         var DocumentClass = _classForDocument(doc);
-        _liveDocument = new DocumentClass(doc, editor);
+        if (DocumentClass) {
+            _liveDocument = new DocumentClass(doc, editor);
+        }
     }
 
     /** Unload the agents */

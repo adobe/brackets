@@ -25,7 +25,7 @@ define(function main(require, exports, module) {
 
     var config = {
         debug: true, // enable debug output and helpers
-        autoconnect: true, // go live automatically after startup?
+        autoconnect: false, // go live automatically after startup?
         highlight: false, // enable highlighting?
         highlightConfig: { // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
@@ -101,7 +101,6 @@ define(function main(require, exports, module) {
         }
     }
 
-
     /** Setup window references to useful LiveDevelopment modules */
     function _setupDebugHelpers() {
         window.ld = LiveDevelopment;
@@ -115,7 +114,7 @@ define(function main(require, exports, module) {
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();
-        _setupHighlightButton();
+        /* _setupHighlightButton(); FUTURE - Highlight button */
         if (config.debug) {
             _setupDebugHelpers();
         }

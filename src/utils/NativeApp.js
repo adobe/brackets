@@ -17,6 +17,17 @@ define(function (require, exports, module) {
          * @param {function(...)} errorCallback
          */
         openLiveBrowser: function (url, successCallback, errorCallback) {
+            
+            // Temporary workaround to avoid TypeError if the openLiveBrowser()
+            // function isn't defined.
+            // TODO: Remove this test once live browser hookup is complete.
+            if (!brackets.app.openLiveBrowser) {
+                if (errorCallback) {
+                    errorCallback(-1);
+                }
+                return;
+            }
+            
             brackets.app.openLiveBrowser(url, function onRun(err) {
                 if (!err) {
                     if (successCallback) {

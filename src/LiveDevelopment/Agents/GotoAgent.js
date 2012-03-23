@@ -48,7 +48,9 @@ define(function GotoAgent(require, exports, module) {
             var target = {};
             var url = DOMAgent.url;
             var location = node.location;
-            if (node.canHaveChildren()) location += node.length;
+            if (node.canHaveChildren()) {
+                location += node.length;
+            }
             url += ":" + location;
             var name = "&lt;" + node.name + "&gt;";
             var file = _fileFromURL(url);
