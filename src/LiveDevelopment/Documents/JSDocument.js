@@ -85,7 +85,6 @@ define(function JSDocumentModule(require, exports, module) {
 
         // go through the trace and find highlight the lines of this script
         var callFrame, line;
-        var codeMirror = this.editor._codeMirror;
         for (i in node.trace) {
             callFrame = node.trace[i];
             if (callFrame.location && callFrame.location.scriptId === this.script.scriptId) {
