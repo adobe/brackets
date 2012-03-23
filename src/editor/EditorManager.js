@@ -58,6 +58,7 @@ define(function (require, exports, module) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
+            // TODO (jasonsj): global command?
             "Ctrl-E" : function (editor) {
                 onInlineGesture(editor);
             },
@@ -78,6 +79,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Bound to Ctrl+E on outermost editors.
+     * @param {!Editor} editor the candidate host editor
      * @return {$.Promise} a promise that will be resolved when an inline 
      *  editor is created or rejected when no inline editors are available.
      */
@@ -95,10 +97,13 @@ define(function (require, exports, module) {
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
-            inlinePromise.done(function (inlineContent) {
-                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height,
-                                            inlineContent.onClosed, inlineContent);
-                inlineContent.onAdded(inlineId);
+            inlinePromise.done(function (inlineEditor) {
+                $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
+                    .append('<div class="shadow bottom"/>');
+                
+                var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
+                                            inlineEditor.onClosed, inlineEditor);
+                inlineEditor.onAdded(inlineId);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -231,6 +236,7 @@ define(function (require, exports, module) {
         
         var myInlineId;   // (id is set when afterAdded() runs)
         
+        // TODO (jasonsj): global command
         // Used to manually trigger closing this inline
         function closeThisInline(inlineEditor) {
             var shouldMoveFocus = inlineEditor.hasFocus();

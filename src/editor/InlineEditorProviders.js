@@ -174,6 +174,7 @@ define(function (require, exports, module) {
             .append(doc.file.name);
         
         // add inline editor styling
+        // FIXME (jasonsj): #424, shadow only seems to work on scroller element and not on wrapper div
         $(editor.getScrollerElement())
             .append('<div class="shadow top"/>')
             .append('<div class="shadow bottom"/>')
@@ -188,6 +189,88 @@ define(function (require, exports, module) {
         }, 0);
     }
     
+    function InlineEditor() {
+    }
+    
+    // TODO (jasonsj): stubbed out existing inline editor properties
+    InlineEditor.prototype.htmlContent = null;
+    InlineEditor.prototype.height = 0;
+    InlineEditor.prototype.onClosed = function () {};
+    InlineEditor.prototype.onAdded = function () {};
+    InlineEditor.prototype.load = function () {};
+    
+    function CSSInlineEditor(rules) {
+        this._rules = rules;
+    }
+    CSSInlineEditor.prototype = new InlineEditor();
+    
+    CSSInlineEditor.prototype.load = function (hostEditor) {
+        var htmlContent = document.createElement("div"),
+            ruleList = $("<ul class='pills pills-vertical pull-right'/>");
+        
+        // create rule list
+        this._rules.forEach(function (rule) {
+            ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
+        });
+        
+        // load first rule
+        var rule = this._rules[0];
+        
+        // create an editor for the first rule
+        var inlineInfo = _showTextRangeInInlineEditor(hostEditor, rule.document, rule.lineStart, rule.lineEnd);
+        var $htmlContent = $(htmlContent);
+        $htmlContent.append(inlineInfo.content);
+        $htmlContent.append(ruleList);
+        
+        // wrapper div for inline editor
+        this.htmlContent = htmlContent;
+        
+        // TODO (jasonsj): handle multiple editors
+        this.height = inlineInfo.height;
+        this.onAdded = inlineInfo.onAdded;
+        this.onClose = inlineInfo.onClose;
+        
+        // track inlineEditor content removal
+        var origOnClosed = inlineInfo.onClosed;
+        inlineInfo.onClosed = function () {
+            origOnClosed();
+            _inlineEditorRemoved(inlineInfo.content);
+        };
+        
+        // TODO (jasonsj): XD
+        _createInlineEditorDecorations(inlineInfo.editor, rule.document);
+        
+        _htmlToCSSProviderContent.push(inlineInfo.content);
+        
+        // Manually position filename div's. Can't use CSS positioning in this case
+        // since the label is relative to the window boundary, not CodeMirror.
+        if (_htmlToCSSProviderContent.length > 0) {
+            $(window).on("resize", _updateAllFilenames);
+            $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
+        }
+        
+        return (new $.Deferred()).resolve();
+    };
+    
+    CSSInlineEditor.prototype.getRules = function () {
+    };
+    
+    CSSInlineEditor.prototype.getSelectedRule = function () {
+    };
+    
+    CSSInlineEditor.prototype.setSelectedRule = function () {
+    };
+    
+    CSSInlineEditor.prototype.nextRule = function () {
+    };
+    
+    CSSInlineEditor.prototype.previousRule = function () {
+    };
+    
+    function FindInFilesInline() {
+    }
+    FindInFilesInline.prototype = new InlineEditor();
+    
     /**
      * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
      * CSS rules and show (one/all of them) in an inline editor.
@@ -198,23 +281,23 @@ define(function (require, exports, module) {
      *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
      *      or null if we're not going to provide anything.
      */
-    function htmlToCSSProvider(editor, pos) {
+    function htmlToCSSProvider(hostEditor, pos) {
         // Only provide a CSS editor when cursor is in HTML content
-        if (editor._codeMirror.getOption("mode") !== "htmlmixed") {
+        if (hostEditor._codeMirror.getOption("mode") !== "htmlmixed") {
             return null;
         }
-        var htmlmixedState = editor._codeMirror.getTokenAt(pos).state;
+        var htmlmixedState = hostEditor._codeMirror.getTokenAt(pos).state;
         if (htmlmixedState.mode !== "html") {
             return null;
         }
         
         // Only provide CSS editor if the selection is an insertion point
-        var sel = editor.getSelection(false);
+        var sel = hostEditor.getSelection(false);
         if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
             return null;
         }
         
-        var selectorName = _getSelectorName(editor, pos);
+        var selectorName = _getSelectorName(hostEditor, pos);
         if (selectorName === "") {
             return null;
         }
@@ -224,29 +307,13 @@ define(function (require, exports, module) {
         CSSUtils.findMatchingRules(selectorName)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
-                    var rule = rules[0];  // For Sprint 4 we use the first match only
+                    var cssInlineEditor = new CSSInlineEditor(rules);
                     
-                    var inlineInfo = _showTextRangeInInlineEditor(editor, rule.document, rule.lineStart, rule.lineEnd);
-                    
-                    // track inlineEditor content removal
-                    var origOnClosed = inlineInfo.onClosed;
-                    inlineInfo.onClosed = function () {
-                        origOnClosed();
-                        _inlineEditorRemoved(inlineInfo.content);
-                    };
-                    
-                    _createInlineEditorDecorations(inlineInfo.editor, rule.document);
-                    
-                    _htmlToCSSProviderContent.push(inlineInfo.content);
-                    
-                    // Manually position filename div's. Can't use CSS positioning in this case
-                    // since the label is relative to the window boundary, not CodeMirror.
-                    if (_htmlToCSSProviderContent.length > 0) {
-                        $(window).on("resize", _updateAllFilenames);
-                        $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
-                    }
-                    
-                    result.resolve(inlineInfo);
+                    cssInlineEditor.load(hostEditor).done(function () {
+                        result.resolve(cssInlineEditor);
+                    }).fail(function () {
+                        result.reject();
+                    });
                 } else {
                     // No matching rules were found.
                     result.reject();
