@@ -11,21 +11,21 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     
     // Load dependent modules
-    var CommandManager      = require("CommandManager"),
-        Commands            = require("Commands"),
-        NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        ProjectManager      = require("ProjectManager"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        FileUtils           = require("FileUtils"),
-        Async               = require("Async"),
-        Dialogs             = require("Dialogs"),
+    var CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = require("project/ProjectManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
+        Async               = require("utils/Async"),
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
-        PreferencesManager  = require("PreferencesManager"),
-        PerfUtils           = require("PerfUtils");
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        PerfUtils           = require("utils/PerfUtils");
     
     /**
-     * Handlers for commands related to file handling (opening, saving, etc.)
+     * Handlers for commands related to document handling (opening, saving, etc.)
      */
     
     /** @type {jQueryObject} Container for label shown above editor */
@@ -165,7 +165,7 @@ define(function (require, exports, module) {
 
     function handleFileAddToWorkingSet(commandData) {
         handleFileOpen(commandData).done(function (doc) {
-            DocumentManager.addToWorkingSet(doc);
+            DocumentManager.addToWorkingSet(doc.file);
         });
     }
 
@@ -327,7 +327,19 @@ define(function (require, exports, module) {
     function saveAll() {
         // Do in serial because doSave shows error UI for each file, and we don't want to stack
         // multiple dialogs on top of each other
-        return Async.doSequentially(DocumentManager.getWorkingSet(), doSave, false);
+        return Async.doSequentially(
+            DocumentManager.getWorkingSet(),
+            function (file) {
+                var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+                if (doc) {
+                    return doSave(doc);
+                } else {
+                    // working set entry that was never actually opened - ignore
+                    return (new $.Deferred()).resolve();
+                }
+            },
+            false
+        );
     }
     
 
@@ -350,7 +362,7 @@ define(function (require, exports, module) {
         function doClose(doc) {
             if (!commandData || !commandData.promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeDocument(doc);
+                DocumentManager.closeFullEditor(doc.file);
             
                 EditorManager.focusEditor();
             }
@@ -417,8 +429,12 @@ define(function (require, exports, module) {
     function handleFileCloseAll(commandData) {
         var result = new $.Deferred();
         
-        var unsavedDocs = DocumentManager.getWorkingSet().filter(function (doc) {
-            return doc.isDirty;
+        var unsavedDocs = [];
+        DocumentManager.getWorkingSet().forEach(function (file) {
+            var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            if (doc && doc.isDirty) {
+                unsavedDocs.push(doc);
+            }
         });
         
         if (unsavedDocs.length === 0) {

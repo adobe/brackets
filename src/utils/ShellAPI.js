@@ -12,7 +12,7 @@ define(function (require, exports, module) {
     'use strict';
 
     // Load dependent modules
-    var CommandManager     = require("CommandManager");
+    var CommandManager     = require("command/CommandManager");
 
     /**
      * The native function BracketsShellAPI::DispatchBracketsJSCommand calls this function in order to enable

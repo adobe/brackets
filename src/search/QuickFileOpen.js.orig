@@ -22,6 +22,7 @@
 define(function (require, exports, module) {
     'use strict';
     
+<<<<<<< HEAD:src/QuickFileOpen.js
     var FileIndexManager    = require("FileIndexManager"),
         JSLint              = require("JSLint"),
         DocumentManager     = require("DocumentManager"),
@@ -91,6 +92,14 @@ define(function (require, exports, module) {
             plugin.resultsFormatter
         ));
     }
+=======
+    var FileIndexManager    = require("project/FileIndexManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        CommandManager      = require("command/CommandManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Commands            = require("command/Commands"),
+        ProjectManager      = require("project/ProjectManager");
+>>>>>>> origin/master:src/search/QuickFileOpen.js
 
     /**
     * QuickNavigateDialog class

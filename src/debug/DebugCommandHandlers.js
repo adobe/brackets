@@ -8,15 +8,15 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands                = require("Commands"),
-        CommandManager          = require("CommandManager"),
-        JSLint                  = require("JSLint"),
-        PerfUtils               = require("PerfUtils");
+    var Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        JSLintUtils             = require("language/JSLintUtils"),
+        PerfUtils               = require("utils/PerfUtils");
     
     function _handleEnableJSLint() {
-        JSLint.setEnabled(!JSLint.getEnabled());
-        JSLint.run();
-        $("#jslint-enabled-checkbox").css("display", JSLint.getEnabled() ? "" : "none");
+        JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
+        JSLintUtils.run();
+        $("#jslint-enabled-checkbox").css("display", JSLintUtils.getEnabled() ? "" : "none");
     }
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
