@@ -394,12 +394,15 @@ define(function (require, exports, module) {
         var self = this;
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
-        this._codeMirror.setOption("onChange", function () {
-            $(self).triggerHandler("change");
+        this._codeMirror.setOption("onChange", function (instance, change) {
+            $(self).triggerHandler("change", [self, change]);
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
             return false;   // false tells CodeMirror we didn't eat the event
+        });
+        this._codeMirror.setOption("onCursorActivity", function (instance) {
+            $(self).triggerHandler("cursorActivity", [self]);
         });
     };
     
