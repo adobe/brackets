@@ -1,14 +1,14 @@
 a {
-    color: "red";
+    color: red;
 }/*END*/
 a {
-    color: "orange";
+    color: orange;
 }/*END*/
 
-a { color: "yellow"; }/*END*/
-a:visited { color: "black"; }/*END*/
+a { color: yellow; }/*END*/
+a:visited { color: black; }/*END*/
 
-a { color: "red"; }/*END*/a { color: "blue"; }/*END*/
+a { color: red; }/*END*/a { color: blue; }/*END*/
 
 /* Note: @charset and @import must be at top of style sheet, so
  * examples are technically malformed, but parsing is the same

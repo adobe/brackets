@@ -9,9 +9,9 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeHintUtils   = require("CodeHintUtils"),
+    var HTMLUtils       = require("language/HTMLUtils"),
         SpecRunnerUtils = require("./SpecRunnerUtils.js"),
-        Editor          = require("Editor").Editor;
+        Editor          = require("editor/Editor").Editor;
     
     //Use a clean version of the editor each time
     var myDocument;
@@ -44,7 +44,7 @@ define(function (require, exports, module) {
     }
     
     
-    describe("CodeHintUtils", function () {
+    describe("HTMLUtils", function () {
         
         describe("Html Hinting", function () {
             beforeEach(function () {
@@ -55,8 +55,8 @@ define(function (require, exports, module) {
     
             it("should not find attribute hints in an empty editor", function () {
                 var pos = {"ch": 0, "line": 0};
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo());
             });
             
             it("should find an attribute as a tag is getting typed", function () {
@@ -65,8 +65,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<p class="');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class"));
             });
             
             it("should find an attribute as it's added to a tag", function () {
@@ -76,8 +76,8 @@ define(function (require, exports, module) {
                     '<p id="', '>test</p>',
                     [ '</div>', '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "id"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id"));
             });
             
             it("should find an attribute as the value is typed", function () {
@@ -87,8 +87,8 @@ define(function (require, exports, module) {
                     '<p id="one', '>test</p>',
                     [ '</div>', '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "id", "one"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one"));
             });
             
             it("should not find an attribute as text is added", function () {
@@ -98,8 +98,8 @@ define(function (require, exports, module) {
                     '<p id="foo">tricky="', '</p>',
                     [ '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo());
             });
             
             it("should find the attribute value if present", function () {
@@ -109,8 +109,8 @@ define(function (require, exports, module) {
                     '<p class="foo"', '></p>',
                     [ '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
@@ -120,8 +120,8 @@ define(function (require, exports, module) {
                     '<p class="foo', ' bar"></p>',
                     [ '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
             });
             
             it("should find the attribute value even when there is space around the =", function () {
@@ -131,8 +131,8 @@ define(function (require, exports, module) {
                     '<p class = "foo"', '></p>',
                     [ '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 3, "p", "class", "foo"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo"));
             });
             
             it("should find the attribute value when the IP is after the =", function () {
@@ -142,8 +142,8 @@ define(function (require, exports, module) {
                     '<p class=', '"foo"></p>',
                     [ '</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_VALUE, 0, "p", "class", "foo"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "foo"));
             });
             
             it("should find the tagname as it's typed", function () {
@@ -152,8 +152,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<di');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 2, "di"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME, 2, "di"));
             });
             
             it("should hint tagname as the open < is typed", function () {
@@ -162,8 +162,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<p>test</p><');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME));
             });
             
             it("should find the tagname of the current tag if two tags are right next to each other", function () {
@@ -172,8 +172,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><span');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.TAG_NAME, 4, "span"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.TAG_NAME, 4, "span"));
             });
             
             it("should hint attributes even if there is a lot of space between the tag name and the next attr name", function () {
@@ -182,8 +182,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><li  ', '  id="foo"');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "li"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_NAME, 0, "li"));
             });
             
             it("should find the tagname as space is typed before the attr name is added", function () {
@@ -192,8 +192,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><span ');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo(CodeHintUtils.ATTR_NAME, 0, "span"));
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_NAME, 0, "span"));
             });
             
             it("should not hint anything after the tag is closed", function () {
@@ -202,8 +202,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>'],
                     '<div><span>');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo());
             });
             
             it("should not hint anything after a closing tag", function () {
@@ -213,8 +213,8 @@ define(function (require, exports, module) {
                     '<div><span></span>', '</div>',
                     ['</body>', '</html>']);
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo());
             });
             
             it("should not hint anything inside a closing tag", function () {
@@ -223,8 +223,8 @@ define(function (require, exports, module) {
                     ['<html>', '<body>', '<div id="test" class="foo"></div>'],
                     '</body></ht', 'ml>');
                 
-                var tag = CodeHintUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(CodeHintUtils.createTagInfo());
+                var tag = HTMLUtils.getTagInfo(myEditor, pos);
+                expect(tag).toEqual(HTMLUtils.createTagInfo());
             });
         });
     });

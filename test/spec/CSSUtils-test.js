@@ -8,10 +8,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem        = require("NativeFileSystem").NativeFileSystem,
-        Async                   = require("Async"),
-        FileUtils               = require("FileUtils"),
-        CSSUtils                = require("CSSUtils"),
+    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        Async                   = require("utils/Async"),
+        FileUtils               = require("file/FileUtils"),
+        CSSUtils                = require("language/CSSUtils"),
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),

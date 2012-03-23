@@ -38,7 +38,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // Initialize: register listeners
-                testWindow.$(DocumentManager).on("workingSetAdd", function (event, addedDoc) {
+                testWindow.$(DocumentManager).on("workingSetAdd", function (event, addedFile) {
                     workingSetCount++;
                 });
             });
@@ -163,13 +163,15 @@ define(function (require, exports, module) {
             var didClose = false;
                     
             // make 2nd doc clean
-            var docList = DocumentManager.getWorkingSet();
+            var fileList = DocumentManager.getWorkingSet();
 
             runs(function () {
-                docList[1]._markClean();
+                var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
+                var doc1 = DocumentManager.getOpenDocumentForPath(fileList[1].fullPath);
+                doc1._markClean();
                                 
                 // make the first one active
-                DocumentManager.setCurrentDocument(docList[0]);
+                DocumentManager.setCurrentDocument(doc0);
                                 
                 // hover over and click on close icon of 2nd list item
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
@@ -178,7 +180,7 @@ define(function (require, exports, module) {
                 expect(closeIcon.length).toBe(1);
                                 
                 // simulate click
-                $(DocumentManager).on("workingSetRemove", function (event, removedDoc) {
+                $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
                     didClose = true;
                 });
 
@@ -197,8 +199,10 @@ define(function (require, exports, module) {
         it("should remove dirty icon when file becomes clean", function () {
             runs(function () {
                 // check that dirty icon is removed when docs are cleaned
-                var docList = DocumentManager.getWorkingSet();
-                docList[0]._markClean();
+                var fileList = DocumentManager.getWorkingSet();
+                var doc0 = DocumentManager.getOpenDocumentForPath(fileList[0].fullPath);
+                doc0._markClean();
+                
                 var listItems = testWindow.$("#open-files-container > ul").children();
                 expect(listItems.find(".file-status-icon dirty").length).toBe(0);
             });

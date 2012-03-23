@@ -36,10 +36,10 @@
  *    - documentSaved -- When a Document's changes have been saved. The 2nd arg to the listener is the 
  *      Document that has been saved.
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
- *    - workingSetAdd -- When a Document is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added Document.
- *    - workingSetRemove -- When a Document is removed from the working set (see getWorkingSet()). The
- *      2nd arg to the listener is the removed Document.
+ *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
+ *      to the listener is the added FileEntry.
+ *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
+ *      2nd arg to the listener is the removed FileEntry.
  *    - change -- When the text of the editor changes (including due to undo/redo). Passes 
  *          ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
  *          of change record objects. Each change record looks like:
@@ -57,15 +57,13 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        ProjectManager      = require("ProjectManager"),
-        EditorManager       = require("EditorManager"),
-        PreferencesManager  = require("PreferencesManager"),
-        FileUtils           = require("FileUtils"),
-        CommandManager      = require("CommandManager"),
-        Async               = require("Async"),
-        Editor              = require("Editor").Editor,
-        Commands            = require("Commands");
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = require("project/ProjectManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        FileUtils           = require("file/FileUtils"),
+        CommandManager      = require("command/CommandManager"),
+        Async               = require("utils/Async"),
+        Commands            = require("command/Commands");
 
     /**
      * Unique PreferencesManager clientID
@@ -90,6 +88,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {Array.<FileEntry>}
      * @see DocumentManager.getWorkingSet()
      */
     var _workingSet = [];
@@ -104,14 +103,14 @@ define(function (require, exports, module) {
     /**
      * Returns an ordered list of items in the working set. May be 0-length, but never null.
      *
-     * When a Document is added this list, DocumentManager dispatches a "workingSetAdd" event.
-     * When a Document is removed from list, DocumentManager dispatches a "workingSetRemove" event.
+     * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
+     * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
      * To listen for ALL changes to this list, you must listen for both events.
      *
      * Which items belong in the working set is managed entirely by DocumentManager. Callers cannot
      * (yet) change this collection on their own.
      *
-     * @return {Array.<Document>}
+     * @return {Array.<FileEntry>}
      */
     function getWorkingSet() {
         return _workingSet;
@@ -126,9 +125,9 @@ define(function (require, exports, module) {
      */
     function findInWorkingSet(fullPath) {
         var ret = -1;
-        var found = _workingSet.some(function findByPath(ele, i, arr) {
+        var found = _workingSet.some(function findByPath(file, i) {
                 ret = i;
-                return ele.file.fullPath === fullPath;
+                return file.fullPath === fullPath;
             });
             
         return (found ? ret : -1);
@@ -153,31 +152,31 @@ define(function (require, exports, module) {
     
     
     /**
-     * Adds the given document to the end of the working set list, if it is not already in the list.
+     * Adds the given file to the end of the working set list, if it is not already in the list.
      * Does not change which document is currently open in the editor.
-     * @param {!Document} document
+     * @param {!FileEntry} file
      */
-    function addToWorkingSet(document) {
+    function addToWorkingSet(file) {
         // If doc is already in working set, don't add it again
-        if (findInWorkingSet(document.file.fullPath) !== -1) {
+        if (findInWorkingSet(file.fullPath) !== -1) {
             return;
         }
         
         // Add
-        _workingSet.push(document);
+        _workingSet.push(file);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetAdd", document);
+        $(exports).triggerHandler("workingSetAdd", file);
     }
     
     /**
-     * Removes the given document from the working set list, if it was in the list. Does not change
-     * the editor even if this document is the one currently open;.
-     * @param {!Document} document
+     * Removes the given file from the working set list, if it was in the list. Does not change
+     * the current editor even if it's for this file.
+     * @param {!FileEntry} file
      */
-    function _removeFromWorkingSet(document) {
+    function _removeFromWorkingSet(file) {
         // If doc isn't in working set, do nothing
-        var index = findInWorkingSet(document.file.fullPath);
+        var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
             return;
         }
@@ -186,7 +185,7 @@ define(function (require, exports, module) {
         _workingSet.splice(index, 1);
         
         // Dispatch event
-        $(exports).triggerHandler("workingSetRemove", document);
+        $(exports).triggerHandler("workingSetRemove", file);
     }
 
     
@@ -208,7 +207,7 @@ define(function (require, exports, module) {
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
         if (!ProjectManager.isWithinProject(document.file.fullPath)) {
-            addToWorkingSet(document);
+            addToWorkingSet(document.file);
         }
         
         // Make it the current document
@@ -231,58 +230,56 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Closes the given document (which may or may not be the current document in the editor UI, and
-     * may or may not be in the working set). Discards any unsaved changes if isDirty - it is
-     * expected that the UI has already confirmed with the user before calling us.
+     * Closes the full editor for the given file (if it has ever been open), and removes it from the
+     * working set (if was in it). Discards any unsaved changes if isDirty - it is expected that the
+     * UI has already confirmed with the user before calling this.
      *
-     * This will change currentDocument if this document was current one (if possible; in some cases,
-     * the editor may be left blank instead). This will also remove the doc from the working set if
-     * it was in the set.
+     * Changes currentDocument if this file was the current document (may change to null).
      *
-     * TODO: disentangle the notion of closing the main editor vs. totally destroying a Document (e.g.
-     * because it has been deleted on disk). The latter can happen even when there's no main editor,
-     * and not in the working set.
+     * TODO (issue #474): disentangle the notion of closing the main editor vs. totally destroying a
+     * Document (e.g. because it has been deleted on disk). The latter can happen even when there's
+     * no main editor, and not in the working set.
      *
-     * @param {!Document} document
+     * @param {!FileEntry} file
      */
-    function closeDocument(document) {
+    function closeFullEditor(file) {
         // If this was the current document shown in the editor UI, we're going to switch to a
         // different document (or none if working set has no other options)
-        if (_currentDocument === document) {
-            var wsIndex = findInWorkingSet(document.file.fullPath);
+        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+            var wsIndex = findInWorkingSet(file.fullPath);
             
             // Decide which doc to show in editor after this one
-            var nextDocument;
+            var nextFile;
             if (wsIndex === -1) {
                 // If doc wasn't in working set, use bottommost working set item
                 if (_workingSet.length > 0) {
-                    nextDocument = _workingSet[_workingSet.length  - 1];
+                    nextFile = _workingSet[_workingSet.length  - 1];
                 }
                 // else: leave nextDocument null; editor area will be blank
             } else {
                 // If doc was in working set, use item next to it (below if possible)
                 if (wsIndex < _workingSet.length - 1) {
-                    nextDocument = _workingSet[wsIndex + 1];
+                    nextFile = _workingSet[wsIndex + 1];
                 } else if (wsIndex > 0) {
-                    nextDocument = _workingSet[wsIndex - 1];
+                    nextFile = _workingSet[wsIndex - 1];
                 }
                 // else: leave nextDocument null; editor area will be blank
             }
             
             // Switch editor to next document (or blank it out)
-            if (nextDocument) {
-                setCurrentDocument(nextDocument);
+            if (nextFile) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath });
             } else {
                 _clearCurrentDocument();
             }
         }
         
         // (Now we're guaranteed that the current document is not the one we're closing)
-        console.assert(_currentDocument !== document);
+        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
-        _removeFromWorkingSet(document);
+        _removeFromWorkingSet(file);
         
         // Note: EditorManager will dispose the closed document's now-unneeded editor either in
         // response to the editor-swap call above, or the _removeFromWorkingSet() call, depending on
@@ -290,13 +287,14 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Equivalent to calling closeDocument() for all Documents. Same caveat: this discards any
+     * Equivalent to calling closeFullEditor() for all Documents. Same caveat: this discards any
      * unsaved changes, so the UI should confirm with the user before calling this.
      */
     function closeAll() {
-        var allDocs = getAllOpenDocuments();
+        _clearCurrentDocument();
         
-        allDocs.forEach(closeDocument);
+        var wsClone = _workingSet.slice(0);  // can't delete from the same array we're iterating
+        wsClone.forEach(_removeFromWorkingSet);
     }
     
     
@@ -348,7 +346,7 @@ define(function (require, exports, module) {
     /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
      * it means the file was modified by an app other than Brackets.
-     * @type {?Date}
+     * @type {!Date}
      */
     Document.prototype.diskTimestamp = null;
     
@@ -434,7 +432,7 @@ define(function (require, exports, module) {
             // what's on disk. But since we currently close all secondary editors when anyone else
             // touches the Document content, there's no point in doing that yet. Just change the text
             // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
-            // should probably live in FileCommandHandlers.handleFileClose().
+            // should probably live in DocumentCommandHandlers.handleFileClose().
             if (this.isDirty) {
                 this.refreshText("");
             }
@@ -519,7 +517,7 @@ define(function (require, exports, module) {
         // If file just became dirty, notify listeners, and add it to working set (if not already there)
         if (!wasDirty) {
             $(exports).triggerHandler("dirtyFlagChange", [this]);
-            addToWorkingSet(this);
+            addToWorkingSet(this.file);
         }
         
         // Notify that Document's text has changed
@@ -535,7 +533,7 @@ define(function (require, exports, module) {
     };
     
     /** 
-     * Called when the document is saved (which currently happens in FileCommandHandlers). Marks the
+     * Called when the document is saved (which currently happens in DocumentCommandHandlers). Marks the
      * document not dirty and notifies listeners of the save.
      */
     Document.prototype.notifySaved = function () {
@@ -561,7 +559,7 @@ define(function (require, exports, module) {
     /* (pretty toString(), to aid debugging) */
     Document.prototype.toString = function () {
         var dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
-        var editorInfo = (this._masterEditor ? " Editable" : " Non-editable");
+        var editorInfo = (this._masterEditor ? " (Editable)" : " (Non-editable)");
         var refInfo = " refs:" + this._refCount;
         return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };
@@ -600,6 +598,15 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Returns the existing open Document for the given file, or null if the file is not open ('open'
+     * means referenced by the UI somewhere). If you will hang onto the Document, you must addRef()
+     * it; see {@link getDocumentForPath()} for details.
+     */
+    function getOpenDocumentForPath(fullPath) {
+        return _openDocuments[fullPath];
+    }
+    
     
     /**
      * @private
@@ -612,12 +619,12 @@ define(function (require, exports, module) {
             workingSet  = getWorkingSet(),
             currentDoc  = getCurrentDocument();
 
-        workingSet.forEach(function (value, index) {
+        workingSet.forEach(function (file, index) {
             // flag the currently active editor
-            isActive = (value === currentDoc);
+            isActive = (file.fullPath === currentDoc.file.fullPath);
 
             files.push({
-                file: value.file.fullPath,
+                file: file.fullPath,
                 active: isActive
             });
         });
@@ -638,23 +645,25 @@ define(function (require, exports, module) {
 
         var projectRoot = ProjectManager.getProjectRoot(),
             filesToOpen = [],
-            activeDoc;
+            activeFile;
 
-        // in parallel, load working set files
+        // in parallel, check if files exist
         // TODO: (issue #298) delay this check until it becomes the current document?
-        function loadOneFile(value, index) {
+        function checkOneFile(value, index) {
             var oneFileResult = new $.Deferred();
             
-            // load files into Documents; silently ignore if file no longer exists
-            getDocumentForPath(value.file)
-                .done(function (doc) {
-                    filesToOpen[index] = doc;
+            // check if the file still exists; silently drop from working set if it doesn't
+            projectRoot.getFile(value.file, {},
+                function (fileEntry) {
+                    // maintain original sequence
+                    filesToOpen[index] = fileEntry;
+
                     if (value.active) {
-                        activeDoc = doc;
+                        activeFile = fileEntry;
                     }
                     oneFileResult.resolve();
-                })
-                .fail(function (error) {
+                },
+                function (error) {
                     filesToOpen[index] = null;
                     oneFileResult.resolve();
                 });
@@ -662,35 +671,23 @@ define(function (require, exports, module) {
             return oneFileResult;
         }
 
-        var result = Async.doInParallel(prefs.files, loadOneFile, false);
+        var result = Async.doInParallel(prefs.files, checkOneFile, false);
 
         result.done(function () {
             // Add all existing files to the working set
-            // FIXME: for now, we're creating editors for them too at startup; otherwise nothing
-            // keeps the Documents we just created alive, and thus the working set would contain
-            // Documents that are not actually kept up to date
-            // Possible fixes:
-            //  1. be ok with working set Docs being "stale"; refresh them before loading if they don't have a backing editor
-            //  2. make adding to the working set addRef() the Doc (NJ didn't like this - EditorManager should own Doc rooting)
-            //  3. the set of Docs we keep in syn is the union openDocs (all Doccs with > 0 refCount) PLUS anything else in the working set
-            //     (which is sort of a loophole that's otherwise equivalent to option 2)
-            //---> make the working set a list of filenames instead of Docs; complicates live for WorkingSetView though, since
-            //     it also cares if they're dirty and you can only find that out from a Doc
-            filesToOpen.forEach(function (doc, index) {
-                if (doc) {
-                    addToWorkingSet(doc);
-                    setCurrentDocument(doc);    // force creation of backing Editor to keep doc alive
+            filesToOpen.forEach(function (file, index) {
+                if (file) {
+                    addToWorkingSet(file);
                 }
             });
 
             // Initialize the active editor
-            if (!activeDoc && _workingSet.length > 0) {
-                activeDoc = _workingSet[0];
+            if (!activeFile && _workingSet.length > 0) {
+                activeFile = _workingSet[0];
             }
 
-            if (activeDoc) {
-                // CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeDoc.file.fullPath });
-                setCurrentDocument(activeDoc);
+            if (activeFile) {
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile.fullPath });
             }
         });
     }
@@ -700,12 +697,13 @@ define(function (require, exports, module) {
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
     exports.getDocumentForPath = getDocumentForPath;
+    exports.getOpenDocumentForPath = getOpenDocumentForPath;
     exports.getWorkingSet = getWorkingSet;
     exports.findInWorkingSet = findInWorkingSet;
     exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
-    exports.closeDocument = closeDocument;
+    exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
 
     // Register preferences callback

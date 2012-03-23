@@ -25,18 +25,17 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var NativeFileSystem    = require("NativeFileSystem").NativeFileSystem,
-        PreferencesManager  = require("PreferencesManager"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        CommandManager      = require("CommandManager"),
-        Commands            = require("Commands"),
-        Dialogs             = require("Dialogs"),
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
-        FileViewController  = require("FileViewController"),
-        PerfUtils           = require("PerfUtils"),
-        ViewUtils           = require("ViewUtils"),
-        FileUtils           = require("FileUtils");
+        FileViewController  = require("project/FileViewController"),
+        PerfUtils           = require("utils/PerfUtils"),
+        ViewUtils           = require("utils/ViewUtils"),
+        FileUtils           = require("file/FileUtils");
     
     /**
      * @private
@@ -233,6 +232,12 @@ define(function (require, exports, module) {
                         result.resolve();
                     }
                 }
+            )
+            .bind(
+                "loaded.jstree open_node.jstree close_node.jstree",
+                function (event, data) {
+                    ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                }
             );
 
         // jstree has a default event handler for dblclick that attempts to clear the
@@ -251,11 +256,7 @@ define(function (require, exports, module) {
                     }
                 });
         });
-        
-        result.always(function () {
-            ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
-        });
-        
+
         return result;
     }
     
@@ -360,8 +361,6 @@ define(function (require, exports, module) {
                     treeNode.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass(classToAdd);
                 }
-                
-                ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
             },
             function (error) {
                 Dialogs.showModalDialog(

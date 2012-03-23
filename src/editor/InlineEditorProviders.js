@@ -13,12 +13,12 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var CodeHintUtils       = require("CodeHintUtils"),
-        CSSUtils            = require("CSSUtils"),
-        DocumentManager     = require("DocumentManager"),
-        EditorManager       = require("EditorManager"),
-        FileUtils           = require("FileUtils"),
-        ProjectManager      = require("ProjectManager");
+    var HTMLUtils           = require("language/HTMLUtils"),
+        CSSUtils            = require("language/CSSUtils"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        FileUtils           = require("file/FileUtils"),
+        ProjectManager      = require("project/ProjectManager");
 
     // track divs to re-position manually
     var _htmlToCSSProviderContent   = [];
@@ -125,14 +125,14 @@ define(function (require, exports, module) {
      * @private
      */
     function _getSelectorName(editor, pos) {
-        var tagInfo = CodeHintUtils.getTagInfo(editor, pos),
+        var tagInfo = HTMLUtils.getTagInfo(editor, pos),
             selectorName = "";
         
-        if (tagInfo.position.tokenType === CodeHintUtils.TAG_NAME) {
+        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
             // Type selector
             selectorName = tagInfo.tagName;
-        } else if (tagInfo.position.tokenType === CodeHintUtils.ATTR_NAME ||
-                   tagInfo.position.tokenType === CodeHintUtils.ATTR_VALUE) {
+        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME ||
+                   tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
             if (tagInfo.attr.name === "class") {
                 // Class selector. We only look for the class name
                 // that includes the insertion point. For example, if

@@ -8,9 +8,9 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Editor          = require("Editor").Editor,
+    var Editor          = require("editor/Editor").Editor,
         SpecRunnerUtils = require("./SpecRunnerUtils.js"),
-        EditorUtils     = require("EditorUtils");
+        EditorUtils     = require("editor/EditorUtils");
 
     describe("Editor", function () {
         var content = 'Brackets is going to be awesome!\n';
