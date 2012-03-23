@@ -184,7 +184,7 @@ define(function LiveDevelopment(require, exports, module) {
     function open() {
         var doc = _getCurrentDocument();
         var browserStarted = false;
-        if (doc) {
+        if (doc && doc.root) {
             _setStatus(1);
             Inspector.connectToURL(doc.root.url).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
