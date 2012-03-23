@@ -40,6 +40,16 @@
  *      to the listener is the added FileEntry.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
+ *    - change -- When the text of the editor changes (including due to undo/redo). Passes 
+ *          ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
+ *          of change record objects. Each change record looks like:
+ *          { from: start of change, expressed as {line: <line number>, ch: <character offset>},
+ *            to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
+ *            text: array of lines of text to replace existing text,
+ *            next: next change record in the linked list, or undefined if this is the last record }
+ *      If "from" and "to" are undefined, then this is a replacement of the entire text content.
+ *      (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
+ *       it an ordinary array)
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -463,7 +473,6 @@ define(function (require, exports, module) {
         // _handleEditorChange() triggers "change" event
     };
     
-    
     /**
      * Sets the contents of the document. Treated as reloading the document from disk: the document
      * will be marked clean with a new timestamp, the undo/redo history is cleared, and we re-check
@@ -477,7 +486,12 @@ define(function (require, exports, module) {
             // _handleEditorChange() triggers "change" event for us
         } else {
             this._text = text;
-            $(this).triggerHandler("change", [this]);
+            // We fake a change record here that looks like CodeMirror's text change records, but
+            // omits "from" and "to", by which we mean the entire text has changed.
+            // TODO: Dumb to split it here just to join it again in the change handler, but this is
+            // the CodeMirror change format. Should we document our change format to allow this to
+            // either be an array of lines or a single string?
+            $(this).triggerHandler("change", [this, {text: text.split("\n")}]);
         }
         this._markClean();
         this.diskTimestamp = newTimestamp;
@@ -494,7 +508,7 @@ define(function (require, exports, module) {
      * to that Editor's UI, OR by our setText()/refreshText() methods.
      * @private
      */
-    Document.prototype._handleEditorChange = function () {
+    Document.prototype._handleEditorChange = function (event, editor, changeList) {
         // On any change, mark the file dirty. In the future, we should make it so that if you
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
@@ -507,7 +521,7 @@ define(function (require, exports, module) {
         }
         
         // Notify that Document's text has changed
-        $(this).triggerHandler("change", [this]);
+        $(this).triggerHandler("change", [this, changeList]);
     };
     
     /**
