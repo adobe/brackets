@@ -192,8 +192,8 @@ define(function (require, exports, module) {
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
      *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
-     * @param {{startLine: number, endLine: number}} range If specified, range of lines within the document
-     *          to display in this editor.
+     * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
+     *          to display in this editor. Inclusive.
      */
     function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
         var self = this;
@@ -336,14 +336,15 @@ define(function (require, exports, module) {
     };
     
     Editor.prototype._applyChangesToEditor = function (editor, changeList) {
-        // FUTURE: Technically we should go through the editor's document. However, we need to access
+        // FUTURE: Technically we should add a replaceRange() method to Document and go through
+        // that instead of talking to the editor's document directly. However, we need to access
         // a CodeMirror API to make sure that the edits get batched properly, and it's not clear
         // that we want that exact API exposed in Document yet. So for now we just talk to
         // the editor directly. Eventually we will factor this out into a model API once we 
         // have an actual central model.
         var cm = editor._codeMirror;
         cm.operation(function () {
-            var change, newText, reshown = false;
+            var change, newText;
             for (change = changeList; change; change = change.next) {
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
@@ -375,7 +376,7 @@ define(function (require, exports, module) {
                                 editor.hideLine(i);
                             }
                         }
-                        console.log("new visible range: " + editor._visibleRange.startLine + " - " + editor._visibleRange.endLine);
+                        //console.log("new visible range: " + editor._visibleRange.startLine + " - " + editor._visibleRange.endLine);
                         // TODO: should double-check that the range of non-hidden lines after this matches up
                         // with what we think _visibleRange is
                     }
@@ -426,7 +427,7 @@ define(function (require, exports, module) {
                 numAdded += change.text.length - (change.to.line - change.from.line + 1);
             }
             this._visibleRange.endLine += numAdded;
-            console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
+            //console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
             // TODO: should double-check that the range of non-hidden lines after this matches up
             // with what we think _visibleRange is
         }
@@ -592,7 +593,8 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!DOMElement} domContent  DOM node of widget UI to insert.
      * @param {number} initialHeight  Initial height to accomodate.
-     * @param {function()} parentShowCallback  Function called when parent of inline is made visible.
+     * @param {function()} parentShowCallback  Function called when the host editor is shown 
+     *          (via Editor.setVisible()).
      * @param {function()} closeCallback  Function called when inline is closed, either automatically
      *          by CodeMirror, or by this host Editor closing, or manually via removeInlineWidget().
      * @param {Object} data  Extra data to track along with the widget. Accessible later via
@@ -604,11 +606,7 @@ define(function (require, exports, module) {
         var self = this;
         var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
             self._removeInlineWidgetInternal(id);
-            
-            // TODO: remove timeout once issue #454 is fixed
-            setTimeout(function () {
-                closeCallback();
-            }, 0);
+            closeCallback();
         });
         this._inlineWidgets.push({ id: inlineId, data: data, parentShowCallback: parentShowCallback, closeCallback: closeCallback });
         
@@ -678,18 +676,25 @@ define(function (require, exports, module) {
     
     /**
      * Shows or hides the editor
-     * @param {boolean} shouldShow true to show the editor, false to hide it
+     * @param {boolean} show true to show the editor, false to hide it
      */
-    Editor.prototype.show = function (shouldShow) {
-        $(this._codeMirror.getWrapperElement()).css("display", (shouldShow ? "" : "none"));
+    Editor.prototype.setVisible = function (show) {
+        $(this._codeMirror.getWrapperElement()).css("display", (show ? "" : "none"));
         this._codeMirror.refresh();
-        if (shouldShow) {
+        if (show) {
             this._inlineWidgets.forEach(function (widget) {
                 if (widget.parentShowCallback) {
                     widget.parentShowCallback();
                 }
             });
         }
+    };
+    
+    /**
+     * Returns true if the editor is visible--i.e., is in the DOM and has a non-zero width/height.
+     */
+    Editor.prototype.isVisible = function () {
+        return $(this._codeMirror.getWrapperElement()).is(":visible");
     };
     
     /**
