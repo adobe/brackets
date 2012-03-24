@@ -238,7 +238,7 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
-     * @param {!Document} htmlDocument An HTML file for context (so we can search <style> blocks)
+     * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
      *      Does not addRef() the documents returned in the array.
@@ -252,7 +252,9 @@ define(function (require, exports, module) {
         findMatchingRulesInCSSFiles(selector, resultSelectors)
             .done(function () {
                 // Synchronously search for matches in <style> blocks
-                findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
+                if (htmlDocument) {
+                    findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
+                }
                 
                 result.resolve(resultSelectors);
             })
