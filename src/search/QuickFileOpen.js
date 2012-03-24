@@ -71,9 +71,10 @@ define(function (require, exports, module) {
         
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
+    * @param {?string} initialString Default text to prepopulate the search field with
     * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
     */
-    QuickNavigateDialog.prototype.showDialog = function () {
+    QuickNavigateDialog.prototype.showDialog = function (initialString) {
         var that = this;
         var fileInfoList;
         this.result = new $.Deferred();
@@ -85,6 +86,9 @@ define(function (require, exports, module) {
                 that._createDialogDiv(dialogHTML);
                 var closed = false;
                 var searchField = $('input#quickFileOpenSearch');
+                
+                searchField.attr("value", initialString ? initialString : "");
+                searchField.get(0).select();
 
                 // auto suggest list helper function
                 function _handleResultsFormatter(path) {
@@ -175,9 +179,13 @@ define(function (require, exports, module) {
     * number to navigate to a specific line in the current file.
     */
     function doFileSearch() {
-
+        // Default to searching for the current selection
+        var currentEditor = EditorManager.getCurrentFullEditor();
+        var initialString = currentEditor && currentEditor.getSelectedText();
+                            
         var dialog = new QuickNavigateDialog();
-        dialog.showDialog()
+        
+        dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
                     if (query.charAt(0) === ":") {

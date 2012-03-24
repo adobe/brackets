@@ -177,6 +177,13 @@ define(function (require, exports, module) {
         }
     }
     
+    function _findWrapper(instance) {
+        instance.execCommand("find");
+        var findBarTextField = $(".CodeMirror-dialog input[type='text']");
+        findBarTextField.attr("value", instance.getSelection());
+        findBarTextField.get(0).select();
+    }
+    
 
     /**
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
@@ -232,6 +239,8 @@ define(function (require, exports, module) {
                     CodeMirror.commands.delCharRight(instance);
                 }
             },
+            "Ctrl-F": _findWrapper,
+            "Cmd-F": _findWrapper,
             "F3": "findNext",
             "Shift-F3": "findPrev",
             "Ctrl-H": "replace",
@@ -467,6 +476,14 @@ define(function (require, exports, module) {
         var selStart = this._codeMirror.getCursor(true),
             selEnd = this._codeMirror.getCursor(false);
         return { start: selStart, end: selEnd };
+    };
+    
+    /**
+     * @return {!string} The currently selected text, or "" if no selection. Includes \n if the
+     * selection spans multiple lines (does NOT reflect the Document's line-endings style).
+     */
+    Editor.prototype.getSelectedText = function () {
+        return this._codeMirror.getSelection();
     };
     
     /**

@@ -71,14 +71,18 @@ define(function (require, exports, module) {
         
     /**
     * Shows the search dialog 
+    * @param {?string} initialString Default text to prepopulate the search field with
     * @returns {$.Promise} that is resolved with the string to search for
     */
-    FindInFilesDialog.prototype.showDialog = function () {
+    FindInFilesDialog.prototype.showDialog = function (initialString) {
         var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
         var searchField = $('input#findInFilesInput');
         var that = this;
+        
+        searchField.attr("value", initialString ? initialString : "");
+        searchField.get(0).select();
         
         searchField.bind("keydown", function (event) {
             if (event.keyCode === 13 || event.keyCode === 27) {  // Enter/Return key or Esc key
@@ -198,7 +202,7 @@ define(function (require, exports, module) {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
                                     .done(function (doc) {
                                         // Opened document is now the focused editor
-                                        EditorManager.getFocusedEditor().setSelection(match.start, match.end);
+                                        EditorManager.getCurrentFullEditor().setSelection(match.start, match.end);
                                     });
                             });
                             resultsDisplayed++;
@@ -253,8 +257,12 @@ define(function (require, exports, module) {
 
         var dialog = new FindInFilesDialog();
         var searchResults = [];
+        
+        // Default to searching for the current selection
+        var currentEditor = EditorManager.getCurrentFullEditor();
+        var initialString = currentEditor && currentEditor.getSelectedText();
                             
-        dialog.showDialog()
+        dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
                     var queryExpr = _getQueryRegExp(query);
