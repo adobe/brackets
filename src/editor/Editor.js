@@ -478,6 +478,9 @@ define(function (require, exports, module) {
             $(self).triggerHandler("keyEvent", [self, event]);
             return false;   // false tells CodeMirror we didn't eat the event
         });
+        this._codeMirror.setOption("onCursorActivity", function (instance) {
+            $(self).triggerHandler("cursorActivity", [self]);
+        });
     };
     
     /**
