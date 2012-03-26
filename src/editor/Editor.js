@@ -174,10 +174,14 @@ define(function (require, exports, module) {
         }
     }
     
-    function _findWrapper(instance) {
-        instance.execCommand("find");
+    /** Launches CodeMirror's basic Find-within-single-editor feature */
+    function _launchFind(codeMirror) {
+        // Bring up CodeMirror's existing search bar UI
+        codeMirror.execCommand("find");
+        
+        // Prepopulate the search field with the current selection, if any
         var findBarTextField = $(".CodeMirror-dialog input[type='text']");
-        findBarTextField.attr("value", instance.getSelection());
+        findBarTextField.attr("value", codeMirror.getSelection());
         findBarTextField.get(0).select();
     }
     
@@ -238,8 +242,8 @@ define(function (require, exports, module) {
                     CodeMirror.commands.delCharRight(instance);
                 }
             },
-            "Ctrl-F": _findWrapper,
-            "Cmd-F": _findWrapper,
+            "Ctrl-F": _launchFind,
+            "Cmd-F": _launchFind,
             "F3": "findNext",
             "Shift-F3": "findPrev",
             "Ctrl-H": "replace",

@@ -201,7 +201,7 @@ define(function (require, exports, module) {
                             row.click(function () {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
                                     .done(function (doc) {
-                                        // Opened document is now the focused editor
+                                        // Opened document is now the current main editor
                                         EditorManager.getCurrentFullEditor().setSelection(match.start, match.end);
                                     });
                             });
@@ -259,7 +259,7 @@ define(function (require, exports, module) {
         var searchResults = [];
         
         // Default to searching for the current selection
-        var currentEditor = EditorManager.getCurrentFullEditor();
+        var currentEditor = EditorManager.getFocusedEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
                             
         dialog.showDialog(initialString)

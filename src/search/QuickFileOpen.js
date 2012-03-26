@@ -180,7 +180,7 @@ define(function (require, exports, module) {
     */
     function doFileSearch() {
         // Default to searching for the current selection
-        var currentEditor = EditorManager.getCurrentFullEditor();
+        var currentEditor = EditorManager.getFocusedEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
                             
         var dialog = new QuickNavigateDialog();
