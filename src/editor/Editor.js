@@ -15,20 +15,17 @@
  * For now, there's a distinction between the "master" Editor for a Document - which secretly acts
  * as the Document's internal model of the text state - and the multitude of "slave" secondary Editors
  * which, via Document, sync their changes to and from that master.
- * Note: in sprint 5, secondary Editors only sync TO the Document; they cannot sync FROM the Document
- * if anyone else changes it (see lostSync event below).
  *
  * For now, direct access to the underlying CodeMirror object is still possible via _codeMirror --
  * but this is considered deprecated and may go away.
  *  
  * The Editor object dispatches the following events:
- *    - change -- When the text of the editor changes (including due to undo/redo)
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
- *    - lostSync -- When the backing Document changes in such a way that this Editor is no longer
- *          able to stay in sync with the text. Only fired by secondary (inline) editors. This will
- *          go away completely once we have full cross-Editor syncing.
+ *
+ * Note that the Editor also dispatches "change" events internally, but you should listen for those 
+ * on Documents, not Editors.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(editorInstance).on("eventname", handler);
@@ -193,10 +190,12 @@ define(function (require, exports, module) {
      * @param {!string} mode  Syntax-highlighting language mode; "" means plain-text mode.
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
-     * @param {!Object<string, function(Editor)} additionalKeys  Mapping of keyboard shortcuts to
+     * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
      *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
+     * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
+     *          to display in this editor. Inclusive.
      */
-    function Editor(document, makeMasterEditor, mode, container, additionalKeys) {
+    function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
         var self = this;
         
         // Attach to document
@@ -288,6 +287,23 @@ define(function (require, exports, module) {
         this._resetText(document.getText());
         this._duringSync = false;
         
+        if (range) {
+            // Hide all lines other than those we want to show. We do this rather than trimming the
+            // text itself so that the editor still shows accurate line numbers.
+            this._codeMirror.operation(function () {
+                var i;
+                for (i = 0; i < range.startLine; i++) {
+                    self.hideLine(i);
+                }
+                var lineCount = self.lineCount();
+                for (i = range.endLine + 1; i < lineCount; i++) {
+                    self.hideLine(i);
+                }
+            });
+            this._visibleRange = range;
+            this.setCursorPos(range.startLine, 0);
+        }
+
         // Now that we're fully initialized, we can point the document back at us if needed
         if (makeMasterEditor) {
             document._makeEditable(this);
@@ -319,6 +335,56 @@ define(function (require, exports, module) {
         });
     };
     
+    Editor.prototype._applyChangesToEditor = function (editor, changeList) {
+        // FUTURE: Technically we should add a replaceRange() method to Document and go through
+        // that instead of talking to the given editor directly. However, we need to access
+        // a CodeMirror API to make sure that the edits get batched properly, and it's not clear
+        // that we want that exact API exposed in Document yet. So for now we just talk to
+        // the editor directly. Eventually we will factor this out into a model API once we 
+        // have an actual central model.
+        var cm = editor._codeMirror;
+        cm.operation(function () {
+            var change, newText;
+            for (change = changeList; change; change = change.next) {
+                newText = change.text.join('\n');
+                if (!change.from || !change.to) {
+                    if (change.from || change.to) {
+                        console.log("Editor._applyChangesToEditor(): Change record received with only one end undefined--replacing entire text");
+                    }
+                    cm.setValue(newText);
+                    
+                    // The editor's visible range is no longer meaningful since the entire text was replaced.
+                    editor._visibleRange = null;
+                } else {
+                    cm.replaceRange(newText, change.from, change.to);
+                    
+                    // If the editor is restricted to a specific visible range, update the visible range
+                    // end points if any content was added before them, and hide any new text that's outside
+                    // the visible range. Note that we don't rely on line handles for this since we
+                    // want to gracefully handle cases where the start or end line was deleted during a change.
+                    var range = editor._visibleRange;
+                    if (range) {
+                        var i, numAdded = change.text.length - (change.to.line - change.from.line + 1);
+                        if (change.to.line < range.startLine) {
+                            range.startLine += numAdded;
+                        }
+                        if (change.to.line < range.endLine) {
+                            range.endLine += numAdded;
+                        }
+                        for (i = change.from.line; i < change.from.line + change.text.length; i++) {
+                            if (i < range.startLine || i > range.endLine) {
+                                editor.hideLine(i);
+                            }
+                        }
+                        //console.log("new visible range: " + editor._visibleRange.startLine + " - " + editor._visibleRange.endLine);
+                        // TODO: should double-check that the range of non-hidden lines after this matches up
+                        // with what we think _visibleRange is
+                    }
+                }
+            }
+        });
+    };
+    
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
      * There are several cases where we want to ignore a CodeMirror change:
@@ -327,7 +393,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
      *    to a Document change
      */
-    Editor.prototype._handleEditorChange = function () {
+    Editor.prototype._handleEditorChange = function (event, editor, changeList) {
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
@@ -342,14 +408,29 @@ define(function (require, exports, module) {
             // Secondary editor:
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
+            // (which will directly push the change into the master editor).
             this._duringSync = true;
-            this.document.setText(this._getText());
+            this._applyChangesToEditor(this.document._masterEditor, changeList);
             this._duringSync = false;
         }
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since everyone else will sync from us
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
+        
+        if (this._visibleRange) {
+            // We know all edits that happened in this editor must have been within the visible range. So
+            // all we need to do is adjust the end of the visible range to account for the total number of
+            // lines added/removed as the result of these edits.
+            var numAdded = 0, change;
+            for (change = changeList; change; change = change.next) {
+                numAdded += change.text.length - (change.to.line - change.from.line + 1);
+            }
+            this._visibleRange.endLine += numAdded;
+            //console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
+            // TODO: should double-check that the range of non-hidden lines after this matches up
+            // with what we think _visibleRange is
+        }
     };
     
     /**
@@ -360,7 +441,7 @@ define(function (require, exports, module) {
      *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
      *    the document an editor change that originated with us
      */
-    Editor.prototype._handleDocumentChange = function () {
+    Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -372,16 +453,12 @@ define(function (require, exports, module) {
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
             
-            // Syncing from Document / main editor back to inline editors is NOT supported yet!
-            $(this).triggerHandler("lostSync");
-            
-            // FUTURE: do full cross-editor syncing without losing visible range, scroll pos, etc.
-            // this._duringSync = true;
-            // this.setText(this.document.getText());
-            // this._duringSync = false;
+            this._duringSync = true;
+            this._applyChangesToEditor(this, changeList);
+            this._duringSync = false;
         }
         // Else, Master editor:
-        // we're the ground truth; nothing to do since Document change is just echoing that our
+        // we're the ground truth; nothing to do since Document change is just echoing our
         // editor changes
     };
     
@@ -394,8 +471,8 @@ define(function (require, exports, module) {
         var self = this;
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
-        this._codeMirror.setOption("onChange", function (instance, change) {
-            $(self).triggerHandler("change", [self, change]);
+        this._codeMirror.setOption("onChange", function (instance, changeList) {
+            $(self).triggerHandler("change", [self, changeList]);
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
@@ -519,24 +596,22 @@ define(function (require, exports, module) {
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
      * @param {!DOMElement} domContent  DOM node of widget UI to insert.
      * @param {number} initialHeight  Initial height to accomodate.
+     * @param {function()} parentShowCallback  Function called when the host editor is shown 
+     *          (via Editor.setVisible()).
      * @param {function()} closeCallback  Function called when inline is closed, either automatically
      *          by CodeMirror, or by this host Editor closing, or manually via removeInlineWidget().
      * @param {Object} data  Extra data to track along with the widget. Accessible later via
      *          {@link #getInlineWidgets()}.
      * @return {number} id for this inline widget instance; unique to this Editor
      */
-    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, closeCallback, data) {
+    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, parentShowCallback, closeCallback, data) {
         // Now add the new widget
         var self = this;
         var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
             self._removeInlineWidgetInternal(id);
-            
-            // TODO: remove timeout once issue #454 is fixed
-            setTimeout(function () {
-                closeCallback();
-            }, 0);
+            closeCallback();
         });
-        this._inlineWidgets.push({ id: inlineId, data: data, closeCallback: closeCallback });
+        this._inlineWidgets.push({ id: inlineId, data: data, parentShowCallback: parentShowCallback, closeCallback: closeCallback });
         
         return inlineId;
     };
@@ -602,6 +677,30 @@ define(function (require, exports, module) {
         this._codeMirror.refresh();
     };
     
+    /**
+     * Shows or hides the editor within its parent. Does not force its ancestors to
+     * become visible.
+     * @param {boolean} show true to show the editor, false to hide it
+     */
+    Editor.prototype.setVisible = function (show) {
+        $(this._codeMirror.getWrapperElement()).css("display", (show ? "" : "none"));
+        this._codeMirror.refresh();
+        if (show) {
+            this._inlineWidgets.forEach(function (widget) {
+                if (widget.parentShowCallback) {
+                    widget.parentShowCallback();
+                }
+            });
+        }
+    };
+    
+    /**
+     * Returns true if the editor is fully visible--i.e., is in the DOM, all ancestors are
+     * visible, and has a non-zero width/height.
+     */
+    Editor.prototype.isFullyVisible = function () {
+        return $(this._codeMirror.getWrapperElement()).is(":visible");
+    };
     
     /**
      * The Document we're bound to
@@ -631,7 +730,11 @@ define(function (require, exports, module) {
      */
     Editor.prototype._inlineWidgets = null;
 
-
+    /**
+     * @private
+     * @type {{startLine: number, endLine: number}}
+     */
+    Editor.prototype._visibleRange = null;
 
     // Define public API
     exports.Editor = Editor;
