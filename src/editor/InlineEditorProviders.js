@@ -24,15 +24,6 @@ define(function (require, exports, module) {
     var _htmlToCSSProviderContent   = [];
     
     /**
-     * Reposition a .inlineCodeEditor .filename div { right: 20px; }
-     * @private
-     */
-    function _updateInlineEditorFilename(holderWidth, filenameDiv) {
-        var filenameWidth = $(filenameDiv).outerWidth();
-        $(filenameDiv).css("left", holderWidth - filenameWidth - 40);
-    }
-    
-    /**
      * Shows or hides the dirty indicator
      * @private
      */
@@ -49,19 +40,6 @@ define(function (require, exports, module) {
      */
     function _editorHolderWidth() {
         return $("#editorHolder").width();
-    }
-    
-    /**
-     * Reposition all filename divs after a window resize.
-     * @private
-     */
-    function _updateAllFilenames() {
-        var holderWidth = _editorHolderWidth();
-        
-        _htmlToCSSProviderContent.forEach(function (value) {
-            var filenameDiv = $(value).find(".filename");
-            _updateInlineEditorFilename(holderWidth, filenameDiv);
-        });
     }
     
     /**
@@ -95,7 +73,6 @@ define(function (require, exports, module) {
         
         // stop listening for resize when all inline editors are closed
         if (_htmlToCSSProviderContent.length === 0) {
-            $(window).off("resize", _updateAllFilenames);
             $(DocumentManager).off("dirtyFlagChange", _dirtyFlagChangeHandler);
         }
     }
@@ -115,10 +92,6 @@ define(function (require, exports, module) {
         };
         
         var inlineInfo = EditorManager.createInlineEditorForDocument(parentEditor, doc, range);
-        
-        var $filename = $(document.createElement("div")).addClass("filename");
-        $filename.text(doc.file.name);
-        $(inlineInfo.content).prepend($filename);
         
         return inlineInfo;
     }
@@ -172,29 +145,25 @@ define(function (require, exports, module) {
      * TODO (issue #424): move to createInlineEditorFromText()
      * @private
      */
-    function _createInlineEditorDecorations(editor, doc) {
-        // create the filename div
-        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>')
-            .append('<div class="dirty-indicator"/>')
-            .append(doc.file.name);
-        
-        // add inline editor styling
-        // FIXME (jasonsj): #424, shadow only seems to work on scroller element and not on wrapper div
-        $(editor.getScrollerElement())
-            .append(filenameDiv);
+    function _createInlineEditorDecorations(inlineEditor, doc) {
+        var $filename = $(document.createElement("div")).addClass("filename");
+        $filename.text(doc.file.name);
+        $filename.append('<div class="dirty-indicator" style="width:4px"/>');
+        $(inlineEditor.htmlContent).prepend($filename);
 
         // update the current inline editor immediately
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
-            _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
-            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), doc.isDirty);
-            filenameDiv.css("visibility", "");
+            _showDirtyIndicator($filename.find(".dirty-indicator"), doc.isDirty);
         }, 0);
     }
     
     function InlineEditor() {
     }
     
+    // TODO (jasonsj): need to save inline id to InlineEditor so that editors can control the widget size inside the host editor
+    //                 this code should be refactored from EditorManager afterAdded()
+    InlineEditor.prototype._inlineId = 0;
     // TODO (jasonsj): stubbed out existing inline editor properties
     InlineEditor.prototype.htmlContent = null;
     InlineEditor.prototype.height = 0;
@@ -204,6 +173,7 @@ define(function (require, exports, module) {
     
     function CSSInlineEditor(rules) {
         this._rules = rules;
+        this._currentInlineInfo = null;
     }
     CSSInlineEditor.prototype = new InlineEditor();
     
@@ -223,6 +193,11 @@ define(function (require, exports, module) {
             $ruleItem.click(function () {
                 self.setSelectedRule(i);
             });
+            
+            // select first rule
+            if (i === 0) {
+                $ruleItem.addClass("selected");
+            }
             
             $location = $(document.createElement("span")).appendTo($ruleItem);
             $location.addClass("location");
@@ -253,16 +228,15 @@ define(function (require, exports, module) {
         };
         
         // TODO (jasonsj): XD
-        _createInlineEditorDecorations(inlineInfo.editor, rule.document);
+        _createInlineEditorDecorations(this, rule.document);
         
-        _htmlToCSSProviderContent.push(inlineInfo.content);
+        _htmlToCSSProviderContent.push(this.htmlContent);
         
-        // Manually position filename div's. Can't use CSS positioning in this case
-        // since the label is relative to the window boundary, not CodeMirror.
         if (_htmlToCSSProviderContent.length > 0) {
-            $(window).on("resize", _updateAllFilenames);
             $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
         }
+        
+        // TODO (jasonsj): refactor auto size code from EditorManager sizeInlineEditorToContents
         
         return (new $.Deferred()).resolve();
     };

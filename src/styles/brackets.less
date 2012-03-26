@@ -329,6 +329,13 @@ a, img {
         font-size: 14px;
         color: #656565;
         padding: 10px;
+        
+        .dirty-indicator {
+            .bracketSprite;
+            display: inline-block;
+            background-position: 0 0;
+            padding-top: 3px;
+        }
     }
     .shadow {
         display: block;
@@ -374,13 +381,6 @@ a, img {
         border-bottom-right-radius: 3px 5px;
         border-bottom-left-radius: 3px 5px;
         z-index: 11;
-        
-        .dirty-indicator {
-            .bracketSprite;
-            display: inline-block;
-            background-position: 0 0;
-            padding-top: 3px;
-        }
     }
     */
 }
@@ -391,34 +391,36 @@ a, img {
     height: 100%;
     top: 0;
     right: 0;
-    /*overflow: hidden;*/
+    overflow: auto;
     /*-webkit-transition: width 0.15s ease-out;*/
     background: #f2f2f2;
+    border-left: 1px solid #ccc;
+    width: 250px;
     
     .related {
         position: absolute;
         top: 0;
         left: 1px;
         height: 100%;
-        width: 250px;
-        border-left-width: 1px;
-        border-left-width: 1px;
-        border-left-style: solid;
-        border-left-style: solid;
-        border-left-color: #ccc;
-        border-left-color: #ccc;
         box-shadow: -1px 0 0 0 #fff;
         font-size: 12px;
         
         ul {
             margin: 0;
-            padding: 10px 15px;
+            padding: 12px 0px;
             list-style: none;
             color: #656565;
             
             li {
-                margin-top: 5px;
+                padding: 0px 5px;
                 white-space: nowrap;
+            }
+                
+            li.selected {
+                background: #e6e6e6;
+                border-top: 1px solid #d6d6d6;
+                border-bottom: 1px solid #d6d6d6;
+                box-shadow: 0 1px 0 #fff;
             }
             
             .location {

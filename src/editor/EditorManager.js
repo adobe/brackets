@@ -100,6 +100,7 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineEditor) {
+                // apply shadow to all inline editors
                 $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
                     .append('<div class="shadow bottom"/>');
                 
