@@ -4,7 +4,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var PreferencesManager      = require("PreferencesManager"),
+    var PreferencesManager      = require("preferences/PreferencesManager"),
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
 
     var CLIENT_ID = "PreferencesManager-test";

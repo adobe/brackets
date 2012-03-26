@@ -8,10 +8,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem        = require("NativeFileSystem").NativeFileSystem,
-        Async                   = require("Async"),
-        FileUtils               = require("FileUtils"),
-        CSSUtils                = require("CSSUtils"),
+    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        Async                   = require("utils/Async"),
+        FileUtils               = require("file/FileUtils"),
+        CSSUtils                = require("language/CSSUtils"),
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
@@ -84,7 +84,7 @@ define(function (require, exports, module) {
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
                     spec.expect(result[i].line).toEqual(range.start);
-                    spec.expect(result[i].ruleEndLine).toEqual(range.end);
+                    spec.expect(result[i].declListEndLine).toEqual(range.end);
                 });
             }
             
@@ -102,7 +102,7 @@ define(function (require, exports, module) {
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
                     spec.expect(result[i].selectorGroupStartLine).toEqual(range.start);
-                    spec.expect(result[i].ruleEndLine).toEqual(range.end);
+                    spec.expect(result[i].declListEndLine).toEqual(range.end);
                 });
             }
             
@@ -126,8 +126,10 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expectRuleRanges(this, this.fileCssContent, "a", [
-                        {start: 0, end: 2}, {start: 3, end: 5 }, {start: 7, end: 7},
-                        {start: 8, end: 8}, {start: 10, end: 10}, {start: 10, end: 10}
+                        {start:  0, end:  2}, {start:  3, end:  5}, {start:  7, end:  7},
+                        {start:  8, end:  8}, {start: 10, end: 10}, {start: 10, end: 10},
+                        {start: 16, end: 19}, {start: 23, end: 25}, {start: 29, end: 32},
+                        {start: 33, end: 35}, {start: 38, end: 41}
                     ]);
                 });
             });
@@ -211,7 +213,7 @@ define(function (require, exports, module) {
                 
                 expect(selectors[0]).not.toBe(null);
                 expect(selectors[0].line).toBe(292);
-                expect(selectors[0].ruleEndLine).toBe(301);
+                expect(selectors[0].declListEndLine).toBe(301);
             });
             
             it("should find all instances of the h2 selector", function () {
@@ -219,9 +221,9 @@ define(function (require, exports, module) {
                 expect(selectors.length).toBe(2);
                 
                 expect(selectors[0].line).toBe(292);
-                expect(selectors[0].ruleEndLine).toBe(301);
+                expect(selectors[0].declListEndLine).toBe(301);
                 expect(selectors[1].line).toBe(318);
-                expect(selectors[1].ruleEndLine).toBe(321);
+                expect(selectors[1].declListEndLine).toBe(321);
             });
             
             it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {

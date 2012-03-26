@@ -6,24 +6,29 @@
 <head>
     <meta charset="utf-8">
     <title>Brackets</title>
-    
+
+    <!-- CSS/LESS -->
+
+    <!-- CSS for CodeMirror search support, currently for debugging only -->
+    <link rel="stylesheet" href="thirdparty/CodeMirror2/lib/util/dialog.css">
+    <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
+    <link rel="stylesheet/less" href="styles/brackets.less">
+    <script src="thirdparty/less-1.1.5.min.js"></script>
+    <!-- <link rel="stylesheet" href="brackets.min.css"> -->
+
+    <!-- JavaScript -->
+
     <!-- Pre-load third party scripts that cannot be async loaded. -->
     <script src="thirdparty/jquery-1.7.min.js"></script>
     <script src="thirdparty/CodeMirror2/lib/codemirror.js"></script>
     
-    <!-- CodeMirror search support, currently for debugging only -->
-    <link rel="stylesheet" href="thirdparty/CodeMirror2/lib/util/dialog.css">
+    <!-- JS for CodeMirror search support, currently for debugging only -->
     <script src="thirdparty/CodeMirror2/lib/util/dialog.js"></script>
     <script src="thirdparty/CodeMirror2/lib/util/searchcursor.js"></script>
     <script src="thirdparty/CodeMirror2/lib/util/search.js"></script>
     
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>
-    
-    <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
-    <link rel="stylesheet/less" href="brackets.less">
-    <script src="thirdparty/less-1.1.5.min.js"></script>
-    <!-- <link rel="stylesheet" href="brackets.min.css"> -->
 
 </head>
 <body>
@@ -118,6 +123,14 @@
             <div id="jslint-results">
                 <div class="toolbar">
                     <div class="title">JSLint errors</div>
+                </div>
+                <div class="table-container"></div>
+            </div>
+            <div id="search-results">
+                <div class="toolbar">
+                    <div class="title">Search Results</div>
+                    <div class="title" id="search-result-summary"></div>
+                    <a href="#" class="close">&times;</a>
                 </div>
                 <div class="table-container"></div>
             </div>

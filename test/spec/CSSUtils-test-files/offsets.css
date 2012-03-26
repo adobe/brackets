@@ -1,11 +1,43 @@
 a {
-    color: "red";
+    color: red;
 }/*END*/
 a {
-    color: "orange";
+    color: orange;
 }/*END*/
 
-a { color: "yellow"; }/*END*/
-a:visited { color: "black"; }/*END*/
+a { color: yellow; }/*END*/
+a:visited { color: black; }/*END*/
 
-a { color: "red"; }/*END*/a { color: "blue"; }/*END*/
+a { color: red; }/*END*/a { color: blue; }/*END*/
+
+/* Note: @charset and @import must be at top of style sheet, so
+ * examples are technically malformed, but parsing is the same
+ */
+@charset "UTF-8";
+/* comment after @rule should be included */
+a {
+	color: lime;
+}
+
+/* comment before @rule should be excluded */
+@import url("charset.css");
+a {
+	color: pink;
+}
+
+/* @media rule should be excluded */
+@media screen AND (max-width:320px) {
+    /* indented comment should be included */
+    a {
+        color: purple;
+    } /* comment on same line as previous rule should be excluded */
+    a {
+        color: purple;
+    }
+    
+    
+    a {
+        /* non-crlf whitespace before this rule should be excluded */
+        color: maroon;
+    }
+}

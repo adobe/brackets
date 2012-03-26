@@ -24,30 +24,33 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
+    // Load LiveDeveopment
+    require("LiveDevelopment/main");
     
     // Load dependent modules
-    var ProjectManager          = require("ProjectManager"),
-        DocumentManager         = require("DocumentManager"),
-        EditorManager           = require("EditorManager"),
-        InlineEditorProviders   = require("InlineEditorProviders"),
-        WorkingSetView          = require("WorkingSetView"),
-        FileCommandHandlers     = require("FileCommandHandlers"),
-        FileViewController      = require("FileViewController"),
-        FileSyncManager         = require("FileSyncManager"),
-        KeyBindingManager       = require("KeyBindingManager"),
-        KeyMap                  = require("KeyMap"),
-        Commands                = require("Commands"),
-        CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager"),
-        PerfUtils               = require("PerfUtils"),
-        FileIndexManager        = require("FileIndexManager"),
-        QuickFileOpen           = require("QuickFileOpen"),
-        Menus                   = require("Menus");
+    var ProjectManager          = require("project/ProjectManager"),
+        DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
+        InlineEditorProviders   = require("editor/InlineEditorProviders"),
+        WorkingSetView          = require("project/WorkingSetView"),
+        DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
+        FileViewController      = require("project/FileViewController"),
+        FileSyncManager         = require("project/FileSyncManager"),
+        KeyBindingManager       = require("command/KeyBindingManager"),
+        KeyMap                  = require("command/KeyMap"),
+        Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        CodeHintManager         = require("editor/CodeHintManager"),
+        PerfUtils               = require("utils/PerfUtils"),
+        FileIndexManager        = require("project/FileIndexManager"),
+        QuickFileOpen           = require("search/QuickFileOpen"),
+        Menus                   = require("command/Menus");
     
     //Load modules the self-register and just need to get included in the main project
-    require("JSLint");
-    require("CodeHintManager");
-    require("DebugCommandHandlers");
+    require("language/JSLintUtils");
+    require("editor/CodeHintManager");
+    require("debug/DebugCommandHandlers");
+    require("search/FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -69,17 +72,17 @@ define(function (require, exports, module) {
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
     brackets.test = {
-        PreferencesManager      : require("PreferencesManager"),
+        PreferencesManager      : require("preferences/PreferencesManager"),
         ProjectManager          : ProjectManager,
-        FileCommandHandlers     : FileCommandHandlers,
+        DocumentCommandHandlers : DocumentCommandHandlers,
         FileViewController      : FileViewController,
         DocumentManager         : DocumentManager,
         EditorManager           : EditorManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
-        CommandManager          : require("CommandManager"),
+        CommandManager          : require("command/CommandManager"),
         FileIndexManager        : FileIndexManager,
-        CSSUtils                : require("CSSUtils")
+        CSSUtils                : require("language/CSSUtils")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
@@ -89,7 +92,7 @@ define(function (require, exports, module) {
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: (issue #266) load conditionally
-    brackets.shellAPI = require("ShellAPI");
+    brackets.shellAPI = require("utils/ShellAPI");
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
@@ -140,7 +143,7 @@ define(function (require, exports, module) {
         
         
         function initCommandHandlers() {
-            FileCommandHandlers.init($("#main-toolbar .title"));
+            DocumentCommandHandlers.init($("#main-toolbar .title"));
         }
 
         function initKeyBindings() {
@@ -152,6 +155,7 @@ define(function (require, exports, module) {
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
+                    {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],
@@ -182,6 +186,9 @@ define(function (require, exports, module) {
                 e.preventDefault();
             });
         }
+
+        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
+        $("body").addClass("platform-" + brackets.platform);
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
