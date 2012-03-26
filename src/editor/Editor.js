@@ -337,7 +337,7 @@ define(function (require, exports, module) {
     
     Editor.prototype._applyChangesToEditor = function (editor, changeList) {
         // FUTURE: Technically we should add a replaceRange() method to Document and go through
-        // that instead of talking to the editor's document directly. However, we need to access
+        // that instead of talking to the given editor directly. However, we need to access
         // a CodeMirror API to make sure that the edits get batched properly, and it's not clear
         // that we want that exact API exposed in Document yet. So for now we just talk to
         // the editor directly. Eventually we will factor this out into a model API once we 
@@ -678,7 +678,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Shows or hides the editor
+     * Shows or hides the editor within its parent. Does not force its ancestors to
+     * become visible.
      * @param {boolean} show true to show the editor, false to hide it
      */
     Editor.prototype.setVisible = function (show) {
@@ -694,9 +695,10 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns true if the editor is visible--i.e., is in the DOM and has a non-zero width/height.
+     * Returns true if the editor is fully visible--i.e., is in the DOM, all ancestors are
+     * visible, and has a non-zero width/height.
      */
-    Editor.prototype.isVisible = function () {
+    Editor.prototype.isFullyVisible = function () {
         return $(this._codeMirror.getWrapperElement()).is(":visible");
     };
     

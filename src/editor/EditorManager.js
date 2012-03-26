@@ -246,7 +246,7 @@ define(function (require, exports, module) {
         // Update the inline editor's height when the number of lines change
         var prevHeight;
         function sizeInlineEditorToContents(force) {
-            if (inlineEditor.isVisible()) {
+            if (inlineEditor.isFullyVisible()) {
                 var height = inlineEditor.totalHeight(true);
                 if (force || height !== prevHeight) {
                     prevHeight = height;
