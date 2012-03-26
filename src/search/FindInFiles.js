@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         var searchField = $('input#findInFilesInput');
         var that = this;
         
-        searchField.attr("value", initialString ? initialString : "");
+        searchField.attr("value", initialString || "");
         searchField.get(0).select();
         
         searchField.bind("keydown", function (event) {

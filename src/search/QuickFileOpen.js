@@ -87,7 +87,7 @@ define(function (require, exports, module) {
                 var closed = false;
                 var searchField = $('input#quickFileOpenSearch');
                 
-                searchField.attr("value", initialString ? initialString : "");
+                searchField.attr("value", initialString || "");
                 searchField.get(0).select();
 
                 // auto suggest list helper function
