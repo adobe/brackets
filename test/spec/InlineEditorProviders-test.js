@@ -177,6 +177,16 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should not add an inline document to the working set without being edited", function () {
+                initInlineTest("test1.html", 0);
+                
+                runs(function () {
+                    var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
+                    var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
+                    expect(i).toEqual(-1);
+                });
+            });
+
             it("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
@@ -217,6 +227,29 @@ define(function (require, exports, module) {
                 runs(function () {
                     // verify cursor position in inline editor
                     expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
+                });
+            });
+            
+            it("should add dirty documents to the working set", function () {
+                initInlineTest("test1.html", 1);
+                
+                var inlineEditor, widgetHeight;
+                
+                runs(function () {
+                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                    widgetHeight = inlineEditor.totalHeight(true);
+                    
+                    // change inline editor content
+                    var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
+                    
+                    // insert new lines at current cursor position
+                    inlineEditor._codeMirror.replaceRange(
+                        newLines,
+                        inlineEditor.getCursorPos()
+                    );
+                    
+                    var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
+                    expect(i).toEqual(1);
                 });
             });
             

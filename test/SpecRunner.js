@@ -16,24 +16,23 @@ define(function (require, exports, module) {
     localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
     // Load test specs
+    /*
     require("spec/LowLevelFileIO-test.js");
     require("spec/DocumentCommandHandlers-test.js");
     require("spec/NativeFileSystem-test.js");
     require("spec/PreferencesManager-test.js");
     require("spec/Editor-test.js");
-    
-    // TODO: commenting this out for now. These tests need to be rewritten for the new inline syncing code.
-    // See comment in EditorManager-test.js.
-    // require("spec/EditorManager-test.js");
-
+    */
+    require("spec/EditorManager-test.js");
+    /*
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
     require("spec/KeyMap-test.js");
     require("spec/FileIndexManager-test.js");
     require("spec/CodeHintUtils-test.js");
     require("spec/CSSUtils-test.js");
+    */
     require("spec/InlineEditorProviders-test.js");
-
     // Clean up preferencesKey
     $(window).unload(function () {
         localStorage.removeItem("preferencesKey");

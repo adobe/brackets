@@ -71,23 +71,6 @@ define(function (require, exports, module) {
                 DocumentManager.closeAll();
             });
             
-            it("should not add a doc to the working set if no changes where made", function () {
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                var i = DocumentManager.findInWorkingSet(this.path + "/test.css");
-                expect(i).toEqual(-1);
-            });
-            
-            it("should add a new doc to the working set and sync it with the inline text when a change is made", function () {
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                var i = DocumentManager.findInWorkingSet(this.path + "/test.css");
-                expect(i).toEqual(-1);
-                
-                inlineInfo.editor._setText(newCss);
-                i = DocumentManager.findInWorkingSet(this.path + "/test.css");
-                expect(i).not.toEqual(-1);
-                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
-            });
-            
             it("should use an already open doc and sync with it from the inline text when a change is made", function () {
                 DocumentManager.addToWorkingSet(cssDoc);
                 
