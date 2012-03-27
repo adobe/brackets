@@ -51,10 +51,12 @@ define(function (require, exports, module) {
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!function} onInlineGesture  Handler for Ctrl+E command (open/close inline, depending
-                on context)
+     *          on context)
+     * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
+     *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
@@ -72,7 +74,7 @@ define(function (require, exports, module) {
             }
         };
 
-        return new Editor(doc, makeMasterEditor, mode, container, extraKeys);
+        return new Editor(doc, makeMasterEditor, mode, container, extraKeys, range);
     }
     
     /**
@@ -97,7 +99,7 @@ define(function (require, exports, module) {
         if (inlinePromise) {
             inlinePromise.done(function (inlineContent) {
                 var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height,
-                                            inlineContent.onClosed, inlineContent);
+                                            inlineContent.onParentShown, inlineContent.onClosed, inlineContent);
                 inlineContent.onAdded(inlineId);
                 result.resolve();
             }).fail(function () {
@@ -202,7 +204,7 @@ define(function (require, exports, module) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
-        $(editor._codeMirror.getWrapperElement()).css("display", "none");
+        editor.setVisible(false);
     }
     
     /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
@@ -220,7 +222,7 @@ define(function (require, exports, module) {
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      *
-     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
+     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onParentShown:function(), onClosed:function()}}
      * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
      * also understood by Editor.addInlineWidget()... since it now contains methods & such.
      */
@@ -239,66 +241,45 @@ define(function (require, exports, module) {
         }
         
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range);
         
         // Update the inline editor's height when the number of lines change
         var prevHeight;
-        function sizeInlineEditorToContents() {
-            var height = inlineEditor.totalHeight(true);
-            if (height !== prevHeight) {
-                prevHeight = height;
-                hostEditor.setInlineWidgetHeight(myInlineId, height, true);
-                $(inlineEditor.getScrollerElement()).height(height);
-                inlineEditor.refresh();
+        function sizeInlineEditorToContents(force) {
+            if (inlineEditor.isFullyVisible()) {
+                var height = inlineEditor.totalHeight(true);
+                if (force || height !== prevHeight) {
+                    prevHeight = height;
+                    hostEditor.setInlineWidgetHeight(myInlineId, height, true);
+                    $(inlineEditor.getScrollerElement()).height(height);
+                    inlineEditor.refresh();
+                }
             }
         }
         
         // When text is edited, auto-resize UI and sync changes to a backing full-size editor
         $(inlineEditor).on("change", function () {
-            // Size editor to current contents
             sizeInlineEditorToContents();
-        });
-        
-        // If anyone else touches the Document, close this editor since it has fallen out of date
-        $(inlineEditor).on("lostSync", function () {
-            closeThisInline(inlineEditor);
         });
         
         // Some tasks have to wait until we've been parented into the outer editor
         function afterAdded(inlineId) {
             myInlineId = inlineId;
             
-            // Hide all lines other than those we want to show. We do this rather than trimming the
-            // text itself so that the editor still shows accurate line numbers.
-            var didHideLines  = false;
-            if (range) {
-                inlineEditor._codeMirror.operation(function () {
-                    var i;
-                    for (i = 0; i < range.startLine; i++) {
-                        didHideLines  = true;
-                        inlineEditor.hideLine(i);
-                    }
-                    var lineCount = inlineEditor.lineCount();
-                    for (i = range.endLine + 1; i < lineCount; i++) {
-                        didHideLines  = true;
-                        inlineEditor.hideLine(i);
-                    }
-                });
-                inlineEditor.setCursorPos(range.startLine, 0);
-                _syncGutterWidths(hostEditor);
-            }
-            
-            // If we haven't hidden any lines (which would have caused an update already), 
-            // force the editor to update its display so we measure the correct height below
-            // when sizeInlineEditorToContents() calls totalHeight().
-            if (!didHideLines) {
-                inlineEditor.refresh();
-            }
+            inlineEditor.refresh();
+            _syncGutterWidths(hostEditor);
             
             // Set initial size
             sizeInlineEditorToContents();
             
             inlineEditor.focus();
+        }
+        
+        // Called when the editor containing the inline is made visible.
+        function afterParentShown() {
+            // We need to call this explicitly whenever the host editor is reshown, since
+            // we don't actually resize the inline editor while its host is invisible.
+            sizeInlineEditorToContents(true);
         }
         
         // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
@@ -307,7 +288,7 @@ define(function (require, exports, module) {
             inlineEditor.destroy(); //release ref on Document
         }
         
-        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded, onClosed: afterClosed };
+        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded, onParentShown: afterParentShown, onClosed: afterClosed };
     }
     
     
@@ -387,7 +368,7 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        $(_currentEditor._codeMirror.getWrapperElement()).css("display", "");
+        _currentEditor.setVisible(true);
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
@@ -403,7 +384,7 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#notEditor").css("display", "none");
         } else {
-            $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
+            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
@@ -420,7 +401,7 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            $(_currentEditor._codeMirror.getWrapperElement()).css("display", "none");
+            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
             _currentEditorsDocument = null;
@@ -482,7 +463,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the currently focused editor instance.
+     * Returns the currently focused editor instance (full-sized OR inline editor).
      * @returns {Editor}
      */
     function getFocusedEditor() {
