@@ -426,7 +426,7 @@ define(function (require, exports, module) {
                 numAdded += change.text.length - (change.to.line - change.from.line + 1);
             }
             this._visibleRange.endLine += numAdded;
-            console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
+            //console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
             // TODO: should double-check that the range of non-hidden lines after this matches up
             // with what we think _visibleRange is
         }

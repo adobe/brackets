@@ -320,7 +320,7 @@ define(function (require, exports, module) {
         // TY TODO: this probably belongs on Editor, but it needs to assigned after this.editor is valid
         // When text is edited, auto-resize UI and sync changes to a backing full-size editor
         $(this.editor).on("change", function () {
-            sizeInlineEditorToContents();
+            self.sizeInlineEditorToContents();
         });
         
         // TODO (jasonsj): XD
@@ -340,7 +340,7 @@ define(function (require, exports, module) {
 
     CSSInlineEditor.prototype.onClosed = function () {
         this.parentClass.prototype.onClosed.call(this); // call super.onClosed()
-        _inlineEditorRemoved(this.inlineInfo.content);
+        _inlineEditorRemoved(this.content);
     }
     
     CSSInlineEditor.prototype.getRules = function () {
