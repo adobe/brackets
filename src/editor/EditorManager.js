@@ -51,7 +51,9 @@ define(function (require, exports, module) {
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!function} onInlineGesture  Handler for Ctrl+E command (open/close inline, depending
-                on context)
+     *          on context)
+     * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
+     *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
     function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range) {
@@ -180,7 +182,7 @@ define(function (require, exports, module) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
-        editor.show(false);
+        editor.setVisible(false);
     }
     
     /** Returns the visible full-size Editor corresponding to DocumentManager.getCurrentDocument() */
@@ -292,7 +294,7 @@ define(function (require, exports, module) {
         _currentEditorsDocument = document;
         _currentEditor = document._masterEditor;
         
-        _currentEditor.show(true);
+        _currentEditor.setVisible(true);
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
@@ -308,7 +310,7 @@ define(function (require, exports, module) {
         if (!_currentEditor) {
             $("#notEditor").css("display", "none");
         } else {
-            _currentEditor.show(false);
+            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
         }
         
@@ -325,7 +327,7 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            _currentEditor.show(false);
+            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             
             _currentEditorsDocument = null;
