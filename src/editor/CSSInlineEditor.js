@@ -33,50 +33,31 @@ define(function (require, exports, module) {
     */
     CSSInlineEditor.prototype.load = function (hostEditor) {
         this.hostEditor = hostEditor;
-        var self = this;
-        var htmlContent = document.createElement("div"),
-            ruleList = $("<ul class='pills pills-vertical pull-right'/>");
+
+        // load first rule
+        var rule = this._rules[0];
+       
+        this.createInlineEditorFromText( rule.document, rule.lineStart, rule.lineEnd);
+
+      /* Starter code for rule list navigation. Disabled until it's further along
+        var inlineviewNavigator = document.createElement("div");
         
         // create rule list
+        var ruleList = $("<ul class='pills pills-vertical pull-right'/>");
         this._rules.forEach(function (rule) {
             ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
         });
         
-        // load first rule
-        var rule = this._rules[0];
-        
-        // create an editor for the first rule
-        var range = {
-            startLine: rule.lineStart,
-            endLine: rule.lineEnd
-        };
-        var inlineInfo = EditorManager.createInlineEditorForDocument(rule.document, range, function(inlineEditor) {
-            self.closeEditor(inlineEditor);
-        });
 
-        // TY TODO: better way to do this than return two types and assign?
-        this.htmlContent = inlineInfo.content;
-        this.editor = inlineInfo.editor;
 
-        var $htmlContent = $(htmlContent);
-        $htmlContent.append(inlineInfo.content);
-        $htmlContent.append(ruleList);
+        var $inlineviewNavigator = $(inlineviewNavigator);
+        $inlineviewNavigator.append(this.content);
+        $inlineviewNavigator.append(ruleList);
         
         // wrapper div for inline editor
-        this.htmlContent = htmlContent;
+        this.htmlContent = inlineviewNavigator;*/
 
-        // TY TODO: this probably belongs in InlineEditor, but it needs to assigned after this.editor is valid
-        // When text is edited, auto-resize UI and sync changes to a backing full-size editor
-        $(this.editor).on("change", function () {
-            // Size editor to current contents
-            self.sizeInlineEditorToContents();
-        });
-        
-        // TODO (jasonsj): XD
-        // TODO TY: review how this works
-        this.createInlineEditorDecorations(inlineInfo.editor, rule.document);
-        
-        InlineEditor.addInlineEditorContent(inlineInfo.content);
+
         
         return (new $.Deferred()).resolve();
     };

@@ -161,7 +161,7 @@ define(function (require, exports, module) {
     // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
     InlineEditor.prototype.onClosed = function () {
         this.syncGutterWidths();
-        _inlineEditorRemoved(this.content);
+        _inlineEditorRemoved(this.htmlContent);
         this.editor.destroy(); //release ref on Document
     };
     
@@ -182,10 +182,7 @@ define(function (require, exports, module) {
     InlineEditor.prototype.onAdded = function (inlineId) {
         this.inlineId = inlineId;
         
-        // TODO: needs to call this.editor.refresh() (per NJ's checkin), but editor is only defined
-        // in our subclass CSSInlineEditor. Shouldn't it be here, since it's common to all inline
-        // text editors?
-        
+        this.editor.refresh();
         this.syncGutterWidths();
         
         // Set initial size
@@ -193,7 +190,41 @@ define(function (require, exports, module) {
         
         this.editor.focus();
     };
-    InlineEditor.prototype.load = function () {};
+
+    // TY TODO comment: assignes this.htmlContent and this.editor
+    InlineEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine) {
+        var self = this;
+
+        function closeThisInline(inlineEditor) {
+            var shouldMoveFocus = inlineEditor.hasFocus();
+            EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
+            // _closeInlineWidget() causes afterClosed() to get run
+        }
+
+         var range = {
+            startLine: startLine,
+            endLine: endLine
+        };
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, function(inlineEditor) {
+            closeThisInline(inlineEditor);
+        });
+
+        this.htmlContent = inlineInfo.content;
+        this.editor = inlineInfo.editor;
+
+        $(this.editor).on("change", function () {
+            // Size editor to current content
+            self.sizeInlineEditorToContents();
+        });
+
+        this.createInlineEditorDecorations(this.editor, doc);
+        addInlineEditorContent(this.htmlContent);
+    };
+
+
+    InlineEditor.prototype.load = function () {
+        // TODO: factor out generic load functionality from CSSInlineEditor.load
+    };
     
 
 
@@ -216,7 +247,7 @@ define(function (require, exports, module) {
     /**
      * 
      * Create the shadowing and filename tab for an inline editor.
-     * TODO (issue #424): move to createInlineEditorFromText()
+     * TODO (issue #424): 
      * @private
      */
     InlineEditor.prototype.createInlineEditorDecorations = function (editor, doc) {
@@ -242,6 +273,5 @@ define(function (require, exports, module) {
     };
 
     exports.InlineEditor = InlineEditor;
-    exports.addInlineEditorContent = addInlineEditorContent;
 
 });
