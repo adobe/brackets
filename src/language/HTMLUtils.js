@@ -339,16 +339,17 @@ define(function (require, exports, module) {
     /**
      * Returns an Array of info about all <style> blocks in the given Editor's HTML document (assumes
      * the Editor contains HTML text).
+     * @param {!Editor} editor
      */
     function findStyleBlocks(editor) {
-        var ctx = _getInitialContext(editor._codeMirror, {line:0, ch:0});
-        var offset = _offsetInToken(ctx);
+        // Start scanning from beginning of file
+        var ctx = _getInitialContext(editor._codeMirror, {line: 0, ch: 0});
         
         var styleBlocks = [];
         var currentStyleBlock = null;
         var inStyleBlock = false;
         
-        while ( _moveNextToken(ctx) ) {
+        while (_moveNextToken(ctx)) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
                 if (ctx.token.state.mode !== "css") {

@@ -222,6 +222,74 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
+    /**
+     * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
+     * appends those new objects to the given 'resultSelectors' Array.
+     * @param {Array.<{document:Document, lineStart:number, lineEnd:number}>} resultSelectors
+     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number}>} selectorsToAdd
+     * @param {!Document} sourceDoc
+     * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
+     *          of the parsed CSS text is not the first line of the sourceDoc.
+     */
+    function addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
+        selectorsToAdd.forEach(function (selector) {
+            resultSelectors.push({
+                document: sourceDoc,
+                lineStart: selector.selectorGroupStartLine + lineOffset,
+                lineEnd: selector.declListEndLine + lineOffset
+            });
+        });
+    }
+    
+    /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
+    function findMatchingRulesInCSSFiles(selector, resultSelectors) {
+        var result          = new $.Deferred(),
+            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+        
+        function _loadFileAndScan(fullPath, selector) {
+            var oneFileResult = new $.Deferred();
+            
+            DocumentManager.getDocumentForPath(fullPath)
+                .done(function (doc) {
+                    // Find all matching rules for the given CSS file's content, and add them to the
+                    // overall search result
+                    var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector);
+                    addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
+                    
+                    oneFileResult.resolve();
+                })
+                .fail(function (error) {
+                    oneFileResult.reject(error);
+                });
+        
+            return oneFileResult.promise();
+        }
+        
+        // Load index of all CSS files; then load each CSS file in turn and search its contents
+        cssFilesResult.done(function (fileInfos) {
+            Async.doInParallel(fileInfos, function (fileInfo, number) {
+                return _loadFileAndScan(fileInfo.fullPath, selector);
+            })
+                .pipe(result.resolve, result.reject);
+        });
+        
+        return result.promise();
+    }
+    
+    /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
+    function findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
+        // Find all <style> blocks in the HTML file
+        // TODO: avoid looking at _masterEditor; maybe just require htmlDoc to be current main editor?
+        var styleBlocks = HTMLUtils.findStyleBlocks(htmlDocument._masterEditor);
+        
+        styleBlocks.forEach(function (styleBlockInfo) {
+            // Search this one <style> block's content, appending results to 'resultSelectors'
+            var oneStyleBlockMatches = _findAllMatchingSelectorsInText(styleBlockInfo.text, selector);
+            addSelectorsToResults(resultSelectors, oneStyleBlockMatches, htmlDocument, styleBlockInfo.start.line);
+        });
+    }
+    
     /**
      * Return all rules matching the specified selector.
      * For Sprint 4, we only look at the rightmost simple selector. For example, searching for ".foo" will 
@@ -249,14 +317,15 @@ define(function (require, exports, module) {
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             resultSelectors = [];
         
+        // Synchronously search for matches in <style> blocks
+        if (htmlDocument) {
+            findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
+        }
+        
         // Asynchronously search for matches in all the project's CSS files
+        // (results are appended together in same 'resultSelectors' array)
         findMatchingRulesInCSSFiles(selector, resultSelectors)
             .done(function () {
-                // Synchronously search for matches in <style> blocks
-                if (htmlDocument) {
-                    findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
-                }
-                
                 result.resolve(resultSelectors);
             })
             .fail(function (error) {
@@ -266,69 +335,7 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
-    /** Finds matching selectors in CSS files; appends them to 'resultSelectors' */
-    function findMatchingRulesInCSSFiles(selector, resultSelectors) {
-        var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css");
-        
-        function _loadFileAndScan(fullPath, selector) {
-            var result = new $.Deferred();
-            
-            DocumentManager.getDocumentForPath(fullPath)
-                .done(function (doc) {
-                    // Find all matching rules for the given CSS file's content, and add them to the
-                    // overall search result
-                    var oneCSSFileResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
-                    addSelectorResults(resultSelectors, oneCSSFileResults, doc, 0);
-                    
-                    result.resolve();
-                })
-                .fail(function (error) {
-                    result.reject(error);
-                });
-        
-            return result.promise();
-        }
-        
-        cssFilesResult.done(function (fileInfos) {
-            Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _loadFileAndScan(fileInfo.fullPath, selector);
-            })
-                .pipe(result.resolve, result.reject);
-        });
-        
-        return result.promise();
-    }
-    
-    /** Finds matching selectors in the <style> block of an HTML file; appends them to 'resultSelectors' */
-    function findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
-        // Find all <style> blocks in the HTML file
-        var styleBlocks = HTMLUtils.findStyleBlocks(htmlDocument._masterEditor);
-        
-        styleBlocks.forEach(function (styleBlockInfo) {
-            // Find all matching rules for the given <style> block's content, and add them to the
-            // overall search result
-            var oneStyleBlockResults = _findAllMatchingSelectorsInText(styleBlockInfo.text, selector);
-            addSelectorResults(resultSelectors, oneStyleBlockResults, htmlDocument, styleBlockInfo.start.line);
-        });
-    }
-    
-    /**
-     * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
-     * appends those new objects to the given 'resultSelectors' Array.
-     */
-    function addSelectorResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
-        selectorsToAdd.forEach(function (selector) {
-            resultSelectors.push({
-                document: sourceDoc,
-                lineStart: selector.selectorGroupStartLine + lineOffset,
-                lineEnd: selector.declListEndLine + lineOffset
-            });
-        });
-    }
-    
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
-    exports.extractAllSelectors = extractAllSelectors;
 });
