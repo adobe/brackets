@@ -38,11 +38,15 @@ define(function (require, exports, module) {
 
         // load first rule
         var rule = this._rules[0];
-       
-        this.createInlineEditorFromText( rule.document, rule.lineStart, rule.lineEnd);
 
-     // TY TODO: part of sprint 6
-      /* Starter code for rule list navigation. Disabled until it's further along
+        // Container to hold editor & render its stylized frame
+        var inlineContent = document.createElement('div');
+        $(inlineContent).addClass("inlineCodeEditor");
+       
+        this.createInlineEditorFromText( rule.document, rule.lineStart, rule.lineEnd, inlineContent);
+
+        // TY TODO: part of sprint 6
+        // Starter code for rule list navigation. Disabled until it's further along
         var inlineviewNavigator = document.createElement("div");
         
         // create rule list
@@ -51,12 +55,12 @@ define(function (require, exports, module) {
             ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
         });
         
-        var $inlineviewNavigator = $(inlineviewNavigator);
-        $inlineviewNavigator.append(this.content);
-        $inlineviewNavigator.append(ruleList);
+        //var $inlineviewNavigator = $(inlineviewNavigator);
+        //$inlineviewNavigator.append(this.content);
+        //$inlineviewNavigator.append(ruleList);
         
         // wrapper div for inline editor
-        this.htmlContent = inlineviewNavigator;*/
+        //this.htmlContent = inlineviewNavigator;
 
         return (new $.Deferred()).resolve();
     };

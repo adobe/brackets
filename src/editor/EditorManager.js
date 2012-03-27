@@ -80,8 +80,8 @@ define(function (require, exports, module) {
      * @private
      * Bound to Ctrl+E on outermost editors.
      * @param {!Editor} editor the candidate host editor
-     * @return {$.Promise} a promise that will be resolved when an inline 
-     *  editor is created or rejected when no inline editors are available.
+     * @return {$.Promise} a promise that will be resolved when an InlineEditor 
+     *      is created or rejected when no inline editors are available.
      */
     function _openInlineWidget(editor) {
         // Run through inline-editor providers until one responds
@@ -200,11 +200,9 @@ define(function (require, exports, module) {
      * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
-     * @param  TY TODO: not sure I like this API. closeThisInline
+     * @param  {Function(inlineEditor)} closeThisInline
      *
-     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onParentShown:function(), onClosed:function()}}
-     * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
-     * also understood by Editor.addInlineWidget()... since it now contains methods & such.
+     * @return {{content:DOMElement, editor:Editor}}
      */
     function createInlineEditorForDocument(doc, range, closeThisInline) {
         // Container to hold editor & render its stylized frame
