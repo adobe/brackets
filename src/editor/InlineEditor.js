@@ -194,12 +194,18 @@ define(function (require, exports, module) {
     InlineEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine) {
         var self = this;
 
+        function closeThisInline(inlineEditor) {
+            var shouldMoveFocus = inlineEditor.hasFocus();
+            EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
+            // _closeInlineWidget() causes afterClosed() to get run
+        }
+
          var range = {
             startLine: startLine,
             endLine: endLine
         };
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, function(inlineEditor) {
-            self.onClosed(inlineEditor);
+            closeThisInline(inlineEditor);
         });
 
         this.htmlContent = inlineInfo.content;
