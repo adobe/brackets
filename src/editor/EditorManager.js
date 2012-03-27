@@ -144,7 +144,11 @@ define(function (require, exports, module) {
         hostEditor.removeInlineWidget(inlineId);
         
     }
+
     
+    /**
+     * @param {$.Promise} a promise that will be resolved with a InlineEditor
+     */
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
     }
@@ -209,8 +213,6 @@ define(function (require, exports, module) {
         
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range);
-        
-        // TODO ty: add chrome code here
         
         return { content: inlineContent, editor: inlineEditor };
     }

@@ -77,7 +77,10 @@ define(function (require, exports, module) {
         });
     }
 
-    // TY TODO: comments
+    /**
+     * 
+     * @param {HTMLDivElement}
+     */
     function addInlineEditorContent(content) {
         _inlineEditorContentList.push(content);
         
@@ -220,8 +223,8 @@ define(function (require, exports, module) {
     };
 
 
-    InlineEditor.prototype.load = function () {
-        // TODO: factor out generic load functionality from CSSInlineEditor.load
+    InlineEditor.prototype.load = function (hostEditor) {
+        this.hostEditor = hostEditor;
     };
     
 

@@ -18,7 +18,7 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
-     *
+     * @extends {InlineEditor}
      */
     function CSSInlineEditor(rules) {
         this._rules = rules;
@@ -28,8 +28,10 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.parentClass = InlineEditor.InlineEditor;
     
 
-    /** @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
-     * TY TODO: factor out css specific code from inline editor code
+    /** 
+     * @override
+     * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
+     * 
     */
     CSSInlineEditor.prototype.load = function (hostEditor) {
         this.hostEditor = hostEditor;
@@ -39,6 +41,7 @@ define(function (require, exports, module) {
        
         this.createInlineEditorFromText( rule.document, rule.lineStart, rule.lineEnd);
 
+     // TY TODO: part of sprint 6
       /* Starter code for rule list navigation. Disabled until it's further along
         var inlineviewNavigator = document.createElement("div");
         
@@ -48,8 +51,6 @@ define(function (require, exports, module) {
             ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
         });
         
-
-
         var $inlineviewNavigator = $(inlineviewNavigator);
         $inlineviewNavigator.append(this.content);
         $inlineviewNavigator.append(ruleList);
@@ -57,11 +58,11 @@ define(function (require, exports, module) {
         // wrapper div for inline editor
         this.htmlContent = inlineviewNavigator;*/
 
-
-        
         return (new $.Deferred()).resolve();
     };
     
+
+    // TY TODO: part of sprint 6
     CSSInlineEditor.prototype.getRules = function () {
     };
     
@@ -76,8 +77,6 @@ define(function (require, exports, module) {
     
     CSSInlineEditor.prototype.previousRule = function () {
     };
-
-    exports.CSSInlineEditor = CSSInlineEditor;
 
 
     /**
@@ -125,14 +124,13 @@ define(function (require, exports, module) {
     }
 
     /**
-     * When cursor is on an HTML tag name, class attribute, or id attribute, find associated
+     * This function is registered with EditManager as an inline editor provider. It creates a CSSInlineEditor
+     * when cursor is on an HTML tag name, class attribute, or id attribute, find associated
      * CSS rules and show (one/all of them) in an inline editor.
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with:
-            TY TODO: update return comment to specify inline editor
-     *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
+     * @return {$.Promise} a promise that will be resolved with an InlineEditor
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
@@ -182,8 +180,9 @@ define(function (require, exports, module) {
     }
 
 
-
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);
     
+
+    exports.CSSInlineEditor = CSSInlineEditor;
 
 });

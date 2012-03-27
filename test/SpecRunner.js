@@ -15,13 +15,15 @@ define(function (require, exports, module) {
     // Unique key for unit testing
     localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
+    // Commenting out since Jason is removing these tests and rewritting them in InlineEditorProviders-test
+    //    require("spec/EditorManager-test.js");
+
     // Load test specs
     require("spec/LowLevelFileIO-test.js");
     require("spec/DocumentCommandHandlers-test.js");
     require("spec/NativeFileSystem-test.js");
     require("spec/PreferencesManager-test.js");
     require("spec/Editor-test.js");
-    require("spec/EditorManager-test.js");
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
     require("spec/KeyMap-test.js");
