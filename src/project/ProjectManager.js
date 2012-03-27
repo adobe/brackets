@@ -492,7 +492,9 @@ define(function (require, exports, module) {
      * Refresh the current project from disk.
      */
     function reloadProject() {
-        // Update prefs so tree state doesn't change
+        // Update prefs so tree state doesn't change.
+        // TODO (Issue #487): PreferencesManager only exposes a savePreferences() method to save
+        // preferences across all clients, but here we only want to update our own prefs.
         PreferencesManager.savePreferences();
 
         // reset tree node id's
