@@ -12,6 +12,7 @@ define(function (require, exports, module) {
         EditorManager,      // loaded from brackets.test
         FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
+        FileViewController, // loaded from brackets.test
         FileUtils       = require("file/FileUtils"),
         SpecRunnerUtils = require("./SpecRunnerUtils.js");
 
@@ -20,6 +21,41 @@ define(function (require, exports, module) {
         var testPath = SpecRunnerUtils.getTestPath("/spec/InlineEditorProviders-test-files"),
             testWindow,
             initInlineTest;
+        
+        function rewriteProject(spec) {
+            var result = new $.Deferred();
+        
+            FileIndexManager.getFileInfoList("all").done(function (allFiles) {
+                // convert fileInfos to fullPaths
+                allFiles = allFiles.map(function (fileInfo) {
+                    return fileInfo.fullPath;
+                });
+                
+                // parse offsets and save
+                SpecRunnerUtils.saveFilesWithoutOffsets(allFiles).done(function (offsetInfos) {
+                    spec.infos = offsetInfos;
+            
+                    // install after function to restore file content
+                    spec.after(function () {
+                        var done = false;
+                        
+                        runs(function () {
+                            SpecRunnerUtils.saveFilesWithOffsets(spec.infos).done(function () {
+                                done = true;
+                            });
+                        });
+                        
+                        waitsFor(function () { return done; }, "saveFilesWithOffsets timeout", 1000);
+                    });
+                    
+                    result.resolve();
+                }).fail(function () {
+                    result.reject();
+                });
+            });
+            
+            return result.promise();
+        }
         
         /**
          * Performs setup for an inline editor test. Parses offsets (saved to Spec.offsets) for all files in
@@ -32,49 +68,33 @@ define(function (require, exports, module) {
          * @param {!number} openOffset The offset index location within openFile to open an inline editor.
          * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
          */
-        var _initInlineTest = function (openFile, openOffset, expectInline) {
+        var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
             var allFiles,
                 hostOpened = false,
                 err = false,
                 inlineOpened = null,
-                spec = this;
+                spec = this,
+                rewriteDone = false,
+                rewriteErr = false;
+            
+            workingSet = workingSet || [];
             
             expectInline = (expectInline !== undefined) ? expectInline : true;
             
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            
             // load project to set CSSUtils scope
             runs(function () {
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                rewriteProject(spec)
+                    .done(function () { rewriteDone = true; })
+                    .fail(function () { rewriteErr = true; });
             });
             
-            // find all files in the project
-            runs(function () {
-                FileIndexManager.getFileInfoList("all")
-                    .done(function (result) {
-                        allFiles = result;
-                    });
-            });
-            
-            waitsFor(function () { return (allFiles !== null); }, "FileIndexManager timeout", 1000);
-            
-            // rewrite files without offsets
-            runs(function () {
-                // convert fileInfos to fullPaths
-                allFiles = allFiles.map(function (fileInfo) {
-                    return fileInfo.fullPath;
-                });
-                
-                // parse offsets and save
-                SpecRunnerUtils.saveFilesWithoutOffsets(allFiles).done(function (offsetInfos) {
-                    spec.infos = offsetInfos;
-                }).fail(function () {
-                    err = true;
-                });
-            });
-            
-            waitsFor(function () { return (spec.infos !== null) && !err; }, "rewrite timeout", 1000);
+            waitsFor(function () { return rewriteDone && !rewriteErr; }, "rewriteProject timeout", 1000);
             
             runs(function () {
-                SpecRunnerUtils.openProjectFiles(openFile).done(function (documents) {
+                workingSet.push(openFile);
+                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
                     hostOpened = true;
                 }).fail(function () {
                     err = true;
@@ -102,18 +122,6 @@ define(function (require, exports, module) {
             waitsFor(function () {
                 return (inlineOpened !== null) && (inlineOpened === expectInline);
             }, "inline editor timeout", 1000);
-            
-            spec.after(function () {
-                var done = false;
-                
-                runs(function () {
-                    SpecRunnerUtils.saveFilesWithOffsets(spec.infos).done(function () {
-                        done = true;
-                    });
-                });
-                
-                waitsFor(function () { return done; }, "saveFilesWithOffsets timeout", 1000);
-            });
         };
 
         /*
@@ -130,6 +138,7 @@ define(function (require, exports, module) {
                     EditorManager       = testWindow.brackets.test.EditorManager;
                     FileIndexManager    = testWindow.brackets.test.FileIndexManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
                 });
             });
     
@@ -177,16 +186,6 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should not add an inline document to the working set without being edited", function () {
-                initInlineTest("test1.html", 0);
-                
-                runs(function () {
-                    var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
-                    var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
-                    expect(i).toEqual(-1);
-                });
-            });
-
             it("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
@@ -227,29 +226,6 @@ define(function (require, exports, module) {
                 runs(function () {
                     // verify cursor position in inline editor
                     expect(EditorManager.getCurrentFullEditor().getInlineWidgets().length).toBe(0);
-                });
-            });
-            
-            it("should add dirty documents to the working set", function () {
-                initInlineTest("test1.html", 1);
-                
-                var inlineEditor, widgetHeight;
-                
-                runs(function () {
-                    inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
-                    widgetHeight = inlineEditor.totalHeight(true);
-                    
-                    // change inline editor content
-                    var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
-                    
-                    // insert new lines at current cursor position
-                    inlineEditor._codeMirror.replaceRange(
-                        newLines,
-                        inlineEditor.getCursorPos()
-                    );
-                    
-                    var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
-                    expect(i).toEqual(1);
                 });
             });
             
@@ -426,7 +402,199 @@ define(function (require, exports, module) {
                     expect(hostEditor.document.isDirty).toBeTruthy();
                 });
             });
-
+        
+            describe("Bi-directional Editor Synchronizing", function () {
+    
+                it("should not add an inline document to the working set without being edited", function () {
+                    initInlineTest("test1.html", 0);
+                    
+                    runs(function () {
+                        var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
+                        var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
+                        expect(i).toEqual(-1);
+                    });
+                });
+            
+                it("should add dirty documents to the working set", function () {
+                    initInlineTest("test1.html", 1);
+                    
+                    var inlineEditor, widgetHeight;
+                    
+                    runs(function () {
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        widgetHeight = inlineEditor.totalHeight(true);
+                        
+                        // change inline editor content
+                        var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";
+                        
+                        // insert new lines at current cursor position
+                        inlineEditor._codeMirror.replaceRange(
+                            newLines,
+                            inlineEditor.getCursorPos()
+                        );
+                        
+                        var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
+                        expect(i).toEqual(1);
+                    });
+                });
+            
+                it("should sync edits between full and inline editors", function () {
+                    var cssPath,
+                        cssDoc,
+                        fullEditor,
+                        inlineEditor,
+                        newInlineText = "/* jasmine was inline */\n";
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        
+                        // edit the inline editor
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        inlineEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            inlineEditor.getCursorPos()
+                        );
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        
+                        // sanity check
+                        expect(fullEditor).not.toBe(inlineEditor);
+                        expect(fullEditor._codeMirror).not.toBe(inlineEditor._codeMirror);
+                        
+                        // compare inline editor to full editor
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        
+                        // make sure the text was inserted
+                        expect(fullEditor._getText().indexOf(newInlineText)).toBeGreaterThan(0);
+                        
+                        // edit in the full editor and compare
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            inlineEditor.getCursorPos()
+                        );
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                    });
+                });
+            
+                it("should sync multiple edits between full and inline editors", function () {
+                    var i,
+                        cssPath,
+                        cssDoc,
+                        fullEditor,
+                        inlineEditor,
+                        editor,
+                        newText = "/* jasmine was inline */\n";
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        
+                        // edit the inline editor
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        
+                        // alternate editors while inserting new text
+                        for (i = 0; i < 10; i++) {
+                            editor = (i % 2 === 0) ? fullEditor : inlineEditor;
+                            editor._codeMirror.replaceRange(
+                                newText,
+                                inlineEditor.getCursorPos()
+                            );
+                            expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        }
+                    });
+                });
+            
+                it("should sync even if the contents of the full editor are all deleted", function () {
+                    var cssPath,
+                        cssDoc,
+                        fullEditor,
+                        inlineEditor,
+                        newInlineText = "/* jasmine was inline */\n";
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        fullEditor._setText("");
+                        
+                        // compare inline editor to full editor
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                    });
+                });
+                
+                it("should sync after an undoing and redoing an edit", function () {
+                    var cssPath,
+                        htmlPath,
+                        cssDoc,
+                        fullEditor,
+                        inlineEditor,
+                        originalText,
+                        editedText,
+                        newInlineText = "/* jasmine was inline */\n";
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        htmlPath = this.infos["test1.html"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        originalText = inlineEditor._codeMirror.getValue();
+                        
+                        // edit the inline editor
+                        inlineEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            inlineEditor.getCursorPos()
+                        );
+                        editedText = inlineEditor._codeMirror.getValue();
+                        
+                        // activate the full css editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        
+                        // compare inline editor to full editor
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        
+                        // undo the inline editor
+                        inlineEditor._codeMirror.undo();
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expect(inlineEditor._getText()).toBe(originalText);
+                        
+                        // redo the inline editor
+                        inlineEditor._codeMirror.redo();
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expect(inlineEditor._getText()).toBe(editedText);
+                        
+                        // undo the full editor
+                        fullEditor._codeMirror.undo();
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expect(fullEditor._getText()).toBe(originalText);
+                        
+                        // redo the full editor
+                        fullEditor._codeMirror.redo();
+                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expect(fullEditor._getText()).toBe(editedText);
+                    });
+                });
+            });
         });
     });
 });

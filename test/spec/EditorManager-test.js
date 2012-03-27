@@ -70,60 +70,6 @@ define(function (require, exports, module) {
                 //Clear out the document manager
                 DocumentManager.closeAll();
             });
-            
-            it("should use an already open doc and sync with it from the inline text when a change is made", function () {
-                DocumentManager.addToWorkingSet(cssDoc);
-                
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                inlineInfo.editor._setText(newCss);
-                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
-            });
-            
-            it("should sync even if the contents of the inline are all deleted", function () {
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                
-                inlineInfo.editor._setText("");
-                expect(cssDoc.getText()).toEqual("");
-            });
-            
-            it("should sync after an undoing and redoing an edit", function () {
-                var oldCss = cssDoc.getText();
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                
-                inlineInfo.editor._setText(newCss);
-                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
-                
-                inlineInfo.editor._codeMirror.undo();
-                expect(cssDoc.getText()).toEqual(oldCss);
-                
-                inlineInfo.editor._codeMirror.redo();
-                expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(newCss, cssDoc._lineEndings));
-            });
-            
-            it("should sync multiple edits in the inline", function () {
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                
-                var curText = "";
-                var i = 0;
-                for (i = 0; i < 10; i++) {
-                    inlineInfo.editor._setText(curText);
-                    expect(cssDoc.getText()).toEqual(FileUtils.translateLineEndings(curText, cssDoc._lineEndings));
-                    curText = curText + newCss + "\n\n";
-                }
-            });
-            
-            
-            /* we don't currently support syncing from the other direction, so when that gets
-               added, then this unit test should get reversed and more added for that story */
-            it("should *NOT* sync changes from the main document back to the inline editor", function () {
-                var inlineInfo = EditorManager.createInlineEditorForDocument(myEditor, cssDoc, cssDocRange);
-                
-                inlineInfo.editor._setText(newCss);
-                newCss = "h1 {\n    background-color: #0F0;\n}";
-                cssDoc.setText(newCss);
-                expect(inlineInfo.editor._getText()).not.toEqual(newCss);
-            });
-
         });
     });
 });
