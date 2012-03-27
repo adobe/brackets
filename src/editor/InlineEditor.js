@@ -8,9 +8,104 @@
 define(function (require, exports, module) {
     'use strict';
 
-
     // Load dependent modules
-    var EditorManager       = require("editor/EditorManager");
+    var HTMLUtils           = require("language/HTMLUtils"),
+        DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        CSSInlineEditor     = require("editor/CSSInlineEditor");
+
+
+    // track divs to re-position manually
+    var _inlineEditorContentList   = [];
+    
+    /**
+     * Returns editor holder width (not CodeMirror's width).
+     * @private
+     */
+    function _editorHolderWidth() {
+        return $("#editorHolder").width();
+    }
+    
+    /**
+     * Reposition a .inlineCodeEditor .filename div { right: 20px; }
+     * @private
+     */
+    function _updateInlineEditorFilename(holderWidth, filenameDiv) {
+        var filenameWidth = $(filenameDiv).outerWidth();
+        $(filenameDiv).css("left", holderWidth - filenameWidth - 40);
+    }
+    
+    /**
+     * Reposition all filename divs after a window resize.
+     * @private
+     */
+    function _updateAllFilenames() {
+        var holderWidth = _editorHolderWidth();
+        
+        _inlineEditorContentList.forEach(function (value) {
+            var filenameDiv = $(value).find(".filename");
+            _updateInlineEditorFilename(holderWidth, filenameDiv);
+        });
+    }
+
+    /**
+     * Shows or hides the dirty indicator
+     * @private
+     */
+    function _showDirtyIndicator($indicatorDiv, isDirty) {
+        // Show or hide the dirty indicator by adjusting
+        // the width of the div. The "hidden" width is 
+        // 4 pixels to make the padding look correct.
+        $indicatorDiv.css("width", isDirty ? 16 : 4);
+    }
+    
+    /**
+     * Respond to dirty flag change event. If the dirty flag is associated with an inline editor,
+     * show (or hide) the dirty indicator.
+     * @private
+     */
+    function _dirtyFlagChangeHandler(event, doc) {
+        
+        _inlineEditorContentList.forEach(function (value) {
+            var $filenameDiv = $(value).find(".filename");
+            // This only checks filename here. If there are multiple documents with the same filename
+            // (in different directories), this test will fail.
+            // TODO: This needs to be fixed by connecting this method with a specific inline editor's state
+            if ($filenameDiv.text() === doc.file.name) {
+                _showDirtyIndicator($filenameDiv.find(".dirty-indicator"), doc.isDirty);
+            }
+        });
+    }
+
+    // TY TODO: comments
+    function addInlineEditorContent(content) {
+        _inlineEditorContentList.push(content);
+        
+        // Manually position filename div's. Can't use CSS positioning in this case
+        // since the label is relative to the window boundary, not CodeMirror.
+        if (_inlineEditorContentList.length > 0) {
+            $(window).on("resize", _updateAllFilenames);
+            $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
+        }
+    }
+    
+    /**
+     * Stops tracking an editor after being removed from the document.
+     * @private
+     */
+    function _inlineEditorRemoved(inlineContent) {
+        var indexOf = _inlineEditorContentList.indexOf(inlineContent);
+        
+        if (indexOf >= 0) {
+            _inlineEditorContentList.splice(indexOf, 1);
+        }
+        
+        // stop listening for resize when all inline editors are closed
+        if (_inlineEditorContentList.length === 0) {
+            $(window).off("resize", _updateAllFilenames);
+            $(DocumentManager).off("dirtyFlagChange", _dirtyFlagChangeHandler);
+        }
+    }
 
     /**
      * @constructor
@@ -66,7 +161,21 @@ define(function (require, exports, module) {
     // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
     InlineEditor.prototype.onClosed = function () {
         this.syncGutterWidths();
+        _inlineEditorRemoved(this.content);
         this.editor.destroy(); //release ref on Document
+    };
+    
+    // Update the inline editor's height when the number of lines change
+    InlineEditor.prototype.sizeInlineEditorToContents = function (force) {
+        if ($(this.editor._codeMirror.getWrapperElement()).is(":visible")) {
+            var height = this.editor.totalHeight(true);
+            if (force || height !== this.prevHeight) {
+                this.prevHeight = height;
+                this.hostEditor.setInlineWidgetHeight(this.inlineId, height, true);
+                $(this.editor.getScrollerElement()).height(height);
+                this.editor.refresh();
+            }
+        }
     };
 
     // Some tasks have to wait until we've been parented into the outer editor
@@ -81,24 +190,13 @@ define(function (require, exports, module) {
         this.editor.focus();
     };
     InlineEditor.prototype.load = function () {};
+    
+
 
     // Called when the editor containing the inline is made visible.
     InlineEditor.prototype.afterParentShown = function () {
-            sizeInlineEditorToContents(true);
+        this.sizeInlineEditorToContents(true);
     };
-
-    // Update the inline editor's height when the number of lines change
-    InlineEditor.prototype.sizeInlineEditorToContents = function (force) {
-        if ($(this.editor._codeMirror.getWrapperElement()).is(":visible")) {
-            var height = this.editor.totalHeight(true);
-            if (force || height !== this.prevHeight) {
-                this.prevHeight = height;
-                this.hostEditor.setInlineWidgetHeight(this.inlineId, height, true);
-                $(this.editor.getScrollerElement()).height(height);
-                this.editor.refresh();
-            }
-        }
-    }
 
     // TODO (jasonsj): global command
     // Used to manually trigger closing this inline
@@ -106,8 +204,37 @@ define(function (require, exports, module) {
         var shouldMoveFocus = this.editor.hasFocus();
         EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
         // closeInlineWidget() causes afterClosed() to get run
-    }
+    };
+
+    /**
+     * 
+     * Create the shadowing and filename tab for an inline editor.
+     * TODO (issue #424): move to createInlineEditorFromText()
+     * @private
+     */
+    InlineEditor.prototype.createInlineEditorDecorations = function (editor, doc) {
+        // create the filename div
+        var filenameDiv = $('<div class="filename" style="visibility: hidden"/>')
+            .append('<div class="dirty-indicator"/>')
+            .append(doc.file.name);
+        
+        // add inline editor styling
+        // FIXME (jasonsj): #424, shadow only seems to work on scroller element and not on wrapper div
+        $(editor.getScrollerElement())
+            .append('<div class="shadow top"/>')
+            .append('<div class="shadow bottom"/>')
+            .append(filenameDiv);
+
+        // update the current inline editor immediately
+        // use setTimeout to allow filenameDiv to render first
+        setTimeout(function () {
+            _updateInlineEditorFilename(_editorHolderWidth(), filenameDiv);
+            _showDirtyIndicator(filenameDiv.find(".dirty-indicator"), doc.isDirty);
+            filenameDiv.css("visibility", "");
+        }, 0);
+    };
 
     exports.InlineEditor = InlineEditor;
+    exports.addInlineEditorContent = addInlineEditorContent;
 
 });
