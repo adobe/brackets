@@ -101,8 +101,12 @@ define(function (require, exports, module) {
 			$(inlineEditor.htmlContent).append('<div class="shadow top"/>')
                     .append('<div class="shadow bottom"/>');
 
+                var onClosed = function() {
+                    inlineEditor.onClosed();
+                };
+
                 var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
-                    inlineEditor.onParentShown, inlineEditor.onClosed, inlineEditor);
+                    inlineEditor.onParentShown, onClosed, inlineEditor);
 
                 inlineEditor.onAdded(inlineId);
                 result.resolve();
@@ -124,7 +128,7 @@ define(function (require, exports, module) {
      * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
      *      near the inline's location.
      */
-    function _closeInlineWidget(hostEditor, inlineId, moveFocus) {
+    function closeInlineWidget(hostEditor, inlineId, moveFocus) {
         if (moveFocus) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
@@ -190,15 +194,15 @@ define(function (require, exports, module) {
      * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
      * based on the file extension. The editor is not yet visible or attached to a host editor.
      * @param {!Document} doc  Document for the Editor's content
-     * @param  TY TODO: not sure I like this API. closeThisInline
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
+     * @param  TY TODO: not sure I like this API. closeThisInline
      *
      * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onParentShown:function(), onClosed:function()}}
      * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
      * also understood by Editor.addInlineWidget()... since it now contains methods & such.
      */
-    function createInlineEditorForDocument(doc, closeThisInline, range) {
+    function createInlineEditorForDocument(doc, range, closeThisInline) {
         // Container to hold editor & render its stylized frame
         var inlineContent = document.createElement('div');
         $(inlineContent).addClass("inlineCodeEditor");
@@ -419,7 +423,7 @@ define(function (require, exports, module) {
     
     // For unit tests
     exports._openInlineWidget = _openInlineWidget;
-    exports._closeInlineWidget = _closeInlineWidget;
+
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
@@ -431,4 +435,5 @@ define(function (require, exports, module) {
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;
+    exports.closeInlineWidget = closeInlineWidget;
 });

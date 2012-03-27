@@ -262,10 +262,10 @@ define(function (require, exports, module) {
 
     // TODO (jasonsj): global command
     // Used to manually trigger closing this inline
-    InlineEditor.prototype.closeThisInline = function (inlineEditor) {
+    InlineEditor.prototype.closeEditor = function (inlineEditor) {
         var shouldMoveFocus = this.editor.hasFocus();
-        _closeInlineWidget(hostEditor, this.inlineId, shouldMoveFocus);
-        // _closeInlineWidget() causes afterClosed() to get run
+        EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
+        // closeInlineWidget() causes afterClosed() to get run
     }
     
 
@@ -277,12 +277,15 @@ define(function (require, exports, module) {
         this._rules = rules;
     }
     CSSInlineEditor.prototype = new InlineEditor();
+    CSSInlineEditor.prototype.constructor = CSSInlineEditor;
+    CSSInlineEditor.prototype.parentClass = InlineEditor;
     
     // TY TODO: rename load?
     /** @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
     */
     CSSInlineEditor.prototype.load = function (hostEditor) {
         this.hostEditor = hostEditor;
+        var self = this;
         var htmlContent = document.createElement("div"),
             ruleList = $("<ul class='pills pills-vertical pull-right'/>");
         
@@ -299,7 +302,10 @@ define(function (require, exports, module) {
             startLine: rule.lineStart,
             endLine: rule.lineEnd
         };
-        var inlineInfo = EditorManager.createInlineEditorForDocument(rule.document, this.closeThisInline, range);
+        var inlineInfo = EditorManager.createInlineEditorForDocument(rule.document, range, function(inlineEditor) {
+            self.closeEditor(inlineEditor);
+        });
+
         // TY TODO: better way to do this than return two types and assign?
         this.htmlContent = inlineInfo.content;
         this.editor = inlineInfo.editor;
@@ -317,13 +323,6 @@ define(function (require, exports, module) {
             sizeInlineEditorToContents();
         });
         
-        // track inlineEditor content removal
-        var origOnClosed = this.onClosed;
-        this.onClosed = function () {
-            origOnClosed();
-            _inlineEditorRemoved(inlineInfo.content);
-        };
-        
         // TODO (jasonsj): XD
         _createInlineEditorDecorations(inlineInfo.editor, rule.document);
         
@@ -338,6 +337,11 @@ define(function (require, exports, module) {
         
         return (new $.Deferred()).resolve();
     };
+
+    CSSInlineEditor.prototype.onClosed = function () {
+        this.parentClass.prototype.onClosed.call(this); // call super.onClosed()
+        _inlineEditorRemoved(this.inlineInfo.content);
+    }
     
     CSSInlineEditor.prototype.getRules = function () {
     };
@@ -365,6 +369,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
      * @return {$.Promise} a promise that will be resolved with:
+            TY TODO: update return comment to specify inline editor
      *      {{content:DOMElement, height:Number, onAdded:function(inlineId:Number), onClosed:function()}}
      *      or null if we're not going to provide anything.
      */
