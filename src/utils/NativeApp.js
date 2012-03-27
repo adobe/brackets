@@ -35,7 +35,10 @@ define(function (require, exports, module) {
                     }
                 } else {
                     if (errorCallback) {
-                        errorCallback(err);
+                        // Map from brackets error code into FileError
+                        errorCallback(err === brackets.fs.ERR_NOT_FOUND
+                                          ? FileError.NOT_FOUND_ERR
+                                          : FileError.SECURITY_ERR); // SECURITY_ERR is the catch-all
                     }
                 }
             });

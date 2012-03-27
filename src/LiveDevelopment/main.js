@@ -36,8 +36,9 @@ define(function main(require, exports, module) {
         }
     };
     var _checkMark = "✓"; // Check mark character
-    var _statusNames = ["", ".", "..", _checkMark]; // Status label name
-    var _statusStyle = ["", "info", "info", "success"]; // Status label class
+    // Status names and styles are ordered: error, not connected, progress1, progress2, connected.
+    var _statusNames = ["X", "", ".", "..", _checkMark]; // Status label name
+    var _statusStyle = ["warning", "", "info", "info", "success"]; // Status label class
     var _btnGoLive; // reference to the GoLive button
     var _btnHighlight; // reference to the HighlightButton
 
@@ -79,7 +80,8 @@ define(function main(require, exports, module) {
             }
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
-            _setLabel(_btnGoLive, _statusNames[status], _statusStyle[status]);
+            // status starts at -1 (error), so add one when looking up name and style
+            _setLabel(_btnGoLive, _statusNames[status + 1], _statusStyle[status + 1]);
         });
     }
 
