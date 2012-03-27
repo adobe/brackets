@@ -106,9 +106,12 @@ define(function (require, exports, module) {
                 var onClosed = function() {
                     inlineEditor.onClosed();
                 };
-
+                var onParentShown = function() {
+                    inlineEditor.onParentShown();
+                };
+                
                 var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
-                    inlineEditor.onParentShown, onClosed, inlineEditor);
+                    onParentShown, onClosed, inlineEditor);
 
                 inlineEditor.onAdded(inlineId);
                 result.resolve();
@@ -200,7 +203,7 @@ define(function (require, exports, module) {
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      * @param  TY TODO: not sure I like this API. closeThisInline
      *
-     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onParentShown:function(), onClosed:function()}}
+     * @return {{content:DOMElement, editor:Editor}}
      * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
      * also understood by Editor.addInlineWidget()... since it now contains methods & such.
      */

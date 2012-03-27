@@ -68,6 +68,7 @@ define(function (require, exports, module) {
         // TY TODO: this probably belongs in InlineEditor, but it needs to assigned after this.editor is valid
         // When text is edited, auto-resize UI and sync changes to a backing full-size editor
         $(this.editor).on("change", function () {
+            // Size editor to current contents
             self.sizeInlineEditorToContents();
         });
         

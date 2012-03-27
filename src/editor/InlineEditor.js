@@ -167,7 +167,7 @@ define(function (require, exports, module) {
     
     // Update the inline editor's height when the number of lines change
     InlineEditor.prototype.sizeInlineEditorToContents = function (force) {
-        if ($(this.editor._codeMirror.getWrapperElement()).is(":visible")) {
+        if (this.editor.isFullyVisible()) {
             var height = this.editor.totalHeight(true);
             if (force || height !== this.prevHeight) {
                 this.prevHeight = height;
@@ -181,7 +181,11 @@ define(function (require, exports, module) {
     // Some tasks have to wait until we've been parented into the outer editor
     InlineEditor.prototype.onAdded = function (inlineId) {
         this.inlineId = inlineId;
-            
+        
+        // TODO: needs to call this.editor.refresh() (per NJ's checkin), but editor is only defined
+        // in our subclass CSSInlineEditor. Shouldn't it be here, since it's common to all inline
+        // text editors?
+        
         this.syncGutterWidths();
         
         // Set initial size
@@ -194,7 +198,10 @@ define(function (require, exports, module) {
 
 
     // Called when the editor containing the inline is made visible.
-    InlineEditor.prototype.afterParentShown = function () {
+    InlineEditor.prototype.onParentShown = function () {
+        // We need to call this explicitly whenever the host editor is reshown, since
+        // we don't actually resize the inline editor while its host is invisible (see
+        // isFullyVisible() check in sizeInlineEditorToContents()).
         this.sizeInlineEditorToContents(true);
     };
 
