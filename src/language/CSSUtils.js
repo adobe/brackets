@@ -13,6 +13,7 @@ define(function (require, exports, module) {
     
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
+        HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
 
@@ -302,13 +303,13 @@ define(function (require, exports, module) {
     /** Finds matching selectors in the <style> block of an HTML file; appends them to 'resultSelectors' */
     function findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
         // Find all <style> blocks in the HTML file
-        var styleBlocks = findStyleBlocksInHTML(htmlDocument.getText());
+        var styleBlocks = HTMLUtils.findStyleBlocks(htmlDocument._masterEditor);
         
         styleBlocks.forEach(function (styleBlockInfo) {
             // Find all matching rules for the given <style> block's content, and add them to the
             // overall search result
             var oneStyleBlockResults = _findAllMatchingSelectorsInText(styleBlockInfo.text, selector);
-            addSelectorResults(resultSelectors, oneStyleBlockResults, htmlDocument, styleBlockInfo.startLine);
+            addSelectorResults(resultSelectors, oneStyleBlockResults, htmlDocument, styleBlockInfo.start.line);
         });
     }
     
@@ -324,41 +325,6 @@ define(function (require, exports, module) {
                 lineEnd: selector.declListEndLine + lineOffset
             });
         });
-    }
-    
-    /** Returns an Array of entries for all the <style> blocks in the given string of HTML */
-    function findStyleBlocksInHTML(htmlText) {
-        // FIXME: finding by regexp is fragile; this will break if any <style> tags are present
-        // inside comments, attribute value strings, or CDATA blocks
-        
-        // Note: [\s\S] is a way of saying "any char"; we can't use . because in JavaScript . never
-        // matches newlines
-        var styleBlockFinder = /<style>([\s\S]*?)<\/style>/g;
-        
-        var styleBlocks = [];
-        var styleBlockFindResult = styleBlockFinder.exec(htmlText);
-        while (styleBlockFindResult) {
-            var startIndex = styleBlockFindResult.index;
-            styleBlocks.push({
-                startLine: indexToLineNumber(htmlText, startIndex),
-                text: styleBlockFindResult[1]
-            });
-            styleBlockFindResult = styleBlockFinder.exec(htmlText);
-        }
-        return styleBlocks;
-    }
-    
-    /** Given an index into a string, returns that position's 0-based line number */
-    function indexToLineNumber(text, index) {
-        var newlineFinder = /\r?\n/g;
-        var newlines = 0;
-        
-        var newlineFindResult = newlineFinder.exec(text);
-        while (newlineFindResult && newlineFindResult.index <= index) {
-            newlines++;
-            newlineFindResult = newlineFinder.exec(text);
-        }
-        return newlines;
     }
     
     
