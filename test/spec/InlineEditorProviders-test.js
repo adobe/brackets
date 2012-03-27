@@ -22,6 +22,10 @@ define(function (require, exports, module) {
             testWindow,
             initInlineTest;
         
+        function toRange(startLine, endLine) {
+            return {startLine: startLine, endLine: endLine};
+        }
+        
         function rewriteProject(spec) {
             var result = new $.Deferred();
         
@@ -139,6 +143,61 @@ define(function (require, exports, module) {
                     FileIndexManager    = testWindow.brackets.test.FileIndexManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
+                });
+                
+                this.addMatchers({
+                        
+                    toHaveInlineEditorRange: function (range) {
+                        var i = 0,
+                            editor = this.actual,
+                            hidden,
+                            lineCount = editor.lineCount(),
+                            shouldHide = [],
+                            shouldShow = [],
+                            startLine = range.startLine,
+                            endLine = range.endLine,
+                            visibleRangeCheck;
+                        
+                        for (i = 0; i < lineCount; i++) {
+                            hidden = editor._codeMirror.getLineHandle(i).hidden || false;
+                            
+                            if ((i < startLine) && !hidden) {
+                                shouldHide.push(i); // lines above start line should be hidden
+                            } else if (((i >= startLine) && (i <= endLine)) && hidden) {
+                                shouldShow.push(i); // lines in the range should be visible
+                            } else if ((i > endLine) && !hidden) {
+                                shouldHide.push(i); // lines below end line should be hidden
+                            }
+                        }
+                        
+                        visibleRangeCheck = (editor._visibleRange.startLine === startLine)
+                            && (editor._visibleRange.endLine === endLine);
+                        
+                        this.message = function () {
+                            var msg = "";
+                            
+                            if (shouldHide.length > 0) {
+                                msg += "Expected inline editor to hide [" + shouldHide.toString() + "]. ";
+                            }
+                            
+                            if (shouldHide.length > 0) {
+                                msg += "Expected inline editor to show [" + shouldShow.toString() + "]. ";
+                            }
+                            
+                            if (!visibleRangeCheck) {
+                                msg += "Editor._visibleRange ["
+                                    + editor._visibleRange.startLine + ","
+                                    + editor._visibleRange.endLine + "] should be ["
+                                    + startLine + "," + endLine + "].";
+                            }
+                            
+                            return msg;
+                        };
+                        
+                        return (shouldHide.length === 0)
+                            && (shouldShow.length === 0)
+                            && visibleRangeCheck;
+                    }
                 });
             });
     
@@ -478,6 +537,141 @@ define(function (require, exports, module) {
                             inlineEditor.getCursorPos()
                         );
                         expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                    });
+                });
+            
+                it("should sync insertions from the full editor and update the visual range of the inline editor", function () {
+                    var cssPath,
+                        cssDoc,
+                        fullEditor,
+                        inlineEditor,
+                        newInlineText = "/* insert in full editor */\n",
+                        before,
+                        start,
+                        middle,
+                        end,
+                        after;
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        
+                        // offsets
+                        before = this.infos["test1.css"].offsets[4];
+                        start = this.infos["test1.css"].offsets[1];
+                        middle = this.infos["test1.css"].offsets[5];
+                        end = this.infos["test1.css"].offsets[6];
+                        after = this.infos["test1.css"].offsets[7];
+                        
+                        // insert line above inline range
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            before
+                        );
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line + 1, end.line + 1));
+                        fullEditor._codeMirror.undo();
+                        
+                        // insert line at start of inline range
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            start
+                        );
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
+                        fullEditor._codeMirror.undo();
+                        
+                        // insert line within inline range
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            middle
+                        );
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
+                        fullEditor._codeMirror.undo();
+                        
+                        // insert line at end of inline range
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            end
+                        );
+                        // FIXME (issue #491): use commented verification
+                        //expect(isEditorRangeValid(inlineEditor, start.line, end.line + 1)).toBe(true);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                        fullEditor._codeMirror.undo();
+                        
+                        // insert line below inline range
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            after
+                        );
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    });
+                });
+            
+                xit("should sync deletions from the full editor and update the visual range of the inline editor", function () {
+                    var cssPath,
+                        cssDoc,
+                        fullEditor,
+                        inlineEditor,
+                        before,
+                        start,
+                        middle,
+                        end,
+                        after,
+                        wayafter;
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        
+                        // offsets
+                        before = this.infos["test1.css"].offsets[4];
+                        start = this.infos["test1.css"].offsets[1];
+                        middle = this.infos["test1.css"].offsets[5];
+                        end = this.infos["test1.css"].offsets[6];
+                        after = this.infos["test1.css"].offsets[7];
+                        wayafter = this.infos["test1.css"].offsets[2];
+                        
+                        // delete line above inline range
+                        fullEditor._codeMirror.replaceRange("", before, start);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line - 1, end.line - 1));
+                        console.log(inlineEditor._getText());
+                        fullEditor._codeMirror.undo();
+                        
+                        // delete line at start of inline range
+                        fullEditor._codeMirror.replaceRange("", start, middle);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
+                        console.log(inlineEditor._getText());
+                        fullEditor._codeMirror.undo();
+                        
+                        // delete line within inline range
+                        fullEditor._codeMirror.replaceRange("", middle, end);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
+                        console.log(inlineEditor._getText());
+                        fullEditor._codeMirror.undo();
+                        
+                        // delete line at end of inline range
+                        fullEditor._codeMirror.replaceRange("", end, after);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
+                        console.log(inlineEditor._getText());
+                        fullEditor._codeMirror.undo();
+                        
+                        // delete line below inline range
+                        fullEditor._codeMirror.replaceRange("", after, wayafter);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                        console.log(inlineEditor._getText());
                     });
                 });
             
