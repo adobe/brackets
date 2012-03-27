@@ -544,11 +544,24 @@ define(function (require, exports, module) {
                             }
                         )
                     ).done(function () {
-                        // The project folder stored in preference doesn't exist, so load the default 
-                        // project directory.
-                        // TODO (issue #267): When Brackets supports having no project directory
-                        // defined this code will need to change
-                        return loadProject(_getDefaultProjectPath());
+                        // The current project folder storedno longer exists, so prompt for another one.
+                        NativeFileSystem.showOpenDialog(false, true, "Choose project folder", _projectRoot.fullPath, null,
+                            function (files) {
+                                // If length == 0, user canceled the dialog, so use default project
+                                if (files.length === 0) {
+                                    files[0] = _getDefaultProjectPath();
+                                }
+                                // Load the new project into the folder tree
+                                loadProject(files[0]);
+                            },
+                            function (error) {
+                                Dialogs.showModalDialog(
+                                    Dialogs.DIALOG_ID_ERROR,
+                                    Strings.ERROR_LOADING_PROJECT,
+                                    Strings.format(Strings.OPEN_DIALOG_ERROR, error.code)
+                                );
+                            }
+                            );
                     });
                 }
                 );
