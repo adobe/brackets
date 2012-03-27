@@ -161,7 +161,7 @@ define(function (require, exports, module) {
     // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
     InlineEditor.prototype.onClosed = function () {
         this.syncGutterWidths();
-        _inlineEditorRemoved(this.content);
+        _inlineEditorRemoved(this.htmlContent);
         this.editor.destroy(); //release ref on Document
     };
     
@@ -189,7 +189,34 @@ define(function (require, exports, module) {
         
         this.editor.focus();
     };
-    InlineEditor.prototype.load = function () {};
+
+    // TY TODO comment: assignes this.htmlContent and this.editor
+    InlineEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine) {
+        var self = this;
+
+         var range = {
+            startLine: startLine,
+            endLine: endLine
+        };
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, function(inlineEditor) {
+            self.onClosed(inlineEditor);
+        });
+
+        this.htmlContent = inlineInfo.content;
+        this.editor = inlineInfo.editor;
+
+        $(this.editor).on("change", function () {
+            self.sizeInlineEditorToContents();
+        });
+
+        this.createInlineEditorDecorations(this.editor, doc);
+        addInlineEditorContent(this.htmlContent);
+    };
+
+
+    InlineEditor.prototype.load = function () {
+        // TODO: factor out generic load functionality from CSSInlineEditor.load
+    };
     
 
 
@@ -209,7 +236,7 @@ define(function (require, exports, module) {
     /**
      * 
      * Create the shadowing and filename tab for an inline editor.
-     * TODO (issue #424): move to createInlineEditorFromText()
+     * TODO (issue #424): 
      * @private
      */
     InlineEditor.prototype.createInlineEditorDecorations = function (editor, doc) {
@@ -235,6 +262,5 @@ define(function (require, exports, module) {
     };
 
     exports.InlineEditor = InlineEditor;
-    exports.addInlineEditorContent = addInlineEditorContent;
 
 });
