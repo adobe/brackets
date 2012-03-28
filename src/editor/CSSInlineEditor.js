@@ -61,7 +61,7 @@ define(function (require, exports, module) {
             
             $location = $(document.createElement("span")).appendTo($ruleItem);
             $location.addClass("location");
-            $location.text(rule.document.file.name + ":" + rule.lineStart);
+            $location.text(rule.document.file.name + ":" + (rule.lineStart + 1));
             
             self._ruleItems.push($ruleItem);
         });
