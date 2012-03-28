@@ -25,8 +25,6 @@ define(function (require, exports, module) {
     }
     CSSInlineEditor.prototype = new InlineEditor.InlineEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
-    CSSInlineEditor.prototype.parentClass = InlineEditor.InlineEditor;
-    
 
     /** 
      * @override
@@ -47,13 +45,13 @@ define(function (require, exports, module) {
 
         // TY TODO: part of sprint 6
         // Starter code for rule list navigation. Disabled until it's further along
-        var inlineviewNavigator = document.createElement("div");
+        // var inlineviewNavigator = document.createElement("div");
         
-        // create rule list
-        var ruleList = $("<ul class='pills pills-vertical pull-right'/>");
-        this._rules.forEach(function (rule) {
-            ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
-        });
+        // // create rule list
+        // var ruleList = $("<ul class='pills pills-vertical pull-right'/>");
+        // this._rules.forEach(function (rule) {
+        //     ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
+        // });
         
         //var $inlineviewNavigator = $(inlineviewNavigator);
         //$inlineviewNavigator.append(this.content);
