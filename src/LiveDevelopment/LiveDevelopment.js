@@ -37,7 +37,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
-    var NativeApp = require("utils/NativeApp").NativeApp;
+    var NativeApp = require("utils/NativeApp");
     var Dialogs = require("widgets/Dialogs");
     var Strings = require("strings");
 
@@ -213,11 +213,10 @@ define(function LiveDevelopment(require, exports, module) {
                     ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // User has chosen to reload Chrome, quit the running instance
-                            NativeApp.closeLiveBrowser();
-                            
-                            // Set a timeout to open a new instance. This gives time for the
-                            // old instance to close properly.
-                            setTimeout(open, 750);
+                            NativeApp.closeLiveBrowser().done(function () {
+                                // Set a timeout to open a new instance. 
+                                setTimeout(open, 500);
+                            });
                         }
                     });
                     return;
