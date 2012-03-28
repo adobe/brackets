@@ -161,12 +161,18 @@ define(function (require, exports, module) {
                         for (i = 0; i < lineCount; i++) {
                             hidden = editor._codeMirror.getLineHandle(i).hidden || false;
                             
-                            if ((i < startLine) && !hidden) {
-                                shouldHide.push(i); // lines above start line should be hidden
-                            } else if (((i >= startLine) && (i <= endLine)) && hidden) {
-                                shouldShow.push(i); // lines in the range should be visible
-                            } else if ((i > endLine) && !hidden) {
-                                shouldHide.push(i); // lines below end line should be hidden
+                            if (i < startLine) {
+                                if (!hidden) {
+                                    shouldHide.push(i); // lines above start line should be hidden
+                                }
+                            } else if ((i >= startLine) && (i <= endLine)) {
+                                if (hidden) {
+                                    shouldShow.push(i); // lines in the range should be visible
+                                }
+                            } else if (i > endLine) {
+                                if (!hidden) {
+                                    shouldHide.push(i); // lines below end line should be hidden
+                                }
                             }
                         }
                         
@@ -177,11 +183,11 @@ define(function (require, exports, module) {
                             var msg = "";
                             
                             if (shouldHide.length > 0) {
-                                msg += "Expected inline editor to hide [" + shouldHide.toString() + "]. ";
+                                msg += "Expected inline editor to hide [" + shouldHide.toString() + "].\n";
                             }
                             
-                            if (shouldHide.length > 0) {
-                                msg += "Expected inline editor to show [" + shouldShow.toString() + "]. ";
+                            if (shouldShow.length > 0) {
+                                msg += "Expected inline editor to show [" + shouldShow.toString() + "].\n";
                             }
                             
                             if (!visibleRangeCheck) {
@@ -682,7 +688,9 @@ define(function (require, exports, module) {
                         fullEditor,
                         inlineEditor,
                         editor,
-                        newText = "/* jasmine was inline */\n";
+                        text,
+                        newInlineText = "/* jasmine was inline */\n",
+                        newFullText = "/* full editor edit */\n";
                     
                     initInlineTest("test1.html", 1, true, ["test1.css"]);
                     
@@ -700,9 +708,10 @@ define(function (require, exports, module) {
                         // alternate editors while inserting new text
                         for (i = 0; i < 10; i++) {
                             editor = (i % 2 === 0) ? fullEditor : inlineEditor;
+                            text = (i % 2 === 0) ? newFullText : newInlineText;
                             editor._codeMirror.replaceRange(
-                                newText,
-                                inlineEditor.getCursorPos()
+                                text,
+                                editor.getCursorPos()
                             );
                             expect(inlineEditor._getText()).toBe(fullEditor._getText());
                         }
