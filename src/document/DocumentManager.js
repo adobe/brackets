@@ -40,16 +40,6 @@
  *      to the listener is the added FileEntry.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
- *    - change -- When the text of the editor changes (including due to undo/redo). Passes 
- *          ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
- *          of change record objects. Each change record looks like:
- *          { from: start of change, expressed as {line: <line number>, ch: <character offset>},
- *            to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
- *            text: array of lines of text to replace existing text,
- *            next: next change record in the linked list, or undefined if this is the last record }
- *      If "from" and "to" are undefined, then this is a replacement of the entire text content.
- *      (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
- *       it an ordinary array)
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(DocumentManager).on("eventname", handler);
@@ -304,9 +294,30 @@ define(function (require, exports, module) {
      * See DocumentManager documentation for important usage notes.
      *
      * Document dispatches one event:
-     *   change -- When the value of getText() changes for any reason (including edits, undo/redo,
-     *      or syncing from external changes). If you listen for this event, you MUST also
-     *      addRef() the document (and releaseRef() it whenever you stop listening).
+     *
+     * change -- When the text of the editor changes (including due to undo/redo). 
+     *
+     *        Passes ({Document}, {ChangeList}), where ChangeList is a linked list (NOT an array)
+     *        of change record objects. Each change record looks like:
+     *
+     *            { from: start of change, expressed as {line: <line number>, ch: <character offset>},
+     *              to: end of change, expressed as {line: <line number>, ch: <chracter offset>},
+     *              text: array of lines of text to replace existing text,
+     *              next: next change record in the linked list, or undefined if this is the last record }
+     *      
+     *        The line and ch offsets are both 0-based.
+     *
+     *        The ch offset in "from" is inclusive, but the ch offset in "to" is exclusive. For example,
+     *        an insertion of new content (without replacing existing content) is expressed by a range
+     *        where from and to are the same.
+     *
+     *        If "from" and "to" are undefined, then this is a replacement of the entire text content.
+     *
+     *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
+     *        (and releaseRef() it whenever you stop listening).
+     *  
+     *        (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
+     *        it an ordinary array)
      *
      * @param {!FileEntry} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
@@ -491,7 +502,7 @@ define(function (require, exports, module) {
             // TODO: Dumb to split it here just to join it again in the change handler, but this is
             // the CodeMirror change format. Should we document our change format to allow this to
             // either be an array of lines or a single string?
-            $(this).triggerHandler("change", [this, {text: text.split("\n")}]);
+            $(this).triggerHandler("change", [this, {text: text.split(/\r?\n/)}]);
         }
         this._markClean();
         this.diskTimestamp = newTimestamp;
@@ -521,6 +532,9 @@ define(function (require, exports, module) {
         }
         
         // Notify that Document's text has changed
+        // TODO: This needs to be kept in sync with SpecRunnerUtils.createMockDocument(). In the
+        // future, we should fix things so that we either don't need mock documents or that this
+        // is factored so it will just run in both.
         $(this).triggerHandler("change", [this, changeList]);
     };
     

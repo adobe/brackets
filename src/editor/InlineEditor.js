@@ -169,7 +169,7 @@ define(function (require, exports, module) {
      * Update the inline editor's height when the number of lines change
      */
     InlineEditor.prototype.sizeInlineEditorToContents = function (force) {
-        if ($(this.editor._codeMirror.getWrapperElement()).is(":visible")) {
+        if (this.editor.isFullyVisible()) {
             var height = this.editor.totalHeight(true);
             if (force || height !== this.height) {
                 this.height = height;
@@ -187,7 +187,8 @@ define(function (require, exports, module) {
      */
     InlineEditor.prototype.onAdded = function (inlineId) {
         this.inlineId = inlineId;
-            
+        
+        this.editor.refresh();
         this.syncGutterWidths();
         
         // Set initial size
@@ -224,6 +225,7 @@ define(function (require, exports, module) {
         this.editor = inlineInfo.editor;
 
         $(this.editor).on("change", function () {
+            // Size editor to current content
             self.sizeInlineEditorToContents();
         });
 
@@ -246,7 +248,10 @@ define(function (require, exports, module) {
     /**
      * Called when the editor containing the inline is made visible.
      */
-    InlineEditor.prototype.afterParentShown = function () {
+    InlineEditor.prototype.onParentShown = function () {
+        // We need to call this explicitly whenever the host editor is reshown, since
+        // we don't actually resize the inline editor while its host is invisible (see
+        // isFullyVisible() check in sizeInlineEditorToContents()).
         this.sizeInlineEditorToContents(true);
     };
 
