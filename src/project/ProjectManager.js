@@ -546,7 +546,7 @@ define(function (require, exports, module) {
                             }
                         )
                     ).done(function () {
-                        // The current project folder storedno longer exists, so prompt for another one.
+                        // The current project folder no longer exists, so prompt for another one.
                         NativeFileSystem.showOpenDialog(false, true, "Choose project folder", _projectRoot.fullPath, null,
                             function (files) {
                                 // If length == 0, user canceled the dialog, so use default project
