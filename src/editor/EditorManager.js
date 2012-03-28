@@ -60,6 +60,7 @@ define(function (require, exports, module) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
+            // TODO (jasonsj): global command?
             "Ctrl-E" : function (editor) {
                 onInlineGesture(editor);
             },
@@ -80,8 +81,9 @@ define(function (require, exports, module) {
     /**
      * @private
      * Bound to Ctrl+E on outermost editors.
-     * @return {$.Promise} a promise that will be resolved when an inline 
-     *  editor is created or rejected when no inline editors are available.
+     * @param {!Editor} editor the candidate host editor
+     * @return {$.Promise} a promise that will be resolved when an InlineEditor 
+     *      is created or rejected when no inline editors are available.
      */
     function _openInlineWidget(editor) {
         // Run through inline-editor providers until one responds
@@ -97,10 +99,21 @@ define(function (require, exports, module) {
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
-            inlinePromise.done(function (inlineContent) {
-                var inlineId = editor.addInlineWidget(pos, inlineContent.content, inlineContent.height,
-                                            inlineContent.onParentShown, inlineContent.onClosed, inlineContent);
-                inlineContent.onAdded(inlineId);
+            inlinePromise.done(function (inlineEditor) {
+			    $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
+                    .append('<div class="shadow bottom"/>');
+
+                var onClosed = function () {
+                    inlineEditor.onClosed();
+                };
+                var onParentShown = function () {
+                    inlineEditor.onParentShown();
+                };
+                
+                var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
+                    onParentShown, onClosed, inlineEditor);
+
+                inlineEditor.onAdded(inlineId);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -120,7 +133,7 @@ define(function (require, exports, module) {
      * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
      *      near the inline's location.
      */
-    function _closeInlineWidget(hostEditor, inlineId, moveFocus) {
+    function closeInlineWidget(hostEditor, inlineId, moveFocus) {
         if (moveFocus) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
@@ -136,7 +149,20 @@ define(function (require, exports, module) {
         hostEditor.removeInlineWidget(inlineId);
         
     }
+
     
+    /**
+     * Registers a new inline provider. When _openInlineWidget() is called each registered inline
+     * widget is called and asked if it wants to provide an inline widget given the current cursor
+     * location and document.
+     * @param {function} provider 
+     *      Parameters: 
+     *      {!Editor} editor, {!{line:Number, ch:Number}} pos
+     *      
+     *      Returns:
+     *      {$.Promise} a promise that will be resolved with an InlineEditor
+     *      or null to indicate the provider doesn't create an editor in this case
+     */
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
     }
@@ -147,8 +173,9 @@ define(function (require, exports, module) {
      * inline widgets that might be open).
      * @param {!Editor} hostEditor
      * @return {Array.<Editor>}
+     *
      */
-    function _getInlineEditors(hostEditor) {
+    function getInlineEditors(hostEditor) {
         var inlineEditors = [];
         hostEditor.getInlineWidgets().forEach(function (widget) {
             if (widget.data.editor) {
@@ -158,38 +185,6 @@ define(function (require, exports, module) {
         return inlineEditors;
     }
     
-    /**
-     * @private
-     * Given a host editor and its inline editors, find the widest gutter and make all the others match
-     * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
-     */
-    function _syncGutterWidths(hostEditor) {
-        var editors = _getInlineEditors(hostEditor);
-        // add the host to the list and go through them all
-        editors.push(hostEditor);
-        
-        var maxWidth = 0;
-        editors.forEach(function (editor) {
-            var gutter = $(editor._codeMirror.getGutterElement());
-            gutter.css("min-width", "");
-            var curWidth = gutter.width();
-            if (curWidth > maxWidth) {
-                maxWidth = curWidth;
-            }
-        });
-        
-        if (editors.length === 1) {
-            //There's only the host, just bail
-            editors[0]._codeMirror.setOption("gutter", true);
-            return;
-        }
-        
-        maxWidth = maxWidth + "px";
-        editors.forEach(function (editor) {
-            $(editor._codeMirror.getGutterElement()).css("min-width", maxWidth);
-            editor._codeMirror.setOption("gutter", true);
-        });
-    }
     
     
     /**
@@ -217,78 +212,19 @@ define(function (require, exports, module) {
     /**
      * Creates a new inline Editor instance for the given Document. The editor's mode is inferred
      * based on the file extension. The editor is not yet visible or attached to a host editor.
-     * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
      * @param {!Document} doc  Document for the Editor's content
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
+     * @param {HTMLDivContainer} inlineContent
+     * @param  {Function(InlineEditor)} closeThisInline
      *
-     * @return {{content:DOMElement, editor:Editor, height:Number, onAdded:function(inlineId:Number), onParentShown:function(), onClosed:function()}}
-     * FUTURE: we should really make the bag that _openInlineWidget() expects into an interface that's
-     * also understood by Editor.addInlineWidget()... since it now contains methods & such.
+     * @return {{content:DOMElement, editor:Editor}}
      */
-    function createInlineEditorForDocument(hostEditor, doc, range) {
-        // Container to hold editor & render its stylized frame
-        var inlineContent = document.createElement('div');
-        $(inlineContent).addClass("inlineCodeEditor");
-        
-        var myInlineId;   // (id is set when afterAdded() runs)
-        
-        // Used to manually trigger closing this inline
-        function closeThisInline(inlineEditor) {
-            var shouldMoveFocus = inlineEditor.hasFocus();
-            _closeInlineWidget(hostEditor, myInlineId, shouldMoveFocus);
-            // _closeInlineWidget() causes afterClosed() to get run
-        }
-        
+    function createInlineEditorForDocument(doc, range, inlineContent, closeThisInline) {
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range);
         
-        // Update the inline editor's height when the number of lines change
-        var prevHeight;
-        function sizeInlineEditorToContents(force) {
-            if (inlineEditor.isFullyVisible()) {
-                var height = inlineEditor.totalHeight(true);
-                if (force || height !== prevHeight) {
-                    prevHeight = height;
-                    hostEditor.setInlineWidgetHeight(myInlineId, height, true);
-                    $(inlineEditor.getScrollerElement()).height(height);
-                    inlineEditor.refresh();
-                }
-            }
-        }
-        
-        // When text is edited, auto-resize UI and sync changes to a backing full-size editor
-        $(inlineEditor).on("change", function () {
-            sizeInlineEditorToContents();
-        });
-        
-        // Some tasks have to wait until we've been parented into the outer editor
-        function afterAdded(inlineId) {
-            myInlineId = inlineId;
-            
-            inlineEditor.refresh();
-            _syncGutterWidths(hostEditor);
-            
-            // Set initial size
-            sizeInlineEditorToContents();
-            
-            inlineEditor.focus();
-        }
-        
-        // Called when the editor containing the inline is made visible.
-        function afterParentShown() {
-            // We need to call this explicitly whenever the host editor is reshown, since
-            // we don't actually resize the inline editor while its host is invisible.
-            sizeInlineEditorToContents(true);
-        }
-        
-        // Called any time inline was closed, whether manually (via closeThisInline()) or automatically
-        function afterClosed() {
-            _syncGutterWidths(hostEditor);
-            inlineEditor.destroy(); //release ref on Document
-        }
-        
-        return { content: inlineContent, editor: inlineEditor, height: 0, onAdded: afterAdded, onParentShown: afterParentShown, onClosed: afterClosed };
+        return { content: inlineContent, editor: inlineEditor };
     }
     
     
@@ -499,7 +435,7 @@ define(function (require, exports, module) {
     
     // For unit tests
     exports._openInlineWidget = _openInlineWidget;
-    exports._closeInlineWidget = _closeInlineWidget;
+
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
@@ -510,4 +446,6 @@ define(function (require, exports, module) {
     exports.getFocusedEditor = getFocusedEditor;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
+    exports.getInlineEditors = getInlineEditors;
+    exports.closeInlineWidget = closeInlineWidget;
 });

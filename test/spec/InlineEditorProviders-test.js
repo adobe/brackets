@@ -192,7 +192,7 @@ define(function (require, exports, module) {
                     expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
                     
                     // close the editor
-                    EditorManager._closeInlineWidget(fullEditor, inlineWidget.id, true);
+                    EditorManager.closeInlineWidget(fullEditor, inlineWidget.id, true);
                     
                     // verify no inline widgets 
                     expect(fullEditor.getInlineWidgets().length).toBe(0);
