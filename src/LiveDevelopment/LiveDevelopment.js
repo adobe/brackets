@@ -224,6 +224,7 @@ define(function LiveDevelopment(require, exports, module) {
                             // User has chosen to reload Chrome, quit the running instance
                             NativeApp.closeLiveBrowser().done(function () {
                                 // Set a timeout to open a new instance. 
+                                browserStarted = false;
                                 setTimeout(open, 500);
                             });
                         }
