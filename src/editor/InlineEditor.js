@@ -213,11 +213,11 @@ define(function (require, exports, module) {
             // _closeInlineWidget() causes afterClosed() to get run
         }
 
-         var range = {
+        var range = {
             startLine: startLine,
             endLine: endLine
         };
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, htmlContent, function(inlineEditor) {
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, htmlContent, function (inlineEditor) {
             closeThisInline(inlineEditor);
         });
 

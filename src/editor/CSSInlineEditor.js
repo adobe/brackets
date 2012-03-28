@@ -12,8 +12,8 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
-    	EditorManager       = require("editor/EditorManager"),
-    	InlineEditor 		= require("editor/InlineEditor");
+        EditorManager       = require("editor/EditorManager"),
+        InlineEditor        = require("editor/InlineEditor");
 
 
     /**
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         var inlineContent = document.createElement('div');
         $(inlineContent).addClass("inlineCodeEditor");
        
-        this.createInlineEditorFromText( rule.document, rule.lineStart, rule.lineEnd, inlineContent);
+        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, inlineContent);
 
         // TY TODO: part of sprint 6
         // Starter code for rule list navigation. Disabled until it's further along

@@ -100,13 +100,13 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineEditor) {
-			$(inlineEditor.htmlContent).append('<div class="shadow top"/>')
+			    $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
                     .append('<div class="shadow bottom"/>');
 
-                var onClosed = function() {
+                var onClosed = function () {
                     inlineEditor.onClosed();
                 };
-                var onParentShown = function() {
+                var onParentShown = function () {
                     inlineEditor.onParentShown();
                 };
                 
