@@ -12,6 +12,9 @@
  * Currently, we look for external changes purely by checking file timestamps against the last-sync
  * timestamp recorded on Document. Later, we will use actual native directory-watching callbacks
  * instead.
+ *
+ * FUTURE: Whenever we have a 'project file tree model,' we should manipulate that instead of notifying
+ * DocumentManager directly. DocumentManager, the tree UI, etc. then all listen to that model for changes.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -131,7 +134,7 @@ define(function (require, exports, module) {
                 function (error) {
                     // File has been deleted externally
                     if (error.code === FileError.NOT_FOUND_ERR) {
-                        DocumentManager.closeFullEditor(file);
+                        DocumentManager.notifyFileDeleted(file);
                         result.resolve();
                     } else {
                         // Some other error fetching metadata: treat as a real error
@@ -202,8 +205,7 @@ define(function (require, exports, module) {
      */
     function closeDeletedDocs() {
         toClose.forEach(function (doc) {
-            // TODO (issue #474): should be Document.destroy() or something instead
-            DocumentManager.closeFullEditor(doc.file);
+            DocumentManager.notifyFileDeleted(doc.file);
         });
     }
     
@@ -256,9 +258,8 @@ define(function (require, exports, module) {
                 .done(function (id) {
                     if (id === Dialogs.DIALOG_BTN_DONTSAVE) {
                         if (toClose) {
-                            // Discard - close editor
-                            // TODO (issue #474): should be Document.destroy() or something instead
-                            DocumentManager.closeFullEditor(doc.file);
+                            // Discard - close all editors
+                            DocumentManager.notifyFileDeleted(doc.file);
                             result.resolve();
                         } else {
                             // Discard - load changes from disk

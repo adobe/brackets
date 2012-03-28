@@ -340,25 +340,26 @@ define(function (require, exports, module) {
     
 
     /**
-     * Closes the specified document. Prompts user about saving file if document is dirty.
+     * Closes the specified file: removes it from the working set, and closes the main editor if one
+     * is open. Prompts user about saving changes first, if document is dirty.
      *
-     * @param {?{doc: Document}} commandData  Document to close; assumes the current document if null.
+     * @param {?{file: FileEntry}} commandData  File to close; assumes the current document if null.
      * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
      *          actually close the document. This is useful when chaining file-close together with
      *          other user prompts that may be cancelable.
      * @return {$.Deferred}
      */
     function handleFileClose(commandData) {
-        var doc = null;
+        var file = null;
         if (commandData) {
-            doc = commandData.doc;
+            file = commandData.file;
         }
         
         // utility function for handleFileClose: closes document & removes from working set
-        function doClose(doc) {
+        function doClose(file) {
             if (!commandData || !commandData.promptOnly) {
                 // This selects a different document if the working set has any other options
-                DocumentManager.closeFullEditor(doc.file);
+                DocumentManager.closeFullEditor(file);
             
                 EditorManager.focusEditor();
             }
@@ -368,16 +369,21 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         
         // Default to current document if doc is null
-        if (!doc) {
-            doc = DocumentManager.getCurrentDocument();
+        if (!file) {
+            if (DocumentManager.getCurrentDocument()) {
+                file = DocumentManager.getCurrentDocument().file;
+            }
         }
         
         // No-op if called when nothing is open; TODO: (issue #273) should command be grayed out instead?
-        if (!doc) {
+        if (!file) {
             return;
         }
         
-        if (doc.isDirty) {
+        var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+        
+        if (doc && doc.isDirty) {
+            // Document is dirty: prompt to save changes before closing
             var filename = PathUtils.parseUrl(doc.file.fullPath).filename;
             
             Dialogs.showModalDialog(
@@ -390,7 +396,7 @@ define(function (require, exports, module) {
                 } else if (id === Dialogs.DIALOG_BTN_OK) {
                     doSave(doc)
                         .done(function () {
-                            doClose(doc);
+                            doClose(file);
                             result.resolve();
                         })
                         .fail(function () {
@@ -398,7 +404,8 @@ define(function (require, exports, module) {
                         });
                 } else {
                     // This is the "Don't Save" case--we can just go ahead and close the file.
-                    doClose(doc);
+                    // FIXME: revert contents, or something...
+                    doClose(file);
                     result.resolve();
                 }
             });
@@ -406,8 +413,8 @@ define(function (require, exports, module) {
                 EditorManager.focusEditor();
             });
         } else {
-            // Doc is not dirty, just close
-            doClose(doc);
+            // File is not open, or IS open but Document not dirty: close immediately
+            doClose(file);
             EditorManager.focusEditor();
             result.resolve();
         }
@@ -439,7 +446,7 @@ define(function (require, exports, module) {
             
         } else if (unsavedDocs.length === 1) {
             // Only one unsaved file: show the usual single-file-close confirmation UI
-            var fileCloseArgs = { doc: unsavedDocs[0], promptOnly: commandData.promptOnly };
+            var fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: commandData.promptOnly };
 
             handleFileClose(fileCloseArgs).done(function () {
                 // still need to close any other, non-unsaved documents
