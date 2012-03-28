@@ -152,7 +152,16 @@ define(function (require, exports, module) {
 
     
     /**
-     * @param {$.Promise} a promise that will be resolved with a InlineEditor
+     * Registers a new inline provider. When _openInlineWidget() is called each registered inline
+     * widget is called and asked if it wants to provide an inline widget given the current cursor
+     * location and document.
+     * @param {function} provider 
+     *      Parameters: 
+     *      {!Editor} editor, {!{line:Number, ch:Number}} pos
+     *      
+     *      Returns:
+     *      {$.Promise} a promise that will be resolved with an InlineEditor
+     *      or null to indicate the provider doesn't create an editor in this case
      */
     function registerInlineEditProvider(provider) {
         _inlineEditProviders.push(provider);
@@ -206,7 +215,7 @@ define(function (require, exports, module) {
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      * @param {HTMLDivContainer} inlineContent
-     * @param  {Function(inlineEditor)} closeThisInline
+     * @param  {Function(InlineEditor)} closeThisInline
      *
      * @return {{content:DOMElement, editor:Editor}}
      */

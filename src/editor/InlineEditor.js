@@ -82,7 +82,7 @@ define(function (require, exports, module) {
      * update file names and manage the dirty indicator
      * @param {HTMLDivElement}
      */
-    function addInlineEditorContent(content) {
+    function _addInlineEditorContent(content) {
         _inlineEditorContentList.push(content);
         
         // Manually position filename div's. Can't use CSS positioning in this case
@@ -111,27 +111,15 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * @constructor
-     *
-     */
-    function InlineEditor() {
-    }
-    InlineEditor.prototype.htmlContent = null;
-    InlineEditor.prototype.editor = null;
-    InlineEditor.prototype.height = 0;
-    InlineEditor.prototype.inlineId = null;
-    InlineEditor.prototype.hostEditor = null;
-
-    /**
-     * @private
+   /**
      * Given a host editor and its inline editors, find the widest gutter and make all the others match
      * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
+     * @private
      */
-    InlineEditor.prototype.syncGutterWidths = function () {
-        var editors = EditorManager.getInlineEditors(this.hostEditor);
+    function _syncGutterWidths(hostEditor) {
+        var editors = EditorManager.getInlineEditors(hostEditor);
         // add the host to the list and go through them all
-        editors.push(this.hostEditor);
+        editors.push(hostEditor);
         
         var maxWidth = 0;
         editors.forEach(function (editor) {
@@ -154,13 +142,25 @@ define(function (require, exports, module) {
             $(editor._codeMirror.getGutterElement()).css("min-width", maxWidth);
             editor._codeMirror.setOption("gutter", true);
         });
-    };
+    }
+
+    /**
+     * @constructor
+     *
+     */
+    function InlineEditor() {
+    }
+    InlineEditor.prototype.htmlContent = null;
+    InlineEditor.prototype.editor = null;
+    InlineEditor.prototype.height = 0;
+    InlineEditor.prototype.inlineId = null;
+    InlineEditor.prototype.hostEditor = null;
 
     /**
      * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
      */
     InlineEditor.prototype.onClosed = function () {
-        this.syncGutterWidths();
+        _syncGutterWidths(this.hostEditor);
         _inlineEditorRemoved(this.htmlContent);
         this.editor.destroy(); //release ref on Document
     };
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
         this.inlineId = inlineId;
         
         this.editor.refresh();
-        this.syncGutterWidths();
+        _syncGutterWidths(this.hostEditor);
         
         // Set initial size
         this.sizeInlineEditorToContents();
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
         });
 
         this.createInlineEditorDecorations(this.editor, doc);
-        addInlineEditorContent(this.htmlContent);
+        _addInlineEditorContent(this.htmlContent);
     };
 
     /**
@@ -276,11 +276,7 @@ define(function (require, exports, module) {
             .append('<div class="dirty-indicator"/>')
             .append(doc.file.name);
         
-        // add inline editor styling
-        // FIXME (jasonsj): #424, shadow only seems to work on scroller element and not on wrapper div
         $(editor.getScrollerElement())
-            .append('<div class="shadow top"/>')
-            .append('<div class="shadow bottom"/>')
             .append(filenameDiv);
 
         // update the current inline editor immediately
