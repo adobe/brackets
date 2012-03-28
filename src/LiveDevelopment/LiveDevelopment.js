@@ -211,22 +211,23 @@ define(function LiveDevelopment(require, exports, module) {
                 
                 if (!browserStarted) {
                     NativeApp.openLiveBrowser(
-                        doc.root.url,
-                        function () {
+                        doc.root.url
+                    )
+                        .done(function () {
                             browserStarted = true;
-                        },
-                        function (err) {
+                        })
+                        .fail(function (err) {
                             // TODO (task 4.7): Error reporting. Err could be NOT_FOUND_ERR or SECURITY_ERR
                             console.log("Error launching browser");
                             _setStatus(-1);
-                            return;
-                        }
-                    );
+                        });
                 }
-                setTimeout(function retryConnect() {
-                    doc = _getCurrentDocument();
-                    Inspector.connectToURL(doc.root.url).fail(onConnectFail);
-                }, 500);
+                
+                if (exports.status !== -1) {
+                    setTimeout(function retryConnect() {
+                        Inspector.connectToURL(doc.root.url).fail(onConnectFail);
+                    }, 500);
+                }
             });
         }
     }
