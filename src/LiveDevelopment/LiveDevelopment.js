@@ -4,7 +4,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, FileError */
+/*global define, $, FileError, brackets */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -72,13 +72,22 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = DocumentManager.getCurrentDocument();
         if (doc) {
             var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
+            var prefix = "file://";
+            
+            // The file.fullPath on Windows starts with a drive letter ("C:").
+            // In order to make it a valid file: URL we need to add an 
+            // additional slash to the prefix.
+            if (brackets.platform === "win") {
+                prefix += "/";
+            }
+            
             doc.extension = matches[3];
-            doc.url = encodeURI("file://" + doc.file.fullPath);
+            doc.url = encodeURI(prefix + doc.file.fullPath);
 
             // the root represents the document that should be displayed in the browser
             // for live development (the file for HTML files, index.html for others)
             var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-            doc.root = {url: encodeURI("file://" + matches[1] + fileName)};
+            doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
         }
         return doc;
     }
