@@ -15,6 +15,8 @@ define(function (require, exports, module) {
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = require("./SpecRunnerUtils.js");
 
+    // TODO: These need to be rewritten for the new inline syncing approach. In particular, the fact that these don't
+    // add the inline editor to the DOM is a problem.
     describe("EditorManager", function () {
         
         beforeEach(function () {
