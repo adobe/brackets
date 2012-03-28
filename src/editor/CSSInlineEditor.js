@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         // Starter code for rule list navigation. Disabled until it's further along
         // var inlineviewNavigator = document.createElement("div");
         
-        // // create rule list
+        // create rule list
         // var ruleList = $("<ul class='pills pills-vertical pull-right'/>");
         // this._rules.forEach(function (rule) {
         //     ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");

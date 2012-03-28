@@ -173,6 +173,7 @@ define(function (require, exports, module) {
      * inline widgets that might be open).
      * @param {!Editor} hostEditor
      * @return {Array.<Editor>}
+     *
      */
     function getInlineEditors(hostEditor) {
         var inlineEditors = [];
