@@ -389,7 +389,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the currently focused editor instance.
+     * Returns the currently focused editor instance (full-sized OR inline editor).
      * @returns {Editor}
      */
     function getFocusedEditor() {
