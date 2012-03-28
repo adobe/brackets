@@ -13,7 +13,7 @@ define(function (require, exports, module) {
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
         EditorManager       = require("editor/EditorManager"),
-        InlineEditor        = require("editor/InlineEditor");
+        InlineTextEditor    = require("editor/InlineTextEditor");
 
 
     /**
@@ -22,9 +22,11 @@ define(function (require, exports, module) {
      */
     function CSSInlineEditor(rules) {
         this._rules = rules;
+        this._selectedRuleIndex = -1;
     }
-    CSSInlineEditor.prototype = new InlineEditor.InlineEditor();
+    CSSInlineEditor.prototype = new InlineTextEditor.InlineTextEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
+    CSSInlineEditor.prototype.parentClass = InlineTextEditor.InlineTextEditor;
 
     /** 
      * @override
@@ -32,33 +34,43 @@ define(function (require, exports, module) {
      * 
     */
     CSSInlineEditor.prototype.load = function (hostEditor) {
-        this.hostEditor = hostEditor;
-
+        this.parentClass.prototype.load.call(this, hostEditor);
+        
+        // Container to hold all editors
+        var self = this,
+            $editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
+       
         // load first rule
         var rule = this._rules[0];
+        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, $editorsDiv.get(0));
 
-        // Container to hold editor & render its stylized frame
-        var inlineContent = document.createElement('div');
-        $(inlineContent).addClass("inlineCodeEditor");
-       
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, inlineContent);
-
-        // TY TODO: part of sprint 6
-        // Starter code for rule list navigation. Disabled until it's further along
-        // var inlineviewNavigator = document.createElement("div");
+        var $relatedContainer = $(document.createElement("div")).addClass("relatedContainer"),
+            $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related"),
+            $ruleList = $(document.createElement("ul")).appendTo($related),
+            $ruleItem,
+            $location;
         
         // create rule list
-        // var ruleList = $("<ul class='pills pills-vertical pull-right'/>");
-        // this._rules.forEach(function (rule) {
-        //     ruleList.append("<li><a>" + rule.document.file.name + "</a></li>");
-        // });
+        this._ruleItems = [];
+        this._rules.forEach(function (rule, i) {
+            $ruleItem = $(document.createElement("li")).appendTo($ruleList);
+            $ruleItem.text(rule.selector + " ");
+            $ruleItem.click(function () {
+                self.setSelectedRule(i);
+            });
+            
+            $location = $(document.createElement("span")).appendTo($ruleItem);
+            $location.addClass("location");
+            $location.text(rule.document.file.name + ":" + rule.lineStart);
+            
+            self._ruleItems.push($ruleItem);
+        });
         
-        //var $inlineviewNavigator = $(inlineviewNavigator);
-        //$inlineviewNavigator.append(this.content);
-        //$inlineviewNavigator.append(ruleList);
+        // select the first rule
+        self.setSelectedRule(0);
         
-        // wrapper div for inline editor
-        //this.htmlContent = inlineviewNavigator;
+        // attach to main container
+        this.$htmlContent.append($editorsDiv).append($relatedContainer);
 
         return (new $.Deferred()).resolve();
     };
@@ -71,7 +83,13 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.getSelectedRule = function () {
     };
     
-    CSSInlineEditor.prototype.setSelectedRule = function () {
+    CSSInlineEditor.prototype.setSelectedRule = function (index) {
+        if (this._selectedRuleIndex >= 0) {
+            this._ruleItems[this._selectedRuleIndex].toggleClass("selected", false);
+        }
+        
+        this._selectedRuleIndex = index;
+        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
     };
     
     CSSInlineEditor.prototype.nextRule = function () {
