@@ -13,35 +13,24 @@ define(function (require, exports, module) {
         /** openLiveBrowser
          *
          * @param {string} url
-         * @param {function(...)} successCallback
-         * @param {function(...)} errorCallback
+         * @return {$.Promise} 
          */
         openLiveBrowser: function (url, successCallback, errorCallback) {
-            
-            // Temporary workaround to avoid TypeError if the openLiveBrowser()
-            // function isn't defined.
-            // TODO: Remove this test once live browser hookup is complete.
-            if (!brackets.app.openLiveBrowser) {
-                if (errorCallback) {
-                    errorCallback(-1);
-                }
-                return;
-            }
+            var result = new $.Deferred();
             
             brackets.app.openLiveBrowser(url, function onRun(err) {
                 if (!err) {
-                    if (successCallback) {
-                        successCallback();
-                    }
+                    result.resolve();
                 } else {
-                    if (errorCallback) {
-                        // Map from brackets error code into FileError
-                        errorCallback(err === brackets.fs.ERR_NOT_FOUND
-                                          ? FileError.NOT_FOUND_ERR
-                                          : FileError.SECURITY_ERR); // SECURITY_ERR is the catch-all
-                    }
+                    result.fail(
+                        err === brackets.fs.ERR_NOT_FOUND
+                            ? FileError.NOT_FOUND_ERR
+                            : FileError.SECURITY_ERR  // SECURITY_ERR is the catch-all
+                    );
                 }
             });
+            
+            return result.promise();
         },
         
         /** closeLiveBrowser
@@ -50,6 +39,7 @@ define(function (require, exports, module) {
          * @param {function(...)} errorCallback
          */
         closeLiveBrowser: function (successCallback, errorCallback) {
+            // TODO: return promise
             brackets.app.closeLiveBrowser(function (err) {
                 if (!err) {
                     if (successCallback) {

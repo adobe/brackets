@@ -226,11 +226,12 @@ define(function LiveDevelopment(require, exports, module) {
                 
                 if (!browserStarted) {
                     NativeApp.openLiveBrowser(
-                        doc.root.url,
-                        function () {
+                        doc.root.url
+                    )
+                        .done(function () {
                             browserStarted = true;
-                        },
-                        function (err) {
+                        })
+                        .fail(function (err) {
                             var message;
                             
                             _setStatus(-1);
@@ -245,14 +246,14 @@ define(function LiveDevelopment(require, exports, module) {
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
                                 message
                             );
-                            return;
-                        }
-                    );
+                        });
                 }
-                setTimeout(function retryConnect() {
-                    doc = _getCurrentDocument();
-                    Inspector.connectToURL(doc.root.url).fail(onConnectFail);
-                }, 500);
+                
+                if (exports.status !== -1) {
+                    setTimeout(function retryConnect() {
+                        Inspector.connectToURL(doc.root.url).fail(onConnectFail);
+                    }, 500);
+                }
             });
         }
     }

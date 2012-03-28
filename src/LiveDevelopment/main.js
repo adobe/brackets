@@ -81,6 +81,8 @@ define(function main(require, exports, module) {
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
+            // See the comments at the top of LiveDevelopment.js for details on the 
+            // various status codes.
             _setLabel(_btnGoLive, _statusNames[status + 1], _statusStyle[status + 1]);
         });
     }
