@@ -262,12 +262,13 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
-            docs = {};
+            docs = {},
+            FileViewController = testWindow.brackets.test.FileViewController;
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
             
-            testWindow.executeCommand(Commands.FILE_OPEN,  {fullPath: path}).done(function (doc) {
+            FileViewController.addToWorkingSetAndSelect(path).done(function (doc) {
                 docs[keys[i]] = doc;
                 one.resolve();
             }).fail(function () {
