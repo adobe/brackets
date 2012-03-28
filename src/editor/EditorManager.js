@@ -56,7 +56,7 @@ define(function (require, exports, module) {
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range, deleteCurrentLines) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
@@ -65,6 +65,12 @@ define(function (require, exports, module) {
             },
             "Cmd-E" : function (editor) {
                 onInlineGesture(editor);
+            },
+            "Ctrl-D" : function (editor) {
+                deleteCurrentLines(editor);
+            },
+            "Cmd-D" : function (editor) {
+                deleteCurrentLines(editor);
             },
             "Shift-Ctrl-F" : function () {
                 // No-op, handled in FindInFiles.js
@@ -112,6 +118,15 @@ define(function (require, exports, module) {
         return result.promise();
     }
     
+    /**
+     * @private
+     * Bound to Ctrl+D on outermost editors.
+     * Remove the line/lines for the cursor/selection
+     */
+    function _deleteCurrentLines(editor) {
+        editor.deleteCurrentLines();
+    }
+
     /**
      * Removes the given widget UI from the given hostEdtior (agnostic of what the widget's content
      * is). The widget's onClosed() callback will be run as a result.
@@ -203,7 +218,7 @@ define(function (require, exports, module) {
     function _createFullEditorForDocument(document) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
-        var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
+        var editor = _createEditorForDocument(document, true, container, _openInlineWidget, null, _deleteCurrentLines);
         editor.setVisible(false);
     }
     

@@ -546,7 +546,14 @@ define(function (require, exports, module) {
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
     };
-    
+
+    /**
+     * Deletes the current line if there is no selection or the lines for the selection
+     */
+    Editor.prototype.deleteCurrentLines = function () {
+        this._codeMirror.deleteCurrentLines();
+    }
+
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
