@@ -13,7 +13,7 @@ define(function (require, exports, module) {
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
         EditorManager       = require("editor/EditorManager"),
-        InlineTextEditor    = require("editor/InlineTextEditor");
+        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor;
 
 
     /**
@@ -21,20 +21,20 @@ define(function (require, exports, module) {
      * @extends {InlineEditor}
      */
     function CSSInlineEditor(rules) {
+        InlineTextEditor.call(this);
         this._rules = rules;
         this._selectedRuleIndex = -1;
     }
-    CSSInlineEditor.prototype = new InlineTextEditor.InlineTextEditor();
+    CSSInlineEditor.prototype = new InlineTextEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
-    CSSInlineEditor.prototype.parentClass = InlineTextEditor.InlineTextEditor;
 
     /** 
      * @override
      * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
      * 
-    */
+     */
     CSSInlineEditor.prototype.load = function (hostEditor) {
-        this.parentClass.prototype.load.call(this, hostEditor);
+        InlineTextEditor.prototype.load.call(this, hostEditor);
         
         // Container to hold all editors
         var self = this,

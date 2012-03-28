@@ -28,7 +28,7 @@ define(function (require, exports, module) {
     /**
      * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
      */
-    InlineEditor.prototype.closeCallback = function () {
+    InlineEditor.prototype.onClosed = function () {
         // do nothing - base implementation
     };
 
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     /**
      * Called when the editor containing the inline is made visible.
      */
-    InlineEditor.prototype.parentShowCallback = function () {
+    InlineEditor.prototype.onParentShown = function () {
         // do nothing - base implementation
     };
 

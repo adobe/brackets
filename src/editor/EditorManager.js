@@ -104,10 +104,10 @@ define(function (require, exports, module) {
                     .append('<div class="shadow bottom"/>');
 
                 var closeCallback = function () {
-                    inlineEditor.closeCallback();
+                    inlineEditor.onClosed();
                 };
                 var parentShowCallback = function () {
-                    inlineEditor.parentShowCallback();
+                    inlineEditor.onParentShown();
                 };
                 
                 var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,

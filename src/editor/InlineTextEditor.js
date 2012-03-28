@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        InlineEditor        = require("editor/InlineEditor");
+        InlineEditor        = require("editor/InlineEditor").InlineEditor;
 
     /**
      * Returns editor holder width (not CodeMirror's width).
@@ -38,11 +38,13 @@ define(function (require, exports, module) {
      * @private
      */
     function _dirtyFlagChangeHandler(event, doc) {
-        var $dirtyIndicators = $(".inlineEditor .dirty-indicator");
+        var $dirtyIndicators = $(".inlineEditor .dirty-indicator"),
+            $indicator;
         
         $.each($dirtyIndicators, function (index, indicator) {
-            if (indicator.data("fullPath") === doc.file.fullPath) {
-                _showDirtyIndicator(indicator, doc.isDirty);
+            $indicator = $(indicator);
+            if ($indicator.data("fullPath") === doc.file.fullPath) {
+                _showDirtyIndicator($indicator, doc.isDirty);
             }
         });
     }
@@ -52,11 +54,13 @@ define(function (require, exports, module) {
      *
      */
     function InlineTextEditor() {
+        InlineEditor.call(this);
         this._docRangeToEditorMap = {};
+        this.editors = [];
     }
-    InlineTextEditor.prototype = new InlineEditor.InlineEditor();
+    InlineTextEditor.prototype = new InlineEditor();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
-    InlineTextEditor.prototype.editors = [];
+    InlineTextEditor.prototype.editors = null;
 
    /**
      * Given a host editor and its inline editors, find the widest gutter and make all the others match
@@ -187,10 +191,17 @@ define(function (require, exports, module) {
         var $wrapperDiv = $(wrapperDiv);
         container.appendChild(wrapperDiv);
         
-        // dirty indicator folllowed by filename
+        // dirty indicator followed by filename
         var $filenameDiv = $(document.createElement("div")).addClass("filename");
-        var $dirtyIndicatorDiv = $(document.createElement("div")).addClass("dirty-indicator");
-        $filenameDiv.append($dirtyIndicatorDiv).text(doc.file.name);
+        
+        // save file path data to dirty-indicator
+        var $dirtyIndicatorDiv = $(document.createElement("div"))
+            .addClass("dirty-indicator")
+            .width(4); // initialize indicator as hidden
+        $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
+        
+        $filenameDiv.append($dirtyIndicatorDiv);
+        $dirtyIndicatorDiv.after(doc.file.name + ":" + (startLine + 1));
         $wrapperDiv.append($filenameDiv);
         
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline);
@@ -218,7 +229,6 @@ define(function (require, exports, module) {
         // will fuction as an abstract class or as generic inline editor implementation
         // that just shows a range of text. See CSSInlineEditor.css for an implementation of load()
     };
-    
 
     /**
      * Called when the editor containing the inline is made visible.
