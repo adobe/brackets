@@ -23,7 +23,8 @@ define(function (require, exports, module) {
     var DIALOG_ID_ERROR = "error-dialog",
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
-        DIALOG_ID_EXT_DELETED = "ext-deleted-dialog";
+        DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
+        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -92,7 +93,7 @@ define(function (require, exports, module) {
      * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
-    function showModalDialog(dlgClass, title, message, callback) {
+    function showModalDialog(dlgClass, title, message) {
         var result = $.Deferred();
         
         // We clone the HTML rather than using it directly so that if two dialogs of the same
@@ -179,6 +180,7 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_SAVE_CLOSE = DIALOG_ID_SAVE_CLOSE;
     exports.DIALOG_ID_EXT_CHANGED = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
+    exports.DIALOG_ID_LIVE_DEVELOPMENT = DIALOG_ID_LIVE_DEVELOPMENT;
     
     exports.showModalDialog = showModalDialog;
     exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;

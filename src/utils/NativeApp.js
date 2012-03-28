@@ -42,6 +42,25 @@ define(function (require, exports, module) {
                     }
                 }
             });
+        },
+        
+        /** closeLiveBrowser
+         *
+         * @param {function(...)} successCallback
+         * @param {function(...)} errorCallback
+         */
+        closeLiveBrowser: function (successCallback, errorCallback) {
+            brackets.app.closeLiveBrowser(function (err) {
+                if (!err) {
+                    if (successCallback) {
+                        successCallback();
+                    }
+                } else {
+                    if (errorCallback) {
+                        errorCallback(err);
+                    }
+                }
+            });
         }
 
     };

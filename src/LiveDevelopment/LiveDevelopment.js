@@ -38,6 +38,8 @@ define(function LiveDevelopment(require, exports, module) {
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
     var NativeApp = require("utils/NativeApp").NativeApp;
+    var Dialogs = require("widgets/Dialogs");
+    var Strings = require("strings");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -72,13 +74,15 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = DocumentManager.getCurrentDocument();
         if (doc) {
             var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-            doc.extension = matches[3];
-            doc.url = encodeURI("file://" + doc.file.fullPath);
-
-            // the root represents the document that should be displayed in the browser
-            // for live development (the file for HTML files, index.html for others)
-            var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-            doc.root = {url: encodeURI("file://" + matches[1] + fileName)};
+            if (matches) {
+                doc.extension = matches[3];
+                doc.url = encodeURI("file://" + doc.file.fullPath);
+    
+                // the root represents the document that should be displayed in the browser
+                // for live development (the file for HTML files, index.html for others)
+                var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+                doc.root = {url: encodeURI("file://" + matches[1] + fileName)};
+            }
         }
         return doc;
     }
@@ -201,10 +205,21 @@ define(function LiveDevelopment(require, exports, module) {
                     return;
                 }
                 if (retryCount > 4) {
-                    // TODO (task 4.7): Alert user that a debugging connection could not be established
-                    // TODO (task 4.8): Restart Chrome (if user requested a restart)
-                    console.log("Timed out trying to make debugging connection.");
                     _setStatus(-1);
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
+                        Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE
+                    ).done(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            // User has chosen to reload Chrome, quit the running instance
+                            NativeApp.closeLiveBrowser();
+                            
+                            // Set a timeout to open a new instance. This gives time for the
+                            // old instance to close properly.
+                            setTimeout(open, 750);
+                        }
+                    });
                     return;
                 }
                 retryCount++;
@@ -216,9 +231,20 @@ define(function LiveDevelopment(require, exports, module) {
                             browserStarted = true;
                         },
                         function (err) {
-                            // TODO (task 4.7): Error reporting. Err could be NOT_FOUND_ERR or SECURITY_ERR
-                            console.log("Error launching browser");
+                            var message;
+                            
                             _setStatus(-1);
+                            if (err === FileError.NOT_FOUND_ERR) {
+                                message = Strings.ERROR_CANT_FIND_CHROME;
+                            } else {
+                                message = Strings.format(Strings.ERROR_LAUNCHING_BROWSER, err);
+                            }
+                            
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_LAUNCHING_BROWSER_TITLE,
+                                message
+                            );
                             return;
                         }
                     );
