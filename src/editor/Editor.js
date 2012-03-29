@@ -463,6 +463,8 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
+        var change;
+        
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -473,6 +475,18 @@ define(function (require, exports, module) {
             // we're not the ground truth; and if we got here, this was a Document change that
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
+            
+            // Special case: if one of the changes involves a destructive replacement
+            // across the first line of the inline editor, close it.
+            if (this._visibleRange) {
+                for (change = changeList; change; change = change.next) {
+                    if (change.from.line < this._visibleRange.startLine &&
+                            change.to.line >= this._visibleRange.startLine) {
+                        $(this).triggerHandler("lostContent");
+                        return;
+                    }
+                }
+            }
             
             this._duringSync = true;
             this._applyChangesToEditor(this, changeList);
