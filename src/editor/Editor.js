@@ -386,10 +386,12 @@ define(function (require, exports, module) {
                     var range = editor._visibleRange;
                     if (range) {
                         var i, numAdded = change.text.length - (change.to.line - change.from.line + 1);
-                        if (change.to.line < range.startLine) {
+                        // Edits that end at the very beginning of the start line should not be included, but
+                        // edits that cross into it should be.
+                        if (change.to.line < range.startLine || (change.to.line === range.startLine && change.to.ch === 0)) {
                             range.startLine += numAdded;
                         }
-                        if (change.to.line < range.endLine) {
+                        if (change.to.line <= range.endLine) {
                             range.endLine += numAdded;
                         }
                         for (i = change.from.line; i < change.from.line + change.text.length; i++) {
@@ -463,6 +465,8 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
+        var change;
+        
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -473,6 +477,21 @@ define(function (require, exports, module) {
             // we're not the ground truth; and if we got here, this was a Document change that
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
+            
+            // Special case: if one of the changes involves a destructive replacement
+            // across the first line of the inline editor, close it. (But don't collapse it
+            // if the deletion ends at the very beginning of the first line--_applyChangesToEditor
+            // will correctly fix up the range in that case.)
+            if (this._visibleRange) {
+                for (change = changeList; change; change = change.next) {
+                    if (change.from.line < this._visibleRange.startLine &&
+                            change.to.line >= this._visibleRange.startLine &&
+                            !(change.to.line === this._visibleRange.startLine && change.to.ch === 0)) {
+                        $(this).triggerHandler("lostContent");
+                        return;
+                    }
+                }
+            }
             
             this._duringSync = true;
             this._applyChangesToEditor(this, changeList);
