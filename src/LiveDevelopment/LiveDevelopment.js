@@ -222,11 +222,15 @@ define(function LiveDevelopment(require, exports, module) {
                     ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // User has chosen to reload Chrome, quit the running instance
-                            NativeApp.closeLiveBrowser().done(function () {
-                                // Set a timeout to open a new instance. 
-                                browserStarted = false;
-                                setTimeout(open, 500);
-                            });
+                            NativeApp.closeLiveBrowser()
+                                .done(function () {
+                                    browserStarted = false;
+                                    setTimeout(open);
+                                })
+                                .fail(function (err) {
+                                    // Report error?
+                                    browserStarted = false;
+                                });
                         }
                     });
                     return;
