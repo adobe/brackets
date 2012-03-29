@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: false, $ */
+/*global define, $ */
 
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
@@ -20,13 +20,13 @@
 
 define(function (require, exports, module) {
     'use strict';
-
-    var FileIndexManager    = brackets.coreRequire("project/FileIndexManager"),
-        DocumentManager     = brackets.coreRequire("document/DocumentManager"),
-        CommandManager      = brackets.coreRequire("command/CommandManager"),
-        EditorManager       = brackets.coreRequire("editor/EditorManager"),
-        Commands            = brackets.coreRequire("command/Commands"),
-        ProjectManager      = brackets.coreRequire("project/ProjectManager");
+    
+    var FileIndexManager    = require("project/FileIndexManager"),
+        DocumentManager     = require("document/DocumentManager"),
+        CommandManager      = require("command/CommandManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Commands            = require("command/Commands"),
+        ProjectManager      = require("project/ProjectManager");
 
     /**
     * QuickNavigateDialog class
@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div style=\'background-image:url(' + require.toUrl("./ty.jpg") + ')\'>' + template + '</div>';
+        this.dialog.innerHTML = '<div>' + template + '</div>';
     };
 
     function _filenameFromPath(path) {
