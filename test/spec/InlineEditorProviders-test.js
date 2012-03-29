@@ -584,10 +584,20 @@ define(function (require, exports, module) {
                         expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line + 1, end.line + 1));
                         fullEditor._codeMirror.undo();
                         
-                        // insert line at start of inline range
+                        // insert new line at start of inline range--the new line should not be included in 
+                        // the inline
                         fullEditor._codeMirror.replaceRange(
                             newInlineText,
                             start
+                        );
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line + 1, end.line + 1));
+                        fullEditor._codeMirror.undo();
+                        
+                        // insert new line within start line of inline range--the new line should
+                        // be included
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            {line: start.line, ch: start.ch + 1}
                         );
                         expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
                         fullEditor._codeMirror.undo();
@@ -795,6 +805,35 @@ define(function (require, exports, module) {
                         fullEditor._codeMirror.redo();
                         expect(inlineEditor._getText()).toBe(fullEditor._getText());
                         expect(fullEditor._getText()).toBe(editedText);
+                    });
+                });
+                
+                it("should close the inline if the user deletes across the first line", function () {
+                    var cssPath,
+                        cssDoc,
+                        fullEditor,
+                        htmlEditor,
+                        before,
+                        middle;
+                    
+                    initInlineTest("test1.html", 1, true, ["test1.css"]);
+                    
+                    runs(function () {
+                        cssPath = this.infos["test1.css"].fileEntry.fullPath;
+                        cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        before = this.infos["test1.css"].offsets[4];
+                        middle = this.infos["test1.css"].offsets[5];
+                        
+                        // save off the HTML editor
+                        htmlEditor = EditorManager.getCurrentFullEditor();
+                        
+                        // edit the full editor for the CSS file
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                        fullEditor._codeMirror.replaceRange("", before, middle);
+
+                        // verify no inline widgets in the HTML editor
+                        expect(htmlEditor.getInlineWidgets().length).toBe(0);
                     });
                 });
             });

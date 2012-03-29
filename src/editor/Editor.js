@@ -386,7 +386,9 @@ define(function (require, exports, module) {
                     var range = editor._visibleRange;
                     if (range) {
                         var i, numAdded = change.text.length - (change.to.line - change.from.line + 1);
-                        if (change.to.line <= range.startLine) {
+                        // Edits that end at the very beginning of the start line should not be included, but
+                        // edits that cross into it should be.
+                        if (change.to.line < range.startLine || (change.to.line === range.startLine && change.to.ch === 0)) {
                             range.startLine += numAdded;
                         }
                         if (change.to.line <= range.endLine) {
