@@ -376,13 +376,15 @@ define(function (require, exports, module) {
                     keyIn: function (e, query) { that._handleKeyIn(e, query); }
                 });
         
-                that.searchField.val(initialValue);
-                that.searchField.focus();
+                that.searchField.val(initialValue || "");
+                that.searchField.get(0).select();
             });
     };
 
     function doFileSearch() {
-        var dialog = new QuickNavigateDialog();
+        var currentEditor = EditorManager.getFocusedEditor();
+        var initialString = currentEditor && currentEditor.getSelectedText();
+        var dialog = new QuickNavigateDialog(initialString);
         dialog.showDialog();
     }
 

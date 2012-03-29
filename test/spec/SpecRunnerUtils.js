@@ -51,9 +51,13 @@ define(function (require, exports, module) {
         docToShim.releaseRef = function () {};
         
         // Prevent adding doc to working set
-        docToShim._handleEditorChange = function () {
+        docToShim._handleEditorChange = function (event, editor, changeList) {
             this.isDirty = true;
-            $(this).triggerHandler("change", [this]);
+                    
+            // TODO: This needs to be kept in sync with Document._handleEditorChange(). In the
+            // future, we should fix things so that we either don't need mock documents or that this
+            // is factored so it will just run in both.
+            $(this).triggerHandler("change", [this, changeList]);
         };
         docToShim.notifySaved = function () {
             throw new Error("Cannot notifySaved() a unit-test dummy Document");
