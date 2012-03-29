@@ -167,16 +167,27 @@ define(function (require, exports, module) {
         
         return path;
     }
+
+    /**
+     * Returns a native absolute path to the 'brackets' source directory.
+     * @return {string}
+     */
+    function getNativeBracketsDirectoryPath() {
+        var pathname = window.location.pathname;
+        var directory = window.location.pathname.substr(0, pathname);
+        return convertToNativePath(directory);
+    }
     
     // Define public API
-    exports.LINE_ENDINGS_CRLF        = LINE_ENDINGS_CRLF;
-    exports.LINE_ENDINGS_LF          = LINE_ENDINGS_LF;
-    exports.getPlatformLineEndings   = getPlatformLineEndings;
-    exports.sniffLineEndings         = sniffLineEndings;
-    exports.translateLineEndings     = translateLineEndings;
-    exports.showFileOpenError        = showFileOpenError;
-    exports.getFileErrorString       = getFileErrorString;
-    exports.readAsText               = readAsText;
-    exports.writeText                = writeText;
-    exports.convertToNativePath      = convertToNativePath;
+    exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
+    exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
+    exports.getPlatformLineEndings         = getPlatformLineEndings;
+    exports.sniffLineEndings               = sniffLineEndings;
+    exports.translateLineEndings           = translateLineEndings;
+    exports.showFileOpenError              = showFileOpenError;
+    exports.getFileErrorString             = getFileErrorString;
+    exports.readAsText                     = readAsText;
+    exports.writeText                      = writeText;
+    exports.convertToNativePath            = convertToNativePath;
+    exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
 });

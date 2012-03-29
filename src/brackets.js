@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         FileIndexManager        = require("project/FileIndexManager"),
         // QuickFileOpen           = require("search/QuickFileOpen"),
         Menus                   = require("command/Menus"),
+        FileUtils               = require("file/FileUtils"),
         ExtensionLoader         = require("ExtensionLoader");
         
     //Load modules the self-register and just need to get included in the main project
@@ -203,7 +204,9 @@ define(function (require, exports, module) {
 
         // load extensions
         // TODO: Shold this be outside of the app startup measurement
-        ExtensionLoader.startLoading();
+        ExtensionLoader.loadAllExtensionsInDirectory(FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default", "/extensions/default");
+        ExtensionLoader.loadAllExtensionsInDirectory(FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user", "/extensions/user");
+
         
         PerfUtils.addMeasurement("Application Startup");
     });

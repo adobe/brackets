@@ -20,39 +20,34 @@ define(function (coreRequire, exports, module) {
     // the local one is named 'coreRequire'
     brackets.libRequire = require;
 
-    function loadExtensions(extensionDirs) {
+    function loadExtension(baseUrl, entryPoint) {
         var i;
-		var extensionRequire = null;
-		var createLoadLogger = function (name) { return function () { console.log("finished loading " + name); }; };
+		var extensionRequire = brackets.libRequire.config({
+			context: extensionDirs[i],
+			baseUrl: baseUrl
+		});
 
-        for (i = 0; i < extensionDirs.length; i++) {
-			// load extensions
-			extensionRequire = brackets.libRequire.config({
-			    context: extensionDirs[i],
-			    baseUrl: "extensions/default/" + extensionDirs[i]
-			});
+		console.log("[Extension] starting to load " + baseUrl);
 
-			console.log("starting to load " + extensionDirs[i]);
-
-			// TODO: instead of requiring this to be called "main", read package.json
-			extensionRequire(["main"], createLoadLogger(extensionDirs[i]));
-		}
+		extensionRequire([entryPoint], function () { console.log("[Extension] finished loading " + baseUrl) });
     }
 
-	// TODO: get the directories from NativeFileSystem rather than the low-level filesystem
-	var extensionPath = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/")) + "/extensions/default";
-	console.log("the extension path is: " + extensionPath);
 
-    function startLoading() {
-        brackets.fs.readdir(extensionPath, function (err, data) {
+    function loadAllExtensionsInDirectory(directory, baseUrl) {
+        brackets.fs.readdir(directory, function (err, subdirs) {
+            var i;
             if (err) {
                 console.log("Couldn't load extensions: " + err);
             } else {
-                console.log("Loading the following extensions: " +  JSON.stringify(data));
-                loadExtensions(data);
+                console.log("Loading the following extensions: " +  JSON.stringify(subdirs));
+                for (i = 0; i < subdirs.length; i++) {
+                    // FUTURE (JRB): instead of requiring this to be called "main", read package.json
+                    loadExtension(baseUrl + "/" + subdirs[i], "main");
+                }
             }
         });
     }
     
-    exports.startLoading = startLoading;
+    exports.loadExtension = loadExtension;
+    exports.loadAllExtensionsInDirectory = loadAllExtensionsInDirectory;
 });
