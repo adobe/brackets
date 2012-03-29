@@ -13,6 +13,7 @@ define(function (require, exports, module) {
     
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
         HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
@@ -305,9 +306,15 @@ define(function (require, exports, module) {
     
     /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
     function findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
+        // HTMLUtils requires a real CodeMirror instance; make sure we can give it the right Editor
+        var htmlEditor = EditorManager.getCurrentFullEditor();
+        if (htmlEditor.document !== htmlDocument) {
+            console.error("Cannot search for <style> blocks in HTML file other than current editor");
+            return;
+        }
+        
         // Find all <style> blocks in the HTML file
-        // TODO: avoid looking at _masterEditor; maybe just require htmlDoc to be current main editor?
-        var styleBlocks = HTMLUtils.findStyleBlocks(htmlDocument._masterEditor);
+        var styleBlocks = HTMLUtils.findStyleBlocks(htmlEditor);
         
         styleBlocks.forEach(function (styleBlockInfo) {
             // Search this one <style> block's content, appending results to 'resultSelectors'
