@@ -21,8 +21,10 @@ define(function (require, exports, module) {
      * Returns an array of selectors. Each selector is an object with the following properties:
          selector:                 the text of the selector (note: comma separated selector groups like 
                                    "h1, h2" are broken into separate selectors)
-         line:                     line in the text where the selector appears
-         character:                column in the line where the selector starts
+         ruleStartLine:            line in the text where the rule (including preceding comment) appears
+         ruleStartChar:            column in the line where the rule (including preceding comment) starts
+         selectorStartLine:        line in the text where the selector appears
+         selectorStartChar:        column in the line where the selector starts
          selectorEndLine:          line where the selector ends
          selectorEndChar:          column where the selector ends
          selectorGroupStartLine:   line where the comma-separated selector group (e.g. .foo, .bar, .baz)
@@ -44,7 +46,9 @@ define(function (require, exports, module) {
         var lines = CodeMirror.splitLines(text);
         var lineCount = lines.length;
         
-        var currentSelector = "", currentPosition = -1, selectorStartLine;
+        var currentSelector = "";
+        var ruleStartChar = -1, ruleStartLine = -1;
+        var selectorStartChar = -1, selectorStartLine = -1;
         var token, style, stream, i, j;
 
         var inDeclList = false, inAtRule = false;
@@ -83,31 +87,43 @@ define(function (require, exports, module) {
                         // such as @media (which is handled elsewhere) @page,
                         // @keyframes (also -webkit-keyframes, etc.), and @font-face.
                         inAtRule = true;
-                        currentPosition = -1;  // reset so we don't get @rules following comments
+                        ruleStartLine = -1;  // reset so we don't get @rules following comments
+                        selectorStartChar = -1;
                         selectorGroupStartLine = -1;
                     } else {
                         // detect non-crlf whitespace, comments on same line as '}'
-                        if (currentPosition < 0 && (token.trim() !== "") &&
+                        if (ruleStartLine < 0 && (token.trim() !== "") &&
                                 !(style === "comment" && stream.start > 0 && lines[i].substr(0, stream.start).indexOf('}') !== -1)) {
                              
                             // start of a new selector, or comment above selector
+                            ruleStartChar = stream.start;
+                            ruleStartLine = i;
+                        }
+
+                        if (selectorStartChar < 0 && (token.trim() !== "") && style !== "comment") {
+                             
+                            // start of a new selector, or comment above selector
                             currentSelector = "";
-                            currentPosition = stream.start;
+                            selectorStartChar = stream.start;
                             selectorStartLine = i;
                             if (selectorGroupStartLine < 0) {
                                 // this is the start of a new comma-separated selector group
                                 // (whenever we start parsing a declaration list, we set selectorGroupStartLine to -1)
                                 selectorGroupStartLine = selectorStartLine;
-                                selectorGroupStartChar = currentPosition;
+                                selectorGroupStartChar = selectorStartChar;
                             }
                         }
-                        currentSelector += token;
+                        if (selectorStartChar !== -1) {
+                            currentSelector += token;
+                        }
                     }
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
                         selectors.push({selector: currentSelector.trim(),
-                                        line: selectorStartLine,
-                                        character: currentPosition,
+                                        ruleStartLine: ruleStartLine,
+                                        ruleStartChar: ruleStartChar,
+                                        selectorStartLine: selectorStartLine,
+                                        selectorStartChar: selectorStartChar,
                                         declListEndLine: -1,
                                         selectorEndLine: i,
                                         selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
@@ -116,18 +132,25 @@ define(function (require, exports, module) {
                                        });
                     }
                     currentSelector = "";
-                    currentPosition = -1;
+                    selectorStartChar = -1;
 
-                    if (!inDeclList && state.stack.indexOf("{") > -1) { // just started parsing a declaration list
-                        inDeclList = true;
-                        declListStartLine = i;
-                        declListStartChar = stream.start;
-
-                        // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
-                        // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
-                        selectorGroupStartLine = -1;
-                        selectorGroupStartChar = -1;
-
+                    if (!inDeclList) {
+                        if (state.stack.indexOf("{") > -1) { // just started parsing a declaration list
+                            inDeclList = true;
+                            declListStartLine = i;
+                            declListStartChar = stream.start;
+    
+                            // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
+                            // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
+                            selectorGroupStartLine = -1;
+                            selectorGroupStartChar = -1;
+                            ruleStartLine = -1;
+                            ruleStartChar = -1;
+                        } else if (token === "@media") {
+                            // ignore comments preceding @rules
+                            ruleStartLine = -1;
+                            ruleStartChar = -1;
+                        }
                     } else if (inDeclList && state.stack.indexOf("{") === -1) {  // just finished parsing a declaration list
                         inDeclList = false;
                         // assign this declaration list position to every selector on the stack that doesn't have a declaration list start and end line
