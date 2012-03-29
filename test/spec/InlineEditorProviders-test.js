@@ -12,6 +12,7 @@ define(function (require, exports, module) {
         EditorManager,      // loaded from brackets.test
         FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
+        Dialogs         = require("widgets/Dialogs"),
         FileUtils       = require("file/FileUtils"),
         SpecRunnerUtils = require("./SpecRunnerUtils.js");
 
@@ -392,6 +393,45 @@ define(function (require, exports, module) {
                     expect(inlineEditor.document.isDirty).toBeFalsy();
                     expect(hostEditor.document.isDirty).toBeTruthy();
                 });
+            });
+            
+            // FUTURE: Eventually we'll instead want it to stay open and revert to the content on disk.
+            // See notes in Document._makeNonEditable() & DocumentCommandHandlers.handleFileClose().
+            it("should close when file is closed without saving changes", function () {
+                initInlineTest("test1.html", 1);
+                
+                var newText = "\n/* jasmine was here */";
+                var hostEditor;
+                var inlineEditor;
+                
+                runs(function () {
+                    hostEditor = EditorManager.getCurrentFullEditor();
+                    inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
+                    // var hostEditor = EditorManager.getCurrentFullEditor();
+                    // var inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
+                    
+                    // insert text at the inline editor's cursor position
+                    inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
+                    
+                    // verify isDirty flag
+                    expect(inlineEditor.document.isDirty).toBeTruthy();
+
+                    // close the main editor / working set entry for the inline's file
+                    testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+
+                    var dontSaveButton = testWindow.$(".modal.instance .dialog-button[data-button-id='" + Dialogs.DIALOG_BTN_DONTSAVE +"']");
+                    dontSaveButton.click();
+                });
+                
+                // Wait until dialog's result handler runs; it's done on a timeout to avoid Bootstrap bugs,
+                // and sadly there's no cleaner way to detect when it's done
+                waits(100);
+                
+                runs(function () {
+                    // verify inline is closed
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+                
             });
 
         });
