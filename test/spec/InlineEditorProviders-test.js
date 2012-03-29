@@ -13,6 +13,7 @@ define(function (require, exports, module) {
         FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
+        Dialogs         = require("widgets/Dialogs"),
         FileUtils       = require("file/FileUtils"),
         SpecRunnerUtils = require("./SpecRunnerUtils.js");
 
@@ -467,7 +468,44 @@ define(function (require, exports, module) {
                     expect(hostEditor.document.isDirty).toBeTruthy();
                 });
             });
-        
+            
+            // FUTURE: Eventually we'll instead want it to stay open and revert to the content on disk.
+            // See notes in Document._makeNonEditable() & DocumentCommandHandlers.handleFileClose().
+            it("should close inline when file is closed without saving changes", function () {
+                initInlineTest("test1.html", 1);
+                
+                var newText = "\n/* jasmine was here */",
+                    hostEditor,
+                    inlineEditor;
+                
+                runs(function () {
+                    hostEditor = EditorManager.getCurrentFullEditor();
+                    inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
+                    
+                    // verify inline is open
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    
+                    // insert text at the inline editor's cursor position
+                    inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
+                    
+                    // verify isDirty flag
+                    expect(inlineEditor.document.isDirty).toBeTruthy();
+                    
+                    // close the main editor / working set entry for the inline's file
+                    testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                    
+                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
+                });
+                // clickDialogButton inserts a wait here automatically
+                
+                runs(function () {
+                    // verify inline is closed
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+                
+            });
+            
+            
             describe("Bi-directional Editor Synchronizing", function () {
     
                 it("should not add an inline document to the working set without being edited", function () {
@@ -559,7 +597,7 @@ define(function (require, exports, module) {
                     end,
                     after,
                     wayafter;
-                        
+                    
                 beforeEach(function () {
                     initInlineTest("test1.html", 1, true, ["test1.css"]);
                     
@@ -567,7 +605,7 @@ define(function (require, exports, module) {
                         var cssPath = this.infos["test1.css"].fileEntry.fullPath;
                         var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
                         hostEditor = EditorManager.getCurrentFullEditor();
-                        inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data.editor;
+                        inlineEditor = hostEditor.getInlineWidgets()[0].data.editor;
                         
                         // activate the full editor
                         DocumentManager.setCurrentDocument(cssDoc);
@@ -596,6 +634,20 @@ define(function (require, exports, module) {
                     // undo is equivalent to deleting the should cause editor to snap shut
                     fullEditor._codeMirror.undo();
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+                it("should not close inline when undoing change that prepended to line at top of inline's range", function () {
+                    // insert new text at start of inline range, without newlines--the new text should be included in 
+                    // the inline
+                    fullEditor._codeMirror.replaceRange(
+                        ".bar, ",
+                        start
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    
+                    // undo is NOT deleting the entire first line in this case
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 
                 it("should sync insertions from the full editor and update the visual range of the inline editor", function () {

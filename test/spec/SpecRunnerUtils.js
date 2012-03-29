@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define: false, $: false,  describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
+/*global define: false, $: false,  describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waits: false, runs: false */
 define(function (require, exports, module) {
     'use strict';
     
@@ -67,7 +67,14 @@ define(function (require, exports, module) {
 
     function createTestWindowAndRun(spec, callback) {
         runs(function () {
-            testWindow = window.open(getBracketsSourceRoot() + "/index.html", "_blank", "left=400,top=200,width=1000,height=700");
+            // Position popup windows in the lower right so they're out of the way
+            var testWindowWid = 1000,
+                testWindowHt  =  700,
+                testWindowX   = window.screen.availWidth - testWindowWid,
+                testWindowY   = window.screen.availHeight - testWindowHt,
+                optionsStr    = "left=" + testWindowX + ",top=" + testWindowY +
+                                ",width=" + testWindowWid + ",height=" + testWindowHt;
+            testWindow = window.open(getBracketsSourceRoot() + "/index.html", "_blank", optionsStr);
             
             testWindow.executeCommand = function executeCommand(cmd, args) {
                 return testWindow.brackets.test.CommandManager.execute(cmd, args);
@@ -106,7 +113,31 @@ define(function (require, exports, module) {
             testWindow.close();
         });
     }
-
+    
+    
+    /**
+     * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
+     * asynchronously; after calling this, you need to start a new runs() block before testing the
+     * outcome.
+     * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
+     */
+    function clickDialogButton(buttonId) {
+        runs(function () {
+            // Make sure there's one and only one dialog open
+            expect(testWindow.$(".modal.instance").length).toBe(1);
+            
+            // Make sure desired button exists
+            var dismissButton = testWindow.$(".modal.instance .dialog-button[data-button-id='" + buttonId + "']");
+            expect(dismissButton.length).toBe(1);
+            
+            dismissButton.click();
+        });
+        // Wait until dialog's result handler runs; it's done on a timeout to avoid Bootstrap bugs
+        // TODO: add unit-test helper API to Dialogs that cleanly tell us when it's done closing
+        waits(100);
+    }
+    
+    
     function loadProjectInTestWindow(path) {
         var isReady = false;
 
@@ -380,6 +411,7 @@ define(function (require, exports, module) {
     exports.createMockDocument          = createMockDocument;
     exports.createTestWindowAndRun      = createTestWindowAndRun;
     exports.closeTestWindow             = closeTestWindow;
+    exports.clickDialogButton           = clickDialogButton;
     exports.loadProjectInTestWindow     = loadProjectInTestWindow;
     exports.openProjectFiles            = openProjectFiles;
     exports.openInlineEditorAtOffset    = openInlineEditorAtOffset;
