@@ -54,12 +54,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         Commands            = require("command/Commands");
-        
-    // ******************************************************************************************
-    // PF TODO: when main editor is closed w/o saving changes, do a pretend revert of the Doc
-    //          to force all inlines to close
-    // ******************************************************************************************
-
+    
     /**
      * Unique PreferencesManager clientID
      */
@@ -450,7 +445,7 @@ define(function (require, exports, module) {
             // what's on disk. But since we currently close all secondary editors when anyone else
             // touches the Document content, there's no point in doing that yet. Just change the text
             // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
-            // should probably live in DocumentCommandHandlers.handleFileClose().
+            // should probably live in DocumentCommandHandlers.handleFileClose() (see note there).
             if (this.isDirty) {
                 this.refreshText("");
             }

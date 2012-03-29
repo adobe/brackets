@@ -343,10 +343,11 @@ define(function (require, exports, module) {
      * Closes the specified file: removes it from the working set, and closes the main editor if one
      * is open. Prompts user about saving changes first, if document is dirty.
      *
-     * @param {?{file: FileEntry}} commandData  File to close; assumes the current document if null.
-     * @param {boolean} promptOnly  If true, only displays the relevant confirmation UI and does NOT
-     *          actually close the document. This is useful when chaining file-close together with
-     *          other user prompts that may be cancelable.
+     * @param {?{file: FileEntry, promptOnly:boolean}} commandData  Optional bag of arguments:
+     *      file - File to close; assumes the current document if not specified.
+     *      promptOnly - If true, only displays the relevant confirmation UI and does NOT actually
+     *          close the document. This is useful when chaining file-close together with other user
+     *          prompts that may be cancelable.
      * @return {$.Deferred}
      */
     function handleFileClose(commandData) {
@@ -404,7 +405,10 @@ define(function (require, exports, module) {
                         });
                 } else {
                     // This is the "Don't Save" case--we can just go ahead and close the file.
-                    // FIXME: revert contents, or something...
+                    // FUTURE: If other views of the Document will remain open, we need to revert the
+                    // Document to the clean content on disk. Currently secondary Editors all lose
+                    // sync & close if you refresh the whole doc's text, so we just fake this rather
+                    // than pointlessly load text from disk. See hack in Document._makeNonEditable().
                     doClose(file);
                     result.resolve();
                 }
