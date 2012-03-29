@@ -29,7 +29,7 @@ define(function (coreRequire, exports, module) {
 			// load extensions
 			extensionRequire = brackets.libRequire.config({
 			    context: extensionDirs[i],
-			    baseUrl: "extensions-default/" + extensionDirs[i]
+			    baseUrl: "extensions/default/" + extensionDirs[i]
 			});
 
 			console.log("starting to load " + extensionDirs[i]);
@@ -40,7 +40,7 @@ define(function (coreRequire, exports, module) {
     }
 
 	// TODO: get the directories from NativeFileSystem rather than the low-level filesystem
-	var extensionPath = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/")) + "/extensions-default";
+	var extensionPath = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/")) + "/extensions/default";
 	console.log("the extension path is: " + extensionPath);
 
     function startLoading() {
