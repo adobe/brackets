@@ -83,7 +83,7 @@ define(function (require, exports, module) {
                 var result = CSSUtils._findAllMatchingSelectorsInText(cssCode, selector);
                 spec.expect(result.length).toEqual(ranges.length);
                 ranges.forEach(function (range, i) {
-                    spec.expect(result[i].line).toEqual(range.start);
+                    spec.expect(result[i].ruleStartLine).toEqual(range.start);
                     spec.expect(result[i].declListEndLine).toEqual(range.end);
                 });
             }
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
                 expect(selectors.length).toBeGreaterThan(0);
                 
                 expect(selectors[0]).not.toBe(null);
-                expect(selectors[0].line).toBe(292);
+                expect(selectors[0].selectorStartLine).toBe(292);
                 expect(selectors[0].declListEndLine).toBe(301);
             });
             
@@ -220,9 +220,9 @@ define(function (require, exports, module) {
                 var selectors = CSSUtils._findAllMatchingSelectorsInText(this.fileCssContent, "h2");
                 expect(selectors.length).toBe(2);
                 
-                expect(selectors[0].line).toBe(292);
+                expect(selectors[0].selectorStartLine).toBe(292);
                 expect(selectors[0].declListEndLine).toBe(301);
-                expect(selectors[1].line).toBe(318);
+                expect(selectors[1].selectorStartLine).toBe(318);
                 expect(selectors[1].declListEndLine).toBe(321);
             });
             
