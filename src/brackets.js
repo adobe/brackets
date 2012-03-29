@@ -44,8 +44,9 @@ define(function (require, exports, module) {
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
         // QuickFileOpen           = require("search/QuickFileOpen"),
-        Menus                   = require("command/Menus");
-    
+        Menus                   = require("command/Menus"),
+        ExtensionLoader         = require("ExtensionLoader");
+        
     //Load modules the self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
@@ -202,7 +203,7 @@ define(function (require, exports, module) {
 
         // load extensions
         // TODO: Shold this be outside of the app startup measurement
-        require("ExtensionLoader");
+        ExtensionLoader.startLoading();
         
         PerfUtils.addMeasurement("Application Startup");
     });

@@ -7,8 +7,6 @@
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it
- *
- * Note: this file *cannot* be an AMD-wrapped module, because AMD-wrapped modules can only load statically-named modules
  */
 
 define(function (coreRequire, exports, module) {
@@ -45,13 +43,16 @@ define(function (coreRequire, exports, module) {
 	var extensionPath = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/")) + "/extensions";
 	console.log("the extension path is: " + extensionPath);
 
-	brackets.fs.readdir(extensionPath, function (err, data) {
-		if (err) {
-			console.log("Couldn't load extensions: " + err);
-		} else {
-			console.log("Loading the following extensions: " +  JSON.stringify(data));
-			loadExtensions(data);
-		}
-	});
-
+    function startLoading() {
+        brackets.fs.readdir(extensionPath, function (err, data) {
+            if (err) {
+                console.log("Couldn't load extensions: " + err);
+            } else {
+                console.log("Loading the following extensions: " +  JSON.stringify(data));
+                loadExtensions(data);
+            }
+        });
+    }
+    
+    exports.startLoading = startLoading;
 });
