@@ -619,7 +619,7 @@ define(function (require, exports, module) {
                     });
                 });
             
-                xit("should sync deletions from the full editor and update the visual range of the inline editor", function () {
+                it("should sync deletions from the full editor and update the visual range of the inline editor", function () {
                     var cssPath,
                         cssDoc,
                         fullEditor,
