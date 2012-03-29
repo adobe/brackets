@@ -70,8 +70,9 @@ define(function (require, exports, module) {
     exports.ERROR_LAUNCHING_BROWSER           = "An error occurred when launching the browser. (error {0})";
     
     exports.LIVE_DEVELOPMENT_ERROR_TITLE      = "Live Development Error";
-    exports.LIVE_DEVELOPMENT_ERROR_MESSAGE    = "A live development connection to Chrome could not be established."
-                                                + "<br><br>Would you like to relaunch Chrome with remote debugging enabled?";
+    exports.LIVE_DEVELOPMENT_ERROR_MESSAGE    = "A live development connection to Chrome could not be established. "
+                                                + "For live development to work, Chrome needs to be started with remote debugging enabled."
+                                                + "<br><br>Would you like to relaunch Chrome and enable remote debugging?";
         
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
