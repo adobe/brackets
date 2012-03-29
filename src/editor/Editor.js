@@ -386,9 +386,7 @@ define(function (require, exports, module) {
                     var range = editor._visibleRange;
                     if (range) {
                         var i, numAdded = change.text.length - (change.to.line - change.from.line + 1);
-                        // Edits that end at the very beginning of the start line should not be included, but
-                        // edits that cross into it should be.
-                        if (change.to.line < range.startLine || (change.to.line === range.startLine && change.to.ch === 0)) {
+                        if (change.to.line < range.startLine) {
                             range.startLine += numAdded;
                         }
                         if (change.to.line <= range.endLine) {
@@ -478,15 +476,38 @@ define(function (require, exports, module) {
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
             
-            // Special case: if one of the changes involves a destructive replacement
-            // across the first line of the inline editor, close it. (But don't collapse it
-            // if the deletion ends at the very beginning of the first line--_applyChangesToEditor
-            // will correctly fix up the range in that case.)
+            // Special case: certain changes around the edges of the editor are problematic, because
+            // if they're undone, we'll be unable to determine how to fix up the range to include the
+            // undone content. (The "undo" will just look like an insertion outside our bounds.) So
+            // in those cases, we close the inline editor instead of trying to fix it up. The specific
+            // cases are:
+            // 1. Edit crosses the start boundary of the inline editor (defined as character 0 
+            //    of the first line).
+            //    Note that if the edit ends *at* character 0 of the first line, it's fine, because the
+            //   end of the edit is exclusive.
+            // 2. Edit crosses the end boundary of the inline editor (defined as the newline at
+            //    the end of the last line).
+            // 3. Edit starts at the very beginning of the inline editor (defined as character 0 
+            //    of the first line) and crosses at least one newline.
             if (this._visibleRange) {
+                var range = this._visibleRange, collapse;
                 for (change = changeList; change; change = change.next) {
-                    if (change.from.line < this._visibleRange.startLine &&
-                            change.to.line >= this._visibleRange.startLine &&
-                            !(change.to.line === this._visibleRange.startLine && change.to.ch === 0)) {
+                    collapse =
+                        // Case 1
+                        (change.from.line < range.startLine &&
+                            change.to.line >= range.startLine &&
+                            !(change.to.line === range.startLine && change.to.ch === 0)) ||
+
+                        // Case 2
+                        (change.from.line <= range.endLine &&
+                            change.to.line > range.endLine) ||
+                        
+                        // Case 3
+                        (change.from.line === range.startLine &&
+                            change.from.ch === 0 &&
+                            change.to.line > change.from.line);
+
+                    if (collapse) {
                         $(this).triggerHandler("lostContent");
                         return;
                     }
