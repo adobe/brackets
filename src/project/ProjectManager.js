@@ -60,7 +60,7 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
-    $(FileViewController).on("documentSelectionFocusChange", function (event) {
+    var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
                 && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
@@ -79,8 +79,10 @@ define(function (require, exports, module) {
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
         }
-    });
-    
+    };
+
+    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+
     /**
      * Unique PreferencesManager clientID
      */
@@ -487,6 +489,88 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Refresh the current project from disk.
+     */
+    function reloadProject() {
+        // Update prefs so tree state doesn't change.
+        // TODO (Issue #487): PreferencesManager only exposes a savePreferences() method to save
+        // preferences across all clients, but here we only want to update our own prefs.
+        PreferencesManager.savePreferences();
+
+        // reset tree node id's
+        _projectInitialLoad.id = 0;
+
+        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID),
+            result = new $.Deferred(),
+            resultRenderTree,
+            rootPath = _projectRoot.fullPath;
+
+        _projectInitialLoad.previous = prefs.projectTreeState;
+
+        // Populate file tree as long as we aren't running in the browser
+        if (!brackets.inBrowser) {
+
+            result.done(function () {
+                _documentSelectionFocusChange();
+            });
+
+            // Point at a real folder structure on local disk
+            NativeFileSystem.requestNativeFileSystem(rootPath,
+                function (rootEntry) {
+
+                    // Success!
+                    _projectRoot = rootEntry;
+
+                    // The tree will invoke our "data provider" function to populate the top-level items, then
+                    // go idle until a node is expanded - at which time it'll call us again to fetch the node's
+                    // immediate children, and so on.
+                    resultRenderTree = _renderTree(_treeDataProvider);
+
+                    resultRenderTree.done(function () {
+                        result.resolve();
+                    });
+                    resultRenderTree.fail(function () {
+                        result.reject();
+                    });
+                },
+                function (error) {
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_LOADING_PROJECT,
+                        Strings.format(
+                            Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
+                            rootPath,
+                            error.code,
+                            function () {
+                                result.reject();
+                            }
+                        )
+                    ).done(function () {
+                        // The current project folder no longer exists, so prompt for another one.
+                        NativeFileSystem.showOpenDialog(false, true, "Choose project folder", _projectRoot.fullPath, null,
+                            function (files) {
+                                // If length == 0, user canceled the dialog, so use default project
+                                if (files.length === 0) {
+                                    files[0] = _getDefaultProjectPath();
+                                }
+                                // Load the new project into the folder tree
+                                loadProject(files[0]);
+                            },
+                            function (error) {
+                                Dialogs.showModalDialog(
+                                    Dialogs.DIALOG_ID_ERROR,
+                                    Strings.ERROR_LOADING_PROJECT,
+                                    Strings.format(Strings.OPEN_DIALOG_ERROR, error.code)
+                                );
+                            }
+                            );
+                    });
+                }
+                );
+        }
+    }
+
+    /**
      * Displays a browser dialog where the user can choose a folder to load.
      * (If the user cancels the dialog, nothing more happens).
      */
@@ -695,6 +779,7 @@ define(function (require, exports, module) {
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
     exports.openProject     = openProject;
     exports.loadProject     = loadProject;
+    exports.reloadProject   = reloadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
 

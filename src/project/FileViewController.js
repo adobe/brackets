@@ -116,6 +116,7 @@ define(function (require, exports, module) {
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
      * @param {!fullPath}
+     * @return {!$.Promise}
      */
     function addToWorkingSetAndSelect(fullPath) {
         CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
@@ -123,7 +124,7 @@ define(function (require, exports, module) {
         // This properly handles sending the right nofications in cases where the document
         // is already the curruent one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        openAndSelectDocument(fullPath, WORKING_SET_VIEW);
+        return openAndSelectDocument(fullPath, WORKING_SET_VIEW);
     }
 
     /**

@@ -4,7 +4,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, FileError */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -12,7 +12,7 @@
  * # STARTING
  *
  * To start a session call `open`. This will read the currentDocument from brackets,
- * launch the LiveBrowser (currently Chromium) with the remote debugger port open,
+ * launch the LiveBrowser (currently Chrome) with the remote debugger port open,
  * establish the Inspector connection to the remote debugger, and finally load all
  * agents.
  *
@@ -26,6 +26,7 @@
  * Status updates are dispatched as `statusChange` jQuery events. The status
  * codes are:
  *
+ * -1: Error
  * 0: Inactive
  * 1: Connecting to the remote debugger
  * 2: Loading agents
@@ -184,20 +185,49 @@ define(function LiveDevelopment(require, exports, module) {
     function open() {
         var doc = _getCurrentDocument();
         var browserStarted = false;
+        var retryCount = 0;
+                
         if (doc && doc.root) {
+            // For Sprint 6, we only open live development connections for HTML files
+            // FUTURE: Remove this test when we support opening connections for different
+            // file types.
+            if (doc.extension.indexOf('htm') !== 0) {
+                return;
+            }
+            
             _setStatus(1);
             Inspector.connectToURL(doc.root.url).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     return;
                 }
-                if (!browserStarted) {
-                    NativeApp.openLiveBrowser(doc.root.url);
-                    browserStarted = true;
+                if (retryCount > 4) {
+                    // TODO (task 4.7): Alert user that a debugging connection could not be established
+                    // TODO (task 4.8): Restart Chrome (if user requested a restart)
+                    console.log("Timed out trying to make debugging connection.");
+                    _setStatus(-1);
+                    return;
                 }
-                setTimeout(function retryConnect() {
-                    doc = _getCurrentDocument();
-                    Inspector.connectToURL(doc.root.url).fail(onConnectFail);
-                }, 500);
+                retryCount++;
+                
+                if (!browserStarted) {
+                    NativeApp.openLiveBrowser(
+                        doc.root.url
+                    )
+                        .done(function () {
+                            browserStarted = true;
+                        })
+                        .fail(function (err) {
+                            // TODO (task 4.7): Error reporting. Err could be NOT_FOUND_ERR or SECURITY_ERR
+                            console.log("Error launching browser");
+                            _setStatus(-1);
+                        });
+                }
+                
+                if (exports.status !== -1) {
+                    setTimeout(function retryConnect() {
+                        Inspector.connectToURL(doc.root.url).fail(onConnectFail);
+                    }, 500);
+                }
             });
         }
     }
@@ -208,6 +238,7 @@ define(function LiveDevelopment(require, exports, module) {
             Inspector.Runtime.evaluate("window.close()");
         }
         Inspector.disconnect();
+        _setStatus(0);
     }
 
     /** Triggered by a document change from the DocumentManager */
@@ -220,10 +251,14 @@ define(function LiveDevelopment(require, exports, module) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
-            } else {
+            }
+            /* FUTURE: have option for auto-opening live connection whenever a new
+             * document is activated.
+            else {
                 close();
                 setTimeout(open);
             }
+            */
         } else if (exports.config.autoconnect) {
             setTimeout(open);
         }
