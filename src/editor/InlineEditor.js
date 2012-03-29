@@ -263,7 +263,7 @@ define(function (require, exports, module) {
     InlineEditor.prototype.close = function (inlineEditor) {
         var shouldMoveFocus = this.editor.hasFocus();
         EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
-        // closeInlineWidget() causes afterClosed() to get run
+        // closeInlineWidget() causes our onClosed() to get run
     };
 
     /**
