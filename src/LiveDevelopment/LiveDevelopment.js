@@ -222,6 +222,7 @@ define(function LiveDevelopment(require, exports, module) {
                     ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // User has chosen to reload Chrome, quit the running instance
+                            _setStatus(0);
                             NativeApp.closeLiveBrowser()
                                 .done(function () {
                                     browserStarted = false;
@@ -229,6 +230,7 @@ define(function LiveDevelopment(require, exports, module) {
                                 })
                                 .fail(function (err) {
                                     // Report error?
+                                    _setStatus(-1);
                                     browserStarted = false;
                                 });
                         }
@@ -290,14 +292,13 @@ define(function LiveDevelopment(require, exports, module) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
+            } else {
+                /* FUTURE: support live connections for docments other than html */
+                if (doc.extension.indexOf('htm') === 0) {
+                    close();
+                    setTimeout(open);
+                }
             }
-            /* FUTURE: have option for auto-opening live connection whenever a new
-             * document is activated.
-            else {
-                close();
-                setTimeout(open);
-            }
-            */
         } else if (exports.config.autoconnect) {
             setTimeout(open);
         }
