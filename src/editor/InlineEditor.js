@@ -157,7 +157,7 @@ define(function (require, exports, module) {
     InlineEditor.prototype.hostEditor = null;
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline was closed, whether manually (via close()) or automatically
      */
     InlineEditor.prototype.onClosed = function () {
         _syncGutterWidths(this.hostEditor);
@@ -207,26 +207,25 @@ define(function (require, exports, module) {
     InlineEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, htmlContent) {
         var self = this;
 
-        function closeThisInline(inlineEditor) {
-            var shouldMoveFocus = inlineEditor.hasFocus();
-            EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
-            // _closeInlineWidget() causes afterClosed() to get run
-        }
-
         var range = {
             startLine: startLine,
             endLine: endLine
         };
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, htmlContent, function (inlineEditor) {
-            closeThisInline(inlineEditor);
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, htmlContent, function () {
+            self.close();
         });
 
         this.htmlContent = inlineInfo.content;
         this.editor = inlineInfo.editor;
 
+        // Size editor to content whenever it changes (via edits here or any other view of the doc)
         $(this.editor).on("change", function () {
-            // Size editor to current content
             self.sizeInlineEditorToContents();
+        });
+        
+        // If Document's file is deleted, or Editor loses sync with Document, just close
+        $(this.editor).on("lostContent", function () {
+            self.close();
         });
 
         this.createInlineEditorDecorations(this.editor, doc);
@@ -261,7 +260,7 @@ define(function (require, exports, module) {
      * Used to manually trigger closing this inline
      */
 
-    InlineEditor.prototype.closeEditor = function (inlineEditor) {
+    InlineEditor.prototype.close = function (inlineEditor) {
         var shouldMoveFocus = this.editor.hasFocus();
         EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
         // closeInlineWidget() causes afterClosed() to get run

@@ -23,9 +23,13 @@
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
+ *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
+ *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
+ *          Document->editor syncing edge cases that we do not yet support (the latter cause will
+ *          eventually go away).
  *
- * Note that the Editor also dispatches "change" events internally, but you should listen for those 
- * on Documents, not Editors.
+ * The Editor also dispatches "change" events internally, but you should listen for those on
+ * Documents, not Editors.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(editorInstance).on("eventname", handler);
@@ -209,11 +213,14 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
         var self = this;
         
-        // Attach to document
+        // Attach to document: add ref & handlers
         this.document = document;
         document.addRef();
-        this._handleDocumentChange = this._handleDocumentChange.bind(this); // store bound version to we can remove listener later
+        // store this-bound version of listeners so we can remove them later
+        this._handleDocumentChange = this._handleDocumentChange.bind(this);
+        this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
         $(document).on("change", this._handleDocumentChange);
+        $(document).on("deleted", this._handleDocumentDeleted);
         
         // (if makeMasterEditor, we attach the Doc back to ourselves below once we're fully initialized)
         
@@ -336,6 +343,7 @@ define(function (require, exports, module) {
         // Disconnect from Document
         this.document.releaseRef();
         $(this.document).off("change", this._handleDocumentChange);
+        $(this.document).off("deleted", this._handleDocumentDeleted);
         
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
@@ -473,6 +481,14 @@ define(function (require, exports, module) {
         // Else, Master editor:
         // we're the ground truth; nothing to do since Document change is just echoing our
         // editor changes
+    };
+    
+    /**
+     * Responds to the Document's underlying file being deleted. The Document is now basically dead,
+     * so we must close.
+     */
+    Editor.prototype._handleDocumentDeleted = function () {
+        $(this).triggerHandler("lostContent");
     };
     
     

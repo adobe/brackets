@@ -290,27 +290,6 @@ define(function (require, exports, module) {
         wsClone.forEach(_removeFromWorkingSet);
     }
     
-    /**
-     * Closes all editors for the given file and removes it from the working set. Discards any
-     * unsaved changes - it is expected that the UI has already confirmed with the user before
-     * calling this. 
-     *
-     * Changes currentDocument if this file was the current document (may change to null).
-     *
-     * This is a superset of closeFullEditor(). Use this if the file has been deleted (on disk or
-     * via a Brackets command). 
-     */
-    function notifyFileDeleted(file) {
-        // First ensure it's not currentDocument, and remove from working set
-        closeFullEditor(file);
-        
-        // Notify all other editors to close as well
-        var doc = getOpenDocumentForPath(file.fullPath);
-        if (doc) {
-            $(doc).dispatchEvent("deleted");
-        }
-    }
-    
     
     /**
      * @constructor
@@ -647,6 +626,28 @@ define(function (require, exports, module) {
      */
     function getOpenDocumentForPath(fullPath) {
         return _openDocuments[fullPath];
+    }
+    
+    
+    /**
+     * Closes all editors for the given file and removes it from the working set. Discards any
+     * unsaved changes - it is expected that the UI has already confirmed with the user before
+     * calling this. 
+     *
+     * Changes currentDocument if this file was the current document (may change to null).
+     *
+     * This is a superset of closeFullEditor(). Use this if the file has been deleted (on disk or
+     * via a Brackets command). 
+     */
+    function notifyFileDeleted(file) {
+        // First ensure it's not currentDocument, and remove from working set
+        closeFullEditor(file);
+        
+        // Notify all other editors to close as well
+        var doc = getOpenDocumentForPath(file.fullPath);
+        if (doc) {
+            $(doc).triggerHandler("deleted");
+        }
     }
     
     
