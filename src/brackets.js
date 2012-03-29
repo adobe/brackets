@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
-        InlineEditorProviders   = require("editor/InlineEditorProviders"),
+        CSSInlineEditor         = require("editor/CSSInlineEditor"),
         WorkingSetView          = require("project/WorkingSetView"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
@@ -173,6 +173,7 @@ define(function (require, exports, module) {
         function initWindowListeners() {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
+                ProjectManager.reloadProject();
                 FileSyncManager.syncOpenDocuments();
                 FileIndexManager.markDirty();
             });
@@ -191,7 +192,6 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
-        InlineEditorProviders.init();
     
         initListeners();
         initProject();

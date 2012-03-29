@@ -2,11 +2,11 @@
     margin: 0;
     padding: 0;
 }
-
+{{4}}
 {{1}}.foo {
-    color: #f00;
-}{{3}}
-
+{{5}}    color: #f00;
+{{6}} }{{3}}
+{{7}}
 {{2}}#myDiv {
     display: block;
 }

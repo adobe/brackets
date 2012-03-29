@@ -22,8 +22,10 @@ define(function (require, exports, module) {
      * Returns an array of selectors. Each selector is an object with the following properties:
          selector:                 the text of the selector (note: comma separated selector groups like 
                                    "h1, h2" are broken into separate selectors)
-         line:                     line in the text where the selector appears
-         character:                column in the line where the selector starts
+         ruleStartLine:            line in the text where the rule (including preceding comment) appears
+         ruleStartChar:            column in the line where the rule (including preceding comment) starts
+         selectorStartLine:        line in the text where the selector appears
+         selectorStartChar:        column in the line where the selector starts
          selectorEndLine:          line where the selector ends
          selectorEndChar:          column where the selector ends
          selectorGroupStartLine:   line where the comma-separated selector group (e.g. .foo, .bar, .baz)
@@ -45,7 +47,9 @@ define(function (require, exports, module) {
         var lines = CodeMirror.splitLines(text);
         var lineCount = lines.length;
         
-        var currentSelector = "", currentPosition = -1, selectorStartLine;
+        var currentSelector = "";
+        var ruleStartChar = -1, ruleStartLine = -1;
+        var selectorStartChar = -1, selectorStartLine = -1;
         var token, style, stream, i, j;
 
         var inDeclList = false, inAtRule = false;
@@ -84,31 +88,43 @@ define(function (require, exports, module) {
                         // such as @media (which is handled elsewhere) @page,
                         // @keyframes (also -webkit-keyframes, etc.), and @font-face.
                         inAtRule = true;
-                        currentPosition = -1;  // reset so we don't get @rules following comments
+                        ruleStartLine = -1;  // reset so we don't get @rules following comments
+                        selectorStartChar = -1;
                         selectorGroupStartLine = -1;
                     } else {
                         // detect non-crlf whitespace, comments on same line as '}'
-                        if (currentPosition < 0 && (token.trim() !== "") &&
+                        if (ruleStartLine < 0 && (token.trim() !== "") &&
                                 !(style === "comment" && stream.start > 0 && lines[i].substr(0, stream.start).indexOf('}') !== -1)) {
                              
                             // start of a new selector, or comment above selector
+                            ruleStartChar = stream.start;
+                            ruleStartLine = i;
+                        }
+
+                        if (selectorStartChar < 0 && (token.trim() !== "") && style !== "comment") {
+                             
+                            // start of a new selector, or comment above selector
                             currentSelector = "";
-                            currentPosition = stream.start;
+                            selectorStartChar = stream.start;
                             selectorStartLine = i;
                             if (selectorGroupStartLine < 0) {
                                 // this is the start of a new comma-separated selector group
                                 // (whenever we start parsing a declaration list, we set selectorGroupStartLine to -1)
                                 selectorGroupStartLine = selectorStartLine;
-                                selectorGroupStartChar = currentPosition;
+                                selectorGroupStartChar = selectorStartChar;
                             }
                         }
-                        currentSelector += token;
+                        if (selectorStartChar !== -1) {
+                            currentSelector += token;
+                        }
                     }
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
                         selectors.push({selector: currentSelector.trim(),
-                                        line: selectorStartLine,
-                                        character: currentPosition,
+                                        ruleStartLine: ruleStartLine,
+                                        ruleStartChar: ruleStartChar,
+                                        selectorStartLine: selectorStartLine,
+                                        selectorStartChar: selectorStartChar,
                                         declListEndLine: -1,
                                         selectorEndLine: i,
                                         selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
@@ -117,18 +133,25 @@ define(function (require, exports, module) {
                                        });
                     }
                     currentSelector = "";
-                    currentPosition = -1;
+                    selectorStartChar = -1;
 
-                    if (!inDeclList && state.stack.indexOf("{") > -1) { // just started parsing a declaration list
-                        inDeclList = true;
-                        declListStartLine = i;
-                        declListStartChar = stream.start;
-
-                        // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
-                        // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
-                        selectorGroupStartLine = -1;
-                        selectorGroupStartChar = -1;
-
+                    if (!inDeclList) {
+                        if (state.stack.indexOf("{") > -1) { // just started parsing a declaration list
+                            inDeclList = true;
+                            declListStartLine = i;
+                            declListStartChar = stream.start;
+    
+                            // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
+                            // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
+                            selectorGroupStartLine = -1;
+                            selectorGroupStartChar = -1;
+                            ruleStartLine = -1;
+                            ruleStartChar = -1;
+                        } else if (token === "@media") {
+                            // ignore comments preceding @rules
+                            ruleStartLine = -1;
+                            ruleStartChar = -1;
+                        }
                     } else if (inDeclList && state.stack.indexOf("{") === -1) {  // just finished parsing a declaration list
                         inDeclList = false;
                         // assign this declaration list position to every selector on the stack that doesn't have a declaration list start and end line
@@ -184,8 +207,9 @@ define(function (require, exports, module) {
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
-     * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number}>} Array of objects
-     *      containing the start and end line numbers (0-based, inclusive range) for each matched selector.
+     * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>}
+     *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
+     *      matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
         var allSelectors = extractAllSelectors(text);
@@ -227,17 +251,18 @@ define(function (require, exports, module) {
      * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
      * appends those new objects to the given 'resultSelectors' Array.
      * @param {Array.<{document:Document, lineStart:number, lineEnd:number}>} resultSelectors
-     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number}>} selectorsToAdd
+     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>} selectorsToAdd
      * @param {!Document} sourceDoc
      * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
      *          of the parsed CSS text is not the first line of the sourceDoc.
      */
     function addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
-        selectorsToAdd.forEach(function (selector) {
+        selectorsToAdd.forEach(function (selectorInfo) {
             resultSelectors.push({
+                selector: selectorInfo.selector,
                 document: sourceDoc,
-                lineStart: selector.selectorGroupStartLine + lineOffset,
-                lineEnd: selector.declListEndLine + lineOffset
+                lineStart: selectorInfo.selectorGroupStartLine + lineOffset,
+                lineEnd: selectorInfo.declListEndLine + lineOffset
             });
         });
     }
@@ -247,6 +272,7 @@ define(function (require, exports, module) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css");
         
+        // Load one CSS file and search its contents
         function _loadFileAndScan(fullPath, selector) {
             var oneFileResult = new $.Deferred();
             
@@ -266,7 +292,7 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
         
-        // Load index of all CSS files; then load each CSS file in turn and search its contents
+        // Load index of all CSS files; then process each CSS file in turn (see above)
         cssFilesResult.done(function (fileInfos) {
             Async.doInParallel(fileInfos, function (fileInfo, number) {
                 return _loadFileAndScan(fileInfo.fullPath, selector);
