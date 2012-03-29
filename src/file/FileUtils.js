@@ -174,7 +174,7 @@ define(function (require, exports, module) {
      */
     function getNativeBracketsDirectoryPath() {
         var pathname = window.location.pathname;
-        var directory = window.location.pathname.substr(0, pathname);
+        var directory = pathname.substr(0, pathname.lastIndexOf("/"));
         return convertToNativePath(directory);
     }
     

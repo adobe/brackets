@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
-        // QuickFileOpen           = require("search/QuickFileOpen"),
+        QuickFileOpen           = require("search/QuickFileOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
         ExtensionLoader         = require("ExtensionLoader");
@@ -202,12 +202,27 @@ define(function (require, exports, module) {
         initKeyBindings();
         initWindowListeners();
 
-        // load extensions
-        // TODO: Shold this be outside of the app startup measurement
-        ExtensionLoader.loadAllExtensionsInDirectory(FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default", "/extensions/default");
-        ExtensionLoader.loadAllExtensionsInDirectory(FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user", "/extensions/user");
+        // Load extensions
 
-        
+        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
+
+        // Loading extensions requires creating new require.js contexts, which requires access to the global 'require' object
+        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets opject here so that 
+        // the ExtensionLoader doesn't have to have access to the global object.
+        brackets.libRequire = global.require;
+
+        // Also store our current require.js context (the one that loads brackets core modules) so that extensions can use it
+        brackets.coreRequire = require;
+
+        ExtensionLoader.loadAllExtensionsInNativeDirectory(
+            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default",
+            "extensions/default"
+        );
+        ExtensionLoader.loadAllExtensionsInNativeDirectory(
+            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
+            "extensions/user"
+        );
+
         PerfUtils.addMeasurement("Application Startup");
     });
     
