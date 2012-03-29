@@ -27,6 +27,7 @@ define(function (require, exports, module) {
     }
     CSSInlineEditor.prototype = new InlineTextEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
+    CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
 
     /** 
      * @override
@@ -34,21 +35,22 @@ define(function (require, exports, module) {
      * 
      */
     CSSInlineEditor.prototype.load = function (hostEditor) {
-        InlineTextEditor.prototype.load.call(this, hostEditor);
+        this.parentClass.load.call(this, hostEditor);
         
         // Container to hold all editors
         var self = this,
-            $editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
+            $ruleItem,
+            $location;
+
+        // Create DOM to hold editors and related list
+        var $editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
+        var $relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        var $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related");
+        var $ruleList = $(document.createElement("ul")).appendTo($related);
        
         // load first rule
         var rule = this._rules[0];
         this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, $editorsDiv.get(0));
-
-        var $relatedContainer = $(document.createElement("div")).addClass("relatedContainer"),
-            $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related"),
-            $ruleList = $(document.createElement("ul")).appendTo($related),
-            $ruleItem,
-            $location;
         
         // create rule list
         this._ruleItems = [];

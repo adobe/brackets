@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     }
     InlineTextEditor.prototype = new InlineEditor();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
+    InlineTextEditor.prototype.parentClass = InlineEditor.prototype;
     InlineTextEditor.prototype.editors = null;
 
    /**
