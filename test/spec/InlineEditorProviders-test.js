@@ -474,7 +474,6 @@ define(function (require, exports, module) {
                     initInlineTest("test1.html", 0);
                     
                     runs(function () {
-                        // var inlineData = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].data;
                         var i = DocumentManager.findInWorkingSet(this.infos["test1.css"].fileEntry.fullPath);
                         expect(i).toEqual(-1);
                     });
