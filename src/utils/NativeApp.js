@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     
     /** closeLiveBrowser
      *
-     * @return ($.Promise}
+     * @return {$.Promise}
      */
     function closeLiveBrowser(successCallback, errorCallback) {
         var result = new $.Deferred();
