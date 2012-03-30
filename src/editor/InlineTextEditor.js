@@ -209,7 +209,9 @@ define(function (require, exports, module) {
         });
         
         // If Document's file is deleted, or Editor loses sync with Document, just close
-        $(this.editor).on("lostContent", function () {
+        $(inlineInfo.editor).on("lostContent", function () {
+            // Note: this closes the entire inline widget if any one Editor loses sync. This seems
+            // better than leaving it open but suddenly removing one rule from the result list.
             self.close();
         });
         
@@ -240,6 +242,20 @@ define(function (require, exports, module) {
         // isFullyVisible() check in sizeInlineEditorToContents()).
         this.sizeInlineEditorToContents(true);
     };
+    
+    InlineEditor.prototype._editorHasFocus = function () {
+        return this.editors.some(function (editor) {
+            return editor.hasFocus();
+        });
+    };
+    
+    /** Closes this inline widget and all its contained Editors */
+    InlineEditor.prototype.close = function () {
+        var shouldMoveFocus = this._editorHasFocus();
+        EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
+        // closeInlineWidget() causes our onClosed() to get run
+    };
+        
     
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
