@@ -64,6 +64,16 @@ define(function (require, exports, module) {
     // CSSManager error strings
     exports.ERROR_PARSE_TITLE                 = "Error parsing CSS file(s):";
 
+    // Live Development error strings
+    exports.ERROR_LAUNCHING_BROWSER_TITLE     = "Error launching browser";
+    exports.ERROR_CANT_FIND_CHROME            = "The Google Chrome browser could not be found. Please make sure it is installed.";
+    exports.ERROR_LAUNCHING_BROWSER           = "An error occurred when launching the browser. (error {0})";
+    
+    exports.LIVE_DEVELOPMENT_ERROR_TITLE      = "Live Development Error";
+    exports.LIVE_DEVELOPMENT_ERROR_MESSAGE    = "A live development connection to Chrome could not be established. "
+                                                + "For live development to work, Chrome needs to be started with remote debugging enabled."
+                                                + "<br><br>Would you like to relaunch Chrome and enable remote debugging?";
+        
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";
