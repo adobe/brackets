@@ -634,6 +634,23 @@ define(function (require, exports, module) {
                     fullEditor._codeMirror.undo();
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
+                
+                it("should insert new line within start of range, then close on undo", function () {
+                    // insert new line within start line of inline range--the new line should
+                    // be included
+                    fullEditor._codeMirror.replaceRange(
+                        newInlineText,
+                        {line: start.line, ch: start.ch + 1}
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
+                
+                    // Even though the edit didn't start at the beginning of the line, the undo
+                    // undoes the whole line, so we treat it as a "close" case. In future, we should
+                    // make the undo in CodeMirror more granular.
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+                
                 it("should not close inline when undoing change that prepended to line at top of inline's range", function () {
                     // insert new text at start of inline range, without newlines--the new text should be included in 
                     // the inline
@@ -656,16 +673,6 @@ define(function (require, exports, module) {
                         before
                     );
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line + 1, end.line + 1));
-                    fullEditor._codeMirror.undo();
-                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
-                    
-                    // insert new line within start line of inline range--the new line should
-                    // be included
-                    fullEditor._codeMirror.replaceRange(
-                        newInlineText,
-                        {line: start.line, ch: start.ch + 1}
-                    );
-                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
                     fullEditor._codeMirror.undo();
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                     
@@ -698,12 +705,6 @@ define(function (require, exports, module) {
                 });
             
                 it("should sync deletions from the full editor and update the visual range of the inline editor", function () {
-                    // delete line above inline range
-                    fullEditor._codeMirror.replaceRange("", before, start);
-                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line - 1, end.line - 1));
-                    fullEditor._codeMirror.undo();
-                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
-                    
                     // delete line within inline range
                     fullEditor._codeMirror.replaceRange("", middle, end);
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
@@ -715,6 +716,10 @@ define(function (require, exports, module) {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                     fullEditor._codeMirror.undo();
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                });
+                it("should close inline when newline at beginning of range is deleted", function () {
+                    fullEditor._codeMirror.replaceRange("", before, start);
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 it("should close inline when first line entirely deleted", function () {
                     // delete all of first line in range
@@ -802,10 +807,11 @@ define(function (require, exports, module) {
                     
                     originalText = inlineEditor._codeMirror.getValue();
                     
-                    // edit the inline editor
+                    // edit the inline editor in the middle of the text so it doesn't
+                    // run into one of the collapsing cases
                     inlineEditor._codeMirror.replaceRange(
                         newInlineText,
-                        inlineEditor.getCursorPos()
+                        middle
                     );
                     editedText = inlineEditor._codeMirror.getValue();
                     
