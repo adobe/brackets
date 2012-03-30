@@ -630,7 +630,7 @@ define(function (require, exports, module) {
                     );
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
                     
-                    // undo is equivalent to deleting the should cause editor to snap shut
+                    // undo is equivalent to deleting the first line in the range: should close the editor
                     fullEditor._codeMirror.undo();
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });

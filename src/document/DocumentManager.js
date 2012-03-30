@@ -625,14 +625,15 @@ define(function (require, exports, module) {
     
     
     /**
-     * Closes all editors for the given file and removes it from the working set. Discards any
-     * unsaved changes - it is expected that the UI has already confirmed with the user before
-     * calling this. 
+     * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
+     * "deleted" event; ensures it's not the currentDocument; and removes this file from the working
+     * set. These actions in turn cause all open editors for this file to close. Discards any unsaved
+     * changes - it is expected that the UI has already confirmed with the user before calling.
      *
-     * Changes currentDocument if this file was the current document (may change to null).
+     * To simply close a main editor when the file hasn't been deleted, use closeFullEditor() or FILE_CLOSE.
      *
-     * This is a superset of closeFullEditor(). Use this if the file has been deleted (on disk or
-     * via a Brackets command). 
+     * FUTURE: Instead of an explicit notify, we should eventually listen for deletion events on some
+     * sort of "project file model," making this just a private event handler.
      */
     function notifyFileDeleted(file) {
         // First ensure it's not currentDocument, and remove from working set
