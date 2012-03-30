@@ -1,4 +1,4 @@
-Dummy file to make this directory non-empty so it can be added to git
+This directory contains extensions enabled by the user. The contents of
+this directory (except the README file) are ignored by git.
 
-The contents of this directory are ignored so individual users
-can put extensions in here without checking them in to git
+(README also serves as a dummy file so this directory can be added to git.)

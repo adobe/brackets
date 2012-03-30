@@ -14,7 +14,13 @@ define(function (require, exports, module) {
 
     var NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem;
     
-
+    /**
+     * Loads the extension that lives at baseUrl into its own Require.js context
+     *
+     * @param {!string} name, used to identify the extension
+     * @param {!string} baseUrl, URL path relative to index.html, where the main JS file can be found
+     * @param {!string} entryPoint, name of the main js file to load
+     */
     function loadExtension(name, baseUrl, entryPoint) {
         var i;
 		var extensionRequire = brackets.libRequire.config({
@@ -27,6 +33,13 @@ define(function (require, exports, module) {
 		extensionRequire([entryPoint], function () { console.log("[Extension] finished loading " + baseUrl); });
     }
 
+    /**
+     * Loads the extension that lives at baseUrl into its own Require.js context
+     *
+     * @param {!string} directory, an absolute native path that contains a directory of extensions.
+                        each subdirectory is interpreted as an independent extension
+     * @param {!string} baseUrl, URL path relative to index.html that maps to the same place as directory
+     */
     function loadAllExtensionsInNativeDirectory(directory, baseUrl) {
         NativeFileSystem.requestNativeFileSystem(directory,
             function (rootEntry) {
@@ -35,6 +48,8 @@ define(function (require, exports, module) {
                         var i;
                         for (i = 0; i < entries.length; i++) {
                             if (entries[i].isDirectory) {
+                                // FUTURE (JRB): read package.json instead of just using the entrypoint "main".
+                                // Also, load sub-extensions defined in package.json.
                                 loadExtension(entries[i].name, baseUrl + "/" + entries[i].name, "main");
                             }
                         }
@@ -48,7 +63,6 @@ define(function (require, exports, module) {
                 console.log("[Extension] Error -- could not open native directory: " + directory);
             });
     }
-
     
     exports.loadExtension = loadExtension;
     exports.loadAllExtensionsInNativeDirectory = loadAllExtensionsInNativeDirectory;

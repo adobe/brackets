@@ -46,7 +46,7 @@ define(function (require, exports, module) {
         QuickFileOpen           = require("search/QuickFileOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
-        ExtensionLoader         = require("ExtensionLoader");
+        ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules the self-register and just need to get included in the main project
     require("language/JSLintUtils");
