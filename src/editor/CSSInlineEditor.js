@@ -91,10 +91,22 @@ define(function (require, exports, module) {
         
         // initialize position based on the main #editorHolder
         setTimeout(function () {
-            self._moveRelatedContainer();
+            self._updateRelatedContainer();
         }, 0);
         
-        $(window).on("resize.CSSInlineEditor", $.proxy(this._moveRelatedContainer, this));
+        var updateRelatedContainerProxy = $.proxy(this._updateRelatedContainer, this);
+        
+        // Changes to the host editor should update the relatedContainer
+        $(this.hostEditor).on("change.CSSInlineEditor", updateRelatedContainerProxy);
+        
+        // TODO (jasonsj): install on active inline editor
+        // Changes in size to the inline editor should update the relatedContainer
+        $(this.editors[0]).on("change.CSSInlineEditor", updateRelatedContainerProxy);
+        
+        // TODO (jasonsj): expose setOption in Editor?
+        // Since overflow-y is hidden on the CM scrollerElement, the scroll event is never fired.
+        // Instead, we add a hook to CM's onScroll to reposition the relatedContainer.
+        this.hostEditor._codeMirror.setOption("onScroll", updateRelatedContainerProxy);
 
         return (new $.Deferred()).resolve();
     };
@@ -105,11 +117,15 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.onClosed = function () {
         this.parentClass.onClosed.call(this); // super.onClosed()
         
-        $(window).off("resize.CSSInlineEditor");
+        // remove resize handlers for relatedContainer
+        $(this.hostEditor).off("change.CSSInlineEditor");
+        $(this.editors[0]).off("change.CSSInlineEditor");
+        this.hostEditor._codeMirror.setOption("onScroll", null);
     };
     
-    CSSInlineEditor.prototype._moveRelatedContainer = function () {
-        this.$relatedContainer.css("left", $("#editorHolder").width() - 250);
+    CSSInlineEditor.prototype._updateRelatedContainer = function () {
+        this.$relatedContainer.css("top", this.$htmlContent.offset().top + 1); // +1 border
+        this.$relatedContainer.height(this.$htmlContent.height());
     };
 
     // TY TODO: part of sprint 6
@@ -125,7 +141,6 @@ define(function (require, exports, module) {
         this._selectedRuleIndex = newIndex;
         
         var $ruleItem = this._ruleItems[this._selectedRuleIndex];
-        $ruleItem.toggleClass("selected", true);
         
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
         var self = this;
