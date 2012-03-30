@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false, brackets: false, require: false */
+/*global define: false, $: false, CodeMirror: false, brackets: false */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it
@@ -23,14 +23,14 @@ define(function (require, exports, module) {
      */
     function loadExtension(name, baseUrl, entryPoint) {
         var i;
-		var extensionRequire = brackets.libRequire.config({
-			context: name,
-			baseUrl: baseUrl
-		});
+        var extensionRequire = brackets.libRequire.config({
+            context: name,
+            baseUrl: baseUrl
+        });
 
-		console.log("[Extension] starting to load " + baseUrl);
-
-		extensionRequire([entryPoint], function () { console.log("[Extension] finished loading " + baseUrl); });
+        console.log("[Extension] starting to load " + baseUrl);
+        
+        extensionRequire([entryPoint], function () { console.log("[Extension] finished loading " + baseUrl); });
     }
 
     /**

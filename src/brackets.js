@@ -207,7 +207,7 @@ define(function (require, exports, module) {
         // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
 
         // Loading extensions requires creating new require.js contexts, which requires access to the global 'require' object
-        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets opject here so that 
+        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets object here so that 
         // the ExtensionLoader doesn't have to have access to the global object.
         brackets.libRequire = global.require;
 
