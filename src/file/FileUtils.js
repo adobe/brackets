@@ -163,10 +163,10 @@ define(function (require, exports, module) {
     function convertToNativePath(path) {
         path = unescape(path);
         if (path.indexOf(":") !== -1 && path[0] === "/") {
-            return path.substr(1);
+            path = path.substr(1);
         }
         
-        return path;
+        return window.unescape(path);
     }
 
     /**
