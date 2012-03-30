@@ -212,7 +212,9 @@ define(function (require, exports, module) {
         brackets.libRequire = global.require;
 
         // Also store our current require.js context (the one that loads brackets core modules) so that extensions can use it
-        brackets.coreRequire = require;
+        // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
+        // modules. The extension will only be able to load modules that have already been loaded once.
+        brackets.getModule = require;
 
         ExtensionLoader.loadAllExtensionsInNativeDirectory(
             FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default",

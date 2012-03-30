@@ -21,12 +21,12 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var FileIndexManager    = brackets.coreRequire("project/FileIndexManager"),
-        DocumentManager     = brackets.coreRequire("document/DocumentManager"),
-        CommandManager      = brackets.coreRequire("command/CommandManager"),
-        EditorManager       = brackets.coreRequire("editor/EditorManager"),
-        Commands            = brackets.coreRequire("command/Commands"),
-        ProjectManager      = brackets.coreRequire("project/ProjectManager");
+    var FileIndexManager    = brackets.getModule("project/FileIndexManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        CommandManager      = brackets.getModule("command/CommandManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        Commands            = brackets.getModule("command/Commands"),
+        ProjectManager      = brackets.getModule("project/ProjectManager");
 
     /**
     * QuickNavigateDialog class
