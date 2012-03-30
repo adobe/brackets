@@ -100,7 +100,7 @@ define(function (require, exports, module) {
             }
         };
         
-        if (additionalKeys !== undefined) {
+        if (additionalKeys) {
             mergeExtraKeys(null, extraKeys, additionalKeys);
         }
 

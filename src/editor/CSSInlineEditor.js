@@ -103,7 +103,6 @@ define(function (require, exports, module) {
         // Changes in size to the inline editor should update the relatedContainer
         $(this.editors[0]).on("change.CSSInlineEditor", updateRelatedContainerProxy);
         
-        // TODO (jasonsj): expose setOption in Editor?
         // Since overflow-y is hidden on the CM scrollerElement, the scroll event is never fired.
         // Instead, we add a hook to CM's onScroll to reposition the relatedContainer.
         this.hostEditor._codeMirror.setOption("onScroll", updateRelatedContainerProxy);
@@ -124,7 +123,8 @@ define(function (require, exports, module) {
     };
     
     CSSInlineEditor.prototype._updateRelatedContainer = function () {
-        this.$relatedContainer.css("top", this.$htmlContent.offset().top + 1); // +1 border
+        var borderThickness = (this.$htmlContent.outerHeight() - this.$htmlContent.innerHeight()) / 2;
+        this.$relatedContainer.css("top", this.$htmlContent.offset().top + borderThickness);
         this.$relatedContainer.height(this.$htmlContent.height());
     };
 
@@ -149,7 +149,7 @@ define(function (require, exports, module) {
             self.$selectedMarker.css("top", itemTop);
             self.$selectedMarker.height($ruleItem.height());
             
-            // TODO (jasonsj): figure out if rule list should scroll
+            // FUTURE (jasonsj): figure out if rule list should scroll
             itemTop -=  $ruleItem.parent().css("paddingTop").replace("px", "");
             self.$relatedContainer.scrollTop(itemTop);
         }, 0);
