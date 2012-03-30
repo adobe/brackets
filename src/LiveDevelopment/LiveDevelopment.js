@@ -4,7 +4,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, FileError */
+/*global define, $, FileError, brackets */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -37,7 +37,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
-    var NativeApp = require("utils/NativeApp").NativeApp;
+    var NativeApp = require("utils/NativeApp");
+    var Dialogs = require("widgets/Dialogs");
+    var Strings = require("strings");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -72,13 +74,24 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = DocumentManager.getCurrentDocument();
         if (doc) {
             var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-            doc.extension = matches[3];
-            doc.url = encodeURI("file://" + doc.file.fullPath);
-
-            // the root represents the document that should be displayed in the browser
-            // for live development (the file for HTML files, index.html for others)
-            var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-            doc.root = {url: encodeURI("file://" + matches[1] + fileName)};
+            if (matches) {
+                var prefix = "file://";
+                
+                // The file.fullPath on Windows starts with a drive letter ("C:").
+                // In order to make it a valid file: URL we need to add an 
+                // additional slash to the prefix.
+                if (brackets.platform === "win") {
+                    prefix += "/";
+                }
+                
+                doc.extension = matches[3];
+                doc.url = encodeURI(prefix + doc.file.fullPath);
+    
+                // the root represents the document that should be displayed in the browser
+                // for live development (the file for HTML files, index.html for others)
+                var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+                doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+            }
         }
         return doc;
     }
@@ -201,15 +214,32 @@ define(function LiveDevelopment(require, exports, module) {
                     return;
                 }
                 if (retryCount > 4) {
-                    // TODO (task 4.7): Alert user that a debugging connection could not be established
-                    // TODO (task 4.8): Restart Chrome (if user requested a restart)
-                    console.log("Timed out trying to make debugging connection.");
                     _setStatus(-1);
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
+                        Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                        Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE
+                    ).done(function (id) {
+                        if (id === Dialogs.DIALOG_BTN_OK) {
+                            // User has chosen to reload Chrome, quit the running instance
+                            _setStatus(0);
+                            NativeApp.closeLiveBrowser()
+                                .done(function () {
+                                    browserStarted = false;
+                                    setTimeout(open);
+                                })
+                                .fail(function (err) {
+                                    // Report error?
+                                    _setStatus(-1);
+                                    browserStarted = false;
+                                });
+                        }
+                    });
                     return;
                 }
                 retryCount++;
                 
-                if (!browserStarted) {
+                if (!browserStarted && exports.status !== -1) {
                     NativeApp.openLiveBrowser(
                         doc.root.url
                     )
@@ -217,9 +247,20 @@ define(function LiveDevelopment(require, exports, module) {
                             browserStarted = true;
                         })
                         .fail(function (err) {
-                            // TODO (task 4.7): Error reporting. Err could be NOT_FOUND_ERR or SECURITY_ERR
-                            console.log("Error launching browser");
+                            var message;
+                            
                             _setStatus(-1);
+                            if (err === FileError.NOT_FOUND_ERR) {
+                                message = Strings.ERROR_CANT_FIND_CHROME;
+                            } else {
+                                message = Strings.format(Strings.ERROR_LAUNCHING_BROWSER, err);
+                            }
+                            
+                            Dialogs.showModalDialog(
+                                Dialogs.DIALOG_ID_ERROR,
+                                Strings.ERROR_LAUNCHING_BROWSER_TITLE,
+                                message
+                            );
                         });
                 }
                 
@@ -251,14 +292,13 @@ define(function LiveDevelopment(require, exports, module) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
+            } else {
+                /* FUTURE: support live connections for docments other than html */
+                if (doc.extension.indexOf('htm') === 0) {
+                    close();
+                    setTimeout(open);
+                }
             }
-            /* FUTURE: have option for auto-opening live connection whenever a new
-             * document is activated.
-            else {
-                close();
-                setTimeout(open);
-            }
-            */
         } else if (exports.config.autoconnect) {
             setTimeout(open);
         }
