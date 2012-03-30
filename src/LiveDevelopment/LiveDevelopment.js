@@ -239,7 +239,7 @@ define(function LiveDevelopment(require, exports, module) {
                 }
                 retryCount++;
                 
-                if (!browserStarted) {
+                if (!browserStarted && exports.status !== -1) {
                     NativeApp.openLiveBrowser(
                         doc.root.url
                     )
