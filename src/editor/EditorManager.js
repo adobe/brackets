@@ -103,15 +103,15 @@ define(function (require, exports, module) {
 			    $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
                     .append('<div class="shadow bottom"/>');
 
-                var onClosed = function () {
+                var closeCallback = function () {
                     inlineEditor.onClosed();
                 };
-                var onParentShown = function () {
+                var parentShowCallback = function () {
                     inlineEditor.onParentShown();
                 };
                 
                 var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
-                    onParentShown, onClosed, inlineEditor);
+                    parentShowCallback, closeCallback, inlineEditor);
 
                 inlineEditor.onAdded(inlineId);
                 result.resolve();
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      * @param {HTMLDivContainer} inlineContent
-     * @param  {Function(InlineEditor)} closeThisInline
+     * @param  {function(InlineEditor)} closeThisInline
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
