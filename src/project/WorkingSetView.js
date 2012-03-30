@@ -63,14 +63,10 @@ define(function (require, exports, module) {
             fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
                 .click(function () {
+                    // Clicking the "X" button is equivalent to File > Close; it doesn't merely
+                    // remove a file from the working set
                     var file = listElement.data(_FILE_KEY);
-                    var doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
-                    if (doc) {
-                        CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
-                    } else {
-                        // No need for confirmation prompt here: no doc for this file
-                        DocumentManager.closeFullEditor(file);
-                    }
+                    CommandManager.execute(Commands.FILE_CLOSE, {file: file});
                 });
         }
 
@@ -183,15 +179,6 @@ define(function (require, exports, module) {
         _updateListSelection();
     }
 
-
-
-    /** 
-     * @private
-     * @param {Document} curDoc 
-     */
-    function _closeDoc(doc) {
-        CommandManager.execute(Commands.FILE_CLOSE, {doc: doc});
-    }
 
 
     /** 
