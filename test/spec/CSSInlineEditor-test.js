@@ -1,0 +1,117 @@
+/*
+ * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ */
+
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, HTMLElement: false */
+
+define(function (require, exports, module) {
+    'use strict';
+    
+    var CSSInlineEditor     = require("editor/CSSInlineEditor").CSSInlineEditor,
+        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+        InlineEditor        = require("editor/InlineEditor").InlineEditor,
+        Editor              = require("editor/Editor").Editor,
+        EditorManager       = require("editor/EditorManager"),
+        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+
+    describe("CSSInlineEditor", function () {
+        
+        var cssInlineEditor,
+            $editorHolder,
+            hostEditor;
+        
+        beforeEach(function () {
+            // init Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editorHolder'/>");
+            $editorHolder = $("#editorHolder");
+            EditorManager.setEditorHolder(this.$editorHolder);
+            
+            var doc = SpecRunnerUtils.createMockDocument("hostEditor");
+            hostEditor = new Editor(doc, true, "", $editorHolder.get(0), {});
+        });
+        
+        afterEach(function () {
+            hostEditor.destroy();
+            $editorHolder.remove();
+        });
+
+        it("should initialize to a default state", function () {
+            cssInlineEditor = new CSSInlineEditor([]);
+            
+            expect(cssInlineEditor instanceof InlineTextEditor).toBe(true);
+            expect(cssInlineEditor instanceof InlineEditor).toBe(true);
+            expect(cssInlineEditor.editors.length).toBe(0);
+            expect(cssInlineEditor.htmlContent instanceof HTMLElement).toBe(true);
+            expect(cssInlineEditor.height).toBe(0);
+            expect(cssInlineEditor.inlineId).toBeNull();
+            expect(cssInlineEditor.hostEditor).toBeNull();
+        });
+
+        it("should load a single rule and initialize htmlContent and editor", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("inlineDoc\nstartLine\nendLine\n");
+            var mockRule = {
+                document: inlineDoc,
+                lineStart: 1,
+                lineEnd: 2
+            };
+            
+            cssInlineEditor = new CSSInlineEditor([mockRule]);
+            cssInlineEditor.load(hostEditor);
+            
+            expect(cssInlineEditor.editors.length).toBe(1);
+            expect(cssInlineEditor.editors[0].document).toBe(inlineDoc);
+        });
+
+        xit("should load multiple rules and initialize htmlContent and editors", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    lineStart: 0,
+                    lineEnd: 0
+                },
+                {
+                    document: inlineDoc,
+                    lineStart: 1,
+                    lineEnd: 1
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor.load(hostEditor);
+            
+            expect(cssInlineEditor.editors.length).toBe(2);
+            expect(cssInlineEditor.editors[0].document).toBe(inlineDoc);
+            expect(cssInlineEditor.editors[1].document).toBe(inlineDoc);
+        });
+
+        it("should contain a rule list widget displaying info for each rule", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    selector: "div",
+                    lineStart: 0,
+                    lineEnd: 0
+                },
+                {
+                    document: inlineDoc,
+                    selector: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor.load(hostEditor);
+            
+            var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
+            expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js:1");
+            expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js:2");
+        });
+        
+    });
+});

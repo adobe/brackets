@@ -14,14 +14,6 @@ define(function (require, exports, module) {
         InlineEditor        = require("editor/InlineEditor").InlineEditor;
 
     /**
-     * Returns editor holder width (not CodeMirror's width).
-     * @private
-     */
-    function _editorHolderWidth() {
-        return $("#editorHolder").width();
-    }
-
-    /**
      * Shows or hides the dirty indicator
      * @private
      */
@@ -55,7 +47,6 @@ define(function (require, exports, module) {
      */
     function InlineTextEditor() {
         InlineEditor.call(this);
-        this._docRangeToEditorMap = {};
         this.editors = [];
     }
     InlineTextEditor.prototype = new InlineEditor();
@@ -181,7 +172,6 @@ define(function (require, exports, module) {
         };
         
         // close handler attached to each inline codemirror instance
-        // TODO (jasonsj): make this a global command
         function closeThisInline(editor) {
             var shouldMoveFocus = editor.hasFocus();
             EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
