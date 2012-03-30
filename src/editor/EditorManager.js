@@ -23,6 +23,7 @@ define(function (require, exports, module) {
     var FileUtils           = require("file/FileUtils"),
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
+        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
         Strings             = require("strings");
     
@@ -43,6 +44,31 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
+    
+    /**
+     * Adds keyboard command handlers to an Editor instance.
+     * @param {Editor} editor 
+     * @param {!Object.<string,function(Editor)>} to destination key mapping
+     * @param {!Object.<string,function(Editor)>} from source key mapping
+     */
+    function mergeExtraKeys(editor, to, from) {
+        // Merge in the additionalKeys we were passed
+        function wrapEventHandler(externalHandler) {
+            return function (instance) {
+                externalHandler(editor);
+            };
+        }
+        var key;
+        for (key in from) {
+            if (from.hasOwnProperty(key)) {
+                if (to.hasOwnProperty(key)) {
+                    console.log("Warning: overwriting standard Editor shortcut " + key);
+                }
+                to[key] = (editor !== null) ? wrapEventHandler(from[key]) : from[key];
+            }
+        }
+    }
+    
     /**
      * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
      * file extension. The editor is appended to the given container as a visible child.
@@ -56,7 +82,7 @@ define(function (require, exports, module) {
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
@@ -74,6 +100,10 @@ define(function (require, exports, module) {
                 // No-op, handled in FindInFiles.js
             }
         };
+        
+        if (additionalKeys) {
+            mergeExtraKeys(null, extraKeys, additionalKeys);
+        }
 
         return new Editor(doc, makeMasterEditor, mode, container, extraKeys, range);
     }
@@ -178,8 +208,8 @@ define(function (require, exports, module) {
     function getInlineEditors(hostEditor) {
         var inlineEditors = [];
         hostEditor.getInlineWidgets().forEach(function (widget) {
-            if (widget.data.editor) {
-                inlineEditors.push(widget.data.editor);
+            if (widget.data instanceof InlineTextEditor) {
+                inlineEditors.concat(widget.data.editors);
             }
         });
         return inlineEditors;
@@ -220,9 +250,9 @@ define(function (require, exports, module) {
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
-    function createInlineEditorForDocument(doc, range, inlineContent, closeThisInline) {
+    function createInlineEditorForDocument(doc, range, inlineContent, closeThisInline, additionalKeys) {
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range, additionalKeys);
         
         return { content: inlineContent, editor: inlineEditor };
     }
@@ -408,8 +438,12 @@ define(function (require, exports, module) {
             
             // See if any inlines have focus
             _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget.data.editor && widget.data.editor.hasFocus()) {
-                    focusedInline = widget.data.editor;
+                if (widget.data instanceof InlineTextEditor) {
+                    widget.data.editors.forEach(function (editor) {
+                        if (editor.hasFocus()) {
+                            focusedInline = editor;
+                        }
+                    });
                 }
             });
             
@@ -448,4 +482,5 @@ define(function (require, exports, module) {
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
+    exports.mergeExtraKeys = mergeExtraKeys;
 });

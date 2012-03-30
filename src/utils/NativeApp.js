@@ -8,33 +8,57 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var NativeApp = {
-
-        /** openLiveBrowser
-         *
-         * @param {string} url
-         * @return {$.Promise} 
-         */
-        openLiveBrowser: function (url, successCallback, errorCallback) {
-            var result = new $.Deferred();
-            
-            brackets.app.openLiveBrowser(url, function onRun(err) {
-                if (!err) {
-                    result.resolve();
-                } else {
-                    result.fail(
-                        err === brackets.fs.ERR_NOT_FOUND
-                            ? FileError.NOT_FOUND_ERR
-                            : FileError.SECURITY_ERR  // SECURITY_ERR is the catch-all
-                    );
-                }
-            });
-            
-            return result.promise();
+    /**
+     * @private
+     * Map an fs error code to a FileError.
+     */
+    function _browserErrToFileError(err) {
+        if (err === brackets.fs.ERR_NOT_FOUND) {
+            return FileError.NOT_FOUND_ERR;
         }
+        
+        // All other errors are mapped to the generic "security" error
+        return FileError.SECURITY_ERR;
+    }
 
-    };
+    /** openLiveBrowser
+     *
+     * @param {string} url
+     * @return {$.Promise} 
+     */
+    function openLiveBrowser(url, successCallback, errorCallback) {
+        var result = new $.Deferred();
+        
+        brackets.app.openLiveBrowser(url, function onRun(err) {
+            if (!err) {
+                result.resolve();
+            } else {
+                result.reject(_browserErrToFileError(err));
+            }
+        });
+        
+        return result.promise();
+    }
+    
+    /** closeLiveBrowser
+     *
+     * @return {$.Promise}
+     */
+    function closeLiveBrowser(successCallback, errorCallback) {
+        var result = new $.Deferred();
+        
+        brackets.app.closeLiveBrowser(function (err) {
+            if (!err) {
+                result.resolve();
+            } else {
+                result.reject(_browserErrToFileError(err));
+            }
+        });
+        
+        return result.promise();
+    }
 
     // Define public API
-    exports.NativeApp = NativeApp;
+    exports.openLiveBrowser = openLiveBrowser;
+    exports.closeLiveBrowser = closeLiveBrowser;
 });

@@ -64,6 +64,9 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     InlineTextEditor.prototype.editors = null;
 
+    // TODO: editorHeight will need to be reworked when multiple editors are supported
+    InlineTextEditor.prototype.editorHeight = null;
+
    /**
      * Given a host editor and its inline editors, find the widest gutter and make all the others match
      * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
@@ -119,36 +122,34 @@ define(function (require, exports, module) {
     
     /**
      * Update the inline editor's height when the number of lines change
+     * @param {boolean} force the editor to resize
      */
-    InlineTextEditor.prototype.sizeInlineEditorToContents = function (force) {
+    InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
         var i,
             len = this.editors.length,
             editor;
         
-        // TODO: only handles 1 editor right now. We are still in the process of deciding 
-        // the design to show multiple editors
+        // TODO: only handles 1 editor right now. Add multiple editor support when
+        // the design is finalized
 
         // Reize the editors to the content
         for (i = 0; i < len; i++) {
+            // Only supports 1 editor right now
+            if (i === 1) {
+                break;
+            }
+            
             editor = this.editors[i];
             
             if (editor.isFullyVisible()) {
-                var editorHeight = editor.totalHeight(true);
-                if (force || editorHeight !== this._editorHeight) {
-                    $(editor.getScrollerElement()).height(editorHeight);
+                var height = editor.totalHeight(true);
+                if (force || height !== this.editorHeight) {
+                    $(editor.getScrollerElement()).height(height);
+                    this.editorHeight = height;
                     editor.refresh();
                 }
             }
         }
-
-        // use outermost wrapper (htmlContent) scrollHeight to prop open the host editor
-        
-        // TY TODO: not sure what this is
-        this.height = this.htmlContent.scrollHeight;
-        
-        this.hostEditor.setInlineWidgetHeight(this.inlineId, this.height, true);
-        
-        //break; // there should only be 1 visible editor
     };
 
     /**
@@ -166,7 +167,7 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         // Set initial size
-        this.sizeInlineEditorToContents();
+        this.sizeInlineWidgetToContents();
         
         this.editors[0].focus();
     };
@@ -178,7 +179,7 @@ define(function (require, exports, module) {
      * @param {number} endLine of text to show in inline editor
      * @param {HTMLDivElement} container container to hold the inline editor
      */
-    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container) {
+    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container, additionalKeys) {
         var self = this;
         
         var range = {
@@ -211,12 +212,12 @@ define(function (require, exports, module) {
         $dirtyIndicatorDiv.after(doc.file.name + ":" + (startLine + 1));
         $wrapperDiv.append($filenameDiv);
         
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline);
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
 
         // Size editor to current content
         $(inlineInfo.editor).on("change", function () {
-            self.sizeInlineEditorToContents();
+            self.sizeInlineWidgetToContents();
         });
 
         // update the current inline editor immediately
@@ -243,8 +244,8 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.onParentShown = function () {
         // We need to call this explicitly whenever the host editor is reshown, since
         // we don't actually resize the inline editor while its host is invisible (see
-        // isFullyVisible() check in sizeInlineEditorToContents()).
-        this.sizeInlineEditorToContents(true);
+        // isFullyVisible() check in sizeInlineWidgetToContents()).
+        this.sizeInlineWidgetToContents(true);
     };
     
     // consolidate all dirty document updates
