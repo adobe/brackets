@@ -44,13 +44,28 @@ define(function (require, exports, module) {
 
         // Create DOM to hold editors and related list
         var $editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
-        var $relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
-        var $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related");
+        
+        // Outer container for border-left and scrolling
+        this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        
+        // List "selection" highlight
+        this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
+        
+        // Inner container
+        var $related = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
+        
+        // Rule list
         var $ruleList = $(document.createElement("ul")).appendTo($related);
+        
+        // Keyboard shortcuts
+        var extraKeys = {
+            "Alt-Up" : $.proxy(this.previousRule, this),
+            "Alt-Down" : $.proxy(this.nextRule, this)
+        };
        
         // load first rule
         var rule = this._rules[0];
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, $editorsDiv.get(0));
+        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, $editorsDiv.get(0), extraKeys);
         
         // create rule list
         this._ruleItems = [];
@@ -72,11 +87,30 @@ define(function (require, exports, module) {
         self.setSelectedRule(0);
         
         // attach to main container
-        this.$htmlContent.append($editorsDiv).append($relatedContainer);
+        this.$htmlContent.append($editorsDiv).append(this.$relatedContainer);
+        
+        // initialize position based on the main #editorHolder
+        setTimeout(function () {
+            self._moveRelatedContainer();
+        }, 0);
+        
+        $(window).on("resize.CSSInlineEditor", $.proxy(this._moveRelatedContainer, this));
 
         return (new $.Deferred()).resolve();
     };
+
+    /**
+     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     */
+    CSSInlineEditor.prototype.onClosed = function () {
+        this.parentClass.onClosed.call(this); // super.onClosed()
+        
+        $(window).off("resize.CSSInlineEditor");
+    };
     
+    CSSInlineEditor.prototype._moveRelatedContainer = function () {
+        this.$relatedContainer.css("left", $("#editorHolder").width() - 250);
+    };
 
     // TY TODO: part of sprint 6
     CSSInlineEditor.prototype.getRules = function () {
@@ -86,18 +120,32 @@ define(function (require, exports, module) {
     };
     
     CSSInlineEditor.prototype.setSelectedRule = function (index) {
-        if (this._selectedRuleIndex >= 0) {
-            this._ruleItems[this._selectedRuleIndex].toggleClass("selected", false);
-        }
+        var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
         
-        this._selectedRuleIndex = index;
-        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
+        this._selectedRuleIndex = newIndex;
+        
+        var $ruleItem = this._ruleItems[this._selectedRuleIndex];
+        $ruleItem.toggleClass("selected", true);
+        
+        // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
+        var self = this;
+        setTimeout(function () {
+            var itemTop = $ruleItem.position().top;
+            self.$selectedMarker.css("top", itemTop);
+            self.$selectedMarker.height($ruleItem.height());
+            
+            // TODO (jasonsj): figure out if rule list should scroll
+            itemTop -=  $ruleItem.parent().css("paddingTop").replace("px", "");
+            self.$relatedContainer.scrollTop(itemTop);
+        }, 0);
     };
     
     CSSInlineEditor.prototype.nextRule = function () {
+        this.setSelectedRule(this._selectedRuleIndex + 1);
     };
     
     CSSInlineEditor.prototype.previousRule = function () {
+        this.setSelectedRule(this._selectedRuleIndex - 1);
     };
 
 

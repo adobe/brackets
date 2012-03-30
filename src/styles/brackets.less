@@ -373,7 +373,21 @@ a, img {
     /*-webkit-transition: width 0.15s ease-out;*/
     background: #f2f2f2;
     border-left: 1px solid #ccc;
-    width: 250px;
+    
+    @top-margin: 12px;
+        
+    .selection {
+        display: block;
+        width: 100%;
+        background: #e6e6e6;
+        position: absolute;
+        -webkit-transition: height 0.1s ease-out;
+        -webkit-transition: top 0.1s ease-out;
+        border-top: 1px solid #d6d6d6;
+        border-bottom: 1px solid #d6d6d6;
+        box-shadow: 0 1px 0 #fff;
+        top: @top-margin;
+    }
     
     .related {
         position: absolute;
@@ -385,20 +399,13 @@ a, img {
         
         ul {
             margin: 0;
-            padding: 12px 0px;
+            padding: @top-margin 0px;
             list-style: none;
             color: #656565;
             
             li {
                 padding: 0px 15px;
                 white-space: nowrap;
-            }
-                
-            li.selected {
-                background: #e6e6e6;
-                border-top: 1px solid #d6d6d6;
-                border-bottom: 1px solid #d6d6d6;
-                box-shadow: 0 1px 0 #fff;
             }
             
             .location {
