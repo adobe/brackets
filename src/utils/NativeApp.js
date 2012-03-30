@@ -33,7 +33,7 @@ define(function (require, exports, module) {
             if (!err) {
                 result.resolve();
             } else {
-                result.fail(_browserErrToFileError(err));
+                result.reject(_browserErrToFileError(err));
             }
         });
         
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
             if (!err) {
                 result.resolve();
             } else {
-                result.fail(_browserErrToFileError(err));
+                result.reject(_browserErrToFileError(err));
             }
         });
         
