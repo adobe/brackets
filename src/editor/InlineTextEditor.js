@@ -172,13 +172,18 @@ define(function (require, exports, module) {
      * @param {number} endLine of text to show in inline editor
      * @param {HTMLDivElement} container container to hold the inline editor
      */
-    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container) {
+    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container, additionalKeys) {
         var self = this;
         
         var range = {
             startLine: startLine,
             endLine: endLine
         };
+        
+        // close handler attached to each inline codemirror instance
+        function closeThisInline() {
+            self.close();
+        }
         
         // create the filename div
         var wrapperDiv = document.createElement("div");
@@ -198,9 +203,7 @@ define(function (require, exports, module) {
         $dirtyIndicatorDiv.after(doc.file.name + ":" + (startLine + 1));
         $wrapperDiv.append($filenameDiv);
         
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, function () {
-            self.close();
-        });
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
 
         // Size editor to content whenever it changes (via edits here or any other view of the doc)

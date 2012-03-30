@@ -259,21 +259,7 @@ define(function (require, exports, module) {
             "Shift-Insert": "paste"
         };
         
-        // Merge in the additionalKeys we were passed
-        function wrapEventHandler(externalHandler) {
-            return function (instance) {
-                externalHandler(self);
-            };
-        }
-        var key;
-        for (key in additionalKeys) {
-            if (additionalKeys.hasOwnProperty(key)) {
-                if (codeMirrorKeyMap.hasOwnProperty(key)) {
-                    console.log("Warning: overwriting standard Editor shortcut " + key);
-                }
-                codeMirrorKeyMap[key] = wrapEventHandler(additionalKeys[key]);
-            }
-        }
+        EditorManager.mergeExtraKeys(self, codeMirrorKeyMap, additionalKeys);
         
         // We'd like null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
