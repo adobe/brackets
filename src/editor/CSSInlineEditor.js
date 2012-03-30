@@ -18,7 +18,7 @@ define(function (require, exports, module) {
 
     /**
      * @constructor
-     * @extends {InlineEditor}
+     * @extends {InlineWidget}
      */
     function CSSInlineEditor(rules) {
         InlineTextEditor.call(this);
@@ -28,6 +28,8 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype = new InlineTextEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
     CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
+    CSSInlineEditor.prototype.$editorsDiv = null;
+    CSSInlineEditor.prototype.$relatedContainer = null;
 
     /** 
      * @override
@@ -43,14 +45,11 @@ define(function (require, exports, module) {
             $location;
 
         // Create DOM to hold editors and related list
-        var $editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
-        var $relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
-        var $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related");
+        this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
+        this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        var $related = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         var $ruleList = $(document.createElement("ul")).appendTo($related);
        
-        // load first rule
-        var rule = this._rules[0];
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, $editorsDiv.get(0));
         
         // create rule list
         this._ruleItems = [];
@@ -72,7 +71,7 @@ define(function (require, exports, module) {
         self.setSelectedRule(0);
         
         // attach to main container
-        this.$htmlContent.append($editorsDiv).append($relatedContainer);
+        this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
 
         return (new $.Deferred()).resolve();
     };
@@ -80,9 +79,11 @@ define(function (require, exports, module) {
 
     // TY TODO: part of sprint 6
     CSSInlineEditor.prototype.getRules = function () {
+        return this._rules;
     };
     
     CSSInlineEditor.prototype.getSelectedRule = function () {
+        return this._rules[this._selectedRuleIndex];
     };
     
     CSSInlineEditor.prototype.setSelectedRule = function (index) {
@@ -92,6 +93,19 @@ define(function (require, exports, module) {
         
         this._selectedRuleIndex = index;
         this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
+
+        // Remove previous editors
+        this.editors.forEach(function (editor) {
+            editor.destroy(); //release ref on Document
+        });
+        this.editors = [];
+        this.$editorsDiv.children().remove();
+
+
+        // Add new editor
+        var rule = this.getSelectedRule();
+        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0) );
+        this.sizeInlineEditorToContents(true);
     };
     
     CSSInlineEditor.prototype.nextRule = function () {
@@ -99,6 +113,18 @@ define(function (require, exports, module) {
     
     CSSInlineEditor.prototype.previousRule = function () {
     };
+
+// Ty TODO
+   // InlineTextEditor.prototype.sizeInlineEditorToContents = function (force) {
+   //      this.parentClass.sizeInlineEditorToContents.call(this, force);
+
+   //      // TODO: only supports one editor right now
+   //      var editorHeight = this.editors[i].getScrollerElement().height();
+
+   //      var widgetHeight = Math.max($related.scrollHeight, editorHeight);
+
+   //      this.hostEditor.setInlineWidgetHeight(this.inlineId, this.height, true);
+   // };
 
 
     /**
@@ -152,7 +178,7 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineEditor
+     * @return {$.Promise} a promise that will be resolved with an InlineWidget
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {

@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        InlineEditor        = require("editor/InlineEditor").InlineEditor;
+        InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
      * Returns editor holder width (not CodeMirror's width).
@@ -54,13 +54,14 @@ define(function (require, exports, module) {
      *
      */
     function InlineTextEditor() {
-        InlineEditor.call(this);
-        this._docRangeToEditorMap = {};
+        InlineWidget.call(this);
+
+        /* @type {Array.<{Editor}>}*/
         this.editors = [];
     }
-    InlineTextEditor.prototype = new InlineEditor();
+    InlineTextEditor.prototype = new InlineWidget();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
-    InlineTextEditor.prototype.parentClass = InlineEditor.prototype;
+    InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     InlineTextEditor.prototype.editors = null;
 
    /**
@@ -124,25 +125,30 @@ define(function (require, exports, module) {
             len = this.editors.length,
             editor;
         
+        // TODO: only handles 1 editor right now. We are still in the process of deciding 
+        // the design to show multiple editors
+
+        // Reize the editors to the content
         for (i = 0; i < len; i++) {
             editor = this.editors[i];
             
             if (editor.isFullyVisible()) {
-                // set inner editor height
                 var editorHeight = editor.totalHeight(true);
                 if (force || editorHeight !== this._editorHeight) {
-                    this._editorHeight = editorHeight;
                     $(editor.getScrollerElement()).height(editorHeight);
                     editor.refresh();
                 }
-                
-                // use outermost wrapper (htmlContent) scrollHeight to prop open the host editor
-                this.height = this.htmlContent.scrollHeight;
-                this.hostEditor.setInlineWidgetHeight(this.inlineId, this.height, true);
-                
-                break; // there should only be 1 visible editor
             }
         }
+
+        // use outermost wrapper (htmlContent) scrollHeight to prop open the host editor
+        
+        // TY TODO: not sure what this is
+        this.height = this.htmlContent.scrollHeight;
+        
+        this.hostEditor.setInlineWidgetHeight(this.inlineId, this.height, true);
+        
+        //break; // there should only be 1 visible editor
     };
 
     /**
