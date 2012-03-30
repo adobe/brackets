@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, FileError: false, brackets: false */
+/*global define, $, FileError, brackets, unescape */
 
 /**
  * Set of utilites for working with files and text content.
@@ -154,13 +154,14 @@ define(function (require, exports, module) {
 
     /**
      * Convert a URI path to a native path.
-     * On the mac, this is a no-op
+     * On both platforms, this unescapes the URI
      * On windows, URI paths start with a "/", but have a drive letter ("C:"). In this
      * case, remove the initial "/".
      * @param {!string} path
      * @return {string}
      */
     function convertToNativePath(path) {
+        path = unescape(path);
         if (path.indexOf(":") !== -1 && path[0] === "/") {
             return path.substr(1);
         }
