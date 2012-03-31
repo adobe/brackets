@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
     CSSInlineEditor.prototype.$editorsDiv = null;
     CSSInlineEditor.prototype.$relatedContainer = null;
+    CSSInlineEditor.prototype._updateRelatedContainerProxy = null;
 
     /** 
      * @override
@@ -86,20 +87,66 @@ define(function (require, exports, module) {
             self._updateRelatedContainer();
         }, 0);
         
-        var updateRelatedContainerProxy = $.proxy(this._updateRelatedContainer, this);
+        this._updateRelatedContainerProxy = $.proxy(this._updateRelatedContainer, this);
         
         // Changes to the host editor should update the relatedContainer
-        $(this.hostEditor).on("change.CSSInlineEditor", updateRelatedContainerProxy);
-        
-        // TODO (jasonsj): install on active inline editor
-        // Changes in size to the inline editor should update the relatedContainer
-        $(this.editors[0]).on("change.CSSInlineEditor", updateRelatedContainerProxy);
+        $(this.hostEditor).on("change.CSSInlineEditor", this._updateRelatedContainerProxy);
         
         // Since overflow-y is hidden on the CM scrollerElement, the scroll event is never fired.
         // Instead, we add a hook to CM's onScroll to reposition the relatedContainer.
-        this.hostEditor._codeMirror.setOption("onScroll", updateRelatedContainerProxy);
+        this.hostEditor._codeMirror.setOption("onScroll", this._updateRelatedContainerProxy);
 
         return (new $.Deferred()).resolve();
+    };
+
+    /**
+     *
+     *
+     */
+    CSSInlineEditor.prototype.setSelectedRule = function (index) {
+        var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
+        
+        this._selectedRuleIndex = newIndex;
+        var $ruleItem = this._ruleItems[this._selectedRuleIndex];
+
+        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
+
+        // Remove previous editors
+        this.editors.forEach(function (editor) {
+            editor.destroy(); //release ref on Document
+        });
+        this.editors = [];
+        this.$editorsDiv.children().remove();
+        $(this.editors[0]).off("change.CSSInlineEditor");
+
+        // Keyboard shortcuts
+        var extraKeys = {
+            "Alt-Up" : $.proxy(this.previousRule, this),
+            "Alt-Down" : $.proxy(this.nextRule, this)
+        };
+
+
+        // Add new editor
+        var rule = this.getSelectedRule();
+        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0), extraKeys);
+
+        // Changes in size to the inline editor should update the relatedContainer
+        $(this.editors[0]).on("change.CSSInlineEditor", this._updateRelatedContainerProxy);
+
+        this.sizeInlineWidgetToContents(true);
+        this._updateRelatedContainer();
+
+        // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
+        var self = this;
+        setTimeout(function () {
+            var itemTop = $ruleItem.position().top;
+            self.$selectedMarker.css("top", itemTop);
+            self.$selectedMarker.height($ruleItem.height());
+            
+            // FUTURE (jasonsj): figure out if rule list should scroll
+            itemTop -=  $ruleItem.parent().css("paddingTop").replace("px", "");
+            self.$relatedContainer.scrollTop(itemTop);
+        }, 0);
     };
 
     /**
@@ -139,49 +186,7 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.getSelectedRule = function () {
         return this._rules[this._selectedRuleIndex];
     };
-    
-    /**
-     *
-     *
-     */
-    CSSInlineEditor.prototype.setSelectedRule = function (index) {
-        var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
-        
-        this._selectedRuleIndex = newIndex;
-		var $ruleItem = this._ruleItems[this._selectedRuleIndex];
 
-        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
-
-        // Remove previous editors
-        this.editors.forEach(function (editor) {
-            editor.destroy(); //release ref on Document
-        });
-        this.editors = [];
-        this.$editorsDiv.children().remove();
-
-        // Keyboard shortcuts
-        var extraKeys = {
-            "Alt-Up" : $.proxy(this.previousRule, this),
-            "Alt-Down" : $.proxy(this.nextRule, this)
-        };
-
-
-        // Add new editor
-        var rule = this.getSelectedRule();
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0), extraKeys);
-        this.sizeInlineWidgetToContents(true);
-        // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
-        var self = this;
-        setTimeout(function () {
-            var itemTop = $ruleItem.position().top;
-            self.$selectedMarker.css("top", itemTop);
-            self.$selectedMarker.height($ruleItem.height());
-            
-            // FUTURE (jasonsj): figure out if rule list should scroll
-            itemTop -=  $ruleItem.parent().css("paddingTop").replace("px", "");
-            self.$relatedContainer.scrollTop(itemTop);
-        }, 0);
-    };
     
     /**
      * Display the next css rule in the rule list
@@ -203,12 +208,7 @@ define(function (require, exports, module) {
      */
     CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
-
-        var relatedSize = this.$relatedContainer.find("related").height;
         var widgetHeight = Math.max(this.$relatedContainer.height(), this.$editorsDiv.height());
-
-        // TODO Ty: Jason, try enabling this
-        //this.$relatedContainer.height(widgetHeight);
 
         this.hostEditor.setInlineWidgetHeight(this.inlineId, widgetHeight, true);
     };

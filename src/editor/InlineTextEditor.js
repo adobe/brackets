@@ -64,9 +64,6 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     InlineTextEditor.prototype.editors = null;
 
-    // TODO: editorHeight will need to be reworked when multiple editors are supported
-    InlineTextEditor.prototype.editorHeight = null;
-
    /**
      * Given a host editor and its inline editors, find the widest gutter and make all the others match
      * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
@@ -143,9 +140,9 @@ define(function (require, exports, module) {
             
             if (editor.isFullyVisible()) {
                 var height = editor.totalHeight(true);
-                if (force || height !== this.editorHeight) {
+                if (force || height !== this.height) {
                     $(editor.getScrollerElement()).height(height);
-                    this.editorHeight = height;
+                    this.height = height;
                     editor.refresh();
                 }
             }
@@ -253,14 +250,14 @@ define(function (require, exports, module) {
         this.sizeInlineWidgetToContents(true);
     };
     
-    InlineEditor.prototype._editorHasFocus = function () {
+    InlineTextEditor.prototype._editorHasFocus = function () {
         return this.editors.some(function (editor) {
             return editor.hasFocus();
         });
     };
     
     /** Closes this inline widget and all its contained Editors */
-    InlineEditor.prototype.close = function () {
+    InlineTextEditor.prototype.close = function () {
         var shouldMoveFocus = this._editorHasFocus();
         EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
         // closeInlineWidget() causes our onClosed() to get run
