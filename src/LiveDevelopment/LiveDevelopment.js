@@ -64,34 +64,41 @@ define(function LiveDevelopment(require, exports, module) {
         */
     };
 
-    var _liveDocument; // the live document
-    var _document; // the open live-document
+    var _liveDocument; // the live HTML document
+    var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
+    /** Augments the given Brackets document with information that's useful for live development. */
+    function _setDocInfo(doc) {
+        // TODO: some of these things should just be moved into core Document; others should
+        // be in a LiveDevelopment-specific object attached to the doc.
+        var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
+        if (matches) {
+            var prefix = "file://";
+            
+            // The file.fullPath on Windows starts with a drive letter ("C:").
+            // In order to make it a valid file: URL we need to add an 
+            // additional slash to the prefix.
+            if (brackets.platform === "win") {
+                prefix += "/";
+            }
+            
+            doc.extension = matches[3];
+            doc.url = encodeURI(prefix + doc.file.fullPath);
+
+            // the root represents the document that should be displayed in the browser
+            // for live development (the file for HTML files, index.html for others)
+            var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+            doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+        }
+    }
+      
     /** Get the current document from the document manager
      * _adds extension, url and root to the document
      */
     function _getCurrentDocument() {
         var doc = DocumentManager.getCurrentDocument();
         if (doc) {
-            var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-            if (matches) {
-                var prefix = "file://";
-                
-                // The file.fullPath on Windows starts with a drive letter ("C:").
-                // In order to make it a valid file: URL we need to add an 
-                // additional slash to the prefix.
-                if (brackets.platform === "win") {
-                    prefix += "/";
-                }
-                
-                doc.extension = matches[3];
-                doc.url = encodeURI(prefix + doc.file.fullPath);
-    
-                // the root represents the document that should be displayed in the browser
-                // for live development (the file for HTML files, index.html for others)
-                var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-                doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
-            }
+            _setDocInfo(doc);
         }
         return doc;
     }
@@ -123,6 +130,34 @@ define(function LiveDevelopment(require, exports, module) {
             _liveDocument.close();
             _liveDocument = undefined;
         }
+        if (_relatedDocuments) {
+            _relatedDocuments.forEach(function (liveDoc) {
+                liveDoc.close();
+            });
+            _relatedDocuments = undefined;
+        }
+    }
+    
+    /** Create a live version of a Brackets document */
+    function _createDocument(doc, editor) {
+        var DocClass = _classForDocument(doc);
+        if (DocClass) {
+            return new DocClass(doc, editor);
+        } else {
+            return null;
+        }
+    }
+    
+    /** Convert a file: URL to a local full file path */
+    function _urlToPath(url) {
+        var path;
+        if (url.indexOf("file://") === 0) {
+            path = url.slice(7);
+            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
+                path = path.slice(1);
+            }
+        }
+        return path;
     }
 
     /** Open a live document
@@ -130,10 +165,23 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _openDocument(doc, editor) {
         _closeDocument();
-        var DocumentClass = _classForDocument(doc);
-        if (DocumentClass) {
-            _liveDocument = new DocumentClass(doc, editor);
-        }
+        _liveDocument = _createDocument(doc, editor);
+
+        // Gather related CSS documents.
+        // FUTURE: Gather related JS documents as well.
+        _relatedDocuments = [];
+        agents.css.getStylesheetURLs().forEach(function (url) {
+            // TODO: okay that this is async? do we need to prevent other
+            // stuff from happening while we wait to add these listeners?
+            DocumentManager.getDocumentForPath(_urlToPath(url))
+                .done(function (doc) {
+                    _setDocInfo(doc);
+                    var liveDoc = _createDocument(doc);
+                    if (liveDoc) {
+                        _relatedDocuments.push(liveDoc);
+                    }
+                });
+        });
     }
 
     /** Unload the agents */
