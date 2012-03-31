@@ -253,14 +253,14 @@ define(function (require, exports, module) {
         this.sizeInlineWidgetToContents(true);
     };
     
-    InlineEditor.prototype._editorHasFocus = function () {
+    InlineTextEditor.prototype._editorHasFocus = function () {
         return this.editors.some(function (editor) {
             return editor.hasFocus();
         });
     };
     
     /** Closes this inline widget and all its contained Editors */
-    InlineEditor.prototype.close = function () {
+    InlineTextEditor.prototype.close = function () {
         var shouldMoveFocus = this._editorHasFocus();
         EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
         // closeInlineWidget() causes our onClosed() to get run
