@@ -63,6 +63,7 @@ define(function (require, exports, module) {
             expect(cssInlineEditor.editors[0].document).toBe(inlineDoc);
         });
 
+        // TODO (jasonsj): waiting for ty's editor impl
         xit("should load multiple rules and initialize htmlContent and editors", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
@@ -111,6 +112,99 @@ define(function (require, exports, module) {
             var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
             expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js:1");
             expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js:2");
+        });
+
+        it("should change selection to the next rule", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    selector: "div",
+                    lineStart: 0,
+                    lineEnd: 0
+                },
+                {
+                    document: inlineDoc,
+                    selector: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor.load(hostEditor);
+            cssInlineEditor.nextRule();
+            
+            var $selection = $(cssInlineEditor.htmlContent).find(".selection");
+            var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
+            expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
+        });
+
+        it("should change selection to the previous rule", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    selector: "div",
+                    lineStart: 0,
+                    lineEnd: 0
+                },
+                {
+                    document: inlineDoc,
+                    selector: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor.load(hostEditor);
+            
+            // select .foo
+            cssInlineEditor.setSelectedRule(1);
+            
+            // verify selection moves
+            var $selection = $(cssInlineEditor.htmlContent).find(".selection");
+            var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
+            expect($selection.position().top).toBe($($ruleListItems.get(1)).position().top);
+            
+            // select div
+            cssInlineEditor.previousRule();
+            
+            // verify selection moves again
+            expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
+        });
+
+        // TODO (jasonsj): waiting for ty's editor impl
+        xit("should retreive the selected rule", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    selector: "div",
+                    lineStart: 0,
+                    lineEnd: 0
+                },
+                {
+                    document: inlineDoc,
+                    selector: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor.load(hostEditor);
+            
+            expect(cssInlineEditor.getSelectedRule().selector).toEqual("div");
+            
+            // select .foo
+            cssInlineEditor.nextRule();
+            
+            expect(cssInlineEditor.getSelectedRule().selector).toEqual(".foo");
         });
         
     });
