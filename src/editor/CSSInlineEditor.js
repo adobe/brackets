@@ -129,7 +129,7 @@ define(function (require, exports, module) {
         // Add new editor
         var rule = this.getSelectedRule();
         this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0), extraKeys);
-        this.editors[0].focus()
+        this.editors[0].focus();
 
         // Changes in size to the inline editor should update the relatedContainer
         $(this.editors[0]).on("change.CSSInlineEditor", this.updateRelatedContainerProxy);
@@ -210,7 +210,6 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
         // Size the code mirror editors height to the editor content
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
-        var relatedSize = this.$relatedContainer.find("related").height;
         // Size the widget height to the max between the editor content and the related rules list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
         this.hostEditor.setInlineWidgetHeight(this.inlineId, widgetHeight, true);
