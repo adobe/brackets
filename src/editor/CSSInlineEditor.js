@@ -129,6 +129,7 @@ define(function (require, exports, module) {
         // Add new editor
         var rule = this.getSelectedRule();
         this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0), extraKeys);
+        this.editors[0].focus()
 
         // Changes in size to the inline editor should update the relatedContainer
         $(this.editors[0]).on("change.CSSInlineEditor", this.updateRelatedContainerProxy);
