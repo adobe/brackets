@@ -26,7 +26,7 @@ define(function (require, exports, module) {
     InlineEditor.prototype.hostEditor = null;
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline was closed, whether manually (via close()) or automatically
      */
     InlineEditor.prototype.onClosed = function () {
         // do nothing - base implementation

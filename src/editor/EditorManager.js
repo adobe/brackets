@@ -23,6 +23,7 @@ define(function (require, exports, module) {
     var FileUtils           = require("file/FileUtils"),
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
+        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
         Strings             = require("strings");
     
@@ -207,8 +208,8 @@ define(function (require, exports, module) {
     function getInlineEditors(hostEditor) {
         var inlineEditors = [];
         hostEditor.getInlineWidgets().forEach(function (widget) {
-            if (widget.data.editor) {
-                inlineEditors.push(widget.data.editor);
+            if (widget.data instanceof InlineTextEditor) {
+                inlineEditors.concat(widget.data.editors);
             }
         });
         return inlineEditors;
@@ -437,8 +438,12 @@ define(function (require, exports, module) {
             
             // See if any inlines have focus
             _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget.data.editor && widget.data.editor.hasFocus()) {
-                    focusedInline = widget.data.editor;
+                if (widget.data instanceof InlineTextEditor) {
+                    widget.data.editors.forEach(function (editor) {
+                        if (editor.hasFocus()) {
+                            focusedInline = editor;
+                        }
+                    });
                 }
             });
             

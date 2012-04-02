@@ -16,7 +16,6 @@ define(function (require, exports, module) {
     localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
     // Load test specs
-    /*
     require("spec/LowLevelFileIO-test.js");
     require("spec/DocumentCommandHandlers-test.js");
     require("spec/NativeFileSystem-test.js");
@@ -29,9 +28,7 @@ define(function (require, exports, module) {
     require("spec/CodeHintUtils-test.js");
     require("spec/CSSUtils-test.js");
     require("spec/InlineEditorProviders-test.js");
-    */
-    require("spec/CSSInlineEditor-test.js");
-
+    
     // Clean up preferencesKey
     $(window).unload(function () {
         localStorage.removeItem("preferencesKey");

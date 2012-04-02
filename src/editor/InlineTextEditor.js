@@ -14,6 +14,14 @@ define(function (require, exports, module) {
         InlineEditor        = require("editor/InlineEditor").InlineEditor;
 
     /**
+     * Returns editor holder width (not CodeMirror's width).
+     * @private
+     */
+    function _editorHolderWidth() {
+        return $("#editorHolder").width();
+    }
+
+    /**
      * Shows or hides the dirty indicator
      * @private
      */
@@ -47,6 +55,7 @@ define(function (require, exports, module) {
      */
     function InlineTextEditor() {
         InlineEditor.call(this);
+        this._docRangeToEditorMap = {};
         this.editors = [];
     }
     InlineTextEditor.prototype = new InlineEditor();
@@ -97,7 +106,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline was closed, whether manually (via close()) or automatically
      */
     InlineTextEditor.prototype.onClosed = function () {
         _syncGutterWidths(this.hostEditor);
@@ -172,9 +181,8 @@ define(function (require, exports, module) {
         };
         
         // close handler attached to each inline codemirror instance
-        function closeThisInline(editor) {
-            var shouldMoveFocus = editor.hasFocus();
-            EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
+        function closeThisInline() {
+            self.close();
         }
         
         // create the filename div
@@ -198,12 +206,19 @@ define(function (require, exports, module) {
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
 
-        // Size editor to current content
+        // Size editor to content whenever it changes (via edits here or any other view of the doc)
         $(inlineInfo.editor).on("change", function () {
             self.sizeInlineEditorToContents();
         });
-
-        // update the current inline editor immediately
+        
+        // If Document's file is deleted, or Editor loses sync with Document, just close
+        $(inlineInfo.editor).on("lostContent", function () {
+            // Note: this closes the entire inline widget if any one Editor loses sync. This seems
+            // better than leaving it open but suddenly removing one rule from the result list.
+            self.close();
+        });
+        
+        // set dirty indicator state
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
             _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
@@ -230,6 +245,20 @@ define(function (require, exports, module) {
         // isFullyVisible() check in sizeInlineEditorToContents()).
         this.sizeInlineEditorToContents(true);
     };
+    
+    InlineEditor.prototype._editorHasFocus = function () {
+        return this.editors.some(function (editor) {
+            return editor.hasFocus();
+        });
+    };
+    
+    /** Closes this inline widget and all its contained Editors */
+    InlineEditor.prototype.close = function () {
+        var shouldMoveFocus = this._editorHasFocus();
+        EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
+        // closeInlineWidget() causes our onClosed() to get run
+    };
+        
     
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
