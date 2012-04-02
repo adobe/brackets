@@ -90,11 +90,11 @@ define(function (require, exports, module) {
         this._updateRelatedContainerProxy = $.proxy(this._updateRelatedContainer, this);
         
         // Changes to the host editor should update the relatedContainer
-        $(this.hostEditor).on("change.CSSInlineEditor", this.updateRelatedContainerProxy);
+        $(this.hostEditor).on("change.CSSInlineEditor", this._updateRelatedContainerProxy);
         
         // Since overflow-y is hidden on the CM scrollerElement, the scroll event is never fired.
         // Instead, we add a hook to CM's onScroll to reposition the relatedContainer.
-        this.hostEditor._codeMirror.setOption("onScroll", this.updateRelatedContainerProxy);
+        this.hostEditor._codeMirror.setOption("onScroll", this._updateRelatedContainerProxy);
 
         return (new $.Deferred()).resolve();
     };
