@@ -19,6 +19,7 @@ define(function (require, exports, module) {
      * Remove trailing "px" from a style size value.
      * @param {!JQuery} $target Element in DOM
      * @param {!string} styleName Style name to query
+     * @return {number} Style value converted from string to number, removing "px" units
      */
     function parseStyleSize($target, styleName) {
         return parseInt($target.css(styleName).replace("px", ""), 10);
