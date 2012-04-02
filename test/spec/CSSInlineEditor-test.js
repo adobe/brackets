@@ -10,7 +10,7 @@ define(function (require, exports, module) {
     
     var CSSInlineEditor     = require("editor/CSSInlineEditor").CSSInlineEditor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        InlineEditor        = require("editor/InlineEditor").InlineEditor,
+        InlineWidget        = require("editor/InlineWidget").InlineWidget,
         Editor              = require("editor/Editor").Editor,
         EditorManager       = require("editor/EditorManager"),
         SpecRunnerUtils     = require("./SpecRunnerUtils.js");
@@ -40,7 +40,7 @@ define(function (require, exports, module) {
             cssInlineEditor = new CSSInlineEditor([]);
             
             expect(cssInlineEditor instanceof InlineTextEditor).toBe(true);
-            expect(cssInlineEditor instanceof InlineEditor).toBe(true);
+            expect(cssInlineEditor instanceof InlineWidget).toBe(true);
             expect(cssInlineEditor.editors.length).toBe(0);
             expect(cssInlineEditor.htmlContent instanceof HTMLElement).toBe(true);
             expect(cssInlineEditor.height).toBe(0);
@@ -61,31 +61,6 @@ define(function (require, exports, module) {
             
             expect(cssInlineEditor.editors.length).toBe(1);
             expect(cssInlineEditor.editors[0].document).toBe(inlineDoc);
-        });
-
-        // TODO (jasonsj): waiting for ty's editor impl
-        xit("should load multiple rules and initialize htmlContent and editors", function () {
-            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
-            
-            var mockRules = [
-                {
-                    document: inlineDoc,
-                    lineStart: 0,
-                    lineEnd: 0
-                },
-                {
-                    document: inlineDoc,
-                    lineStart: 1,
-                    lineEnd: 1
-                }
-            ];
-            
-            cssInlineEditor = new CSSInlineEditor(mockRules);
-            cssInlineEditor.load(hostEditor);
-            
-            expect(cssInlineEditor.editors.length).toBe(2);
-            expect(cssInlineEditor.editors[0].document).toBe(inlineDoc);
-            expect(cssInlineEditor.editors[1].document).toBe(inlineDoc);
         });
 
         it("should contain a rule list widget displaying info for each rule", function () {
@@ -177,8 +152,28 @@ define(function (require, exports, module) {
             expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
         });
 
-        // TODO (jasonsj): waiting for ty's editor impl
-        xit("should retreive the selected rule", function () {
+        it("should retreive all rules", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    selector: "div",
+                    lineStart: 0,
+                    lineEnd: 0
+                },
+                {
+                    document: inlineDoc,
+                    selector: ".foo",
+                    lineStart: 1,
+                    lineEnd: 1
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            expect(cssInlineEditor.getRules()).toEqual(mockRules);
+        });
+
+        it("should retreive the selected rule", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
             var mockRules = [
@@ -199,12 +194,42 @@ define(function (require, exports, module) {
             cssInlineEditor = new CSSInlineEditor(mockRules);
             cssInlineEditor.load(hostEditor);
             
-            expect(cssInlineEditor.getSelectedRule().selector).toEqual("div");
+            // select div
+            expect(cssInlineEditor.getSelectedRule()).toEqual(mockRules[0]);
             
             // select .foo
             cssInlineEditor.nextRule();
+            expect(cssInlineEditor.getSelectedRule()).toEqual(mockRules[1]);
+        });
+
+        it("should close and return to the host editor", function () {
+            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
-            expect(cssInlineEditor.getSelectedRule().selector).toEqual(".foo");
+            var mockRules = [
+                {
+                    document: inlineDoc,
+                    selector: "div",
+                    lineStart: 0,
+                    lineEnd: 0
+                }
+            ];
+            
+            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor.load(hostEditor);
+            
+            // add widget directly, bypass _openInlineWidget
+            EditorManager._addInlineWidget(hostEditor, {line: 0, ch: 0}, cssInlineEditor);
+            
+            // verify it was added
+            expect(hostEditor.hasFocus()).toBe(false);
+            expect(hostEditor.getInlineWidgets().length).toBe(1);
+            
+            // close the inline editor directly, should call EditorManager and removeInlineWidget
+            cssInlineEditor.close();
+            
+            // verify no editors
+            expect(hostEditor.getInlineWidgets().length).toBe(0);
+            expect(hostEditor.hasFocus()).toBe(true);
         });
         
     });
