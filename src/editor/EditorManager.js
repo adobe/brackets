@@ -112,7 +112,7 @@ define(function (require, exports, module) {
      * @private
      * Bound to Ctrl+E on outermost editors.
      * @param {!Editor} editor the candidate host editor
-     * @return {$.Promise} a promise that will be resolved when an InlineEditor 
+     * @return {$.Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected when no inline editors are available.
      */
     function _openInlineWidget(editor) {
@@ -129,21 +129,21 @@ define(function (require, exports, module) {
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
-            inlinePromise.done(function (inlineEditor) {
-			    $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
+            inlinePromise.done(function (inlineWidget) {
+			    $(inlineWidget.htmlContent).append('<div class="shadow top"/>')
                     .append('<div class="shadow bottom"/>');
 
                 var closeCallback = function () {
-                    inlineEditor.onClosed();
+                    inlineWidget.onClosed();
                 };
                 var parentShowCallback = function () {
-                    inlineEditor.onParentShown();
+                    inlineWidget.onParentShown();
                 };
                 
-                var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
-                    parentShowCallback, closeCallback, inlineEditor);
+                var inlineId = editor.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height,
+                    parentShowCallback, closeCallback, inlineWidget);
 
-                inlineEditor.onAdded(inlineId);
+                inlineWidget.onAdded(inlineId);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -190,7 +190,7 @@ define(function (require, exports, module) {
      *      {!Editor} editor, {!{line:Number, ch:Number}} pos
      *      
      *      Returns:
-     *      {$.Promise} a promise that will be resolved with an InlineEditor
+     *      {$.Promise} a promise that will be resolved with an inlineWidget
      *      or null to indicate the provider doesn't create an editor in this case
      */
     function registerInlineEditProvider(provider) {
@@ -246,7 +246,7 @@ define(function (require, exports, module) {
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      * @param {HTMLDivContainer} inlineContent
-     * @param  {function(InlineEditor)} closeThisInline
+     * @param  {function(inlineWidget)} closeThisInline
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
