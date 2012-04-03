@@ -216,7 +216,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.closeTestWindow();
             });
 
-            it("should open a type selector", function () {
+            xit("should open a type selector", function () {
                 initInlineTest("test1.html", 0);
                 
                 runs(function () {
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should open a class selector", function () {
+            xit("should open a class selector", function () {
                 initInlineTest("test1.html", 1);
                 
                 runs(function () {
@@ -240,7 +240,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should open an id selector", function () {
+            xit("should open an id selector", function () {
                 initInlineTest("test1.html", 2);
                 
                 runs(function () {
@@ -252,7 +252,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should close, then remove the inline widget and restore focus", function () {
+            xit("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
                 var hostEditor, inlineWidget, inlinePos, savedPos;
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should not open an inline editor when positioned on textContent", function () {
+            xit("should not open an inline editor when positioned on textContent", function () {
                 initInlineTest("test1.html", 3, false);
                 
                 runs(function () {
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should not open an inline editor when positioned on a tag in a comment", function () {
+            xit("should not open an inline editor when positioned on a tag in a comment", function () {
                 initInlineTest("test1.html", 4, false);
                 
                 runs(function () {
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should increase size based on content", function () {
+            xit("should increase size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
                 var inlineEditor, widgetHeight;
@@ -323,7 +323,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should decrease size based on content", function () {
+            xit("should decrease size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
                 var inlineEditor, widgetHeight;
@@ -349,7 +349,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should save changes in the inline editor ", function () {
+            xit("should save changes in the inline editor ", function () {
                 initInlineTest("test1.html", 1);
                 
                 var saved = false,
@@ -402,7 +402,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            it("should not save changes in the host editor", function () {
+            xit("should not save changes in the host editor", function () {
                 initInlineTest("test1.html", 1);
                 
                 var saved = false,
@@ -471,7 +471,7 @@ define(function (require, exports, module) {
             
             // FUTURE: Eventually we'll instead want it to stay open and revert to the content on disk.
             // See notes in Document._makeNonEditable() & DocumentCommandHandlers.handleFileClose().
-            it("should close inline when file is closed without saving changes", function () {
+            xit("should close inline when file is closed without saving changes", function () {
                 initInlineTest("test1.html", 1);
                 
                 var newText = "\n/* jasmine was here */",
@@ -506,7 +506,7 @@ define(function (require, exports, module) {
             });
             
             
-            describe("Bi-directional Editor Synchronizing", function () {
+            xdescribe("Bi-directional Editor Synchronizing", function () {
     
                 it("should not add an inline document to the working set without being edited", function () {
                     initInlineTest("test1.html", 0);
@@ -583,6 +583,59 @@ define(function (require, exports, module) {
             });
             
             
+                it("should delete line at bottom when inline range is entire file's content", function () {
+                    var inlineOpened;
+                    runs(function () {
+                        initInlineTest("test1.html", 5, true, ["testOneRuleFile.css"]);
+                    });
+                    runs(function () {
+                        var cssPath = this.infos["testOneRuleFile.css"].fileEntry.fullPath;
+                        var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        var hostEditor = EditorManager.getCurrentFullEditor();
+                        var inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        var fullEditor = EditorManager.getCurrentFullEditor();
+                        
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                        
+                        // delete all of last line in range
+                        fullEditor._codeMirror.replaceRange("", {line:1, ch:16}, {line:2, ch:1});
+                        expect(hostEditor.getInlineWidgets().length).toBe(1);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 1));
+                        fullEditor._codeMirror.undo();
+                        expect(hostEditor.getInlineWidgets().length).toBe(1);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                    });
+                });
+                it("should insert new line at bottom when inline range is entire file's content", function () {
+                    var inlineOpened;
+                    runs(function () {
+                        initInlineTest("test1.html", 5, true, ["testOneRuleFile.css"]);
+                    });
+                    runs(function () {
+                        var cssPath = this.infos["testOneRuleFile.css"].fileEntry.fullPath;
+                        var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        var hostEditor = EditorManager.getCurrentFullEditor();
+                        var inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
+
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        var fullEditor = EditorManager.getCurrentFullEditor();
+
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                        
+                        // delete all of last line in range
+                        fullEditor._codeMirror.replaceRange("\n/* New last line */", {line:2, ch:1});
+                        expect(hostEditor.getInlineWidgets().length).toBe(1);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 3));
+                        fullEditor._codeMirror.undo();
+                        expect(hostEditor.getInlineWidgets().length).toBe(1);
+                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                    });
+                });
+
             describe("Inline Editor range updating", function () {
                 
                 var fullEditor,
@@ -594,6 +647,7 @@ define(function (require, exports, module) {
                     middle,
                     middleOfMiddle,
                     end,
+                    endOfEnd,
                     after,
                     wayafter;
                     
@@ -616,12 +670,14 @@ define(function (require, exports, module) {
                         middle = this.infos["test1.css"].offsets[5];
                         middleOfMiddle = {line: middle.line, ch: 3};
                         end = this.infos["test1.css"].offsets[6];
+                        endOfEnd = this.infos["test1.css"].offsets[3];
                         after = this.infos["test1.css"].offsets[7];
                         wayafter = this.infos["test1.css"].offsets[2];
                     });
                 });
             
-                it("should close inline when undoing change that added a line at top of inline's range", function () {
+                
+                it("should insert new line at start of range, then close on undo", function () {
                     // insert new line at start of inline range--the new line should be included in 
                     // the inline
                     fullEditor._codeMirror.replaceRange(
@@ -635,8 +691,8 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 
-                it("should insert new line within start of range, then close on undo", function () {
-                    // insert new line within start line of inline range--the new line should
+                it("should insert new line within first line of range, then close on undo", function () {
+                    // insert new line in middle of first line of inline range--the new line should
                     // be included
                     fullEditor._codeMirror.replaceRange(
                         newInlineText,
@@ -651,7 +707,9 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 
-                it("should not close inline when undoing change that prepended to line at top of inline's range", function () {
+                it("should not close inline when undoing changes to first line in range that did not include newlines", function () {
+                    // undo is NOT deleting the entire first line in these cases, so the inline should be able to stay open
+                    
                     // insert new text at start of inline range, without newlines--the new text should be included in 
                     // the inline
                     fullEditor._codeMirror.replaceRange(
@@ -659,12 +717,67 @@ define(function (require, exports, module) {
                         start
                     );
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                     
-                    // undo is NOT deleting the entire first line in this case
+                    // replace text at start of inline range with text without newlines
+                    fullEditor._codeMirror.replaceRange(
+                        ".bar",
+                        {line: start.line, ch: 0}, {line: start.line, ch: 4}
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    
+                    // insert new text in middle of first line in range, without newlines
+                    fullEditor._codeMirror.replaceRange(
+                        "ABCD",
+                        {line: start.line, ch: 3}
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                     fullEditor._codeMirror.undo();
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
+                
+                it("should not close inline when undoing changes to last line in range, with or without newlines", function () {
+                    // undo is NOT deleting the entire last line in these cases, so the inline should be able to stay open
+                    
+                    // insert new line in middle of last line of inline range--the new line should
+                    // be included
+                    fullEditor._codeMirror.replaceRange(
+                        newInlineText,
+                        {line: end.line, ch: end.ch + 1}
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    
+                    // insert new line at end of last line of inline range--the new line should
+                    // be included
+                    fullEditor._codeMirror.replaceRange(
+                        newInlineText,
+                        endOfEnd
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    
+                    // replace all text on last line (without replacing trailing newline)
+                    fullEditor._codeMirror.replaceRange(
+                        "ABCD",
+                        end, endOfEnd
+                    );
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
+                });
+
                 
                 it("should sync insertions from the full editor and update the visual range of the inline editor", function () {
                     // insert line above inline range
@@ -718,6 +831,7 @@ define(function (require, exports, module) {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 it("should close inline when newline at beginning of range is deleted", function () {
+                    // delete all of line just above the range
                     fullEditor._codeMirror.replaceRange("", before, start);
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
@@ -732,22 +846,22 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 it("should close inline when first two lines deleted", function () {
-                    // delete all of first line in range, plus some of the next line
+                    // delete all of first two lines in range
                     fullEditor._codeMirror.replaceRange("", start, end);
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 it("should close inline when last line entirely deleted", function () {
-                    // delete all of first line in range
+                    // delete all of last line in range
                     fullEditor._codeMirror.replaceRange("", end, after);
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 it("should close inline when last line and preceding text deleted", function () {
-                    // delete all of first line in range, plus some of previous line
+                    // delete all of last line in range, plus some of previous line
                     fullEditor._codeMirror.replaceRange("", middleOfMiddle, after);
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 it("should close inline when last line and more preceding text deleted", function () {
-                    // delete all of first line in range, plus some of previous two lines
+                    // delete all of last line in range, plus some of previous two lines
                     fullEditor._codeMirror.replaceRange("", {line: start.line, ch: 3}, after);
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
