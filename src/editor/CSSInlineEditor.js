@@ -174,6 +174,21 @@ define(function (require, exports, module) {
         var borderThickness = (this.$htmlContent.outerHeight() - this.$htmlContent.innerHeight()) / 2;
         this.$relatedContainer.css("top", this.$htmlContent.offset().top + borderThickness);
         this.$relatedContainer.height(this.$htmlContent.height());
+        
+        // Because we're using position: fixed, we need to explicitly clip the rule list if it crosses
+        // out of the top or bottom of the scroller area.
+        var hostScroller = this.hostEditor._codeMirror.getScrollerElement(),
+            rcTop = this.$relatedContainer.offset().top,
+            rcHeight = this.$relatedContainer.outerHeight(),
+            rcBottom = rcTop + rcHeight,
+            scrollerTop = $(hostScroller).offset().top,
+            scrollerBottom = scrollerTop + hostScroller.clientHeight;
+        if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
+            this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
+                                       (rcHeight - Math.max(rcBottom - scrollerBottom, 0)) + "px, auto)");
+        } else {
+            this.$relatedContainer.css("clip", "");
+        }
     };
 
     /**
