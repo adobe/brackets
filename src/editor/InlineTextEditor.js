@@ -11,7 +11,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        InlineEditor        = require("editor/InlineEditor").InlineEditor;
+        InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
      * Returns editor holder width (not CodeMirror's width).
@@ -54,13 +54,14 @@ define(function (require, exports, module) {
      *
      */
     function InlineTextEditor() {
-        InlineEditor.call(this);
-        this._docRangeToEditorMap = {};
+        InlineWidget.call(this);
+
+        /* @type {Array.<{Editor}>}*/
         this.editors = [];
     }
-    InlineTextEditor.prototype = new InlineEditor();
+    InlineTextEditor.prototype = new InlineWidget();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
-    InlineTextEditor.prototype.parentClass = InlineEditor.prototype;
+    InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
     InlineTextEditor.prototype.editors = null;
 
    /**
@@ -106,7 +107,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline was closed, whether manually (via close()) or automatically
      */
     InlineTextEditor.prototype.onClosed = function () {
         _syncGutterWidths(this.hostEditor);
@@ -118,29 +119,32 @@ define(function (require, exports, module) {
     
     /**
      * Update the inline editor's height when the number of lines change
+     * @param {boolean} force the editor to resize
      */
-    InlineTextEditor.prototype.sizeInlineEditorToContents = function (force) {
+    InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
         var i,
             len = this.editors.length,
             editor;
         
+        // TODO: only handles 1 editor right now. Add multiple editor support when
+        // the design is finalized
+
+        // Reize the editors to the content
         for (i = 0; i < len; i++) {
+            // Only supports 1 editor right now
+            if (i === 1) {
+                break;
+            }
+            
             editor = this.editors[i];
             
             if (editor.isFullyVisible()) {
-                // set inner editor height
-                var editorHeight = editor.totalHeight(true);
-                if (force || editorHeight !== this._editorHeight) {
-                    this._editorHeight = editorHeight;
-                    $(editor.getScrollerElement()).height(editorHeight);
+                var height = editor.totalHeight(true);
+                if (force || height !== this.height) {
+                    $(editor.getScrollerElement()).height(height);
+                    this.height = height;
                     editor.refresh();
                 }
-                
-                // use outermost wrapper (htmlContent) scrollHeight to prop open the host editor
-                this.height = this.htmlContent.scrollHeight;
-                this.hostEditor.setInlineWidgetHeight(this.inlineId, this.height, true);
-                
-                break; // there should only be 1 visible editor
             }
         }
     };
@@ -160,7 +164,7 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         // Set initial size
-        this.sizeInlineEditorToContents();
+        this.sizeInlineWidgetToContents();
         
         this.editors[0].focus();
     };
@@ -172,7 +176,7 @@ define(function (require, exports, module) {
      * @param {number} endLine of text to show in inline editor
      * @param {HTMLDivElement} container container to hold the inline editor
      */
-    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container) {
+    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container, additionalKeys) {
         var self = this;
         
         var range = {
@@ -181,10 +185,8 @@ define(function (require, exports, module) {
         };
         
         // close handler attached to each inline codemirror instance
-        // TODO (jasonsj): make this a global command
-        function closeThisInline(editor) {
-            var shouldMoveFocus = editor.hasFocus();
-            EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
+        function closeThisInline() {
+            self.close();
         }
         
         // create the filename div
@@ -205,15 +207,22 @@ define(function (require, exports, module) {
         $dirtyIndicatorDiv.after(doc.file.name + ":" + (startLine + 1));
         $wrapperDiv.append($filenameDiv);
         
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline);
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
 
-        // Size editor to current content
+        // Size editor to content whenever it changes (via edits here or any other view of the doc)
         $(inlineInfo.editor).on("change", function () {
-            self.sizeInlineEditorToContents();
+            self.sizeInlineWidgetToContents();
         });
-
-        // update the current inline editor immediately
+        
+        // If Document's file is deleted, or Editor loses sync with Document, just close
+        $(inlineInfo.editor).on("lostContent", function () {
+            // Note: this closes the entire inline widget if any one Editor loses sync. This seems
+            // better than leaving it open but suddenly removing one rule from the result list.
+            self.close();
+        });
+        
+        // set dirty indicator state
         // use setTimeout to allow filenameDiv to render first
         setTimeout(function () {
             _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
@@ -237,9 +246,23 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.onParentShown = function () {
         // We need to call this explicitly whenever the host editor is reshown, since
         // we don't actually resize the inline editor while its host is invisible (see
-        // isFullyVisible() check in sizeInlineEditorToContents()).
-        this.sizeInlineEditorToContents(true);
+        // isFullyVisible() check in sizeInlineWidgetToContents()).
+        this.sizeInlineWidgetToContents(true);
     };
+    
+    InlineTextEditor.prototype._editorHasFocus = function () {
+        return this.editors.some(function (editor) {
+            return editor.hasFocus();
+        });
+    };
+    
+    /** Closes this inline widget and all its contained Editors */
+    InlineTextEditor.prototype.close = function () {
+        var shouldMoveFocus = this._editorHasFocus();
+        EditorManager.closeInlineWidget(this.hostEditor, this.inlineId, shouldMoveFocus);
+        // closeInlineWidget() causes our onClosed() to get run
+    };
+        
     
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);

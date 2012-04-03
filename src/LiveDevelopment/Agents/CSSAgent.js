@@ -39,6 +39,17 @@ define(function CSSAgent(require, exports, module) {
     function styleForURL(url) {
         return _urlToStyle[url];
     }
+    
+    /** Get a list of all loaded stylesheet files by URL */
+    function getStylesheetURLs() {
+        var urls = [], url;
+        for (url in _urlToStyle) {
+            if (_urlToStyle.hasOwnProperty(url)) {
+                urls.push(url);
+            }
+        }
+        return urls;
+    }
 
     /** Reload a CSS style sheet from a document
      * @param {Document} document
@@ -63,6 +74,7 @@ define(function CSSAgent(require, exports, module) {
 
     // Export public functions
     exports.styleForURL = styleForURL;
+    exports.getStylesheetURLs = getStylesheetURLs;
     exports.reloadDocument = reloadDocument;
     exports.load = load;
     exports.unload = unload;

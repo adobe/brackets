@@ -1,3 +1,8 @@
 Thumbs.db
 src/brackets.css
 src/brackets.min.css
+
+# ignore everything in the user extension directory EXCEPT the README
+# (so that the directory is non-empty and can be in git)
+src/extensions/user/*
+!src/extensions/user/README

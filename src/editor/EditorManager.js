@@ -44,6 +44,31 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
+    
+    /**
+     * Adds keyboard command handlers to an Editor instance.
+     * @param {Editor} editor 
+     * @param {!Object.<string,function(Editor)>} to destination key mapping
+     * @param {!Object.<string,function(Editor)>} from source key mapping
+     */
+    function mergeExtraKeys(editor, to, from) {
+        // Merge in the additionalKeys we were passed
+        function wrapEventHandler(externalHandler) {
+            return function (instance) {
+                externalHandler(editor);
+            };
+        }
+        var key;
+        for (key in from) {
+            if (from.hasOwnProperty(key)) {
+                if (to.hasOwnProperty(key)) {
+                    console.log("Warning: overwriting standard Editor shortcut " + key);
+                }
+                to[key] = (editor !== null) ? wrapEventHandler(from[key]) : from[key];
+            }
+        }
+    }
+    
     /**
      * Creates a new Editor bound to the given Document. The editor's mode is inferred based on the
      * file extension. The editor is appended to the given container as a visible child.
@@ -57,7 +82,7 @@ define(function (require, exports, module) {
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
@@ -75,6 +100,10 @@ define(function (require, exports, module) {
                 // No-op, handled in FindInFiles.js
             }
         };
+        
+        if (additionalKeys) {
+            mergeExtraKeys(null, extraKeys, additionalKeys);
+        }
 
         return new Editor(doc, makeMasterEditor, mode, container, extraKeys, range);
     }
@@ -83,7 +112,7 @@ define(function (require, exports, module) {
      * @private
      * Bound to Ctrl+E on outermost editors.
      * @param {!Editor} editor the candidate host editor
-     * @return {$.Promise} a promise that will be resolved when an InlineEditor 
+     * @return {$.Promise} a promise that will be resolved when an InlineWidget 
      *      is created or rejected when no inline editors are available.
      */
     function _openInlineWidget(editor) {
@@ -100,21 +129,21 @@ define(function (require, exports, module) {
         
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
-            inlinePromise.done(function (inlineEditor) {
-			    $(inlineEditor.htmlContent).append('<div class="shadow top"/>')
+            inlinePromise.done(function (inlineWidget) {
+			    $(inlineWidget.htmlContent).append('<div class="shadow top"/>')
                     .append('<div class="shadow bottom"/>');
 
                 var closeCallback = function () {
-                    inlineEditor.onClosed();
+                    inlineWidget.onClosed();
                 };
                 var parentShowCallback = function () {
-                    inlineEditor.onParentShown();
+                    inlineWidget.onParentShown();
                 };
                 
-                var inlineId = editor.addInlineWidget(pos, inlineEditor.htmlContent, inlineEditor.height,
-                    parentShowCallback, closeCallback, inlineEditor);
+                var inlineId = editor.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height,
+                    parentShowCallback, closeCallback, inlineWidget);
 
-                inlineEditor.onAdded(inlineId);
+                inlineWidget.onAdded(inlineId);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -161,7 +190,7 @@ define(function (require, exports, module) {
      *      {!Editor} editor, {!{line:Number, ch:Number}} pos
      *      
      *      Returns:
-     *      {$.Promise} a promise that will be resolved with an InlineEditor
+     *      {$.Promise} a promise that will be resolved with an inlineWidget
      *      or null to indicate the provider doesn't create an editor in this case
      */
     function registerInlineEditProvider(provider) {
@@ -217,13 +246,13 @@ define(function (require, exports, module) {
      * @param {?{startLine:Number, endLine:Number}} range  If specified, all lines outside the given
      *      range are hidden from the editor. Range is inclusive. Line numbers start at 0.
      * @param {HTMLDivContainer} inlineContent
-     * @param  {function(InlineEditor)} closeThisInline
+     * @param  {function(inlineWidget)} closeThisInline
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
-    function createInlineEditorForDocument(doc, range, inlineContent, closeThisInline) {
+    function createInlineEditorForDocument(doc, range, inlineContent, closeThisInline, additionalKeys) {
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range, additionalKeys);
         
         return { content: inlineContent, editor: inlineEditor };
     }
@@ -453,4 +482,5 @@ define(function (require, exports, module) {
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;
     exports.closeInlineWidget = closeInlineWidget;
+    exports.mergeExtraKeys = mergeExtraKeys;
 });

@@ -33,15 +33,26 @@ define(function CSSDocumentModule(require, exports, module) {
      */
     var CSSDocument = function CSSDocument(doc, editor, inspector) {
         this.doc = doc;
+        
+        // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
+        // how to deal with different editors pointing at the same document.
+/*
         this.editor = editor;
         this._highlight = [];
         this.onHighlight = this.onHighlight.bind(this);
-        this.onChange = this.onChange.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
         Inspector.on("HighlightAgent.highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
+*/
+        
+        // Add a ref to the doc since we're listening for change events
+        this.doc.addRef();
+        this.onChange = this.onChange.bind(this);
+        $(this.doc).on("change", this.onChange);
+
+/*
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
+*/
 
         // get the style sheet
         this.styleSheet = CSSAgent.styleForURL(this.doc.url);
@@ -55,10 +66,13 @@ define(function CSSDocumentModule(require, exports, module) {
 
     /** Close the document */
     CSSDocument.prototype.close = function close() {
+        $(this.doc).off("change", this.onChange);
+        this.doc.releaseRef();
+/*
         Inspector.off("HighlightAgent.highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
+*/
     };
 
     // find a rule in the given rules
