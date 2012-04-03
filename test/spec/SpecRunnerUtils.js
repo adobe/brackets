@@ -408,6 +408,7 @@ define(function (require, exports, module) {
     exports.getTestRoot                 = getTestRoot;
     exports.getTestPath                 = getTestPath;
     exports.getBracketsSourceRoot       = getBracketsSourceRoot;
+    exports.makeAbsolute                = makeAbsolute;
     exports.createMockDocument          = createMockDocument;
     exports.createTestWindowAndRun      = createTestWindowAndRun;
     exports.closeTestWindow             = closeTestWindow;

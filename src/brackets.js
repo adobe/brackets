@@ -83,6 +83,7 @@ define(function (require, exports, module) {
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("command/CommandManager"),
+        FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
         CSSUtils                : require("language/CSSUtils")
     };
