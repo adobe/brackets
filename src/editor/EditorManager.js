@@ -110,6 +110,30 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Adds a new widget to the host Editor.
+     * @param {!Editor} editor the candidate host editor
+     * @param !{line:number, ch:number} pos
+     * @param {!InlineWidget} inlineWidget
+     */
+    function _addInlineWidget(editor, pos, inlineWidget) {
+        $(inlineWidget.htmlContent).append('<div class="shadow top"/>')
+            .append('<div class="shadow bottom"/>');
+
+        var closeCallback = function () {
+            inlineWidget.onClosed();
+        };
+        var parentShowCallback = function () {
+            inlineWidget.onParentShown();
+        };
+        
+        var inlineId = editor.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height,
+            parentShowCallback, closeCallback, inlineWidget);
+
+        inlineWidget.onAdded(inlineId);
+    }
+    
+    /**
+     * @private
      * Bound to Ctrl+E on outermost editors.
      * @param {!Editor} editor the candidate host editor
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
@@ -130,20 +154,7 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
-			    $(inlineWidget.htmlContent).append('<div class="shadow top"/>')
-                    .append('<div class="shadow bottom"/>');
-
-                var closeCallback = function () {
-                    inlineWidget.onClosed();
-                };
-                var parentShowCallback = function () {
-                    inlineWidget.onParentShown();
-                };
-                
-                var inlineId = editor.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height,
-                    parentShowCallback, closeCallback, inlineWidget);
-
-                inlineWidget.onAdded(inlineId);
+                _addInlineWidget(editor, pos, inlineWidget);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -469,7 +480,7 @@ define(function (require, exports, module) {
     
     // For unit tests
     exports._openInlineWidget = _openInlineWidget;
-
+    exports._addInlineWidget = _addInlineWidget;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;

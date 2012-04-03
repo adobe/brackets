@@ -15,6 +15,15 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor;
 
+    /**
+     * Remove trailing "px" from a style size value.
+     * @param {!JQuery} $target Element in DOM
+     * @param {!string} styleName Style name to query
+     * @return {number} Style value converted from string to number, removing "px" units
+     */
+    function parseStyleSize($target, styleName) {
+        return parseInt($target.css(styleName), 10);
+    }
 
     /**
      * @constructor
@@ -147,13 +156,28 @@ define(function (require, exports, module) {
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
         var self = this;
         setTimeout(function () {
-            var itemTop = $ruleItem.position().top;
+            var containerHeight = self.$relatedContainer.height(),
+                itemTop = $ruleItem.position().top,
+                scrollTop = self.$relatedContainer.scrollTop();
+            
             self.$selectedMarker.css("top", itemTop);
             self.$selectedMarker.height($ruleItem.height());
             
-            // FUTURE (jasonsj): figure out if rule list should scroll
-            itemTop -=  $ruleItem.parent().css("paddingTop").replace("px", "");
-            self.$relatedContainer.scrollTop(itemTop);
+            if (containerHeight <= 0) {
+                return;
+            }
+            
+            var paddingTop = parseStyleSize($ruleItem.parent(), "paddingTop");
+            
+            if ((itemTop - paddingTop) < scrollTop) {
+                self.$relatedContainer.scrollTop(itemTop - paddingTop);
+            } else {
+                var itemBottom = itemTop + $ruleItem.height() + parseStyleSize($ruleItem.parent(), "paddingBottom");
+                
+                if (itemBottom > (scrollTop + containerHeight)) {
+                    self.$relatedContainer.scrollTop(itemBottom - containerHeight);
+                }
+            }
         }, 0);
     };
 
@@ -210,7 +234,6 @@ define(function (require, exports, module) {
         return this._rules[this._selectedRuleIndex];
     };
 
-    
     /**
      * Display the next css rule in the rule list
      */
