@@ -10,12 +10,14 @@ define(function (require, exports, module) {
     
     var Commands,           // loaded from brackets.test
         EditorManager,      // loaded from brackets.test
+        FileSyncManager,    // loaded from brackets.test
         FileIndexManager,   // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
-        Dialogs         = require("widgets/Dialogs"),
-        FileUtils       = require("file/FileUtils"),
-        SpecRunnerUtils = require("./SpecRunnerUtils.js");
+        Dialogs          = require("widgets/Dialogs"),
+        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils        = require("file/FileUtils"),
+        SpecRunnerUtils  = require("./SpecRunnerUtils.js");
 
     describe("InlineEditorProviders", function () {
 
@@ -141,6 +143,7 @@ define(function (require, exports, module) {
                     testWindow          = w;
                     Commands            = testWindow.brackets.test.Commands;
                     EditorManager       = testWindow.brackets.test.EditorManager;
+                    FileSyncManager     = testWindow.brackets.test.FileSyncManager;
                     FileIndexManager    = testWindow.brackets.test.FileIndexManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileViewController  = testWindow.brackets.test.FileViewController;
@@ -216,7 +219,8 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.closeTestWindow();
             });
 
-            xit("should open a type selector", function () {
+
+            it("should open a type selector", function () {
                 initInlineTest("test1.html", 0);
                 
                 runs(function () {
@@ -228,7 +232,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should open a class selector", function () {
+            it("should open a class selector", function () {
                 initInlineTest("test1.html", 1);
                 
                 runs(function () {
@@ -240,7 +244,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should open an id selector", function () {
+            it("should open an id selector", function () {
                 initInlineTest("test1.html", 2);
                 
                 runs(function () {
@@ -252,7 +256,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should close, then remove the inline widget and restore focus", function () {
+            it("should close, then remove the inline widget and restore focus", function () {
                 initInlineTest("test1.html", 0);
                 
                 var hostEditor, inlineWidget, inlinePos, savedPos;
@@ -277,7 +281,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should not open an inline editor when positioned on textContent", function () {
+            it("should not open an inline editor when positioned on textContent", function () {
                 initInlineTest("test1.html", 3, false);
                 
                 runs(function () {
@@ -286,7 +290,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            xit("should not open an inline editor when positioned on a tag in a comment", function () {
+            it("should not open an inline editor when positioned on a tag in a comment", function () {
                 initInlineTest("test1.html", 4, false);
                 
                 runs(function () {
@@ -295,7 +299,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should increase size based on content", function () {
+            it("should increase size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
                 var inlineEditor, widgetHeight;
@@ -323,7 +327,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should decrease size based on content", function () {
+            it("should decrease size based on content", function () {
                 initInlineTest("test1.html", 1);
                 
                 var inlineEditor, widgetHeight;
@@ -349,7 +353,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should save changes in the inline editor ", function () {
+            it("should save changes in the inline editor ", function () {
                 initInlineTest("test1.html", 1);
                 
                 var saved = false,
@@ -402,7 +406,7 @@ define(function (require, exports, module) {
                 });
             });
             
-            xit("should not save changes in the host editor", function () {
+            it("should not save changes in the host editor", function () {
                 initInlineTest("test1.html", 1);
                 
                 var saved = false,
@@ -469,45 +473,98 @@ define(function (require, exports, module) {
                 });
             });
             
-            // FUTURE: Eventually we'll instead want it to stay open and revert to the content on disk.
-            // See notes in Document._makeNonEditable() & DocumentCommandHandlers.handleFileClose().
-            xit("should close inline when file is closed without saving changes", function () {
-                initInlineTest("test1.html", 1);
+            
+            describe("Inline Editor syncing from disk", function () {
                 
-                var newText = "\n/* jasmine was here */",
-                    hostEditor,
-                    inlineEditor;
-                
-                runs(function () {
-                    hostEditor = EditorManager.getCurrentFullEditor();
-                    inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
+                it("should close inline editor when file deleted on disk", function () {
+                    // Create an expendable CSS file
+                    var fileToWrite = new NativeFileSystem.FileEntry(testPath + "/tempCSS.css");
+                    var savedTempCSSFile = false;
+                    runs(function () {
+                        FileUtils.writeText(fileToWrite, "#anotherDiv {}")
+                            .done(function () {
+                                savedTempCSSFile = true;
+                            });
+                    });
+                    waitsFor(function () { return savedTempCSSFile; }, "writeText timeout", 1000);
                     
-                    // verify inline is open
-                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    // Open inline editor for that file
+                    runs(function () {
+                        initInlineTest("test1.html", 6, true);
+                    });
                     
-                    // insert text at the inline editor's cursor position
-                    inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
+                    // Delete the file
+                    var fileDeleted = false;
+                    runs(function () {
+                        var hostEditor = EditorManager.getCurrentFullEditor();
+                        expect(hostEditor.getInlineWidgets().length).toBe(1);
+                        
+                        brackets.fs.unlink(fileToWrite.fullPath, function (err) {
+                            if (!err) {
+                                fileDeleted = true;
+                            }
+                        });
+                    });
+                    waitsFor(function () { return fileDeleted; }, 1000);
                     
-                    // verify isDirty flag
-                    expect(inlineEditor.document.isDirty).toBeTruthy();
+                    // Ping FileSyncManager to recognize the deletion
+                    runs(function () {
+                        FileSyncManager.syncOpenDocuments();
+                    });
                     
-                    // close the main editor / working set entry for the inline's file
-                    testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                    // Verify inline is now closed
+                    waitsFor(function () {
+                        var hostEditor = EditorManager.getCurrentFullEditor();
+                        return (hostEditor.getInlineWidgets().length === 0);
+                    }, 1000);
                     
-                    SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
+                    // Cleanup: initInlineTest() saves contents of all files in the project and rewrites
+                    // them back to disk at the end (to restore any stripped offset markers). But in this
+                    // case we really want the temp file to stay gone.
+                    runs(function () {
+                        delete this.infos["tempCSS.css"];
+                    });
                 });
-                // clickDialogButton inserts a wait here automatically
                 
-                runs(function () {
-                    // verify inline is closed
-                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                // FUTURE: Eventually we'll instead want it to stay open and revert to the content on disk.
+                // See notes in Document._makeNonEditable() & DocumentCommandHandlers.handleFileClose().
+                it("should close inline when file is closed without saving changes", function () {
+                    initInlineTest("test1.html", 1);
+                    
+                    var newText = "\n/* jasmine was here */",
+                        hostEditor,
+                        inlineEditor;
+                    
+                    runs(function () {
+                        hostEditor = EditorManager.getCurrentFullEditor();
+                        inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
+                        
+                        // verify inline is open
+                        expect(hostEditor.getInlineWidgets().length).toBe(1);
+                        
+                        // insert text at the inline editor's cursor position
+                        inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
+                        
+                        // verify isDirty flag
+                        expect(inlineEditor.document.isDirty).toBeTruthy();
+                        
+                        // close the main editor / working set entry for the inline's file
+                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        
+                        SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
+                    });
+                    // clickDialogButton inserts a wait here automatically
+                    
+                    runs(function () {
+                        // verify inline is closed
+                        expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    });
                 });
-                
             });
             
             
-            xdescribe("Bi-directional Editor Synchronizing", function () {
-    
+            describe("Bi-directional Editor Synchronizing", function () {
+                
                 it("should not add an inline document to the working set without being edited", function () {
                     initInlineTest("test1.html", 0);
                     
@@ -583,59 +640,6 @@ define(function (require, exports, module) {
             });
             
             
-                it("should delete line at bottom when inline range is entire file's content", function () {
-                    var inlineOpened;
-                    runs(function () {
-                        initInlineTest("test1.html", 5, true, ["testOneRuleFile.css"]);
-                    });
-                    runs(function () {
-                        var cssPath = this.infos["testOneRuleFile.css"].fileEntry.fullPath;
-                        var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
-                        var hostEditor = EditorManager.getCurrentFullEditor();
-                        var inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
-                        
-                        // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
-                        var fullEditor = EditorManager.getCurrentFullEditor();
-                        
-                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
-                        
-                        // delete all of last line in range
-                        fullEditor._codeMirror.replaceRange("", {line:1, ch:16}, {line:2, ch:1});
-                        expect(hostEditor.getInlineWidgets().length).toBe(1);
-                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 1));
-                        fullEditor._codeMirror.undo();
-                        expect(hostEditor.getInlineWidgets().length).toBe(1);
-                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
-                    });
-                });
-                it("should insert new line at bottom when inline range is entire file's content", function () {
-                    var inlineOpened;
-                    runs(function () {
-                        initInlineTest("test1.html", 5, true, ["testOneRuleFile.css"]);
-                    });
-                    runs(function () {
-                        var cssPath = this.infos["testOneRuleFile.css"].fileEntry.fullPath;
-                        var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
-                        var hostEditor = EditorManager.getCurrentFullEditor();
-                        var inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
-
-                        // activate the full editor
-                        DocumentManager.setCurrentDocument(cssDoc);
-                        var fullEditor = EditorManager.getCurrentFullEditor();
-
-                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
-                        
-                        // delete all of last line in range
-                        fullEditor._codeMirror.replaceRange("\n/* New last line */", {line:2, ch:1});
-                        expect(hostEditor.getInlineWidgets().length).toBe(1);
-                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 3));
-                        fullEditor._codeMirror.undo();
-                        expect(hostEditor.getInlineWidgets().length).toBe(1);
-                        expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
-                    });
-                });
-
             describe("Inline Editor range updating", function () {
                 
                 var fullEditor,
@@ -778,7 +782,6 @@ define(function (require, exports, module) {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
 
-                
                 it("should sync insertions from the full editor and update the visual range of the inline editor", function () {
                     // insert line above inline range
                     fullEditor._codeMirror.replaceRange(
@@ -953,6 +956,52 @@ define(function (require, exports, module) {
                     expect(fullEditor._getText()).toBe(editedText);
                 });
             });
+            
+            
+            describe("Inline Editor range equal to file range", function () {
+                var fullEditor,
+                    hostEditor,
+                    inlineEditor;
+                    
+                beforeEach(function () {
+                    initInlineTest("test1.html", 5, true, ["testOneRuleFile.css"]);
+                    
+                    runs(function () {
+                        var cssPath = this.infos["testOneRuleFile.css"].fileEntry.fullPath;
+                        var cssDoc = DocumentManager.getOpenDocumentForPath(cssPath);
+                        hostEditor = EditorManager.getCurrentFullEditor();
+                        inlineEditor = hostEditor.getInlineWidgets()[0].data.editors[0];
+                        
+                        // activate the full editor
+                        DocumentManager.setCurrentDocument(cssDoc);
+                        fullEditor = EditorManager.getCurrentFullEditor();
+                    });
+                });
+            
+                it("should delete line at bottom and not close on undo", function () {
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                    
+                    // delete all of last line in range
+                    fullEditor._codeMirror.replaceRange("", {line:1, ch:16}, {line:2, ch:1});
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 1));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                });
+                it("should insert new line at bottom and not close on undo", function () {
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                    
+                    // delete all of last line in range
+                    fullEditor._codeMirror.replaceRange("\n/* New last line */", {line:2, ch:1});
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 3));
+                    fullEditor._codeMirror.undo();
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(0, 2));
+                });
+            });
+            
         });
     });
 });
