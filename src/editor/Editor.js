@@ -23,6 +23,10 @@
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
+ *    - cursorActivity -- When the user moves the cursor or changes the selection, or an edit occurs.
+ *          Note: do not listen to this in order to be generally informed of edits--listen to the
+ *          "change" event on Document instead.
+ *    - scroll -- When the editor is scrolled, either by user action or programmatically.
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
@@ -531,6 +535,8 @@ define(function (require, exports, module) {
         var self = this;
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
+        // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
+        // Document
         this._codeMirror.setOption("onChange", function (instance, changeList) {
             $(self).triggerHandler("change", [self, changeList]);
         });
@@ -540,6 +546,9 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
+        });
+        this._codeMirror.setOption("onScroll", function (instance) {
+            $(self).triggerHandler("scroll", [self]);
         });
     };
     
