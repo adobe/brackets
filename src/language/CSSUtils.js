@@ -40,7 +40,7 @@ define(function (require, exports, module) {
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function extractAllSelectors(text) {
+    function _extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state = CodeMirror.startState(mode);
@@ -213,7 +213,7 @@ define(function (require, exports, module) {
      *      matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = extractAllSelectors(text);
+        var allSelectors = _extractAllSelectors(text);
         var result = [];
         var i;
         
@@ -257,7 +257,7 @@ define(function (require, exports, module) {
      * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
      *          of the parsed CSS text is not the first line of the sourceDoc.
      */
-    function addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
+    function _addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
         selectorsToAdd.forEach(function (selectorInfo) {
             resultSelectors.push({
                 selector: selectorInfo.selector,
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
     }
     
     /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
-    function findMatchingRulesInCSSFiles(selector, resultSelectors) {
+    function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css");
         
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
                     // Find all matching rules for the given CSS file's content, and add them to the
                     // overall search result
                     var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector);
-                    addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
+                    _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
                     
                     oneFileResult.resolve();
                 })
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
     }
     
     /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
-    function findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
+    function _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
         // HTMLUtils requires a real CodeMirror instance; make sure we can give it the right Editor
         var htmlEditor = EditorManager.getCurrentFullEditor();
         if (htmlEditor.document !== htmlDocument) {
@@ -319,7 +319,7 @@ define(function (require, exports, module) {
         styleBlocks.forEach(function (styleBlockInfo) {
             // Search this one <style> block's content, appending results to 'resultSelectors'
             var oneStyleBlockMatches = _findAllMatchingSelectorsInText(styleBlockInfo.text, selector);
-            addSelectorsToResults(resultSelectors, oneStyleBlockMatches, htmlDocument, styleBlockInfo.start.line);
+            _addSelectorsToResults(resultSelectors, oneStyleBlockMatches, htmlDocument, styleBlockInfo.start.line);
         });
     }
     
@@ -352,12 +352,12 @@ define(function (require, exports, module) {
         
         // Synchronously search for matches in <style> blocks
         if (htmlDocument) {
-            findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
+            _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
         }
         
         // Asynchronously search for matches in all the project's CSS files
         // (results are appended together in same 'resultSelectors' array)
-        findMatchingRulesInCSSFiles(selector, resultSelectors)
+        _findMatchingRulesInCSSFiles(selector, resultSelectors)
             .done(function () {
                 result.resolve(resultSelectors);
             })
