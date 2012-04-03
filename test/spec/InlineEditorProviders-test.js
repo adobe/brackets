@@ -492,6 +492,7 @@ define(function (require, exports, module) {
                     runs(function () {
                         initInlineTest("test1.html", 6, true);
                     });
+                    // initInlineTest() inserts a waitsFor() automatically, so must end runs() block here
                     
                     // Delete the file
                     var fileDeleted = false;
@@ -546,14 +547,14 @@ define(function (require, exports, module) {
                         inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
                         
                         // verify isDirty flag
-                        expect(inlineEditor.document.isDirty).toBeTruthy();
+                        expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
                         testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
                     });
-                    // clickDialogButton inserts a wait here automatically
+                    // clickDialogButton() inserts a wait automatically, so must end runs() block here
                     
                     runs(function () {
                         // verify inline is closed
