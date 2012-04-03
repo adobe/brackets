@@ -22,7 +22,7 @@ define(function (require, exports, module) {
      * @return {number} Style value converted from string to number, removing "px" units
      */
     function parseStyleSize($target, styleName) {
-        return parseInt($target.css(styleName).replace("px", ""), 10);
+        return parseInt($target.css(styleName), 10);
     }
 
     /**
