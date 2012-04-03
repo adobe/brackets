@@ -281,7 +281,7 @@ define(function (require, exports, module) {
                         selectors.push({
                             selector: value.selector,
                             document: doc,
-                            lineStart: value.selectorGroupStartLine,
+                            lineStart: value.ruleStartLine,
                             lineEnd: value.declListEndLine
                         });
                     });
