@@ -69,7 +69,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Augments the given Brackets document with information that's useful for live development. */
     function _setDocInfo(doc) {
-        // TODO: some of these things should just be moved into core Document; others should
+        // FUTURE: some of these things should just be moved into core Document; others should
         // be in a LiveDevelopment-specific object attached to the doc.
         var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
         if (matches) {
@@ -171,8 +171,8 @@ define(function LiveDevelopment(require, exports, module) {
         // FUTURE: Gather related JS documents as well.
         _relatedDocuments = [];
         agents.css.getStylesheetURLs().forEach(function (url) {
-            // TODO: okay that this is async? do we need to prevent other
-            // stuff from happening while we wait to add these listeners?
+            // FUTURE: when we get truly async file handling, we might need to prevent other
+            // stuff from happening while we wait to add these listeners
             DocumentManager.getDocumentForPath(_urlToPath(url))
                 .done(function (doc) {
                     _setDocInfo(doc);

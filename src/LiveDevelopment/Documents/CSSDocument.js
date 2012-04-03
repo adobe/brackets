@@ -34,7 +34,7 @@ define(function CSSDocumentModule(require, exports, module) {
     var CSSDocument = function CSSDocument(doc, editor, inspector) {
         this.doc = doc;
         
-        // TODO: Highlighting is currently disabled, since this code doesn't yet know
+        // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
         // how to deal with different editors pointing at the same document.
 /*
         this.editor = editor;
