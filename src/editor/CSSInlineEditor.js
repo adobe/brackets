@@ -42,6 +42,7 @@ define(function (require, exports, module) {
         
         // Container to hold all editors
         var self = this,
+            hostScroller = hostEditor._codeMirror.getScrollerElement(),
             $ruleItem,
             $location;
 
@@ -50,6 +51,9 @@ define(function (require, exports, module) {
         
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        // Position immediately to the left of the main editor's scrollbar.
+        var rightOffset = $(document.body).outerWidth() - ($(hostScroller).offset().left + $(hostScroller).get(0).clientWidth);
+        this.$relatedContainer.css("right", rightOffset + "px");
         
         // List "selection" highlight
         this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
