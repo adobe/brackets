@@ -193,7 +193,6 @@ define(function (require, exports, module) {
         findBarTextField.get(0).select();
     }
     
-
     /**
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
@@ -252,6 +251,12 @@ define(function (require, exports, module) {
                 if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
                     CodeMirror.commands.delCharRight(instance);
                 }
+            },
+            "Ctrl-A": function () {
+                self._selectAllVisible();
+            },
+            "Cmd-A": function () {
+                self._selectAllVisible();
             },
             "Ctrl-F": _launchFind,
             "Cmd-F": _launchFind,
@@ -344,6 +349,24 @@ define(function (require, exports, module) {
         this._inlineWidgets.forEach(function (inlineInfo) {
             inlineInfo.closeCallback();
         });
+    };
+    
+        
+    /** 
+     * Handles Select All specially when we have a visible range in order to work around
+     * bugs in CodeMirror when lines are hidden.
+     */
+    Editor.prototype._selectAllVisible = function () {
+        var startLine, endLine;
+        if (this._visibleRange) {
+            startLine = this._visibleRange.startLine;
+            endLine = this._visibleRange.endLine;
+        } else {
+            startLine = 0;
+            endLine = this.lineCount() - 1;
+        }
+        this.setSelection({line: startLine, ch: 0},
+                          {line: endLine, ch: this.getLineText(endLine).length});
     };
     
     Editor.prototype._applyChangesToEditor = function (editor, changeList) {
@@ -777,6 +800,15 @@ define(function (require, exports, module) {
      */
     Editor.prototype.isFullyVisible = function () {
         return $(this._codeMirror.getWrapperElement()).is(":visible");
+    };
+    
+    /**
+     * Returns the text of the given line.
+     * @param {number} The zero-based number of the line to retrieve.
+     * @return {string} The contents of the line.
+     */
+    Editor.prototype.getLineText = function (num) {
+        return this._codeMirror.getLine(num);
     };
     
     /**
