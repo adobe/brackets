@@ -219,6 +219,15 @@ define(function (require, exports, module) {
         
         // Add extra padding to the right edge of the widget to account for the rule list.
         this.$htmlContent.css("padding-right", this.$relatedContainer.outerWidth() + "px");
+        
+        // Set the minimum width of the widget (which doesn't include the padding) to the width
+        // of CodeMirror's linespace, so that the total width will be at least as large as the
+        // width of the host editor's code plus the padding for the rule list. This is a bit of a 
+        // hack since it relies on knowing some detail about the innards of CodeMirror.
+        var lineSpaceParent = $(".CodeMirror-lines", this.hostEditor._codeMirror.getScrollerElement()).get(0),
+            lineSpace = $(lineSpaceParent).children().get(0),
+            minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + $(lineSpace).width();
+        this.$htmlContent.css("min-width", minWidth + "px");
     };
 
     /**
