@@ -19,6 +19,12 @@
  * CSSDocument supports highlighting nodes from the HighlightAgent and
  * highlighting all DOMNode corresponding to the rule at the cursor position
  * in the editor.
+ *
+ * # EVENTS
+ *
+ * CSSDocument dispatches these events:
+ *  deleted - When the file for the underlying Document has been deleted. The
+ *      2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
     'use strict';
@@ -26,7 +32,6 @@ define(function CSSDocumentModule(require, exports, module) {
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
     var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
 
     /** Constructor
      *
@@ -120,7 +125,7 @@ define(function CSSDocumentModule(require, exports, module) {
         
         // shut down, since our Document is now dead
         this.close();
-        LiveDevelopment.removeRelatedDocument(this);
+        $(this).triggerHandler("deleted", [this]);
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */

@@ -143,7 +143,7 @@ define(function LiveDevelopment(require, exports, module) {
      * given file is no longer associated with the HTML document that is live (e.g.
      * if the related file has been deleted on disk).
      */
-    function removeRelatedDocument(liveDoc) {
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
         var index = _relatedDocuments.indexOf(liveDoc);
         if (index !== -1) {
             _relatedDocuments.splice(index, 1);
@@ -191,6 +191,7 @@ define(function LiveDevelopment(require, exports, module) {
                     var liveDoc = _createDocument(doc);
                     if (liveDoc) {
                         _relatedDocuments.push(liveDoc);
+                        $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
                     }
                 });
         });
@@ -385,7 +386,6 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
-    exports.removeRelatedDocument = removeRelatedDocument;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
 });
