@@ -23,6 +23,10 @@
  *    - keyEvent -- When any key event happens in the editor (whether it changes the text or not).
  *          Event handlers are passed ({Editor}, {KeyboardEvent}). The 2nd arg is the raw DOM event.
  *          Note: most listeners will only want to respond when event.type === "keypress".
+ *    - cursorActivity -- When the user moves the cursor or changes the selection, or an edit occurs.
+ *          Note: do not listen to this in order to be generally informed of edits--listen to the
+ *          "change" event on Document instead.
+ *    - scroll -- When the editor is scrolled, either by user action or programmatically.
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
@@ -189,7 +193,6 @@ define(function (require, exports, module) {
         findBarTextField.get(0).select();
     }
     
-
     /**
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
@@ -248,6 +251,12 @@ define(function (require, exports, module) {
                 if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
                     CodeMirror.commands.delCharRight(instance);
                 }
+            },
+            "Ctrl-A": function () {
+                self._selectAllVisible();
+            },
+            "Cmd-A": function () {
+                self._selectAllVisible();
             },
             "Ctrl-F": _launchFind,
             "Cmd-F": _launchFind,
@@ -340,6 +349,24 @@ define(function (require, exports, module) {
         this._inlineWidgets.forEach(function (inlineInfo) {
             inlineInfo.closeCallback();
         });
+    };
+    
+        
+    /** 
+     * Handles Select All specially when we have a visible range in order to work around
+     * bugs in CodeMirror when lines are hidden.
+     */
+    Editor.prototype._selectAllVisible = function () {
+        var startLine, endLine;
+        if (this._visibleRange) {
+            startLine = this._visibleRange.startLine;
+            endLine = this._visibleRange.endLine;
+        } else {
+            startLine = 0;
+            endLine = this.lineCount() - 1;
+        }
+        this.setSelection({line: startLine, ch: 0},
+                          {line: endLine, ch: this.getLineText(endLine).length});
     };
     
     Editor.prototype._applyChangesToEditor = function (editor, changeList) {
@@ -531,6 +558,8 @@ define(function (require, exports, module) {
         var self = this;
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
+        // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
+        // Document
         this._codeMirror.setOption("onChange", function (instance, changeList) {
             $(self).triggerHandler("change", [self, changeList]);
         });
@@ -540,6 +569,9 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
+        });
+        this._codeMirror.setOption("onScroll", function (instance) {
+            $(self).triggerHandler("scroll", [self]);
         });
     };
     
@@ -768,6 +800,15 @@ define(function (require, exports, module) {
      */
     Editor.prototype.isFullyVisible = function () {
         return $(this._codeMirror.getWrapperElement()).is(":visible");
+    };
+    
+    /**
+     * Returns the text of the given line.
+     * @param {number} The zero-based number of the line to retrieve.
+     * @return {string} The contents of the line.
+     */
+    Editor.prototype.getLineText = function (num) {
+        return this._codeMirror.getLine(num);
     };
     
     /**

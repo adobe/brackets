@@ -262,7 +262,7 @@ define(function (require, exports, module) {
             resultSelectors.push({
                 selector: selectorInfo.selector,
                 document: sourceDoc,
-                lineStart: selectorInfo.selectorGroupStartLine + lineOffset,
+                lineStart: selectorInfo.ruleStartLine + lineOffset,
                 lineEnd: selectorInfo.declListEndLine + lineOffset
             });
         });

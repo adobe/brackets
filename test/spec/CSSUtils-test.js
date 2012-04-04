@@ -1019,6 +1019,41 @@ define(function (require, exports, module) {
         }); // describe("Known Issues")    
 
 
+        describe("Working with real public CSSUtils API", function () {
+            var CSSUtils;
+            
+            beforeEach(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                    // Load module instances from brackets.test
+                    CSSUtils = testWindow.brackets.test.CSSUtils;
+                    
+                    // Load test project
+                    var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files");
+                    SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                });
+            });
+            afterEach(function () {
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+            it("should include comment preceding selector (issue #403)", function () {
+                var rules;
+                runs(function () {
+                    CSSUtils.findMatchingRules("#issue403")
+                        .done(function (result) { rules = result; });
+                });
+                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                
+                runs(function () {
+                    expect(rules.length).toBe(1);
+                    expect(rules[0].lineStart).toBe(4);
+                    expect(rules[0].lineEnd).toBe(7);
+                });
+            });
+            
+        });
+        
+        
         describe("Working with unsaved changes", function () {
             var testPath = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
                 CSSUtils,

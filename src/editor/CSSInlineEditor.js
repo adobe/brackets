@@ -15,6 +15,15 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor;
 
+    /**
+     * Remove trailing "px" from a style size value.
+     * @param {!JQuery} $target Element in DOM
+     * @param {!string} styleName Style name to query
+     * @return {number} Style value converted from string to number, removing "px" units
+     */
+    function parseStyleSize($target, styleName) {
+        return parseInt($target.css(styleName), 10);
+    }
 
     /**
      * @constructor
@@ -30,7 +39,6 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
     CSSInlineEditor.prototype.$editorsDiv = null;
     CSSInlineEditor.prototype.$relatedContainer = null;
-    CSSInlineEditor.prototype.updateRelatedContainerProxy = null;
 
     /** 
      * @override
@@ -45,6 +53,9 @@ define(function (require, exports, module) {
             hostScroller = hostEditor._codeMirror.getScrollerElement(),
             $ruleItem,
             $location;
+
+        // Bind event handlers
+        this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
 
         // Create DOM to hold editors and related list
         this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
@@ -87,18 +98,16 @@ define(function (require, exports, module) {
         this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
         
         // initialize position based on the main #editorHolder
-        setTimeout(function () {
-            self._updateRelatedContainer();
-        }, 0);
-        
-        this._updateRelatedContainerProxy = $.proxy(this._updateRelatedContainer, this);
+        setTimeout(this._updateRelatedContainer, 0);
         
         // Changes to the host editor should update the relatedContainer
-        $(this.hostEditor).on("change.CSSInlineEditor", this._updateRelatedContainerProxy);
+        // Note: normally it's not kosher to listen to changes on a specific editor,
+        // but in this case we're specifically concerned with changes in the given
+        // editor, not general document changes.
+        $(this.hostEditor).on("change", this._updateRelatedContainer);
         
-        // Since overflow-y is hidden on the CM scrollerElement, the scroll event is never fired.
-        // Instead, we add a hook to CM's onScroll to reposition the relatedContainer.
-        this.hostEditor._codeMirror.setOption("onScroll", this._updateRelatedContainerProxy);
+        // Listen to the editor's scroll event to reposition the relatedContainer.
+        $(this.hostEditor).on("scroll", this._updateRelatedContainer);
 
         return (new $.Deferred()).resolve();
     };
@@ -121,7 +130,7 @@ define(function (require, exports, module) {
         });
         this.editors = [];
         this.$editorsDiv.children().remove();
-        $(this.editors[0]).off("change.CSSInlineEditor");
+        $(this.editors[0]).off("change", this._updateRelatedContainer);
 
         // Keyboard shortcuts
         var extraKeys = {
@@ -136,7 +145,10 @@ define(function (require, exports, module) {
         this.editors[0].focus();
 
         // Changes in size to the inline editor should update the relatedContainer
-        $(this.editors[0]).on("change.CSSInlineEditor", this.updateRelatedContainerProxy);
+        // Note: normally it's not kosher to listen to changes on a specific editor,
+        // but in this case we're specifically concerned with changes in the given
+        // editor, not general document changes.
+        $(this.editors[0]).on("change", this._updateRelatedContainer);
 
         this.sizeInlineWidgetToContents(true);
         this._updateRelatedContainer();
@@ -144,13 +156,28 @@ define(function (require, exports, module) {
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
         var self = this;
         setTimeout(function () {
-            var itemTop = $ruleItem.position().top;
+            var containerHeight = self.$relatedContainer.height(),
+                itemTop = $ruleItem.position().top,
+                scrollTop = self.$relatedContainer.scrollTop();
+            
             self.$selectedMarker.css("top", itemTop);
             self.$selectedMarker.height($ruleItem.height());
             
-            // FUTURE (jasonsj): figure out if rule list should scroll
-            itemTop -=  $ruleItem.parent().css("paddingTop").replace("px", "");
-            self.$relatedContainer.scrollTop(itemTop);
+            if (containerHeight <= 0) {
+                return;
+            }
+            
+            var paddingTop = parseStyleSize($ruleItem.parent(), "paddingTop");
+            
+            if ((itemTop - paddingTop) < scrollTop) {
+                self.$relatedContainer.scrollTop(itemTop - paddingTop);
+            } else {
+                var itemBottom = itemTop + $ruleItem.height() + parseStyleSize($ruleItem.parent(), "paddingBottom");
+                
+                if (itemBottom > (scrollTop + containerHeight)) {
+                    self.$relatedContainer.scrollTop(itemBottom - containerHeight);
+                }
+            }
         }, 0);
     };
 
@@ -161,9 +188,9 @@ define(function (require, exports, module) {
         this.parentClass.onClosed.call(this); // super.onClosed()
         
         // remove resize handlers for relatedContainer
-        $(this.hostEditor).off("change.CSSInlineEditor");
-        $(this.editors[0]).off("change.CSSInlineEditor");
-        this.hostEditor._codeMirror.setOption("onScroll", null);
+        $(this.hostEditor).off("change", this._updateRelatedContainer);
+        $(this.editors[0]).off("change", this._updateRelatedContainer);
+        $(this.hostEditor).off("scroll", this._updateRelatedContainer);
     };
     
     /**
@@ -207,7 +234,6 @@ define(function (require, exports, module) {
         return this._rules[this._selectedRuleIndex];
     };
 
-    
     /**
      * Display the next css rule in the rule list
      */
