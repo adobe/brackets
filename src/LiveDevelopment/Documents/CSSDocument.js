@@ -26,6 +26,7 @@ define(function CSSDocumentModule(require, exports, module) {
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
     var HighlightAgent = require("LiveDevelopment/Agents/HighlightAgent");
+    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
 
     /** Constructor
      *
@@ -47,7 +48,9 @@ define(function CSSDocumentModule(require, exports, module) {
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
+        this.onDeleted = this.onDeleted.bind(this);
         $(this.doc).on("change", this.onChange);
+        $(this.doc).on("deleted", this.onDeleted);
 
 /*
         $(this.editor).on("cursorActivity", this.onCursorActivity);
@@ -67,6 +70,7 @@ define(function CSSDocumentModule(require, exports, module) {
     /** Close the document */
     CSSDocument.prototype.close = function close() {
         $(this.doc).off("change", this.onChange);
+        $(this.doc).off("deleted", this.onDeleted);
         this.doc.releaseRef();
 /*
         Inspector.off("HighlightAgent.highlight", this.onHighlight);
@@ -104,10 +108,19 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
-    /** Triggered on change of the editor */
+    /** Triggered whenever the Document is edited */
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
         CSSAgent.reloadDocument(this.doc);
+    };
+    /** Triggered if the Document's file is deleted */
+    CSSDocument.prototype.onDeleted = function onChange(event, editor, change) {
+        // clear the CSS
+        CSSAgent.reloadDeletedDocument(this.doc);
+        
+        // shut down, since our Document is now dead
+        this.close();
+        LiveDevelopment.removeRelatedDocument(this);
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */

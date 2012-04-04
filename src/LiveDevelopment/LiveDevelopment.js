@@ -138,6 +138,18 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
     
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function removeRelatedDocument(liveDoc) {
+        var index = _relatedDocuments.indexOf(liveDoc);
+        if (index !== -1) {
+            _relatedDocuments.splice(index, 1);
+        }
+    }
+    
     /** Create a live version of a Brackets document */
     function _createDocument(doc, editor) {
         var DocClass = _classForDocument(doc);
@@ -373,6 +385,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
+    exports.removeRelatedDocument = removeRelatedDocument;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
 });

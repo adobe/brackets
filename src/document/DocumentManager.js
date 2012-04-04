@@ -447,7 +447,7 @@ define(function (require, exports, module) {
             // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
             // should probably live in DocumentCommandHandlers.handleFileClose() (see note there).
             if (this.isDirty) {
-                this.refreshText("");
+                this.refreshText("", this.diskTimestamp);
             }
         }
     };
@@ -643,6 +643,11 @@ define(function (require, exports, module) {
         var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
+        }
+        
+        // At this point, all those other views SHOULD have released the Doc
+        if (doc._refCount > 0) {
+            console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
     }
     
