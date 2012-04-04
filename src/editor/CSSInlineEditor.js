@@ -216,6 +216,9 @@ define(function (require, exports, module) {
         } else {
             this.$relatedContainer.css("clip", "");
         }
+        
+        // Add extra padding to the right edge of the widget to account for the rule list.
+        this.$htmlContent.css("padding-right", this.$relatedContainer.outerWidth() + "px");
     };
 
     /**
