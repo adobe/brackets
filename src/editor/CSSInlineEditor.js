@@ -341,7 +341,7 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        CSSUtils.findMatchingRules(selectorName)
+        CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
                     var cssInlineEditor = new CSSInlineEditor(rules);
