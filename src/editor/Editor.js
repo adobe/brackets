@@ -347,7 +347,7 @@ define(function (require, exports, module) {
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
         this._inlineWidgets.forEach(function (inlineWidget) {
-            inlineWidget.onClosed();
+            inlineWidget.close();
         });
     };
     
@@ -699,12 +699,10 @@ define(function (require, exports, module) {
         var self = this;
         inlineWidget.id = this._codeMirror.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height, function (id) {
             self._removeInlineWidgetInternal(id);
-            inlineWidget.onClosed();
+            inlineWidget.close();
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
-        
-        return inlineWidget.id;
     };
     
     /**
