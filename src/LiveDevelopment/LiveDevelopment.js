@@ -252,7 +252,7 @@ define(function LiveDevelopment(require, exports, module) {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            if (doc.extension.indexOf('htm') !== 0) {
+            if (doc.extension && doc.extension.indexOf('htm') !== 0) {
                 return;
             }
             
@@ -342,7 +342,7 @@ define(function LiveDevelopment(require, exports, module) {
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension.indexOf('htm') === 0) {
+                if (doc.extension && doc.extension.indexOf('htm') === 0) {
                     close();
                     setTimeout(open);
                 }
