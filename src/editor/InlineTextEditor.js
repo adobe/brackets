@@ -109,7 +109,7 @@ define(function (require, exports, module) {
     /**
      * Called any time inline was closed, whether manually (via close()) or automatically
      */
-    InlineTextEditor.prototype.onClosed = function () {
+    InlineTextEditor.prototype.close = function () {
         _syncGutterWidths(this.hostEditor);
         
         this.editors.forEach(function (editor) {
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.close = function () {
         var shouldMoveFocus = this._editorHasFocus();
         EditorManager.closeInlineWidget(this.hostEditor, this, shouldMoveFocus);
-        // closeInlineWidget() causes our onClosed() to get run
+        // closeInlineWidget() causes our close() to be called
     };
         
     

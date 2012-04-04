@@ -143,10 +143,10 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Removes the given widget UI from the given hostEdtior (agnostic of what the widget's content
-     * is). The widget's onClosed() callback will be run as a result.
-     * @param {!Editor} hostEditor
-     * @param {!number} inlineId
+     * Removes the given widget UI from the given hostEditor (agnostic of what the widget's content
+     * is). The widget's close() method will be run as a result.
+     * @param {!Editor} hostEditor The editor containing the widget.
+     * @param {!InlineWidget} inlineWidget The inline widget to close.
      * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
      *      near the inline's location.
      */
@@ -164,9 +164,7 @@ define(function (require, exports, module) {
         }
         
         hostEditor.removeInlineWidget(inlineWidget);
-        
     }
-
     
     /**
      * Registers a new inline provider. When _openInlineWidget() is called each registered inline
