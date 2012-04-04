@@ -796,6 +796,7 @@ define(function (require, exports, module) {
     /**
      * Returns the text of the given line.
      * @param {number} The zero-based number of the line to retrieve.
+     * @return {string} The contents of the line.
      */
     Editor.prototype.getLineText = function (num) {
         return this._codeMirror.getLine(num);
