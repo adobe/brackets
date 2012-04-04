@@ -184,8 +184,8 @@ define(function (require, exports, module) {
     /**
      * Called any time inline is closed, whether manually (via closeThisInline()) or automatically
      */
-    CSSInlineEditor.prototype.close = function () {
-        this.parentClass.close.call(this); // super.close()
+    CSSInlineEditor.prototype.onClosed = function () {
+        this.parentClass.onClosed.call(this); // super.onClosed()
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
