@@ -740,13 +740,13 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets the height of the inline widget for this editor. The inline editor is identified by id.
-     * @param {!number} id
-     * @param {!height} height
-     * @param {boolean} ensureVisible
+     * Sets the height of an inline widget in this editor. 
+     * @param {!InlineWidget} inlineWidget The widget whose height should be set.
+     * @param {!height} height The height of the widget.
+     * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
      */
-    Editor.prototype.setInlineWidgetHeight = function (id, height, ensureVisible) {
-        this._codeMirror.setInlineWidgetHeight(id, height, ensureVisible);
+    Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
+        this._codeMirror.setInlineWidgetHeight(inlineWidget.id, height, ensureVisible);
     };
     
     
