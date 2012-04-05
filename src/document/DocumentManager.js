@@ -441,13 +441,10 @@ define(function (require, exports, module) {
             this._text = this.getText();
             this._masterEditor = null;
             
-            // FUTURE: If main editor was closed without saving changes, we should revert _text to
-            // what's on disk. But since we currently close all secondary editors when anyone else
-            // touches the Document content, there's no point in doing that yet. Just change the text
-            // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
-            // should probably live in DocumentCommandHandlers.handleFileClose() (see note there).
+            // Anyone calling closeFullEditor() should have dealt with unsaved changes already,
+            // either by saving the Document or by reverting its content.
             if (this.isDirty) {
-                this.refreshText("", this.diskTimestamp);
+                throw new Error("Attempt to make Document with unsaved changes non-editable: " + this);
             }
         }
     };
@@ -636,11 +633,18 @@ define(function (require, exports, module) {
      * sort of "project file model," making this just a private event handler.
      */
     function notifyFileDeleted(file) {
+        // Since the Document is going away for all clients, it's actually ok in this case to
+        // _makeNonEditable() it despite it being out of sync with what's on disk. So manually mark
+        // it clean to avoid hitting the assertion in _makeNonEditable().
+        var doc = getOpenDocumentForPath(file.fullPath);
+        if (doc) {
+            doc.isDirty = false;
+        }
+        
         // First ensure it's not currentDocument, and remove from working set
         closeFullEditor(file);
         
         // Notify all other editors to close as well
-        var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
         }
