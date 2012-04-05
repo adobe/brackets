@@ -346,8 +346,8 @@ define(function (require, exports, module) {
         
         // Destroying us destroys any inline widgets we're hosting. Make sure their closeCallbacks
         // run, at least, since they may also need to release Document refs
-        this._inlineWidgets.forEach(function (inlineInfo) {
-            inlineInfo.closeCallback();
+        this._inlineWidgets.forEach(function (inlineWidget) {
+            inlineWidget.onClosed();
         });
     };
     
@@ -711,35 +711,25 @@ define(function (require, exports, module) {
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
-     * @param {!DOMElement} domContent  DOM node of widget UI to insert.
-     * @param {number} initialHeight  Initial height to accomodate.
-     * @param {function()} parentShowCallback  Function called when the host editor is shown 
-     *          (via Editor.setVisible()).
-     * @param {function()} closeCallback  Function called when inline is closed, either automatically
-     *          by CodeMirror, or by this host Editor closing, or manually via removeInlineWidget().
-     * @param {Object} data  Extra data to track along with the widget. Accessible later via
-     *          {@link #getInlineWidgets()}.
-     * @return {number} id for this inline widget instance; unique to this Editor
+     * @param {!InlineWidget} inlineWidget The widget to add.
      */
-    Editor.prototype.addInlineWidget = function (pos, domContent, initialHeight, parentShowCallback, closeCallback, data) {
-        // Now add the new widget
+    Editor.prototype.addInlineWidget = function (pos, inlineWidget) {
         var self = this;
-        var inlineId = this._codeMirror.addInlineWidget(pos, domContent, initialHeight, function (id) {
+        inlineWidget.id = this._codeMirror.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height, function (id) {
             self._removeInlineWidgetInternal(id);
-            closeCallback();
+            inlineWidget.onClosed();
         });
-        this._inlineWidgets.push({ id: inlineId, data: data, parentShowCallback: parentShowCallback, closeCallback: closeCallback });
-        
-        return inlineId;
+        this._inlineWidgets.push(inlineWidget);
+        inlineWidget.onAdded();
     };
     
     /**
      * Removes the given inline widget.
-     * @param {number} inlineId  id returned by addInlineWidget().
+     * @param {number} inlineWidget The widget to remove.
      */
-    Editor.prototype.removeInlineWidget = function (inlineId) {
+    Editor.prototype.removeInlineWidget = function (inlineWidget) {
         // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
-        this._codeMirror.removeInlineWidget(inlineId);
+        this._codeMirror.removeInlineWidget(inlineWidget.id);
     };
     
     /**
@@ -766,13 +756,13 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets the height of the inline widget for this editor. The inline editor is identified by id.
-     * @param {!number} id
-     * @param {!height} height
-     * @param {boolean} ensureVisible
+     * Sets the height of an inline widget in this editor. 
+     * @param {!InlineWidget} inlineWidget The widget whose height should be set.
+     * @param {!height} height The height of the widget.
+     * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
      */
-    Editor.prototype.setInlineWidgetHeight = function (id, height, ensureVisible) {
-        this._codeMirror.setInlineWidgetHeight(id, height, ensureVisible);
+    Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
+        this._codeMirror.setInlineWidgetHeight(inlineWidget.id, height, ensureVisible);
     };
     
     
@@ -803,10 +793,8 @@ define(function (require, exports, module) {
         $(this._codeMirror.getWrapperElement()).css("display", (show ? "" : "none"));
         this._codeMirror.refresh();
         if (show) {
-            this._inlineWidgets.forEach(function (widget) {
-                if (widget.parentShowCallback) {
-                    widget.parentShowCallback();
-                }
+            this._inlineWidgets.forEach(function (inlineWidget) {
+                inlineWidget.onParentShown();
             });
         }
     };
