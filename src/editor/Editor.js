@@ -717,6 +717,14 @@ define(function (require, exports, module) {
         var lineSpaceParent = $(".CodeMirror-lines", this.getScrollerElement()).get(0);
         return $(lineSpaceParent).children().get(0);
     };
+    
+    /**
+     * Returns the current scroll position of the editor.
+     * @returns {{x:number, y:number}} The x,y scroll position.
+     */
+    Editor.prototype.getScrollPos = function () {
+        return this._codeMirror.scrollPos();
+    };
 
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that

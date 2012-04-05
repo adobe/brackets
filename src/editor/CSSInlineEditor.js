@@ -55,7 +55,7 @@ define(function (require, exports, module) {
 
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
-        this._checkHorizontalScroll = this._checkHorizontalScroll.bind(this);
+        this._ensureCursorVisible = this._ensureCursorVisible.bind(this);
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
         $(this.editors[0]).on("change", this._updateRelatedContainer);
         
         // Cursor activity in the inline editor may cause us to horizontally scroll.
-        $(this.editors[0]).on("cursorActivity", this._checkHorizontalScroll);
+        $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
 
         this.sizeInlineWidgetToContents(true);
         this._updateRelatedContainer();
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("change", this._updateRelatedContainer);
-        $(this.editors[0]).off("cursorActivity", this._checkHorizontalScroll);
+        $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
         $(this.hostEditor).off("scroll", this._updateRelatedContainer);
         $(window).off("resize", this._updateRelatedContainer);
     };
@@ -294,10 +294,9 @@ define(function (require, exports, module) {
      * Based on the position of the cursor in the inline editor, determine whether we need to change the
      * scroll position of the host editor to ensure that the cursor is visible.
      */
-    CSSInlineEditor.prototype._checkHorizontalScroll = function () {
+    CSSInlineEditor.prototype._ensureCursorVisible = function () {
         var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
             lineSpaceOffset = $(this.editors[0].getLineSpaceElement()).offset(),
-            hostLineSpaceOffset = $(this.hostEditor.getLineSpaceElement()).offset(),
             ruleListOffset = this.$relatedContainer.offset();
         // If we're off the left-hand side, we just want to scroll it into view normally. But
         // if we're underneath the rule list on the right, we want to ask the host editor to 
@@ -306,12 +305,17 @@ define(function (require, exports, module) {
         if (cursorCoords.x > ruleListOffset.left) {
             cursorCoords.x += this.$relatedContainer.outerWidth();
         }
+        
         // Vertically, we want to set the scroll position relative to the overall host editor, not
-        // the lineSpace of the widget itself.
+        // the lineSpace of the widget itself. Also, we can't use the lineSpace here, because its top
+        // position just corresponds to whatever CodeMirror happens to have rendered at the top. So
+        // we need to figure out our position relative to the top of the virtual scroll area, which is
+        // the top of the actual scroller minus the scroll position.
+        var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
         this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
-                                                   cursorCoords.y - hostLineSpaceOffset.top,
+                                                   cursorCoords.y - scrollerTop,
                                                    cursorCoords.x - lineSpaceOffset.left,
-                                                   cursorCoords.yBot - hostLineSpaceOffset.top);
+                                                   cursorCoords.yBot - scrollerTop);
     };
 
     /**
