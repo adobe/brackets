@@ -309,11 +309,11 @@ define(function (require, exports, module) {
             this._codeMirror.operation(function () {
                 var i;
                 for (i = 0; i < range.startLine; i++) {
-                    self.hideLine(i);
+                    self._hideLine(i);
                 }
                 var lineCount = self.lineCount();
                 for (i = range.endLine + 1; i < lineCount; i++) {
-                    self.hideLine(i);
+                    self._hideLine(i);
                 }
             });
             this._visibleRange = new TextRange(document, range.startLine, range.endLine);
@@ -367,23 +367,18 @@ define(function (require, exports, module) {
     Editor.prototype._applyChanges = function (changeList) {
         var self = this;
         
-        // We can't close (via "lostContent") while inside the cm.operation() block below, becuase
+        // Apply changes to our range data, if any
+        // We can't close (via "lostContent") while inside the cm.operation() block below, because
         // CM will crash while ending the operation if it's no longer parented in the DOM
         if (this._visibleRange) {
-            var trialRange = this._visibleRange.clone();
-            trialRange._applyChangesToRange(this, changeList);
-            if (trialRange.startLine === null || trialRange.endLine === null) {
+            this._visibleRange._applyChangesToRange(this, changeList);
+            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
                 $(self).triggerHandler("lostContent");
                 return;
             }
         }
         
-        // FUTURE: Technically we should add a replaceRange() method to Document and go through
-        // that instead of talking to the given editor directly. However, we need to access
-        // a CodeMirror API to make sure that the edits get batched properly, and it's not clear
-        // that we want that exact API exposed in Document yet. So for now we just talk to
-        // the editor directly. Eventually we will factor this out into a model API once we 
-        // have an actual central model.
+        // Apply text changes to CodeMirror editor
         var cm = this._codeMirror;
         cm.operation(function () {
             var change, newText;
@@ -398,28 +393,25 @@ define(function (require, exports, module) {
                     cm.replaceRange(newText, change.from, change.to);
                 }
                 
-                if (self._visibleRange) {
-                    self._visibleRange._applySingleChangeToRange(self, change);
-                    
-                    if (self._visibleRange.startLine === null || self._visibleRange.endLine === null) {
-                        // If our _visibleRange lost sync with the text, we should just close the Editor
-                        // $(self).triggerHandler("lostContent");
-                        console.assert(false, "We should have detected this above with the cloned trialRange!");
-                        break;
-                        
-                    } else {
-                        var i;
-                        for (i = change.from.line; i < change.from.line + change.text.length; i++) {
-                            if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
-                                self.hideLine(i);
-                            }
-                        }
-                        // TODO: should double-check that the range of non-hidden lines after this matches up
-                        // with what we think _visibleRange is
-                    }
-                }
             }
         });
+        
+        // The update above may have inserted new lines - must hide any that fall outside our range
+        if (self._visibleRange) {
+            cm.operation(function () {
+                // TODO: could make this more efficient by only iterating across the min-max line
+                // range of the union of all changes
+                var i;
+                for (i = 0; i < cm.lineCount(); i++) {
+                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
+                        self._hideLine(i);
+                    } else {
+                        // Double-check that the set of NON-hidden lines matches our range too
+                        console.assert(!cm.getLineHandle(i).hidden);
+                    }
+                }
+            });
+        }
     };
     
     /**
@@ -446,6 +438,9 @@ define(function (require, exports, module) {
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
             // (which will directly push the change into the master editor).
+            // FUTURE: Technically we should add a replaceRange() method to Document and go through
+            // that instead of talking to its master editor directly. It's not clear yet exactly
+            // what the right Document API would be, though.
             this._duringSync = true;
             this.document._masterEditor._applyChanges(changeList);
             this._duringSync = false;
@@ -459,7 +454,7 @@ define(function (require, exports, module) {
             this._visibleRange._applyChangesToRange(this, changeList);
             
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                console.assert(false, "ERROR: Typing in Editor should not destroy its own _visibleRange");
+                throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
                 
             } else {
                 var change, newText;
@@ -467,7 +462,7 @@ define(function (require, exports, module) {
                     var i;
                     for (i = change.from.line; i < change.from.line + change.text.length; i++) {
                         if (i < editor._visibleRange.startLine || i > editor._visibleRange.endLine) {
-                            console.assert(false, "ERROR: Typing in Editor should not take place outside its own _visibleRange");
+                            throw new Error(false, "ERROR: Typing in Editor should not take place outside its own _visibleRange");
                         }
                     }
                 }
@@ -661,7 +656,7 @@ define(function (require, exports, module) {
     /* Hides the specified line number in the editor
      * @param {!number}
      */
-    Editor.prototype.hideLine = function (lineNumber) {
+    Editor.prototype._hideLine = function (lineNumber) {
         return this._codeMirror.hideLine(lineNumber);
     };
 
