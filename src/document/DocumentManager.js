@@ -440,15 +440,6 @@ define(function (require, exports, module) {
         } else {
             this._text = this.getText();
             this._masterEditor = null;
-            
-            // FUTURE: If main editor was closed without saving changes, we should revert _text to
-            // what's on disk. But since we currently close all secondary editors when anyone else
-            // touches the Document content, there's no point in doing that yet. Just change the text
-            // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
-            // should probably live in DocumentCommandHandlers.handleFileClose() (see note there).
-            if (this.isDirty) {
-                this.refreshText("");
-            }
         }
     };
     
@@ -643,6 +634,11 @@ define(function (require, exports, module) {
         var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
+        }
+        
+        // At this point, all those other views SHOULD have released the Doc
+        if (doc && doc._refCount > 0) {
+            console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
     }
     
