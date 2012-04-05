@@ -50,7 +50,6 @@ define(function (require, exports, module) {
         
         // Container to hold all editors
         var self = this,
-            hostScroller = hostEditor._codeMirror.getScrollerElement(),
             $ruleItem,
             $location;
 
@@ -64,9 +63,9 @@ define(function (require, exports, module) {
         
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
-        // Position immediately to the left of the main editor's scrollbar.
-        var rightOffset = $(document.body).outerWidth() - ($(hostScroller).offset().left + $(hostScroller).get(0).clientWidth);
-        this.$relatedContainer.css("right", rightOffset + "px");
+        this._relatedContainerInserted = false;
+        this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
+        this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
         this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
@@ -110,6 +109,10 @@ define(function (require, exports, module) {
         
         // Listen to the editor's scroll event to reposition the relatedContainer.
         $(this.hostEditor).on("scroll", this._updateRelatedContainer);
+        
+        // Listen to the window resize event to reposition the relatedContainer
+        // when the hostEditor's scrollbars visibility changes
+        $(window).on("resize", this._updateRelatedContainer);
         
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
@@ -200,6 +203,16 @@ define(function (require, exports, module) {
         $(this.editors[0]).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("cursorActivity", this._checkHorizontalScroll);
         $(this.hostEditor).off("scroll", this._updateRelatedContainer);
+        $(window).off("resize", this._updateRelatedContainer);
+    };
+    
+    /**
+     * @private
+     * Set _relatedContainerInserted flag once the $relatedContainer is inserted in the DOM.
+     */
+    CSSInlineEditor.prototype._relatedContainerInsertedHandler = function () {
+        this.$relatedContainer.off("DOMNodeInserted", this._relatedContainerInsertedHandler);
+        this._relatedContainerInserted = true;
     };
     
     /**
@@ -235,8 +248,11 @@ define(function (require, exports, module) {
             rcTop = this.$relatedContainer.offset().top,
             rcHeight = this.$relatedContainer.outerHeight(),
             rcBottom = rcTop + rcHeight,
-            scrollerTop = $(hostScroller).offset().top,
-            scrollerBottom = scrollerTop + hostScroller.clientHeight;
+            scrollerOffset = $(hostScroller).offset(),
+            scrollerTop = scrollerOffset.top,
+            scrollerBottom = scrollerTop + hostScroller.clientHeight,
+            scrollerLeft = scrollerOffset.left,
+            rightOffset = $(document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
             this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
                                        (rcHeight - Math.max(rcBottom - scrollerBottom, 0)) + "px, auto)");
@@ -244,6 +260,21 @@ define(function (require, exports, module) {
             this.$relatedContainer.css("clip", "");
         }
         
+        // Constrain relatedContainer width to half of the scroller width
+        var relatedContainerWidth = this.$relatedContainer.width();
+        if (this._relatedContainerInserted) {
+            if (this._relatedContainerDefaultWidth === undefined) {
+                this._relatedContainerDefaultWidth = relatedContainerWidth;
+            }
+            
+            var halfWidth = Math.floor(hostScroller.clientWidth / 2);
+            relatedContainerWidth = Math.min(this._relatedContainerDefaultWidth, halfWidth);
+            this.$relatedContainer.width(relatedContainerWidth);
+        }
+        
+        // Position immediately to the left of the main editor's scrollbar.
+        this.$relatedContainer.css("right", rightOffset + "px");
+
         // Add extra padding to the right edge of the widget to account for the rule list.
         this.$htmlContent.css("padding-right", this.$relatedContainer.outerWidth() + "px");
         
