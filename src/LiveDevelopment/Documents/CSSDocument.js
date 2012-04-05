@@ -73,7 +73,7 @@ define(function CSSDocumentModule(require, exports, module) {
         
         // If the CSS document is dirty, push the changes into the browser now
         if (doc.isDirty) {
-            CSSAgent.reloadDocument(this.doc);
+            CSSAgent.reloadCSSForDocument(this.doc);
         }
     };
 
