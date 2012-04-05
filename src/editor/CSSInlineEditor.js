@@ -186,7 +186,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline is closed, whether manually (via closeThisInline()) or automatically
      */
     CSSInlineEditor.prototype.onClosed = function () {
         this.parentClass.onClosed.call(this); // super.onClosed()
@@ -279,7 +279,7 @@ define(function (require, exports, module) {
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related rules list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
-        this.hostEditor.setInlineWidgetHeight(this.inlineId, widgetHeight, true);
+        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, true);
 
         // The related rules container size itself based on htmlContent which is set by setInlineWidgetHeight above.
         this._updateRelatedContainer();

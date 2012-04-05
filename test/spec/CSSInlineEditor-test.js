@@ -44,7 +44,7 @@ define(function (require, exports, module) {
             expect(cssInlineEditor.editors.length).toBe(0);
             expect(cssInlineEditor.htmlContent instanceof HTMLElement).toBe(true);
             expect(cssInlineEditor.height).toBe(0);
-            expect(cssInlineEditor.inlineId).toBeNull();
+            expect(cssInlineEditor.id).toBeNull();
             expect(cssInlineEditor.hostEditor).toBeNull();
         });
 
@@ -218,7 +218,7 @@ define(function (require, exports, module) {
             cssInlineEditor.load(hostEditor);
             
             // add widget directly, bypass _openInlineWidget
-            EditorManager._addInlineWidget(hostEditor, {line: 0, ch: 0}, cssInlineEditor);
+            hostEditor.addInlineWidget({line: 0, ch: 0}, cssInlineEditor);
             
             // verify it was added
             expect(hostEditor.hasFocus()).toBe(false);

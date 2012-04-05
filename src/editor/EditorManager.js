@@ -110,30 +110,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Adds a new widget to the host Editor.
-     * @param {!Editor} editor the candidate host editor
-     * @param !{line:number, ch:number} pos
-     * @param {!InlineWidget} inlineWidget
-     */
-    function _addInlineWidget(editor, pos, inlineWidget) {
-        $(inlineWidget.htmlContent).append('<div class="shadow top"/>')
-            .append('<div class="shadow bottom"/>');
-
-        var closeCallback = function () {
-            inlineWidget.onClosed();
-        };
-        var parentShowCallback = function () {
-            inlineWidget.onParentShown();
-        };
-        
-        var inlineId = editor.addInlineWidget(pos, inlineWidget.htmlContent, inlineWidget.height,
-            parentShowCallback, closeCallback, inlineWidget);
-
-        inlineWidget.onAdded(inlineId);
-    }
-    
-    /**
-     * @private
      * Bound to Ctrl+E on outermost editors.
      * @param {!Editor} editor the candidate host editor
      * @return {$.Promise} a promise that will be resolved when an InlineWidget 
@@ -154,7 +130,7 @@ define(function (require, exports, module) {
         // If one of them will provide a widget, show it inline once ready
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
-                _addInlineWidget(editor, pos, inlineWidget);
+                editor.addInlineWidget(pos, inlineWidget);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -167,18 +143,18 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Removes the given widget UI from the given hostEdtior (agnostic of what the widget's content
+     * Removes the given widget UI from the given hostEditor (agnostic of what the widget's content
      * is). The widget's onClosed() callback will be run as a result.
-     * @param {!Editor} hostEditor
-     * @param {!number} inlineId
+     * @param {!Editor} hostEditor The editor containing the widget.
+     * @param {!InlineWidget} inlineWidget The inline widget to close.
      * @param {!boolean} moveFocus  If true, focuses hostEditor and ensures the cursor position lies
      *      near the inline's location.
      */
-    function closeInlineWidget(hostEditor, inlineId, moveFocus) {
+    function closeInlineWidget(hostEditor, inlineWidget, moveFocus) {
         if (moveFocus) {
             // Place cursor back on the line just above the inline (the line from which it was opened)
             // If cursor's already on that line, leave it be to preserve column position
-            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineId).line;
+            var widgetLine = hostEditor._codeMirror.getInlineWidgetInfo(inlineWidget.id).line;
             var cursorLine = hostEditor.getCursorPos().line;
             if (cursorLine !== widgetLine) {
                 hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
@@ -187,10 +163,8 @@ define(function (require, exports, module) {
             hostEditor.focus();
         }
         
-        hostEditor.removeInlineWidget(inlineId);
-        
+        hostEditor.removeInlineWidget(inlineWidget);
     }
-
     
     /**
      * Registers a new inline provider. When _openInlineWidget() is called each registered inline
@@ -219,8 +193,8 @@ define(function (require, exports, module) {
     function getInlineEditors(hostEditor) {
         var inlineEditors = [];
         hostEditor.getInlineWidgets().forEach(function (widget) {
-            if (widget.data instanceof InlineTextEditor) {
-                inlineEditors.concat(widget.data.editors);
+            if (widget instanceof InlineTextEditor) {
+                inlineEditors.concat(widget.editors);
             }
         });
         return inlineEditors;
@@ -449,8 +423,8 @@ define(function (require, exports, module) {
             
             // See if any inlines have focus
             _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget.data instanceof InlineTextEditor) {
-                    widget.data.editors.forEach(function (editor) {
+                if (widget instanceof InlineTextEditor) {
+                    widget.editors.forEach(function (editor) {
                         if (editor.hasFocus()) {
                             focusedInline = editor;
                         }
@@ -480,7 +454,6 @@ define(function (require, exports, module) {
     
     // For unit tests
     exports._openInlineWidget = _openInlineWidget;
-    exports._addInlineWidget = _addInlineWidget;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
