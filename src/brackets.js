@@ -85,7 +85,9 @@ define(function (require, exports, module) {
         CommandManager          : require("command/CommandManager"),
         FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
-        CSSUtils                : require("language/CSSUtils")
+        CSSUtils                : require("language/CSSUtils"),
+        LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+        Inspector               : require("LiveDevelopment/Inspector/Inspector")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete

@@ -102,7 +102,7 @@ define(function (require, exports, module) {
      * Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
-        return (absPath.indexOf(_projectRoot.fullPath) === 0);
+        return (_projectRoot && absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
