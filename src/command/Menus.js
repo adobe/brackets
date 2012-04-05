@@ -50,6 +50,10 @@ define(function (require, exports, module) {
         $("#menu-debug-new-brackets-window").click(function () {
             CommandManager.execute(Commands.DEBUG_NEW_BRACKETS_WINDOW);
         });
+
+        $("#menu-debug-hide-sidebar").click(function () {
+            CommandManager.execute(Commands.DEBUG_HIDE_SIDEBAR);
+        });
     }
 
     // Define public API

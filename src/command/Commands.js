@@ -22,9 +22,10 @@ define(function (require, exports, module) {
     exports.FILE_QUIT = "file.quit";
     exports.FILE_QUICK_NAVIGATE = "file.quickNaviate";
     exports.FIND_IN_FILES = "findInFiles";
+    exports.HIDE_SIDEBAR = "hideSidebar";
     exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
-    exports.DEBUG_JSLINT = "debug.jslint";
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW = "debug.newBracketsWindow";
+    exports.DEBUG_HIDE_SIDEBAR = "debug.hideSidebar";
 });
 

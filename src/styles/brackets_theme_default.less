@@ -21,9 +21,9 @@
  * The opposite is true for a dark background -- background-color-3 should be
  * the darkest, -2 should be lighter, and -1 should be lighter still.
  */
-@background-color-1: darken(@bc-white, @bc-color-step-size*2);
-@background-color-2: darken(@bc-white, @bc-color-step-size);
-@background-color-3: @bc-white;
+@background-color-1: lighten(@bc-black, @bc-color-step-size*2);
+@background-color-2: lighten(@bc-black, @bc-color-step-size);
+@background-color-3: @bc-black;
 
 /*
  * @content-color-stronger should be should be further away from the
@@ -32,9 +32,9 @@
  * @content-color-weaker should be closer to the background color
  * than @content-color (i.e. less contrasty).
  */
-@content-color: lighten(@bc-black, @bc-color-step-size*2);
-@content-color-stronger: @bc-black;
-@content-color-weaker: lighten(@bc-black, @bc-color-step-size*6);
+@content-color: darken(@bc-white, @bc-color-step-size*2);
+@content-color-stronger: @bc-white;
+@content-color-weaker: darken(@bc-white, @bc-color-step-size*6);
 
 /* Code Styling */
 
@@ -107,7 +107,7 @@
     // border: none !important;
 
     // to make an I-cursor, use something like this:
-    border-left: 1px solid black !important;
+    border-left: 1px solid white !important;
 
 }
 
