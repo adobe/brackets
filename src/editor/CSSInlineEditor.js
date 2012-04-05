@@ -56,6 +56,7 @@ define(function (require, exports, module) {
 
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
+        this._checkHorizontalScroll = this._checkHorizontalScroll.bind(this);
 
         // Create DOM to hold editors and related list
         this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
@@ -149,6 +150,9 @@ define(function (require, exports, module) {
         // but in this case we're specifically concerned with changes in the given
         // editor, not general document changes.
         $(this.editors[0]).on("change", this._updateRelatedContainer);
+        
+        // Cursor activity in the inline editor may cause us to horizontally scroll.
+        $(this.editors[0]).on("cursorActivity", this._checkHorizontalScroll);
 
         this.sizeInlineWidgetToContents(true);
         this._updateRelatedContainer();
@@ -190,6 +194,7 @@ define(function (require, exports, module) {
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("change", this._updateRelatedContainer);
+        $(this.editors[0]).off("cursorActivity", this._checkHorizontalScroll);
         $(this.hostEditor).off("scroll", this._updateRelatedContainer);
     };
     
@@ -204,7 +209,7 @@ define(function (require, exports, module) {
         
         // Because we're using position: fixed, we need to explicitly clip the rule list if it crosses
         // out of the top or bottom of the scroller area.
-        var hostScroller = this.hostEditor._codeMirror.getScrollerElement(),
+        var hostScroller = this.hostEditor.getScrollerElement(),
             rcTop = this.$relatedContainer.offset().top,
             rcHeight = this.$relatedContainer.outerHeight(),
             rcBottom = rcTop + rcHeight,
@@ -222,12 +227,28 @@ define(function (require, exports, module) {
         
         // Set the minimum width of the widget (which doesn't include the padding) to the width
         // of CodeMirror's linespace, so that the total width will be at least as large as the
-        // width of the host editor's code plus the padding for the rule list. This is a bit of a 
-        // hack since it relies on knowing some detail about the innards of CodeMirror.
-        var lineSpaceParent = $(".CodeMirror-lines", this.hostEditor._codeMirror.getScrollerElement()).get(0),
+        // width of the host editor's code plus the padding for the rule list. We need to do this
+        // rather than just setting min-width to 100% because adding padding for the rule list
+        // actually pushes out the width of the container, so we would end up continuously
+        // growing the overall width.
+        // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
+        var lineSpaceParent = $(".CodeMirror-lines", this.hostEditor.getScrollerElement()).get(0),
             lineSpace = $(lineSpaceParent).children().get(0),
             minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + $(lineSpace).width();
         this.$htmlContent.css("min-width", minWidth + "px");
+    };
+    
+    /**
+     * Based on the position of the cursor in the inline editor, determine whether we need to change the
+     * scroll position of the host editor to ensure that the cursor is visible.
+     */
+    CSSInlineEditor.prototype._checkHorizontalScroll = function () {
+        var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
+            widgetCoords = $(this.htmlContent).offset();
+        this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - widgetCoords.left,
+                                                   cursorCoords.y - widgetCoords.top,
+                                                   cursorCoords.x - widgetCoords.left,
+                                                   cursorCoords.yBot - widgetCoords.top);
     };
 
     /**
