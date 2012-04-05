@@ -133,6 +133,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
                 liveDoc.close();
+                $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
             });
             _relatedDocuments = undefined;
         }
@@ -146,6 +147,7 @@ define(function LiveDevelopment(require, exports, module) {
     function _handleRelatedDocumentDeleted(event, liveDoc) {
         var index = _relatedDocuments.indexOf(liveDoc);
         if (index !== -1) {
+            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
             _relatedDocuments.splice(index, 1);
         }
     }

@@ -119,7 +119,7 @@ define(function CSSDocumentModule(require, exports, module) {
         CSSAgent.reloadDocument(this.doc);
     };
     /** Triggered if the Document's file is deleted */
-    CSSDocument.prototype.onDeleted = function onChange(event, editor, change) {
+    CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
         // clear the CSS
         CSSAgent.reloadDeletedDocument(this.doc);
         
