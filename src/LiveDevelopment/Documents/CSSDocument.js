@@ -116,12 +116,12 @@ define(function CSSDocumentModule(require, exports, module) {
     /** Triggered whenever the Document is edited */
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
-        CSSAgent.reloadDocument(this.doc);
+        CSSAgent.reloadCSSForDocument(this.doc);
     };
     /** Triggered if the Document's file is deleted */
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
         // clear the CSS
-        CSSAgent.reloadDeletedDocument(this.doc);
+        CSSAgent.clearCSSForDocument(this.doc);
         
         // shut down, since our Document is now dead
         this.close();

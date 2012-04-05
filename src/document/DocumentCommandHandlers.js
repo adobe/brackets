@@ -433,14 +433,15 @@ define(function (require, exports, module) {
                     // "Don't Save" case: even though we're closing the main editor, other views of
                     // the Document may remain in the UI. So we need to revert the Document to a clean
                     // copy of whatever's on disk.
-                    doRevert(doc)
-                        .done(function () {
-                            doClose(file);
-                            result.resolve();
-                        })
-                        .fail(function () {
-                            result.reject();
-                        });
+                    doClose(file);
+                    
+                    // Only reload from disk if other views still exist
+                    if (DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                        doRevert(doc)
+                            .pipe(result.resolve, result.reject);
+                    } else {
+                        result.resolve();
+                    }
                 }
             });
             result.always(function () {
