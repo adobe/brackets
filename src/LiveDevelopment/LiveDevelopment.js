@@ -333,10 +333,12 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
         var doc = _getCurrentDocument();
+        if (!doc) {
+            return;
+        }
+        
         if (Inspector.connected()) {
-            if (!doc) {
-                close();
-            } else if (agents.network && agents.network.wasURLRequested(doc.url)) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
