@@ -7,7 +7,7 @@
 
 define(function (require, exports, module) {
     'use strict';
-
+    
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         HTMLUtils           = require("language/HTMLUtils"),
@@ -57,6 +57,7 @@ define(function (require, exports, module) {
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
         this._checkHorizontalScroll = this._checkHorizontalScroll.bind(this);
+        this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
         this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
@@ -109,6 +110,9 @@ define(function (require, exports, module) {
         
         // Listen to the editor's scroll event to reposition the relatedContainer.
         $(this.hostEditor).on("scroll", this._updateRelatedContainer);
+        
+        // Listen for clicks directly on us, so we can set focus back to the editor
+        this.$htmlContent.on("click", this._onClick);
 
         return (new $.Deferred()).resolve();
     };
@@ -196,6 +200,24 @@ define(function (require, exports, module) {
         $(this.editors[0]).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("cursorActivity", this._checkHorizontalScroll);
         $(this.hostEditor).off("scroll", this._updateRelatedContainer);
+    };
+    
+    /**
+     * Handle a click outside our child editor by setting focus back to it.
+     */
+    CSSInlineEditor.prototype._onClick = function (event) {
+        var childEditor = this.editors[0],
+            editorRoot = childEditor.getRootElement(),
+            editorPos = $(editorRoot).offset();
+        if (!$.contains(editorRoot, event.target)) {
+            childEditor.focus();
+            if (event.pageY < editorPos.top) {
+                childEditor.setCursorPos(0, 0);
+            } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
+                var lastLine = childEditor.getLastVisibleLine();
+                childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+            }
+        }
     };
     
     /**
@@ -374,7 +396,7 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        CSSUtils.findMatchingRules(selectorName)
+        CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
                     var cssInlineEditor = new CSSInlineEditor(rules);
