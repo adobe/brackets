@@ -109,6 +109,16 @@ define(function Inspector(require, exports, module) {
      * @param {object} the method signature
      */
     function _send(method, signature, varargs) {
+        if (!_socket) {
+            // FUTURE: Our current implementation closes and re-opens an inspector connection whenever
+            // a new HTML file is selected. If done quickly enough, pending requests from the previous
+            // connection could come in before the new socket connection is established. For now we 
+            // simply ignore this condition. 
+            // This race condition will go away once we support multiple inspector connections and turn
+            // off auto re-opening when a new HTML file is selected.
+            return;
+        }
+        
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
         var id, callback, args, i, params = {};
 

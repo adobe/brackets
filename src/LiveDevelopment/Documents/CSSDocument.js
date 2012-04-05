@@ -70,6 +70,11 @@ define(function CSSDocumentModule(require, exports, module) {
             // res = {styleSheet}
             this.rules = res.styleSheet.rules;
         }.bind(this));
+        
+        // If the CSS document is dirty, push the changes into the browser now
+        if (doc.isDirty) {
+            CSSAgent.reloadDocument(this.doc);
+        }
     };
 
     /** Close the document */
