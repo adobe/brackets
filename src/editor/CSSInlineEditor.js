@@ -254,8 +254,7 @@ define(function (require, exports, module) {
         // actually pushes out the width of the container, so we would end up continuously
         // growing the overall width.
         // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
-        var lineSpaceParent = $(".CodeMirror-lines", this.hostEditor.getScrollerElement()).get(0),
-            lineSpace = $(lineSpaceParent).children().get(0),
+        var lineSpace = this.hostEditor.getLineSpaceElement(),
             minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + $(lineSpace).width();
         this.$htmlContent.css("min-width", minWidth + "px");
     };
@@ -266,11 +265,22 @@ define(function (require, exports, module) {
      */
     CSSInlineEditor.prototype._checkHorizontalScroll = function () {
         var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
-            widgetCoords = $(this.htmlContent).offset();
-        this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - widgetCoords.left,
-                                                   cursorCoords.y - widgetCoords.top,
-                                                   cursorCoords.x - widgetCoords.left,
-                                                   cursorCoords.yBot - widgetCoords.top);
+            lineSpaceOffset = $(this.editors[0].getLineSpaceElement()).offset(),
+            hostLineSpaceOffset = $(this.hostEditor.getLineSpaceElement()).offset(),
+            ruleListOffset = this.$relatedContainer.offset();
+        // If we're off the left-hand side, we just want to scroll it into view normally. But
+        // if we're underneath the rule list on the right, we want to ask the host editor to 
+        // scroll far enough that the current cursor position is visible to the left of the rule 
+        // list. (Because we always add extra padding for the rule list, this is always possible.)
+        if (cursorCoords.x > ruleListOffset.left) {
+            cursorCoords.x += this.$relatedContainer.outerWidth();
+        }
+        // Vertically, we want to set the scroll position relative to the overall host editor, not
+        // the lineSpace of the widget itself.
+        this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
+                                                   cursorCoords.y - hostLineSpaceOffset.top,
+                                                   cursorCoords.x - lineSpaceOffset.left,
+                                                   cursorCoords.yBot - hostLineSpaceOffset.top);
     };
 
     /**
