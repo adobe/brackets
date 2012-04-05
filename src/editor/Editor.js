@@ -357,14 +357,8 @@ define(function (require, exports, module) {
      * bugs in CodeMirror when lines are hidden.
      */
     Editor.prototype._selectAllVisible = function () {
-        var startLine, endLine;
-        if (this._visibleRange) {
-            startLine = this._visibleRange.startLine;
-            endLine = this._visibleRange.endLine;
-        } else {
-            startLine = 0;
-            endLine = this.lineCount() - 1;
-        }
+        var startLine = this.getFirstVisibleLine(),
+            endLine = this.getLastVisibleLine();
         this.setSelection({line: startLine, ch: 0},
                           {line: endLine, ch: this.getLineText(endLine).length});
     };
@@ -664,6 +658,22 @@ define(function (require, exports, module) {
     Editor.prototype.lineCount = function () {
         return this._codeMirror.lineCount();
     };
+    
+    /**
+     * Gets the number of the first visible line in the editor.
+     * @returns {number} The 0-based index of the first visible line.
+     */
+    Editor.prototype.getFirstVisibleLine = function () {
+        return (this._visibleRange ? this._visibleRange.startLine : 0);
+    };
+    
+    /**
+     * Gets the number of the last visible line in the editor.
+     * @returns {number} The 0-based index of the last visible line.
+     */
+    Editor.prototype.getLastVisibleLine = function () {
+        return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
+    };
 
     /* Hides the specified line number in the editor
      * @param {!number}
@@ -689,6 +699,13 @@ define(function (require, exports, module) {
         return this._codeMirror.getScrollerElement();
     };
     
+    /**
+     * Gets the root DOM node of the editor.
+     * @returns {Object} The editor's root DOM node.
+     */
+    Editor.prototype.getRootElement = function () {
+        return this._codeMirror.getWrapperElement();
+    };
     
     /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
