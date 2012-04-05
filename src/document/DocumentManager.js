@@ -440,12 +440,6 @@ define(function (require, exports, module) {
         } else {
             this._text = this.getText();
             this._masterEditor = null;
-            
-            // Anyone calling closeFullEditor() should have dealt with unsaved changes already,
-            // either by saving the Document or by reverting its content.
-            if (this.isDirty) {
-                throw new Error("Attempt to make Document with unsaved changes non-editable: " + this);
-            }
         }
     };
     
@@ -633,24 +627,17 @@ define(function (require, exports, module) {
      * sort of "project file model," making this just a private event handler.
      */
     function notifyFileDeleted(file) {
-        // Since the Document is going away for all clients, it's actually ok in this case to
-        // _makeNonEditable() it despite it being out of sync with what's on disk. So manually mark
-        // it clean to avoid hitting the assertion in _makeNonEditable().
-        var doc = getOpenDocumentForPath(file.fullPath);
-        if (doc) {
-            doc.isDirty = false;
-        }
-        
         // First ensure it's not currentDocument, and remove from working set
         closeFullEditor(file);
         
         // Notify all other editors to close as well
+        var doc = getOpenDocumentForPath(file.fullPath);
         if (doc) {
             $(doc).triggerHandler("deleted");
         }
         
         // At this point, all those other views SHOULD have released the Doc
-        if (doc._refCount > 0) {
+        if (doc && doc._refCount > 0) {
             console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
         }
     }

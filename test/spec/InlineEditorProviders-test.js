@@ -528,7 +528,7 @@ define(function (require, exports, module) {
                 });
                 
                 // FUTURE: Eventually we'll instead want it to stay open and revert to the content on disk.
-                // See notes in Document._makeNonEditable() & DocumentCommandHandlers.handleFileClose().
+                // Editor's syncing code can't yet handle blowing away the whole Document like that, though.
                 it("should close inline when file is closed without saving changes", function () {
                     initInlineTest("test1.html", 1);
                     
