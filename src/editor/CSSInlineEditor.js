@@ -243,9 +243,10 @@ define(function (require, exports, module) {
             rcTop = this.$relatedContainer.offset().top,
             rcHeight = this.$relatedContainer.outerHeight(),
             rcBottom = rcTop + rcHeight,
-            scrollerTop = $(hostScroller).offset().top,
+            scrollerOffset = $(hostScroller).offset(),
+            scrollerTop = scrollerOffset.top,
             scrollerBottom = scrollerTop + hostScroller.clientHeight,
-            scrollerLeft = $(hostScroller).offset().left,
+            scrollerLeft = scrollerOffset.left,
             rightOffset = $(document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
             this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
@@ -261,15 +262,9 @@ define(function (require, exports, module) {
                 this._relatedContainerDefaultWidth = relatedContainerWidth;
             }
             
-            var halfWidth = hostScroller.clientWidth / 2;
-            
-            if (this._relatedContainerDefaultWidth >= halfWidth) {
-                relatedContainerWidth = halfWidth;
-            } else {
-                relatedContainerWidth = this._relatedContainerDefaultWidth;
-            }
-            
-            this.$relatedContainer.width(Math.floor(relatedContainerWidth));
+            var halfWidth = Math.floor(hostScroller.clientWidth / 2);
+            relatedContainerWidth = Math.min(this._relatedContainerDefaultWidth, halfWidth);
+            this.$relatedContainer.width(relatedContainerWidth);
         }
         
         // Position immediately to the left of the main editor's scrollbar.
