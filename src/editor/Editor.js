@@ -567,8 +567,8 @@ define(function (require, exports, module) {
         this._codeMirror.setOption("onScroll", function (instance) {
             $(self).triggerHandler("scroll", [self]);
         
-            // notify all following inline widgets of a position change
-            self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine());
+            // notify all inline widgets of a position change
+            self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
     };
     
@@ -678,6 +678,7 @@ define(function (require, exports, module) {
         return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
     };
 
+    // FUTURE change to "hideLines()" API that hides a range of lines at once in a single operation, then fires offsetTopChanged afterwards.
     /* Hides the specified line number in the editor
      * @param {!number}
      */
