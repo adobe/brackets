@@ -138,7 +138,7 @@ define(function (require, exports, module) {
                 });
                 
                 //add a wait for the change to get pushed, then wait to get the result
-                waits(250);
+                waits(350);
                 
                 var doneSyncing = false;
                 runs(function () {
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
                 
                 //wait again for the final changes to load
-                waits(250);
+                waits(350);
                 
                 var doneSyncing = false;
                 runs(function () {
