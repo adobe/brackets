@@ -21,6 +21,10 @@ define(function (require, exports, module) {
     function fixSpaces(str) {
         return str.replace(allSpacesRE, " ");
     }
+    
+    function isOpenInBrowser(doc, agents) {
+        return (doc && doc.url && agents && agents.network && agents.network.wasURLRequested(doc.url));
+    }
 
     describe("Live Development", function () {
         
@@ -37,7 +41,9 @@ define(function (require, exports, module) {
     
     
         afterEach(function () {
+            waits(10);
             LiveDevelopment.close();
+            waits(10);
             SpecRunnerUtils.closeTestWindow();
         });
         
@@ -63,9 +69,14 @@ define(function (require, exports, module) {
                     LiveDevelopment.open();
                 });
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+                //once connected wait just a little more for the request
+                waits(100);
  
                 runs(function () {
                     expect(Inspector.connected()).toBeTruthy();
+                    
+                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
             
@@ -90,10 +101,13 @@ define(function (require, exports, module) {
                 });
                 
                 //we just need to wait an arbitrary time since we can't check for the connection to be true
-                waits(5000);
+                waits(1000);
  
                 runs(function () {
                     expect(Inspector.connected()).toBeFalsy();
+
+                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.css");
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
                 });
             });
             
@@ -153,6 +167,9 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
+                    
+                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
             });
             
