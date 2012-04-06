@@ -98,8 +98,7 @@ define(function (require, exports, module) {
             });
             
             it("should push changes through the browser connection", function () {
-                var curDoc,
-                    curText,
+                var localText,
                     browserText;
                 
                 //verify we aren't currently connected
@@ -132,18 +131,19 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cssOpened; }, "cssOpened FILE_OPEN timeout", 1000);
                 
                 runs(function () {
-                    curDoc =  DocumentManager.getCurrentDocument();
-                    curText = curDoc.getText();
-                    curText += "\n .testClass { color:#090; }\n";
-                    curDoc.setText(curText);
+                    var curDoc =  DocumentManager.getCurrentDocument();
+                    localText = curDoc.getText();
+                    localText += "\n .testClass { color:#090; }\n";
+                    curDoc.setText(localText);
                 });
                 
                 //add a wait for the change to get pushed, then wait to get the result
-                waits(1000);
+                waits(250);
                 
                 var doneSyncing = false;
                 runs(function () {
-                    curDoc.liveDevelopment.liveDoc.getSourceFromBrowser().done(function (text) {
+                    var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
                         doneSyncing = true;
@@ -152,13 +152,12 @@ define(function (require, exports, module) {
                 waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
                 
                 runs(function () {
-                    expect(fixSpaces(browserText)).toBe(fixSpaces(curText));
+                    expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
                 });
             });
             
             it("should push in memory css changes made before the session starts", function () {
-                var curDoc,
-                    curText,
+                var localText,
                     browserText;
                 
                 //verify we aren't currently connected
@@ -175,16 +174,15 @@ define(function (require, exports, module) {
                 waitsFor(function () { return cssOpened; }, "cssOpened FILE_OPEN timeout", 1000);
                 
                 runs(function () {
-                    curDoc =  DocumentManager.getCurrentDocument();
-                    curText = curDoc.getText();
-                    curText += "\n .testClass { color:#090; }\n";
-                    curDoc.setText(curText);
-                    curDoc.addRef();
+                    var curDoc =  DocumentManager.getCurrentDocument();
+                    localText = curDoc.getText();
+                    localText += "\n .testClass { color:#090; }\n";
+                    curDoc.setText(localText);
                 });
                 
                 var htmlOpened = false;
                 runs(function () {
-                    SpecRunnerUtils.openProjectFiles(["simple1.html"]).fail(function () {
+                    SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]).fail(function () {
                         expect("Failed To Open").toBe("simple1.html");
                     }).always(function () {
                         htmlOpened = true;
@@ -198,19 +196,22 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
                 
+                //wait again for the final changes to load
+                waits(250);
+                
                 var doneSyncing = false;
                 runs(function () {
-                    curDoc.liveDevelopment.liveDoc.getSourceFromBrowser().done(function (text) {
+                    var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
                         doneSyncing = true;
-                        curDoc.releaseRef();
                     });
                 });
                 waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
                 
                 runs(function () {
-                    expect(fixSpaces(browserText)).toBe(fixSpaces(curText));
+                    expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
                 });
             });
         });
