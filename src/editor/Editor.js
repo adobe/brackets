@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var EditorManager    = require("editor/EditorManager");
+    var TextRange        = require("document/TextRange").TextRange;
     
     
     /**
@@ -194,6 +195,8 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @constructor
+     *
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the
@@ -219,6 +222,11 @@ define(function (require, exports, module) {
         // Attach to document: add ref & handlers
         this.document = document;
         document.addRef();
+        
+        if (range) {    // attach this first: want range updated before we process a change
+            this._visibleRange = new TextRange(document, range.startLine, range.endLine);
+        }
+        
         // store this-bound version of listeners so we can remove them later
         this._handleDocumentChange = this._handleDocumentChange.bind(this);
         this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
@@ -308,14 +316,13 @@ define(function (require, exports, module) {
             this._codeMirror.operation(function () {
                 var i;
                 for (i = 0; i < range.startLine; i++) {
-                    self.hideLine(i);
+                    self._hideLine(i);
                 }
                 var lineCount = self.lineCount();
                 for (i = range.endLine + 1; i < lineCount; i++) {
-                    self.hideLine(i);
+                    self._hideLine(i);
                 }
             });
-            this._visibleRange = range;
             this.setCursorPos(range.startLine, 0);
         }
 
@@ -340,6 +347,11 @@ define(function (require, exports, module) {
         $(this.document).off("change", this._handleDocumentChange);
         $(this.document).off("deleted", this._handleDocumentDeleted);
         
+        if (this._visibleRange) {   // TextRange also refs the Document
+            this._visibleRange.dispose();
+        }
+        
+        // If we're the Document's master editor, disconnecting from it has special meaning
         if (this.document._masterEditor === this) {
             this.document._makeNonEditable();
         }
@@ -363,56 +375,52 @@ define(function (require, exports, module) {
                           {line: endLine, ch: this.getLineText(endLine).length});
     };
     
-    Editor.prototype._applyChangesToEditor = function (editor, changeList) {
-        // FUTURE: Technically we should add a replaceRange() method to Document and go through
-        // that instead of talking to the given editor directly. However, we need to access
-        // a CodeMirror API to make sure that the edits get batched properly, and it's not clear
-        // that we want that exact API exposed in Document yet. So for now we just talk to
-        // the editor directly. Eventually we will factor this out into a model API once we 
-        // have an actual central model.
-        var cm = editor._codeMirror;
+    Editor.prototype._applyChanges = function (changeList) {
+        var self = this;
+        
+        // _visibleRange has already updated via its own Document listener. See if this change caused
+        // it to lose sync. If so, our whole view is stale - signal our owner to close us.
+        if (this._visibleRange) {
+            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
+                $(self).triggerHandler("lostContent");
+                return;
+            }
+        }
+        
+        // Apply text changes to CodeMirror editor
+        var cm = this._codeMirror;
         cm.operation(function () {
             var change, newText;
             for (change = changeList; change; change = change.next) {
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
                     if (change.from || change.to) {
-                        console.log("Editor._applyChangesToEditor(): Change record received with only one end undefined--replacing entire text");
+                        console.assert(false, "Change record received with only one end undefined--replacing entire text");
                     }
                     cm.setValue(newText);
-                    
-                    // The editor's visible range is no longer meaningful since the entire text was replaced.
-                    editor._visibleRange = null;
                 } else {
                     cm.replaceRange(newText, change.from, change.to);
-                    
-                    // If the editor is restricted to a specific visible range, update the visible range
-                    // end points if any content was added before them, and hide any new text that's outside
-                    // the visible range. Note that we don't rely on line handles for this since we
-                    // want to gracefully handle cases where the start or end line was deleted during a change.
-                    var range = editor._visibleRange;
-                    if (range) {
-                        var i, numAdded = change.text.length - (change.to.line - change.from.line + 1);
-                        // Edits that cross into the first line need to cause an adjustment, but edits that
-                        // are fully within the first line don't.
-                        if (change.from.line !== range.startLine && change.to.line <= range.startLine) {
-                            range.startLine += numAdded;
-                        }
-                        if (change.to.line <= range.endLine) {
-                            range.endLine += numAdded;
-                        }
-                        for (i = change.from.line; i < change.from.line + change.text.length; i++) {
-                            if (i < range.startLine || i > range.endLine) {
-                                editor.hideLine(i);
-                            }
-                        }
-                        //console.log("new visible range: " + editor._visibleRange.startLine + " - " + editor._visibleRange.endLine);
-                        // TODO: should double-check that the range of non-hidden lines after this matches up
-                        // with what we think _visibleRange is
-                    }
                 }
+                
             }
         });
+        
+        // The update above may have inserted new lines - must hide any that fall outside our range
+        if (self._visibleRange) {
+            cm.operation(function () {
+                // TODO: could make this more efficient by only iterating across the min-max line
+                // range of the union of all changes
+                var i;
+                for (i = 0; i < cm.lineCount(); i++) {
+                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
+                        self._hideLine(i);
+                    } else {
+                        // Double-check that the set of NON-hidden lines matches our range too
+                        console.assert(!cm.getLineHandle(i).hidden);
+                    }
+                }
+            });
+        }
     };
     
     /**
@@ -439,29 +447,25 @@ define(function (require, exports, module) {
             // we're not the ground truth; if we got here, this was a real editor change (not a
             // sync from the real ground truth), so we need to sync from us into the document
             // (which will directly push the change into the master editor).
+            // FUTURE: Technically we should add a replaceRange() method to Document and go through
+            // that instead of talking to its master editor directly. It's not clear yet exactly
+            // what the right Document API would be, though.
             this._duringSync = true;
-            this._applyChangesToEditor(this.document._masterEditor, changeList);
+            this.document._masterEditor._applyChanges(changeList);
             this._duringSync = false;
         }
         // Else, Master editor:
-        // we're the ground truth; nothing else to do, since everyone else will sync from us
+        // we're the ground truth; nothing else to do, since Document listens directly to us
         // note: this change might have been a real edit made by the user, OR this might have
         // been a change synced from another editor
         
         if (this._visibleRange) {
-            // We know all edits that happened in this editor must have been within the visible range. So
-            // all we need to do is adjust the end of the visible range to account for the total number of
-            // lines added/removed as the result of these edits.
-            // Since we're certain these changes are generated by CodeMirror, not Document, we don't have
-            // to check change.from/to for undefined.
-            var numAdded = 0, change;
-            for (change = changeList; change; change = change.next) {
-                numAdded += change.text.length - (change.to.line - change.from.line + 1);
+            // _visibleRange has already updated via its own Document listener, when we pushed our
+            // change into the Document above (_masterEditor._applyChanges()). But changes due to our
+            // own edits should never cause the range to lose sync - verify that.
+            if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
+                throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
             }
-            this._visibleRange.endLine += numAdded;
-            //console.log("new visible range: " + this._visibleRange.startLine + " - " + this._visibleRange.endLine);
-            // TODO: should double-check that the range of non-hidden lines after this matches up
-            // with what we think _visibleRange is
         }
     };
     
@@ -486,48 +490,8 @@ define(function (require, exports, module) {
             // we're not the ground truth; and if we got here, this was a Document change that
             // didn't come from us (e.g. a sync from another editor, a direct programmatic change
             // to the document, or a sync from external disk changes)... so sync from the Document
-            
-            // Special case: certain changes around the edges of the editor are problematic, because
-            // if they're undone, we'll be unable to determine how to fix up the range to include the
-            // undone content. (The "undo" will just look like an insertion outside our bounds.) So
-            // in those cases, we close the inline editor instead of trying to fix it up. The specific
-            // cases are:
-            // 1. Edit crosses the start boundary of the inline editor (defined as character 0 
-            //    of the first line).
-            // 2. Edit crosses the end boundary of the inline editor (defined as the newline at
-            //    the end of the last line).
-            // 3. Edit starts at the very beginning of the inline editor (defined as character 0 
-            //    of the first line) and crosses at least one newline.
-            if (this._visibleRange) {
-                var range = this._visibleRange, collapse;
-                for (change = changeList; change; change = change.next) {
-                    if (change.from === undefined || change.to === undefined) {
-                        // Entire document was deleted, assume the editorneeds to collapse.
-                        collapse = true;
-                    } else {
-                        collapse =
-                            // Case 1
-                            (change.from.line < range.startLine &&
-                                change.to.line >= range.startLine) ||
-    
-                            // Case 2
-                            (change.from.line <= range.endLine &&
-                                change.to.line > range.endLine) ||
-                            
-                            // Case 3
-                            (change.from.line === range.startLine &&
-                                change.from.ch === 0 &&
-                                change.to.line > change.from.line);
-                    }
-                    if (collapse) {
-                        $(this).triggerHandler("lostContent");
-                        return;
-                    }
-                }
-            }
-            
             this._duringSync = true;
-            this._applyChangesToEditor(this, changeList);
+            this._applyChanges(changeList);
             this._duringSync = false;
         }
         // Else, Master editor:
@@ -682,7 +646,7 @@ define(function (require, exports, module) {
     /* Hides the specified line number in the editor
      * @param {!number}
      */
-    Editor.prototype.hideLine = function (lineNumber) {
+    Editor.prototype._hideLine = function (lineNumber) {
         var value = this._codeMirror.hideLine(lineNumber);
         
         // when this line is hidden, notify all following inline widgets of a position change
@@ -920,7 +884,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * @type {{startLine: number, endLine: number}}
+     * @type {?TextRange}
      */
     Editor.prototype._visibleRange = null;
 

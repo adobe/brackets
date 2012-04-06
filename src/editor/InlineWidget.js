@@ -23,6 +23,7 @@ define(function (require, exports, module) {
             .append('<div class="shadow bottom"/>');
     }
     InlineWidget.prototype.htmlContent = null;
+    InlineWidget.prototype.$htmlContent = null;
     InlineWidget.prototype.height = 0;
     InlineWidget.prototype.id = null;
     InlineWidget.prototype.hostEditor = null;
