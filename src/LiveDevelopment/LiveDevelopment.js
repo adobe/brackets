@@ -276,7 +276,7 @@ define(function LiveDevelopment(require, exports, module) {
                 if (err === "CANCEL") {
                     return;
                 }
-                if (retryCount > 4) {
+                if (retryCount > 6) {
                     _setStatus(-1);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
