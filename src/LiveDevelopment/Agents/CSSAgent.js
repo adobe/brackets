@@ -54,10 +54,19 @@ define(function CSSAgent(require, exports, module) {
     /** Reload a CSS style sheet from a document
      * @param {Document} document
      */
-    function reloadDocument(doc) {
+    function reloadCSSForDocument(doc) {
         var style = styleForURL(doc.url);
         console.assert(style, "Style Sheet for document not loaded: " + doc.url);
         Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
+    }
+    
+    /** Empties a CSS style sheet given a document that has been deleted
+     * @param {Document} document
+     */
+    function clearCSSForDocument(doc) {
+        var style = styleForURL(doc.url);
+        console.assert(style, "Style Sheet for document not loaded: " + doc.url);
+        Inspector.CSS.setStyleSheetText(style.styleSheetId, "");
     }
 
     /** Initialize the agent */
@@ -75,7 +84,8 @@ define(function CSSAgent(require, exports, module) {
     // Export public functions
     exports.styleForURL = styleForURL;
     exports.getStylesheetURLs = getStylesheetURLs;
-    exports.reloadDocument = reloadDocument;
+    exports.reloadCSSForDocument = reloadCSSForDocument;
+    exports.clearCSSForDocument = clearCSSForDocument;
     exports.load = load;
     exports.unload = unload;
 });
