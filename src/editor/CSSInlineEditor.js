@@ -272,7 +272,7 @@ define(function (require, exports, module) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if (!$.contains(editorRoot, event.target) && !$.contains(this.$relatedContainer, event.target)) {
+        if (!$.contains(editorRoot, event.target) && this.$relatedContainer.find(event.target).length === 0) {
             childEditor.focus();
             if (event.pageY < editorPos.top) {
                 childEditor.setCursorPos(0, 0);
