@@ -16,46 +16,23 @@ define(function (require, exports, module) {
     
     var testPath = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-test-files"),
         testWindow,
-        initLiveDevelopmentWorkspace;
-        
+        allSpacesRE = /\s+/gi;
     
-    var _initLiveDevelopmentWorkspace = function (openFile, workingSet) {
-        var hostOpened = false,
-            err = false;
-        
-        workingSet = workingSet || [];
-        
-        SpecRunnerUtils.loadProjectInTestWindow(testPath);
-        
-        runs(function () {
-            workingSet.push(openFile);
-            SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                hostOpened = true;
-            }).fail(function () {
-                err = true;
-            });
-        });
-        
-        waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
-        
-        runs(function () {
-            LiveDevelopment.open();
-        });
-        waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
-    };
-    
-    var allSpacesRE = /\s+/gi;
+    function fixSpaces(str) {
+        return str.replace(allSpacesRE, " ");
+    }
 
     describe("Live Development", function () {
         
         beforeEach(function () {
-            initLiveDevelopmentWorkspace = _initLiveDevelopmentWorkspace.bind(this);
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                 testWindow          = w;
                 LiveDevelopment     = testWindow.brackets.test.LiveDevelopment;
                 Inspector           = testWindow.brackets.test.Inspector;
                 DocumentManager     = testWindow.brackets.test.DocumentManager;
             });
+            
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
         });
     
     
@@ -66,38 +43,93 @@ define(function (require, exports, module) {
         
         describe("CSS Editing", function () {
 
-            it("should establish a browser connection when a file is opened", function () {
-                runs(function () {
-                    initLiveDevelopmentWorkspace("simple1.html");
-                });
-                waitsFor(function () {return Inspector.connected(); }, "Waiting for browser", 10000);
+            it("should establish a browser connection for an opened html file", function () {
+                //verify we aren't currently connected
+                expect(Inspector.connected()).toBeFalsy();
                 
+                //open a file
+                var htmlOpened = false;
+                runs(function () {
+                    SpecRunnerUtils.openProjectFiles(["simple1.html"]).fail(function () {
+                        expect("Failed To Open").toBe("simple1.html");
+                    }).always(function () {
+                        htmlOpened = true;
+                    });
+                });
+                waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
+                
+                //start the connection
+                runs(function () {
+                    LiveDevelopment.open();
+                });
+                waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+ 
                 runs(function () {
                     expect(Inspector.connected()).toBeTruthy();
                 });
             });
             
+            it("should should not start a browser connection for an opened css file", function () {
+                //verify we aren't currently connected
+                expect(Inspector.connected()).toBeFalsy();
+                
+                //open a file
+                var opened = false;
+                runs(function () {
+                    SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
+                        expect("Failed To Open").toBe("simple1.css");
+                    }).always(function () {
+                        opened = true;
+                    });
+                });
+                waitsFor(function () { return opened; }, "FILE_OPEN timeout", 1000);
+                
+                //start the connection
+                runs(function () {
+                    LiveDevelopment.open();
+                });
+                
+                //we just need to wait an arbitrary time since we can't check for the connection to be true
+                waits(5000);
+ 
+                runs(function () {
+                    expect(Inspector.connected()).toBeFalsy();
+                });
+            });
+            
             it("should push changes through the browser connection", function () {
-                var doneOpening = false,
-                    doneSyncing = false,
-                    curDoc,
+                var curDoc,
                     curText,
                     browserText;
                 
+                //verify we aren't currently connected
+                expect(Inspector.connected()).toBeFalsy();
+                
+                var htmlOpened = false;
                 runs(function () {
-                    initLiveDevelopmentWorkspace("simple1.html");
+                    SpecRunnerUtils.openProjectFiles(["simple1.html"]).fail(function () {
+                        expect("Failed To Open").toBe("simple1.html");
+                    }).always(function () {
+                        htmlOpened = true;
+                    });
+                });
+                waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
+                
+                //start the connection
+                runs(function () {
+                    LiveDevelopment.open();
                 });
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
                 
+                var cssOpened = false;
                 runs(function () {
                     SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
-                        expect("Failed To Open File").toBe("opened");
+                        expect("Failed To Open").toBe("simple1.css");
                     }).always(function () {
-                        doneOpening = true;
+                        cssOpened = true;
                     });
                 });
-            
-                waitsFor(function () { return doneOpening; }, "FILE_OPEN timeout", 5000);
+                waitsFor(function () { return cssOpened; }, "cssOpened FILE_OPEN timeout", 1000);
                 
                 runs(function () {
                     curDoc =  DocumentManager.getCurrentDocument();
@@ -109,6 +141,7 @@ define(function (require, exports, module) {
                 //add a wait for the change to get pushed, then wait to get the result
                 waits(1000);
                 
+                var doneSyncing = false;
                 runs(function () {
                     curDoc.liveDevelopment.liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
@@ -116,11 +149,68 @@ define(function (require, exports, module) {
                         doneSyncing = true;
                     });
                 });
-                
                 waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
                 
                 runs(function () {
-                    expect(browserText.replace(allSpacesRE, " ")).toBe(curText.replace(allSpacesRE, " "));
+                    expect(fixSpaces(browserText)).toBe(fixSpaces(curText));
+                });
+            });
+            
+            it("should push in memory css changes made before the session starts", function () {
+                var curDoc,
+                    curText,
+                    browserText;
+                
+                //verify we aren't currently connected
+                expect(Inspector.connected()).toBeFalsy();
+                
+                var cssOpened = false;
+                runs(function () {
+                    SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
+                        expect("Failed To Open").toBe("simple1.css");
+                    }).always(function () {
+                        cssOpened = true;
+                    });
+                });
+                waitsFor(function () { return cssOpened; }, "cssOpened FILE_OPEN timeout", 1000);
+                
+                runs(function () {
+                    curDoc =  DocumentManager.getCurrentDocument();
+                    curText = curDoc.getText();
+                    curText += "\n .testClass { color:#090; }\n";
+                    curDoc.setText(curText);
+                    curDoc.addRef();
+                });
+                
+                var htmlOpened = false;
+                runs(function () {
+                    SpecRunnerUtils.openProjectFiles(["simple1.html"]).fail(function () {
+                        expect("Failed To Open").toBe("simple1.html");
+                    }).always(function () {
+                        htmlOpened = true;
+                    });
+                });
+                waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
+                
+                //start the connection
+                runs(function () {
+                    LiveDevelopment.open();
+                });
+                waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+                
+                var doneSyncing = false;
+                runs(function () {
+                    curDoc.liveDevelopment.liveDoc.getSourceFromBrowser().done(function (text) {
+                        browserText = text;
+                    }).always(function () {
+                        doneSyncing = true;
+                        curDoc.releaseRef();
+                    });
+                });
+                waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
+                
+                runs(function () {
+                    expect(fixSpaces(browserText)).toBe(fixSpaces(curText));
                 });
             });
         });
