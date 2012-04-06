@@ -49,6 +49,8 @@ define(function (require, exports, module) {
     function CSSInlineEditor(rules) {
         InlineTextEditor.call(this);
         
+        // Store the results to show in the rule list. This creates TextRanges bound to the Document,
+        // which will stay up to date automatically (but we must be sure to detach them later)
         this._rules = rules.map(function (ruleResult) {
             return new SearchResultItem(ruleResult);
         });
@@ -63,6 +65,7 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.$relatedContainer = null;
     CSSInlineEditor.prototype.$selectedMarker = null;
     
+    /** @type {Array.<SearchResultItem>} */
     CSSInlineEditor.prototype._rules = null;
     CSSInlineEditor.prototype._selectedRuleIndex = null;
 
@@ -140,6 +143,10 @@ define(function (require, exports, module) {
         this.$htmlContent.on("click", this._onClick);
     };
     
+    /**
+     * Creates the DOM node for the given SearchResultItem. Not parented anywhere yet.
+     * @return {jQueryObject}
+     */
     CSSInlineEditor.prototype.createListItem = function (rule, i) {
         var $ruleItem = $(document.createElement("li"));
         $ruleItem.text(rule.selector + " ");
@@ -314,13 +321,14 @@ define(function (require, exports, module) {
     };
 
     /**
-     * (only used by unit tests)
+     * @return {Array.<SearchResultItem>}
      */
     CSSInlineEditor.prototype.getRules = function () {
         return this._rules;
     };
 
     /**
+     * @return {!SearchResultItem}
      */
     CSSInlineEditor.prototype.getSelectedRule = function () {
         return this._rules[this._selectedRuleIndex];
