@@ -123,6 +123,19 @@ define(function LiveDevelopment(require, exports, module) {
         
         return null;
     }
+    
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        var index = _relatedDocuments.indexOf(liveDoc);
+        if (index !== -1) {
+            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+            _relatedDocuments.splice(index, 1);
+        }
+    }
 
     /** Close a live document */
     function _closeDocument() {
@@ -136,19 +149,6 @@ define(function LiveDevelopment(require, exports, module) {
                 $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
             });
             _relatedDocuments = undefined;
-        }
-    }
-    
-    /**
-     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
-     * given file is no longer associated with the HTML document that is live (e.g.
-     * if the related file has been deleted on disk).
-     */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
-        var index = _relatedDocuments.indexOf(liveDoc);
-        if (index !== -1) {
-            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
-            _relatedDocuments.splice(index, 1);
         }
     }
     
@@ -276,7 +276,7 @@ define(function LiveDevelopment(require, exports, module) {
                 if (err === "CANCEL") {
                     return;
                 }
-                if (retryCount > 4) {
+                if (retryCount > 6) {
                     _setStatus(-1);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
