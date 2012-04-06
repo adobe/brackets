@@ -93,8 +93,24 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
+    /* TODO: Support arbitrary widths with grabber
+        When the new theme lands with the CSS, potentially
+        adjust how this is done. */
+    function _handleHideSidebar() {
+        var currentWidth = $(".sidebar").width();
+        if (currentWidth > 0) {
+            $(".sidebar").width(0);
+            $("#menu-debug-hide-sidebar").text("Show Sidebar");
+        } else {
+            $(".sidebar").width(200);
+            $("#menu-debug-hide-sidebar").text("Hide Sidebar");
+        }
+        
+    }
+    
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
     CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
     CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
     CommandManager.register(Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
+    CommandManager.register(Commands.DEBUG_HIDE_SIDEBAR, _handleHideSidebar);
 });
