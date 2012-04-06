@@ -195,6 +195,8 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @constructor
+     *
      * Creates a new CodeMirror editor instance bound to the given Document. The Document need not have
      * a "master" Editor realized yet, even if makeMasterEditor is false; in that case, the first time
      * an edit occurs we will automatically ask EditorManager to create a "master" editor to render the

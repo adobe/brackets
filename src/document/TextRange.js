@@ -11,6 +11,8 @@ define(function (require, exports, module) {
     'use strict';
     
     /**
+     * @constructor
+     *
      * Stores a range of lines that is automatically maintained as the Document changes. The range
      * MAY drop out of sync with the Document in certain edge cases; startLint & endLine will become
      * null when that happens.
@@ -22,7 +24,7 @@ define(function (require, exports, module) {
      *  - change -- When the range changes (due to a Document change)
      *  - lostSync -- When the backing Document changes in such a way that the range can no longer
      *          accurately be maintained text. Generally, occurs whenever an edit spans a range
-     *          boundary.
+     *          boundary. After this, startLine & endLine will be unusable (set to null).
      * These events only ever occur in response to Document changes, so if you are already listening
      * to the Document, you could ignore the TextRange events and just read its updated value in your
      * own Document change handler.
@@ -42,6 +44,7 @@ define(function (require, exports, module) {
         $(document).on("change", this._handleDocumentChange);
     }
     
+    /** Detaches from the Document. The TextRange will no longer update or send change events */
     TextRange.prototype.dispose = function (editor, change) {
         // Disconnect from Document
         this.document.releaseRef();
@@ -51,9 +54,9 @@ define(function (require, exports, module) {
     
     /** @type {!Document} */
     TextRange.prototype.document = null;
-    /** @type {number} */
+    /** @type {?number} Null after "lostSync" is dispatched */
     TextRange.prototype.startLine = null;
-    /** @type {number} */
+    /** @type {?number} Null after "lostSync" is dispatched */
     TextRange.prototype.endLine = null;
     
     
@@ -115,6 +118,11 @@ define(function (require, exports, module) {
         }
     };
     
+    /**
+     * Updates the range based on the changeList from a Document "change" event. Dispatches a
+     * "change" event if the range was adjusted at all. Dispatches a "lostSync" event instead if the
+     * range can no longer be accurately maintained.
+     */
     TextRange.prototype._applyChangesToRange = function (changeList) {
         var hasChanged = false;
         var change;

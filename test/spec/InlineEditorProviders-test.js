@@ -694,6 +694,7 @@ define(function (require, exports, module) {
                     // undo is equivalent to deleting the first line in the range: shouldn't close the editor
                     fullEditor._codeMirror.undo();
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 
                 it("should insert new line within first line of range, and stay open on undo", function () {
@@ -709,6 +710,7 @@ define(function (require, exports, module) {
                     // the whole line; but deleting the first line still shouldn't close the editor
                     fullEditor._codeMirror.undo();
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 
                 it("should not close inline when undoing changes to first line in range that did not include newlines", function () {
@@ -844,16 +846,19 @@ define(function (require, exports, module) {
                     // delete all of first line in range
                     fullEditor._codeMirror.replaceRange("", start, middle);
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
                 });
                 it("should stay open when first line and following text deleted", function () {
                     // delete all of first line in range, plus some of the next line
                     fullEditor._codeMirror.replaceRange("", start, middleOfMiddle);
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
                 });
                 it("should stay open when first two lines deleted", function () {
                     // delete all of first two lines in range
                     fullEditor._codeMirror.replaceRange("", start, end);
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 2));
                 });
                 it("should close inline when last line entirely deleted", function () {
                     // delete all of last line in range

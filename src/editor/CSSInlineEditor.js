@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     
     
     /**
+     * @constructor
      * Stores one search result: its source file, line range, etc. plus the DOM node representing it
      * in the results list.
      */
