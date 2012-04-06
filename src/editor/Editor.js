@@ -30,7 +30,7 @@
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away).
+ *          eventually go away). 
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -566,6 +566,9 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onScroll", function (instance) {
             $(self).triggerHandler("scroll", [self]);
+        
+            // notify all following inline widgets of a position change
+            self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine());
         });
     };
     
@@ -679,7 +682,12 @@ define(function (require, exports, module) {
      * @param {!number}
      */
     Editor.prototype.hideLine = function (lineNumber) {
-        return this._codeMirror.hideLine(lineNumber);
+        var value = this._codeMirror.hideLine(lineNumber);
+        
+        // when this line is hidden, notify all following inline widgets of a position change
+        this._fireWidgetOffsetTopChanged(lineNumber);
+        
+        return value;
     };
 
     /**
@@ -721,6 +729,9 @@ define(function (require, exports, module) {
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
+        
+        // once this widget is added, notify all following inline widgets of a position change
+        this._fireWidgetOffsetTopChanged(pos.line);
     };
     
     /**
@@ -728,8 +739,13 @@ define(function (require, exports, module) {
      * @param {number} inlineWidget The widget to remove.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
+        var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+        
         // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
         this._codeMirror.removeInlineWidget(inlineWidget.id);
+        
+        // once this widget is removed, notify all following inline widgets of a position change
+        this._fireWidgetOffsetTopChanged(lineNum);
     };
     
     /**
@@ -762,9 +778,47 @@ define(function (require, exports, module) {
      * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
      */
     Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
+        var info = this._codeMirror.getInlineWidgetInfo(inlineWidget.id),
+            oldHeight = (info && info.height) || 0;
+        
         this._codeMirror.setInlineWidgetHeight(inlineWidget.id, height, ensureVisible);
+        
+        // update position for all following inline editors
+        if (oldHeight !== height) {
+            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+            this._fireWidgetOffsetTopChanged(lineNum);
+        }
     };
     
+    /**
+     * @private
+     * Get the starting line number for an inline widget.
+     * @param {!InlineWidget} inlineWidget 
+     * @return {number} The line number of the widget or -1 if not found.
+     */
+    Editor.prototype._getInlineWidgetLineNumber = function (inlineWidget) {
+        var info = this._codeMirror.getInlineWidgetInfo(inlineWidget.id);
+        return (info && info.line) || -1;
+    };
+    
+    /**
+     * @private
+     * Fire "offsetTopChanged" events when inline editor positions change due to
+     * height changes of other inline editors.
+     * @param {!InlineWidget} inlineWidget 
+     */
+    Editor.prototype._fireWidgetOffsetTopChanged = function (lineNum) {
+        var self = this,
+            otherLineNum;
+        
+        this.getInlineWidgets().forEach(function (other) {
+            otherLineNum = self._getInlineWidgetLineNumber(other);
+            
+            if (otherLineNum > lineNum) {
+                $(other).triggerHandler("offsetTopChanged");
+            }
+        });
+    };
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
