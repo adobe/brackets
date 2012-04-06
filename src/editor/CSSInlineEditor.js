@@ -285,7 +285,7 @@ define(function (require, exports, module) {
         // actually pushes out the width of the container, so we would end up continuously
         // growing the overall width.
         // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
-        var lineSpace = this.hostEditor.getLineSpaceElement(),
+        var lineSpace = this.hostEditor._getLineSpaceElement(),
             minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + $(lineSpace).width();
         this.$htmlContent.css("min-width", minWidth + "px");
     };
@@ -295,27 +295,29 @@ define(function (require, exports, module) {
      * scroll position of the host editor to ensure that the cursor is visible.
      */
     CSSInlineEditor.prototype._ensureCursorVisible = function () {
-        var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
-            lineSpaceOffset = $(this.editors[0].getLineSpaceElement()).offset(),
-            ruleListOffset = this.$relatedContainer.offset();
-        // If we're off the left-hand side, we just want to scroll it into view normally. But
-        // if we're underneath the rule list on the right, we want to ask the host editor to 
-        // scroll far enough that the current cursor position is visible to the left of the rule 
-        // list. (Because we always add extra padding for the rule list, this is always possible.)
-        if (cursorCoords.x > ruleListOffset.left) {
-            cursorCoords.x += this.$relatedContainer.outerWidth();
+        if ($.contains(this.editors[0].getRootElement(), document.activeElement)) {
+            var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
+                lineSpaceOffset = $(this.editors[0]._getLineSpaceElement()).offset(),
+                ruleListOffset = this.$relatedContainer.offset();
+            // If we're off the left-hand side, we just want to scroll it into view normally. But
+            // if we're underneath the rule list on the right, we want to ask the host editor to 
+            // scroll far enough that the current cursor position is visible to the left of the rule 
+            // list. (Because we always add extra padding for the rule list, this is always possible.)
+            if (cursorCoords.x > ruleListOffset.left) {
+                cursorCoords.x += this.$relatedContainer.outerWidth();
+            }
+            
+            // Vertically, we want to set the scroll position relative to the overall host editor, not
+            // the lineSpace of the widget itself. Also, we can't use the lineSpace here, because its top
+            // position just corresponds to whatever CodeMirror happens to have rendered at the top. So
+            // we need to figure out our position relative to the top of the virtual scroll area, which is
+            // the top of the actual scroller minus the scroll position.
+            var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
+            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
+                                                       cursorCoords.y - scrollerTop,
+                                                       cursorCoords.x - lineSpaceOffset.left,
+                                                       cursorCoords.yBot - scrollerTop);
         }
-        
-        // Vertically, we want to set the scroll position relative to the overall host editor, not
-        // the lineSpace of the widget itself. Also, we can't use the lineSpace here, because its top
-        // position just corresponds to whatever CodeMirror happens to have rendered at the top. So
-        // we need to figure out our position relative to the top of the virtual scroll area, which is
-        // the top of the actual scroller minus the scroll position.
-        var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
-        this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
-                                                   cursorCoords.y - scrollerTop,
-                                                   cursorCoords.x - lineSpaceOffset.left,
-                                                   cursorCoords.yBot - scrollerTop);
     };
 
     /**

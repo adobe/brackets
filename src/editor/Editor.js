@@ -722,7 +722,7 @@ define(function (require, exports, module) {
      * editors.
      * @returns {Object} The editor's lineSpace element.
      */
-    Editor.prototype.getLineSpaceElement = function () {
+    Editor.prototype._getLineSpaceElement = function () {
         var lineSpaceParent = $(".CodeMirror-lines", this.getScrollerElement()).get(0);
         return $(lineSpaceParent).children().get(0);
     };
