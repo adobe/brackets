@@ -40,12 +40,6 @@ define(function CSSDocumentModule(require, exports, module) {
     var CSSDocument = function CSSDocument(doc, editor, inspector) {
         this.doc = doc;
         
-        //add a backref to this
-        if (!doc.liveDevelopment) {
-            doc.liveDevelopment = {};
-        }
-        doc.liveDevelopment.liveDoc = this;
-        
         // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
         // how to deal with different editors pointing at the same document.
 /*
@@ -117,7 +111,6 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.close = function close() {
         $(this.doc).off("change", this.onChange);
         $(this.doc).off("deleted", this.onDeleted);
-        delete this.doc.liveDevelopment;
         this.doc.releaseRef();
 /*
         Inspector.off("HighlightAgent.highlight", this.onHighlight);

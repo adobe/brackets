@@ -123,6 +123,19 @@ define(function LiveDevelopment(require, exports, module) {
         
         return null;
     }
+    
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        var index = _relatedDocuments.indexOf(liveDoc);
+        if (index !== -1) {
+            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+            _relatedDocuments.splice(index, 1);
+        }
+    }
 
     /** Close a live document */
     function _closeDocument() {
@@ -136,19 +149,6 @@ define(function LiveDevelopment(require, exports, module) {
                 $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
             });
             _relatedDocuments = undefined;
-        }
-    }
-    
-    /**
-     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
-     * given file is no longer associated with the HTML document that is live (e.g.
-     * if the related file has been deleted on disk).
-     */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
-        var index = _relatedDocuments.indexOf(liveDoc);
-        if (index !== -1) {
-            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
-            _relatedDocuments.splice(index, 1);
         }
     }
     
@@ -368,6 +368,26 @@ define(function LiveDevelopment(require, exports, module) {
             setTimeout(open);
         }
     }
+    
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+        
+        return foundDoc;
+    }
 
     /** Hide any active highlighting */
     function hideHighlight() {
@@ -390,6 +410,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
+    exports.getLiveDocForPath = getLiveDocForPath;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
 });
