@@ -395,7 +395,7 @@ define(function (require, exports, module) {
                 newText = change.text.join('\n');
                 if (!change.from || !change.to) {
                     if (change.from || change.to) {
-                        console.log("Editor._applyChanges(): Change record received with only one end undefined--replacing entire text");
+                        console.assert(false, "Change record received with only one end undefined--replacing entire text");
                     }
                     cm.setValue(newText);
                 } else {
@@ -460,24 +460,12 @@ define(function (require, exports, module) {
         // been a change synced from another editor
         
         if (this._visibleRange) {
-            // Document change above already caused _visibleRange to update
-            // Check some assertions based on those results
+            // _visibleRange has already updated via its own Document listener, when we pushed our
+            // change into the Document above (_masterEditor._applChanges()). But changes due to our
+            // own edits should never cause the range to lose sync - verify that.
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
                 throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
-                
-            } else {
-                var change, newText;
-                for (change = changeList; change; change = change.next) {
-                    var i;
-                    for (i = change.from.line; i < change.from.line + change.text.length; i++) {
-                        if (i < editor._visibleRange.startLine || i > editor._visibleRange.endLine) {
-                            throw new Error(false, "ERROR: Typing in Editor should not affect lines outside its own _visibleRange");
-                        }
-                    }
-                }
             }
-            // TODO: should double-check that the range of non-hidden lines after this matches up
-            // with what we think _visibleRange is?
         }
     };
     

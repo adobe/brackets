@@ -892,6 +892,30 @@ define(function (require, exports, module) {
                 });
                 
             
+                it("should sync insertions with multiple change objects in one event", function () {
+                    // Insert two new lines: one at start of inline range, the other at the (newly
+                    // updated) end of range. The edits are batched into just one event (so the
+                    // event's changeList will have length 2); both new lines should be included in
+                    // the inline
+                    fullEditor._codeMirror.operation(function () {
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            start
+                        );
+                        // because the edit shifted everything down a line, 'after' is now pointing
+                        // at what 'end' used to point at (the "}" line)
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            after
+                        );
+                    });
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 2));
+                    
+                    // TODO: can't do our usual undo + re-check range test at the end, becuase of
+                    // marijnh/CodeMirror2 bug #487
+                });
+                
+                
                 it("should sync multiple edits between full and inline editors", function () {
                     var i,
                         editor,

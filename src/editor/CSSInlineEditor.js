@@ -104,15 +104,29 @@ define(function (require, exports, module) {
         
         // create rule list & add listeners for rule textrange changes
         this._rules.forEach(function (rule, i) {
-            self._rules[i].$listItem = self.createListItem(rule, i);
-            self._rules[i].$listItem.appendTo($ruleList);
+            // Create list item UI
+            var $ruleItem = $(document.createElement("li")).appendTo($ruleList);
+            $ruleItem.text(rule.selector + " ");
             
-            $(self._rules[i].textRange).on("change", function() {
-                var $updatedListItem = self.createListItem(rule, i);
-                self._rules[i].$listItem.replaceWith($updatedListItem);
-                self._rules[i].$listItem = $updatedListItem;
+            $ruleItem.click(function () {
+                self.setSelectedRule(i);
             });
-            $(self._rules[i].textRange).on("lostSync", function() {
+            
+            var $location = $(document.createElement("span")).appendTo($ruleItem);
+            $location.addClass("location");
+            $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
+
+            self._rules[i].$listItem = $ruleItem;
+            
+            // Update list item as TextRange changes
+            $(self._rules[i].textRange).on("change", function () {
+                $(".location", $ruleItem)
+                    .text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
+            });
+            
+            // If TextRange lost sync, react just as we do for an inline Editor's lostContent event:
+            // close the whole inline widget
+            $(self._rules[i].textRange).on("lostSync", function () {
                 self.close();
             });
         });
@@ -142,26 +156,6 @@ define(function (require, exports, module) {
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
     };
-    
-    /**
-     * Creates the DOM node for the given SearchResultItem. Not parented anywhere yet.
-     * @return {jQueryObject}
-     */
-    CSSInlineEditor.prototype.createListItem = function (rule, i) {
-        var $ruleItem = $(document.createElement("li"));
-        $ruleItem.text(rule.selector + " ");
-        
-        var self = this;
-        $ruleItem.click(function () {
-            self.setSelectedRule(i);
-        });
-        
-        var $location = $(document.createElement("span")).appendTo($ruleItem);
-        $location.addClass("location");
-        $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
-        
-        return $ruleItem;
-    }
 
     /**
      *
