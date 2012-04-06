@@ -30,7 +30,7 @@
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away).
+ *          eventually go away). 
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -333,7 +333,7 @@ define(function (require, exports, module) {
     Editor.prototype.destroy = function () {
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
-        $(this._codeMirror.getWrapperElement()).remove();
+        $(this.getRootElement()).remove();
         
         // Disconnect from Document
         this.document.releaseRef();
@@ -566,6 +566,9 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onScroll", function (instance) {
             $(self).triggerHandler("scroll", [self]);
+        
+            // notify all inline widgets of a position change
+            self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
     };
     
@@ -675,11 +678,17 @@ define(function (require, exports, module) {
         return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
     };
 
+    // FUTURE change to "hideLines()" API that hides a range of lines at once in a single operation, then fires offsetTopChanged afterwards.
     /* Hides the specified line number in the editor
      * @param {!number}
      */
     Editor.prototype.hideLine = function (lineNumber) {
-        return this._codeMirror.hideLine(lineNumber);
+        var value = this._codeMirror.hideLine(lineNumber);
+        
+        // when this line is hidden, notify all following inline widgets of a position change
+        this._fireWidgetOffsetTopChanged(lineNumber);
+        
+        return value;
     };
 
     /**
@@ -708,6 +717,25 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Gets the lineSpace element within the editor (the container around the individual lines of code).
+     * FUTURE: This is fairly CodeMirror-specific. Logic that depends on this may break if we switch
+     * editors.
+     * @returns {Object} The editor's lineSpace element.
+     */
+    Editor.prototype._getLineSpaceElement = function () {
+        var lineSpaceParent = $(".CodeMirror-lines", this.getScrollerElement()).get(0);
+        return $(lineSpaceParent).children().get(0);
+    };
+    
+    /**
+     * Returns the current scroll position of the editor.
+     * @returns {{x:number, y:number}} The x,y scroll position.
+     */
+    Editor.prototype.getScrollPos = function () {
+        return this._codeMirror.scrollPos();
+    };
+
+    /**
      * Adds an inline widget below the given line. If any inline widget was already open for that
      * line, it is closed without warning.
      * @param {!{line:number, ch:number}} pos  Position in text to anchor the inline.
@@ -721,6 +749,9 @@ define(function (require, exports, module) {
         });
         this._inlineWidgets.push(inlineWidget);
         inlineWidget.onAdded();
+        
+        // once this widget is added, notify all following inline widgets of a position change
+        this._fireWidgetOffsetTopChanged(pos.line);
     };
     
     /**
@@ -728,8 +759,13 @@ define(function (require, exports, module) {
      * @param {number} inlineWidget The widget to remove.
      */
     Editor.prototype.removeInlineWidget = function (inlineWidget) {
+        var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+        
         // _removeInlineWidgetInternal will get called from the destroy callback in CodeMirror.
         this._codeMirror.removeInlineWidget(inlineWidget.id);
+        
+        // once this widget is removed, notify all following inline widgets of a position change
+        this._fireWidgetOffsetTopChanged(lineNum);
     };
     
     /**
@@ -758,13 +794,51 @@ define(function (require, exports, module) {
     /**
      * Sets the height of an inline widget in this editor. 
      * @param {!InlineWidget} inlineWidget The widget whose height should be set.
-     * @param {!height} height The height of the widget.
+     * @param {!number} height The height of the widget.
      * @param {boolean} ensureVisible Whether to scroll the entire widget into view.
      */
     Editor.prototype.setInlineWidgetHeight = function (inlineWidget, height, ensureVisible) {
+        var info = this._codeMirror.getInlineWidgetInfo(inlineWidget.id),
+            oldHeight = (info && info.height) || 0;
+        
         this._codeMirror.setInlineWidgetHeight(inlineWidget.id, height, ensureVisible);
+        
+        // update position for all following inline editors
+        if (oldHeight !== height) {
+            var lineNum = this._getInlineWidgetLineNumber(inlineWidget);
+            this._fireWidgetOffsetTopChanged(lineNum);
+        }
     };
     
+    /**
+     * @private
+     * Get the starting line number for an inline widget.
+     * @param {!InlineWidget} inlineWidget 
+     * @return {number} The line number of the widget or -1 if not found.
+     */
+    Editor.prototype._getInlineWidgetLineNumber = function (inlineWidget) {
+        var info = this._codeMirror.getInlineWidgetInfo(inlineWidget.id);
+        return (info && info.line) || -1;
+    };
+    
+    /**
+     * @private
+     * Fire "offsetTopChanged" events when inline editor positions change due to
+     * height changes of other inline editors.
+     * @param {!InlineWidget} inlineWidget 
+     */
+    Editor.prototype._fireWidgetOffsetTopChanged = function (lineNum) {
+        var self = this,
+            otherLineNum;
+        
+        this.getInlineWidgets().forEach(function (other) {
+            otherLineNum = self._getInlineWidgetLineNumber(other);
+            
+            if (otherLineNum > lineNum) {
+                $(other).triggerHandler("offsetTopChanged");
+            }
+        });
+    };
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
@@ -774,7 +848,7 @@ define(function (require, exports, module) {
     /** Returns true if the editor has focus */
     Editor.prototype.hasFocus = function () {
         // The CodeMirror instance wrapper has a "CodeMirror-focused" class set when focused
-        return $(this._codeMirror.getWrapperElement()).hasClass("CodeMirror-focused");
+        return $(this.getRootElement()).hasClass("CodeMirror-focused");
     };
     
     /**
@@ -790,7 +864,7 @@ define(function (require, exports, module) {
      * @param {boolean} show true to show the editor, false to hide it
      */
     Editor.prototype.setVisible = function (show) {
-        $(this._codeMirror.getWrapperElement()).css("display", (show ? "" : "none"));
+        $(this.getRootElement()).css("display", (show ? "" : "none"));
         this._codeMirror.refresh();
         if (show) {
             this._inlineWidgets.forEach(function (inlineWidget) {
@@ -804,7 +878,7 @@ define(function (require, exports, module) {
      * visible, and has a non-zero width/height.
      */
     Editor.prototype.isFullyVisible = function () {
-        return $(this._codeMirror.getWrapperElement()).is(":visible");
+        return $(this.getRootElement()).is(":visible");
     };
     
     /**

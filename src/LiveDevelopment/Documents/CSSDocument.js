@@ -19,6 +19,12 @@
  * CSSDocument supports highlighting nodes from the HighlightAgent and
  * highlighting all DOMNode corresponding to the rule at the cursor position
  * in the editor.
+ *
+ * # EVENTS
+ *
+ * CSSDocument dispatches these events:
+ *  deleted - When the file for the underlying Document has been deleted. The
+ *      2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
     'use strict';
@@ -47,7 +53,9 @@ define(function CSSDocumentModule(require, exports, module) {
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
+        this.onDeleted = this.onDeleted.bind(this);
         $(this.doc).on("change", this.onChange);
+        $(this.doc).on("deleted", this.onDeleted);
 
 /*
         $(this.editor).on("cursorActivity", this.onCursorActivity);
@@ -65,13 +73,14 @@ define(function CSSDocumentModule(require, exports, module) {
         
         // If the CSS document is dirty, push the changes into the browser now
         if (doc.isDirty) {
-            CSSAgent.reloadDocument(this.doc);
+            CSSAgent.reloadCSSForDocument(this.doc);
         }
     };
 
     /** Close the document */
     CSSDocument.prototype.close = function close() {
         $(this.doc).off("change", this.onChange);
+        $(this.doc).off("deleted", this.onDeleted);
         this.doc.releaseRef();
 /*
         Inspector.off("HighlightAgent.highlight", this.onHighlight);
@@ -109,10 +118,19 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
-    /** Triggered on change of the editor */
+    /** Triggered whenever the Document is edited */
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
-        CSSAgent.reloadDocument(this.doc);
+        CSSAgent.reloadCSSForDocument(this.doc);
+    };
+    /** Triggered if the Document's file is deleted */
+    CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
+        // clear the CSS
+        CSSAgent.clearCSSForDocument(this.doc);
+        
+        // shut down, since our Document is now dead
+        this.close();
+        $(this).triggerHandler("deleted", [this]);
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */

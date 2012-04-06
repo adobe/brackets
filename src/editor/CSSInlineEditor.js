@@ -50,12 +50,12 @@ define(function (require, exports, module) {
         
         // Container to hold all editors
         var self = this,
-            hostScroller = hostEditor._codeMirror.getScrollerElement(),
             $ruleItem,
             $location;
 
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
+        this._ensureCursorVisible = this._ensureCursorVisible.bind(this);
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
@@ -63,9 +63,9 @@ define(function (require, exports, module) {
         
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
-        // Position immediately to the left of the main editor's scrollbar.
-        var rightOffset = $(document.body).outerWidth() - ($(hostScroller).offset().left + $(hostScroller).get(0).clientWidth);
-        this.$relatedContainer.css("right", rightOffset + "px");
+        this._relatedContainerInserted = false;
+        this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
+        this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
         this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
@@ -107,8 +107,12 @@ define(function (require, exports, module) {
         // editor, not general document changes.
         $(this.hostEditor).on("change", this._updateRelatedContainer);
         
-        // Listen to the editor's scroll event to reposition the relatedContainer.
-        $(this.hostEditor).on("scroll", this._updateRelatedContainer);
+        // Update relatedContainer when this widget's position changes
+        $(this).on("offsetTopChanged", this._updateRelatedContainer);
+        
+        // Listen to the window resize event to reposition the relatedContainer
+        // when the hostEditor's scrollbars visibility changes
+        $(window).on("resize", this._updateRelatedContainer);
         
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
@@ -157,6 +161,9 @@ define(function (require, exports, module) {
         // but in this case we're specifically concerned with changes in the given
         // editor, not general document changes.
         $(this.editors[0]).on("change", this._updateRelatedContainer);
+        
+        // Cursor activity in the inline editor may cause us to horizontally scroll.
+        $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
 
         
         this.editors[0].refresh();
@@ -200,7 +207,18 @@ define(function (require, exports, module) {
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("change", this._updateRelatedContainer);
-        $(this.hostEditor).off("scroll", this._updateRelatedContainer);
+        $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
+        $(this).off("offsetTopChanged", this._updateRelatedContainer);
+        $(window).off("resize", this._updateRelatedContainer);
+    };
+    
+    /**
+     * @private
+     * Set _relatedContainerInserted flag once the $relatedContainer is inserted in the DOM.
+     */
+    CSSInlineEditor.prototype._relatedContainerInsertedHandler = function () {
+        this.$relatedContainer.off("DOMNodeInserted", this._relatedContainerInsertedHandler);
+        this._relatedContainerInserted = true;
     };
     
     /**
@@ -232,17 +250,79 @@ define(function (require, exports, module) {
         
         // Because we're using position: fixed, we need to explicitly clip the rule list if it crosses
         // out of the top or bottom of the scroller area.
-        var hostScroller = this.hostEditor._codeMirror.getScrollerElement(),
+        var hostScroller = this.hostEditor.getScrollerElement(),
             rcTop = this.$relatedContainer.offset().top,
             rcHeight = this.$relatedContainer.outerHeight(),
             rcBottom = rcTop + rcHeight,
-            scrollerTop = $(hostScroller).offset().top,
-            scrollerBottom = scrollerTop + hostScroller.clientHeight;
+            scrollerOffset = $(hostScroller).offset(),
+            scrollerTop = scrollerOffset.top,
+            scrollerBottom = scrollerTop + hostScroller.clientHeight,
+            scrollerLeft = scrollerOffset.left,
+            rightOffset = $(document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
             this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
                                        (rcHeight - Math.max(rcBottom - scrollerBottom, 0)) + "px, auto)");
         } else {
             this.$relatedContainer.css("clip", "");
+        }
+        
+        // Constrain relatedContainer width to half of the scroller width
+        var relatedContainerWidth = this.$relatedContainer.width();
+        if (this._relatedContainerInserted) {
+            if (this._relatedContainerDefaultWidth === undefined) {
+                this._relatedContainerDefaultWidth = relatedContainerWidth;
+            }
+            
+            var halfWidth = Math.floor(hostScroller.clientWidth / 2);
+            relatedContainerWidth = Math.min(this._relatedContainerDefaultWidth, halfWidth);
+            this.$relatedContainer.width(relatedContainerWidth);
+        }
+        
+        // Position immediately to the left of the main editor's scrollbar.
+        this.$relatedContainer.css("right", rightOffset + "px");
+
+        // Add extra padding to the right edge of the widget to account for the rule list.
+        this.$htmlContent.css("padding-right", this.$relatedContainer.outerWidth() + "px");
+        
+        // Set the minimum width of the widget (which doesn't include the padding) to the width
+        // of CodeMirror's linespace, so that the total width will be at least as large as the
+        // width of the host editor's code plus the padding for the rule list. We need to do this
+        // rather than just setting min-width to 100% because adding padding for the rule list
+        // actually pushes out the width of the container, so we would end up continuously
+        // growing the overall width.
+        // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
+        var lineSpace = this.hostEditor._getLineSpaceElement(),
+            minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + $(lineSpace).width();
+        this.$htmlContent.css("min-width", minWidth + "px");
+    };
+    
+    /**
+     * Based on the position of the cursor in the inline editor, determine whether we need to change the
+     * scroll position of the host editor to ensure that the cursor is visible.
+     */
+    CSSInlineEditor.prototype._ensureCursorVisible = function () {
+        if ($.contains(this.editors[0].getRootElement(), document.activeElement)) {
+            var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
+                lineSpaceOffset = $(this.editors[0]._getLineSpaceElement()).offset(),
+                ruleListOffset = this.$relatedContainer.offset();
+            // If we're off the left-hand side, we just want to scroll it into view normally. But
+            // if we're underneath the rule list on the right, we want to ask the host editor to 
+            // scroll far enough that the current cursor position is visible to the left of the rule 
+            // list. (Because we always add extra padding for the rule list, this is always possible.)
+            if (cursorCoords.x > ruleListOffset.left) {
+                cursorCoords.x += this.$relatedContainer.outerWidth();
+            }
+            
+            // Vertically, we want to set the scroll position relative to the overall host editor, not
+            // the lineSpace of the widget itself. Also, we can't use the lineSpace here, because its top
+            // position just corresponds to whatever CodeMirror happens to have rendered at the top. So
+            // we need to figure out our position relative to the top of the virtual scroll area, which is
+            // the top of the actual scroller minus the scroll position.
+            var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
+            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
+                                                       cursorCoords.y - scrollerTop,
+                                                       cursorCoords.x - lineSpaceOffset.left,
+                                                       cursorCoords.yBot - scrollerTop);
         }
     };
 

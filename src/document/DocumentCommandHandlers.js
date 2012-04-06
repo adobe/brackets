@@ -338,6 +338,31 @@ define(function (require, exports, module) {
         );
     }
     
+    /**
+     * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
+     * in the Document.
+     * @param {Document} doc
+     * @return {$.Promise} a Promise that's resolved when done, or rejected with a FileError if the
+     *      file cannot be read (after showing an error dialog to the user).
+     */
+    function doRevert(doc) {
+        var result = new $.Deferred();
+        
+        FileUtils.readAsText(doc.file)
+            .done(function (text, readTimestamp) {
+                doc.refreshText(text, readTimestamp);
+                result.resolve();
+            })
+            .fail(function (error) {
+                FileUtils.showFileOpenError(error.code, doc.file.fullPath)
+                    .always(function () {
+                        result.reject(error);
+                    });
+            });
+        
+        return result.promise();
+    }
+    
 
     /**
      * Closes the specified file: removes it from the working set, and closes the main editor if one
@@ -395,6 +420,7 @@ define(function (require, exports, module) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
                 } else if (id === Dialogs.DIALOG_BTN_OK) {
+                    // "Save" case: wait until we confirm save has succeeded before closing
                     doSave(doc)
                         .done(function () {
                             doClose(file);
@@ -404,13 +430,18 @@ define(function (require, exports, module) {
                             result.reject();
                         });
                 } else {
-                    // This is the "Don't Save" case--we can just go ahead and close the file.
-                    // FUTURE: If other views of the Document will remain open, we need to revert the
-                    // Document to the clean content on disk. Currently secondary Editors all lose
-                    // sync & close if you refresh the whole doc's text, so we just fake this rather
-                    // than pointlessly load text from disk. See hack in Document._makeNonEditable().
+                    // "Don't Save" case: even though we're closing the main editor, other views of
+                    // the Document may remain in the UI. So we need to revert the Document to a clean
+                    // copy of whatever's on disk.
                     doClose(file);
-                    result.resolve();
+                    
+                    // Only reload from disk if other views still exist
+                    if (DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                        doRevert(doc)
+                            .pipe(result.resolve, result.reject);
+                    } else {
+                        result.resolve();
+                    }
                 }
             });
             result.always(function () {

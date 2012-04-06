@@ -38,7 +38,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _dirtyFlagChangeHandler(event, doc) {
-        var $dirtyIndicators = $(".inlineEditor .dirty-indicator"),
+        var $dirtyIndicators = $(".inlineEditorHolder .dirty-indicator"),
             $indicator;
         
         $.each($dirtyIndicators, function (index, indicator) {
