@@ -107,8 +107,8 @@ define(function (require, exports, module) {
         // editor, not general document changes.
         $(this.hostEditor).on("change", this._updateRelatedContainer);
         
-        // Listen to the editor's scroll event to reposition the relatedContainer.
-        $(this.hostEditor).on("scroll", this._updateRelatedContainer);
+        // Update relatedContainer when this widget's position changes
+        $(this).on("offsetTopChanged", this._updateRelatedContainer);
         
         // Listen to the window resize event to reposition the relatedContainer
         // when the hostEditor's scrollbars visibility changes
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
         $(this.hostEditor).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
-        $(this.hostEditor).off("scroll", this._updateRelatedContainer);
+        $(this).off("offsetTopChanged", this._updateRelatedContainer);
         $(window).off("resize", this._updateRelatedContainer);
     };
     
