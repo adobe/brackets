@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         this._rules.forEach(function (rule, i) {
             $ruleItem = $(document.createElement("li")).appendTo($ruleList);
             $ruleItem.text(rule.selector + " ");
-            $ruleItem.click(function () {
+            $ruleItem.mousedown(function () {
                 self.setSelectedRule(i);
             });
             
@@ -123,6 +123,10 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.setSelectedRule = function (index) {
         var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
         
+        if (newIndex === this._selectedRuleIndex) {
+            return;
+        }
+
         this._selectedRuleIndex = newIndex;
         var $ruleItem = this._ruleItems[this._selectedRuleIndex];
 
@@ -154,6 +158,8 @@ define(function (require, exports, module) {
         // editor, not general document changes.
         $(this.editors[0]).on("change", this._updateRelatedContainer);
 
+        
+        this.editors[0].refresh();
         this.sizeInlineWidgetToContents(true);
         this._updateRelatedContainer();
 
