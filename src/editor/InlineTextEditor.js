@@ -191,7 +191,6 @@ define(function (require, exports, module) {
         // create the filename div
         var wrapperDiv = document.createElement("div");
         var $wrapperDiv = $(wrapperDiv);
-        container.appendChild(wrapperDiv);
         
         // dirty indicator followed by filename
         var $filenameDiv = $(document.createElement("div")).addClass("filename");
@@ -211,6 +210,7 @@ define(function (require, exports, module) {
         
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
+        container.appendChild(wrapperDiv);
 
         // Size editor to content whenever it changes (via edits here or any other view of the doc)
         $(inlineInfo.editor).on("change", function () {
