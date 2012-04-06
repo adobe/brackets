@@ -217,13 +217,15 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Handle a click outside our child editor by setting focus back to it.
+     * Prevent clicks in the dead areas of the inlineWidget from changing the focus and insertion point in the editor.
+     * This is done by detecting clicks in the inlineWidget that are not inside the editor or the rule list and
+     * restoring focus and the insertion point.
      */
     CSSInlineEditor.prototype._onClick = function (event) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if (!$.contains(editorRoot, event.target)) {
+        if (!$.contains(editorRoot, event.target) && !$.contains(this.$relatedContainer, event.target)) {
             childEditor.focus();
             if (event.pageY < editorPos.top) {
                 childEditor.setCursorPos(0, 0);
