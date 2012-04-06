@@ -161,7 +161,8 @@ define(function (require, exports, module) {
         // Cursor activity in the inline editor may cause us to horizontally scroll.
         $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
 
-        this.sizeInlineWidgetToContents(true);
+        // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
+        this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
 
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
@@ -353,13 +354,15 @@ define(function (require, exports, module) {
     /**
      * Sizes the inline widget height to be the maximum between the rule list height and the editor height
      * @overide 
+     * @param {boolean} force the editor to resize
+     * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor when true
      */
-    CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
+    CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related rules list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
-        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, true);
+        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
 
         // The related rules container size itself based on htmlContent which is set by setInlineWidgetHeight above.
         this._updateRelatedContainer();
