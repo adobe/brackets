@@ -7,7 +7,7 @@
 
 define(function (require, exports, module) {
     'use strict';
-
+    
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         HTMLUtils           = require("language/HTMLUtils"),
@@ -50,21 +50,21 @@ define(function (require, exports, module) {
         
         // Container to hold all editors
         var self = this,
-            hostScroller = hostEditor._codeMirror.getScrollerElement(),
             $ruleItem,
             $location;
 
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
+        this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
         this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
         
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
-        // Position immediately to the left of the main editor's scrollbar.
-        var rightOffset = $(document.body).outerWidth() - ($(hostScroller).offset().left + $(hostScroller).get(0).clientWidth);
-        this.$relatedContainer.css("right", rightOffset + "px");
+        this._relatedContainerInserted = false;
+        this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
+        this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
         this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
@@ -106,8 +106,15 @@ define(function (require, exports, module) {
         // editor, not general document changes.
         $(this.hostEditor).on("change", this._updateRelatedContainer);
         
-        // Listen to the editor's scroll event to reposition the relatedContainer.
-        $(this.hostEditor).on("scroll", this._updateRelatedContainer);
+        // Update relatedContainer when this widget's position changes
+        $(this).on("offsetTopChanged", this._updateRelatedContainer);
+        
+        // Listen to the window resize event to reposition the relatedContainer
+        // when the hostEditor's scrollbars visibility changes
+        $(window).on("resize", this._updateRelatedContainer);
+        
+        // Listen for clicks directly on us, so we can set focus back to the editor
+        this.$htmlContent.on("click", this._onClick);
 
         return (new $.Deferred()).resolve();
     };
@@ -182,7 +189,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline is closed, whether manually (via closeThisInline()) or automatically
      */
     CSSInlineEditor.prototype.onClosed = function () {
         this.parentClass.onClosed.call(this); // super.onClosed()
@@ -190,7 +197,35 @@ define(function (require, exports, module) {
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("change", this._updateRelatedContainer);
-        $(this.hostEditor).off("scroll", this._updateRelatedContainer);
+        $(this).off("offsetTopChanged", this._updateRelatedContainer);
+        $(window).off("resize", this._updateRelatedContainer);
+    };
+    
+    /**
+     * @private
+     * Set _relatedContainerInserted flag once the $relatedContainer is inserted in the DOM.
+     */
+    CSSInlineEditor.prototype._relatedContainerInsertedHandler = function () {
+        this.$relatedContainer.off("DOMNodeInserted", this._relatedContainerInsertedHandler);
+        this._relatedContainerInserted = true;
+    };
+    
+    /**
+     * Handle a click outside our child editor by setting focus back to it.
+     */
+    CSSInlineEditor.prototype._onClick = function (event) {
+        var childEditor = this.editors[0],
+            editorRoot = childEditor.getRootElement(),
+            editorPos = $(editorRoot).offset();
+        if (!$.contains(editorRoot, event.target)) {
+            childEditor.focus();
+            if (event.pageY < editorPos.top) {
+                childEditor.setCursorPos(0, 0);
+            } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
+                var lastLine = childEditor.getLastVisibleLine();
+                childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+            }
+        }
     };
     
     /**
@@ -208,14 +243,32 @@ define(function (require, exports, module) {
             rcTop = this.$relatedContainer.offset().top,
             rcHeight = this.$relatedContainer.outerHeight(),
             rcBottom = rcTop + rcHeight,
-            scrollerTop = $(hostScroller).offset().top,
-            scrollerBottom = scrollerTop + hostScroller.clientHeight;
+            scrollerOffset = $(hostScroller).offset(),
+            scrollerTop = scrollerOffset.top,
+            scrollerBottom = scrollerTop + hostScroller.clientHeight,
+            scrollerLeft = scrollerOffset.left,
+            rightOffset = $(document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
             this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
                                        (rcHeight - Math.max(rcBottom - scrollerBottom, 0)) + "px, auto)");
         } else {
             this.$relatedContainer.css("clip", "");
         }
+        
+        // Constrain relatedContainer width to half of the scroller width
+        var relatedContainerWidth = this.$relatedContainer.width();
+        if (this._relatedContainerInserted) {
+            if (this._relatedContainerDefaultWidth === undefined) {
+                this._relatedContainerDefaultWidth = relatedContainerWidth;
+            }
+            
+            var halfWidth = Math.floor(hostScroller.clientWidth / 2);
+            relatedContainerWidth = Math.min(this._relatedContainerDefaultWidth, halfWidth);
+            this.$relatedContainer.width(relatedContainerWidth);
+        }
+        
+        // Position immediately to the left of the main editor's scrollbar.
+        this.$relatedContainer.css("right", rightOffset + "px");
     };
 
     /**
@@ -257,7 +310,7 @@ define(function (require, exports, module) {
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related rules list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
-        this.hostEditor.setInlineWidgetHeight(this.inlineId, widgetHeight, true);
+        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, true);
 
         // The related rules container size itself based on htmlContent which is set by setInlineWidgetHeight above.
         this._updateRelatedContainer();

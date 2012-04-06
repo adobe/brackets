@@ -164,9 +164,9 @@ define(function (require, exports, module) {
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      */
     function cancelModalDialogIfOpen(dlgClass) {
-        $("." + dlgClass + ".instance").each(function (dlg) {
-            if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog(dlg, DIALOG_CANCELED);
+        $("." + dlgClass + ".instance").each(function (index, dlg) {
+            if ($(dlg).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+                _dismissDialog($(dlg), DIALOG_CANCELED);
             }
         });
     }

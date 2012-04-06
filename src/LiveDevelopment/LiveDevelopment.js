@@ -133,8 +133,22 @@ define(function LiveDevelopment(require, exports, module) {
         if (_relatedDocuments) {
             _relatedDocuments.forEach(function (liveDoc) {
                 liveDoc.close();
+                $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
             });
             _relatedDocuments = undefined;
+        }
+    }
+    
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        var index = _relatedDocuments.indexOf(liveDoc);
+        if (index !== -1) {
+            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+            _relatedDocuments.splice(index, 1);
         }
     }
     
@@ -179,6 +193,7 @@ define(function LiveDevelopment(require, exports, module) {
                     var liveDoc = _createDocument(doc);
                     if (liveDoc) {
                         _relatedDocuments.push(liveDoc);
+                        $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
                     }
                 });
         });
@@ -252,7 +267,7 @@ define(function LiveDevelopment(require, exports, module) {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            if (doc.extension.indexOf('htm') !== 0) {
+            if (!doc.extension || doc.extension.indexOf('htm') !== 0) {
                 return;
             }
             
@@ -333,16 +348,18 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
         var doc = _getCurrentDocument();
+        if (!doc) {
+            return;
+        }
+        
         if (Inspector.connected()) {
-            if (!doc) {
-                close();
-            } else if (agents.network && agents.network.wasURLRequested(doc.url)) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension.indexOf('htm') === 0) {
+                if (doc.extension && doc.extension.indexOf('htm') === 0) {
                     close();
                     setTimeout(open);
                 }
