@@ -24,31 +24,35 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
+    // Load LiveDeveopment
+    require("LiveDevelopment/main");
     
     // Load dependent modules
-    var ProjectManager          = require("ProjectManager"),
-        DocumentManager         = require("DocumentManager"),
-        EditorManager           = require("EditorManager"),
-        InlineEditorProviders   = require("InlineEditorProviders"),
-        WorkingSetView          = require("WorkingSetView"),
-        FileCommandHandlers     = require("FileCommandHandlers"),
-        FileViewController      = require("FileViewController"),
-        FileSyncManager         = require("FileSyncManager"),
-        KeyBindingManager       = require("KeyBindingManager"),
-        KeyMap                  = require("KeyMap"),
-        Commands                = require("Commands"),
-        CommandManager          = require("CommandManager"),
-        CodeHintManager         = require("CodeHintManager"),
-        PerfUtils               = require("PerfUtils"),
-        FileIndexManager        = require("FileIndexManager"),
-        QuickFileOpen           = require("QuickFileOpen"),
-        Menus                   = require("Menus");
-    
+    var ProjectManager          = require("project/ProjectManager"),
+        DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
+        CSSInlineEditor         = require("editor/CSSInlineEditor"),
+        WorkingSetView          = require("project/WorkingSetView"),
+        DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
+        FileViewController      = require("project/FileViewController"),
+        FileSyncManager         = require("project/FileSyncManager"),
+        KeyBindingManager       = require("command/KeyBindingManager"),
+        KeyMap                  = require("command/KeyMap"),
+        Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        CodeHintManager         = require("editor/CodeHintManager"),
+        PerfUtils               = require("utils/PerfUtils"),
+        FileIndexManager        = require("project/FileIndexManager"),
+        QuickFileOpen           = require("search/QuickFileOpen"),
+        Menus                   = require("command/Menus"),
+        FileUtils               = require("file/FileUtils"),
+        ExtensionLoader         = require("utils/ExtensionLoader");
+        
     //Load modules the self-register and just need to get included in the main project
-    require("JSLint");
-    require("CodeHintManager");
-    require("DebugCommandHandlers");
-    require("FindInFiles");
+    require("language/JSLintUtils");
+    require("editor/CodeHintManager");
+    require("debug/DebugCommandHandlers");
+    require("search/FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
     //
@@ -70,17 +74,18 @@ define(function (require, exports, module) {
     // in the modules since they would run in context of the unit test window,
     // and would not have access to the app html/css.
     brackets.test = {
-        PreferencesManager      : require("PreferencesManager"),
+        PreferencesManager      : require("preferences/PreferencesManager"),
         ProjectManager          : ProjectManager,
-        FileCommandHandlers     : FileCommandHandlers,
+        DocumentCommandHandlers : DocumentCommandHandlers,
         FileViewController      : FileViewController,
         DocumentManager         : DocumentManager,
         EditorManager           : EditorManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
-        CommandManager          : require("CommandManager"),
+        CommandManager          : require("command/CommandManager"),
+        FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
-        CSSUtils                : require("CSSUtils")
+        CSSUtils                : require("language/CSSUtils")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
@@ -90,7 +95,7 @@ define(function (require, exports, module) {
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: (issue #266) load conditionally
-    brackets.shellAPI = require("ShellAPI");
+    brackets.shellAPI = require("utils/ShellAPI");
     
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
@@ -141,7 +146,7 @@ define(function (require, exports, module) {
         
         
         function initCommandHandlers() {
-            FileCommandHandlers.init($("#main-toolbar .title"));
+            DocumentCommandHandlers.init($("#main-toolbar .title"));
         }
 
         function initKeyBindings() {
@@ -184,9 +189,11 @@ define(function (require, exports, module) {
             });
         }
 
+        // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
+        $("body").addClass("platform-" + brackets.platform);
+
 
         EditorManager.setEditorHolder($('#editorHolder'));
-        InlineEditorProviders.init();
     
         initListeners();
         initProject();
@@ -194,7 +201,30 @@ define(function (require, exports, module) {
         initCommandHandlers();
         initKeyBindings();
         initWindowListeners();
-        
+
+        // Load extensions
+
+        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
+
+        // Loading extensions requires creating new require.js contexts, which requires access to the global 'require' object
+        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets object here so that 
+        // the ExtensionLoader doesn't have to have access to the global object.
+        brackets.libRequire = global.require;
+
+        // Also store our current require.js context (the one that loads brackets core modules) so that extensions can use it
+        // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
+        // modules. The extension will only be able to load modules that have already been loaded once.
+        brackets.getModule = require;
+
+        ExtensionLoader.loadAllExtensionsInNativeDirectory(
+            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default",
+            "extensions/default"
+        );
+        ExtensionLoader.loadAllExtensionsInNativeDirectory(
+            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
+            "extensions/user"
+        );
+
         PerfUtils.addMeasurement("Application Startup");
     });
     

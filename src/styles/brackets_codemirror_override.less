@@ -2,7 +2,14 @@
 
 .CodeMirror-scroll {
     background-color: @background-color-3;
-    .code-font();
+}
+
+.platform-mac .CodeMirror-scroll {
+    .code-font-mac();
+}
+
+.platform-win .CodeMirror-scroll {
+    .code-font-win();
 }
 
 .cm-s-default {
@@ -65,46 +72,8 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
     .CodeMirror.CodeMirror-focused div.CodeMirror-selected {
         background: #d2dcf8;
     }
-}
-
-.inlineCodeEditor {
-    .cm-s-default {
-        background-color: #F3F3F3;
-    }
-    .filename {
-        position: absolute;
-        #font > .sans-serif(normal, 12px, auto);
-        top: 0;
-        background: #FFF;
-        padding: 2px 6px 0 2px;
-        border: solid #C0C0C0;
-        border-width: 0px 1px 1px;
-        border-bottom-right-radius: 3px 5px;
-        border-bottom-left-radius: 3px 5px;
-        z-index: 11;
-        
-        .dirty-indicator {
-            .bracketSprite;
-            display: inline-block;
-            background-position: 0 0;
-            padding-top: 3px;
-        }
-    }
-    .shadow {
-        display: block;
-        height: 6px;
-        width: 100%;
-        position: absolute;
-        content: " ";
-        left: 0;
-        z-index: 10;
-    }
-    .shadow.top {
-        top: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
-    }
-    .shadow.bottom {
-        bottom: 0px;
-        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+    .CodeMirror .CodeMirror-gutter {
+        background: transparent;
+        border-right: none;
     }
 }
