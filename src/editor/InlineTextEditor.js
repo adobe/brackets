@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype = new InlineWidget();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
+    
     InlineTextEditor.prototype.editors = null;
 
    /**

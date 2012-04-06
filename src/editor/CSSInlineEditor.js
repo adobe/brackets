@@ -10,6 +10,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
+        TextRange           = require("document/TextRange").TextRange,
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
         EditorManager       = require("editor/EditorManager"),
@@ -24,6 +25,21 @@ define(function (require, exports, module) {
     function parseStyleSize($target, styleName) {
         return parseInt($target.css(styleName), 10);
     }
+    
+    
+    /**
+     * Stores one search result: its source file, line range, etc. plus the DOM node representing it
+     * in the results list.
+     */
+    function SearchResultItem(ruleResult) {
+        this.selector = ruleResult.selector;
+        this.textRange = new TextRange(ruleResult.document, ruleResult.lineStart, ruleResult.lineEnd);
+        // this.$listItem is assigned in load()
+    }
+    SearchResultItem.prototype.selector = null;
+    SearchResultItem.prototype.textRange = null;
+    SearchResultItem.prototype.$listItem = null;
+    
 
     /**
      * @constructor
@@ -31,14 +47,23 @@ define(function (require, exports, module) {
      */
     function CSSInlineEditor(rules) {
         InlineTextEditor.call(this);
-        this._rules = rules;
+        
+        this._rules = rules.map(function (ruleResult) {
+            return new SearchResultItem(ruleResult);
+        });
+        
         this._selectedRuleIndex = -1;
     }
     CSSInlineEditor.prototype = new InlineTextEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
     CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
+    
     CSSInlineEditor.prototype.$editorsDiv = null;
     CSSInlineEditor.prototype.$relatedContainer = null;
+    CSSInlineEditor.prototype.$selectedMarker = null;
+    
+    CSSInlineEditor.prototype._rules = null;
+    CSSInlineEditor.prototype._selectedRuleIndex = null;
 
     /** 
      * @override
@@ -51,7 +76,6 @@ define(function (require, exports, module) {
         // Container to hold all editors
         var self = this,
             hostScroller = hostEditor._codeMirror.getScrollerElement(),
-            $ruleItem,
             $location;
 
         // Bind event handlers
@@ -77,9 +101,8 @@ define(function (require, exports, module) {
         var $ruleList = $(document.createElement("ul")).appendTo($related);
         
         // create rule list
-        this._ruleItems = [];
         this._rules.forEach(function (rule, i) {
-            $ruleItem = $(document.createElement("li")).appendTo($ruleList);
+            var $ruleItem = $(document.createElement("li")).appendTo($ruleList);
             $ruleItem.text(rule.selector + " ");
             $ruleItem.click(function () {
                 self.setSelectedRule(i);
@@ -87,9 +110,9 @@ define(function (require, exports, module) {
             
             $location = $(document.createElement("span")).appendTo($ruleItem);
             $location.addClass("location");
-            $location.text(rule.document.file.name + ":" + (rule.lineStart + 1));
+            $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
             
-            self._ruleItems.push($ruleItem);
+            self._rules[i].$listItem = $ruleItem;
         });
         
         // select the first rule
@@ -112,8 +135,6 @@ define(function (require, exports, module) {
         
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
-
-        return (new $.Deferred()).resolve();
     };
 
     /**
@@ -124,9 +145,9 @@ define(function (require, exports, module) {
         var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
         
         this._selectedRuleIndex = newIndex;
-        var $ruleItem = this._ruleItems[this._selectedRuleIndex];
+        var $ruleItem = this._rules[this._selectedRuleIndex].$listItem;
 
-        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
+        $ruleItem.toggleClass("selected", true);
 
         // Remove previous editors
         this.editors.forEach(function (editor) {
@@ -145,7 +166,7 @@ define(function (require, exports, module) {
 
         // Add new editor
         var rule = this.getSelectedRule();
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0), extraKeys);
+        this.createInlineEditorFromText(rule.textRange.document, rule.textRange.startLine, rule.textRange.endLine, this.$editorsDiv.get(0), extraKeys);
         this.editors[0].focus();
 
         // Changes in size to the inline editor should update the relatedContainer
@@ -195,6 +216,11 @@ define(function (require, exports, module) {
         $(this.hostEditor).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("change", this._updateRelatedContainer);
         $(this.hostEditor).off("scroll", this._updateRelatedContainer);
+        
+        // de-ref all the Documents in the search results
+        this._rules.forEach(function (searchResult) {
+            searchResult.textRange.dispose();
+        });
     };
     
     /**
@@ -241,16 +267,13 @@ define(function (require, exports, module) {
     };
 
     /**
-     *
-     *
+     * (only used by unit tests)
      */
     CSSInlineEditor.prototype.getRules = function () {
         return this._rules;
     };
 
     /**
-     *
-     *
      */
     CSSInlineEditor.prototype.getSelectedRule = function () {
         return this._rules[this._selectedRuleIndex];
@@ -367,12 +390,9 @@ define(function (require, exports, module) {
             .done(function (rules) {
                 if (rules && rules.length > 0) {
                     var cssInlineEditor = new CSSInlineEditor(rules);
+                    cssInlineEditor.load(hostEditor);
                     
-                    cssInlineEditor.load(hostEditor).done(function () {
-                        result.resolve(cssInlineEditor);
-                    }).fail(function () {
-                        result.reject();
-                    });
+                    result.resolve(cssInlineEditor);
                 } else {
                     // No matching rules were found.
                     result.reject();

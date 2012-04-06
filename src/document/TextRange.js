@@ -11,22 +11,47 @@ define(function (require, exports, module) {
     'use strict';
     
     /**
+     * Stores a range of lines that is automatically maintained as the Document changes. The range
+     * MAY drop out of sync with the Document in certain edge cases; startLint & endLine will become
+     * null when that happens.
+     *
+     * Important: you must dispose() a TextRange when you're done with it. Because TextRange addRefs()
+     * the Document (in order to listen to it), you will leak Documents otherwise.
+     *
+     * @param {!Document} document
+     * @param {number} startLine First line in range (0-based, inclusive)
+     * @param {number} endLine   Last line in range (0-based, inclusive)
      */
     function TextRange(document, startLine, endLine) {
         this.startLine = startLine;
         this.endLine = endLine;
+        
+        this.document = document;
+        document.addRef();
+        // store this-bound version of listener so we can remove them later
+        this._handleDocumentChange = this._handleDocumentChange.bind(this);
+        $(document).on("change", this._handleDocumentChange);
     }
     
+    TextRange.prototype.dispose = function (editor, change) {
+        // Disconnect from Document
+        this.document.releaseRef();
+        $(this.document).off("change", this._handleDocumentChange);
+    };
+    
+    
+    /** @type {!Document} */
+    TextRange.prototype.document = null;
     /** @type {number} */
     TextRange.prototype.startLine = null;
     /** @type {number} */
     TextRange.prototype.endLine = null;
     
     
-    TextRange.prototype._applySingleChangeToRange = function (editor, change) {
-        console.log(this + " applying change to (" +
-                (change.from && (change.from.line+","+change.from.ch)) + " - " +
-                (change.to && (change.to.line+","+change.to.ch)) + ")");
+    TextRange.prototype._applySingleChangeToRange = function (change) {
+        // console.log(this + " applying change to (" +
+        //         (change.from && (change.from.line+","+change.from.ch)) + " - " +
+        //         (change.to && (change.to.line+","+change.to.ch)) + ")");
         
         // Special case: the range is no longer meaningful since the entire text was replaced
         if (!change.from || !change.to) {
@@ -66,14 +91,14 @@ define(function (require, exports, module) {
                 this.endLine += numAdded;
             }
             
-            console.log("Now " + this);
+            // console.log("Now " + this);
         }
-    }
+    };
     
-    TextRange.prototype._applyChangesToRange = function (editor, changeList) {
+    TextRange.prototype._applyChangesToRange = function (changeList) {
         var change;
         for (change = changeList; change; change = change.next) {
-            this._applySingleChangeToRange(editor, change);
+            this._applySingleChangeToRange(change);
             
             // If we lost sync with the range, just bail now
             if (this.startLine === null || this.endLine === null) {
@@ -82,12 +107,15 @@ define(function (require, exports, module) {
         }
     };
     
-    /* (pretty toString(), to aid debugging) */
-    TextRange.prototype.toString = function () {
-        return "[TextRange " + this.startLine + "-" + this.endLine + "]";
+    TextRange.prototype._handleDocumentChange = function (event, doc, changeList) {
+        this._applyChangesToRange(changeList);
     };
     
     
+    /* (pretty toString(), to aid debugging) */
+    TextRange.prototype.toString = function () {
+        return "[TextRange " + this.startLine + "-" + this.endLine + " in " + this.document + "]";
+    };
     
     
     // Define public API
