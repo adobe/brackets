@@ -75,8 +75,7 @@ define(function (require, exports, module) {
         
         // Container to hold all editors
         var self = this,
-            hostScroller = hostEditor._codeMirror.getScrollerElement(),
-            $location;
+            hostScroller = hostEditor._codeMirror.getScrollerElement();
 
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
@@ -100,19 +99,19 @@ define(function (require, exports, module) {
         // Rule list
         var $ruleList = $(document.createElement("ul")).appendTo($related);
         
-        // create rule list
+        // create rule list & add listeners for rule textrange changes
         this._rules.forEach(function (rule, i) {
-            var $ruleItem = $(document.createElement("li")).appendTo($ruleList);
-            $ruleItem.text(rule.selector + " ");
-            $ruleItem.click(function () {
-                self.setSelectedRule(i);
+            self._rules[i].$listItem = self.createListItem(rule, i);
+            self._rules[i].$listItem.appendTo($ruleList);
+            
+            $(self._rules[i].textRange).on("change", function() {
+                var $updatedListItem = self.createListItem(rule, i);
+                self._rules[i].$listItem.replaceWith($updatedListItem);
+                self._rules[i].$listItem = $updatedListItem;
             });
-            
-            $location = $(document.createElement("span")).appendTo($ruleItem);
-            $location.addClass("location");
-            $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
-            
-            self._rules[i].$listItem = $ruleItem;
+            $(self._rules[i].textRange).on("lostSync", function() {
+                self.close();
+            });
         });
         
         // select the first rule
@@ -136,6 +135,22 @@ define(function (require, exports, module) {
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
     };
+    
+    CSSInlineEditor.prototype.createListItem = function (rule, i) {
+        var $ruleItem = $(document.createElement("li"));
+        $ruleItem.text(rule.selector + " ");
+        
+        var self = this;
+        $ruleItem.click(function () {
+            self.setSelectedRule(i);
+        });
+        
+        var $location = $(document.createElement("span")).appendTo($ruleItem);
+        $location.addClass("location");
+        $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
+        
+        return $ruleItem;
+    }
 
     /**
      *

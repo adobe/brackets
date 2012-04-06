@@ -15,8 +15,17 @@ define(function (require, exports, module) {
      * MAY drop out of sync with the Document in certain edge cases; startLint & endLine will become
      * null when that happens.
      *
-     * Important: you must dispose() a TextRange when you're done with it. Because TextRange addRefs()
+     * Important: you must dispose() a TextRange when you're done with it. Because TextRange addRef()s
      * the Document (in order to listen to it), you will leak Documents otherwise.
+     *
+     * TextRange dispatches two events:
+     *  - change -- When the range changes (due to a Document change)
+     *  - lostSync -- When the backing Document changes in such a way that the range can no longer
+     *          accurately be maintained text. Generally, occurs whenever an edit spans a range
+     *          boundary.
+     * These events only ever occur in response to Document changes, so if you are already listening
+     * to the Document, you could ignore the TextRange events and just read its updated value in your
+     * own Document change handler.
      *
      * @param {!Document} document
      * @param {number} startLine First line in range (0-based, inclusive)
@@ -48,6 +57,10 @@ define(function (require, exports, module) {
     TextRange.prototype.endLine = null;
     
     
+    /**
+     * Applies a single Document change object (out of the linked list of multiple such objects)
+     * to this range. Returns true if the range was changed as a result.
+     */
     TextRange.prototype._applySingleChangeToRange = function (change) {
         // console.log(this + " applying change to (" +
         //         (change.from && (change.from.line+","+change.from.ch)) + " - " +
@@ -57,6 +70,7 @@ define(function (require, exports, module) {
         if (!change.from || !change.to) {
             this.startLine = null;
             this.endLine = null;
+            return true;
             
         // Special case: certain changes around the edges of the range are problematic, because
         // if they're undone, we'll be unable to determine how to fix up the range to include the
@@ -75,35 +89,47 @@ define(function (require, exports, module) {
                     (change.from.line <= this.endLine && change.to.line > this.endLine) ) {
             this.startLine = null;
             this.endLine = null;
+            return true;
             
         // Normal case: update the range end points if any content was added before them. Note that
         // we don't rely on line handles for this since we want to gracefully handle cases where the
         // start or end line was deleted during a change.
         } else {
             var numAdded = change.text.length - (change.to.line - change.from.line + 1);
+            var hasChanged = false;
             
             // Edits that cross into the first line need to cause an adjustment, but edits that
             // are fully within the first line don't.
             if (change.from.line !== this.startLine && change.to.line <= this.startLine) {
                 this.startLine += numAdded;
+                hasChanged = true;
             }
             if (change.to.line <= this.endLine) {
                 this.endLine += numAdded;
+                hasChanged = true;
             }
             
             // console.log("Now " + this);
+            
+            return hasChanged;
         }
     };
     
     TextRange.prototype._applyChangesToRange = function (changeList) {
+        var hasChanged = false;
         var change;
         for (change = changeList; change; change = change.next) {
-            this._applySingleChangeToRange(change);
+            hasChanged = hasChanged || this._applySingleChangeToRange(change);
             
             // If we lost sync with the range, just bail now
             if (this.startLine === null || this.endLine === null) {
+                $(this).triggerHandler("lostSync");
                 break;
             }
+        }
+        
+        if (hasChanged) {
+            $(this).triggerHandler("change");
         }
     };
     
