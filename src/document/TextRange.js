@@ -101,9 +101,9 @@ define(function (require, exports, module) {
             var numAdded = change.text.length - (change.to.line - change.from.line + 1);
             var hasChanged = false;
             
-            // Edits that cross into the first line need to cause an adjustment, but edits that
-            // are fully within the first line don't.
-            if (change.from.line < this.startLine) {
+            // This logic is so simple because we've already excluded all cases where the change
+            // crosses the range boundaries
+            if (change.to.line < this.startLine) {
                 this.startLine += numAdded;
                 hasChanged = true;
             }

@@ -461,7 +461,7 @@ define(function (require, exports, module) {
         
         if (this._visibleRange) {
             // _visibleRange has already updated via its own Document listener, when we pushed our
-            // change into the Document above (_masterEditor._applChanges()). But changes due to our
+            // change into the Document above (_masterEditor._applyChanges()). But changes due to our
             // own edits should never cause the range to lose sync - verify that.
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
                 throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");

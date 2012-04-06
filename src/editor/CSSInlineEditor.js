@@ -112,16 +112,15 @@ define(function (require, exports, module) {
                 self.setSelectedRule(i);
             });
             
-            var $location = $(document.createElement("span")).appendTo($ruleItem);
-            $location.addClass("location");
-            $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
+            var $location = $(document.createElement("span")).appendTo($ruleItem)
+                    .addClass("location")
+                    .text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
 
             self._rules[i].$listItem = $ruleItem;
             
             // Update list item as TextRange changes
             $(self._rules[i].textRange).on("change", function () {
-                $(".location", $ruleItem)
-                    .text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
+                $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
             });
             
             // If TextRange lost sync, react just as we do for an inline Editor's lostContent event:
