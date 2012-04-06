@@ -63,14 +63,15 @@ define(function (require, exports, module) {
                     });
                 });
                 waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
+                waits(100);
                 
                 //start the connection
                 runs(function () {
                     LiveDevelopment.open();
                 });
+                waits(10);
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
-                //once connected wait just a little more for the request
-                waits(100);
+                waits(150);
  
                 runs(function () {
                     expect(Inspector.connected()).toBeTruthy();
@@ -132,7 +133,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     LiveDevelopment.open();
                 });
+                waits(10);
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+                waits(100);
                 
                 var cssOpened = false;
                 runs(function () {
@@ -211,6 +214,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     LiveDevelopment.open();
                 });
+                waits(10);
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
                 
                 //wait again for the final changes to load
