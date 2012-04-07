@@ -71,17 +71,9 @@ define(function (require, exports, module) {
      * @private
      */
     function _syncGutterWidths(hostEditor) {
-        var inlines = EditorManager.getInlineEditors(hostEditor),
-            allHostedEditors = [];
+        var allHostedEditors = EditorManager.getInlineEditors(hostEditor);
         
-        // add all Editor instances of each InlineTextEditor
-        inlines.forEach(function (inline) {
-            if (inline instanceof InlineTextEditor) {
-                Array.push.apply(allHostedEditors, inline.editors);
-            }
-        });
-        
-        // add the host to the list and go through them all
+        // add the host itself to the list too
         allHostedEditors.push(hostEditor);
         
         var maxWidth = 0;
