@@ -184,8 +184,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Given a host editor, return a list of all its open inline Editors. (Ignoring any other
-     * inline widgets that might be open).
+     * Given a host editor, return a list of all Editors in all its open inline widgets. (Ignoring
+     * any other inline widgets that might be open but don't contain Editors).
      * @param {!Editor} hostEditor
      * @return {Array.<Editor>}
      *
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
         var inlineEditors = [];
         hostEditor.getInlineWidgets().forEach(function (widget) {
             if (widget instanceof InlineTextEditor) {
-                inlineEditors.concat(widget.editors);
+                inlineEditors = inlineEditors.concat(widget.editors);
             }
         });
         return inlineEditors;
