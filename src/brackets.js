@@ -87,7 +87,8 @@ define(function (require, exports, module) {
         FileIndexManager        : FileIndexManager,
         CSSUtils                : require("language/CSSUtils"),
         LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
-        Inspector               : require("LiveDevelopment/Inspector/Inspector")
+        Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+        NativeApp               : require("utils/NativeApp")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
