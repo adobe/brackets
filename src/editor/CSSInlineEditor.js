@@ -203,7 +203,8 @@ define(function (require, exports, module) {
 
         
         this.editors[0].refresh();
-        this.sizeInlineWidgetToContents(true);
+        // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
+        this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
 
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
@@ -263,19 +264,24 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Handle a click outside our child editor by setting focus back to it.
+     * Prevent clicks in the dead areas of the inlineWidget from changing the focus and insertion point in the editor.
+     * This is done by detecting clicks in the inlineWidget that are not inside the editor or the rule list and
+     * restoring focus and the insertion point.
      */
     CSSInlineEditor.prototype._onClick = function (event) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if (!$.contains(editorRoot, event.target)) {
+        if ($(editorRoot).find(event.target).length === 0) {
             childEditor.focus();
-            if (event.pageY < editorPos.top) {
-                childEditor.setCursorPos(0, 0);
-            } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
-                var lastLine = childEditor.getLastVisibleLine();
-                childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+            // Only set the cursor if the click isn't in the rule list.
+            if (this.$relatedContainer.find(event.target).length === 0) {
+                if (event.pageY < editorPos.top) {
+                    childEditor.setCursorPos(0, 0);
+                } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
+                    var lastLine = childEditor.getLastVisibleLine();
+                    childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+                }
             }
         }
     };
@@ -397,14 +403,16 @@ define(function (require, exports, module) {
 
     /**
      * Sizes the inline widget height to be the maximum between the rule list height and the editor height
-     * @overide 
+     * @override 
+     * @param {boolean} force the editor to resize
+     * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor. Default true.
      */
-    CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
+    CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related rules list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
-        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, true);
+        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
 
         // The related rules container size itself based on htmlContent which is set by setInlineWidgetHeight above.
         this._updateRelatedContainer();
