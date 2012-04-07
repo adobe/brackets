@@ -155,7 +155,9 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         // Set initial size
-        this.sizeInlineWidgetToContents();
+        // Note that the second argument here (ensureVisibility) is only used by CSSInlineEditor.
+        // FUTURE: Should clean up this API so it's consistent between the two.
+        this.sizeInlineWidgetToContents(true, true);
         
         this.editors[0].focus();
     };
