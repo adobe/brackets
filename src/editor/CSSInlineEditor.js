@@ -203,7 +203,7 @@ define(function (require, exports, module) {
 
         
         this.editors[0].refresh();
-		// ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a vie
+        // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
         this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
 
@@ -272,13 +272,16 @@ define(function (require, exports, module) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if (!$.contains(editorRoot, event.target) && this.$relatedContainer.find(event.target).length === 0) {
+        if ($(editorRoot).find(event.target).length === 0) {
             childEditor.focus();
-            if (event.pageY < editorPos.top) {
-                childEditor.setCursorPos(0, 0);
-            } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
-                var lastLine = childEditor.getLastVisibleLine();
-                childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+            // Only set the cursor if the click isn't in the rule list.
+            if (this.$relatedContainer.find(event.target).length === 0) {
+                if (event.pageY < editorPos.top) {
+                    childEditor.setCursorPos(0, 0);
+                } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
+                    var lastLine = childEditor.getLastVisibleLine();
+                    childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+                }
             }
         }
     };
@@ -400,9 +403,9 @@ define(function (require, exports, module) {
 
     /**
      * Sizes the inline widget height to be the maximum between the rule list height and the editor height
-     * @overide 
+     * @override 
      * @param {boolean} force the editor to resize
-     * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor when true
+     * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor. Default true.
      */
     CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
