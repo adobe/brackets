@@ -350,7 +350,7 @@ define(function (require, exports, module) {
             // if we're underneath the rule list on the right, we want to ask the host editor to 
             // scroll far enough that the current cursor position is visible to the left of the rule 
             // list. (Because we always add extra padding for the rule list, this is always possible.)
-            if (cursorCoords.x > ruleListOffset.left) {
+            if (cursorCoords.x >= ruleListOffset.left) {
                 cursorCoords.x += this.$relatedContainer.outerWidth();
             }
             
