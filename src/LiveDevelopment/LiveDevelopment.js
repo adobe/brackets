@@ -64,7 +64,8 @@ define(function LiveDevelopment(require, exports, module) {
         */
     };
 
-    var _liveDocument; // the live HTML document
+    var _htmlDocumentPath; // the path of the html file open for live development
+    var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
     /** Augments the given Brackets document with information that's useful for live development. */
@@ -303,8 +304,15 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
                 
                 if (!browserStarted && exports.status !== -1) {
+                    // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
+                    // is available, but the requested URL is not loaded in the browser. In that
+                    // case we want to launch the live browser (to open the url in a new tab)
+                    // without using the --remote-debugging-port flag. This works around issues
+                    // on Windows where Chrome can't be opened more than once with the
+                    // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url
+                        doc.root.url,
+                        err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
                             browserStarted = true;
@@ -359,9 +367,10 @@ define(function LiveDevelopment(require, exports, module) {
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension && doc.extension.indexOf('htm') === 0) {
+                if (doc.extension && doc.extension.indexOf('htm') === 0 && doc.file.fullPath !== _htmlDocumentPath) {
                     close();
                     setTimeout(open);
+                    _htmlDocumentPath = doc.file.fullPath;
                 }
             }
         } else if (exports.config.autoconnect) {
