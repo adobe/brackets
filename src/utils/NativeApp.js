@@ -26,10 +26,10 @@ define(function (require, exports, module) {
      * @param {string} url
      * @return {$.Promise} 
      */
-    function openLiveBrowser(url, successCallback, errorCallback) {
+    function openLiveBrowser(url, enableRemoteDebugging, successCallback, errorCallback) {
         var result = new $.Deferred();
         
-        brackets.app.openLiveBrowser(url, function onRun(err) {
+        brackets.app.openLiveBrowser(url, enableRemoteDebugging, function onRun(err) {
             if (!err) {
                 result.resolve();
             } else {
