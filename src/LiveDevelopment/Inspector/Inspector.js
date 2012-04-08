@@ -4,7 +4,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket */
+/*global define, $, WebSocket, FileError */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -287,7 +287,7 @@ define(function Inspector(require, exports, module) {
                     return;
                 }
             }
-            deferred.reject();
+            deferred.reject(FileError.ERR_NOT_FOUND); // Reject with a "not found" error
         });
         promise.fail(function onFail(err) {
             deferred.reject(err);
