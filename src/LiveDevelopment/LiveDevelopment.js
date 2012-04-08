@@ -304,8 +304,15 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
                 
                 if (!browserStarted && exports.status !== -1) {
+                    // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
+                    // is available, but the requested URL is not loaded in the browser. In that
+                    // case we want to launch the live browser (to open the url in a new tab)
+                    // without using the --remote-debugging-port flag. This works around issues
+                    // on Windows where Chrome can't be opened more than once with the
+                    // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url
+                        doc.root.url,
+                        err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
                             browserStarted = true;
