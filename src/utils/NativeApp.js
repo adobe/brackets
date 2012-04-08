@@ -31,10 +31,10 @@ define(function (require, exports, module) {
      * @param {string} url
      * @return {$.Promise} 
      */
-    function openLiveBrowser(url, enableRemoteDebugging, successCallback, errorCallback) {
+    function openLiveBrowser(url, enableRemoteDebugging) {
         var result = new $.Deferred();
         
-        brackets.app.openLiveBrowser(url, enableRemoteDebugging, function onRun(err) {
+        brackets.app.openLiveBrowser(url, enableRemoteDebugging, function onRun(err, pid) {
             if (!err) {
                 liveBrowserOpenedPIDs.push(pid);
                 result.resolve(pid);
