@@ -12,10 +12,13 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
+    
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 
     // Private Properties
     var preferencesKey,
+        preferenceDatas = {},
         callbacks = {}, /* associative array with clientID keys */
         prefStorage,
         persistentStorage,
@@ -40,6 +43,17 @@ define(function (require, exports, module) {
 
         // create a deep copy to return to the client
         return JSON.parse(JSON.stringify(prefs));
+    }
+    
+    function getPreferenceStorage(clientID) {
+        var clientStorage = preferenceDatas[clientID];
+        
+        if (!preferenceDatas) {
+            clientStorage = new PreferenceStorage(clientID, getPreferences(clientID));
+            preferenceDatas[clientID] = clientStorage;
+        }
+        
+        return clientStorage;
     }
 
     /**
@@ -96,6 +110,10 @@ define(function (require, exports, module) {
      * Save all preference clients.
      */
     function savePreferences() {
+        // TODO (jasonsj)
+        
+        $(exports).trigger("savePreferences");
+        
         var data,
             storage;
 
@@ -117,6 +135,11 @@ define(function (require, exports, module) {
             }
         });
 
+        saveToPersistentStorage();
+    }
+    
+    function savePreferenceData(preferenceData) {
+        prefStorage[preferenceData.clientID] = preferenceData._json;
         saveToPersistentStorage();
     }
 
@@ -167,6 +190,7 @@ define(function (require, exports, module) {
 
     // Public API
     exports.getPreferences          = getPreferences;
+    exports.getPreferenceStorage    = getPreferenceStorage;
     exports.addPreferencesClient    = addPreferencesClient;
     exports.savePreferences         = savePreferences;
 
