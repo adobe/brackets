@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         var eol = ctx.editor.getLine(ctx.pos.line).length;
         if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
             //move down a line
-            if (ctx.pos.line === ctx.editor.lineCount()) {
+            if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
                 return false; //at the bottom
             }
             ctx.pos.line++;
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
         //we're going to changing pos a lot, but we don't want to mess up
         //the pos the caller passed in so we use extend to make a safe copy of it.	
         //This is what pass by value in c++ would do.	
-        var pos = $.extend(constPos),
+        var pos = $.extend({}, constPos),
             ctx = _getInitialContext(editor._codeMirror, pos),
             offset = _offsetInToken(ctx),
             tagInfo,
@@ -335,6 +335,46 @@ define(function (require, exports, module) {
         return tagInfo;
     }
     
+    
+    /**
+     * Returns an Array of info about all <style> blocks in the given Editor's HTML document (assumes
+     * the Editor contains HTML text).
+     * @param {!Editor} editor
+     */
+    function findStyleBlocks(editor) {
+        // Start scanning from beginning of file
+        var ctx = _getInitialContext(editor._codeMirror, {line: 0, ch: 0});
+        
+        var styleBlocks = [];
+        var currentStyleBlock = null;
+        var inStyleBlock = false;
+        
+        while (_moveNextToken(ctx)) {
+            if (inStyleBlock) {
+                // Check for end of this <style> block
+                if (ctx.token.state.mode !== "css") {
+                    currentStyleBlock.text = editor._codeMirror.getRange(currentStyleBlock.start, currentStyleBlock.end);
+                    inStyleBlock = false;
+                } else {
+                    currentStyleBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
+                }
+            } else {
+                // Check for start of a <style> block
+                if (ctx.token.state.mode === "css") {
+                    currentStyleBlock = {
+                        start: { line: ctx.pos.line, ch: ctx.pos.ch }
+                    };
+                    styleBlocks.push(currentStyleBlock);
+                    inStyleBlock = true;
+                }
+                // else, random token in non-CSS content: ignore
+            }
+        }
+        
+        return styleBlocks;
+    }
+    
+    
     // Define public API
     exports.TAG_NAME = TAG_NAME;
     exports.ATTR_NAME = ATTR_NAME;
@@ -344,4 +384,5 @@ define(function (require, exports, module) {
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
     exports.createTagInfo = createTagInfo;
+    exports.findStyleBlocks = findStyleBlocks;
 });

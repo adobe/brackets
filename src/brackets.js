@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     var ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
-        InlineEditorProviders   = require("editor/InlineEditorProviders"),
+        CSSInlineEditor         = require("editor/CSSInlineEditor"),
         WorkingSetView          = require("project/WorkingSetView"),
         DocumentCommandHandlers = require("document/DocumentCommandHandlers"),
         FileViewController      = require("project/FileViewController"),
@@ -44,8 +44,10 @@ define(function (require, exports, module) {
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
         QuickFileOpen           = require("search/QuickFileOpen"),
-        Menus                   = require("command/Menus");
-    
+        Menus                   = require("command/Menus"),
+        FileUtils               = require("file/FileUtils"),
+        ExtensionLoader         = require("utils/ExtensionLoader");
+        
     //Load modules the self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
@@ -81,8 +83,12 @@ define(function (require, exports, module) {
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
         CommandManager          : require("command/CommandManager"),
+        FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
-        CSSUtils                : require("language/CSSUtils")
+        CSSUtils                : require("language/CSSUtils"),
+        LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+        Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+        NativeApp               : require("utils/NativeApp")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
@@ -191,7 +197,6 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
-        InlineEditorProviders.init();
     
         initListeners();
         initProject();
@@ -199,7 +204,30 @@ define(function (require, exports, module) {
         initCommandHandlers();
         initKeyBindings();
         initWindowListeners();
-        
+
+        // Load extensions
+
+        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
+
+        // Loading extensions requires creating new require.js contexts, which requires access to the global 'require' object
+        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets object here so that 
+        // the ExtensionLoader doesn't have to have access to the global object.
+        brackets.libRequire = global.require;
+
+        // Also store our current require.js context (the one that loads brackets core modules) so that extensions can use it
+        // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
+        // modules. The extension will only be able to load modules that have already been loaded once.
+        brackets.getModule = require;
+
+        ExtensionLoader.loadAllExtensionsInNativeDirectory(
+            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default",
+            "extensions/default"
+        );
+        ExtensionLoader.loadAllExtensionsInNativeDirectory(
+            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
+            "extensions/user"
+        );
+
         PerfUtils.addMeasurement("Application Startup");
     });
     

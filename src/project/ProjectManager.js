@@ -60,7 +60,7 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
-    $(FileViewController).on("documentSelectionFocusChange", function (event) {
+    var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
                 && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
@@ -79,8 +79,10 @@ define(function (require, exports, module) {
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
         }
-    });
-    
+    };
+
+    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+
     /**
      * Unique PreferencesManager clientID
      */
@@ -100,7 +102,7 @@ define(function (require, exports, module) {
      * Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
-        return (absPath.indexOf(_projectRoot.fullPath) === 0);
+        return (_projectRoot && absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath

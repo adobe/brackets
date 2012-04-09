@@ -13,6 +13,8 @@ define(function (require, exports, module) {
     
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
+        EditorManager       = require("editor/EditorManager"),
+        HTMLUtils           = require("language/HTMLUtils"),
         FileIndexManager    = require("project/FileIndexManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
 
@@ -21,8 +23,10 @@ define(function (require, exports, module) {
      * Returns an array of selectors. Each selector is an object with the following properties:
          selector:                 the text of the selector (note: comma separated selector groups like 
                                    "h1, h2" are broken into separate selectors)
-         line:                     line in the text where the selector appears
-         character:                column in the line where the selector starts
+         ruleStartLine:            line in the text where the rule (including preceding comment) appears
+         ruleStartChar:            column in the line where the rule (including preceding comment) starts
+         selectorStartLine:        line in the text where the selector appears
+         selectorStartChar:        column in the line where the selector starts
          selectorEndLine:          line where the selector ends
          selectorEndChar:          column where the selector ends
          selectorGroupStartLine:   line where the comma-separated selector group (e.g. .foo, .bar, .baz)
@@ -36,7 +40,7 @@ define(function (require, exports, module) {
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function extractAllSelectors(text) {
+    function _extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state = CodeMirror.startState(mode);
@@ -44,7 +48,9 @@ define(function (require, exports, module) {
         var lines = CodeMirror.splitLines(text);
         var lineCount = lines.length;
         
-        var currentSelector = "", currentPosition = -1, selectorStartLine;
+        var currentSelector = "";
+        var ruleStartChar = -1, ruleStartLine = -1;
+        var selectorStartChar = -1, selectorStartLine = -1;
         var token, style, stream, i, j;
 
         var inDeclList = false, inAtRule = false;
@@ -83,31 +89,43 @@ define(function (require, exports, module) {
                         // such as @media (which is handled elsewhere) @page,
                         // @keyframes (also -webkit-keyframes, etc.), and @font-face.
                         inAtRule = true;
-                        currentPosition = -1;  // reset so we don't get @rules following comments
+                        ruleStartLine = -1;  // reset so we don't get @rules following comments
+                        selectorStartChar = -1;
                         selectorGroupStartLine = -1;
                     } else {
                         // detect non-crlf whitespace, comments on same line as '}'
-                        if (currentPosition < 0 && (token.trim() !== "") &&
+                        if (ruleStartLine < 0 && (token.trim() !== "") &&
                                 !(style === "comment" && stream.start > 0 && lines[i].substr(0, stream.start).indexOf('}') !== -1)) {
                              
                             // start of a new selector, or comment above selector
+                            ruleStartChar = stream.start;
+                            ruleStartLine = i;
+                        }
+
+                        if (selectorStartChar < 0 && (token.trim() !== "") && style !== "comment") {
+                             
+                            // start of a new selector, or comment above selector
                             currentSelector = "";
-                            currentPosition = stream.start;
+                            selectorStartChar = stream.start;
                             selectorStartLine = i;
                             if (selectorGroupStartLine < 0) {
                                 // this is the start of a new comma-separated selector group
                                 // (whenever we start parsing a declaration list, we set selectorGroupStartLine to -1)
                                 selectorGroupStartLine = selectorStartLine;
-                                selectorGroupStartChar = currentPosition;
+                                selectorGroupStartChar = selectorStartChar;
                             }
                         }
-                        currentSelector += token;
+                        if (selectorStartChar !== -1) {
+                            currentSelector += token;
+                        }
                     }
                 } else { // we aren't parsing a selector
                     if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
                         selectors.push({selector: currentSelector.trim(),
-                                        line: selectorStartLine,
-                                        character: currentPosition,
+                                        ruleStartLine: ruleStartLine,
+                                        ruleStartChar: ruleStartChar,
+                                        selectorStartLine: selectorStartLine,
+                                        selectorStartChar: selectorStartChar,
                                         declListEndLine: -1,
                                         selectorEndLine: i,
                                         selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
@@ -116,18 +134,25 @@ define(function (require, exports, module) {
                                        });
                     }
                     currentSelector = "";
-                    currentPosition = -1;
+                    selectorStartChar = -1;
 
-                    if (!inDeclList && state.stack.indexOf("{") > -1) { // just started parsing a declaration list
-                        inDeclList = true;
-                        declListStartLine = i;
-                        declListStartChar = stream.start;
-
-                        // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
-                        // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
-                        selectorGroupStartLine = -1;
-                        selectorGroupStartChar = -1;
-
+                    if (!inDeclList) {
+                        if (state.stack.indexOf("{") > -1) { // just started parsing a declaration list
+                            inDeclList = true;
+                            declListStartLine = i;
+                            declListStartChar = stream.start;
+    
+                            // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
+                            // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
+                            selectorGroupStartLine = -1;
+                            selectorGroupStartChar = -1;
+                            ruleStartLine = -1;
+                            ruleStartChar = -1;
+                        } else if (token === "@media") {
+                            // ignore comments preceding @rules
+                            ruleStartLine = -1;
+                            ruleStartChar = -1;
+                        }
                     } else if (inDeclList && state.stack.indexOf("{") === -1) {  // just finished parsing a declaration list
                         inDeclList = false;
                         // assign this declaration list position to every selector on the stack that doesn't have a declaration list start and end line
@@ -183,11 +208,12 @@ define(function (require, exports, module) {
      *
      * @param text {!String} CSS text to search
      * @param selector {!String} selector to search for
-     * @return {Array.<{line:number, declListEndLine:number}>} Array of objects containing the start
-     *      and end line numbers (0-based, inclusive range) for each matched selector.
+     * @return {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>}
+     *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
+     *      matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = extractAllSelectors(text);
+        var allSelectors = _extractAllSelectors(text);
         var result = [];
         var i;
         
@@ -221,6 +247,82 @@ define(function (require, exports, module) {
         return result;
     }
     
+    
+    /**
+     * Converts the results of _findAllMatchingSelectorsInText() into a simpler bag of data and
+     * appends those new objects to the given 'resultSelectors' Array.
+     * @param {Array.<{document:Document, lineStart:number, lineEnd:number}>} resultSelectors
+     * @param {Array.<{selectorGroupStartLine:number, declListEndLine:number, selector:string}>} selectorsToAdd
+     * @param {!Document} sourceDoc
+     * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
+     *          of the parsed CSS text is not the first line of the sourceDoc.
+     */
+    function _addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
+        selectorsToAdd.forEach(function (selectorInfo) {
+            resultSelectors.push({
+                selector: selectorInfo.selector,
+                document: sourceDoc,
+                lineStart: selectorInfo.ruleStartLine + lineOffset,
+                lineEnd: selectorInfo.declListEndLine + lineOffset
+            });
+        });
+    }
+    
+    /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
+    function _findMatchingRulesInCSSFiles(selector, resultSelectors) {
+        var result          = new $.Deferred(),
+            cssFilesResult  = FileIndexManager.getFileInfoList("css");
+        
+        // Load one CSS file and search its contents
+        function _loadFileAndScan(fullPath, selector) {
+            var oneFileResult = new $.Deferred();
+            
+            DocumentManager.getDocumentForPath(fullPath)
+                .done(function (doc) {
+                    // Find all matching rules for the given CSS file's content, and add them to the
+                    // overall search result
+                    var oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector);
+                    _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
+                    
+                    oneFileResult.resolve();
+                })
+                .fail(function (error) {
+                    oneFileResult.reject(error);
+                });
+        
+            return oneFileResult.promise();
+        }
+        
+        // Load index of all CSS files; then process each CSS file in turn (see above)
+        cssFilesResult.done(function (fileInfos) {
+            Async.doInParallel(fileInfos, function (fileInfo, number) {
+                return _loadFileAndScan(fileInfo.fullPath, selector);
+            })
+                .pipe(result.resolve, result.reject);
+        });
+        
+        return result.promise();
+    }
+    
+    /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
+    function _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors) {
+        // HTMLUtils requires a real CodeMirror instance; make sure we can give it the right Editor
+        var htmlEditor = EditorManager.getCurrentFullEditor();
+        if (htmlEditor.document !== htmlDocument) {
+            console.error("Cannot search for <style> blocks in HTML file other than current editor");
+            return;
+        }
+        
+        // Find all <style> blocks in the HTML file
+        var styleBlocks = HTMLUtils.findStyleBlocks(htmlEditor);
+        
+        styleBlocks.forEach(function (styleBlockInfo) {
+            // Search this one <style> block's content, appending results to 'resultSelectors'
+            var oneStyleBlockMatches = _findAllMatchingSelectorsInText(styleBlockInfo.text, selector);
+            _addSelectorsToResults(resultSelectors, oneStyleBlockMatches, htmlDocument, styleBlockInfo.start.line);
+        });
+    }
+    
     /**
      * Return all rules matching the specified selector.
      * For Sprint 4, we only look at the rightmost simple selector. For example, searching for ".foo" will 
@@ -238,55 +340,35 @@ define(function (require, exports, module) {
      *  .foo.bar {}
      *
      * @param {!String} selector The selector to match. This can be a tag selector, class selector or id selector
+     * @param {?Document} htmlDocument An HTML file for context (so we can search <style> blocks)
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching declaration list.
      *      Does not addRef() the documents returned in the array.
      */
-    function findMatchingRules(selector) {
+    function findMatchingRules(selector, htmlDocument) {
         var result          = new $.Deferred(),
             cssFilesResult  = FileIndexManager.getFileInfoList("css"),
-            selectors       = [];
+            resultSelectors = [];
         
-        function _loadFileAndScan(fullPath, selector) {
-            var result = new $.Deferred();
-            
-            DocumentManager.getDocumentForPath(fullPath)
-                .done(function (doc) {
-                    var localResults = _findAllMatchingSelectorsInText(doc.getText(), selector);
-                    
-                    localResults.forEach(function (value) {
-                        selectors.push({
-                            document: doc,
-                            lineStart: value.selectorGroupStartLine,
-                            lineEnd: value.declListEndLine
-                        });
-                    });
-                    result.resolve();
-                })
-                .fail(function (error) {
-                    result.reject(error);
-                });
-        
-            return result.promise();
+        // Synchronously search for matches in <style> blocks
+        if (htmlDocument) {
+            _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors);
         }
         
-        cssFilesResult.done(function (fileInfos) {
-            Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _loadFileAndScan(fileInfo.fullPath, selector);
+        // Asynchronously search for matches in all the project's CSS files
+        // (results are appended together in same 'resultSelectors' array)
+        _findMatchingRulesInCSSFiles(selector, resultSelectors)
+            .done(function () {
+                result.resolve(resultSelectors);
             })
-                .done(function () {
-                    result.resolve(selectors);
-                })
-                .fail(function (error) {
-                    console.log("Error reading CSS files.");
-                    result.reject(error);
-                });
-        });
+            .fail(function (error) {
+                result.reject(error);
+            });
         
         return result.promise();
     }
     
+    
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
-    exports.extractAllSelectors = extractAllSelectors;
 });

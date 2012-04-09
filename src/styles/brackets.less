@@ -318,14 +318,97 @@ a, img {
 }
 
 /* Styles for inline editors */
-.inlineCodeEditor {
-    border-top:    1px solid #C0C0C0;
-    border-bottom: 1px solid #C0C0C0;
+.InlineWidget {
+    border-top:         1px solid #C0C0C0;
+    border-bottom:      1px solid #C0C0C0;
+    background-color:   #eaeaea;
+    
+    .filename {
+        font-family: sans-serif;
+        font-size: 14px;
+        color: #656565;
+        padding: 10px 10px 0px 10px;
+        
+        .dirty-indicator {
+            .bracketSprite;
+            display: inline-block;
+            background-position: 0 0;
+            padding-top: 3px;
+        }
+    }
+    .shadow {
+        display: block;
+        height: 6px;
+        width: 100%;
+        position: absolute;
+        content: " ";
+        left: 0;
+        z-index: 10;
+    }
+    .shadow.top {
+        top: 0px;
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
+    }
+    .shadow.bottom {
+        bottom: -1px;
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
+    }
+    
+    .CodeMirror-scroll {
+        /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
+        overflow-x: hidden;
+        background-color: transparent;
+    }
 }
 
-.inlineCodeEditor .CodeMirror-scroll {
-    /* Don't show horizontal scrollbars within an inline editor--we want to scroll the outer editor */
-    overflow-x: hidden;
+.relatedContainer {
+    /*width: 0;*/
+    font-family: sans-serif;
+    position: fixed;
+    width: 250px;
+    overflow: auto;
+    /*-webkit-transition: width 0.15s ease-out;*/
+    background: #f2f2f2;
+    border-left: 1px solid #ccc;
+    box-shadow: -1px 0 0 0 #fff;
+    
+    @top-margin: 12px;
+        
+    .selection {
+        display: block;
+        width: 100%;
+        background: #e6e6e6;
+        position: absolute;
+        -webkit-transition: height 0.1s ease-out;
+        -webkit-transition: top 0.1s ease-out;
+        border-top: 1px solid #d6d6d6;
+        border-bottom: 1px solid #d6d6d6;
+        box-shadow: 0 1px 0 #fff;
+        top: @top-margin;
+    }
+    
+    .related {
+        position: absolute;
+        top: 0;
+        left: 1px;
+        font-size: 12px;
+        
+        ul {
+            margin: 0;
+            padding: @top-margin 0px;
+            list-style: none;
+            color: #656565;
+            
+            li {
+                padding: 0px 15px;
+                white-space: nowrap;
+            }
+            
+            .location {
+                color: #acacac;
+            }
+        }
+    }
 }
 
 /* Styles for the search dialog--this is temporary, only for debugging */

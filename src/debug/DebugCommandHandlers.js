@@ -11,7 +11,8 @@ define(function (require, exports, module) {
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         JSLintUtils             = require("language/JSLintUtils"),
-        PerfUtils               = require("utils/PerfUtils");
+        PerfUtils               = require("utils/PerfUtils"),
+        NativeApp               = require("utils/NativeApp");
     
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
@@ -93,8 +94,31 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
+    /* TODO: Support arbitrary widths with grabber
+        When the new theme lands with the CSS, potentially
+        adjust how this is done. */
+    function _handleHideSidebar() {
+        var currentWidth = $(".sidebar").width();
+        if (currentWidth > 0) {
+            $(".sidebar").width(0);
+            $("#menu-debug-hide-sidebar").text("Show Sidebar");
+        } else {
+            $(".sidebar").width(200);
+            $("#menu-debug-hide-sidebar").text("Hide Sidebar");
+        }
+        
+    }
+    
+    function _handleCloseAllLiveBrowsers() {
+        NativeApp.closeAllLiveBrowsers().always(function () {
+            console.log("all live browsers closed");
+        });
+    }
+    
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
     CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
     CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
     CommandManager.register(Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
+    CommandManager.register(Commands.DEBUG_HIDE_SIDEBAR, _handleHideSidebar);
+    CommandManager.register(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
 });

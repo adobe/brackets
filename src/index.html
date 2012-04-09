@@ -60,6 +60,8 @@
                         </li>
                         <li><a href="#" id="menu-debug-show-perf">Show Perf Data</a></li>
                         <li><a href="#" id="menu-debug-new-brackets-window">New Window</a></li>
+                        <li><a href="#" id="menu-debug-hide-sidebar">Hide Sidebar</a></li>
+                        <li><a href="#" id="menu-debug-close-all-live-browsers">Close Browsers</a></li>
                     </ul>
                 </li>
             </ul>
@@ -186,6 +188,18 @@
         <div class="modal-footer">
             <a href="#" class="dialog-button btn left" data-button-id="dontsave">Close (Don't Save)</a>
             <a href="#" class="dialog-button btn primary" data-button-id="cancel">Keep Changes in Editor</a>
+        </div>
+    </div>
+    <div class="live-development-error-dialog template modal hide">
+        <div class="modal-header">
+            <h3 class="dialog-title">Title goes here</h3>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="cancel">Cancel</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Relaunch Chrome</a>
         </div>
     </div>
     

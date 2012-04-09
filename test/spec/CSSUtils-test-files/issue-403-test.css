@@ -1,0 +1,13 @@
+#ruleBeforeIssue403 {
+    color: red;
+}
+
+/* comment before rule - include */
+#issue403 {
+    color: green;
+}
+/* comment after rule - exclude */
+
+#ruleAfterIssue403 {
+    color: red;
+}

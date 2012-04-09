@@ -121,7 +121,7 @@ define(function (require, exports, module) {
                 
                     runs(function () {
                         expect(error).toBe(brackets.fs.ERR_CANT_READ);
-                    });                    
+                    });
                 }
 
             });
