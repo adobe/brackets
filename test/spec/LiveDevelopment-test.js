@@ -151,6 +151,9 @@ define(function (require, exports, module) {
                 });
                 waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
                 
+                // Wait for the file and its stylesheets to fully load (and be communicated back).
+                waits(1000);
+                
                 var cssOpened = false;
                 runs(function () {
                     SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
@@ -169,7 +172,7 @@ define(function (require, exports, module) {
                 });
                 
                 //add a wait for the change to get pushed, then wait to get the result
-                waits(350);
+                waits(1000);
                 
                 var doneSyncing = false;
                 runs(function () {
