@@ -156,7 +156,26 @@ define(function (require, exports, module) {
 
         return handled;
     }
-    
+
+    /**
+     * @private
+     * Deletes the current line if there is no selection or the lines for the selection
+     * (removing the end of line too)
+     * @param {!CodeMirror} instance CodeMirror instance
+     */
+    function _deleteCurrentLines(instance) {
+        var _from, _to, _sel;
+        _sel = instance.getCursor(true);
+        _from = {line: _sel.line, ch: 0};
+        _sel = instance.getCursor(false);
+        _to = {line: _sel.line + 1, ch: 0};
+        if (instance.lineCount() === _to.line && _from.line > 0) {
+            _from.line -= 1;
+            _from.ch = instance.getLine(_from.line).length;
+        }
+        instance.replaceRange("", _from, _to);
+    }
+
     /**
      * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
      * back-indenting it if so.
@@ -273,7 +292,10 @@ define(function (require, exports, module) {
             "Ctrl-H": "replace",
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste"
+            "Shift-Insert": "paste",
+            "Ctrl-L": function (instance) {
+                _deleteCurrentLines(instance);
+            }
         };
         
         EditorManager.mergeExtraKeys(self, codeMirrorKeyMap, additionalKeys);
