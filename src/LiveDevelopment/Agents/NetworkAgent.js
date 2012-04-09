@@ -32,7 +32,7 @@ define(function NetworkAgent(require, exports, module) {
      * @param {string} url
      */
     function wasURLRequested(url) {
-        return _urlRequested[url];
+        return _urlRequested && _urlRequested[url];
     }
 
     // WebInspector Event: Network.requestWillBeSent

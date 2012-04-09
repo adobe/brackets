@@ -54,6 +54,10 @@ define(function (require, exports, module) {
         $("#menu-debug-hide-sidebar").click(function () {
             CommandManager.execute(Commands.DEBUG_HIDE_SIDEBAR);
         });
+        
+        $("#menu-debug-close-all-live-browsers").click(function () {
+            CommandManager.execute(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
+        });
     }
 
     // Define public API
