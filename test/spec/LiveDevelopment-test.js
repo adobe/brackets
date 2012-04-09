@@ -95,6 +95,9 @@ define(function (require, exports, module) {
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
                     //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
                 });
+                
+                // Let things settle down before trying to close the connection.
+                waits(1000);
             });
             
             it("should should not start a browser connection for an opened css file", function () {
