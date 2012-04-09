@@ -377,6 +377,26 @@ define(function LiveDevelopment(require, exports, module) {
             setTimeout(open);
         }
     }
+    
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+        
+        return foundDoc;
+    }
 
     /** Hide any active highlighting */
     function hideHighlight() {
@@ -399,6 +419,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
+    exports.getLiveDocForPath = getLiveDocForPath;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
 });
