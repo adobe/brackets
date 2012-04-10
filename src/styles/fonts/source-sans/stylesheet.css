@@ -1,0 +1,120 @@
+
+@font-face {
+    font-family: 'SourceSansItalic';
+    src: url('sourcesans-it-webfont.eot');
+    src: url('sourcesans-it-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-it-webfont.woff') format('woff'),
+         url('sourcesans-it-webfont.ttf') format('truetype'),
+         url('sourcesans-it-webfont.svg#SourceSansItalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansLight';
+    src: url('sourcesans-light-webfont.eot');
+    src: url('sourcesans-light-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-light-webfont.woff') format('woff'),
+         url('sourcesans-light-webfont.ttf') format('truetype'),
+         url('sourcesans-light-webfont.svg#SourceSansLight') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansLightItalic';
+    src: url('sourcesans-lightit-webfont.eot');
+    src: url('sourcesans-lightit-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-lightit-webfont.woff') format('woff'),
+         url('sourcesans-lightit-webfont.ttf') format('truetype'),
+         url('sourcesans-lightit-webfont.svg#SourceSansLightItalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansSemibold';
+    src: url('sourcesans-semibold-webfont.eot');
+    src: url('sourcesans-semibold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-semibold-webfont.woff') format('woff'),
+         url('sourcesans-semibold-webfont.ttf') format('truetype'),
+         url('sourcesans-semibold-webfont.svg#SourceSansSemibold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansSemiboldItalic';
+    src: url('sourcesans-semiboldit-webfont.eot');
+    src: url('sourcesans-semiboldit-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-semiboldit-webfont.woff') format('woff'),
+         url('sourcesans-semiboldit-webfont.ttf') format('truetype'),
+         url('sourcesans-semiboldit-webfont.svg#SourceSansSemiboldItalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansRegular';
+    src: url('sourcesans-regular-webfont.eot');
+    src: url('sourcesans-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-regular-webfont.woff') format('woff'),
+         url('sourcesans-regular-webfont.ttf') format('truetype'),
+         url('sourcesans-regular-webfont.svg#SourceSansRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansBlack';
+    src: url('sourcesans-black-webfont.eot');
+    src: url('sourcesans-black-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-black-webfont.woff') format('woff'),
+         url('sourcesans-black-webfont.ttf') format('truetype'),
+         url('sourcesans-black-webfont.svg#SourceSansBlack') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansBlackItalic';
+    src: url('sourcesans-blackit-webfont.eot');
+    src: url('sourcesans-blackit-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-blackit-webfont.woff') format('woff'),
+         url('sourcesans-blackit-webfont.ttf') format('truetype'),
+         url('sourcesans-blackit-webfont.svg#SourceSansBlackItalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansBold';
+    src: url('sourcesans-bold-webfont.eot');
+    src: url('sourcesans-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-bold-webfont.woff') format('woff'),
+         url('sourcesans-bold-webfont.ttf') format('truetype'),
+         url('sourcesans-bold-webfont.svg#SourceSansBold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'SourceSansBoldItalic';
+    src: url('sourcesans-boldit-webfont.eot');
+    src: url('sourcesans-boldit-webfont.eot?#iefix') format('embedded-opentype'),
+         url('sourcesans-boldit-webfont.woff') format('woff'),
+         url('sourcesans-boldit-webfont.ttf') format('truetype'),
+         url('sourcesans-boldit-webfont.svg#SourceSansBoldItalic') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
