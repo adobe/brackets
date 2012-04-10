@@ -65,40 +65,30 @@
 
 /* Code font formatting
  *
- * NOTE (JRB): At this time, the font-family must be set in .code-font (not in one of the platform-specific versions).
- * This is because, in order to get the web font to load early enough, we have a div called "dummy-text" that
- * is styled with .code-font().
- *
- * The platform-specific selector gets added to the body tag at document ready time, so it may not happen soon
- * enough to get the web font loaded. So, we can't rely on this selector to load web fonts in a platform-specific way
- *
- * An alternative (if we wanted platform-specific fonts) would be to have a dummy text div for EVERY web font, and
- * then style those dummy text divs directly in brackets_fonts.less. However, this would result in us downloading
- * all fonts for every platform. This probably isn't a huge performance problem, but isn't necessary at this time.
- *
- * Hopefully, once we get a high-quality default font, this problem will go away completely. :-)
+ * NOTE: If we want to use a web font instead of a native (installed) OS font, we'll need to jump through some
+ * additional hoops. CodeMirror will break unless the web font is loaded early enough; to do that, we need to have
+ * a hardcoded div in index.html that uses the font. That basically constrains us to using the *same* web font on both
+ * platforms: loading a platform-specific web font would have to wait until the platform-specific CSS class is added
+ * to the body tag at document ready time, which is probably too late to help CodeMirror. (The only other option would
+ * be to have two hardcoded divs, and load both fonts on both platforms).
  */
 .code-font() {
     color: @content-color;
-    font-size: 14px;
-    font-family: "InconsolataMedium";
-
     pre {
         line-height: 15px;
     }
 }
 
-/*
- * With Inconsolata, we need different font sizes on mac and windows. 14px looks good on mac, but 13px is too small.
- * On Windows, 13px and 14px render at the same size. However, decenders (e.g. bottom of a 'g') get clipped at 14px.
- */
 .code-font-win() {
     .code-font();
-    font-size: 13px;
+    font-family: Consolas, "Courier New";
+    font-size: 13px;    /* TODO: ideally, we'd have this be 12px for Courier */
 }
 
 .code-font-mac() {
-    .code-font(); // default 14px works well on mac, so no change
+    .code-font();
+    font-family: Menlo, Monaco;
+    font-size: 14px;
 }
 
 .code-cursor() {
