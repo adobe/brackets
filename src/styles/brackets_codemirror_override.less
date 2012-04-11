@@ -41,11 +41,17 @@
     span.cm-hr {color: @accent-hr;}
     span.cm-link {color: @accent-link;}
     
+    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @background-color-2;}
+    span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
+
+    .CodeMirror-gutter {
+      background-color: @background-color-3;
+      border-right: none;
+    }
+    .CodeMirror-gutter-text {
+      color: @accent-comment;
+    }
 }
-
-div.CodeMirror span.CodeMirror-matchingbracket {color: @accent-bracket; background-color: @background-color-2;}
-div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
-
 
 /*
     CodeMirror's use of descendant selectors for certain styling causes problems when editors are
