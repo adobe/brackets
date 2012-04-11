@@ -301,17 +301,13 @@ a, img {
 }
 
 /* Styles for inline editors */
-@inline-background-color: #eaeaea;
-
 .InlineWidget {
-    border-top:         1px solid #d6d6d6;
-    border-bottom:      1px solid #d6d6d6;
-    background-color:   @inline-background-color;
+    background-color:   @inline-background-color-1;
     
     .filename {
         font-family: sans-serif;
-        font-size: 14px;
-        color: #656565;
+        font-size: 1.1em;
+        color: @inline-color-1;
         padding: 10px 10px 0px 10px;
         
         .dirty-indicator {
@@ -320,7 +316,12 @@ a, img {
             background-position: 0 0;
             padding-top: 3px;
         }
+        
+        .lineNumber {
+            color: @inline-color-2;
+        }
     }
+    
     .shadow {
         display: block;
         height: 4px;
@@ -330,10 +331,12 @@ a, img {
         left: 0;
         z-index: 10;
     }
+    
     .shadow.top {
         top: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
+    
     .shadow.bottom {
         bottom: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
@@ -346,10 +349,8 @@ a, img {
     }
 }
 
-/* CSSInlineEditor */
+/* CSSInlineEditor rule list */
 .relatedContainer {
-    @rulelist-background-color: #dfe2e2;
-    @selection-background-color: #d0d5d5;
     @top-margin: 12px;
     
     /* use scaling on CSS triangle to get desired size without jaggies */
@@ -373,7 +374,7 @@ a, img {
     width: 250px;
     overflow: hidden;
     /*-webkit-transition: width 0.15s ease-out;*/
-    background: @rulelist-background-color;
+    background: @inline-background-color-2;
     
     .selection {
         width: 100%;
@@ -381,20 +382,25 @@ a, img {
         position: absolute;
         -webkit-transition: height 0.1s ease-out;
         -webkit-transition: top 0.1s ease-out;
-        border-top: 1px solid #bdc2c2;
-        border-bottom: 1px solid #eef0f0;
+        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
+        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
         top: @top-margin;
     }
-        
+    
+    /*
+     * CSS triangle hack with anti-alias workarounds:
+     * (a) Use selection-background-color instead of transparent.
+     * (b) Use transform scaleX and origin to adjust width.
+     */
     .selection:before {
         @triangle-size: 10px;
         content: " ";
         position: absolute;
         width: 0;
         height: 0;
-        border-top: @triangle-size solid @selection-background-color;
-        border-bottom: @triangle-size solid @selection-background-color;
-        border-left: @triangle-size solid @inline-background-color;
+        border-top: @triangle-size solid @inline-background-color-3;
+        border-bottom: @triangle-size solid @inline-background-color-3;
+        border-left: @triangle-size solid @inline-background-color-1;
         margin-top: -@triangle-size;
         top: 50%;
         .scaleX(0.9);
@@ -411,10 +417,9 @@ a, img {
             margin: 0;
             padding: @top-margin 0px;
             list-style: none;
-            color: #656565;
             
             li {
-                color: #acacac;
+                color: @inline-color-2;
                 margin: 0;
                 overflow: hidden;
                 padding: 2px 0px 2px 15px;
@@ -423,7 +428,7 @@ a, img {
             }
             
             .selected {
-                color: #000;
+                color: @inline-color-3;
             }
         }
     }
