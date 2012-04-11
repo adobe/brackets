@@ -172,7 +172,7 @@ define(function LiveDevelopment(require, exports, module) {
                 path = path.slice(1);
             }
         }
-        return path;
+        return decodeURI(path);
     }
 
     /** Open a live document
