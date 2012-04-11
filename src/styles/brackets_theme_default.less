@@ -65,12 +65,9 @@
 
 /* Code font formatting
  *
- * NOTE: If we want to use a web font instead of a native (installed) OS font, we'll need to jump through some
- * additional hoops. CodeMirror will break unless the web font is loaded early enough; to do that, we need to have
- * a hardcoded div in index.html that uses the font. That basically constrains us to using the *same* web font on both
- * platforms: loading a platform-specific web font would have to wait until the platform-specific CSS class is added
- * to the body tag at document ready time, which is probably too late to help CodeMirror. (The only other option would
- * be to have two hardcoded divs, and load both fonts on both platforms).
+ * NOTE: The fonts below must be system fonts (native installed fonts), not web fonts. To use a web font we'd need to
+ * jump through some additional hoops (and we couldn't easily vary the font by OS like we do now). See earlier versions
+ * of this file for details.
  */
 .code-font() {
     color: @content-color;
