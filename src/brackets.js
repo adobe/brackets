@@ -85,7 +85,10 @@ define(function (require, exports, module) {
         CommandManager          : require("command/CommandManager"),
         FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
-        CSSUtils                : require("language/CSSUtils")
+        CSSUtils                : require("language/CSSUtils"),
+        LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+        Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+        NativeApp               : require("utils/NativeApp")
     };
     
     // Uncomment the following line to force all low level file i/o routines to complete
@@ -159,6 +162,7 @@ define(function (require, exports, module) {
                     {"Ctrl-W": Commands.FILE_CLOSE},
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
                     {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
+                    {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR},
                     {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
                     {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
                 ],

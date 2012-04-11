@@ -7,6 +7,8 @@
 
 define(function (require, exports, module) {
     'use strict';
+    
+    var Async = require("utils/Async");
 
     /**
      * @private
@@ -20,22 +22,26 @@ define(function (require, exports, module) {
         // All other errors are mapped to the generic "security" error
         return FileError.SECURITY_ERR;
     }
+    
+    var liveBrowserOpenedPIDs = [];
+    var liveBrowserUserDataDir = "";
 
     /** openLiveBrowser
      *
      * @param {string} url
      * @return {$.Promise} 
      */
-    function openLiveBrowser(url, successCallback, errorCallback) {
+    function openLiveBrowser(url, enableRemoteDebugging) {
         var result = new $.Deferred();
         
-        brackets.app.openLiveBrowser(url, function onRun(err) {
+        brackets.app.openLiveBrowser(url, enableRemoteDebugging, function onRun(err, pid) {
             if (!err) {
-                result.resolve();
+                liveBrowserOpenedPIDs.push(pid);
+                result.resolve(pid);
             } else {
                 result.reject(_browserErrToFileError(err));
             }
-        });
+        }, liveBrowserUserDataDir);
         
         return result.promise();
     }
@@ -44,21 +50,53 @@ define(function (require, exports, module) {
      *
      * @return {$.Promise}
      */
-    function closeLiveBrowser(successCallback, errorCallback) {
+    function closeLiveBrowser(pid) {
         var result = new $.Deferred();
         
+        if (isNaN(pid)) {
+            pid = 0;
+        }
+        console.log("calling to close: " + pid);
         brackets.app.closeLiveBrowser(function (err) {
+            console.log("called closing: " + pid + " with err: " + err);
             if (!err) {
+                var i = liveBrowserOpenedPIDs.indexOf(pid);
+                if (i !== -1) {
+                    liveBrowserOpenedPIDs.splice(i, 1);
+                }
                 result.resolve();
             } else {
                 result.reject(_browserErrToFileError(err));
             }
-        });
+        }, pid);
         
         return result.promise();
     }
+    
+    /** closeAllLiveBrowsers
+     * Closes all the browsers that were tracked on open
+     * @return {$.Promise}
+     */
+    function closeAllLiveBrowsers() {
+        //make a copy incase the array is edited as we iterate
+        var closeIDs = liveBrowserOpenedPIDs.concat();
+        return Async.doInParallel(closeIDs, closeLiveBrowser, false);
+    }
+    
+    /** _setLiveBrowserUserDataDir
+     * For Unit Tests only, changes the default dir the browser use for it's user data
+     * @return {$.Promise}
+     */
+    function _setLiveBrowserUserDataDir(path) {
+        liveBrowserUserDataDir = path;
+    }
+    
+    
 
     // Define public API
     exports.openLiveBrowser = openLiveBrowser;
     exports.closeLiveBrowser = closeLiveBrowser;
+    exports.closeAllLiveBrowsers = closeAllLiveBrowsers;
+    //API for Unit Tests
+    exports._setLiveBrowserUserDataDir = _setLiveBrowserUserDataDir;
 });

@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     require("spec/CSSUtils-test.js");
     require("spec/InlineEditorProviders-test.js");
     require("spec/CSSInlineEditor-test.js");
+    require("spec/LiveDevelopment-test.js");
     
     // Clean up preferencesKey
     $(window).unload(function () {
