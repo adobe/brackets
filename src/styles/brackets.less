@@ -301,10 +301,12 @@ a, img {
 }
 
 /* Styles for inline editors */
+@inline-background-color: #eaeaea;
+
 .InlineWidget {
     border-top:         1px solid #d6d6d6;
     border-bottom:      1px solid #d6d6d6;
-    background-color:   #eaeaea;
+    background-color:   @inline-background-color;
     
     .filename {
         font-family: sans-serif;
@@ -344,19 +346,36 @@ a, img {
     }
 }
 
+/* CSSInlineEditor */
 .relatedContainer {
+    @rulelist-background-color: #dfe2e2;
+    @selection-background-color: #d0d5d5;
+    @top-margin: 12px;
+    
+    /* use scaling on CSS triangle to get desired size without jaggies */
+    .scaleX (@value: 1.0) {
+        -ms-transform: scaleX(@value);
+        -moz-transform: scaleX(@value);
+        -webkit-transform: scaleX(@value);
+        -o-transform: scaleX(@value);
+        transform: scaleX(@value);
+        
+        -ms-transform-origin: 0 0;
+        -moz-transform-origin: 0 0;
+        -webkit-transform-origin: 0 0;
+        -o-transform-origin: 0 0;
+        transform-origin: 0 0;
+    }
+    
     /*width: 0;*/
     font-family: sans-serif;
     position: fixed;
     width: 250px;
     overflow: hidden;
     /*-webkit-transition: width 0.15s ease-out;*/
-    background: #dfe2e2;
+    background: @rulelist-background-color;
     
-    @top-margin: 12px;
-        
     .selection {
-        display: table;
         width: 100%;
         background: #d0d5d5;
         position: absolute;
@@ -365,13 +384,20 @@ a, img {
         border-top: 1px solid #bdc2c2;
         border-bottom: 1px solid #eef0f0;
         top: @top-margin;
+    }
         
-        .arrow {
-            width: 10px;
-            height: 25px;
-            background: #eaeaea;
-            vertical-align: center;
-        }
+    .selection:before {
+        @triangle-size: 10px;
+        content: " ";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: @triangle-size solid @selection-background-color;
+        border-bottom: @triangle-size solid @selection-background-color;
+        border-left: @triangle-size solid @inline-background-color;
+        margin-top: -@triangle-size;
+        top: 50%;
+        .scaleX(0.9);
     }
     
     .related {

@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.$listItem = null;
     
     function updateRuleLabel(listItem, rule) {
-        var text = rule.selector + " " + rule.document.file.name + " : " + (rule.lineStart + 1);
+        var text = rule.selector + " " + rule.textRange.document.file.name + " : " + (rule.textRange.startLine + 1);
         listItem.text(text);
         listItem.attr("title", text);
     }
@@ -101,14 +101,11 @@ define(function (require, exports, module) {
         // List "selection" highlight
         this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
         
-        // arrow
-        var $arrow = $(document.createElement("div")).appendTo(this.$selectedMarker).addClass("arrow");
-        
         // Inner container
         var $related = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
         // Rule list
-        this.$ruleList = $(document.createElement("ul")).appendTo($related);
+        var $ruleList = $(document.createElement("ul")).appendTo($related);
         
         // create rule list & add listeners for rule textrange changes
         var ruleItemText;
@@ -172,16 +169,16 @@ define(function (require, exports, module) {
         }
 
         // Remove selected class(es)
-        var previousItem = this._ruleItems[this._selectedRuleIndex];
+        var previousItem = (this._selectedRuleIndex >= 0) ? this._rules[this._selectedRuleIndex].$listItem : null;
         
         if (previousItem) {
             previousItem.toggleClass("selected", false);
         }
         
         this._selectedRuleIndex = newIndex;
-        var $ruleItem = this._ruleItems[this._selectedRuleIndex];
+        var $ruleItem = this._rules[this._selectedRuleIndex].$listItem;
         
-        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
+        this._rules[this._selectedRuleIndex].$listItem.toggleClass("selected", true);
 
         // Remove previous editors
         $(this.editors[0]).off("change", this._updateRelatedContainer);
