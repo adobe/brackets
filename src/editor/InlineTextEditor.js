@@ -195,7 +195,7 @@ define(function (require, exports, module) {
             .width(4); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        var $lineNumber = $("<span>" + (startLine + 1) + "</span>");
+        var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
         
         $filenameDiv.append($dirtyIndicatorDiv)
                     .append(doc.file.name + " : ")
