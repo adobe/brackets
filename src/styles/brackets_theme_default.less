@@ -23,7 +23,7 @@
  */
 @background-color-1: darken(@bc-white, @bc-color-step-size*2);
 @background-color-2: darken(@bc-white, @bc-color-step-size);
-@background-color-3: @bc-white;
+@background-color-3: @bc-light-gray;
 
 /*
  * @content-color-stronger should be should be further away from the
@@ -32,7 +32,7 @@
  * @content-color-weaker should be closer to the background color
  * than @content-color (i.e. less contrasty).
  */
-@content-color: lighten(@bc-black, @bc-color-step-size*2);
+@content-color: @bc-dark-gray;
 @content-color-stronger: @bc-black;
 @content-color-weaker: lighten(@bc-black, @bc-color-step-size*6);
 
@@ -40,24 +40,24 @@
 
 /* code accent colors */
 @accent-keyword: @bc-blue;
-@accent-atom: @bc-violet;
-@accent-number: @bc-violet;
-@accent-def: @bc-yellow;
-@accent-variable: @content-color;
+@accent-atom: @bc-orange;
+@accent-number: @bc-green;
+@accent-def: @bc-violet;
+@accent-variable: @bc-blue;
 @accent-variable-2: @content-color;
 @accent-variable-3: @content-color;
-@accent-property: @content-color;
+@accent-property: @bc-violet;
 @accent-operator: @content-color;
 @accent-comment: @content-color-weaker;
-@accent-string: @bc-green;
-@accent-string-2: @bc-green;
-@accent-meta: @bc-violet;
+@accent-string: @bc-orange;
+@accent-string-2: @bc-orange;
+@accent-meta: @bc-dark-gray;
 @accent-error: @bc-red;
 @accent-qualifier: @bc-blue;
 @accent-builtin: @bc-blue;
 @accent-bracket: @content-color;
 @accent-tag: @bc-blue;
-@accent-attribute: @bc-yellow;
+@accent-attribute: @bc-green;
 @accent-header: @bc-magenta;
 @accent-quote: @bc-blue;
 @accent-hr: @bc-orange;
