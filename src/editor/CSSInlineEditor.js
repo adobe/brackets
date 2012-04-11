@@ -70,24 +70,27 @@ define(function (require, exports, module) {
         // List "selection" highlight
         this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
         
+        // arrow
+        var $arrow = $(document.createElement("div")).appendTo(this.$selectedMarker).addClass("arrow");
+        
         // Inner container
         var $related = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
         // Rule list
-        var $ruleList = $(document.createElement("ul")).appendTo($related);
+        this.$ruleList = $(document.createElement("ul")).appendTo($related);
         
         // create rule list
+        var ruleItemText;
         this._ruleItems = [];
         this._rules.forEach(function (rule, i) {
-            $ruleItem = $(document.createElement("li")).appendTo($ruleList);
-            $ruleItem.text(rule.selector + " ");
+            ruleItemText = rule.selector + " " + rule.document.file.name + " : " + (rule.lineStart + 1);
+            
+            $ruleItem = $(document.createElement("li")).appendTo(self.$ruleList);
+            $ruleItem.text(ruleItemText);
+            $ruleItem.attr("title", ruleItemText);
             $ruleItem.click(function () {
                 self.setSelectedRule(i);
             });
-            
-            $location = $(document.createElement("span")).appendTo($ruleItem);
-            $location.addClass("location");
-            $location.text(rule.document.file.name + ":" + (rule.lineStart + 1));
             
             self._ruleItems.push($ruleItem);
         });
@@ -127,25 +130,33 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.setSelectedRule = function (index) {
         var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
         
+        // Remove selected class(es)
+        var previousItem = this._ruleItems[this._selectedRuleIndex];
+        
+        if (previousItem) {
+            previousItem.toggleClass("selected", false);
+        }
+        
         this._selectedRuleIndex = newIndex;
         var $ruleItem = this._ruleItems[this._selectedRuleIndex];
-
+        
         this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
-
+        
         // Remove previous editors
+        $(this.editors[0]).off("change", this._updateRelatedContainer);
+
         this.editors.forEach(function (editor) {
             editor.destroy(); //release ref on Document
         });
+        
         this.editors = [];
         this.$editorsDiv.children().remove();
-        $(this.editors[0]).off("change", this._updateRelatedContainer);
 
         // Keyboard shortcuts
         var extraKeys = {
             "Alt-Up" : $.proxy(this.previousRule, this),
             "Alt-Down" : $.proxy(this.nextRule, this)
         };
-
 
         // Add new editor
         var rule = this.getSelectedRule();
@@ -172,7 +183,7 @@ define(function (require, exports, module) {
                 scrollTop = self.$relatedContainer.scrollTop();
             
             self.$selectedMarker.css("top", itemTop);
-            self.$selectedMarker.height($ruleItem.height());
+            self.$selectedMarker.height($ruleItem.outerHeight());
             
             if (containerHeight <= 0) {
                 return;

@@ -319,8 +319,8 @@ a, img {
 
 /* Styles for inline editors */
 .InlineWidget {
-    border-top:         1px solid #C0C0C0;
-    border-bottom:      1px solid #C0C0C0;
+    border-top:         1px solid #d6d6d6;
+    border-bottom:      1px solid #d6d6d6;
     background-color:   #eaeaea;
     
     .filename {
@@ -338,7 +338,7 @@ a, img {
     }
     .shadow {
         display: block;
-        height: 6px;
+        height: 4px;
         width: 100%;
         position: absolute;
         content: " ";
@@ -350,7 +350,7 @@ a, img {
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
     .shadow.bottom {
-        bottom: -1px;
+        bottom: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
     
@@ -366,32 +366,37 @@ a, img {
     font-family: sans-serif;
     position: fixed;
     width: 250px;
-    overflow: auto;
+    overflow: hidden;
     /*-webkit-transition: width 0.15s ease-out;*/
-    background: #f2f2f2;
-    border-left: 1px solid #ccc;
+    background: #dfe2e2;
     
     @top-margin: 12px;
         
     .selection {
-        display: block;
+        display: table;
         width: 100%;
-        background: #e6e6e6;
+        background: #d0d5d5;
         position: absolute;
         -webkit-transition: height 0.1s ease-out;
         -webkit-transition: top 0.1s ease-out;
-        border-top: 1px solid #d6d6d6;
-        border-bottom: 1px solid #d6d6d6;
-        box-shadow: 0 1px 0 #fff;
+        border-top: 1px solid #bdc2c2;
+        border-bottom: 1px solid #eef0f0;
         top: @top-margin;
+        
+        .arrow {
+            width: 10px;
+            height: 25px;
+            background: #eaeaea;
+            vertical-align: center;
+        }
     }
     
     .related {
         position: absolute;
         top: 0;
         left: 1px;
-        box-shadow: -1px 0 0 0 #fff;
         font-size: 12px;
+        width: 100%;
         
         ul {
             margin: 0;
@@ -400,12 +405,16 @@ a, img {
             color: #656565;
             
             li {
-                padding: 0px 15px;
+                color: #acacac;
+                margin: 0;
+                overflow: hidden;
+                padding: 2px 0px 2px 15px;
+                text-overflow: ellipsis;
                 white-space: nowrap;
             }
             
-            .location {
-                color: #acacac;
+            .selected {
+                color: #000;
             }
         }
     }
