@@ -20,15 +20,43 @@
 }
 
 .toolbar {
+    /* TODO: in mockup, the menu & title are both SourceSansLight, which looks much thinner & grayer */
+    
     .hbox;
     .box-align(center);
     position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
 
-    height: 23px;
-    padding: @base-padding;
+    height: 27px;
+    padding: 4px 8px;
+    background-color: @bc-white;
+    color: @bc-black;
     border-bottom: 1px solid @bc-gray;
-    #gradient > .vertical(lighten(@bc-grey, @bc-color-step-size*6), lighten(@bc-grey, @bc-color-step-size*2));
     .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
+    
+    .nav {
+        /* TEMPORARY - misbehaves if menus collide with filename */
+        position: absolute;
+        left: 10px;
+        top: 0px;
+        /* TEMPORARY */
+        
+        a, a:hover {
+            color: @bc-black;
+            padding: 5px 10px;  // Bootstrap has a lot of vertical padding, limiting the min height of the menu bar
+        }
+        li:first-child a {
+            /* Want to be able to pack menu pretty close to left edge of toolbar, so the first menu shouldn't have the
+               usual symmetrical padding */
+            padding-left: 0px;
+        }
+        .dropdown-toggle:after { // no triangle icon after menu items
+            border: 0;
+            margin: 0;
+        }
+        .dropdown.open .dropdown-toggle {
+            color: @bc-black;
+        }
+    }
 
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
@@ -36,9 +64,12 @@
         .box-flex(1);
     }
     .title {
-        font-size: 1.1em;
-        font-weight: bold;
-        text-shadow: 0 1px @bc-white;        
+        /* TODO */
+        //margin: 0px auto;
+        
+        font-size: 18px;
+        line-height: normal;
+        font-weight: normal;
 
         white-space: nowrap;
         overflow: hidden;
@@ -50,6 +81,9 @@
         .hbox;
         margin-left: 4px;
     }
+}
+#main-toolbar.toolbar .title {
+    text-align: center;
 }
 
 

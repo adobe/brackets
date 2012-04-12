@@ -45,28 +45,10 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
-
-    .topbar {
-        position: static;
-    }
 }
 
 a, img {
     -webkit-user-drag: none;
-}
-
-.topbar-inner {
-    /* We don't want to use the default .container in here, 
-       so we need to .clearfix the children. */
-    .clearfix;
-
-    .brand {
-        .sane-box-model;
-        margin-left: 0;
-        width: 200px;
-        padding-left: @base-padding;
-        padding-right: @base-padding;
-    }
 }
 
 .main-view {

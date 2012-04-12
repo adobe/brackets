@@ -32,45 +32,10 @@
 
 </head>
 <body>
-    <!-- Top bar for menus -->
-    <div class="topbar" data-dropdown="dropdown">
-        <div class="topbar-inner">
-            <a class="brand" href="#">Brackets</a>
-            <ul class="nav">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle">File</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" id="menu-file-new">New</a></li>
-                        <li><a href="#" id="menu-file-open">Open</a></li>
-                        <li><a href="#" id="menu-file-close">Close</a></li>
-                        <li><a href="#" id="menu-file-save">Save</a></li>
-                        <li><a href="#" id="menu-file-quit">Quit</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle">Debug</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" id="menu-debug-runtests">Run Tests</a></li>
-                        <!--<li><a href="#" id="menu-debug-wordwrap">Toggle Word Wrap</a></li>-->
-                        <li>
-                            <a href="#" id="menu-debug-jslint">
-                                Enable JSLint
-                                <span id="jslint-enabled-checkbox" style="float:right;">&#10003;</span>
-                            </a>
-                        </li>
-                        <li><a href="#" id="menu-debug-show-perf">Show Perf Data</a></li>
-                        <li><a href="#" id="menu-debug-new-brackets-window">New Window</a></li>
-                        <li><a href="#" id="menu-debug-hide-sidebar">Hide Sidebar</a></li>
-                        <li><a href="#" id="menu-debug-close-all-live-browsers">Close Browsers</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-
     <!-- Main UI -->
     <div class="main-view">
         <div class="sidebar">
+            <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-toolbar" class="toolbar">
                     <div class="title-wrapper">
@@ -108,8 +73,65 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Right-hand content: toolbar, editor, bottom panels -->
         <div class="content">
+            <!-- Toolbar containing menus, filename, and icons -->
             <div id="main-toolbar" class="toolbar">
+                <ul class="nav" data-dropdown="dropdown">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">File</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="menu-file-new">New</a></li>
+                            <li><a href="#" id="menu-file-open">Open</a></li>
+                            <li><a href="#" id="menu-file-close">Close</a></li>
+                            <li><a href="#" id="menu-file-save">Save</a></li>
+                            <li><a href="#" id="menu-file-quit">Quit</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Edit</a>
+                        <ul class="dropdown-menu">
+                            <!-- TODO -->
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Navigate</a>
+                        <ul class="dropdown-menu">
+                            <!-- TODO -->
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">View</a>
+                        <ul class="dropdown-menu">
+                            <!-- TODO -->
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Debug</a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="menu-debug-runtests">Run Tests</a></li>
+                            <!--<li><a href="#" id="menu-debug-wordwrap">Toggle Word Wrap</a></li>-->
+                            <li>
+                                <a href="#" id="menu-debug-jslint">
+                                    Enable JSLint
+                                    <span id="jslint-enabled-checkbox" style="float:right;">&#10003;</span>
+                                </a>
+                            </li>
+                            <li><a href="#" id="menu-debug-show-perf">Show Perf Data</a></li>
+                            <li><a href="#" id="menu-debug-new-brackets-window">New Window</a></li>
+                            <li><a href="#" id="menu-debug-hide-sidebar">Hide Sidebar</a></li>
+                            <li><a href="#" id="menu-debug-close-all-live-browsers">Close Browsers</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">Experimental</a>
+                        <ul class="dropdown-menu">
+                            <!-- TODO -->
+                        </ul>
+                    </li>
+                </ul>
+                
                 <div class="title-wrapper">
                     <div class="title"></div>
                 </div>
@@ -117,11 +139,13 @@
                     &#9733;
                 </div>
             </div>
+            
             <div id="editorHolder">
                 <div id="notEditor">
                     <div id="notEditorContent">[&nbsp;&nbsp;]</div>
                 </div>
             </div>
+            
             <div id="jslint-results">
                 <div class="toolbar">
                     <div class="title">JSLint errors</div>
