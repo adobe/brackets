@@ -31,10 +31,7 @@ define(function (require, exports, module) {
      * @param {!DOMElement} element the DOMElement using the scrollerShadow class
      */
     function _updateScrollerShadow(element) {
-        var scrollTop       = element.scrollTop,
-            shadowTop       = Math.min(scrollTop - 20, -10);
-        
-        $(element).css("background-position", "0px " + shadowTop + "px");
+        $(element).css("background-position", "0px " + Math.min(element.scrollTop - 20, -10) + "px");
     }
 
     /** 
@@ -42,11 +39,8 @@ define(function (require, exports, module) {
      * @param {!DOMElement} element the DOMElement using the scrollerShadow class
      */
     function installScrollShadowHandlers(element) {
-        var $element = $(element),
-            handler = function () { _updateScrollerShadow(element); };
-        
         // update shadows when the scrolling element is scrolled
-        $element.on("scroll", handler);
+        $(element).on("scroll", function () { _updateScrollerShadow(element); });
     }
 
     // Define public API
