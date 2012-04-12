@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         var $element = $(element),
             handler = function () { _updateScrollerShadow(element); };
         
-        // update shadows when the scrolling element resizes or scrolls
+        // update shadows when the scrolling element is scrolled
         $element.on("scroll", handler);
     }
 
