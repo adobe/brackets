@@ -170,7 +170,7 @@ a, img {
 #file-section {
     .vbox;
     .box-flex(1);
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px 0px 0px;
     
     .project-file-header-area {
         padding: 4px 4px 2px 0px;
@@ -234,11 +234,33 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px 0px 0px 8px;
+    padding: 0px;
     margin: 0;
     overflow: auto;
     
     ul { margin-top: 0; }
+}
+
+.scrollerShadow {
+    /* scroll shadows */
+    background: -moz-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 96%) -moz-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 96%); /* FF3.6+ */
+    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(0,0,0,0.65)), color-stop(50%,rgba(0,0,0,0)), color-stop(96%,rgba(0,0,0,0))), -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(0,0,0,0.65)), color-stop(50%,rgba(0,0,0,0)), color-stop(96%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
+    background: -webkit-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%), -webkit-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* Chrome10+,Safari5.1+ */
+    background: -o-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%), -o-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* Opera 12+ */
+    background: -ms-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%), -ms-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* IE10+ */
+    background: radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%), radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* W3C */
+    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=1 ) progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=1 )"; /* IE6-9 fallback on horizontal gradient */
+    
+    /* ease-out shadow positioning */
+    -webkit-transition: background-position .2s ease-out;
+    -moz-transition: background-position .2s ease-out;
+    -ms-transition: background-position .2s ease-out;
+    -o-transition: background-position .2s ease-out;
+    transition: background-position .2s ease-out;
+
+    background-position: 0px -9999px, 0px 9999px; /* hide the shadows on init */
+    background-size: 100% 20px, 100% 20px;
+    background-repeat: no-repeat;
 }
 
 @spriteSize18: 18px;
