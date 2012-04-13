@@ -45,7 +45,9 @@ define(function (require, exports, module) {
             _title.attr("title", "");
         }
         
-        // CSS hack -- TODO: document this
+        // Set _titleWrapper to a fixed width just large enough to accomodate _title. This seems equivalent to what
+        // the browser would do automatically, but the CSS trick we use for layout requires _titleWrapper to have a
+        // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
         _titleWrapper.css("width", "");
         var newWidth = _title.width();
         _titleWrapper.css("width", newWidth);

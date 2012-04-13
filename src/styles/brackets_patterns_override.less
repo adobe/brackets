@@ -22,9 +22,9 @@
 
 /* Toolbar-related styles */
 
-// Simple toolbar layout (project panel, find in files, etc.)
-// We don't set this directly on .toolbar because it'd be a pain to override all the pieces
-// if other code (e.g. #main-toolbar) wants to do a different layout
+/* Simple toolbar layout (project panel, find in files, etc.)
+   We don't set this directly on .toolbar because it'd be a pain to override all the pieces
+   if other code (e.g. #main-toolbar) wants to do a different layout */
 .simpleToolbarLayout.toolbar {
     .hbox;
     .box-align(center);
@@ -39,7 +39,13 @@
     }
 }
 
-// Editor toolbar layout
+/* Editor toolbar layout
+   CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
+   This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
+   left and buttons floated right), yet still have the browser automatically wrap the floats onto a 2nd row
+   if they collide with the title. But the centered content must be a block element with fixed width. Since
+   the editor title (filename) varies in width, we rely on JS code to update the width whenever the string
+   changes. */
 #main-toolbar.toolbar {
     text-align: center;
     .nav {
@@ -47,13 +53,13 @@
         text-align: left;
     }
     .title {
-        display: inline;  // must be an inline for JS to measure text size
         float: none;
+        display: inline;  // must be an inline for JS to measure text size
     }
     .title-wrapper {
-        display: block;  // must be a block for the fixed width applied by JS to be respected
         margin: 0px auto;
-        // Also requires a hardcoded width, which is applied/updated by JavaScript in DocumentCommandHandlers
+        display: block;  // must be a block for the fixed width applied by JS to be respected
+        // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
     }
     .buttons {
         float: right;
@@ -61,54 +67,54 @@
     }
 }
 
-// Toolbar appearance - shared by all toolbars
+/* Toolbar appearance - shared by all toolbars, independent of layout */
 .toolbar {
-    
-    // TODO: move this to .toolbar in brackets.less?
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-
-    font-size: 14px;
+    font-size: @label-font-size;
     padding: 4px 8px;
     background-color: @bc-white;
     color: @bc-black;
+    
+    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
     .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
     
+    @toolbar-top-gap: 5px;
+    
     .nav {
-        margin: 5px 0px 0px 5px;
+        @menubar-item-h-padding: 10px;
+        
+        margin: @toolbar-top-gap 0px 0px (-@menubar-item-h-padding + 4);
         
         // Menubar item appearance
         .dropdown-toggle, .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
-            // Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
-            // color rules we need to override (and Bootstrap has several selectors because the colors really differ
-            // in their defaults).
+            /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+               color rules we need to override (and Bootstrap has several selectors because the colors really differ
+               in their defaults). */
             color: @bc-black;
         }
         
         .dropdown-toggle {
             font-weight: @font-weight-light;
-            
-            // Bootstrap puts vertical padding on the individual menu item level; we'd rather have it at the toolbar level
-            // (and its padding is big, limiting the min height of the menu bar).
-            padding: 0px 10px;
+            padding: 0px @menubar-item-h-padding;  // no vertical padding; taken care of on the overall menubar (.nav)
         }
-        
-        li:first-child .dropdown-toggle {
-            /* Want to be able to pack menu pretty close to left edge of toolbar, so the first menu shouldn't have the
-               usual symmetrical padding (moving all padding to the right side would just mean we'd have this same problem
-               on the other end of the menubar, where it abuts the filename title) */
-            padding-left: 0px;
-        }
-        .dropdown-toggle:after { // no triangle icon after menu items
+
+        // no triangle icon after menu items
+        .dropdown-toggle:after {
             border: 0;
             margin: 0;
+        }
+        
+        // Bootstrap's default menu positioning is calibrated for a much taller menu bar
+        .dropdown-menu {
+            top: 25px;
         }
     }
     
     .title-wrapper {
-        padding: 2px 0px 3px 0px;
+        // Title is taller than menu text, so reduce top padding to keep its baseline aligned
+        padding: (@toolbar-top-gap - 3) 0px 3px 0px;
     }
     .title {
-        font-size: 18px;
+        font-size: @title-font-size;
         line-height: normal;
         font-weight: @font-weight-light;
 
@@ -118,8 +124,9 @@
         -o-text-overflow: ellipsis;
         text-overflow: ellipsis;
     }
+    
     .buttons {
-        margin: 5px 0px 0px 4px;
+        margin: @toolbar-top-gap 0px 0px 4px;
     }
 }
 
