@@ -242,23 +242,15 @@ a, img {
 }
 
 .scrollerShadow {
-    /* scroll shadows */
-    background: -moz-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 96%); /* FF3.6+ */
-    background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,rgba(0,0,0,0.65)), color-stop(50%,rgba(0,0,0,0)), color-stop(96%,rgba(0,0,0,0))); /* Chrome,Safari4+ */
-    background: -webkit-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* Chrome10+,Safari5.1+ */
-    background: -o-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* Opera 12+ */
-    background: -ms-radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* IE10+ */
-    background: radial-gradient(center, ellipse cover,  rgba(0,0,0,0.65) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,0) 96%); /* W3C */
-    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=1 )"; /* IE6-9 fallback on horizontal gradient */
+    /* top shadow */
+    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
     
     /* ease-out shadow positioning */
-    -webkit-transition: background-position .2s ease-out;
-    -moz-transition: background-position .2s ease-out;
-    -ms-transition: background-position .2s ease-out;
-    -o-transition: background-position .2s ease-out;
-    transition: background-position .2s ease-out;
+    .transition(background-position, .2s, ease-out);
 
-    background-position: 0px -9999px; /* hide the shadow on init */
+    /* hide the shadow on init */
+    background-position: 0px -9999px;
+    
     background-size: 100% 20px;
     background-repeat: no-repeat;
 }
