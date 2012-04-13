@@ -7,9 +7,8 @@
 
 define(function (require, exports, module) {
     'use strict';
-
-    // Load dependent modules
-
+    
+    var shadowBackgroundHeight = 20;
 
     /** If a parent div has overflow:auto then the child will have a problem
      * setting the background color. The reason for this is the width of the 
@@ -29,7 +28,28 @@ define(function (require, exports, module) {
         $children.width(targetWidth);
     }
 
+    /** 
+     * Positions shadow background elements to indicate vertical scrolling.
+     * @param {!DOMElement} element the DOMElement using the scrollerShadow class
+     */
+    function _updateScrollerShadow(element) {
+        var maxReveal   = -(shadowBackgroundHeight / 2),
+            yPos        = Math.min(element.scrollTop - shadowBackgroundHeight, maxReveal);
+        $(element).css("background-position", "0px " + yPos + "px");
+    }
+
+    /** 
+     * Installs event handlers for updatng shadow background elements to indicate vertical scrolling.
+     * @param {!DOMElement} element the DOMElement using the scrollerShadow class
+     */
+    function installScrollShadowHandlers(element) {
+        // update shadows when the scrolling element is scrolled
+        var $element = $(element);
+        $element.toggleClass("scrollerShadow", true);
+        $element.on("scroll", function () { _updateScrollerShadow(element); });
+    }
 
     // Define public API
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
+    exports.installScrollShadowHandlers = installScrollShadowHandlers;
 });
