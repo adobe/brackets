@@ -132,7 +132,7 @@ define(function (require, exports, module) {
 
             // Open project button
             $("#btn-open-project").click(function () {
-                ProjectManager.openProject();
+                CommandManager.execute(Commands.FILE_OPEN_FOLDER);
             });
 
 
@@ -157,14 +157,39 @@ define(function (require, exports, module) {
             // TODO: (issue #268) show keyboard equivalents in the menus
             var _globalKeymap = KeyMap.create({
                 "bindings": [
+                    // FILE
+                    {"Ctrl-N": Commands.FILE_NEW},
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-Q": Commands.FILE_QUIT},
+
+                    // EDIT
+                    {"Ctrl-Z": Commands.EDIT_UNDO},
+                    {"Ctrl-Y": Commands.EDIT_REDO},
+                    // {"Ctrl-X": Commands.EDIT_CUT},
+                    // {"Ctrl-C": Commands.EDIT_COPY}, 
+                    // {"Ctrl-P": Commands.EDIT_PASTE},
+
+                    {"Ctrl-A": Commands.EDIT_SELECT_ALL},
+                    {"Ctrl-F": Commands.EDIT_FIND},
+                    {"Ctrl-Shift-F": Commands.EDIT_FIND_IN_FILES},
+                    {"Ctrl-G": Commands.EDIT_FIND_NEXT, "platform": "mac"},
+                    {"F3": Commands.EDIT_FIND_NEXT, "platform": "win"},
+                    {"Ctrl-Shift-G": Commands.EDIT_FIND_PREVIOUS, "platform": "mac"},
+                    {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
+                    //{"Ctrl-Tab": Commands.EDIT_INDENT},
+                    //{"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
+
+                    // DEBUG
+                    {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
+                    {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"},
+
+
                     {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
-                    {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
-                    {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR},
-                    {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
-                    {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
+                    {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR}
+
+
                 ],
                 "platform": brackets.platform
             });
@@ -201,9 +226,9 @@ define(function (require, exports, module) {
     
         initListeners();
         initProject();
-        Menus.init();
         initCommandHandlers();
         initKeyBindings();
+        Menus.init(); // key bindings should be initialized first
         initWindowListeners();
 
         // Load extensions

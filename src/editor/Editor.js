@@ -41,8 +41,10 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager");
-    var TextRange        = require("document/TextRange").TextRange;
+    var EditorManager    = require("editor/EditorManager"),
+        Commands         = require("command/Commands"),
+        CommandManager   = require("command/CommandManager"),
+        TextRange        = require("document/TextRange").TextRange;
     
     
     /**
@@ -184,15 +186,23 @@ define(function (require, exports, module) {
     }
     
     /** Launches CodeMirror's basic Find-within-single-editor feature */
-    function _launchFind(codeMirror) {
-        // Bring up CodeMirror's existing search bar UI
-        codeMirror.execCommand("find");
-        
-        // Prepopulate the search field with the current selection, if any
-        var findBarTextField = $(".CodeMirror-dialog input[type='text']");
-        findBarTextField.attr("value", codeMirror.getSelection());
-        findBarTextField.get(0).select();
+    function _launchFind() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            var codeMirror = editor._codeMirror;
+
+            // Bring up CodeMirror's existing search bar UI
+            codeMirror.execCommand("find");
+
+
+            
+            // Prepopulate the search field with the current selection, if any
+            var findBarTextField = $(".CodeMirror-dialog input[type='text']");
+            findBarTextField.attr("value", codeMirror.getSelection());
+            findBarTextField.get(0).select();
+        }
     }
+
     
     /**
      * @constructor
@@ -887,6 +897,11 @@ define(function (require, exports, module) {
      * @type {?TextRange}
      */
     Editor.prototype._visibleRange = null;
+
+    
+    CommandManager.register( Commands.EDIT_FIND, _launchFind);
+    CommandManager.register( Commands.EDIT_INDENT, _handleTabKey);
+    
 
     // Define public API
     exports.Editor = Editor;

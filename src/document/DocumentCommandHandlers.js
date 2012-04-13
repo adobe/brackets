@@ -576,6 +576,10 @@ define(function (require, exports, module) {
         });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
+
+    function handleShowDeveloperTools(commandData) {
+        brackets.app.showDeveloperTools();
+    }
     
      /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
@@ -599,7 +603,8 @@ define(function (require, exports, module) {
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
         CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
-        CommandManager.register(Commands.FILE_RELOAD, handleFileReload);
+        CommandManager.register(Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
+        CommandManager.register(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

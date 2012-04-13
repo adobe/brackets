@@ -709,5 +709,7 @@ define(function (require, exports, module) {
             projectTreeState: ""
         };
         PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+
+        CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());
 });
