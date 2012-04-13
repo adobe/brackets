@@ -165,19 +165,21 @@ define(function (require, exports, module) {
                     {"Ctrl-Q": Commands.FILE_QUIT},
 
                     // EDIT
-                    {"Ctrl-Z": Commands.EDIT_UNDO},
-                    {"Ctrl-Y": Commands.EDIT_REDO},
-                    // {"Ctrl-X": Commands.EDIT_CUT},
-                    // {"Ctrl-C": Commands.EDIT_COPY}, 
-                    // {"Ctrl-P": Commands.EDIT_PASTE},
+                    //{"Ctrl-Z": Commands.EDIT_UNDO},
+                    //{"Ctrl-Y": Commands.EDIT_REDO},
+                    //{"Ctrl-X": Commands.EDIT_CUT},
+                    //{"Ctrl-C": Commands.EDIT_COPY}, 
+                    //{"Ctrl-V": Commands.EDIT_PASTE},
 
-                    {"Ctrl-A": Commands.EDIT_SELECT_ALL},
+                    //{"Ctrl-A": Commands.EDIT_SELECT_ALL},
                     {"Ctrl-F": Commands.EDIT_FIND},
                     {"Ctrl-Shift-F": Commands.EDIT_FIND_IN_FILES},
                     {"Ctrl-G": Commands.EDIT_FIND_NEXT, "platform": "mac"},
                     {"F3": Commands.EDIT_FIND_NEXT, "platform": "win"},
                     {"Ctrl-Shift-G": Commands.EDIT_FIND_PREVIOUS, "platform": "mac"},
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
+                    {"Ctrl-G": Commands.EDIT_REPLACE, "platform": "mac"},
+                    {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
                     //{"Ctrl-Tab": Commands.EDIT_INDENT},
                     //{"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
 
