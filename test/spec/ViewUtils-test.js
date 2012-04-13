@@ -54,6 +54,13 @@ define(function (require, exports, module) {
                 expect(backgroundY()).toEqual(5 - ViewUtils.SCROLL_SHADOW_HEIGHT);
             });
         
+            it("should update shadow position when installed", function () {
+                scrollTop(100);
+                ViewUtils.installScrollShadow($fixture[0]);
+                
+                expect(backgroundY()).toEqual(-(ViewUtils.SCROLL_SHADOW_HEIGHT / 2));
+            });
+        
             it("should fully reveal the shadow after half the radial gradient height", function () {
                 ViewUtils.installScrollShadow($fixture[0]);
                 var maxReveal = (ViewUtils.SCROLL_SHADOW_HEIGHT / 2);
