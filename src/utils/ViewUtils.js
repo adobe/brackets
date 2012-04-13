@@ -30,26 +30,33 @@ define(function (require, exports, module) {
 
     /** 
      * Positions shadow background elements to indicate vertical scrolling.
-     * @param {!DOMElement} element the DOMElement using the scrollerShadow class
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {!Object} scrollElement the object that is scrolled
      */
-    function _updateScrollerShadow(element) {
+    function _updateScrollerShadow(displayElement, scrollElement) {
         var maxReveal   = -(SCROLL_SHADOW_HEIGHT / 2),
-            yPos        = Math.min(element.scrollTop - SCROLL_SHADOW_HEIGHT, maxReveal);
-        $(element).css("background-position", "0px " + yPos + "px");
+            yPos        = Math.min(scrollElement.scrollTop - SCROLL_SHADOW_HEIGHT, maxReveal);
+        $(displayElement).css("background-position", "0px " + yPos + "px");
     }
 
     /** 
      * Installs event handlers for updatng shadow background elements to indicate vertical scrolling.
-     * @param {!DOMElement} element the DOMElement using the scrollerShadow class
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {?Object} scrollElement the object that is scrolled. If null, the displayElement is used.
      */
-    function installScrollShadow(element) {
+    function installScrollShadow(displayElement, scrollElement) {
+        if (!scrollElement) {
+            scrollElement = displayElement;
+        }
+        
         // update shadows when the scrolling element is scrolled
-        var $element = $(element);
-        $element.toggleClass("scrollerShadow", true);
-        $element.on("scroll", function () { _updateScrollerShadow(element); });
+        var $displayElement = $(displayElement);
+        var $scrollElement = $(scrollElement);
+        $displayElement.toggleClass("scrollerShadow", true);
+        $scrollElement.on("scroll", function () { _updateScrollerShadow(displayElement, scrollElement); });
         
         // update immediately
-        _updateScrollerShadow(element);
+        _updateScrollerShadow(displayElement, scrollElement);
     }
 
     // Define public API
