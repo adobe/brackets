@@ -8,7 +8,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var shadowBackgroundHeight = 20;
+    var SCROLL_SHADOW_HEIGHT = 20;
 
     /** If a parent div has overflow:auto then the child will have a problem
      * setting the background color. The reason for this is the width of the 
@@ -33,8 +33,8 @@ define(function (require, exports, module) {
      * @param {!DOMElement} element the DOMElement using the scrollerShadow class
      */
     function _updateScrollerShadow(element) {
-        var maxReveal   = -(shadowBackgroundHeight / 2),
-            yPos        = Math.min(element.scrollTop - shadowBackgroundHeight, maxReveal);
+        var maxReveal   = -(SCROLL_SHADOW_HEIGHT / 2),
+            yPos        = Math.min(element.scrollTop - SCROLL_SHADOW_HEIGHT, maxReveal);
         $(element).css("background-position", "0px " + yPos + "px");
     }
 
@@ -42,14 +42,18 @@ define(function (require, exports, module) {
      * Installs event handlers for updatng shadow background elements to indicate vertical scrolling.
      * @param {!DOMElement} element the DOMElement using the scrollerShadow class
      */
-    function installScrollShadowHandlers(element) {
+    function installScrollShadow(element) {
         // update shadows when the scrolling element is scrolled
         var $element = $(element);
         $element.toggleClass("scrollerShadow", true);
         $element.on("scroll", function () { _updateScrollerShadow(element); });
+        
+        // update immediately
+        _updateScrollerShadow(element);
     }
 
     // Define public API
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
-    exports.installScrollShadowHandlers = installScrollShadowHandlers;
+    exports.installScrollShadow = installScrollShadow;
+    exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
 });
