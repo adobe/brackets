@@ -19,57 +19,91 @@
     border-right: 1px solid @bc-gray;
 }
 
+// Simple toolbar layout (project panel, find in files, etc.)
 .toolbar {
-    /* TODO: in mockup, the menu & title are both SourceSansLight, which looks much thinner & grayer */
+    .nav {
+        float: left;
+    }
+    .title {
+        //float: left;
+        display: inline;
+    }
+    .buttons {
+        float: right;
+    }
+}
+
+// Editor toolbar layout
+#main-toolbar.toolbar {
+    text-align: center;
+    .nav {
+        float: left;
+        text-align: left;
+    }
+    .title {
+        display: inline;    // must be an inline for JS to measure text size
+        float: none;
+    }
+    .title-wrapper {
+        display: block; // must be a block for the fixed width applied by JS to be respected
+        margin: 0px auto;
+        // Also requires a hardcoded width, which is applied/updated by JavaScript in DocumentCommandHandlers
+    }
+    .buttons {
+        text-align: left;
+    }
+}
+
+// Toolbar appearance
+.toolbar {
     
-    .hbox;
-    .box-align(center);
+    // TODO: move this to .toolbar in brackets.less?
     position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
 
-    height: 27px;
+    font-size: 14px;
     padding: 4px 8px;
     background-color: @bc-white;
     color: @bc-black;
-    border-bottom: 1px solid @bc-gray;
     .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
     
     .nav {
-        /* TEMPORARY - misbehaves if menus collide with filename */
-        position: absolute;
-        left: 10px;
-        top: 0px;
-        /* TEMPORARY */
+        margin: 5px 0px 0px 5px;
         
-        a, a:hover {
+        // Menubar item appearance
+        .dropdown-toggle, .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
+            // Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+            // color rules we need to override (and Bootstrap has several selectors because the colors really differ
+            // in their defaults).
             color: @bc-black;
-            padding: 5px 10px;  // Bootstrap has a lot of vertical padding, limiting the min height of the menu bar
         }
-        li:first-child a {
+        
+        .dropdown-toggle {
+            font-weight: @font-weight-light;
+            
+            // Bootstrap puts vertical padding on the individual menu item level; we'd rather have it at the toolbar level
+            // (and its padding is big, limiting the min height of the menu bar).
+            padding: 0px 10px;
+        }
+        
+        li:first-child .dropdown-toggle {
             /* Want to be able to pack menu pretty close to left edge of toolbar, so the first menu shouldn't have the
-               usual symmetrical padding */
+               usual symmetrical padding (moving all padding to the right side would just mean we'd have this same problem
+               on the other end of the menubar, where it abuts the filename title) */
             padding-left: 0px;
         }
         .dropdown-toggle:after { // no triangle icon after menu items
             border: 0;
             margin: 0;
         }
-        .dropdown.open .dropdown-toggle {
-            color: @bc-black;
-        }
     }
-
+    
     .title-wrapper {
-        /* This is necessary because text-overflow: ellipsis doesn't work when it's set
-           directly on a flexing box in Chrome currently. */
-        .box-flex(1);
+        padding: 2px 0px 3px 0px;
     }
     .title {
-        /* TODO */
-        //margin: 0px auto;
-        
         font-size: 18px;
         line-height: normal;
-        font-weight: normal;
+        font-weight: @font-weight-light;
 
         white-space: nowrap;
         overflow: hidden;
@@ -78,12 +112,8 @@
         text-overflow: ellipsis;
     }
     .buttons {
-        .hbox;
-        margin-left: 4px;
+        margin: 5px 0px 0px 4px;
     }
-}
-#main-toolbar.toolbar .title {
-    text-align: center;
 }
 
 

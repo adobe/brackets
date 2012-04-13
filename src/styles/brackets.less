@@ -105,12 +105,14 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        font-size: 0.9em;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
-
-        .close {
-            position: absolute;
-            right: 10px;
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .buttons {
+            // close button is not very tall
+            margin-top: 2px;
         }
     }
     
@@ -140,12 +142,24 @@ a, img {
     text-shadow: 0 -1px @bc-black;
 }
 
+// TODO: text styles here will go away once we have an icon
+#toolbar-go-live {
+    color: @bc-black;
+    font-weight: @font-weight-light;
+    padding-right: 10px;
+    
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+
 /* Project panel */
 
-#projects .toolbar {    
-    .picker {
-        .box;
-        .box-flex(1);
+#projects .toolbar {
+    // The "Open" button is much bigger than the editor toolbar buttons
+    .buttons {
+        margin: -2px 0 0 0;
     }
 }
 

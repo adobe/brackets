@@ -28,8 +28,10 @@ define(function (require, exports, module) {
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
     
-    /** @type {jQueryObject} Container for label shown above editor */
+    /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
     var _title = null;
+    /** @type {jQueryObject} Container for _title; need not be an inline element */
+    var _titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
     
@@ -40,6 +42,11 @@ define(function (require, exports, module) {
         } else {
             _title.text("");
         }
+        
+        // CSS hack -- TODO: document this
+        _titleWrapper.css("width", "");
+        var newWidth = _title.width();
+        _titleWrapper.css("width", newWidth);
     }
     
     function handleCurrentDocumentChange() {
@@ -584,8 +591,9 @@ define(function (require, exports, module) {
         });
     }
 
-    function init(title) {
+    function init(title, titleWrapper) {
         _title = title;
+        _titleWrapper = titleWrapper;
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);

@@ -38,9 +38,7 @@
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-toolbar" class="toolbar">
-                    <div class="title-wrapper">
-                        <div id="project-title" class="title"></div>
-                    </div>
+                    <div id="project-title" class="title"></div>
                     <div class="buttons">
                         <button id="btn-open-project" class="btn">Open</button>
                     </div>
@@ -132,11 +130,15 @@
                     </li>
                 </ul>
                 
-                <div class="title-wrapper">
-                    <div class="title"></div>
+                <div class="buttons">
+                    <a href="#" id="toolbar-go-live">Go Live </a>
+                    <span id="gold-star">
+                        &#9733;
+                    </span>
                 </div>
-                <div id="gold-star">
-                    &#9733;
+                
+                <div class="title-wrapper">
+                    <span class="title"></span>
                 </div>
             </div>
             
@@ -156,7 +158,7 @@
                 <div class="toolbar">
                     <div class="title">Search Results</div>
                     <div class="title" id="search-result-summary"></div>
-                    <a href="#" class="close">&times;</a>
+                    <div class="buttons"><a href="#" class="close">&times;</a></div>
                 </div>
                 <div class="table-container"></div>
             </div>
