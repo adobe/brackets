@@ -14,7 +14,7 @@ define(function (require, exports, module) {
     describe("ViewUtils", function () {
 
         /*
-         * Note: This suite applies uses ViewUtils to apply the .scrollerShadow class to the fixture.
+         * Note: This suite uses ViewUtils to apply the .scrollerShadow class to the fixture.
          * However, the brackets.less file is not part of the SpecRunner. Therefore, no background-image
          * is displayed or animated. These tests simply validate that the correct
          * background-position value is written to the scrolling DOMElement.
