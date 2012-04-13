@@ -39,8 +39,10 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
             _title.text(_currentTitlePath + (currentDoc.isDirty ? " \u2022" : ""));
+            _title.attr("title", currentDoc.file.fullPath);
         } else {
             _title.text("");
+            _title.attr("title", "");
         }
         
         // CSS hack -- TODO: document this
