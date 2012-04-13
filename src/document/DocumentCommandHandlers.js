@@ -35,6 +35,11 @@ define(function (require, exports, module) {
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
     
+    /** @type {jQueryObject} Container for _titleWrapper; if changing title changes this element's height, must kick editor to resize */
+    var _titleContainerToolbar = null;
+    /** @type {Number} Last known height of _titleContainerToolbar */
+    var _lastToolbarHeight = null;
+    
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
@@ -51,6 +56,14 @@ define(function (require, exports, module) {
         _titleWrapper.css("width", "");
         var newWidth = _title.width();
         _titleWrapper.css("width", newWidth);
+        
+        // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+        // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+        var newToolbarHeight = _titleContainerToolbar.height();
+        if (_lastToolbarHeight !== newToolbarHeight) {
+            _lastToolbarHeight = newToolbarHeight;
+            EditorManager.resizeEditor();
+        }
     }
     
     function handleCurrentDocumentChange() {
@@ -595,9 +608,10 @@ define(function (require, exports, module) {
         });
     }
 
-    function init(title, titleWrapper) {
-        _title = title;
-        _titleWrapper = titleWrapper;
+    function init(titleContainerToolbar) {
+        _titleContainerToolbar = titleContainerToolbar;
+        _titleWrapper = $(".title-wrapper", _titleContainerToolbar);
+        _title = $(".title", _titleWrapper);
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);

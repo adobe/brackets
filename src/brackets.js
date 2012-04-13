@@ -149,9 +149,7 @@ define(function (require, exports, module) {
         
         
         function initCommandHandlers() {
-            var $titleWrapper = $("#main-toolbar .title-wrapper");
-            var $title = $(".title", $titleWrapper);
-            DocumentCommandHandlers.init($title, $titleWrapper);
+            DocumentCommandHandlers.init($("#main-toolbar"));
         }
 
         function initKeyBindings() {

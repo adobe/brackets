@@ -40,12 +40,19 @@
 }
 
 /* Editor toolbar layout
+
    CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
    This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
    left and buttons floated right), yet still have the browser automatically wrap the floats onto a 2nd row
    if they collide with the title. But the centered content must be a block element with fixed width. Since
    the editor title (filename) varies in width, we rely on JS code to update the width whenever the string
-   changes. */
+   changes.
+
+   Another wrinkle: wrapping to/from the two-line toolbar layout requires notifying the CodeMirror editor that
+   its height changed. Currently, we assume this can ONLY happen in two cases:
+    - the window resizes (handled by general listener in EditorManager)
+    - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
+*/
 #main-toolbar.toolbar {
     text-align: center;
     .nav {
