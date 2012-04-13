@@ -22,7 +22,6 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW   = "file.close_window";
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
     exports.FILE_QUIT           = "file.quit";
-    exports.FILE_QUICK_NAVIGATE = "file.quickNaviate";
 
     // EDIT
     exports.EDIT_CUT            = "edit.cut";
@@ -36,6 +35,9 @@ define(function (require, exports, module) {
     exports.EDIT_REPLACE        = "edit.replace"
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
+
+    // Navigate
+    exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
 
     exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow";
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";

@@ -46,6 +46,7 @@ define(function (require, exports, module) {
             "menu-view-hide-sidebar": Commands.DEBUG_HIDE_SIDEBAR,
 
             // Navigate
+            "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
 
             // Debug
             "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,

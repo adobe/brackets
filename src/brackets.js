@@ -183,12 +183,14 @@ define(function (require, exports, module) {
                     //{"Ctrl-Tab": Commands.EDIT_INDENT},
                     //{"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
 
+                    // Navigate
+                    {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
+                    //{"Ctrl-E", Commands.TODO}
+
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
                     {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"},
 
-
-                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
                     {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR}
 
 
