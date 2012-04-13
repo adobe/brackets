@@ -18,79 +18,86 @@ define(function (require, exports, module) {
          * Maps the dom id's of menus to command strings in Commands.js 
          * @type {Object.<string, string>}
          */
-        var menuMap = {
-            // File
-            "menu-file-new": Commands.FILE_NEW,
-            "menu-file-open": Commands.FILE_OPEN,
-            "menu-file-open-folder": Commands.FILE_OPEN_FOLDER,
-            "menu-file-close": Commands.FILE_CLOSE,
-            "menu-file-save": Commands.FILE_SAVE,
-            "menu-file-quit": Commands.FILE_QUIT,
+    var menuMap = {
+        // File
+        "menu-file-new": Commands.FILE_NEW,
+        "menu-file-open": Commands.FILE_OPEN,
+        "menu-file-open-folder": Commands.FILE_OPEN_FOLDER,
+        "menu-file-close": Commands.FILE_CLOSE,
+        "menu-file-save": Commands.FILE_SAVE,
+        "menu-file-quit": Commands.FILE_QUIT,
 
-            // Edit
-            "menu-edit-undo": Commands.EDIT_UNDO,
-            "menu-edit-redo": Commands.EDIT_REDO,
-            "menu-edit-cut": Commands.EDIT_CUT,
-            "menu-edit-copy": Commands.EDIT_COPY,
-            "menu-edit-paste": Commands.EDIT_PASTE,
+        // Edit
+        "menu-edit-undo": Commands.EDIT_UNDO,
+        "menu-edit-redo": Commands.EDIT_REDO,
+        "menu-edit-cut": Commands.EDIT_CUT,
+        "menu-edit-copy": Commands.EDIT_COPY,
+        "menu-edit-paste": Commands.EDIT_PASTE,
 
-            "menu-edit-select-all": Commands.EDIT_SELECT_ALL,
-            "menu-edit-find": Commands.EDIT_FIND,
-            "menu-edit-find-in-files": Commands.EDIT_FIND_IN_FILES,
-            "menu-edit-find-next": Commands.EDIT_FIND_NEXT,
-            "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
-            "menu-edit-replace": Commands.EDIT_REPLACE,
-            
+        "menu-edit-select-all": Commands.EDIT_SELECT_ALL,
+        "menu-edit-find": Commands.EDIT_FIND,
+        "menu-edit-find-in-files": Commands.EDIT_FIND_IN_FILES,
+        "menu-edit-find-next": Commands.EDIT_FIND_NEXT,
+        "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
+        "menu-edit-replace": Commands.EDIT_REPLACE,
+        
 
-            // View
-            "menu-view-hide-sidebar": Commands.DEBUG_HIDE_SIDEBAR,
+        // View
+        "menu-view-hide-sidebar": Commands.DEBUG_HIDE_SIDEBAR,
 
-            // Navigate
-            "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
+        // Navigate
+        "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
 
-            // Debug
-            "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
-            "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
-            "menu-debug-jslint": Commands.DEBUG_JSLINT,
-            "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
-            "menu-debug-show-perf": Commands.DEBUG_SHOW_PERF_DATA,
+        // Debug
+        "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
+        "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
+        "menu-debug-jslint": Commands.DEBUG_JSLINT,
+        "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
+        "menu-debug-show-perf": Commands.DEBUG_SHOW_PERF_DATA,
 
 
-            // Experimental
-            "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
-            "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS,
-        };
+        // Experimental
+        "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
+        "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS
+    };
 
-        var _codeMirrorInternal = [Commands.EDIT_SELECT_ALL, Commands.EDIT_UNDO];
+    var _codeMirrorInternal = [Commands.EDIT_SELECT_ALL, Commands.EDIT_UNDO];
 
     function init() {
         var cmdToIdMap = {}; // used to swap the values and keys for fast look up
 
         function createExecFunc(commandStr) {
-            return function() {
+            return function () {
                 // TODO TY: should flash menu here
                 //console.log(commandStr);
 
                 EditorManager.focusEditor();
                 CommandManager.execute(commandStr);
-            }
+            };
         }
 
         // create click handles and populate cmdToIdMap
-        for(var menuID in menuMap) {
-            var commandStr = menuMap[menuID];
-            $("#" + menuID).click( createExecFunc(commandStr) );
-            cmdToIdMap[commandStr] = menuID;
+        var menuID;
+        var commandStr;
+        for (menuID in menuMap) {
+            if (menuMap.hasOwnProperty(menuID)) {
+                commandStr = menuMap[menuID];
+                $("#" + menuID).click(createExecFunc(commandStr));
+                cmdToIdMap[commandStr] = menuID;
+            }
         }
 
         // Add shortcut key text to menu items in UI
         var menuBindings = KeyBindingManager.getKeymap();
-        for(var keyCmd in menuBindings) {
-            var commandStr = menuBindings[keyCmd];
-            var menuID = cmdToIdMap[commandStr];
-            if ( menuID ) {
-                var shortcut = keyCmd.replace(/-/, "+");
-                $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
+        var keyCmd;
+        for (keyCmd in menuBindings) {
+            if (menuBindings.hasOwnProperty(keyCmd)) {
+                commandStr = menuBindings[keyCmd];
+                menuID = cmdToIdMap[commandStr];
+                if (menuID) {
+                    var shortcut = keyCmd.replace(/-/, "+");
+                    $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                }
             }
         }
 
