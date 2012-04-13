@@ -509,21 +509,69 @@ li.smart_autocomplete_highlight {
         width: 15px;
         height: 16px;
         background: url("styles/images/close_btn.png") no-repeat;
-        margin: 0 3px 4px 0;
+        margin: 3px 0px 0px 8px;
         &:active{
             margin-bottom: 3px;
         }
     }
     #open-files-container {
-        margin: 35px 0 22px 0;
+        margin: 0 0 22px 0;
         li {
             line-height: 24px;
             padding: 0 0 0 8px;
             height: 25px;
+            vertical-align: baseline;
             a {
                 color: #BBB;
                 font-size: 14px;
                 font-weight: normal;
+                margin-left: 18px;
+                cursor: default;
+            }
+            .extension a {
+                color: #8e9a9d;
+            }
+            &:hover {
+                background: transparent;
+            }
+            &:active {
+                background-position: 0 1px;
+            }
+            &.selected {
+                height: 25px;
+                background: url("styles/images/active_back.png") no-repeat top right;
+                a {
+                    color: #fff;
+                    font-weight: 500;
+                }
+                .extension a {
+                    color: #fff;
+                }
+            }
+        }
+    }
+    #open-files-divider {
+        display: none !IMPORTANT; //TODO: delete this element from the DOM
+    }
+    #project-files-container {
+        #project-files-header {
+            color: #929292;
+            font-family: 'SourceSans';
+            font-weight: 200;
+        }
+        li {
+            line-height: 24px;
+            // padding: 0 0 0 8px;
+            // height: 60px;
+            vertical-align: baseline;
+            a {
+                color: #BBB;
+                font-size: 14px;
+                font-weight: 400;
+                cursor: default;
+                &.jstree-hovered {
+                    background: transparent;
+                }
             }
             .extension a {
                 color: #8e9a9d;
