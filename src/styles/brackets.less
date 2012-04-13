@@ -110,9 +110,9 @@ a, img {
             font-size: 14px;
             font-weight: bold;
         }
-        .buttons {
-            // close button is not very tall
-            margin-top: 2px;
+        .close {
+            position: absolute;
+            right: 10px;
         }
     }
     
@@ -138,8 +138,7 @@ a, img {
 #gold-star {
     display: none;
     font-size: 1.2em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
-    text-shadow: 0 -1px @bc-black;
+    color: #ffe13b;
 }
 
 // TODO: text styles here will go away once we have an icon
@@ -157,7 +156,11 @@ a, img {
 /* Project panel */
 
 #projects .toolbar {
-    // The "Open" button is much bigger than the editor toolbar buttons
+    .picker {
+        .box;
+        .box-flex(1);
+    }
+    // The "Open" button is unusually tall
     .buttons {
         margin: -2px 0 0 0;
     }

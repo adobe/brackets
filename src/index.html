@@ -37,8 +37,10 @@
         <div class="sidebar">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
-                <div id="project-toolbar" class="toolbar">
-                    <div id="project-title" class="title"></div>
+                <div id="project-toolbar" class="toolbar simpleToolbarLayout">
+                    <div class="title-wrapper">
+                        <div id="project-title" class="title"></div>
+                    </div>
                     <div class="buttons">
                         <button id="btn-open-project" class="btn">Open</button>
                     </div>
@@ -149,16 +151,16 @@
             </div>
             
             <div id="jslint-results">
-                <div class="toolbar">
+                <div class="toolbar simpleToolbarLayout">
                     <div class="title">JSLint errors</div>
                 </div>
                 <div class="table-container"></div>
             </div>
             <div id="search-results">
-                <div class="toolbar">
+                <div class="toolbar simpleToolbarLayout">
                     <div class="title">Search Results</div>
                     <div class="title" id="search-result-summary"></div>
-                    <div class="buttons"><a href="#" class="close">&times;</a></div>
+                    <a href="#" class="close">&times;</a>
                 </div>
                 <div class="table-container"></div>
             </div>

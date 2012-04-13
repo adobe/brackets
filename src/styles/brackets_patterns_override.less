@@ -19,17 +19,23 @@
     border-right: 1px solid @bc-gray;
 }
 
+
+/* Toolbar-related styles */
+
 // Simple toolbar layout (project panel, find in files, etc.)
-.toolbar {
-    .nav {
-        float: left;
-    }
-    .title {
-        //float: left;
-        display: inline;
+// We don't set this directly on .toolbar because it'd be a pain to override all the pieces
+// if other code (e.g. #main-toolbar) wants to do a different layout
+.simpleToolbarLayout.toolbar {
+    .hbox;
+    .box-align(center);
+    .title-wrapper {
+        /* This is necessary because text-overflow: ellipsis doesn't work when it's set
+           directly on a flexing box in Chrome currently. */
+        .box-flex(1);
     }
     .buttons {
-        float: right;
+        .hbox;
+        margin-left: 4px;
     }
 }
 
@@ -41,20 +47,21 @@
         text-align: left;
     }
     .title {
-        display: inline;    // must be an inline for JS to measure text size
+        display: inline;  // must be an inline for JS to measure text size
         float: none;
     }
     .title-wrapper {
-        display: block; // must be a block for the fixed width applied by JS to be respected
+        display: block;  // must be a block for the fixed width applied by JS to be respected
         margin: 0px auto;
         // Also requires a hardcoded width, which is applied/updated by JavaScript in DocumentCommandHandlers
     }
     .buttons {
+        float: right;
         text-align: left;
     }
 }
 
-// Toolbar appearance
+// Toolbar appearance - shared by all toolbars
 .toolbar {
     
     // TODO: move this to .toolbar in brackets.less?
