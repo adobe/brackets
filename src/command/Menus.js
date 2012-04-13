@@ -39,6 +39,7 @@ define(function (require, exports, module) {
             "menu-edit-find-in-files": Commands.EDIT_FIND_IN_FILES,
             "menu-edit-find-next": Commands.EDIT_FIND_NEXT,
             "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
+            "menu-edit-replace": Commands.EDIT_REPLACE,
             
 
             // View
@@ -58,6 +59,8 @@ define(function (require, exports, module) {
             "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
             "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS,
         };
+
+        var _codeMirrorInternal = [Commands.EDIT_SELECT_ALL, Commands.EDIT_UNDO];
 
     function init() {
         var cmdToIdMap = {}; // used to swap the values and keys for fast look up

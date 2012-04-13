@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     exports.EDIT_FIND_IN_FILES  = "edit.findInFiles";
     exports.EDIT_FIND_NEXT      = "edit.findNext";
     exports.EDIT_FIND_PREVIOUS  = "edit.findPrevious";
+    exports.EDIT_REPLACE        = "edit.replace"
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
 
