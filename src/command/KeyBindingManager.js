@@ -33,6 +33,14 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Returns a copy of the keymap
+     * @returns {KeyMap}
+     */
+    function getKeymap() {
+        return $.extend({}, _keymap.map);
+    }
+
+    /**
      * Process the keybinding for the current key.
      *
      * @param {string} A key-description string.
@@ -62,6 +70,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.installKeymap = installKeymap;
+    exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
 });
