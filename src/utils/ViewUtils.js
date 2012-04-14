@@ -8,7 +8,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var SCROLL_SHADOW_HEIGHT = 20;
+    var SCROLL_SHADOW_HEIGHT = 5;
 
     /** If a parent div has overflow:auto then the child will have a problem
      * setting the background color. The reason for this is the width of the 
@@ -34,7 +34,7 @@ define(function (require, exports, module) {
      * @param {!Object} scrollElement the object that is scrolled
      */
     function _updateScrollerShadow(displayElement, scrollElement) {
-        var maxReveal   = -(SCROLL_SHADOW_HEIGHT / 2),
+        var maxReveal   = 0,
             yPos        = Math.min(scrollElement.scrollTop - SCROLL_SHADOW_HEIGHT, maxReveal);
         $(displayElement).css("background-position", "0px " + yPos + "px");
     }

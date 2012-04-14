@@ -98,7 +98,7 @@ a, img {
         position: fixed;
         height: 20px;
         width: 100%;
-        z-index: 8;
+        z-index: 12;
     }
 }
     
@@ -250,15 +250,12 @@ a, img {
 
 .scrollerShadow {
     /* top shadow */
-    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
+    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
     
-    /* ease-out shadow positioning */
-    .transition(background-position, .2s, ease-out);
-
     /* hide the shadow on init */
     background-position: 0px -9999px;
     
-    background-size: 100% 20px;
+    background-size: 100% 5px;
     background-repeat: no-repeat;
 }
 
