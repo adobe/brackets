@@ -37,3 +37,25 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
+
+/* Sets the background to the given offset in the sprite sheet. Typically, the element you set this on requires
+   a fixed size so that other parts of the sprite sheet don't show. */
+.sprite(@xOffset, @yOffset, @spriteSheet) {
+    background:url(@spriteSheet) -@xOffset -@yOffset no-repeat;
+}
+
+/* Turns the given element into an icon showing the given rectangle in the sprite sheet. Can be used on empty elements
+   (e.g. a link with no text) or on the :before/:after selector of elements that have content. */
+.spriteIcon(@xOffset, @yOffset, @width, @height, @spriteSheet) {
+    content: "";
+    background: url(@spriteSheet) -@xOffset -@yOffset no-repeat;
+    display: inline-block;
+    width: @width;
+    height: @height;
+}
+
+/* Changes an element that's already showing one area of a sprite sheet to show a different area of the same size.
+   Should be used with an element whose base styling applies .sprite() or .spriteIcon() */
+.spriteSwap(@xOffset, @yOffset) {
+    background-position: -@xOffset -@yOffset;
+}
