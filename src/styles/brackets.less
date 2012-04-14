@@ -180,7 +180,7 @@ a, img {
 #file-section {
     .vbox;
     .box-flex(1);
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px 0px 0px;
     
     .project-file-header-area {
         padding: 4px 4px 2px 0px;
@@ -244,11 +244,25 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px 0px 0px 8px;
+    padding: 0px;
     margin: 0;
     overflow: auto;
     
     ul { margin-top: 0; }
+}
+
+.scrollerShadow {
+    /* top shadow */
+    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
+    
+    /* ease-out shadow positioning */
+    .transition(background-position, .2s, ease-out);
+
+    /* hide the shadow on init */
+    background-position: 0px -9999px;
+    
+    background-size: 100% 20px;
+    background-repeat: no-repeat;
 }
 
 @spriteSize18: 18px;
