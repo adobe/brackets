@@ -41,10 +41,14 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager");
-    var TextRange        = require("document/TextRange").TextRange;
+    var EditorManager    = require("editor/EditorManager"),
+        Commands         = require("command/Commands"),
+        CommandManager   = require("command/CommandManager"),
+        TextRange        = require("document/TextRange").TextRange;
     
     
+
+
     /**
      * @private
      * Handle Tab key press.
@@ -182,16 +186,49 @@ define(function (require, exports, module) {
             }
         }
     }
+
+    function _handleSelectAll() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("selectAll");
+        }
+    }
     
     /** Launches CodeMirror's basic Find-within-single-editor feature */
-    function _launchFind(codeMirror) {
-        // Bring up CodeMirror's existing search bar UI
-        codeMirror.execCommand("find");
-        
-        // Prepopulate the search field with the current selection, if any
-        var findBarTextField = $(".CodeMirror-dialog input[type='text']");
-        findBarTextField.attr("value", codeMirror.getSelection());
-        findBarTextField.get(0).select();
+    function _launchFind() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            var codeMirror = editor._codeMirror;
+
+            // Bring up CodeMirror's existing search bar UI
+            codeMirror.execCommand("find");
+
+            // Prepopulate the search field with the current selection, if any
+            var findBarTextField = $(".CodeMirror-dialog input[type='text']");
+            findBarTextField.attr("value", codeMirror.getSelection());
+            findBarTextField.get(0).select();
+        }
+    }
+
+    function _findNext() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("findNext");
+        }
+    }
+
+    function _findPrevious() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("findPrev");
+        }
+    }
+
+    function _replace() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("replace");
+        }
     }
     
     /**
@@ -887,6 +924,14 @@ define(function (require, exports, module) {
      * @type {?TextRange}
      */
     Editor.prototype._visibleRange = null;
+
+    
+    CommandManager.register(Commands.EDIT_FIND, _launchFind);
+    CommandManager.register(Commands.EDIT_FIND_NEXT, _findNext);
+    CommandManager.register(Commands.EDIT_REPLACE, _replace);
+    CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
+    CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // Define public API
     exports.Editor = Editor;
