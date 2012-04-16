@@ -149,7 +149,7 @@ define(function (require, exports, module) {
         
         
         function initCommandHandlers() {
-            DocumentCommandHandlers.init($("#main-toolbar .title"));
+            DocumentCommandHandlers.init($("#main-toolbar"));
         }
 
         function initKeyBindings() {

@@ -70,8 +70,7 @@ define(function main(require, exports, module) {
 
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
-        _btnGoLive = $("<a href=\"#\">Go Live </a>");
-        $(".nav").append($("<li>").append(_btnGoLive));
+        _btnGoLive = $("#toolbar-go-live");
         _btnGoLive.click(function onGoLive() {
             if (LiveDevelopment.status > 0) {
                 LiveDevelopment.close();
@@ -89,6 +88,7 @@ define(function main(require, exports, module) {
 
     /** Create the menu item "Highlight" */
     function _setupHighlightButton() {
+        // TODO: this should be moved into index.html like the Go Live button once it's re-enabled
         _btnHighlight = $("<a href=\"#\">Highlight </a>");
         $(".nav").append($("<li>").append(_btnHighlight));
         _btnHighlight.click(function onClick() {
