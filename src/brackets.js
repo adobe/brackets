@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                     {"F3": Commands.EDIT_FIND_NEXT, "platform": "win"},
                     {"Ctrl-Shift-G": Commands.EDIT_FIND_PREVIOUS, "platform": "mac"},
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
-                    {"Ctrl-G": Commands.EDIT_REPLACE, "platform": "mac"},
+                    {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
                     //{"Ctrl-Tab": Commands.EDIT_INDENT},
                     //{"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
