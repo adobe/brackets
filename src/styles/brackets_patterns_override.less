@@ -84,12 +84,12 @@
     position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
     .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
     
-    @toolbar-top-gap: 5px;
+    @toolbar-top-gap-px: 5px;
     
     .nav {
         @menubar-item-h-padding: 10px;
         
-        margin: @toolbar-top-gap 0 0 (-@menubar-item-h-padding + 4);
+        margin: @toolbar-top-gap-px 0 0 (-@menubar-item-h-padding + 4);
         
         // Menubar item appearance
         .dropdown-toggle {
@@ -121,7 +121,7 @@
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
-        padding: (@toolbar-top-gap - 3) 0 3px 0;
+        padding: (@toolbar-top-gap-px - 3px) 0 3px 0;
     }
     .title {
         font-size: @title-font-size;
@@ -136,7 +136,7 @@
     }
     
     .buttons {
-        margin: @toolbar-top-gap 0 0 4px;
+        margin: @toolbar-top-gap-px 0 0 4px;
     }
 }
 
