@@ -41,26 +41,6 @@
     box-sizing: border-box;
 }
 
-/* Helpers for CSS transitions */
-.transition(@property:all, @duration:0s, @timing-function:ease, @delay:0s) {
-    -webkit-transition: @property @duration @timing-function @delay;
-    -moz-transition: @property @duration @timing-function @delay;
-    -ms-transition: @property @duration @timing-function @delay;
-    -o-transition: @property @duration @timing-function @delay;
-    transition: @property @duration @timing-function @delay;
-}
-
-/* Helpers for gradients (see also built-in LESS/Bootstrap mixins */
-.radial-gradient(@position:center, @shape:ellipse, @size:cover, @start:rgba(0,0,0,1) 0%, @startPos:0%, @stop:rgba(0,0,0,0), @stopPos:100%) {
-    background: -moz-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* FF3.6+ */
-    background: -webkit-gradient(radial, @position @position, 0px, center center, 100%, color-stop(@startPos,@start), color-stop(@stopPos,@stop)); /* Chrome,Safari4+ */
-    background: -webkit-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* Chrome10+,Safari5.1+ */
-    background: -o-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* Opera 12+ */
-    background: -ms-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* IE10+ */
-    background: radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* W3C */
-    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=0 )"; /* IE6-9 fallback on horizontal gradient */
-}
-
 /* Helpers for spritesheet images */
 /* Sets the background to the given offset in the spritesheet. Typically, the element you set this on requires
    a fixed size so that other parts of the spritesheet don't show. */
