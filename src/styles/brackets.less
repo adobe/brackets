@@ -92,6 +92,14 @@ a, img {
             opacity: 0.30;
         }
     }
+    
+    /* Scroll shadow */
+    #editor-scroll-shadow {
+        position: fixed;
+        height: 4px;
+        width: 100%;
+        z-index: 12;
+    }
 }
     
 #jslint-results, #search-results {
@@ -253,15 +261,12 @@ a, img {
 
 .scrollerShadow {
     /* top shadow */
-    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
+    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
     
-    /* ease-out shadow positioning */
-    .transition(background-position, .2s, ease-out);
-
     /* hide the shadow on init */
     background-position: 0px -9999px;
     
-    background-size: 100% 20px;
+    background-size: 100% 4px;
     background-repeat: no-repeat;
 }
 
