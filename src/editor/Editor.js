@@ -44,7 +44,8 @@ define(function (require, exports, module) {
     var EditorManager    = require("editor/EditorManager"),
         Commands         = require("command/Commands"),
         CommandManager   = require("command/CommandManager"),
-        TextRange        = require("document/TextRange").TextRange;
+        TextRange        = require("document/TextRange").TextRange,
+        ViewUtils        = require("utils/ViewUtils");
     
     
 
@@ -334,6 +335,8 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
+        ViewUtils.installScrollShadow($("#editor-scroll-shadow"), this);
+        
         $(this)
             .on("keyEvent", _checkElectricChars)
             .on("change", this._handleEditorChange.bind(this));
@@ -367,6 +370,13 @@ define(function (require, exports, module) {
         if (makeMasterEditor) {
             document._makeEditable(this);
         }
+        
+        // Add a "scrollTop" property to this object for the scroll shadow code to use
+        Object.defineProperty(this, "scrollTop", {
+            get: function () {
+                return this._codeMirror.scrollPos().y;
+            }
+        });
     }
     
     /**

@@ -8,7 +8,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var SCROLL_SHADOW_HEIGHT = 20;
+    var SCROLL_SHADOW_HEIGHT = 5;
 
     /** If a parent div has overflow:auto then the child will have a problem
      * setting the background color. The reason for this is the width of the 
@@ -30,26 +30,33 @@ define(function (require, exports, module) {
 
     /** 
      * Positions shadow background elements to indicate vertical scrolling.
-     * @param {!DOMElement} element the DOMElement using the scrollerShadow class
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {!Object} scrollElement the object that is scrolled
      */
-    function _updateScrollerShadow(element) {
-        var maxReveal   = -(SCROLL_SHADOW_HEIGHT / 2),
-            yPos        = Math.min(element.scrollTop - SCROLL_SHADOW_HEIGHT, maxReveal);
-        $(element).css("background-position", "0px " + yPos + "px");
+    function _updateScrollerShadow(displayElement, scrollElement) {
+        var yPos        = Math.min(scrollElement.scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+        
+        $(displayElement).css("background-position", "0px " + yPos + "px");
     }
 
     /** 
      * Installs event handlers for updatng shadow background elements to indicate vertical scrolling.
-     * @param {!DOMElement} element the DOMElement using the scrollerShadow class
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {?Object} scrollElement the object that is scrolled. If null, the displayElement is used.
      */
-    function installScrollShadow(element) {
+    function installScrollShadow(displayElement, scrollElement) {
+        if (!scrollElement) {
+            scrollElement = displayElement;
+        }
+        
         // update shadows when the scrolling element is scrolled
-        var $element = $(element);
-        $element.toggleClass("scrollerShadow", true);
-        $element.on("scroll", function () { _updateScrollerShadow(element); });
+        var $displayElement = $(displayElement);
+        var $scrollElement = $(scrollElement);
+        $displayElement.toggleClass("scrollerShadow", true);
+        $scrollElement.on("scroll", function () { _updateScrollerShadow(displayElement, scrollElement); });
         
         // update immediately
-        _updateScrollerShadow(element);
+        _updateScrollerShadow(displayElement, scrollElement);
     }
 
     // Define public API
