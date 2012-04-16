@@ -1,5 +1,6 @@
 /* Brackets mixins */
 
+/* Helpers for working with box layouts */
 .box {
     display: -webkit-box;
     display: -moz-box;
@@ -32,24 +33,33 @@
     -moz-box-align: @align;
     box-align: @align;
 }
+
+/* Helpful for percentage-sizing items that have border/padding */
 .sane-box-model {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
-.transition(@property:all, @duration:0s, @timing-function:ease, @delay:0s) {
-    -webkit-transition: @property @duration @timing-function @delay;
-    -moz-transition: @property @duration @timing-function @delay;
-    -ms-transition: @property @duration @timing-function @delay;
-    -o-transition: @property @duration @timing-function @delay;
-    transition: @property @duration @timing-function @delay;
+
+/* Helpers for spritesheet images */
+/* Sets the background to the given offset in the spritesheet. Typically, the element you set this on requires
+   a fixed size so that other parts of the spritesheet don't show. */
+.sprite(@xOffset, @yOffset, @spriteSheet) {
+    background: url(@spriteSheet) -@xOffset -@yOffset no-repeat;
 }
-.radial-gradient(@position:center, @shape:ellipse, @size:cover, @start:rgba(0,0,0,1) 0%, @startPos:0%, @stop:rgba(0,0,0,0), @stopPos:100%) {
-    background: -moz-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* FF3.6+ */
-    background: -webkit-gradient(radial, @position @position, 0px, center center, 100%, color-stop(@startPos,@start), color-stop(@stopPos,@stop)); /* Chrome,Safari4+ */
-    background: -webkit-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* Chrome10+,Safari5.1+ */
-    background: -o-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* Opera 12+ */
-    background: -ms-radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* IE10+ */
-    background: radial-gradient(@position, @shape @size, @start @startPos, @stop @stopPos); /* W3C */
-    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=0 )"; /* IE6-9 fallback on horizontal gradient */
+
+/* Turns the given element into an icon showing the given rectangle in the spritesheet. Can be used on empty elements
+   (e.g. a link with no text) or on the :before/:after selector of elements that have content. */
+.spriteIcon(@xOffset, @yOffset, @width, @height, @spriteSheet) {
+    content: "";
+    .sprite(@xOffset, @yOffset, @spriteSheet);
+    display: inline-block;
+    width: @width;
+    height: @height;
+}
+
+/* Changes an element that's already showing one area of a spritesheet to show a different area of the same size.
+   Should be used with an element whose base styling includes .sprite() or .spriteIcon() */
+.spriteSwap(@xOffset, @yOffset) {
+    background-position: -@xOffset -@yOffset;
 }

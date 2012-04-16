@@ -45,28 +45,10 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
-
-    .topbar {
-        position: static;
-    }
 }
 
 a, img {
     -webkit-user-drag: none;
-}
-
-.topbar-inner {
-    /* We don't want to use the default .container in here, 
-       so we need to .clearfix the children. */
-    .clearfix;
-
-    .brand {
-        .sane-box-model;
-        margin-left: 0;
-        width: 200px;
-        padding-left: @base-padding;
-        padding-right: @base-padding;
-    }
 }
 
 .main-view {
@@ -110,6 +92,14 @@ a, img {
             opacity: 0.30;
         }
     }
+    
+    /* Scroll shadow */
+    #editor-scroll-shadow {
+        position: fixed;
+        height: 4px;
+        width: 100%;
+        z-index: 12;
+    }
 }
     
 #jslint-results, #search-results {
@@ -123,9 +113,11 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        font-size: 0.9em;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
-
+        .title {
+            font-size: @label-font-size;
+            font-weight: bold;
+        }
         .close {
             position: absolute;
             right: 10px;
@@ -154,16 +146,42 @@ a, img {
 #gold-star {
     display: none;
     font-size: 1.2em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
-    text-shadow: 0 -1px @bc-black;
+    color: #ffe13b;
 }
+
+#toolbar-go-live {
+    padding-right: 8px;
+    
+    // Default icon is for the 'disconnected' state
+    // The 'connecting failed' (.warning) state also maps here
+    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
+    &:hover {
+        .spriteSwap(0,11px);
+    }
+    // 'Connected' state
+    &.success {
+        .spriteSwap(0,22px);
+    }
+    &.success:hover {
+        .spriteSwap(0,33px);
+    }
+    // 'Connection in progress' state
+    &.info {
+        .spriteSwap(0,44px);
+    }
+}
+
 
 /* Project panel */
 
-#projects .toolbar {    
+#projects .toolbar {
     .picker {
         .box;
         .box-flex(1);
+    }
+    // The "Open" button is unusually tall
+    .buttons {
+        margin: -2px 0 0 0;
     }
 }
 
@@ -243,15 +261,12 @@ a, img {
 
 .scrollerShadow {
     /* top shadow */
-    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
+    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
     
-    /* ease-out shadow positioning */
-    .transition(background-position, .2s, ease-out);
-
     /* hide the shadow on init */
     background-position: 0px -9999px;
     
-    background-size: 100% 20px;
+    background-size: 100% 4px;
     background-repeat: no-repeat;
 }
 
