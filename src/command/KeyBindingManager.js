@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false. $ */
 
 /**
  * Manages the mapping of keyboard inputs to commands.
@@ -30,6 +30,14 @@ define(function (require, exports, module) {
      */
     function installKeymap(keymap) {
         _keymap = keymap;
+    }
+
+    /**
+     * Returns a copy of the keymap
+     * @returns {KeyMap}
+     */
+    function getKeymap() {
+        return $.extend({}, _keymap.map);
     }
 
     /**
@@ -62,6 +70,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.installKeymap = installKeymap;
+    exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
 });
