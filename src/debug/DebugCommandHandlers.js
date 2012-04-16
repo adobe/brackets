@@ -101,10 +101,10 @@ define(function (require, exports, module) {
         var currentWidth = $(".sidebar").width();
         if (currentWidth > 0) {
             $(".sidebar").width(0);
-            $("#menu-debug-hide-sidebar").text("Show Sidebar");
+            $("#menu-view-hide-sidebar span").first().text("Show Sidebar");
         } else {
             $(".sidebar").width(200);
-            $("#menu-debug-hide-sidebar").text("Hide Sidebar");
+            $("#menu-view-hide-sidebar span").first().text("Hide Sidebar");
         }
         
     }

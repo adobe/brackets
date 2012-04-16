@@ -303,5 +303,5 @@ define(function (require, exports, module) {
             });
     }
 
-    CommandManager.register(Commands.FIND_IN_FILES, doFindInFiles);
+    CommandManager.register(Commands.EDIT_FIND_IN_FILES, doFindInFiles);
 });
