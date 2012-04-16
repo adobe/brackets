@@ -196,9 +196,9 @@ define(function (require, exports, module) {
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
         var $lineNumber = $("<span>" + (startLine + 1) + "</span>");
-        
+        var $fancyname = "<span title='"+doc.file.fullPath+"'>"+doc.file.name+"</span>";
         $filenameDiv.append($dirtyIndicatorDiv)
-                    .append(doc.file.name + " : ")
+                    .append($fancyname + " : ")
                     .append($lineNumber);
         $wrapperDiv.append($filenameDiv);
         
