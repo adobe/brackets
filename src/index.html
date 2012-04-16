@@ -83,7 +83,9 @@
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle">View</a>
                     <ul class="dropdown-menu">
-                        <li><a href="#" id="menu-view-hide-sidebar">Hide Sidebar</a></li>
+                        <!-- wrap menu name in span for show/hide sidebar so we can programmatically change the text independent 
+                        of the keyboard shortcut -->
+                        <li><a href="#" id="menu-view-hide-sidebar"><span>Hide Sidebar</span></a></li>
                         <!--<li><a href="#" id="menu-view-wordwrap">Word Wrap</a></li>-->
                         <!--<li><a href="#" id="menu-view-invisible-characters">Invisible Characters</a></li>-->
                         <!--<li><a href="#" id="menu-view-code-folding">Code Folding</a></li>-->
@@ -119,7 +121,7 @@
                         </li>
                         <li><a href="#" id="menu-debug-show-perf">Show Perf Data</a></li>
                         <li><hr class="divider"></li>
-                        <li><a href="#">Experimental:</a></li>
+                        <li><a class="menu-disabled" href="#">Experimental:</a></li>
                         <li><a href="#" id="menu-experimental-new-brackets-window">New Window</a></li>
                         <li><a href="#" id="menu-experimental-close-all-live-browsers">Close Browsers</a></li>
                     </ul>

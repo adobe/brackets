@@ -187,7 +187,6 @@ define(function (require, exports, module) {
         }
     }
 
-        // TY TODO
     function _handleSelectAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {

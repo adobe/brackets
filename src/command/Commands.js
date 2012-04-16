@@ -24,6 +24,8 @@ define(function (require, exports, module) {
     exports.FILE_QUIT           = "file.quit";
 
     // EDIT
+    exports.EDIT_UNDO           = "edit.undo";
+    exports.EDIT_REDO           = "edit.redo";
     exports.EDIT_CUT            = "edit.cut";
     exports.EDIT_COPY           = "edit.copy";
     exports.EDIT_PASTE          = "edit.paste";
@@ -48,7 +50,6 @@ define(function (require, exports, module) {
     exports.DEBUG_HIDE_SIDEBAR  = "debug.hideSidebar";
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
 
-    exports.EDIT_UNDO           = "edit.undo";
-    exports.EDIT_REDO           = "edit.redo";
+
 });
 

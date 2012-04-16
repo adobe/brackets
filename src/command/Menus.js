@@ -14,10 +14,10 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         CommandManager          = require("command/CommandManager");
     
-        /**
-         * Maps the dom id's of menus to command strings in Commands.js 
-         * @type {Object.<string, string>}
-         */
+    /**
+     * Maps the dom id's of menus to command strings in Commands.js 
+     * @type {Object.<string, string>}
+     */
     var menuMap = {
         // File
         "menu-file-new": Commands.FILE_NEW,
@@ -76,7 +76,7 @@ define(function (require, exports, module) {
             };
         }
 
-        // create click handles and populate cmdToIdMap
+        // create click handlers and populate cmdToIdMap
         var menuID;
         var commandStr;
         for (menuID in menuMap) {
@@ -96,6 +96,8 @@ define(function (require, exports, module) {
                 menuID = cmdToIdMap[commandStr];
                 if (menuID) {
                     var shortcut = keyCmd.replace(/-/, "+");
+
+                    // TODO TY: put in platform specific keys
                     $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
                 }
             }
