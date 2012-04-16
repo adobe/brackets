@@ -229,7 +229,7 @@ a, img {
 }
 
 //Initially start with the open files hidden, they will get show as files are added
-#open-files-header, #open-files-container, #open-files-divider {
+#open-files-container {
     display:none;
 }
 
@@ -542,16 +542,13 @@ li.smart_autocomplete_highlight {
                 background: url("styles/images/active_back.png") no-repeat top right;
                 a {
                     color: #fff;
-                    font-weight: 500;
+                    /* font-weight: 500; */
                 }
                 .extension a {
                     color: #fff;
                 }
             }
         }
-    }
-    #open-files-divider {
-        display: none !IMPORTANT; //TODO: delete this element from the DOM
     }
     #project-files-container {
         #project-files-header {
