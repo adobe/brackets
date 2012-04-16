@@ -93,6 +93,14 @@ a, img {
             opacity: 0.30;
         }
     }
+    
+    /* Scroll shadow */
+    #editor-scroll-shadow {
+        position: fixed;
+        height: 4px;
+        width: 100%;
+        z-index: 12;
+    }
 }
     
 #jslint-results, #search-results {
@@ -142,14 +150,25 @@ a, img {
     color: #ffe13b;
 }
 
-// TODO: text styles here will go away once we have an icon
 #toolbar-go-live {
-    color: @bc-black;
-    font-weight: @font-weight-light;
     padding-right: 8px;
     
+    // Default icon is for the 'disconnected' state
+    // The 'connecting failed' (.warning) state also maps here
+    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
     &:hover {
-        text-decoration: none;
+        .spriteSwap(0,11px);
+    }
+    // 'Connected' state
+    &.success {
+        .spriteSwap(0,22px);
+    }
+    &.success:hover {
+        .spriteSwap(0,33px);
+    }
+    // 'Connection in progress' state
+    &.info {
+        .spriteSwap(0,44px);
     }
 }
 
@@ -243,15 +262,12 @@ a, img {
 
 .scrollerShadow {
     /* top shadow */
-    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
+    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
     
-    /* ease-out shadow positioning */
-    .transition(background-position, .2s, ease-out);
-
     /* hide the shadow on init */
     background-position: 0px -9999px;
     
-    background-size: 100% 20px;
+    background-size: 100% 4px;
     background-repeat: no-repeat;
 }
 
