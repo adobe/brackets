@@ -65,14 +65,14 @@
 /* Sets the background to the given offset in the spritesheet. Typically, the element you set this on requires
    a fixed size so that other parts of the spritesheet don't show. */
 .sprite(@xOffset, @yOffset, @spriteSheet) {
-    background:url(@spriteSheet) -@xOffset -@yOffset no-repeat;
+    background: url(@spriteSheet) -@xOffset -@yOffset no-repeat;
 }
 
 /* Turns the given element into an icon showing the given rectangle in the spritesheet. Can be used on empty elements
    (e.g. a link with no text) or on the :before/:after selector of elements that have content. */
 .spriteIcon(@xOffset, @yOffset, @width, @height, @spriteSheet) {
     content: "";
-    background: url(@spriteSheet) -@xOffset -@yOffset no-repeat;
+    .sprite(@xOffset, @yOffset, @spriteSheet);
     display: inline-block;
     width: @width;
     height: @height;
