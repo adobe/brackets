@@ -34,8 +34,8 @@ define(function (require, exports, module) {
      * @param {!Object} scrollElement the object that is scrolled
      */
     function _updateScrollerShadow(displayElement, scrollElement) {
-        var maxReveal   = 0,
-            yPos        = Math.min(scrollElement.scrollTop - SCROLL_SHADOW_HEIGHT, maxReveal);
+        var yPos        = Math.min(scrollElement.scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+        
         $(displayElement).css("background-position", "0px " + yPos + "px");
     }
 
