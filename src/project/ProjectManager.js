@@ -249,7 +249,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.installScrollShadowHandlers(_projectTree[0]);
+            ViewUtils.installScrollShadow(_projectTree[0]);
             
             _projectTree
                 .unbind("dblclick.jstree")

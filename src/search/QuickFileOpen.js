@@ -195,7 +195,8 @@ define(function (require, exports, module) {
                             editor.setCursorPos(lineNumber - 1, 0);
                         }
                     } else {
-                        CommandManager.execute(Commands.FILE_OPEN, {fullPath: query});
+                        // Open and add to working set (this one command does both)
+                        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: query});
                     }
                 }
             });
