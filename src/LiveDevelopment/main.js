@@ -36,9 +36,10 @@ define(function main(require, exports, module) {
         }
     };
     var _checkMark = "✓"; // Check mark character
-    // Status names and styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusNames = ["X", "", ".", "..", _checkMark]; // Status label name
-    var _statusStyle = ["warning", "", "info", "info", "success"]; // Status label class
+    // Status styles are ordered: error, not connected, progress1, progress2, connected.
+    var _statusStyle = ["warning", "", "info", "info", "success"]; // Status label's CSS class
+    var _allStatusStyles = _statusStyle.join(" ");
+    
     var _btnGoLive; // reference to the GoLive button
     var _btnHighlight; // reference to the HighlightButton
 
@@ -57,14 +58,20 @@ define(function main(require, exports, module) {
         request.send(null);
     }
 
-    /** Change the status of a button */
+    /** Change the appearance of a button. Omit text to remove any extra text; omit style to return to default styling. */
     function _setLabel(btn, text, style) {
+        // Clear text/styles from previous status
         $("span", btn).remove();
+        btn.removeClass(_allStatusStyles);
+        
+        // Set text/styles for new status
         if (text && text.length > 0) {
             var label = $("<span class=\"label\">");
             label.addClass(style);
             label.text(text);
             btn.append(label);
+        } else {
+            btn.addClass(style);
         }
     }
 
@@ -82,7 +89,7 @@ define(function main(require, exports, module) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
-            _setLabel(_btnGoLive, _statusNames[status + 1], _statusStyle[status + 1]);
+            _setLabel(_btnGoLive, null, _statusStyle[status + 1]);
         });
     }
 
