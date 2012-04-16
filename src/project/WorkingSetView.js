@@ -25,16 +25,17 @@ define(function (require, exports, module) {
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
-    var _FILE_KEY = "file";
+    var _FILE_KEY = "file",
+        $openFilesContainer = $("#open-files-container");
 
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
-            $("#open-files-container").hide();
+            $openFilesContainer.hide();
         } else {
-            $("#open-files-container").show();
+            $openFilesContainer.show();
         }
         
-        ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
+        ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);
     }
     
     /** 
@@ -107,7 +108,7 @@ define(function (require, exports, module) {
             .append(link)
             .data(_FILE_KEY, file);
 
-        $("#open-files-container > ul").append(newItem);
+        $openFilesContainer.find("ul").append(newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
 
@@ -134,7 +135,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _rebuildWorkingSet() {
-        $("#open-files-container > ul").empty();
+        $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
@@ -155,7 +156,7 @@ define(function (require, exports, module) {
         }
             
         // Iterate through working set list and update the selection on each
-        var items = $("#open-files-container > ul").children().each(function () {
+        var items = $openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
     }
@@ -187,7 +188,7 @@ define(function (require, exports, module) {
         var result = null;
 
         if (file) {
-            var items = $("#open-files-container > ul").children();
+            var items = $openFilesContainer.find("ul").children();
             items.each(function () {
                 var listItem = $(this);
                 if (listItem.data(_FILE_KEY).fullPath === file.fullPath) {
@@ -251,5 +252,6 @@ define(function (require, exports, module) {
 
     _hideShowOpenFileHeader();
 
-
+    // Show scroller shadows when open-files-container scrolls
+    ViewUtils.installScrollShadow($openFilesContainer[0]);
 });

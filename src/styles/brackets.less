@@ -46,28 +46,10 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
-
-    .topbar {
-        position: static;
-    }
 }
 
 a, img {
     -webkit-user-drag: none;
-}
-
-.topbar-inner {
-    /* We don't want to use the default .container in here, 
-       so we need to .clearfix the children. */
-    .clearfix;
-
-    .brand {
-        .sane-box-model;
-        margin-left: 0;
-        width: 200px;
-        padding-left: @base-padding;
-        padding-right: @base-padding;
-    }
 }
 
 .main-view {
@@ -124,9 +106,11 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        font-size: 0.9em;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
-
+        .title {
+            font-size: @label-font-size;
+            font-weight: bold;
+        }
         .close {
             position: absolute;
             right: 10px;
@@ -155,23 +139,38 @@ a, img {
 #gold-star {
     display: none;
     font-size: 1.2em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
-    text-shadow: 0 -1px @bc-black;
+    color: #ffe13b;
 }
+
+// TODO: text styles here will go away once we have an icon
+#toolbar-go-live {
+    color: @bc-black;
+    font-weight: @font-weight-light;
+    padding-right: 8px;
+    
+    &:hover {
+        text-decoration: none;
+    }
+}
+
 
 /* Project panel */
 
-#projects .toolbar {    
+#projects .toolbar {
     .picker {
         .box;
         .box-flex(1);
+    }
+    // The "Open" button is unusually tall
+    .buttons {
+        margin: -2px 0 0 0;
     }
 }
 
 #file-section {
     .vbox;
     .box-flex(1);
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px 0px 0px;
     
     .project-file-header-area {
         padding: 4px 4px 2px 0px;
@@ -235,11 +234,25 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px 0px 0px 8px;
+    padding: 0px;
     margin: 0;
     overflow: auto;
     
     ul { margin-top: 0; }
+}
+
+.scrollerShadow {
+    /* top shadow */
+    .radial-gradient(center, ellipse, cover, rgba(0,0,0,0.65), 0%, rgba(0,0,0,0), 50%);
+    
+    /* ease-out shadow positioning */
+    .transition(background-position, .2s, ease-out);
+
+    /* hide the shadow on init */
+    background-position: 0px -9999px;
+    
+    background-size: 100% 20px;
+    background-repeat: no-repeat;
 }
 
 @spriteSize18: 18px;
