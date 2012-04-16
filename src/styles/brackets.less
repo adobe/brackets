@@ -149,14 +149,25 @@ a, img {
     color: #ffe13b;
 }
 
-// TODO: text styles here will go away once we have an icon
 #toolbar-go-live {
-    color: @bc-black;
-    font-weight: @font-weight-light;
     padding-right: 8px;
     
+    // Default icon is for the 'disconnected' state
+    // The 'connecting failed' (.warning) state also maps here
+    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
     &:hover {
-        text-decoration: none;
+        .spriteSwap(0,11px);
+    }
+    // 'Connected' state
+    &.success {
+        .spriteSwap(0,22px);
+    }
+    &.success:hover {
+        .spriteSwap(0,33px);
+    }
+    // 'Connection in progress' state
+    &.info {
+        .spriteSwap(0,44px);
     }
 }
 
