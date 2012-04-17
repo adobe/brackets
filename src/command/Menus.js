@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*global define: false, $: false, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -25,6 +25,7 @@ define(function (require, exports, module) {
         "menu-file-open-folder": Commands.FILE_OPEN_FOLDER,
         "menu-file-close": Commands.FILE_CLOSE,
         "menu-file-save": Commands.FILE_SAVE,
+        "menu-file-live-file-preview": Commands.FILE_LIVE_FILE_PREVIEW,
         "menu-file-quit": Commands.FILE_QUIT,
 
         // Edit
@@ -49,7 +50,7 @@ define(function (require, exports, module) {
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
 
         // Debug
-        "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
+        "menu-debug-refresh-window": Commands.VIEW_REFRESH_WINDOW,
         "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
         "menu-debug-jslint": Commands.DEBUG_JSLINT,
         "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
@@ -89,15 +90,22 @@ define(function (require, exports, module) {
 
         // Add shortcut key text to menu items in UI
         var menuBindings = KeyBindingManager.getKeymap();
-        var keyCmd;
+        var keyCmd, shortcut;
         for (keyCmd in menuBindings) {
             if (menuBindings.hasOwnProperty(keyCmd)) {
                 commandStr = menuBindings[keyCmd];
                 menuID = cmdToIdMap[commandStr];
                 if (menuID) {
-                    var shortcut = keyCmd.replace(/-/, "+");
+                    // Convert normalized key representation to display appropriate for platform
+                    if (brackets.platform === "mac") {
+                        shortcut = keyCmd.replace(/-/g, "");        // remove dashes
+                        shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+                        shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
+                        shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
+                    } else {
+                        shortcut = keyCmd.replace(/-/g, "+");
+                    }
 
-                    // TODO TY: put in platform specific keys
                     $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
                 }
             }

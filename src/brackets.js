@@ -171,7 +171,7 @@ define(function (require, exports, module) {
                     //{"Ctrl-C": Commands.EDIT_COPY}, 
                     //{"Ctrl-V": Commands.EDIT_PASTE},
 
-                    //{"Ctrl-A": Commands.EDIT_SELECT_ALL},
+                    {"Ctrl-A": Commands.EDIT_SELECT_ALL},
                     {"Ctrl-F": Commands.EDIT_FIND},
                     {"Ctrl-Shift-F": Commands.EDIT_FIND_IN_FILES},
                     {"Ctrl-G": Commands.EDIT_FIND_NEXT, "platform": "mac"},
@@ -180,16 +180,16 @@ define(function (require, exports, module) {
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
                     {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
-                    //{"Ctrl-Tab": Commands.EDIT_INDENT},
-                    //{"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
+                    {"Ctrl-Tab": Commands.EDIT_INDENT},
+                    {"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
 
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     //{"Ctrl-E", Commands.TODO}
 
                     // DEBUG
-                    {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
-                    {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"},
+                    {"F5": Commands.VIEW_REFRESH_WINDOW, "platform": "win"},
+                    {"Ctrl-R": Commands.VIEW_REFRESH_WINDOW, "platform": "mac"},
 
                     {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR}
 

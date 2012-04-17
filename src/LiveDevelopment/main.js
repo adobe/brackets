@@ -19,10 +19,12 @@
 define(function main(require, exports, module) {
     'use strict';
 
-    var DocumentManager = require("document/DocumentManager");
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
-    var Strings = require("strings");
+    var DocumentManager = require("document/DocumentManager"),
+        Commands        = require("command/Commands"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        CommandManager  = require("command/CommandManager"),
+        Strings = require("strings");
 
     var config = {
         debug: true, // enable debug output and helpers
@@ -37,7 +39,7 @@ define(function main(require, exports, module) {
         }
     };
     var _checkMark = "✓"; // Check mark character
-    // Status labels and styles are ordered: error, not connected, progress1, progress2, connected.
+    // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
     var _statusTooltip = [Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
                           Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, Strings.LIVE_DEV_STATUS_TIP_CONNECTED];  // Status indicator tooltip
     var _statusStyle = ["warning", "", "info", "info", "success"];  // Status indicator's CSS class
@@ -85,15 +87,22 @@ define(function main(require, exports, module) {
         }
     }
 
+    /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
+    function _handleGoLiveCommand() {
+        if (LiveDevelopment.status > 0) {
+            LiveDevelopment.close();
+            // TODO Ty: when checkmark support lands, remove checkmark
+        } else {
+            LiveDevelopment.open();
+            // TODO Ty: when checkmark support lands, add checkmark
+        }
+    }
+
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
         _btnGoLive = $("#toolbar-go-live");
         _btnGoLive.click(function onGoLive() {
-            if (LiveDevelopment.status > 0) {
-                LiveDevelopment.close();
-            } else {
-                LiveDevelopment.open();
-            }
+            _handleGoLiveCommand();
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
@@ -144,6 +153,8 @@ define(function main(require, exports, module) {
         }
     }
     setTimeout(init);
+
+    CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions
     exports.init = init;
