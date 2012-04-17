@@ -38,6 +38,9 @@ define(function (require, exports, module) {
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
 
+    // VIEW
+    exports.VIEW_HIDE_SIDEBAR  = "view.hideSidebar";
+    
     // Navigate
     exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
 
@@ -47,7 +50,6 @@ define(function (require, exports, module) {
     exports.DEBUG_JSLINT        = "debug.jslint";
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW = "debug.newBracketsWindow";
-    exports.DEBUG_HIDE_SIDEBAR  = "debug.hideSidebar";
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
 
 
