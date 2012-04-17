@@ -21,7 +21,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_ALL      = "file.close_all";
     exports.FILE_CLOSE_WINDOW   = "file.close_window";
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
-    exports.FILE_LIVE_FILE_PREVIEW = "file.liveFilePreview"
+    exports.FILE_LIVE_FILE_PREVIEW = "file.liveFilePreview";
     exports.FILE_QUIT           = "file.quit";
 
     // EDIT

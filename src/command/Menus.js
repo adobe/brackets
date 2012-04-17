@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*global define: false, $: false, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
 
         // Add shortcut key text to menu items in UI
         var menuBindings = KeyBindingManager.getKeymap();
-        var keyCmd;
+        var keyCmd, shortcut;
         for (keyCmd in menuBindings) {
             if (menuBindings.hasOwnProperty(keyCmd)) {
                 commandStr = menuBindings[keyCmd];
@@ -98,12 +98,12 @@ define(function (require, exports, module) {
                 if (menuID) {
                     // Convert normalized key representation to display appropriate for platform
                     if (brackets.platform === "mac") {
-                        var shortcut = keyCmd.replace(/-/g, "");        // remove dashes
+                        shortcut = keyCmd.replace(/-/g, "");        // remove dashes
                         shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
                         shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
                         shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
                     } else {
-                        var shortcut = keyCmd.replace(/-/g, "+");
+                        shortcut = keyCmd.replace(/-/g, "+");
                     }
 
                     $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
