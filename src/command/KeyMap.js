@@ -24,15 +24,23 @@ define(function (require, exports, module) {
         }
         
         var keyDescriptor = [];
-        if (hasCtrl) {
-            keyDescriptor.push("Ctrl");
-        }
+       
         if (hasAlt) {
             keyDescriptor.push("Alt");
         }
         if (hasShift) {
             keyDescriptor.push("Shift");
         }
+
+        if (hasCtrl) {
+            // Windows display Ctrl first, Mac displays Command symbol last
+            if (brackets.platform === "win") {
+                keyDescriptor.unshift("Ctrl");
+            } else {
+                keyDescriptor.push("Ctrl");
+            }
+        }
+
         keyDescriptor.push(key);
         
         return keyDescriptor.join("-");
