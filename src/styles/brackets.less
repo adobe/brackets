@@ -174,15 +174,9 @@ a, img {
 
 /* Project panel */
 
-#projects .toolbar {
-    .picker {
-        .box;
-        .box-flex(1);
-    }
-    // The "Open" button is unusually tall
-    .buttons {
-        margin: -2px 0 0 0;
-    }
+#project-header {
+    /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
+    height: 29px;
 }
 
 #file-section {
@@ -206,7 +200,7 @@ a, img {
 
 #open-files-container {
     .box-flex(0);
-    margin: 0px;
+    margin: 0 0 22px 0;
     padding: 0px;
     overflow: auto;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
@@ -223,20 +217,41 @@ a, img {
         }
         
         li {
-            padding: 2px 0px 2px 2px;
+            paddint: 2px 0 2px 2px;
             white-space: nowrap;
             position: relative; // so that children can be positioned absolute
-            
-            &:hover {
-                background: #E7F4F9;
+            line-height: 24px;
+            padding: 0 0 0 8px;
+            height: 25px;
+            vertical-align: baseline;
+            a {
+                color: #BBB;
+                font-size: 14px;
+                font-weight: normal;
+                margin-left: 18px;
+                cursor: default;
             }
-            
+            .extension a {
+                color: #8e9a9d;
+            }
+            &:hover {
+                background: transparent;
+            }
+            &:active {
+                background-position: 0 1px;
+            }
             &.selected {
-                #gradient.vertical(#5fa3e0, #0065be);
-        
-                a { color: white; }    
-            }             
-        }        
+                height: 25px;
+                background: url("styles/images/active_back.png") no-repeat top right;
+                a {
+                    color: #fff;
+                    /* font-weight: 500; */
+                }
+                .extension a {
+                    color: #fff;
+                }
+            }
+        }
     }
 }
 
@@ -317,11 +332,18 @@ a, img {
     }
     
     &.canClose {
-        background-position: -@spriteSize18 0;
+        width: 15px;
+        height: 16px;
+        background: url("styles/images/close_btn.png") no-repeat;
+        margin: 3px 0 0 8px;
     }
   
     &.canClose:hover {
-        background-position: -@spriteSize18*2 0;
+        background-position: -15px 0;
+    }
+    
+    &.canClose:active {
+        background-position: -15px 1px;
     }
 }
 
@@ -529,91 +551,5 @@ li.smart_autocomplete_highlight {
     color: #bbb;
     letter-spacing: .01em;
     text-shadow: 0px 1px 2px rgba(0,0,0,.5);
-    .file-status-icon.canClose {
-        width: 15px;
-        height: 16px;
-        background: url("styles/images/close_btn.png") no-repeat;
-        margin: 3px 0px 0px 8px;
-        &:active{
-            margin-bottom: 3px;
-        }
-    }
-    #open-files-container {
-        margin: 29px 0 22px 0;
-        li {
-            line-height: 24px;
-            padding: 0 0 0 8px;
-            height: 25px;
-            vertical-align: baseline;
-            a {
-                color: #BBB;
-                font-size: 14px;
-                font-weight: normal;
-                margin-left: 18px;
-                cursor: default;
-            }
-            .extension a {
-                color: #8e9a9d;
-            }
-            &:hover {
-                background: transparent;
-            }
-            &:active {
-                background-position: 0 1px;
-            }
-            &.selected {
-                height: 25px;
-                background: url("styles/images/active_back.png") no-repeat top right;
-                a {
-                    color: #fff;
-                    /* font-weight: 500; */
-                }
-                .extension a {
-                    color: #fff;
-                }
-            }
-        }
-    }
-    #project-files-container {
-        li {
-            line-height: 24px;
-            // padding: 0 0 0 8px;
-            // height: 60px;
-            vertical-align: baseline;
-            a {
-                color: #BBB;
-                font-size: 14px;
-                font-weight: 400;
-                cursor: default;
-                
-                &.jstree-clicked {
-                    color: #fff;
-                }
-            }
-            .extension a {
-                color: #8e9a9d;
-            }
-            &.jstree-closed, &.jstree-open {
-                > a {
-                    color: #fff;
-                }
-            }
-            &:hover {
-                background: transparent;
-            }
-            &:active {
-                background-position: 0 1px;
-            }
-            &.selected {
-                background: url("styles/images/active_back.png") no-repeat top right;
-                a {
-                    color: #fff;
-                }
-                .extension a {
-                    color: #fff;
-                }
-            }
-        }
-    }
 }
 

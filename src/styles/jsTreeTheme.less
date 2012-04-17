@@ -9,12 +9,6 @@
 .jstree-brackets .jstree-closed > ins { background-position:-54px 0; }
 .jstree-brackets .jstree-leaf > ins { background-position:-36px 0; }
 
-/*
-.jstree-brackets .jstree-hovered {
-    background: #e7f4f9;
-}
-*/
-
 .jstree-brackets .jstree-clicked {
     color: #fff;
     background: url("styles/images/active_back.png") no-repeat top right;
@@ -36,6 +30,35 @@
 
 .jstree li { 
     position: relative;
+}
+
+.jstree-brackets li {
+    line-height: 24px;
+    vertical-align: baseline;
+    a {
+        color: #BBB;
+        font-size: 14px;
+        font-weight: 400;
+        cursor: default;
+        
+        &.jstree-clicked {
+            color: #fff;
+        }
+    }
+    .extension a {
+        color: #8e9a9d;
+    }
+    &.jstree-closed, &.jstree-open {
+        > a {
+            color: #fff;
+        }
+    }
+    &.selected {
+        background: url("styles/images/active_back.png") no-repeat top right;
+        a {
+            color: #fff;
+        }
+    }
 }
 
 .jstree ins {
