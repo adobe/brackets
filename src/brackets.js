@@ -162,9 +162,11 @@ define(function (require, exports, module) {
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
+                    {"Ctrl-Alt-P": Commands.FILE_LIVE_FILE_PREVIEW},
                     {"Ctrl-Q": Commands.FILE_QUIT},
 
-                    // EDIT
+                    // EDIT 
+                    // disabled until the menu items are connected to the commands. Keyboard shortcuts work via CodeMirror
                     //{"Ctrl-Z": Commands.EDIT_UNDO},
                     //{"Ctrl-Y": Commands.EDIT_REDO},
                     //{"Ctrl-X": Commands.EDIT_CUT},
