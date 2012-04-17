@@ -62,7 +62,6 @@ define(function (require, exports, module) {
         "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS
     };
 
-    var _codeMirrorInternal = [Commands.EDIT_SELECT_ALL, Commands.EDIT_UNDO];
 
     function init() {
         var cmdToIdMap = {}; // used to swap the values and keys for fast look up
