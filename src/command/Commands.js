@@ -21,6 +21,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_ALL      = "file.close_all";
     exports.FILE_CLOSE_WINDOW   = "file.close_window";
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
+    exports.FILE_LIVE_FILE_PREVIEW = "file.liveFilePreview"
     exports.FILE_QUIT           = "file.quit";
 
     // EDIT
@@ -38,16 +39,19 @@ define(function (require, exports, module) {
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
 
+    // VIEW
+    exports.DEBUG_HIDE_SIDEBAR  = "view.hideSidebar";
+
     // Navigate
     exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
 
-    exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow";
+    exports.VIEW_REFRESH_WINDOW = "debug.refreshWindow";
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";
     exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
     exports.DEBUG_JSLINT        = "debug.jslint";
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW = "debug.newBracketsWindow";
-    exports.DEBUG_HIDE_SIDEBAR  = "debug.hideSidebar";
+
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
 
 

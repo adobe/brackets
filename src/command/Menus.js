@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
 
         // Debug
-        "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
+        "menu-debug-refresh-window": Commands.VIEW_REFRESH_WINDOW,
         "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
         "menu-debug-jslint": Commands.DEBUG_JSLINT,
         "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
@@ -97,7 +97,6 @@ define(function (require, exports, module) {
                 if (menuID) {
                     var shortcut = keyCmd.replace(/-/, "+");
 
-                    // TODO TY: put in platform specific keys
                     $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
                 }
             }

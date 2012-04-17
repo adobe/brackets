@@ -79,11 +79,7 @@ define(function main(require, exports, module) {
     function _setupGoLiveButton() {
         _btnGoLive = $("#toolbar-go-live");
         _btnGoLive.click(function onGoLive() {
-            if (LiveDevelopment.status > 0) {
-                LiveDevelopment.close();
-            } else {
-                LiveDevelopment.open();
-            }
+            _handleGoLiveCommand();
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
@@ -92,6 +88,18 @@ define(function main(require, exports, module) {
             _setLabel(_btnGoLive, null, _statusStyle[status + 1]);
         });
     }
+
+    function _handleGoLiveCommand() {
+        if (LiveDevelopment.status > 0) {
+            LiveDevelopment.close();
+            $("#menu-file-live-file-preview").first().text("Stop Live File Preview");
+        } else {
+            LiveDevelopment.open();
+            $("#menu-file-live-file-preview").first().text("Live File Preview");
+        }
+    }
+
+    CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     /** Create the menu item "Highlight" */
     function _setupHighlightButton() {
