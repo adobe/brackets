@@ -10,6 +10,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
+        TextRange           = require("document/TextRange").TextRange,
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
         EditorManager       = require("editor/EditorManager"),
@@ -24,21 +25,53 @@ define(function (require, exports, module) {
     function parseStyleSize($target, styleName) {
         return parseInt($target.css(styleName), 10);
     }
-
+    
+    
+    /**
+     * @constructor
+     * Stores one search result: its source file, line range, etc. plus the DOM node representing it
+     * in the results list.
+     */
+    function SearchResultItem(ruleResult) {
+        this.selector = ruleResult.selector;
+        this.textRange = new TextRange(ruleResult.document, ruleResult.lineStart, ruleResult.lineEnd);
+        // this.$listItem is assigned in load()
+    }
+    SearchResultItem.prototype.selector = null;
+    SearchResultItem.prototype.textRange = null;
+    SearchResultItem.prototype.$listItem = null;
+    
+    function updateRuleLabel(listItem, rule) {
+        var text = rule.selector + " " + rule.textRange.document.file.name + " : " + (rule.textRange.startLine + 1);
+        listItem.text(text);
+        listItem.attr("title", text);
+    }
     /**
      * @constructor
      * @extends {InlineWidget}
      */
     function CSSInlineEditor(rules) {
         InlineTextEditor.call(this);
-        this._rules = rules;
+        
+        // Store the results to show in the rule list. This creates TextRanges bound to the Document,
+        // which will stay up to date automatically (but we must be sure to detach them later)
+        this._rules = rules.map(function (ruleResult) {
+            return new SearchResultItem(ruleResult);
+        });
+        
         this._selectedRuleIndex = -1;
     }
     CSSInlineEditor.prototype = new InlineTextEditor();
     CSSInlineEditor.prototype.constructor = CSSInlineEditor;
     CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
+    
     CSSInlineEditor.prototype.$editorsDiv = null;
     CSSInlineEditor.prototype.$relatedContainer = null;
+    CSSInlineEditor.prototype.$selectedMarker = null;
+    
+    /** @type {Array.<SearchResultItem>} */
+    CSSInlineEditor.prototype._rules = null;
+    CSSInlineEditor.prototype._selectedRuleIndex = null;
 
     /** 
      * @override
@@ -49,9 +82,7 @@ define(function (require, exports, module) {
         this.parentClass.load.call(this, hostEditor);
         
         // Container to hold all editors
-        var self = this,
-            $ruleItem,
-            $location;
+        var self = this;
 
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
@@ -76,20 +107,28 @@ define(function (require, exports, module) {
         // Rule list
         var $ruleList = $(document.createElement("ul")).appendTo($related);
         
-        // create rule list
-        this._ruleItems = [];
+        // create rule list & add listeners for rule textrange changes
+        var ruleItemText;
         this._rules.forEach(function (rule, i) {
-            $ruleItem = $(document.createElement("li")).appendTo($ruleList);
-            $ruleItem.text(rule.selector + " ");
-            $ruleItem.click(function () {
+            // Create list item UI
+            var $ruleItem = $(document.createElement("li")).appendTo($ruleList);
+            updateRuleLabel($ruleItem, rule);
+            $ruleItem.mousedown(function () {
                 self.setSelectedRule(i);
             });
+
+            self._rules[i].$listItem = $ruleItem;
             
-            $location = $(document.createElement("span")).appendTo($ruleItem);
-            $location.addClass("location");
-            $location.text(rule.document.file.name + ":" + (rule.lineStart + 1));
+            // Update list item as TextRange changes
+            $(self._rules[i].textRange).on("change", function () {
+                updateRuleLabel($ruleItem, rule);
+            });
             
-            self._ruleItems.push($ruleItem);
+            // If TextRange lost sync, react just as we do for an inline Editor's lostContent event:
+            // close the whole inline widget
+            $(self._rules[i].textRange).on("lostSync", function () {
+                self.close();
+            });
         });
         
         // select the first rule
@@ -116,8 +155,6 @@ define(function (require, exports, module) {
         
         // Listen for clicks directly on us, so we can set focus back to the editor
         this.$htmlContent.on("click", this._onClick);
-
-        return (new $.Deferred()).resolve();
     };
 
     /**
@@ -127,18 +164,31 @@ define(function (require, exports, module) {
     CSSInlineEditor.prototype.setSelectedRule = function (index) {
         var newIndex = Math.min(Math.max(0, index), this._rules.length - 1);
         
-        this._selectedRuleIndex = newIndex;
-        var $ruleItem = this._ruleItems[this._selectedRuleIndex];
+        if (newIndex === this._selectedRuleIndex) {
+            return;
+        }
 
-        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
+        // Remove selected class(es)
+        var previousItem = (this._selectedRuleIndex >= 0) ? this._rules[this._selectedRuleIndex].$listItem : null;
+        
+        if (previousItem) {
+            previousItem.toggleClass("selected", false);
+        }
+        
+        this._selectedRuleIndex = newIndex;
+        var $ruleItem = this._rules[this._selectedRuleIndex].$listItem;
+        
+        this._rules[this._selectedRuleIndex].$listItem.toggleClass("selected", true);
 
         // Remove previous editors
+        $(this.editors[0]).off("change", this._updateRelatedContainer);
+
         this.editors.forEach(function (editor) {
             editor.destroy(); //release ref on Document
         });
+        
         this.editors = [];
         this.$editorsDiv.children().remove();
-        $(this.editors[0]).off("change", this._updateRelatedContainer);
 
         // Keyboard shortcuts
         var extraKeys = {
@@ -146,10 +196,9 @@ define(function (require, exports, module) {
             "Alt-Down" : $.proxy(this.nextRule, this)
         };
 
-
         // Add new editor
         var rule = this.getSelectedRule();
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, this.$editorsDiv.get(0), extraKeys);
+        this.createInlineEditorFromText(rule.textRange.document, rule.textRange.startLine, rule.textRange.endLine, this.$editorsDiv.get(0), extraKeys);
         this.editors[0].focus();
 
         // Changes in size to the inline editor should update the relatedContainer
@@ -161,7 +210,10 @@ define(function (require, exports, module) {
         // Cursor activity in the inline editor may cause us to horizontally scroll.
         $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
 
-        this.sizeInlineWidgetToContents(true);
+        
+        this.editors[0].refresh();
+        // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
+        this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
 
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
@@ -172,7 +224,7 @@ define(function (require, exports, module) {
                 scrollTop = self.$relatedContainer.scrollTop();
             
             self.$selectedMarker.css("top", itemTop);
-            self.$selectedMarker.height($ruleItem.height());
+            self.$selectedMarker.height($ruleItem.outerHeight());
             
             if (containerHeight <= 0) {
                 return;
@@ -204,6 +256,11 @@ define(function (require, exports, module) {
         $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
         $(this).off("offsetTopChanged", this._updateRelatedContainer);
         $(window).off("resize", this._updateRelatedContainer);
+        
+        // de-ref all the Documents in the search results
+        this._rules.forEach(function (searchResult) {
+            searchResult.textRange.dispose();
+        });
     };
     
     /**
@@ -216,19 +273,24 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Handle a click outside our child editor by setting focus back to it.
+     * Prevent clicks in the dead areas of the inlineWidget from changing the focus and insertion point in the editor.
+     * This is done by detecting clicks in the inlineWidget that are not inside the editor or the rule list and
+     * restoring focus and the insertion point.
      */
     CSSInlineEditor.prototype._onClick = function (event) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if (!$.contains(editorRoot, event.target)) {
+        if ($(editorRoot).find(event.target).length === 0) {
             childEditor.focus();
-            if (event.pageY < editorPos.top) {
-                childEditor.setCursorPos(0, 0);
-            } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
-                var lastLine = childEditor.getLastVisibleLine();
-                childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+            // Only set the cursor if the click isn't in the rule list.
+            if (this.$relatedContainer.find(event.target).length === 0) {
+                if (event.pageY < editorPos.top) {
+                    childEditor.setCursorPos(0, 0);
+                } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
+                    var lastLine = childEditor.getLastVisibleLine();
+                    childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+                }
             }
         }
     };
@@ -303,7 +365,7 @@ define(function (require, exports, module) {
             // if we're underneath the rule list on the right, we want to ask the host editor to 
             // scroll far enough that the current cursor position is visible to the left of the rule 
             // list. (Because we always add extra padding for the rule list, this is always possible.)
-            if (cursorCoords.x > ruleListOffset.left) {
+            if (cursorCoords.x >= ruleListOffset.left) {
                 cursorCoords.x += this.$relatedContainer.outerWidth();
             }
             
@@ -321,16 +383,14 @@ define(function (require, exports, module) {
     };
 
     /**
-     *
-     *
+     * @return {Array.<SearchResultItem>}
      */
     CSSInlineEditor.prototype.getRules = function () {
         return this._rules;
     };
 
     /**
-     *
-     *
+     * @return {!SearchResultItem}
      */
     CSSInlineEditor.prototype.getSelectedRule = function () {
         return this._rules[this._selectedRuleIndex];
@@ -352,14 +412,16 @@ define(function (require, exports, module) {
 
     /**
      * Sizes the inline widget height to be the maximum between the rule list height and the editor height
-     * @overide 
+     * @override 
+     * @param {boolean} force the editor to resize
+     * @param {boolean} ensureVisibility makes the parent editor scroll to display the inline editor. Default true.
      */
-    CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force) {
+    CSSInlineEditor.prototype.sizeInlineWidgetToContents = function (force, ensureVisibility) {
         // Size the code mirror editors height to the editor content
         this.parentClass.sizeInlineWidgetToContents.call(this, force);
         // Size the widget height to the max between the editor content and the related rules list
         var widgetHeight = Math.max(this.$relatedContainer.find(".related").height(), this.$editorsDiv.height());
-        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, true);
+        this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
 
         // The related rules container size itself based on htmlContent which is set by setInlineWidgetHeight above.
         this._updateRelatedContainer();
@@ -447,12 +509,9 @@ define(function (require, exports, module) {
             .done(function (rules) {
                 if (rules && rules.length > 0) {
                     var cssInlineEditor = new CSSInlineEditor(rules);
+                    cssInlineEditor.load(hostEditor);
                     
-                    cssInlineEditor.load(hostEditor).done(function () {
-                        result.resolve(cssInlineEditor);
-                    }).fail(function () {
-                        result.reject();
-                    });
+                    result.resolve(cssInlineEditor);
                 } else {
                     // No matching rules were found.
                     result.reject();

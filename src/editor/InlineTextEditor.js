@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype = new InlineWidget();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
     InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
+    
     InlineTextEditor.prototype.editors = null;
 
    /**
@@ -70,17 +71,9 @@ define(function (require, exports, module) {
      * @private
      */
     function _syncGutterWidths(hostEditor) {
-        var inlines = EditorManager.getInlineEditors(hostEditor),
-            allHostedEditors = [];
+        var allHostedEditors = EditorManager.getInlineEditors(hostEditor);
         
-        // add all Editor instances of each InlineTextEditor
-        inlines.forEach(function (inline) {
-            if (inline instanceof InlineTextEditor) {
-                Array.push.apply(allHostedEditors, inline.editors);
-            }
-        });
-        
-        // add the host to the list and go through them all
+        // add the host itself to the list too
         allHostedEditors.push(hostEditor);
         
         var maxWidth = 0;
@@ -162,7 +155,9 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         // Set initial size
-        this.sizeInlineWidgetToContents();
+        // Note that the second argument here (ensureVisibility) is only used by CSSInlineEditor.
+        // FUTURE: Should clean up this API so it's consistent between the two.
+        this.sizeInlineWidgetToContents(true, true);
         
         this.editors[0].focus();
     };
@@ -190,7 +185,6 @@ define(function (require, exports, module) {
         // create the filename div
         var wrapperDiv = document.createElement("div");
         var $wrapperDiv = $(wrapperDiv);
-        container.appendChild(wrapperDiv);
         
         // dirty indicator followed by filename
         var $filenameDiv = $(document.createElement("div")).addClass("filename");
@@ -201,16 +195,24 @@ define(function (require, exports, module) {
             .width(4); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        $filenameDiv.append($dirtyIndicatorDiv);
-        $dirtyIndicatorDiv.after(doc.file.name + ":" + (startLine + 1));
+        var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
+        
+        $filenameDiv.append($dirtyIndicatorDiv)
+                    .append(doc.file.name + " : ")
+                    .append($lineNumber);
         $wrapperDiv.append($filenameDiv);
         
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
+        container.appendChild(wrapperDiv);
 
         // Size editor to content whenever it changes (via edits here or any other view of the doc)
         $(inlineInfo.editor).on("change", function () {
             self.sizeInlineWidgetToContents();
+            
+            // And update line number since a change to the Editor equals a change to the Document,
+            // which may mean a change to the line range too
+            $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
         });
         
         // If Document's file is deleted, or Editor loses sync with Document, just close

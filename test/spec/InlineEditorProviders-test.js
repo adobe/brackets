@@ -682,7 +682,7 @@ define(function (require, exports, module) {
                 });
             
                 
-                it("should insert new line at start of range, then close on undo", function () {
+                it("should insert new line at start of range, and stay open on undo", function () {
                     // insert new line at start of inline range--the new line should be included in 
                     // the inline
                     fullEditor._codeMirror.replaceRange(
@@ -691,12 +691,13 @@ define(function (require, exports, module) {
                     );
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
                     
-                    // undo is equivalent to deleting the first line in the range: should close the editor
+                    // undo is equivalent to deleting the first line in the range: shouldn't close the editor
                     fullEditor._codeMirror.undo();
-                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 
-                it("should insert new line within first line of range, then close on undo", function () {
+                it("should insert new line within first line of range, and stay open on undo", function () {
                     // insert new line in middle of first line of inline range--the new line should
                     // be included
                     fullEditor._codeMirror.replaceRange(
@@ -705,11 +706,11 @@ define(function (require, exports, module) {
                     );
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 1));
                 
-                    // Even though the edit didn't start at the beginning of the line, the undo
-                    // undoes the whole line, so we treat it as a "close" case. In future, we should
-                    // make the undo in CodeMirror more granular.
+                    // Even though the edit didn't start at the beginning of the line, the undo touches
+                    // the whole line; but deleting the first line still shouldn't close the editor
                     fullEditor._codeMirror.undo();
-                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 
                 it("should not close inline when undoing changes to first line in range that did not include newlines", function () {
@@ -748,7 +749,7 @@ define(function (require, exports, module) {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
                 
-                it("should not close inline when undoing changes to last line in range, with or without newlines", function () {
+                it("should sync deletions (and their undos) on last line in range, with or without newlines", function () {
                     // undo is NOT deleting the entire last line in these cases, so the inline should be able to stay open
                     
                     // insert new line in middle of last line of inline range--the new line should
@@ -785,7 +786,7 @@ define(function (require, exports, module) {
                     expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line));
                 });
 
-                it("should sync insertions from the full editor and update the visual range of the inline editor", function () {
+                it("should sync insertions (and their undos) in most cases without closing", function () {
                     // insert line above inline range
                     fullEditor._codeMirror.replaceRange(
                         newInlineText,
@@ -841,20 +842,23 @@ define(function (require, exports, module) {
                     fullEditor._codeMirror.replaceRange("", before, start);
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
-                it("should close inline when first line entirely deleted", function () {
+                it("should stay open when first line entirely deleted", function () {
                     // delete all of first line in range
                     fullEditor._codeMirror.replaceRange("", start, middle);
-                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
                 });
-                it("should close inline when first line and following text deleted", function () {
+                it("should stay open when first line and following text deleted", function () {
                     // delete all of first line in range, plus some of the next line
                     fullEditor._codeMirror.replaceRange("", start, middleOfMiddle);
-                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 1));
                 });
-                it("should close inline when first two lines deleted", function () {
+                it("should stay open when first two lines deleted", function () {
                     // delete all of first two lines in range
                     fullEditor._codeMirror.replaceRange("", start, end);
-                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line - 2));
                 });
                 it("should close inline when last line entirely deleted", function () {
                     // delete all of last line in range
@@ -888,6 +892,30 @@ define(function (require, exports, module) {
                 });
                 
             
+                it("should sync insertions with multiple change objects in one event", function () {
+                    // Insert two new lines: one at start of inline range, the other at the (newly
+                    // updated) end of range. The edits are batched into just one event (so the
+                    // event's changeList will have length 2); both new lines should be included in
+                    // the inline
+                    fullEditor._codeMirror.operation(function () {
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            start
+                        );
+                        // because the edit shifted everything down a line, 'after' is now pointing
+                        // at what 'end' used to point at (the "}" line)
+                        fullEditor._codeMirror.replaceRange(
+                            newInlineText,
+                            after
+                        );
+                    });
+                    expect(inlineEditor).toHaveInlineEditorRange(toRange(start.line, end.line + 2));
+                    
+                    // TODO: can't do our usual undo + re-check range test at the end, becuase of
+                    // marijnh/CodeMirror2 bug #487
+                });
+                
+                
                 it("should sync multiple edits between full and inline editors", function () {
                     var i,
                         editor,
@@ -920,7 +948,7 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
                 
-                it("should sync after an undoing and redoing an edit", function () {
+                it("should sync after undoing and redoing an edit", function () {
                     var originalText,
                         editedText,
                         newInlineText = "/* jasmine was inline */\n";

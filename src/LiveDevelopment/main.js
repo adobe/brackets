@@ -19,9 +19,11 @@
 define(function main(require, exports, module) {
     'use strict';
 
-    var DocumentManager = require("document/DocumentManager");
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var DocumentManager = require("document/DocumentManager"),
+        Commands        = require("command/Commands"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        CommandManager  = require("command/CommandManager");
 
     var config = {
         debug: true, // enable debug output and helpers
@@ -36,9 +38,10 @@ define(function main(require, exports, module) {
         }
     };
     var _checkMark = "✓"; // Check mark character
-    // Status names and styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusNames = ["X", "", ".", "..", _checkMark]; // Status label name
-    var _statusStyle = ["warning", "", "info", "info", "success"]; // Status label class
+    // Status styles are ordered: error, not connected, progress1, progress2, connected.
+    var _statusStyle = ["warning", "", "info", "info", "success"]; // Status label's CSS class
+    var _allStatusStyles = _statusStyle.join(" ");
+    
     var _btnGoLive; // reference to the GoLive button
     var _btnHighlight; // reference to the HighlightButton
 
@@ -57,38 +60,51 @@ define(function main(require, exports, module) {
         request.send(null);
     }
 
-    /** Change the status of a button */
+    /** Change the appearance of a button. Omit text to remove any extra text; omit style to return to default styling. */
     function _setLabel(btn, text, style) {
+        // Clear text/styles from previous status
         $("span", btn).remove();
+        btn.removeClass(_allStatusStyles);
+        
+        // Set text/styles for new status
         if (text && text.length > 0) {
             var label = $("<span class=\"label\">");
             label.addClass(style);
             label.text(text);
             btn.append(label);
+        } else {
+            btn.addClass(style);
+        }
+    }
+
+    /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
+    function _handleGoLiveCommand() {
+        if (LiveDevelopment.status > 0) {
+            LiveDevelopment.close();
+            // TODO Ty: when checkmark support lands, remove checkmark
+        } else {
+            LiveDevelopment.open();
+            // TODO Ty: when checkmark support lands, add checkmark
         }
     }
 
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
-        _btnGoLive = $("<a href=\"#\">Go Live </a>");
-        $(".nav").append($("<li>").append(_btnGoLive));
+        _btnGoLive = $("#toolbar-go-live");
         _btnGoLive.click(function onGoLive() {
-            if (LiveDevelopment.status > 0) {
-                LiveDevelopment.close();
-            } else {
-                LiveDevelopment.open();
-            }
+            _handleGoLiveCommand();
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
-            _setLabel(_btnGoLive, _statusNames[status + 1], _statusStyle[status + 1]);
+            _setLabel(_btnGoLive, null, _statusStyle[status + 1]);
         });
     }
 
     /** Create the menu item "Highlight" */
     function _setupHighlightButton() {
+        // TODO: this should be moved into index.html like the Go Live button once it's re-enabled
         _btnHighlight = $("<a href=\"#\">Highlight </a>");
         $(".nav").append($("<li>").append(_btnHighlight));
         _btnHighlight.click(function onClick() {
@@ -124,6 +140,8 @@ define(function main(require, exports, module) {
         }
     }
     setTimeout(init);
+
+    CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions
     exports.init = init;

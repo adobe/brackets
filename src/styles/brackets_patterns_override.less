@@ -19,26 +19,114 @@
     border-right: 1px solid @bc-gray;
 }
 
-.toolbar {
+
+/* Toolbar-related styles */
+
+/* Simple toolbar layout (project panel, find in files, etc.)
+   We don't set this directly on .toolbar because it'd be a pain to override all the pieces
+   if other code (e.g. #main-toolbar) wants to do a different layout */
+.simpleToolbarLayout.toolbar {
     .hbox;
     .box-align(center);
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-
-    height: 23px;
-    padding: @base-padding;
-    border-bottom: 1px solid @bc-gray;
-    #gradient > .vertical(lighten(@bc-grey, @bc-color-step-size*6), lighten(@bc-grey, @bc-color-step-size*2));
-    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
         .box-flex(1);
     }
+    .buttons {
+        .hbox;
+        margin-left: 4px;
+    }
+}
+
+/* Editor toolbar layout
+
+   CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
+   This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
+   left and buttons floated right), yet still have the browser automatically wrap the floats onto a 2nd row
+   if they collide with the title. But the centered content must be a block element with fixed width. Since
+   the editor title (filename) varies in width, we rely on JS code to update the width whenever the string
+   changes.
+
+   Another wrinkle: wrapping to/from the two-line toolbar layout requires notifying the CodeMirror editor that
+   its height changed. Currently, we assume this can ONLY happen in two cases:
+    - the window resizes (handled by general listener in EditorManager)
+    - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
+*/
+#main-toolbar.toolbar {
+    text-align: center;
+    .nav {
+        float: left;
+        text-align: left;
+    }
     .title {
-        font-size: 1.1em;
-        font-weight: bold;
-        text-shadow: 0 1px @bc-white;        
+        float: none;
+        display: inline;  // must be an inline for JS to measure text size
+    }
+    .title-wrapper {
+        margin: 0 auto;
+        display: block;  // must be a block for the fixed width applied by JS to be respected
+        // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
+    }
+    .buttons {
+        float: right;
+        text-align: left;
+    }
+}
+
+/* Toolbar appearance - shared by all toolbars, independent of layout */
+.toolbar {
+    font-size: @label-font-size;
+    padding: 4px 8px;
+    background-color: @bc-white;
+    color: @bc-black;
+    
+    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
+    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    
+    @toolbar-top-gap-px: 5px;
+    
+    .nav {
+        @menubar-item-h-padding: 10px;
+        
+        margin: @toolbar-top-gap-px 0 0 (-@menubar-item-h-padding + 4);
+        
+        // Menubar item appearance
+        .dropdown-toggle {
+            color: fadeout(@bc-black, 25%);
+        }
+        .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
+            /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+               color rules we need to override (and Bootstrap has several selectors because the colors really differ
+               in their defaults). */
+            color: @bc-black;
+        }
+        
+        .dropdown-toggle {
+            font-weight: @font-weight-light;
+            padding: 0 @menubar-item-h-padding;  // no vertical padding; taken care of on the overall menubar (.nav)
+        }
+
+        // no triangle icon after menu items
+        .dropdown-toggle:after {
+            border: 0;
+            margin: 0;
+        }
+        
+        // Bootstrap's default menu positioning is calibrated for a much taller menu bar
+        .dropdown-menu {
+            top: 25px;
+        }
+    }
+    
+    .title-wrapper {
+        // Title is taller than menu text, so reduce top padding to keep its baseline aligned
+        padding: (@toolbar-top-gap-px - 3px) 0 3px 0;
+    }
+    .title {
+        font-size: @title-font-size;
+        line-height: normal;
+        font-weight: @font-weight-light;
 
         white-space: nowrap;
         overflow: hidden;
@@ -46,9 +134,9 @@
         -o-text-overflow: ellipsis;
         text-overflow: ellipsis;
     }
+    
     .buttons {
-        .hbox;
-        margin-left: 4px;
+        margin: @toolbar-top-gap-px 0 0 4px;
     }
 }
 
@@ -63,4 +151,21 @@
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
     margin-bottom: 0;
+}
+
+/* dropdown menu related styles */
+.dropdown-menu li {
+    a {
+        padding: 4px 15px 4px 10px; /* make room for checkmark */
+        white-space: nowrap;
+    }
+    /* hidden checkmark for all list item content ensures consistent left spacing */
+    :before {
+        content: "✓\00a0"; /* non-breaking space */
+        visibility: hidden;
+    }
+    /* toggle checkmark visibility */
+    .selected:before {
+        visibility: visible;
+    }
 }

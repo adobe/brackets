@@ -7,9 +7,8 @@
 
 define(function (require, exports, module) {
     'use strict';
-
-    // Load dependent modules
-
+    
+    var SCROLL_SHADOW_HEIGHT = 5;
 
     /** If a parent div has overflow:auto then the child will have a problem
      * setting the background color. The reason for this is the width of the 
@@ -29,7 +28,39 @@ define(function (require, exports, module) {
         $children.width(targetWidth);
     }
 
+    /** 
+     * Positions shadow background elements to indicate vertical scrolling.
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {!Object} scrollElement the object that is scrolled
+     */
+    function _updateScrollerShadow(displayElement, scrollElement) {
+        var yPos        = Math.min(scrollElement.scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+        
+        $(displayElement).css("background-position", "0px " + yPos + "px");
+    }
+
+    /** 
+     * Installs event handlers for updatng shadow background elements to indicate vertical scrolling.
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {?Object} scrollElement the object that is scrolled. If null, the displayElement is used.
+     */
+    function installScrollShadow(displayElement, scrollElement) {
+        if (!scrollElement) {
+            scrollElement = displayElement;
+        }
+        
+        // update shadows when the scrolling element is scrolled
+        var $displayElement = $(displayElement);
+        var $scrollElement = $(scrollElement);
+        $displayElement.toggleClass("scrollerShadow", true);
+        $scrollElement.on("scroll", function () { _updateScrollerShadow(displayElement, scrollElement); });
+        
+        // update immediately
+        _updateScrollerShadow(displayElement, scrollElement);
+    }
 
     // Define public API
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
+    exports.installScrollShadow = installScrollShadow;
+    exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
 });

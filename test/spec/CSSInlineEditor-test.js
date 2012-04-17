@@ -85,8 +85,8 @@ define(function (require, exports, module) {
             cssInlineEditor.load(hostEditor);
             
             var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
-            expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js:1");
-            expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js:2");
+            expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js : 1");
+            expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js : 2");
         });
 
         it("should change selection to the next rule", function () {
@@ -151,6 +151,13 @@ define(function (require, exports, module) {
             // verify selection moves again
             expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
         });
+        
+        
+        function expectResultItemToEqual(resultItem, mockRule) {
+            expect(resultItem.selector).toBe(mockRule.selector);
+            expect(resultItem.textRange.startLine).toBe(mockRule.lineStart);
+            expect(resultItem.textRange.endLine).toBe(mockRule.lineEnd);
+        }
 
         it("should retreive all rules", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
@@ -170,7 +177,10 @@ define(function (require, exports, module) {
             ];
             
             cssInlineEditor = new CSSInlineEditor(mockRules);
-            expect(cssInlineEditor.getRules()).toEqual(mockRules);
+            
+            expect(cssInlineEditor.getRules().length).toEqual(mockRules.length);
+            expectResultItemToEqual(cssInlineEditor.getRules()[0], mockRules[0]);
+            expectResultItemToEqual(cssInlineEditor.getRules()[1], mockRules[1]);
         });
 
         it("should retreive the selected rule", function () {
@@ -194,12 +204,12 @@ define(function (require, exports, module) {
             cssInlineEditor = new CSSInlineEditor(mockRules);
             cssInlineEditor.load(hostEditor);
             
-            // select div
-            expect(cssInlineEditor.getSelectedRule()).toEqual(mockRules[0]);
+            // "div" rule should be selected by default
+            expectResultItemToEqual(cssInlineEditor.getSelectedRule(), mockRules[0]);
             
-            // select .foo
+            // select ".foo" rule - should be next
             cssInlineEditor.nextRule();
-            expect(cssInlineEditor.getSelectedRule()).toEqual(mockRules[1]);
+            expectResultItemToEqual(cssInlineEditor.getSelectedRule(), mockRules[1]);
         });
 
         it("should close and return to the host editor", function () {

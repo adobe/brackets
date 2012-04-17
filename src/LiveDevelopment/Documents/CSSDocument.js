@@ -77,6 +77,36 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
+    /** Get the browser version of the StyleSheet object */
+    CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
+        var deferred = new $.Deferred();
+        
+        // WebInspector Command: CSS.getStyleSheet
+        Inspector.CSS.getStyleSheet(this.styleSheet.styleSheetId, function callback(res) {
+            // res = {styleSheet}
+            if (res.styleSheet) {
+                deferred.resolve(res.styleSheet);
+            } else {
+                deferred.reject();
+            }
+        });
+        
+        return deferred.promise();
+    };
+    
+    /** Get the browser version of the source */
+    CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
+        var deferred = new $.Deferred();
+        
+        this.getStyleSheetFromBrowser().done(function onDone(styleSheet) {
+            deferred.resolve(styleSheet.text);
+        }).fail(function onFail() {
+            deferred.reject();
+        });
+        
+        return deferred.promise();
+    };
+
     /** Close the document */
     CSSDocument.prototype.close = function close() {
         $(this.doc).off("change", this.onChange);

@@ -64,7 +64,8 @@ define(function LiveDevelopment(require, exports, module) {
         */
     };
 
-    var _liveDocument; // the live HTML document
+    var _htmlDocumentPath; // the path of the html file open for live development
+    var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
 
     /** Augments the given Brackets document with information that's useful for live development. */
@@ -123,6 +124,19 @@ define(function LiveDevelopment(require, exports, module) {
         
         return null;
     }
+    
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        var index = _relatedDocuments.indexOf(liveDoc);
+        if (index !== -1) {
+            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+            _relatedDocuments.splice(index, 1);
+        }
+    }
 
     /** Close a live document */
     function _closeDocument() {
@@ -136,19 +150,6 @@ define(function LiveDevelopment(require, exports, module) {
                 $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
             });
             _relatedDocuments = undefined;
-        }
-    }
-    
-    /**
-     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
-     * given file is no longer associated with the HTML document that is live (e.g.
-     * if the related file has been deleted on disk).
-     */
-    function _handleRelatedDocumentDeleted(event, liveDoc) {
-        var index = _relatedDocuments.indexOf(liveDoc);
-        if (index !== -1) {
-            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
-            _relatedDocuments.splice(index, 1);
         }
     }
     
@@ -171,7 +172,7 @@ define(function LiveDevelopment(require, exports, module) {
                 path = path.slice(1);
             }
         }
-        return path;
+        return decodeURI(path);
     }
 
     /** Open a live document
@@ -276,7 +277,7 @@ define(function LiveDevelopment(require, exports, module) {
                 if (err === "CANCEL") {
                     return;
                 }
-                if (retryCount > 4) {
+                if (retryCount > 6) {
                     _setStatus(-1);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
@@ -303,8 +304,15 @@ define(function LiveDevelopment(require, exports, module) {
                 retryCount++;
                 
                 if (!browserStarted && exports.status !== -1) {
+                    // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
+                    // is available, but the requested URL is not loaded in the browser. In that
+                    // case we want to launch the live browser (to open the url in a new tab)
+                    // without using the --remote-debugging-port flag. This works around issues
+                    // on Windows where Chrome can't be opened more than once with the
+                    // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url
+                        doc.root.url,
+                        err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
                             browserStarted = true;
@@ -359,14 +367,35 @@ define(function LiveDevelopment(require, exports, module) {
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension && doc.extension.indexOf('htm') === 0) {
+                if (doc.extension && doc.extension.indexOf('htm') === 0 && doc.file.fullPath !== _htmlDocumentPath) {
                     close();
                     setTimeout(open);
+                    _htmlDocumentPath = doc.file.fullPath;
                 }
             }
         } else if (exports.config.autoconnect) {
             setTimeout(open);
         }
+    }
+    
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+        
+        return foundDoc;
     }
 
     /** Hide any active highlighting */
@@ -390,6 +419,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
+    exports.getLiveDocForPath = getLiveDocForPath;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
 });
