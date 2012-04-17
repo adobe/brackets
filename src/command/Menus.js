@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         "menu-edit-replace": Commands.EDIT_REPLACE,
         
         "menu-edit-indent": Commands.EDIT_INDENT,
-         "menu-edit-unindent": Commands.EDIT_UNINDENT,
+        "menu-edit-unindent": Commands.EDIT_UNINDENT,
 
         // View
         "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
@@ -114,6 +114,7 @@ define(function (require, exports, module) {
             }
         }
 
+    // Prevent the menus from taking focus away from the editor
     $("#main-toolbar .dropdown").mousedown( function (e) {
         e.preventDefault();
     });
