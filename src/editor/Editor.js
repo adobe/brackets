@@ -277,7 +277,6 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab"  : _handleTabKey,
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
@@ -298,17 +297,6 @@ define(function (require, exports, module) {
                     CodeMirror.commands.delCharRight(instance);
                 }
             },
-            "Ctrl-A": function () {
-                self._selectAllVisible();
-            },
-            "Cmd-A": function () {
-                self._selectAllVisible();
-            },
-            "Ctrl-F": _launchFind,
-            "Cmd-F": _launchFind,
-            "F3": "findNext",
-            "Shift-F3": "findPrev",
-            "Ctrl-H": "replace",
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
             "Shift-Insert": "paste"
@@ -940,8 +928,9 @@ define(function (require, exports, module) {
     CommandManager.register(Commands.EDIT_FIND_NEXT, _findNext);
     CommandManager.register(Commands.EDIT_REPLACE, _replace);
     CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
-    CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
     CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
+    CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
+    CommandManager.register(Commands.EDIT_UNINDENT, _handleTabKey);
 
     // Define public API
     exports.Editor = Editor;
