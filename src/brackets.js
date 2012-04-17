@@ -192,8 +192,8 @@ define(function (require, exports, module) {
                     //{"Ctrl-E", Commands.TODO}
 
                     // DEBUG
-                    {"F5": Commands.VIEW_REFRESH_WINDOW, "platform": "win"},
-                    {"Ctrl-R": Commands.VIEW_REFRESH_WINDOW, "platform": "mac"}
+                    {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
+                    {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"}
 
 
                 ],
