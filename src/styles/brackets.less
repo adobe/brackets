@@ -308,17 +308,17 @@ a, img {
 */
 
 .bracketSprite {
-    background-image: url("styles/images/bracketsSprites.png");
+    background-image: url("styles/images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: 15px;
+    height: 16px;
 }
 
 
 .file-status-icon {
-    margin: 0px 0px 0px 10px;
+    margin: 3px 0 0 8px;
     .bracketSprite;
     display: inline-block;
     position: absolute;
@@ -326,14 +326,11 @@ a, img {
     top: 1px;
     
     &.dirty {
-        background-position: 0 0;
+        background-position: -30px 0;
     }
     
     &.canClose {
-        width: 15px;
-        height: 16px;
-        background: url("styles/images/close_btn.png") no-repeat;
-        margin: 3px 0 0 8px;
+        background-position: 0 0;
     }
   
     &.canClose:hover {
