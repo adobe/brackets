@@ -24,15 +24,19 @@ define(function (require, exports, module) {
         }
         
         var keyDescriptor = [];
-        if (hasCtrl) {
-            keyDescriptor.push("Ctrl");
-        }
         if (hasAlt) {
             keyDescriptor.push("Alt");
         }
+
         if (hasShift) {
             keyDescriptor.push("Shift");
         }
+        
+        if (hasCtrl) {
+            keyDescriptor.push("Ctrl");
+        }
+
+
         keyDescriptor.push(key);
         
         return keyDescriptor.join("-");
