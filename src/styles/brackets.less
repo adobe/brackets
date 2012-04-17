@@ -334,7 +334,7 @@ a, img {
     background-color:   @inline-background-color-1;
     
     .filename {
-        font-family: 'SourceSans', sans-serif;
+        font-family: @fontStackSansSerif;
         font-size: 1.1em;
         color: @inline-color-1;
         padding: 10px 10px 0px 10px;
@@ -382,23 +382,8 @@ a, img {
 .relatedContainer {
     @top-margin: 12px;
     
-    /* use scaling on CSS triangle to get desired size without jaggies */
-    .scaleX (@value: 1.0) {
-        -ms-transform: scaleX(@value);
-        -moz-transform: scaleX(@value);
-        -webkit-transform: scaleX(@value);
-        -o-transform: scaleX(@value);
-        transform: scaleX(@value);
-        
-        -ms-transform-origin: 0 0;
-        -moz-transform-origin: 0 0;
-        -webkit-transform-origin: 0 0;
-        -o-transform-origin: 0 0;
-        transform-origin: 0 0;
-    }
-    
     /*width: 0;*/
-    font-family: 'SourceSans', sans-serif;
+    font-family: @fontStackSansSerif;
     position: fixed;
     width: 250px;
     overflow: hidden;
@@ -436,6 +421,7 @@ a, img {
     }
     
     .related {
+        /*font-size: 12px;*/
         position: absolute;
         top: 0;
         left: 1px;
@@ -470,7 +456,7 @@ a, img {
 }
 
 .CodeMirror-dialog > div {
-  font-family: 'SourceSans', sans-serif;
+  font-family: @fontStackSansSerif;
   position: absolute;
   top: 0; left: 0; right: 0;
   background: @background-color-2;
@@ -483,7 +469,7 @@ a, img {
 }
 
 .CodeMirror-dialog input {
-  font-family: 'SourceSans', sans-serif;
+  font-family: @fontStackSansSerif;
   border: 1px solid @content-color-weaker;
   outline: none;
   background: @background-color-3;
