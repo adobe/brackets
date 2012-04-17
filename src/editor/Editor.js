@@ -47,15 +47,20 @@ define(function (require, exports, module) {
         TextRange        = require("document/TextRange").TextRange,
         ViewUtils        = require("utils/ViewUtils");
     
-    
-
+    /**
+     * @private
+     */
+    function _handleUnindent() {
+        var editor = EditorManager.getFocusedEditor();
+        if(editor) {
+            editor._codeMirror.execCommand("indentLess");
+        }
+    } 
 
     /**
      * @private
-     * Handle Tab key press.
-     * @param {!CodeMirror} instance CodeMirror instance.
      */
-    function _handleTabKey(instance) {
+    function _handleIndent() {
         // Tab key handling is done as follows:
         // 1. If the selection is before any text and the indentation is to the left of 
         //    the proper indentation then indent it to the proper place. Otherwise,
@@ -66,42 +71,47 @@ define(function (require, exports, module) {
         // 3. If the selection is after the first non-space character, and is an 
         //    insertion point, insert a tab character or the appropriate number 
         //    of spaces to pad to the nearest tab boundary.
-        var from = instance.getCursor(true),
-            to = instance.getCursor(false),
-            line = instance.getLine(from.line),
-            indentAuto = false,
-            insertTab = false;
-        
-        if (from.line === to.line) {
-            if (line.search(/\S/) > to.ch || to.ch === 0) {
-                indentAuto = true;
-            }
-        }
-
-        if (indentAuto) {
-            var currentLength = line.length;
-            CodeMirror.commands.indentAuto(instance);
-            // If the amount of whitespace didn't change, insert another tab
-            if (instance.getLine(from.line).length === currentLength) {
-                insertTab = true;
-                to.ch = 0;
-            }
-        } else if (instance.somethingSelected()) {
-            CodeMirror.commands.indentMore(instance);
-        } else {
-            insertTab = true;
-        }
-        
-        if (insertTab) {
-            if (instance.getOption("indentWithTabs")) {
-                CodeMirror.commands.insertTab(instance);
-            } else {
-                var i, ins = "", numSpaces = instance.getOption("tabSize");
-                numSpaces -= to.ch % numSpaces;
-                for (i = 0; i < numSpaces; i++) {
-                    ins += " ";
+        var instance;
+        var editor = EditorManager.getFocusedEditor();
+        if(editor) {
+            instance = editor._codeMirror;
+            var from = instance.getCursor(true),
+                to = instance.getCursor(false),
+                line = instance.getLine(from.line),
+                indentAuto = false,
+                insertTab = false;
+            
+            if (from.line === to.line) {
+                if (line.search(/\S/) > to.ch || to.ch === 0) {
+                    indentAuto = true;
                 }
-                instance.replaceSelection(ins, "end");
+            }
+
+            if (indentAuto) {
+                var currentLength = line.length;
+                CodeMirror.commands.indentAuto(instance);
+                // If the amount of whitespace didn't change, insert another tab
+                if (instance.getLine(from.line).length === currentLength) {
+                    insertTab = true;
+                    to.ch = 0;
+                }
+            } else if (instance.somethingSelected()) {
+                CodeMirror.commands.indentMore(instance);
+            } else {
+                insertTab = true;
+            }
+            
+            if (insertTab) {
+                if (instance.getOption("indentWithTabs")) {
+                    CodeMirror.commands.insertTab(instance);
+                } else {
+                    var i, ins = "", numSpaces = instance.getOption("tabSize");
+                    numSpaces -= to.ch % numSpaces;
+                    for (i = 0; i < numSpaces; i++) {
+                        ins += " ";
+                    }
+                    instance.replaceSelection(ins, "end");
+                }
             }
         }
     }
@@ -277,7 +287,10 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab" : _handleTabKey,
+            // Disable code mirror handling of tab and shift+tab so Brackets can handle these keys instead
+            "Tab" : function () { return false;},
+            "Shift-Tab" : function () { return false;},
+
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
@@ -932,8 +945,8 @@ define(function (require, exports, module) {
     CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // TODO: code mirror handles 
-    // CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
-    // CommandManager.register(Commands.EDIT_UNINDENT, _handleTabKey);
+    CommandManager.register(Commands.EDIT_INDENT, _handleIndent);
+    CommandManager.register(Commands.EDIT_UNINDENT, _handleUnindent);
 
     // Define public API
     exports.Editor = Editor;

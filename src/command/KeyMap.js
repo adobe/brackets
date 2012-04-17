@@ -204,6 +204,11 @@ define(function (require, exports, module) {
             }
         }
         
+        // Translate some keys to their common names
+        if ( key === "Ý" ) { key = "]"; }
+        if ( key === "Û" ) { key = "["; }
+        if ( key === "\t" ) { key = "Tab"; }
+
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
     

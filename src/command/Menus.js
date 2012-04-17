@@ -42,6 +42,8 @@ define(function (require, exports, module) {
         "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
         "menu-edit-replace": Commands.EDIT_REPLACE,
         
+        "menu-edit-indent": Commands.EDIT_INDENT,
+         "menu-edit-unindent": Commands.EDIT_UNINDENT,
 
         // View
         "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
@@ -68,10 +70,8 @@ define(function (require, exports, module) {
 
         function createExecFunc(commandStr) {
             return function () {
-                // TODO TY: should flash menu here
+                // TODO TY: should flash menu here on Mac
                 //console.log(commandStr);
-
-                EditorManager.focusEditor();
                 CommandManager.execute(commandStr);
             };
         }
@@ -105,10 +105,19 @@ define(function (require, exports, module) {
                         shortcut = keyCmd.replace(/-/g, "+");
                     }
 
-                    $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                    var $menu = $("#" + menuID);
+                    // Some commands have multiple key commands. Only add the first one.
+                    if ($menu.find(".menu-shortcut").length === 0 ) {
+                        $menu.append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                    }
                 }
             }
         }
+
+    $("#main-toolbar .dropdown").mousedown( function (e) {
+        e.preventDefault();
+    });
+
 
         
 // Other debug menu items
