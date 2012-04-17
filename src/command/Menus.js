@@ -43,7 +43,7 @@ define(function (require, exports, module) {
         
 
         // View
-        "menu-view-hide-sidebar": Commands.DEBUG_HIDE_SIDEBAR,
+        "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
