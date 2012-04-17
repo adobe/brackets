@@ -52,6 +52,7 @@ define(function (require, exports, module) {
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
     require("debug/DebugCommandHandlers");
+    require("view/ViewCommandHandlers");
     require("search/FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
@@ -185,15 +186,16 @@ define(function (require, exports, module) {
                     {"Ctrl-Tab": Commands.EDIT_INDENT},
                     {"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
 
+                    // VIEW
+                    {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
+                    
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     //{"Ctrl-E", Commands.TODO}
 
                     // DEBUG
-                    {"F5": Commands.VIEW_REFRESH_WINDOW, "platform": "win"},
-                    {"Ctrl-R": Commands.VIEW_REFRESH_WINDOW, "platform": "mac"},
-
-                    {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR}
+                    {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
+                    {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"}
 
 
                 ],
