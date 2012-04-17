@@ -44,6 +44,10 @@
 }
 
 // Font Stacks
+@fontStackSansSerif: "Helvetica Neue", Helvetica, Arial, sans-serif;
+@fontStackSerif:     "Georgia", Times New Roman, Times, serif;
+@fontStackMonospace: "Monaco", Courier New, monospace;
+
 #font {
   .shorthand(@weight: normal, @size: 14px, @lineHeight: 20px) {
     font-size: @size;
@@ -51,19 +55,19 @@
     line-height: @lineHeight;
   }
   .sans-serif(@weight: normal, @size: 14px, @lineHeight: 20px) {
-    font-family: 'SourceSans', Helvetica, Arial, sans-serif;
+    font-family: @fontStackSansSerif;
     font-size: @size;
     font-weight: @weight;
     line-height: @lineHeight;
   }
   .serif(@weight: normal, @size: 14px, @lineHeight: 20px) {
-    font-family: "Georgia", Times New Roman, Times, serif;
+    font-family: @fontStackSerif;
     font-size: @size;
     font-weight: @weight;
     line-height: @lineHeight;
   }
   .monospace(@weight: normal, @size: 12px, @lineHeight: 20px) {
-    font-family: "Monaco", Courier New, monospace;
+    font-family: @fontStackMonospace;
     font-size: @size;
     font-weight: @weight;
     line-height: @lineHeight;
