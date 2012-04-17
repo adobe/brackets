@@ -152,3 +152,20 @@
        since they have heavy padding instead. */
     margin-bottom: 0;
 }
+
+/* dropdown menu related styles */
+.dropdown-menu li {
+    a {
+        padding: 4px 15px 4px 10px; /* make room for checkmark */
+        white-space: nowrap;
+    }
+    /* hidden checkmark for all list item content ensures consistent left spacing */
+    :before {
+        content: "✓\00a0"; /* non-breaking space */
+        visibility: hidden;
+    }
+    /* toggle checkmark visibility */
+    .selected:before {
+        visibility: visible;
+    }
+}
