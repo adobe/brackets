@@ -36,17 +36,7 @@
     <div class="main-view">
         <div class="sidebar">
             <!-- Left-hand 'Project panel' -->
-            <div id="projects" class="panel">
-                <div id="project-toolbar" class="toolbar simpleToolbarLayout">
-                    <div class="title-wrapper">
-                        <div id="project-title" class="title"></div>
-                    </div>
-                    <div class="buttons">
-                        <button id="btn-open-project" class="btn">Open</button>
-                    </div>
-                    <!-- <select class="picker"></select>  -->
-                </div>
-                
+            <div id="projects" class="panel">                
                 <div id="file-section">
                     <div id="open-files-container">
                         <!-- This will contain a dynamically generated <ul> at runtime -->
@@ -55,9 +45,7 @@
                     </div>
                 
                     <div id="project-files-header" class="project-file-header-area">
-                        <div id="project-files-disclosure-arrow" class="disclosure-arrow-opened">
-                        </div>
-                        <span>Project Files</span>
+                        <span id="project-title" class="title"></span>
                     </div>
                     <div id="project-files-container">
                     <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->

@@ -38,7 +38,6 @@ html, body {
     
     /* And make sure we get a pointer cursor even over text */
     cursor: default;
-    -webkit-font-smoothing: subpixel-antialiased;
 }
 
 body {
@@ -192,12 +191,7 @@ a, img {
     margin: 5px 0px 0px 0px;
     
     .project-file-header-area {
-        padding: 4px 4px 2px 0px;
-        
-        span {
-            font-weight: bold;
-            vertical-align: middle;        
-        }
+        padding: 6px 6px 2px 10px;
     }
 
     .file-list-divider {
@@ -254,6 +248,7 @@ a, img {
 #project-files-container {
     .box-flex(1);
     padding: 0px;
+    padding-left: 8px;
     margin: 0;
     overflow: auto;
     
@@ -544,7 +539,7 @@ li.smart_autocomplete_highlight {
         }
     }
     #open-files-container {
-        margin: 0 0 22px 0;
+        margin: 29px 0 22px 0;
         li {
             line-height: 24px;
             padding: 0 0 0 8px;
@@ -580,11 +575,6 @@ li.smart_autocomplete_highlight {
         }
     }
     #project-files-container {
-        #project-files-header {
-            color: #929292;
-            font-family: 'SourceSans';
-            font-weight: 200;
-        }
         li {
             line-height: 24px;
             // padding: 0 0 0 8px;
@@ -615,11 +605,9 @@ li.smart_autocomplete_highlight {
                 background-position: 0 1px;
             }
             &.selected {
-                height: 25px;
                 background: url("styles/images/active_back.png") no-repeat top right;
                 a {
                     color: #fff;
-                    font-weight: 500;
                 }
                 .extension a {
                     color: #fff;
