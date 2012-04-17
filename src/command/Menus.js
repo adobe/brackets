@@ -95,9 +95,16 @@ define(function (require, exports, module) {
                 commandStr = menuBindings[keyCmd];
                 menuID = cmdToIdMap[commandStr];
                 if (menuID) {
-                    var shortcut = keyCmd.replace(/-/, "+");
+                    // Convert normalized key representation to display appropriate for platform
+                    if (brackets.platform === "mac") {
+                        var shortcut = keyCmd.replace(/-/g, "");        // remove dashes
+                        shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+                        shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
+                        shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
+                    } else {
+                        var shortcut = keyCmd.replace(/-/g, "+");
+                    }
 
-                    // TODO TY: put in platform specific keys
                     $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
                 }
             }
