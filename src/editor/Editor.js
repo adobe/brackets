@@ -52,10 +52,10 @@ define(function (require, exports, module) {
      */
     function _handleUnindent() {
         var editor = EditorManager.getFocusedEditor();
-        if(editor) {
+        if (editor) {
             editor._codeMirror.execCommand("indentLess");
         }
-    } 
+    }
 
     /**
      * @private
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         //    of spaces to pad to the nearest tab boundary.
         var instance;
         var editor = EditorManager.getFocusedEditor();
-        if(editor) {
+        if (editor) {
             instance = editor._codeMirror;
             var from = instance.getCursor(true),
                 to = instance.getCursor(false),
@@ -288,8 +288,8 @@ define(function (require, exports, module) {
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
             // Disable code mirror handling of tab and shift+tab so Brackets can handle these keys instead
-            "Tab" : function () { return false;},
-            "Shift-Tab" : function () { return false;},
+            "Tab" : function () { return false; },
+            "Shift-Tab" : function () { return false; },
 
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {

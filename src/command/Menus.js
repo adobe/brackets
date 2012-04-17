@@ -107,17 +107,17 @@ define(function (require, exports, module) {
 
                     var $menu = $("#" + menuID);
                     // Some commands have multiple key commands. Only add the first one.
-                    if ($menu.find(".menu-shortcut").length === 0 ) {
+                    if ($menu.find(".menu-shortcut").length === 0) {
                         $menu.append("<span class='menu-shortcut'>" + shortcut + "</span>");
                     }
                 }
             }
         }
 
-    // Prevent the menus from taking focus away from the editor
-    $("#main-toolbar .dropdown").mousedown( function (e) {
-        e.preventDefault();
-    });
+        // Prevent the menus from taking focus away from the editor
+        $("#main-toolbar .dropdown").mousedown(function (e) {
+            e.preventDefault();
+        });
 
 
         
