@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         
 
         // View
-        "menu-view-hide-sidebar": Commands.DEBUG_HIDE_SIDEBAR,
+        "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
@@ -63,7 +63,6 @@ define(function (require, exports, module) {
         "menu-experimental-usetab": Commands.DEBUG_USE_TAB_CHARS
     };
 
-    var _codeMirrorInternal = [Commands.EDIT_SELECT_ALL, Commands.EDIT_UNDO];
 
     function init() {
         var cmdToIdMap = {}; // used to swap the values and keys for fast look up

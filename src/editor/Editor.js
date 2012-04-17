@@ -293,7 +293,7 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab"  : _handleTabKey,
+            "Tab" : _handleTabKey,
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
@@ -970,8 +970,10 @@ define(function (require, exports, module) {
     CommandManager.register(Commands.EDIT_REPLACE, _replace);
     CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
     CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
-    CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
-    CommandManager.register(Commands.EDIT_UNINDENT, _handleTabKey);
+
+    // TODO: code mirror handles 
+    // CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
+    // CommandManager.register(Commands.EDIT_UNINDENT, _handleTabKey);
 
     // Define public API
     exports.Editor = Editor;
