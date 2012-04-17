@@ -17,7 +17,7 @@
     background: -o-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* Opera 11.10+ */
     background: -ms-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* IE10+ */
     background: linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* W3C */
-    /* LESS chokes on this... filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#494d4d', endColorstr='#3b3f41',GradientType=0 );  IE6-9 */
+    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#494d4d', endColorstr='#3b3f41',GradientType=0 )";  /* IE6-9 */
 }
 
 .panel {
