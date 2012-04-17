@@ -382,21 +382,6 @@ a, img {
 .relatedContainer {
     @top-margin: 12px;
     
-    /* use scaling on CSS triangle to get desired size without jaggies */
-    .scaleX (@value: 1.0) {
-        -ms-transform: scaleX(@value);
-        -moz-transform: scaleX(@value);
-        -webkit-transform: scaleX(@value);
-        -o-transform: scaleX(@value);
-        transform: scaleX(@value);
-        
-        -ms-transform-origin: 0 0;
-        -moz-transform-origin: 0 0;
-        -webkit-transform-origin: 0 0;
-        -o-transform-origin: 0 0;
-        transform-origin: 0 0;
-    }
-    
     /*width: 0;*/
     font-family: 'SourceSans', sans-serif;
     position: fixed;
@@ -436,6 +421,7 @@ a, img {
     }
     
     .related {
+        /*font-size: 12px;*/
         position: absolute;
         top: 0;
         left: 1px;
