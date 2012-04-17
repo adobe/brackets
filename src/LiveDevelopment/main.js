@@ -19,9 +19,11 @@
 define(function main(require, exports, module) {
     'use strict';
 
-    var DocumentManager = require("document/DocumentManager");
-    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
-    var Inspector = require("LiveDevelopment/Inspector/Inspector");
+    var DocumentManager = require("document/DocumentManager"),
+        Commands        = require("command/Commands"),
+        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
+        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
+        CommandManager  = require("command/CommandManager");
 
     var config = {
         debug: true, // enable debug output and helpers
@@ -75,6 +77,17 @@ define(function main(require, exports, module) {
         }
     }
 
+    /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
+    function _handleGoLiveCommand() {
+        if (LiveDevelopment.status > 0) {
+            LiveDevelopment.close();
+            // TODO Ty: when checkmark support lands, remove checkmark
+        } else {
+            LiveDevelopment.open();
+            // TODO Ty: when checkmark support lands, add checkmark
+        }
+    }
+
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
         _btnGoLive = $("#toolbar-go-live");
@@ -88,18 +101,6 @@ define(function main(require, exports, module) {
             _setLabel(_btnGoLive, null, _statusStyle[status + 1]);
         });
     }
-
-    function _handleGoLiveCommand() {
-        if (LiveDevelopment.status > 0) {
-            LiveDevelopment.close();
-            $("#menu-file-live-file-preview").first().text("Stop Live File Preview");
-        } else {
-            LiveDevelopment.open();
-            $("#menu-file-live-file-preview").first().text("Live File Preview");
-        }
-    }
-
-    CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     /** Create the menu item "Highlight" */
     function _setupHighlightButton() {
@@ -139,6 +140,8 @@ define(function main(require, exports, module) {
         }
     }
     setTimeout(init);
+
+    CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions
     exports.init = init;

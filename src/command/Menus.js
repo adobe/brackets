@@ -25,6 +25,7 @@ define(function (require, exports, module) {
         "menu-file-open-folder": Commands.FILE_OPEN_FOLDER,
         "menu-file-close": Commands.FILE_CLOSE,
         "menu-file-save": Commands.FILE_SAVE,
+        "menu-file-live-file-preview": Commands.FILE_LIVE_FILE_PREVIEW,
         "menu-file-quit": Commands.FILE_QUIT,
 
         // Edit
