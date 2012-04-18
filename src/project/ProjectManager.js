@@ -49,6 +49,12 @@ define(function (require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+    
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = null;
 
     /**
      * @private
@@ -118,9 +124,11 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Preferences callback. Saves current project path.
+     * Save ProjectManager project path and tree state.
      */
-    function _savePreferences(storage) {
+    function _savePreferences() {
+        var storage = {};
+        
         // save the current project
         storage.projectPath = _projectRoot.fullPath;
 
@@ -157,6 +165,8 @@ define(function (require, exports, module) {
 
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
+        
+        _prefs.writeJSON(storage);
     }
 
     /**
@@ -238,6 +248,7 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    _savePreferences();
                 }
             );
 
@@ -406,7 +417,7 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID),
+        var prefs = _prefs.getJSON(),
             result = new $.Deferred(),
             resultRenderTree,
             isFirstProjectOpen = false;
@@ -708,7 +719,9 @@ define(function (require, exports, module) {
             projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
             projectTreeState: ""
         };
-        PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+        
+        // Init PreferenceStorage
+        _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());

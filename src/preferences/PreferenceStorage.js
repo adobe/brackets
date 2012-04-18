@@ -12,8 +12,6 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var PreferencesManager = require("preferences/PreferencesManager");
-    
     function PreferenceStorage(clientID, json) {
         this._clientID = clientID;
         this._json = json;
@@ -25,23 +23,26 @@ define(function (require, exports, module) {
     
     PreferenceStorage.prototype.remove = function (name) {
         // remove value from JSON storage
-        this._json[name] = undefined;
+        delete this._json[name];
     };
     
-    PreferenceStorage.prototype.set = function (name, value) {
-        // set value to JSON storage
-        this._json[name] = value;
+    PreferenceStorage.prototype.setValue = function (name, value) {
+        // validate temporary JSON
+        var temp = {};
+        temp[name] = value;
         
-        // erase property if invalid JSON
-        if (!JSON.stringify(this._json)) {
-            this._json[name] = undefined;
+        if (JSON.stringify(temp)) {
+            // set value to JSON storage
+            this._json[name] = value;
         }
-        
-        this._save();
     };
     
-    PreferenceStorage.prototype.get = function (name) {
+    PreferenceStorage.prototype.getValue = function (name) {
         return this._json[name];
+    };
+    
+    PreferenceStorage.prototype.getJSON = function () {
+        return JSON.parse(JSON.stringify(this._json));
     };
     
     PreferenceStorage.prototype.writeJSON = function (obj, append) {
@@ -49,25 +50,17 @@ define(function (require, exports, module) {
         
         append = (append !== undefined) ? append : true;
         
+        // delete all exiting properties if not appending
         if (!append) {
-            // append properties to the existing preferences
             $.each(this._json, function (propName, value) {
-                self.set(propName, value);
+                delete this._json[propName];
             });
-        } else if (!JSON.stringify(obj)) {
-            // clobber the existing preferences
-            this._json = obj;
         }
         
-        this._save();
-    };
-    
-    PreferenceStorage.prototype.getJSON = function () {
-        return JSON.parse(JSON.stringify(this._json));
-    };
-    
-    PreferenceStorage.prototype._save = function () {
-        PreferencesManager.savePreferenceData(this);
+        // copy properties from incoming JSON object
+        $.each(obj, function (propName, value) {
+            self.setValue(propName, value);
+        });
     };
     
     exports.PreferenceStorage = PreferenceStorage;
