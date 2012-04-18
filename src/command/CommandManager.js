@@ -27,6 +27,9 @@ define(function (require, exports, module) {
         if (_commands[id]) {
             throw new Error("Attempting to register an already-registered command: " + id);
         }
+        if (!id || !command) {
+            throw new Error("Attempting to register a command with a bad id or function");
+        }
         _commands[id] = command;
     }
 
