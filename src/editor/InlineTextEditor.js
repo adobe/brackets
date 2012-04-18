@@ -196,12 +196,15 @@ define(function (require, exports, module) {
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
         var $lineNumber = $("<span>" + (startLine + 1) + "</span>");
-        var $fancyname = "<span title='"+doc.file.fullPath+"'>"+doc.file.name+"</span>";
-        $filenameDiv.append($dirtyIndicatorDiv)
-                    .append($fancyname + " : ")
-                    .append($lineNumber);
+
+		var $fancyname = $("<span></span>").text(doc.file.name).attr("title",doc.file.fullPath);
+		$filenameDiv.append($dirtyIndicatorDiv)
+					.append($fancyname)
+					.append(" : ")
+					.append($lineNumber);
         $wrapperDiv.append($filenameDiv);
-        
+
+
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
