@@ -10,6 +10,7 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        Editor                  = require("editor/Editor").Editor,
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         NativeApp               = require("utils/NativeApp");
@@ -19,6 +20,7 @@ define(function (require, exports, module) {
         JSLintUtils.run();
         $("#menu-debug-jslint").toggleClass("selected", JSLintUtils.getEnabled());
     }
+    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
@@ -115,10 +117,18 @@ define(function (require, exports, module) {
         });
     }
     
+    function _handleUseTabChars() {
+        Editor.setUseTabChar(!Editor.getUseTabChar());
+        $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
+    }
+    
+    
+    // Register all the command handlers
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
     CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
     CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
     CommandManager.register(Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
     CommandManager.register(Commands.DEBUG_HIDE_SIDEBAR, _handleHideSidebar);
     CommandManager.register(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
+    CommandManager.register(Commands.DEBUG_USE_TAB_CHARS, _handleUseTabChars);
 });

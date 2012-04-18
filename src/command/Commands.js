@@ -52,6 +52,7 @@ define(function (require, exports, module) {
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW = "debug.newBracketsWindow";
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
+    exports.DEBUG_USE_TAB_CHARS = "debug.useTabChars";
 
 
 });
