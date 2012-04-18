@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     // Navigate
     exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
 
-    exports.VIEW_REFRESH_WINDOW = "debug.refreshWindow";
+    exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow";
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";
     exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
     exports.DEBUG_JSLINT        = "debug.jslint";
