@@ -232,6 +232,20 @@ define(function (require, exports, module) {
         }
     }
     
+    
+    
+    /**
+     * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
+     * that affect all editors, e.g. tabbing or color scheme settings.
+     * @type {Array.<Editor>}
+     */
+    var _instances = [];
+    
+    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
+    var _useTabChar = false;
+    
+    
+    
     /**
      * @constructor
      *
@@ -256,6 +270,8 @@ define(function (require, exports, module) {
      */
     function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
         var self = this;
+        
+        _instances.push(this);
         
         // Attach to document: add ref & handlers
         this.document = document;
@@ -316,7 +332,8 @@ define(function (require, exports, module) {
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            indentUnit : 4,
+            indentUnit: 4,
+            indentWithTabs: _useTabChar,
             lineNumbers: true,
             matchBrackets: true,
             extraKeys: codeMirrorKeyMap
@@ -377,6 +394,8 @@ define(function (require, exports, module) {
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
         $(this.getRootElement()).remove();
+        
+        _instances.splice(_instances.indexOf(this), 1);
         
         // Disconnect from Document
         this.document.releaseRef();
@@ -923,8 +942,29 @@ define(function (require, exports, module) {
      * @type {?TextRange}
      */
     Editor.prototype._visibleRange = null;
+    
+    
+    // Global settings that affect all Editor instances (both currently open Editors as well as those created
+    // in the future)
+
+    /**
+     * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
+     * @param {boolean} value
+     */
+    Editor.setUseTabChar = function (value) {
+        _useTabChar = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("indentWithTabs", _useTabChar);
+        });
+    };
+    
+    /** @type {boolean}  Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    Editor.getUseTabChar = function (value) {
+        return _useTabChar;
+    };
 
     
+    // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Commands.EDIT_FIND, _launchFind);
     CommandManager.register(Commands.EDIT_FIND_NEXT, _findNext);
     CommandManager.register(Commands.EDIT_REPLACE, _replace);

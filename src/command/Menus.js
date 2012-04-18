@@ -59,7 +59,8 @@ define(function (require, exports, module) {
 
         // Experimental
         "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
-        "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS
+        "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS,
+        "menu-experimental-usetab": Commands.DEBUG_USE_TAB_CHARS
     };
 
 
