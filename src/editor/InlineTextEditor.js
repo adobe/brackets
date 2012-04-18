@@ -27,9 +27,8 @@ define(function (require, exports, module) {
      */
     function _showDirtyIndicator($indicatorDiv, isDirty) {
         // Show or hide the dirty indicator by adjusting
-        // the width of the div. The "hidden" width is 
-        // 4 pixels to make the padding look correct.
-        $indicatorDiv.css("width", isDirty ? 16 : 4);
+        // the width of the div.
+        $indicatorDiv.css("width", isDirty ? 16 : 0);
     }
     
     /**
