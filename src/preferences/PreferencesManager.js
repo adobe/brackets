@@ -23,10 +23,11 @@ define(function (require, exports, module) {
         doLoadPreferences   = false;
 
     /**
-     * Retrieves a copy of the client's preferences object.
+     * Retreive preferences data for the given clientID.
      *
-     * @param {string}  unique identifier clientID
-     * @return {object} preference
+     * @param {string} clientID Unique identifier
+     * @param {string} defaults Default preferences stored as JSON
+     * @return {PreferenceStorage} 
      */
     function getPreferenceStorage(clientID, defaults) {
         if ((clientID === undefined) || (clientID === null)) {
@@ -50,10 +51,6 @@ define(function (require, exports, module) {
     function savePreferences() {
         // save all preferences
         persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
-    }
-    
-    function savePreferenceData(preferenceStorage) {
-        prefStorage[preferenceStorage.getClientID()] = preferenceStorage.getJSON();
     }
 
     /**

@@ -41,7 +41,7 @@ define(function (require, exports, module) {
         return this._json[name];
     };
     
-    PreferenceStorage.prototype.getJSON = function () {
+    PreferenceStorage.prototype.toJSON = function () {
         return JSON.parse(JSON.stringify(this._json));
     };
     
