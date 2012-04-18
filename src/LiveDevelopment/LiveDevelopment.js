@@ -263,12 +263,24 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
+        
+        function showWrongDocError() {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                Strings.LIVE_DEV_NEED_HTML_MESSAGE
+            );
+        }
                 
-        if (doc && doc.root) {
+        if (!doc || !doc.root) {
+            showWrongDocError();
+            
+        } else {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
             if (!doc.extension || doc.extension.indexOf('htm') !== 0) {
+                showWrongDocError();
                 return;
             }
             

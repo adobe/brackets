@@ -23,7 +23,8 @@ define(function main(require, exports, module) {
         Commands        = require("command/Commands"),
         LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        CommandManager  = require("command/CommandManager");
+        CommandManager  = require("command/CommandManager"),
+        Strings = require("strings");
 
     var config = {
         debug: true, // enable debug output and helpers
@@ -38,8 +39,10 @@ define(function main(require, exports, module) {
         }
     };
     var _checkMark = "✓"; // Check mark character
-    // Status styles are ordered: error, not connected, progress1, progress2, connected.
-    var _statusStyle = ["warning", "", "info", "info", "success"]; // Status label's CSS class
+    // Status labels/styles are ordered: error, not connected, progress1, progress2, connected.
+    var _statusTooltip = [Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_NOT_CONNECTED, Strings.LIVE_DEV_STATUS_TIP_PROGRESS1,
+                          Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, Strings.LIVE_DEV_STATUS_TIP_CONNECTED];  // Status indicator tooltip
+    var _statusStyle = ["warning", "", "info", "info", "success"];  // Status indicator's CSS class
     var _allStatusStyles = _statusStyle.join(" ");
     
     var _btnGoLive; // reference to the GoLive button
@@ -60,8 +63,11 @@ define(function main(require, exports, module) {
         request.send(null);
     }
 
-    /** Change the appearance of a button. Omit text to remove any extra text; omit style to return to default styling. */
-    function _setLabel(btn, text, style) {
+    /**
+     * Change the appearance of a button. Omit text to remove any extra text; omit style to return to default styling;
+     * omit tooltip to leave tooltip unchanged.
+     */
+    function _setLabel(btn, text, style, tooltip) {
         // Clear text/styles from previous status
         $("span", btn).remove();
         btn.removeClass(_allStatusStyles);
@@ -74,6 +80,10 @@ define(function main(require, exports, module) {
             btn.append(label);
         } else {
             btn.addClass(style);
+        }
+        
+        if (tooltip) {
+            btn.attr("title", tooltip);
         }
     }
 
@@ -98,8 +108,11 @@ define(function main(require, exports, module) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
-            _setLabel(_btnGoLive, null, _statusStyle[status + 1]);
+            _setLabel(_btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
         });
+        
+        // Initialize tooltip for 'not connected' state
+        _setLabel(_btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
     }
 
     /** Create the menu item "Highlight" */
