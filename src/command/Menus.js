@@ -41,9 +41,6 @@ define(function (require, exports, module) {
         "menu-edit-find-next": Commands.EDIT_FIND_NEXT,
         "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
         "menu-edit-replace": Commands.EDIT_REPLACE,
-        
-        "menu-edit-indent": Commands.EDIT_INDENT,
-        "menu-edit-unindent": Commands.EDIT_UNINDENT,
 
         // View
         "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
@@ -114,7 +111,8 @@ define(function (require, exports, module) {
             }
         }
 
-        // Prevent the menus from taking focus away from the editor
+        // Prevent clicks on the top-level menu bar from taking focus
+        // Note, bootstrap handles this already for the menu drop downs 
         $("#main-toolbar .dropdown").mousedown(function (e) {
             e.preventDefault();
         });

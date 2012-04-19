@@ -60,7 +60,7 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function _handleIndent() {
+    function _handleTabKey() {
         // Tab key handling is done as follows:
         // 1. If the selection is before any text and the indentation is to the left of 
         //    the proper indentation then indent it to the proper place. Otherwise,
@@ -201,7 +201,7 @@ define(function (require, exports, module) {
     function _handleSelectAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
-            editor._codeMirror.execCommand("selectAll");
+            editor._selectAllVisible();
         }
     }
     
@@ -288,7 +288,7 @@ define(function (require, exports, module) {
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
             // Disable code mirror handling of tab and shift+tab so Brackets can handle these keys instead
-            "Tab" : _handleIndent,
+            "Tab" : _handleTabKey,
 
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
@@ -942,10 +942,6 @@ define(function (require, exports, module) {
     CommandManager.register(Commands.EDIT_REPLACE, _replace);
     CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
     CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
-    // TODO: code mirror handles 
-    CommandManager.register(Commands.EDIT_INDENT, _handleIndent);
-    CommandManager.register(Commands.EDIT_UNINDENT, _handleUnindent);
 
     // Define public API
     exports.Editor = Editor;
