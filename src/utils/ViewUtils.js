@@ -115,6 +115,7 @@ define(function (require, exports, module) {
                 
                 $selectionTriangle.css("top", selectionTriangleTop);
                 $selectionTriangle.css("right", -$selectionTriangle.width());
+                //$selectionTriangle.css("clip", "rect(" + + " 0px 0px 0px");
                     
                 // force selection width to match scroller
                 $selectionMarker.width($scrollElement[0].scrollWidth);
