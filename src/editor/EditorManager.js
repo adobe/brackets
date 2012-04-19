@@ -409,40 +409,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns the currently focused editor instance (full-sized OR inline editor).
-     * @returns {Editor}
+     * Returns the currently focused inline widget.
+     * @returns {Object}
      */
-    function getFocusedEditor() {
-        if (_currentEditor) {
-            var focusedInline;
-            
-            // See if any inlines have focus
-            _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    widget.editors.forEach(function (editor) {
-                        if (editor.hasFocus()) {
-                            focusedInline = editor;
-                        }
-                    });
-                }
-            });
-            
-            if (focusedInline) {
-                return focusedInline;
-            }
-            
-            if (_currentEditor.hasFocus()) {
-                return _currentEditor;
-            }
-        }
-        
-        return null;
-    }
- 
-    function _showInlineEditor() {
-
+    function getFocusedInlineWidget() {
         var inlineWidget = null;
-
+        
         if (_currentEditor) {
             _currentEditor.getInlineWidgets().forEach(function (widget) {
                 if (widget instanceof InlineTextEditor) {
@@ -453,6 +425,39 @@ define(function (require, exports, module) {
                     });
                 }
             });
+        }
+        
+        return inlineWidget;
+    }
+    
+    /**
+     * Returns the currently focused editor instance (full-sized OR inline editor).
+     * @returns {Editor}
+     */
+    function getFocusedEditor() {
+        if (_currentEditor) {
+            
+            // See if any inlines have focus
+            var focusedInline = getFocusedInlineWidget();
+            if (focusedInline) {
+                return focusedInline;
+            }
+
+            // otherwise, see if full-sized editor has focus
+            if (_currentEditor.hasFocus()) {
+                return _currentEditor;
+            }
+        }
+        
+        return null;
+    }
+ 
+    /**
+     * Show Inline Editor command handler
+     */
+    function _showInlineEditor() {
+        if (_currentEditor) {
+            var inlineWidget = getFocusedInlineWidget();
     
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
@@ -483,6 +488,7 @@ define(function (require, exports, module) {
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
+    exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;

@@ -527,23 +527,23 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Returns the currently focused CSSInlineEditor.
+     * @returns {CSSInlineEditor}
+     */
     function _getCSSInlineEditor() {
-        var currentEditor = EditorManager.getCurrentFullEditor();
-        if (currentEditor) {
-            currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof CSSInlineEditor) {
-                    widget.editors.forEach(function (editor) {
-                        if (editor.hasFocus()) {
-                            return widget;
-                        }
-                    });
-                }
-            });
+        var focusedWidget = EditorManager.getFocusedInlineWidget();
+        var cssInlineEditor = null;
+        if (focusedWidget && focusedWidget instanceof CSSInlineEditor) {
+            cssInlineEditor = focusedWidget;
         }
         
-        return null;
+        return cssInlineEditor;
     }
 
+    /**
+     * Previous Rule command handler
+     */
     function _previousRule() {
         var cssInlineEditor = _getCSSInlineEditor();
         if (cssInlineEditor) {
@@ -551,6 +551,9 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Next Rule command handler
+     */
     function _nextRule() {
         var cssInlineEditor = _getCSSInlineEditor();
         if (cssInlineEditor) {
