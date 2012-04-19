@@ -30,13 +30,9 @@ define(function (require, exports, module) {
 
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
-            $("#open-files-header").hide();
             $openFilesContainer.hide();
-            $("#open-files-divider").hide();
         } else {
-            $("#open-files-header").show();
             $openFilesContainer.show();
-            $("#open-files-divider").show();
         }
         
         ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);

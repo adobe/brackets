@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
 
         // Debug
-        "menu-debug-refresh-window": Commands.VIEW_REFRESH_WINDOW,
+        "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
         "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
         "menu-debug-jslint": Commands.DEBUG_JSLINT,
         "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
@@ -58,7 +58,8 @@ define(function (require, exports, module) {
 
         // Experimental
         "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
-        "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS
+        "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS,
+        "menu-experimental-usetab": Commands.DEBUG_USE_TAB_CHARS
     };
 
 

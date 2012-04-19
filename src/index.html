@@ -37,35 +37,16 @@
         <div class="sidebar">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
-                <div id="project-toolbar" class="toolbar simpleToolbarLayout">
-                    <div class="title-wrapper">
-                        <div id="project-title" class="title"></div>
-                    </div>
-                    <div class="buttons">
-                        <button id="btn-open-project" class="btn">Open</button>
-                    </div>
-                    <!-- <select class="picker"></select>  -->
-                </div>
-                
+                <div id="project-header"></div>
                 <div id="file-section">
-                    <div id="open-files-header" class="project-file-header-area">
-                        <span id="open-files-disclosure-arrow" class="disclosure-arrow-opened"></span>
-                        <span>Open Files</span>
-                    </div>   
-                    
                     <div id="open-files-container">
                         <!-- This will contain a dynamically generated <ul> at runtime -->
                         <ul>
                         </ul>
                     </div>
-                    
-                    <div id="open-files-divider" class="file-list-divider"></div>
-                
                 
                     <div id="project-files-header" class="project-file-header-area">
-                        <div id="project-files-disclosure-arrow" class="disclosure-arrow-opened">
-                        </div>
-                        <span>Project Files</span>
+                        <span id="project-title" class="title"></span>
                     </div>
                     <div id="project-files-container">
                     <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
@@ -161,13 +142,15 @@
                             <li><a class="menu-disabled" href="#">Experimental:</a></li>
                             <li><a href="#" id="menu-experimental-new-brackets-window">New Window</a></li>
                             <li><a href="#" id="menu-experimental-close-all-live-browsers">Close Browsers</a></li>
+                            <li><a href="#" id="menu-experimental-usetab">Use Tab Characters</a></li>
                         </ul>
                     </li>
                 </ul>
                 
                 <div class="buttons">
-                    <a href="#" id="toolbar-go-live"></a>
-                    <span id="gold-star">
+                    <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
+                    
+                    <span id="gold-star" title="No JSLint errors - good job!">
                         &#9733;
                     </span>
                 </div>
