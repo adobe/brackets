@@ -197,13 +197,12 @@ define(function (require, exports, module) {
         
         var $lineNumber = $("<span>" + (startLine + 1) + "</span>");
 
-		var $fancyname = $("<span></span>").text(doc.file.name).attr("title",doc.file.fullPath);
-		$filenameDiv.append($dirtyIndicatorDiv)
-					.append($fancyname)
-					.append(" : ")
-					.append($lineNumber);
+        var $nameWithTooltip = $("<span></span>").text(doc.file.name).attr("title", doc.file.fullPath);
+        $filenameDiv.append($dirtyIndicatorDiv)
+            .append($nameWithTooltip)
+            .append(" : ")
+            .append($lineNumber);
         $wrapperDiv.append($filenameDiv);
-
 
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
