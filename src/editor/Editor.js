@@ -287,7 +287,6 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            // Disable code mirror handling of tab and shift+tab so Brackets can handle these keys instead
             "Tab" : _handleTabKey,
 
             "Left" : function (instance) {
