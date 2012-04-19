@@ -44,6 +44,9 @@ define(function (require, exports, module) {
     
     // Navigate
     exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
+    exports.SHOW_INLINE_EDITOR  = "navigate.showInlineEditor";
+    exports.NEXT_CSS_RULE       = "navigate.nextCssRule";
+    exports.PREVIOUS_CSS_RULE   = "navigate.previousCssRule";
 
     exports.VIEW_REFRESH_WINDOW = "debug.refreshWindow";
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";

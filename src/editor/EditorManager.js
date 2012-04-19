@@ -21,6 +21,8 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var FileUtils           = require("file/FileUtils"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
@@ -86,13 +88,6 @@ define(function (require, exports, module) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
-            // TODO (jasonsj): global command?
-            "Ctrl-E" : function (editor) {
-                onInlineGesture(editor);
-            },
-            "Cmd-E" : function (editor) {
-                onInlineGesture(editor);
-            },
             "Shift-Ctrl-F" : function () {
                 // No-op, handled in FindInFiles.js
             },
@@ -443,7 +438,34 @@ define(function (require, exports, module) {
         
         return null;
     }
+ 
+    function _showInlineEditor() {
+
+        //var focusedEditor = getFocusedEditor();
+        var inlineWidget = null;
+
+        if (_currentEditor) {
+            _currentEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget instanceof InlineTextEditor) {
+                    widget.editors.forEach(function (editor) {
+                        if (editor.hasFocus()) {
+                            inlineWidget = widget;
+                        }
+                    });
+                }
+            });
     
+            if (inlineWidget) {
+                // an inline widget's editor has focus, so close it
+                inlineWidget.close();
+            } else {
+                // main editor has focus, so create an inline editor
+                _openInlineWidget(_currentEditor);
+            }
+        }
+    }
+
+    CommandManager.register(Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);

@@ -14,7 +14,9 @@ define(function (require, exports, module) {
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
         EditorManager       = require("editor/EditorManager"),
-        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor;
+        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager");
 
     /**
      * Remove trailing "px" from a style size value.
@@ -192,8 +194,8 @@ define(function (require, exports, module) {
 
         // Keyboard shortcuts
         var extraKeys = {
-            "Alt-Up" : $.proxy(this.previousRule, this),
-            "Alt-Down" : $.proxy(this.nextRule, this)
+            //"Alt-Up" : $.proxy(this.previousRule, this),
+            //"Alt-Down" : $.proxy(this.nextRule, this)
         };
 
         // Add new editor
@@ -525,9 +527,41 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    function _getCSSInlineEditor() {
+        var currentEditor = EditorManager.getCurrentFullEditor();
+        if (currentEditor) {
+            currentEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget instanceof CSSInlineEditor) {
+                    widget.editors.forEach(function (editor) {
+                        if (editor.hasFocus()) {
+                            return widget;
+                        }
+                    });
+                }
+            });
+        }
+        
+        return null;
+    }
+
+    function _previousRule() {
+        var cssInlineEditor = _getCSSInlineEditor();
+        if (cssInlineEditor) {
+            cssInlineEditor.previousRule();
+        }
+    }
+    
+    function _nextRule() {
+        var cssInlineEditor = _getCSSInlineEditor();
+        if (cssInlineEditor) {
+            cssInlineEditor.nextRule();
+        }
+    }
 
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);
     
+    CommandManager.register(Commands.PREVIOUS_CSS_RULE, _previousRule);
+    CommandManager.register(Commands.NEXT_CSS_RULE, _nextRule);
 
     exports.CSSInlineEditor = CSSInlineEditor;
 

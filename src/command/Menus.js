@@ -48,6 +48,9 @@ define(function (require, exports, module) {
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
+        "menu-navigate-show-inline-editor": Commands.SHOW_INLINE_EDITOR,
+        "menu-navigate-next-css-rule": Commands.NEXT_CSS_RULE,
+        "menu-navigate-previous-css-rule": Commands.PREVIOUS_CSS_RULE,
 
         // Debug
         "menu-debug-refresh-window": Commands.VIEW_REFRESH_WINDOW,
@@ -71,7 +74,7 @@ define(function (require, exports, module) {
                 // TODO TY: should flash menu here
                 //console.log(commandStr);
 
-                EditorManager.focusEditor();
+                //EditorManager.focusEditor();
                 CommandManager.execute(commandStr);
             };
         }
@@ -110,7 +113,12 @@ define(function (require, exports, module) {
             }
         }
 
-        
+        // Prevent clicks on the top-level menu bar from taking focus
+        // Note, bootstrap handles this already for the menu drop downs 
+        $("#main-toolbar .dropdown").mousedown(function (e) {
+            e.preventDefault();
+        });
+
 // Other debug menu items
 //            $("#menu-debug-wordwrap").click(function() {
 //                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
