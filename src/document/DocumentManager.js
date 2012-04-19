@@ -84,6 +84,13 @@ define(function (require, exports, module) {
     var _workingSet = [];
     
     /**
+     * @private
+     * Contains the same set of items as _workinSet, but ordered by how recently they were _currentDocument (0 = most recent).
+     * @type {Array.<FileEntry>}
+     */
+    var _workingSetMRUOrder = [];
+    
+    /**
      * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
      * @private
      * @type {Object.<string, Document>}
@@ -91,7 +98,7 @@ define(function (require, exports, module) {
     var _openDocuments = {};
     
     /**
-     * Returns an ordered list of items in the working set. May be 0-length, but never null.
+     * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
      * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
      * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
@@ -108,14 +115,18 @@ define(function (require, exports, module) {
     }
 
     /** 
-      * Returns the index of the file matching fullPath in the working set. 
-      * Returns -1 if not found.
-      * @param {!string} fullPath
-      * @returns {number} index
+     * Returns the index of the file matching fullPath in the working set.
+     * Returns -1 if not found.
+     * @param {!string} fullPath
+     * @param {Array.<FileEntry>=} list Pass this arg to search a different array of files. Internal
+     *          use only.
+     * @returns {number} index
      */
-    function findInWorkingSet(fullPath) {
+    function findInWorkingSet(fullPath, list) {
+        list = list || _workingSet;
+        
         var ret = -1;
-        var found = _workingSet.some(function findByPath(file, i) {
+        var found = list.some(function findByPath(file, i) {
                 ret = i;
                 return file.fullPath === fullPath;
             });
@@ -154,6 +165,7 @@ define(function (require, exports, module) {
         
         // Add
         _workingSet.push(file);
+        _workingSetMRUOrder.push(file);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
@@ -173,6 +185,7 @@ define(function (require, exports, module) {
         
         // Remove
         _workingSet.splice(index, 1);
+        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
@@ -198,6 +211,14 @@ define(function (require, exports, module) {
         // become dirty)
         if (!ProjectManager.isWithinProject(document.file.fullPath)) {
             addToWorkingSet(document.file);
+        }
+        
+        // Adjust MRU working set ordering
+        var mruI = findInWorkingSet(document.file.fullPath, _workingSetMRUOrder);
+        if (mruI !== -1) {
+            _workingSetMRUOrder.splice(mruI, 1);
+            _workingSetMRUOrder.unshift(document.file);
+            console.log("WorkingSetMRU -> " + _workingSetMRUOrder);
         }
         
         // Make it the current document
@@ -649,22 +670,22 @@ define(function (require, exports, module) {
      */
     function getNextPrevFile(inc) {
         if (_currentDocument) {
-            var workingSetI = findInWorkingSet(_currentDocument.file.fullPath);
-            if (workingSetI === -1) {
+            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
+            if (mruI === -1) {
                 // If doc not in working set, return bottommost working set item
-                if (_workingSet.length > 0) {
-                    return _workingSet[_workingSet.length  - 1];
+                if (_workingSetMRUOrder.length > 0) {
+                    return _workingSetMRUOrder[_workingSetMRUOrder.length  - 1];
                 }
             } else {
                 // If doc is in working set, return next/prev item with wrap-around
-                var newI = workingSetI + inc;
-                if (newI >= _workingSet.length) {
+                var newI = mruI + inc;
+                if (newI >= _workingSetMRUOrder.length) {
                     newI = 0;
                 } else if (newI < 0) {
-                    newI = _workingSet.length - 1;
+                    newI = _workingSetMRUOrder.length - 1;
                 }
                 
-                return _workingSet[newI];
+                return _workingSetMRUOrder[newI];
             }
         }
         
