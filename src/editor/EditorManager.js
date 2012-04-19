@@ -413,21 +413,21 @@ define(function (require, exports, module) {
      * @returns {Object}
      */
     function getFocusedInlineWidget() {
-        var inlineWidget = null;
+        var result = null;
         
         if (_currentEditor) {
             _currentEditor.getInlineWidgets().forEach(function (widget) {
                 if (widget instanceof InlineTextEditor) {
                     widget.editors.forEach(function (editor) {
                         if (editor.hasFocus()) {
-                            inlineWidget = widget;
+                            result = { widget: widget, editor: editor };
                         }
                     });
                 }
             });
         }
         
-        return inlineWidget;
+        return result;
     }
     
     /**
@@ -440,7 +440,8 @@ define(function (require, exports, module) {
             // See if any inlines have focus
             var focusedInline = getFocusedInlineWidget();
             if (focusedInline) {
-                return focusedInline;
+                //return focusedInline;
+                return focusedInline.editor;
             }
 
             // otherwise, see if full-sized editor has focus
@@ -457,7 +458,8 @@ define(function (require, exports, module) {
      */
     function _showInlineEditor() {
         if (_currentEditor) {
-            var inlineWidget = getFocusedInlineWidget();
+            var result = getFocusedInlineWidget();
+            var inlineWidget = (result) ? result.widget : null;
     
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it

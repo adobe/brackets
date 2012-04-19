@@ -532,7 +532,8 @@ define(function (require, exports, module) {
      * @returns {CSSInlineEditor}
      */
     function _getCSSInlineEditor() {
-        var focusedWidget = EditorManager.getFocusedInlineWidget();
+        var result = EditorManager.getFocusedInlineWidget();
+        var focusedWidget = (result) ? result.widget : null;
         var cssInlineEditor = null;
         if (focusedWidget && focusedWidget instanceof CSSInlineEditor) {
             cssInlineEditor = focusedWidget;
