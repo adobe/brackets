@@ -63,3 +63,19 @@
 .spriteSwap(@xOffset, @yOffset) {
     background-position: -@xOffset -@yOffset;
 }
+
+    
+/* Scale x-axis using top-left as the origin  */
+.scaleX (@value: 1.0) {
+    -ms-transform: scaleX(@value);
+    -moz-transform: scaleX(@value);
+    -webkit-transform: scaleX(@value);
+    -o-transform: scaleX(@value);
+    transform: scaleX(@value);
+    
+    -ms-transform-origin: 0 0;
+    -moz-transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
+    -o-transform-origin: 0 0;
+    transform-origin: 0 0;
+}

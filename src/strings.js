@@ -73,7 +73,13 @@ define(function (require, exports, module) {
     exports.LIVE_DEVELOPMENT_ERROR_MESSAGE    = "A live development connection to Chrome could not be established. "
                                                 + "For live development to work, Chrome needs to be started with remote debugging enabled."
                                                 + "<br><br>Would you like to relaunch Chrome and enable remote debugging?";
-        
+    exports.LIVE_DEV_NEED_HTML_MESSAGE        = "Open an HTML file in order to launch live preview.";
+    
+    exports.LIVE_DEV_STATUS_TIP_NOT_CONNECTED = "Live File Preview";
+    exports.LIVE_DEV_STATUS_TIP_PROGRESS1     = "Live File Preview: Connecting...";
+    exports.LIVE_DEV_STATUS_TIP_PROGRESS2     = "Live File Preview: Initializing...";
+    exports.LIVE_DEV_STATUS_TIP_CONNECTED     = "Disconnect Live File Preview";
+    
     exports.SAVE_CLOSE_TITLE                  = "Save Changes";
     exports.SAVE_CLOSE_MESSAGE                = "Do you want to save the changes you made in the document \"{0}\"?";
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";

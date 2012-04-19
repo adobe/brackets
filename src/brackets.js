@@ -135,17 +135,6 @@ define(function (require, exports, module) {
             $("#btn-open-project").click(function () {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);
             });
-
-
-            // Handle toggling top level disclosure arrows of file list area
-            $("#open-files-header").click(function () {
-                $("#open-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
-                $("#open-files-container").toggle();
-            });
-            $("#project-files-header").click(function () {
-                $("#project-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
-                $("#project-files-container").toggle();
-            });
         }
         
         
