@@ -44,6 +44,8 @@ define(function (require, exports, module) {
     
     // Navigate
     exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
+    exports.NAVIGATE_NEXT_DOC = "navigate.nextDoc";
+    exports.NAVIGATE_PREV_DOC = "navigate.prevDoc";
 
     exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";

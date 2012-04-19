@@ -179,6 +179,8 @@ define(function (require, exports, module) {
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     //{"Ctrl-E", Commands.TODO}
+                    {"Ctrl-Tab": Commands.NAVIGATE_NEXT_DOC},
+                    {"Ctrl-Shift-Tab": Commands.NAVIGATE_PREV_DOC},
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},

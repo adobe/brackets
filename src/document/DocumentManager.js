@@ -644,6 +644,48 @@ define(function (require, exports, module) {
     
     
     /**
+     * Get the next or previous file in the sequence of open documents (relative to currentDocument).
+     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     */
+    function getNextPrevFile(inc) {
+        if (_currentDocument) {
+            var workingSetI = findInWorkingSet(_currentDocument.file.fullPath);
+            if (workingSetI === -1) {
+                // If doc not in working set, return bottommost working set item
+                if (_workingSet.length > 0) {
+                    return _workingSet[_workingSet.length  - 1];
+                }
+            } else {
+                // If doc is in working set, return next/prev item with wrap-around
+                var newI = workingSetI + inc;
+                if (newI >= _workingSet.length) {
+                    newI = 0;
+                } else if (newI < 0) {
+                    newI = _workingSet.length - 1;
+                }
+                
+                return _workingSet[newI];
+            }
+        }
+        
+        // If no doc open or working set empty, there is no "next" file
+        return null;
+    }
+    CommandManager.register(Commands.NAVIGATE_NEXT_DOC, function () {
+        var file = getNextPrevFile(+1);
+        if (file) {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+        }
+    });
+    CommandManager.register(Commands.NAVIGATE_PREV_DOC, function () {
+        var file = getNextPrevFile(-1);
+        if (file) {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+        }
+    });
+    
+    
+    /**
      * @private
      * Preferences callback. Saves the document file paths for the working set.
      */
