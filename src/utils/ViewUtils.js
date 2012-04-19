@@ -58,9 +58,84 @@ define(function (require, exports, module) {
         // update immediately
         _updateScrollerShadow(displayElement, scrollElement);
     }
+    
+    /** 
+     * Within a scrolling DOMElement, creates and positions a styled selection
+     * div to align a single selected list item.
+     * 
+     * @param {!DOMElement} scrollElement A DOMElement containing a list
+     * @param {!string} selectedClassName A CSS class name on at most one list item in the contained list
+     */
+    function sidebarList($scrollElement, selectedClassName) {
+        var $listElement = $scrollElement.find("ul"),
+            $listItem,
+            $selectionMarker,
+            $selectionTriangle,
+            top,
+            right;
+        
+        // build selectionMarker with background and triangle visuals
+        $selectionMarker = $(document.createElement("div")).prependTo($scrollElement).addClass("sidebarSelection");
+        $selectionTriangle = $(document.createElement("div"));
+        $selectionMarker.append($selectionTriangle);
+        
+        // enable scrolling
+        $scrollElement.css("overflow", "auto");
+        
+        // use relative postioning for clipping the selectionMarker within the scrollElement
+        $scrollElement.css("position", "relative");
+        
+        selectedClassName = "." + (selectedClassName || "selected");
+        
+        var updateSelectionTriangle = function () {
+            right = $scrollElement[0].scrollWidth - $scrollElement.width();
+            $selectionTriangle.css("right", Math.abs($scrollElement[0].scrollLeft - right));
+        };
+        
+        var updateSelectionMarker = function () {
+            // find the selected list item
+            $listItem = $listElement.find(selectedClassName).closest("li");
+            
+            if ($listItem.length === 1) {
+                // list item position is relative to it's immediate parent UL
+                top = $listItem.position().top;
+                
+                // determine top position relative to scroller by sum of nested list items
+                $.each($listItem.parentsUntil($scrollElement, "li"), function (index, ancestor) {
+                    top += $(ancestor).position().top;
+                });
+                
+                // offset by current scroll position
+                top += $scrollElement[0].scrollTop;
+                
+                // move the selectionMarker position to align with the list item
+                $selectionMarker.css("top", top);
+                
+                // force selection width to match scroller
+                $selectionMarker.width($scrollElement[0].scrollWidth);
+                
+                $selectionMarker.show();
+            } else {
+                // hide the selection marker when no selection is found
+                $selectionMarker.hide();
+            }
+            
+            updateSelectionTriangle();
+        };
+        
+        $listElement.bind("selectionChanged", updateSelectionMarker);
+        
+        // position triangle
+        $scrollElement.bind("scroll", updateSelectionTriangle);
+        
+        // update immediately
+        updateSelectionMarker();
+    }
 
     // Define public API
+    exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
+    
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.installScrollShadow = installScrollShadow;
-    exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
+    exports.sidebarList = sidebarList;
 });

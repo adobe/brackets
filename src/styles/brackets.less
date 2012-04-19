@@ -192,15 +192,12 @@ a, img {
         border-bottom: 1px solid #9a9a9a;  
         box-shadow: 0px 1px #eeeeee;
     }
-    
-    
 }
 
 #open-files-container {
     .box-flex(0);
     margin: 0 0 22px 0;
     padding: 0px;
-    overflow: auto;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
     
@@ -225,6 +222,7 @@ a, img {
                 color: #BBB;
                 font-size: 14px;
                 margin-left: 18px;
+                padding-right: @triangle-size * 2;
                 cursor: default;
             }
             .extension a {
@@ -237,8 +235,6 @@ a, img {
                 background-position: 0 1px;
             }
             &.selected {
-                height: 25px;
-                background: url("styles/images/active_back.png") no-repeat top right;
                 a {
                     color: #fff;
                     font-weight: normal;
@@ -251,6 +247,27 @@ a, img {
     }
 }
 
+.sidebarSelection {
+    background: url("styles/images/active_back.png") no-repeat top right;
+    height: 25px;
+    position: absolute;
+}
+
+.sidebarSelection div {
+    position: absolute;
+    margin-top: -@triangle-size;
+    top: 50%;
+    right: 0px;
+    
+    border-top: @triangle-size solid transparent;
+    border-bottom: @triangle-size solid transparent; 
+    border-right: @triangle-size solid @background-color-3;
+    
+    width: 0;
+    height: 0;
+    .scaleX(0.9, right, top);
+}
+
 //Initially start with the open files hidden, they will get show as files are added
 #open-files-container {
     display:none;
@@ -258,12 +275,14 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px;
-    padding-left: 8px;
-    margin: 0;
-    overflow: auto;
     
-    ul { margin-top: 0; }
+    .jstree-brackets li > a {
+        padding-right: @triangle-size * 2;
+    }
+    
+    ul {
+        padding-left: 8px;
+    }
 }
 
 .scrollerShadow {
@@ -418,7 +437,6 @@ a, img {
      * (b) Use transform scaleX and origin to adjust width.
      */
     .selection:before {
-        @triangle-size: 10px;
         content: " ";
         position: absolute;
         width: 0;
@@ -428,7 +446,7 @@ a, img {
         border-left: @triangle-size solid @inline-background-color-1;
         margin-top: -@triangle-size;
         top: 50%;
-        .scaleX(0.9);
+        .scaleX(0.9, left, top);
     }
     
     .related {

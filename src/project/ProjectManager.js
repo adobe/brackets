@@ -46,6 +46,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to the tree control UL element
+     * @type {DOMElement}
+     */
+    var $projectTreeList;
+    
+    /**
+     * @private
      * @see getProjectRoot()
      */
     var _projectRoot = null;
@@ -79,6 +86,9 @@ define(function (require, exports, module) {
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
         }
+        
+        // redraw selection
+        $projectTreeList.trigger("selectionChanged");
     };
 
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -259,6 +269,10 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
+        
+            // fire selection changed events for sidebarSelection
+            $projectTreeList = $projectTreeContainer.find("ul");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
         });
 
         return result;

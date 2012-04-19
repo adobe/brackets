@@ -26,7 +26,8 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
-        $openFilesContainer = $("#open-files-container");
+        $openFilesContainer = $("#open-files-container"),
+        $openFilesList = $openFilesContainer.find("ul");
 
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
@@ -248,10 +249,14 @@ define(function (require, exports, module) {
 
     $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
         _handleDocumentSelectionChange();
+        
+        // redraw selection
+        $openFilesList.trigger("selectionChanged");
     });
 
     _hideShowOpenFileHeader();
 
     // Show scroller shadows when open-files-container scrolls
     ViewUtils.installScrollShadow($openFilesContainer[0]);
+    ViewUtils.sidebarList($openFilesContainer);
 });
