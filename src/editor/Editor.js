@@ -47,20 +47,13 @@ define(function (require, exports, module) {
         TextRange        = require("document/TextRange").TextRange,
         ViewUtils        = require("utils/ViewUtils");
     
-    /**
-     * @private
-     */
-    function _handleUnindent() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            editor._codeMirror.execCommand("indentLess");
-        }
-    }
 
     /**
      * @private
+     * Handle Tab key press.
+     * @param {!CodeMirror} instance CodeMirror instance.
      */
-    function _handleTabKey() {
+    function _handleTabKey(instance) {
         // Tab key handling is done as follows:
         // 1. If the selection is before any text and the indentation is to the left of 
         //    the proper indentation then indent it to the proper place. Otherwise,
@@ -71,47 +64,42 @@ define(function (require, exports, module) {
         // 3. If the selection is after the first non-space character, and is an 
         //    insertion point, insert a tab character or the appropriate number 
         //    of spaces to pad to the nearest tab boundary.
-        var instance;
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            instance = editor._codeMirror;
-            var from = instance.getCursor(true),
-                to = instance.getCursor(false),
-                line = instance.getLine(from.line),
-                indentAuto = false,
-                insertTab = false;
-            
-            if (from.line === to.line) {
-                if (line.search(/\S/) > to.ch || to.ch === 0) {
-                    indentAuto = true;
-                }
+        var from = instance.getCursor(true),
+            to = instance.getCursor(false),
+            line = instance.getLine(from.line),
+            indentAuto = false,
+            insertTab = false;
+        
+        if (from.line === to.line) {
+            if (line.search(/\S/) > to.ch || to.ch === 0) {
+                indentAuto = true;
             }
+        }
 
-            if (indentAuto) {
-                var currentLength = line.length;
-                CodeMirror.commands.indentAuto(instance);
-                // If the amount of whitespace didn't change, insert another tab
-                if (instance.getLine(from.line).length === currentLength) {
-                    insertTab = true;
-                    to.ch = 0;
-                }
-            } else if (instance.somethingSelected()) {
-                CodeMirror.commands.indentMore(instance);
-            } else {
+        if (indentAuto) {
+            var currentLength = line.length;
+            CodeMirror.commands.indentAuto(instance);
+            // If the amount of whitespace didn't change, insert another tab
+            if (instance.getLine(from.line).length === currentLength) {
                 insertTab = true;
+                to.ch = 0;
             }
-            
-            if (insertTab) {
-                if (instance.getOption("indentWithTabs")) {
-                    CodeMirror.commands.insertTab(instance);
-                } else {
-                    var i, ins = "", numSpaces = instance.getOption("tabSize");
-                    numSpaces -= to.ch % numSpaces;
-                    for (i = 0; i < numSpaces; i++) {
-                        ins += " ";
-                    }
-                    instance.replaceSelection(ins, "end");
+        } else if (instance.somethingSelected()) {
+            CodeMirror.commands.indentMore(instance);
+        } else {
+            insertTab = true;
+        }
+        
+        if (insertTab) {
+            if (instance.getOption("indentWithTabs")) {
+                CodeMirror.commands.insertTab(instance);
+            } else {
+                var i, ins = "", numSpaces = instance.getOption("tabSize");
+                numSpaces -= to.ch % numSpaces;
+                for (i = 0; i < numSpaces; i++) {
+                    ins += " ";
                 }
+                instance.replaceSelection(ins, "end");
             }
         }
     }
