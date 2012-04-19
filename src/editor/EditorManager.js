@@ -441,7 +441,6 @@ define(function (require, exports, module) {
  
     function _showInlineEditor() {
 
-        //var focusedEditor = getFocusedEditor();
         var inlineWidget = null;
 
         if (_currentEditor) {
