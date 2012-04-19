@@ -47,8 +47,6 @@ define(function (require, exports, module) {
         TextRange        = require("document/TextRange").TextRange,
         ViewUtils        = require("utils/ViewUtils");
     
-    
-
 
     /**
      * @private
@@ -191,7 +189,7 @@ define(function (require, exports, module) {
     function _handleSelectAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
-            editor._codeMirror.execCommand("selectAll");
+            editor._selectAllVisible();
         }
     }
     
@@ -294,6 +292,7 @@ define(function (require, exports, module) {
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
             "Tab" : _handleTabKey,
+
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
@@ -970,10 +969,6 @@ define(function (require, exports, module) {
     CommandManager.register(Commands.EDIT_REPLACE, _replace);
     CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
     CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
-    // TODO: code mirror handles 
-    // CommandManager.register(Commands.EDIT_INDENT, _handleTabKey);
-    // CommandManager.register(Commands.EDIT_UNINDENT, _handleTabKey);
 
     // Define public API
     exports.Editor = Editor;
