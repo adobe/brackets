@@ -13,13 +13,6 @@
 }
 
 
-/* Alternative weights */
-
-@font-weight-semibold: 500;
-
-@font-weight-light: 200;
-
-
 /* SourceSansLight */
 @font-face {
     font-family: 'SourceSans';
@@ -33,6 +26,25 @@
 }
 
 
-// Font Stacks
+/* SourceSansSemibold */
+@font-face {
+    font-family: 'SourceSans';
+    src: url('styles/fonts/source-sans/sourcesans-semibold-webfont.eot');
+    src: url('styles/fonts/source-sans/sourcesans-semibold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('styles/fonts/source-sans/sourcesans-semibold-webfont.woff') format('woff'),
+         url('styles/fonts/source-sans/sourcesans-semibold-webfont.ttf') format('truetype'),
+         url('styles/fonts/source-sans/sourcesans-semibold-webfont.svg#SourceSansSemibold') format('svg');
+    font-weight: @font-weight-semibold;
+    font-style: normal;
+}
+
+
+/* Alternative weights */
+
+@font-weight-semibold: 500;
+@font-weight-light: 200;
+
+
+/* Font Stacks */
 
 @fontStackSansSerif: 'SourceSans', Helvetica, Arial, sans-serif;
