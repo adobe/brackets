@@ -179,7 +179,7 @@ define(function (require, exports, module) {
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     //{"Ctrl-E", Commands.TODO}
-                    {"Ctrl-Tab": Commands.NAVIGATE_NEXT_DOC},
+                    {"Ctrl-Tab": Commands.NAVIGATE_NEXT_DOC},       // note: DocumentManager requires modifier to be Ctrl/Cmd
                     {"Ctrl-Shift-Tab": Commands.NAVIGATE_PREV_DOC},
 
                     // DEBUG

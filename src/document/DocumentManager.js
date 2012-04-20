@@ -190,7 +190,23 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
     }
-
+    
+    
+    /** True if we've changed documents due to Ctrl+(Shift+)Tab, but Ctrl hasn't been released yet */
+    var tabNavPending = false;
+    
+    /**
+     * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
+     * @param {!Document}
+     */
+    function _markMostRecent(document) {
+        var mruI = findInWorkingSet(document.file.fullPath, _workingSetMRUOrder);
+        if (mruI !== -1) {
+            _workingSetMRUOrder.splice(mruI, 1);
+            _workingSetMRUOrder.unshift(document.file);
+        }
+    }
+    
     
     /**
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
@@ -213,12 +229,9 @@ define(function (require, exports, module) {
             addToWorkingSet(document.file);
         }
         
-        // Adjust MRU working set ordering
-        var mruI = findInWorkingSet(document.file.fullPath, _workingSetMRUOrder);
-        if (mruI !== -1) {
-            _workingSetMRUOrder.splice(mruI, 1);
-            _workingSetMRUOrder.unshift(document.file);
-            console.log("WorkingSetMRU -> " + _workingSetMRUOrder);
+        // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
+        if (!tabNavPending) {
+            _markMostRecent(document);
         }
         
         // Make it the current document
@@ -692,18 +705,38 @@ define(function (require, exports, module) {
         // If no doc open or working set empty, there is no "next" file
         return null;
     }
-    CommandManager.register(Commands.NAVIGATE_NEXT_DOC, function () {
+    
+    function _navigateNext() {
         var file = getNextPrevFile(+1);
         if (file) {
+            tabNavPending = true;
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
         }
-    });
-    CommandManager.register(Commands.NAVIGATE_PREV_DOC, function () {
+    }
+    function _navigatePrev() {
         var file = getNextPrevFile(-1);
         if (file) {
+            tabNavPending = true;
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
         }
-    });
+    }
+    
+    /**
+     * When navigating the MRU list in increments with the above commands, we don't want to update
+     * the MRU ordering on every increment, since the 1st & 2nd entries would just switch places
+     * forever and you'd never be able to get further down the list. Instead, we wait until the user
+     * releases the Ctrl/Cmd key: a good indicator that they've arrived at the right document.
+     * @param {jQueryEvent} event Key-up event
+     */
+    function _detectCtrlTabEnd(event) {
+        if (event.keyCode === 17) {  // tab key
+            if (tabNavPending) {
+                tabNavPending = false;
+                
+                _markMostRecent(_currentDocument);
+            }
+        }
+    }
     
     
     /**
@@ -804,6 +837,13 @@ define(function (require, exports, module) {
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
+
+    // Register global commands
+    CommandManager.register(Commands.NAVIGATE_NEXT_DOC, _navigateNext);
+    CommandManager.register(Commands.NAVIGATE_PREV_DOC, _navigatePrev);
+    
+    // Listen for ending of Ctrl+Tab sequence (used by above commands)
+    $(document.body).keyup(_detectCtrlTabEnd);
 
     // Register preferences callback
     PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
