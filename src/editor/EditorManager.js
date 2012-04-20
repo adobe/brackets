@@ -410,7 +410,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the currently focused inline widget.
-     * @returns {Object}
+     * @returns {?{widget:!InlineTextEditor, editor:!Editor}}
      */
     function getFocusedInlineWidget() {
         var result = null;
@@ -440,7 +440,6 @@ define(function (require, exports, module) {
             // See if any inlines have focus
             var focusedInline = getFocusedInlineWidget();
             if (focusedInline) {
-                //return focusedInline;
                 return focusedInline.editor;
             }
 
@@ -458,9 +457,13 @@ define(function (require, exports, module) {
      */
     function _showInlineEditor() {
         if (_currentEditor) {
-            var result = getFocusedInlineWidget();
-            var inlineWidget = (result) ? result.widget : null;
-    
+            var inlineWidget = null,
+                result = getFocusedInlineWidget();
+            
+            if (result) {
+                inlineWidget = result.widget;
+            }
+            
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
                 inlineWidget.close();

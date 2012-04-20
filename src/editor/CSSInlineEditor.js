@@ -192,15 +192,9 @@ define(function (require, exports, module) {
         this.editors = [];
         this.$editorsDiv.children().remove();
 
-        // Keyboard shortcuts
-        var extraKeys = {
-            //"Alt-Up" : $.proxy(this.previousRule, this),
-            //"Alt-Down" : $.proxy(this.nextRule, this)
-        };
-
         // Add new editor
         var rule = this.getSelectedRule();
-        this.createInlineEditorFromText(rule.textRange.document, rule.textRange.startLine, rule.textRange.endLine, this.$editorsDiv.get(0), extraKeys);
+        this.createInlineEditorFromText(rule.textRange.document, rule.textRange.startLine, rule.textRange.endLine, this.$editorsDiv.get(0));
         this.editors[0].focus();
 
         // Changes in size to the inline editor should update the relatedContainer
@@ -531,24 +525,28 @@ define(function (require, exports, module) {
      * Returns the currently focused CSSInlineEditor.
      * @returns {CSSInlineEditor}
      */
-    function _getCSSInlineEditor() {
-        var result = EditorManager.getFocusedInlineWidget();
-        var focusedWidget = (result) ? result.widget : null;
-        var cssInlineEditor = null;
-        if (focusedWidget && focusedWidget instanceof CSSInlineEditor) {
-            cssInlineEditor = focusedWidget;
+    function _getFocusedCSSInlineEditor() {
+        
+        var focusedCSSInlineEditor = null,
+            result = EditorManager.getFocusedInlineWidget();
+        
+        if (result) {
+            var focusedWidget = result.widget;
+            if (focusedWidget && focusedWidget instanceof CSSInlineEditor) {
+                focusedCSSInlineEditor = focusedWidget;
+            }
         }
         
-        return cssInlineEditor;
+        return focusedCSSInlineEditor;
     }
 
     /**
      * Previous Rule command handler
      */
     function _previousRule() {
-        var cssInlineEditor = _getCSSInlineEditor();
-        if (cssInlineEditor) {
-            cssInlineEditor.previousRule();
+        var focusedCSSInlineEditor = _getFocusedCSSInlineEditor();
+        if (focusedCSSInlineEditor) {
+            focusedCSSInlineEditor.previousRule();
         }
     }
     
@@ -556,9 +554,9 @@ define(function (require, exports, module) {
      * Next Rule command handler
      */
     function _nextRule() {
-        var cssInlineEditor = _getCSSInlineEditor();
-        if (cssInlineEditor) {
-            cssInlineEditor.nextRule();
+        var focusedCSSInlineEditor = _getFocusedCSSInlineEditor();
+        if (focusedCSSInlineEditor) {
+            focusedCSSInlineEditor.nextRule();
         }
     }
 
