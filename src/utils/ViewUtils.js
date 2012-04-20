@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * Within a scrolling DOMElement, creates and positions a styled selection
      * div to align a single selected list item from a ul list element.
      *
-     * Assumtions:
+     * Assumptions:
      * - scrollElement is a child of the #file-section div
      * - ul list element fires a "selectionChanged" event after the
      *   selectedClassName is assigned to a new list item
@@ -73,11 +73,9 @@ define(function (require, exports, module) {
      */
     function sidebarList($scrollerElement, selectedClassName) {
         var $listElement = $scrollerElement.find("ul"),
-            $listItem,
             $selectionMarker,
             $selectionTriangle,
-            $fileSection = $("#file-section"),
-            initComplete = false;
+            $fileSection = $("#file-section");
         
         // build selectionMarker and position absolute within the scroller
         $selectionMarker = $(document.createElement("div")).addClass("sidebarSelection");
@@ -119,7 +117,7 @@ define(function (require, exports, module) {
         
         var updateSelectionMarker = function () {
             // find the selected list item
-            $listItem = $listElement.find(selectedClassName).closest("li");
+            var $listItem = $listElement.find(selectedClassName).closest("li");
             
             if ($listItem.length === 1) {
                 // list item position is relative to scroller
@@ -135,20 +133,19 @@ define(function (require, exports, module) {
                 updateSelectionTriangle();
                 
                 $selectionTriangle.show();
+            
+                // fully scroll to the selectionMarker if it's not initially in the viewport
+                var scrollerElement = $scrollerElement.get(0),
+                    scrollerHeight = $scrollerElement.height(),
+                    selectionMarkerHeight = $selectionMarker.height(),
+                    selectionMarkerBottom = selectionMarkerTop + selectionMarkerHeight,
+                    currentScrollBottom = scrollerElement.scrollTop + scrollerHeight;
                 
-                // scroll to the initial selection
-                if (!initComplete) {
-                    // fully scroll to the selectionMarker if it's not initially in the viewport
-                    var scrollerElement = $scrollerElement.get(0),
-                        scrollerHeight = $scrollerElement.height(),
-                        currentScrollBottom = scrollerElement.scrollTop + scrollerHeight,
-                        scrollTop = Math.max(0, selectionMarkerTop + $selectionMarker.height() - scrollerHeight);
-                    
-                    if (selectionMarkerTop > currentScrollBottom) {
-                        scrollerElement.scrollTop = scrollTop;
-                    }
-                    
-                    initComplete = true;
+                // update scrollTop to reveal the selected list item
+                if (selectionMarkerTop > currentScrollBottom) {
+                    scrollerElement.scrollTop = Math.max(0, selectionMarkerTop + selectionMarkerHeight - scrollerHeight);
+                } else if (selectionMarkerBottom < scrollerElement.scrollTop) {
+                    scrollerElement.scrollTop = selectionMarkerTop;
                 }
             } else {
                 // hide the selection marker when no selection is found
@@ -164,9 +161,7 @@ define(function (require, exports, module) {
         updateSelectionMarker();
         
         // update clipping when the window resizes
-        $(window).on("resize", function () {
-            setTimeout(updateSelectionTriangle, 0);
-        });
+        $(window).on("resize", updateSelectionTriangle);
     }
 
     // Define public API
