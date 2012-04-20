@@ -9,11 +9,6 @@
 .jstree-brackets .jstree-closed > ins { background-position:-54px 0; }
 .jstree-brackets .jstree-leaf > ins { background-position:-36px 0; }
 
-.jstree-brackets .jstree-clicked {
-    color: #fff;
-}
-
-
 /* Make the links in the JS tree the width of the container
  * by shifting the off the screen by negative margin and moving the
  * content back by pushing the padding. The icons are positioned absolute
@@ -41,7 +36,7 @@
         
         &.jstree-clicked {
             color: #fff;
-            font-weight: normal;
+            font-weight: @font-weight-semibold;
         }
     }
     .extension a {
@@ -50,7 +45,7 @@
     &.jstree-closed, &.jstree-open {
         > a {
             color: #fff;
-            font-weight: normal;
+            font-weight: @font-weight-semibold;
         }
     }
 }

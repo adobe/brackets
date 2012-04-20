@@ -113,6 +113,7 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
+        z-index: 19;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
         .title {
             font-size: @label-font-size;
@@ -187,6 +188,8 @@ a, img {
     
     .project-file-header-area {
         padding: 6px 6px 2px 10px;
+        font-size: 14px;
+        color: #929292;
     }
 
     .file-list-divider {
@@ -237,10 +240,7 @@ a, img {
             }
             &.selected {
                 a {
-                    color: #fff;
-                    font-weight: normal;
-                }
-                .extension a {
+                    font-weight: @font-weight-semibold;
                     color: #fff;
                 }
             }
@@ -540,4 +540,3 @@ li.smart_autocomplete_highlight {
     background-color: #5fa3e0;
 
 }
-

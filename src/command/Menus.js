@@ -41,16 +41,18 @@ define(function (require, exports, module) {
         "menu-edit-find-next": Commands.EDIT_FIND_NEXT,
         "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
         "menu-edit-replace": Commands.EDIT_REPLACE,
-        
 
         // View
         "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
+        "menu-navigate-show-inline-editor": Commands.SHOW_INLINE_EDITOR,
+        "menu-navigate-next-css-rule": Commands.NEXT_CSS_RULE,
+        "menu-navigate-previous-css-rule": Commands.PREVIOUS_CSS_RULE,
 
         // Debug
-        "menu-debug-refresh-window": Commands.VIEW_REFRESH_WINDOW,
+        "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
         "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
         "menu-debug-jslint": Commands.DEBUG_JSLINT,
         "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
@@ -69,10 +71,8 @@ define(function (require, exports, module) {
 
         function createExecFunc(commandStr) {
             return function () {
-                // TODO TY: should flash menu here
+                // TODO TY: should flash menu here on Mac
                 //console.log(commandStr);
-
-                EditorManager.focusEditor();
                 CommandManager.execute(commandStr);
             };
         }
@@ -106,12 +106,21 @@ define(function (require, exports, module) {
                         shortcut = keyCmd.replace(/-/g, "+");
                     }
 
-                    $("#" + menuID).append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                    var $menu = $("#" + menuID);
+                    // Some commands have multiple key commands. Only add the first one.
+                    if ($menu.find(".menu-shortcut").length === 0) {
+                        $menu.append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                    }
                 }
             }
         }
 
-        
+        // Prevent clicks on the top-level menu bar from taking focus
+        // Note, bootstrap handles this already for the menu drop downs 
+        $("#main-toolbar .dropdown").mousedown(function (e) {
+            e.preventDefault();
+        });
+
 // Other debug menu items
 //            $("#menu-debug-wordwrap").click(function() {
 //                editor.setOption("lineWrapping", !(editor.getOption("lineWrapping")));
