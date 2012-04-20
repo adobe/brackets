@@ -197,7 +197,8 @@ define(function (require, exports, module) {
                         event.stopPropagation();
                     }
                 },
-                true);
+                true
+            );
         }
         
         function initWindowListeners() {
