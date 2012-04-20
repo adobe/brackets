@@ -190,11 +190,14 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            $(document.body).keydown(function (event) {
-                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                    event.preventDefault();
-                }
-            });
+            document.body.addEventListener(
+                "keydown",
+                function (event) {
+                    if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
+                        event.stopPropagation();
+                    }
+                }),
+                true;
         }
         
         function initWindowListeners() {
