@@ -460,6 +460,40 @@ a, img {
     }
 }
 
+/* Styles for Dialogs */ 
+
+.dialog-title {
+    margin-bottom: 0;
+    font-size: 26px;
+    line-height: 40px; 
+    font-weight: @font-weight-light;
+}
+
+.dialog-message {
+    font-size: 16px;
+    margin-bottom: 20px;
+    font-weight: @font-weight-light;
+}
+
+.dialog-filename {
+    font-weight: @font-weight-semibold;
+}
+
+.btn {
+    font-size: 16px;
+    font-weight: @font-weight-semibold;
+
+    &:hover {
+        background-position: 0 15px;
+        background-color: #fff;
+    }
+
+    &.primary {
+        background-color: @blue;
+    }
+}
+
+
 /* Styles for the search dialog--this is temporary, only for debugging */
 
 .CodeMirror-dialog {
