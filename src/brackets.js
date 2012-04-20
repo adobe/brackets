@@ -196,8 +196,8 @@ define(function (require, exports, module) {
                     if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
                         event.stopPropagation();
                     }
-                }),
-                true;
+                },
+                true);
         }
         
         function initWindowListeners() {
