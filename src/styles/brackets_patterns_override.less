@@ -89,6 +89,9 @@
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
+
+@toolbar-top-gap-px: 5px;
+    
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
@@ -97,41 +100,6 @@
     
     position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
     .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
-    
-    @toolbar-top-gap-px: 5px;
-    
-    .nav {
-        @menubar-item-h-padding: 10px;
-        
-        margin: @toolbar-top-gap-px 0 0 (-@menubar-item-h-padding + 4);
-        
-        // Menubar item appearance
-        .dropdown-toggle {
-            color: fadeout(@bc-black, 25%);
-        }
-        .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
-            /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
-               color rules we need to override (and Bootstrap has several selectors because the colors really differ
-               in their defaults). */
-            color: @bc-black;
-        }
-        
-        .dropdown-toggle {
-            font-weight: @font-weight-light;
-            padding: 0 @menubar-item-h-padding;  // no vertical padding; taken care of on the overall menubar (.nav)
-        }
-
-        // no triangle icon after menu items
-        .dropdown-toggle:after {
-            border: 0;
-            margin: 0;
-        }
-        
-        // Bootstrap's default menu positioning is calibrated for a much taller menu bar
-        .dropdown-menu {
-            top: 25px;
-        }
-    }
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -155,6 +123,94 @@
 }
 
 
+/* Menu-related styles */
+.toolbar .nav {
+    @menubar-top-padding: 8px;
+    @menubar-bottom-padding: 6px;
+    @menubar-h-padding: 9px;
+    @item-highlight-color: #e0f0fa;
+    
+    // The 1px adjustments here are to account for the border around the top-level menu items.
+    margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
+    
+    // General item appearance
+    a {
+        color: @bc-black;
+        text-shadow: none;
+    }
+
+    // Menubar item appearance
+    .dropdown-toggle {
+        padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
+        border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
+        color: fadeout(@bc-black, 25%);
+        font-weight: @font-weight-light;
+    }
+    .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
+        /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+           color rules we need to override (and Bootstrap has several selectors because the colors really differ
+           in their defaults). */
+        color: @bc-black;
+        background: @item-highlight-color;
+        border-color: #dbeaf4;
+    }
+
+    // no triangle icon after menu items
+    .dropdown-toggle:after {
+        border: 0;
+        margin: 0;
+    }
+    
+    // Menu dropdown appearance
+    .dropdown-menu {
+        top: 34px; // Offset from top of menubar item
+                
+        background-color: @bc-white;
+        border: 1px solid #c8c8c8;
+        .border-radius(0 0 3px 3px);
+        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        
+        // Menu items
+        li {
+            a {
+                font-size: @menu-item-font-size;
+                line-height: 16px;
+                
+                padding: 1px 10px 1px 6px; // slightly less padding on left to account for checkmark
+                color: @bc-black;
+                text-shadow: none;
+                white-space: nowrap;
+                .box-shadow(none);
+
+                &:hover {
+                    color: @bc-black;
+                    background: @item-highlight-color;
+                }
+
+                /* hidden checkmark for all list item content ensures consistent left spacing */
+                &::before {
+                    content: "✓\00a0"; /* non-breaking space */
+                    visibility: hidden;
+                }
+                /* toggle checkmark visibility */
+                &.selected::before {
+                    visibility: visible;
+                }
+            }
+        }
+        
+        .divider {
+            background-color: #eaeaea;
+            border: 0;
+        }
+    }
+    
+    // Ensure a minimum amount of space to the left of the shortcut
+    .menu-shortcut {
+        margin-left: 15px;
+    }
+}
+
 /* Dialog-related styles */
 
 .modal-footer .btn.left {
@@ -165,21 +221,4 @@
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
     margin-bottom: 0;
-}
-
-/* dropdown menu related styles */
-.dropdown-menu li {
-    a {
-        padding: 4px 15px 4px 10px; /* make room for checkmark */
-        white-space: nowrap;
-    }
-    /* hidden checkmark for all list item content ensures consistent left spacing */
-    :before {
-        content: "✓\00a0"; /* non-breaking space */
-        visibility: hidden;
-    }
-    /* toggle checkmark visibility */
-    .selected:before {
-        visibility: visible;
-    }
 }
