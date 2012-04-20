@@ -60,7 +60,7 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
-    $(FileViewController).on("documentSelectionFocusChange", function (event) {
+    var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
                 && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
@@ -79,8 +79,10 @@ define(function (require, exports, module) {
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
         }
-    });
-    
+    };
+
+    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+
     /**
      * Unique PreferencesManager clientID
      */
@@ -100,7 +102,7 @@ define(function (require, exports, module) {
      * Does not support paths containing ".."
      */
     function isWithinProject(absPath) {
-        return (absPath.indexOf(_projectRoot.fullPath) === 0);
+        return (_projectRoot && absPath.indexOf(_projectRoot.fullPath) === 0);
     }
     /**
      * If absPath lies within the project, returns a project-relative path. Else returns absPath
@@ -157,7 +159,6 @@ define(function (require, exports, module) {
         storage.projectTreeState = openNodes;
     }
 
-
     /**
      * @private
      * Given an input to jsTree's json_data.data setting, display the data in the file tree UI
@@ -166,12 +167,12 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var projectTreeContainer = $("#project-files-container"),
+        var $projectTreeContainer = $("#project-files-container"),
             result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
-        _projectTree = projectTreeContainer
+        _projectTree = $projectTreeContainer
             .jstree(
                 {
                     plugins : ["ui", "themes", "json_data", "crrm", "sort"],
@@ -247,6 +248,9 @@ define(function (require, exports, module) {
         // and add our own double-click handler here.
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
+            // install scroller shadows
+            ViewUtils.installScrollShadow(_projectTree[0]);
+            
             _projectTree
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
@@ -700,12 +704,12 @@ define(function (require, exports, module) {
 
     // Initialize now
     (function () {
-        
-        
         var defaults = {
             projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
             projectTreeState: ""
         };
         PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+
+        CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());
 });

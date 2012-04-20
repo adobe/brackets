@@ -3,7 +3,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*global define: false, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -24,15 +24,23 @@ define(function (require, exports, module) {
         }
         
         var keyDescriptor = [];
-        if (hasCtrl) {
-            keyDescriptor.push("Ctrl");
-        }
+       
         if (hasAlt) {
             keyDescriptor.push("Alt");
         }
         if (hasShift) {
             keyDescriptor.push("Shift");
         }
+
+        if (hasCtrl) {
+            // Windows display Ctrl first, Mac displays Command symbol last
+            if (brackets.platform === "win") {
+                keyDescriptor.unshift("Ctrl");
+            } else {
+                keyDescriptor.push("Ctrl");
+            }
+        }
+
         keyDescriptor.push(key);
         
         return keyDescriptor.join("-");
@@ -185,7 +193,7 @@ define(function (require, exports, module) {
         //As that will let us use keys like then function keys "F5" for commands. The
         //full set of values we can use is here
         //http://www.w3.org/TR/2007/WD-DOM-Level-3-Events-20071221/keyset.html#KeySet-Set
-        var ident = event.originalEvent.keyIdentifier;
+        var ident = event.keyIdentifier;
         if (ident) {
             if (ident.charAt(0) === "U" && ident.charAt(1) === "+") {
                 //This is a unicode code point like "U+002A", get the 002A and use that
@@ -196,6 +204,9 @@ define(function (require, exports, module) {
             }
         }
         
+        // Translate some keys to their common names }
+        if (key === "\t") { key = "Tab"; }
+
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
     

@@ -54,7 +54,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
         Commands            = require("command/Commands");
-
+    
     /**
      * Unique PreferencesManager clientID
      */
@@ -220,15 +220,13 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Closes the full editor for the given file (if it has ever been open), and removes it from the
-     * working set (if was in it). Discards any unsaved changes if isDirty - it is expected that the
-     * UI has already confirmed with the user before calling this.
+     * Closes the full editor for the given file (if there is one), and removes it from the working
+     * set. Any other editors for this Document remain open. Discards any unsaved changes - it is
+     * expected that the UI has already confirmed with the user before calling this.
      *
      * Changes currentDocument if this file was the current document (may change to null).
      *
-     * TODO (issue #474): disentangle the notion of closing the main editor vs. totally destroying a
-     * Document (e.g. because it has been deleted on disk). The latter can happen even when there's
-     * no main editor, and not in the working set.
+     * This is a subset of notifyFileDeleted(). Use this for the user-facing Close command.
      *
      * @param {!FileEntry} file
      */
@@ -293,7 +291,7 @@ define(function (require, exports, module) {
      * Model for the contents of a single file and its current modification state.
      * See DocumentManager documentation for important usage notes.
      *
-     * Document dispatches one event:
+     * Document dispatches these events:
      *
      * change -- When the text of the editor changes (including due to undo/redo). 
      *
@@ -314,10 +312,14 @@ define(function (require, exports, module) {
      *        If "from" and "to" are undefined, then this is a replacement of the entire text content.
      *
      *        IMPORTANT: If you listen for the "change" event, you MUST also addRef() the document 
-     *        (and releaseRef() it whenever you stop listening).
+     *        (and releaseRef() it whenever you stop listening). You should also listen to the "deleted"
+     *        event.
      *  
      *        (FUTURE: this is a modified version of the raw CodeMirror change event format; may want to make 
      *        it an ordinary array)
+     *
+     * deleted -- When the file for this document has been deleted. All views onto the document should
+     *      be closed. The document will no longer be editable or dispatch "change" events.
      *
      * @param {!FileEntry} file  Need not lie within the project.
      * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
@@ -438,15 +440,6 @@ define(function (require, exports, module) {
         } else {
             this._text = this.getText();
             this._masterEditor = null;
-            
-            // FUTURE: If main editor was closed without saving changes, we should revert _text to
-            // what's on disk. But since we currently close all secondary editors when anyone else
-            // touches the Document content, there's no point in doing that yet. Just change the text
-            // to a dummy value to trigger that closing. Ultimately, the nicer "revert" behavior
-            // should probably live in DocumentCommandHandlers.handleFileClose().
-            if (this.isDirty) {
-                this.refreshText("");
-            }
         }
     };
     
@@ -624,6 +617,34 @@ define(function (require, exports, module) {
     
     
     /**
+     * Reacts to a file being deleted: if there is a Document for this file, causes it to dispatch a
+     * "deleted" event; ensures it's not the currentDocument; and removes this file from the working
+     * set. These actions in turn cause all open editors for this file to close. Discards any unsaved
+     * changes - it is expected that the UI has already confirmed with the user before calling.
+     *
+     * To simply close a main editor when the file hasn't been deleted, use closeFullEditor() or FILE_CLOSE.
+     *
+     * FUTURE: Instead of an explicit notify, we should eventually listen for deletion events on some
+     * sort of "project file model," making this just a private event handler.
+     */
+    function notifyFileDeleted(file) {
+        // First ensure it's not currentDocument, and remove from working set
+        closeFullEditor(file);
+        
+        // Notify all other editors to close as well
+        var doc = getOpenDocumentForPath(file.fullPath);
+        if (doc) {
+            $(doc).triggerHandler("deleted");
+        }
+        
+        // At this point, all those other views SHOULD have released the Doc
+        if (doc && doc._refCount > 0) {
+            console.log("WARNING: deleted Document still has " + doc._refCount + " references. Did someone addRef() without listening for 'deleted'?");
+        }
+    }
+    
+    
+    /**
      * @private
      * Preferences callback. Saves the document file paths for the working set.
      */
@@ -720,6 +741,7 @@ define(function (require, exports, module) {
     exports.addToWorkingSet = addToWorkingSet;
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
+    exports.notifyFileDeleted = notifyFileDeleted;
 
     // Register preferences callback
     PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
