@@ -255,16 +255,14 @@ a, img {
 }
 
 .sidebarSelectionTriangle {
-    position: absolute;
+    position: fixed;
+    
     margin-top: -@triangle-size;
-    right: 0px;
     
     border-top: @triangle-size solid transparent;
     border-bottom: @triangle-size solid transparent; 
     border-right: @triangle-size solid @background-color-3;
     
-    width: 0;
-    height: 0;
     .scaleX(0.9, right, top);
 }
 

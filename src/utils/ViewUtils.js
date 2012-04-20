@@ -66,27 +66,62 @@ define(function (require, exports, module) {
      * @param {!DOMElement} scrollElement A DOMElement containing a list
      * @param {!string} selectedClassName A CSS class name on at most one list item in the contained list
      */
-    function sidebarList($scrollElement, selectedClassName) {
-        var $listElement = $scrollElement.find("ul"),
+    function sidebarList($scrollerElement, selectedClassName) {
+        var $listElement = $scrollerElement.find("ul"),
             $listItem,
             $selectionMarker,
+            triangleOffsetYBy,
+            triangleClipOffsetYBy,
             $selectionTriangle,
             $fileSection = $("#file-section"),
             selectionMarkerTop,
-            selectionTriangleTop;
+            triangleTop,
+            triangleHeight,
+            triangleBottom,
+            scrollerOffset,
+            scrollerTop,
+            scrollerBottom,
+            scrollerLeft,
+            rightOffset;
         
-        // build selectionMarker with background and triangle visuals
-        $selectionMarker = $(document.createElement("div")).prependTo($scrollElement).addClass("sidebarSelection");
+        // build selectionMarker and position absolute within the scroller
+        $selectionMarker = $(document.createElement("div")).addClass("sidebarSelection");
+        $scrollerElement.prepend($selectionMarker);
+        
+        // enable scrolling
+        $scrollerElement.css("overflow", "auto");
+        
+        // use relative postioning for clipping the selectionMarker within the scrollElement
+        $scrollerElement.css("position", "relative");
+        
+        // build selectionTriangle and position fixed to the windwo
         $selectionTriangle = $(document.createElement("div")).addClass("sidebarSelectionTriangle");
         $fileSection.append($selectionTriangle);
         
-        // enable scrolling
-        $scrollElement.css("overflow", "auto");
-        
-        // use relative postioning for clipping the selectionMarker within the scrollElement
-        $scrollElement.css("position", "relative");
-        
         selectedClassName = "." + (selectedClassName || "selected");
+        
+        var updateSelectionTriangle = function () {
+            scrollerOffset = $scrollerElement.offset();
+            scrollerTop = scrollerOffset.top;
+            scrollerBottom = scrollerTop + $scrollerElement[0].clientHeight;
+            scrollerLeft = scrollerOffset.left;
+        
+            triangleTop = $selectionMarker.offset().top;
+            triangleHeight = $selectionTriangle.outerHeight();
+            triangleOffsetYBy = $selectionMarker.height() / 2;
+            triangleClipOffsetYBy = Math.floor(($selectionMarker.height() - triangleHeight) / 2);
+            triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+                
+            $selectionTriangle.css("top", triangleTop + triangleOffsetYBy);
+            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
+            
+            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
+                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
+                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+            } else {
+                $selectionTriangle.css("clip", "");
+            }
+        };
         
         var updateSelectionMarker = function () {
             // find the selected list item
@@ -97,31 +132,23 @@ define(function (require, exports, module) {
                 selectionMarkerTop = $listItem.position().top;
                 
                 // determine top position relative to scroller by sum of nested list items
-                $.each($listItem.parentsUntil($scrollElement, "li"), function (index, ancestor) {
+                $.each($listItem.parentsUntil($scrollerElement, "li"), function (index, ancestor) {
                     selectionMarkerTop += $(ancestor).position().top;
                 });
                 
-                // triangle top position is relative to file-section div
-                selectionTriangleTop = selectionMarkerTop;
-                
                 // offset by current scroll position
-                selectionMarkerTop += $scrollElement[0].scrollTop;
+                selectionMarkerTop += $scrollerElement[0].scrollTop;
+                    
+                // force selection width to match scroller
+                $selectionMarker.width($scrollerElement[0].scrollWidth);
                 
                 // move the selectionMarker position to align with the list item
                 $selectionMarker.css("top", selectionMarkerTop);
+                $selectionMarker.show();
                 
-                // adjust triangle position by scrollElement top offset
-                selectionTriangleTop += $scrollElement.position().top + (Math.sqrt(200) * 0.9); // FIXME height / 2
-                
-                $selectionTriangle.css("top", selectionTriangleTop);
-                $selectionTriangle.css("right", -$selectionTriangle.width());
-                //$selectionTriangle.css("clip", "rect(" + + " 0px 0px 0px");
-                    
-                // force selection width to match scroller
-                $selectionMarker.width($scrollElement[0].scrollWidth);
+                updateSelectionTriangle();
                 
                 $selectionTriangle.show();
-                $selectionMarker.show();
             } else {
                 // hide the selection marker when no selection is found
                 $selectionTriangle.hide();
@@ -129,8 +156,8 @@ define(function (require, exports, module) {
             }
         };
         
-        $listElement.bind("selectionChanged", updateSelectionMarker);
-        $scrollElement.bind("scroll", updateSelectionMarker);
+        $listElement.on("selectionChanged", updateSelectionMarker);
+        $scrollerElement.on("scroll", updateSelectionTriangle);
         
         // update immediately
         updateSelectionMarker();
