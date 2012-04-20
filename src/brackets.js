@@ -172,15 +172,15 @@ define(function (require, exports, module) {
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
                     {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
-                    {"Ctrl-Tab": Commands.EDIT_INDENT},
-                    {"Ctrl-Shift-Tab": Commands.EDIT_UNINDENT},
 
                     // VIEW
                     {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
                     
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
-                    //{"Ctrl-E", Commands.TODO}
+                    {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
+                    {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
+                    {"Alt-Down": Commands.NEXT_CSS_RULE},
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
@@ -192,11 +192,15 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            $(document.body).keydown(function (event) {
-                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                    event.preventDefault();
-                }
-            });
+            document.body.addEventListener(
+                "keydown",
+                function (event) {
+                    if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
+                        event.stopPropagation();
+                    }
+                },
+                true
+            );
         }
         
         function initWindowListeners() {

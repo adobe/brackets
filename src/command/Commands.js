@@ -19,10 +19,10 @@ define(function (require, exports, module) {
     exports.FILE_SAVE           = "file.save";
     exports.FILE_CLOSE          = "file.close";
     exports.FILE_CLOSE_ALL      = "file.close_all";
-    exports.FILE_CLOSE_WINDOW   = "file.close_window";
+    exports.FILE_CLOSE_WINDOW   = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW = "file.liveFilePreview";
-    exports.FILE_QUIT           = "file.quit";
+    exports.FILE_QUIT           = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
     exports.EDIT_UNDO           = "edit.undo";
@@ -44,14 +44,18 @@ define(function (require, exports, module) {
     
     // Navigate
     exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
+    exports.SHOW_INLINE_EDITOR  = "navigate.showInlineEditor";
+    exports.NEXT_CSS_RULE       = "navigate.nextCssRule";
+    exports.PREVIOUS_CSS_RULE   = "navigate.previousCssRule";
 
-    exports.VIEW_REFRESH_WINDOW = "debug.refreshWindow";
+    exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";
     exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
     exports.DEBUG_JSLINT        = "debug.jslint";
     exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW = "debug.newBracketsWindow";
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
+    exports.DEBUG_USE_TAB_CHARS = "debug.useTabChars";
 
 
 });
