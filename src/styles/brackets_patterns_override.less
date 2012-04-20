@@ -129,6 +129,7 @@
     @menubar-top-padding: 8px;
     @menubar-bottom-padding: 6px;
     @menubar-h-padding: 9px;
+    @item-highlight-color: #e0f0fa;
     
     // The 1px adjustments here are to account for the border around the top-level menu items.
     margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
@@ -151,7 +152,7 @@
            color rules we need to override (and Bootstrap has several selectors because the colors really differ
            in their defaults). */
         color: @bc-black;
-        background: #e0f0fa;
+        background: @item-highlight-color;
         border-color: #dbeaf4;
     }
 
@@ -184,18 +185,18 @@
 
                 &:hover {
                     color: @bc-black;
-                    background: #e0f0fa;
+                    background: @item-highlight-color;
                 }
-            }
-                
-            /* hidden checkmark for all list item content ensures consistent left spacing */
-            :before {
-                content: "✓\00a0"; /* non-breaking space */
-                visibility: hidden;
-            }
-            /* toggle checkmark visibility */
-            .selected:before {
-                visibility: visible;
+
+                /* hidden checkmark for all list item content ensures consistent left spacing */
+                &::before {
+                    content: "✓\00a0"; /* non-breaking space */
+                    visibility: hidden;
+                }
+                /* toggle checkmark visibility */
+                &.selected::before {
+                    visibility: visible;
+                }
             }
         }
         .active a {
