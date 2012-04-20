@@ -417,7 +417,7 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = _prefs.getJSON(),
+        var prefs = _prefs.toJSON(),
             result = new $.Deferred(),
             resultRenderTree,
             isFirstProjectOpen = false;
