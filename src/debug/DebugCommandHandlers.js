@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     function _handleShowPerfData() {
         var perfHeader = $("<div class='modal-header' />")
             .append("<a href='#' class='close'>&times;</a>")
-            .append("<h3 class='dialog-title'>Performance Data</h3>");
+            .append("<h1 class='dialog-title'>Performance Data</h1>");
         
         var perfBody = $("<div class='modal-body' style='padding: 0' />");
 
