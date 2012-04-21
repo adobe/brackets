@@ -55,7 +55,7 @@ into unnecessary detail.
   2.  The description should also provide *Actual Results* and *Expected Results*.      
   3.  If the results include an error, make sure to include it in the bug. (For many JavaScript errors, you can 
 use Ctrl+C / CMD+C to copy the error message and paste it in the bug description. Having specific error 
-message in the bug helps reproducing bugs. Bug files should be uploaded to gist.github.com and linked  from the bug report.
+message in the bug helps reproducing bugs. Bug files should be uploaded to [**gist**](gist.github.com) and linked  from the bug report.
 * **Product Area:** Describe product area for where the bug is found.
 * **Frequency:** Does the bug reproduce 100%, occasionally, not reproducible.
 * **Platform:** Specify plattform and OS version used.
