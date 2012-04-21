@@ -66,16 +66,16 @@
 
     
 /* Scale x-axis using top-left as the origin  */
-.scaleX (@value: 1.0) {
+.scaleX (@value: 1.0, @horizontal: 50%, @vertical: 50%) {
     -ms-transform: scaleX(@value);
     -moz-transform: scaleX(@value);
     -webkit-transform: scaleX(@value);
     -o-transform: scaleX(@value);
     transform: scaleX(@value);
     
-    -ms-transform-origin: 0 0;
-    -moz-transform-origin: 0 0;
-    -webkit-transform-origin: 0 0;
-    -o-transform-origin: 0 0;
-    transform-origin: 0 0;
+    -ms-transform-origin: @horizontal @vertical;
+    -moz-transform-origin: @horizontal @vertical;
+    -webkit-transform-origin: @horizontal @vertical;
+    -o-transform-origin: @horizontal @vertical;
+    transform-origin: @horizontal @vertical;
 }
