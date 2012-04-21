@@ -98,6 +98,8 @@ define(function (require, exports, module) {
         this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
         this._relatedContainerInserted = false;
         this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
+        
+        // FIXME (jasonsj): deprecated event http://www.w3.org/TR/DOM-Level-3-Events/
         this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
