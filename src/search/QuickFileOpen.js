@@ -55,6 +55,8 @@ define(function (require, exports, module) {
      */
     var origCursorPos;
 
+    var dialogOpen = false;
+
     /**
      * Defines API for new QuickOpen plguins
      * @param {string} plugin name
@@ -98,7 +100,6 @@ define(function (require, exports, module) {
     */
     function QuickNavigateDialog() {
         this.searchField = undefined; // defined when showDialog() is called
-        this.closed = false;
     }
 
     /**
@@ -234,10 +235,10 @@ define(function (require, exports, module) {
     */
     QuickNavigateDialog.prototype._close = function (value) {
 
-        if (this.closed) {
+        if (!dialogOpen) {
             return;
         }
-        this.closed = true;
+        dialogOpen = false;
 
         JSLintUtils.setEnabled(true);
 
@@ -330,12 +331,41 @@ define(function (require, exports, module) {
                 "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
         }
     }
+
+    function setCaretPosition(elem, caretPos) {
+        if(elem != null) {
+            if(elem.createTextRange) {
+                var range = elem.createTextRange();
+                range.move('character', caretPos);
+                range.select();
+            }
+            else {
+                if(elem.selectionStart) {
+                    elem.focus();
+                    elem.setSelectionRange(caretPos, caretPos);
+                }
+                else
+                    elem.focus();
+            }
+        }
+    }
+
+    function setSearchFieldValue(initialValue) {
+        initialValue = initialValue || "";
+        var $field = $('input#quickFileOpenSearch');
+        if ($field) {
+            $field.val(initialValue);
+            $field.focus();
+            setCaretPosition($field.get(0), initialValue.length);
+        }
+    }
         
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
     */
     QuickNavigateDialog.prototype.showDialog = function (initialValue) {
         var that = this;
+        dialogOpen = true;
 
         // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
         JSLintUtils.setEnabled(false);
@@ -356,7 +386,6 @@ define(function (require, exports, module) {
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
                 that._createDialogDiv(dialogHTML);
                 that.searchField = $('input#quickFileOpenSearch');
-                var closed = false;
 
 
                 that.searchField.smartAutoComplete({
@@ -376,28 +405,36 @@ define(function (require, exports, module) {
                     keyIn: function (e, query) { that._handleKeyIn(e, query); }
                 });
         
-                that.searchField.val(initialValue || "");
-                that.searchField.get(0).select();
+                setSearchFieldValue(initialValue);
             });
     };
 
-    function doFileSearch() {
+    function doSearch(prefix) {
+        prefix = prefix || "";
         var currentEditor = EditorManager.getFocusedEditor();
-        var initialString = currentEditor && currentEditor.getSelectedText();
-        var dialog = new QuickNavigateDialog(initialString);
-        dialog.showDialog();
+        var initialString = currentEditor && currentEditor.getSelectedText() || "";
+        initialString = prefix + initialString;
+
+        if (dialogOpen) {
+            setSearchFieldValue(initialString);
+        } else {
+            var dialog = new QuickNavigateDialog();
+            dialog.showDialog(initialString);
+        }
+    }
+
+    function doFileSearch() {
+        doSearch();
     }
 
     function doGotoLine() {
-        var dialog = new QuickNavigateDialog();
-        dialog.showDialog(":");
+        doSearch(":");
     }
 
 
     // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plugin
     function doDefinitionSearch() {
-        var dialog = new QuickNavigateDialog();
-        dialog.showDialog("@");
+        doSearch("@");
     }
 
 
@@ -413,9 +450,9 @@ define(function (require, exports, module) {
     addQuickOpenPlugin(htmlIDPlugin);
 
     // TODO: allow QuickOpenJS to register it's own commands and keybindings
-    CommandManager.register(Commands.FILE_QUICK_NAVIGATE_FILE, doFileSearch);
-    CommandManager.register(Commands.FILE_QUICK_NAVIGATE_DEFINITION, doDefinitionSearch);
-    CommandManager.register(Commands.FILE_QUICK_NAVIGATE_LINE, doGotoLine);
+    CommandManager.register(Commands.NAVIGATE_QUICK_OPEN, doFileSearch);
+    CommandManager.register(Commands.NAVIGATE_GOTO_DEFINITION, doDefinitionSearch);
+    CommandManager.register(Commands.NAVIGATE_GOTO_LINE, doGotoLine);
 
     exports.addQuickOpenPlugin = addQuickOpenPlugin;
 });
