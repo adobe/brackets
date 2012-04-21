@@ -175,9 +175,12 @@
         li {
             a {
                 font-size: @menu-item-font-size;
-                line-height: 16px;
+                line-height: 18px;
                 
-                padding: 1px 10px 1px 6px; // slightly less padding on left to account for checkmark
+                // Slightly less padding on left to account for checkmark.
+                // More padding on top than bottom to center font within its bg highlight better.
+                padding: 2px 10px 0px 6px;
+                
                 color: @bc-black;
                 text-shadow: none;
                 white-space: nowrap;
