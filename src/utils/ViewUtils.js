@@ -136,15 +136,15 @@ define(function (require, exports, module) {
             
                 // fully scroll to the selectionMarker if it's not initially in the viewport
                 var scrollerElement = $scrollerElement.get(0),
-                    scrollerHeight = $scrollerElement.height(),
+                    scrollerHeight = scrollerElement.clientHeight,
                     selectionMarkerHeight = $selectionMarker.height(),
                     selectionMarkerBottom = selectionMarkerTop + selectionMarkerHeight,
                     currentScrollBottom = scrollerElement.scrollTop + scrollerHeight;
                 
                 // update scrollTop to reveal the selected list item
-                if (selectionMarkerTop > currentScrollBottom) {
+                if (selectionMarkerTop >= currentScrollBottom) {
                     scrollerElement.scrollTop = Math.max(0, selectionMarkerTop + selectionMarkerHeight - scrollerHeight);
-                } else if (selectionMarkerBottom < scrollerElement.scrollTop) {
+                } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
                     scrollerElement.scrollTop = selectionMarkerTop;
                 }
             } else {
