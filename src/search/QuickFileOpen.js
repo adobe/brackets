@@ -250,7 +250,7 @@ define(function (require, exports, module) {
 
         var editor = EditorManager.getCurrentFullEditor();
         editor.focus();
-        editor.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
+        editor.setSelection(origSelection.start, origSelection.end);
     };
     
     function filterFileList(query) {
