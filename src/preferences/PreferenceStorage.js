@@ -12,6 +12,44 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var PreferencesManager = require("preferences/PreferencesManager");
+    
+    /**
+     * @private
+     * Validate JSON keys and values.
+     */
+    function _validateJSONPair(key, value) {
+        if (typeof key === "string") {
+            // validate temporary JSON
+            var temp = {},
+                error = null;
+            temp[key] = value;
+            
+            try {
+                temp = JSON.parse(JSON.stringify(temp));
+            } catch (err) {
+                error = err;
+            }
+            
+            // set value to JSON storage if no errors occurred
+            if (!error && (temp[key] !== undefined)) {
+                return true;
+            } else {
+                throw new Error("Value '" + value + "' for key '" + key + "' must be a valid JSON value");
+            }
+        } else {
+            throw new Error("Preference key '" + key + "' must be a string");
+        }
+    }
+    
+    /**
+     * @private
+     * Save to persistent storage.
+     */
+    function _commit() {
+        PreferencesManager.savePreferences();
+    }
+    
     /**
      * Creates a new PreferenceStorage object.
      * @param {!string} clientID Unique identifier for PreferencesManager to
@@ -38,6 +76,7 @@ define(function (require, exports, module) {
     PreferenceStorage.prototype.remove = function (key) {
         // remove value from JSON storage
         delete this._json[key];
+        _commit();
     };
     
     /**
@@ -46,25 +85,14 @@ define(function (require, exports, module) {
      * @param {object} value A valid JSON value
      */
     PreferenceStorage.prototype.setValue = function (key, value) {
-        if (typeof key === "string") {
-            // validate temporary JSON
-            var temp = {};
-            temp[key] = value;
-            temp = JSON.parse(JSON.stringify(temp));
-            
-            if (temp[key] !== undefined) {
-                // set value to JSON storage
-                this._json[key] = value;
-            } else {
-                throw new Error("Value must be a valid JSON value");
-            }
-        } else {
-            throw new Error("Preference key must be a string");
+        if (_validateJSONPair(key, value)) {
+            this._json[key] = value;
+            _commit();
         }
     };
     
     /**
-     * Retreive the value associated with the specified.
+     * Retreive the value associated with the specified key.
      * @param {!string} key Key name to lookup.
      * @return {object} Returns the value for the key or undefined.
      */
@@ -77,23 +105,38 @@ define(function (require, exports, module) {
      * @return {!object} JSON object containing name/value pairs for all keys
      *  in this PreferenceStorage object.
      */
-    PreferenceStorage.prototype.toJSON = function () {
+    PreferenceStorage.prototype.getAllValues = function () {
         return JSON.parse(JSON.stringify(this._json));
     };
     
     /**
      * Writes name-value pairs from a JSON object as preference properties.
-     * Invalid JSON values throw an error.
+     * Invalid JSON values throw an error and all changes are discarded.
      *
      * @param {!object} obj A JSON object with zero or more preference properties to write.
-     * @param {boolean} append When true, properties in the JSON object overwrite and/or append
-     *  to the existing set of preference properties. When false, all existing preferences
-     *  are deleted before writing new properties from the JSON object.
+     * @param {boolean} append Defaults to false. When true, properties in the JSON object
+     *  overwrite and/or append to the existing set of preference properties. When false,
+     *  all existing preferences are deleted before writing new properties from the JSON object.
      */
-    PreferenceStorage.prototype.writeJSON = function (obj, append) {
-        var self = this;
+    PreferenceStorage.prototype.setAllValues = function (obj, append) {
+        var self = this,
+            error = null;
         
-        append = (append !== undefined) ? append : true;
+        // validate all name/value pairs before committing
+        $.each(obj, function (key, value) {
+            try {
+                _validateJSONPair(key, value);
+            } catch (err) {
+                // fail fast
+                error = err;
+                return false;
+            }
+        });
+        
+        // skip changes if any error is detected
+        if (error) {
+            throw error;
+        }
         
         // delete all exiting properties if not appending
         if (!append) {
@@ -104,8 +147,10 @@ define(function (require, exports, module) {
         
         // copy properties from incoming JSON object
         $.each(obj, function (key, value) {
-            self.setValue(key, value);
+            self._json[key] = value;
         });
+        
+        _commit();
     };
     
     exports.PreferenceStorage = PreferenceStorage;

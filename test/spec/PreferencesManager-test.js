@@ -30,7 +30,7 @@ define(function (require, exports, module) {
         it("should output preferences as JSON", function () {
             var store = new PreferenceStorage(CLIENT_ID, {});
             store.setValue("foo", 42);
-            var json = store.toJSON();
+            var json = store.getAllValues();
             
             expect(json.foo).toEqual(42);
         });
@@ -43,18 +43,18 @@ define(function (require, exports, module) {
             expect(store.getValue("foo")).toBe(undefined);
         });
         
-        it("should use writeJSON to append multiple new name/value pairs", function () {
+        it("should use setAllValues to append multiple new name/value pairs", function () {
             var initial = {"foo": "bar"};
             var store = new PreferenceStorage(CLIENT_ID, initial);
             
             // append
-            store.writeJSON({"hello": ["world", "!"], "goodbye": 42});
+            store.setAllValues({"hello": ["world", "!"], "goodbye": 42}, true);
             expect(store.getValue("foo")).toBe("bar");
             expect(store.getValue("hello")).toEqual(["world", "!"]);
             expect(store.getValue("goodbye")).toBe(42);
             
             // overwrite
-            store.writeJSON({"winning": false}, false);
+            store.setAllValues({"winning": false}, false);
             expect(store.getValue("foo")).toBe(undefined);
             expect(store.getValue("hello")).toBe(undefined);
             expect(store.getValue("goodbye")).toBe(undefined);
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
             }
             
             expect(error).not.toBeNull();
-            expect(error.message).toBe("Value must be a valid JSON value");
+            expect(error.message).toBe("Value 'function () {}' for key 'foo' must be a valid JSON value");
             
             try {
                 // number key is not valid JSON
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
             }
             
             expect(error).not.toBeNull();
-            expect(error.message).toBe("Preference key must be a string");
+            expect(error.message).toBe("Preference key '42' must be a string");
         });
         
     });

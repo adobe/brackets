@@ -678,7 +678,7 @@ define(function (require, exports, module) {
      * Initializes the working set.
      */
     function _init() {
-        var prefs = _prefs.toJSON();
+        var prefs = _prefs.getAllValues();
 
         if (!prefs.files) {
             return;

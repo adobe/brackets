@@ -176,7 +176,7 @@ define(function (require, exports, module) {
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
         
-        _prefs.writeJSON(storage);
+        _prefs.setAllValues(storage);
     }
 
     /**
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = _prefs.toJSON(),
+        var prefs = _prefs.getAllValues(),
             result = new $.Deferred(),
             resultRenderTree,
             isFirstProjectOpen = false;
