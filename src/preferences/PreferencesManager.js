@@ -82,7 +82,8 @@ define(function (require, exports, module) {
         }
     }
 
-    // check localStorage for a preferencesKey
+    // Check localStorage for a preferencesKey. Production and unit test keys
+    // are used to keep preferences separate within the same storage implementation.
     preferencesKey = localStorage.getItem("preferencesKey");
 
     if (!preferencesKey) {
