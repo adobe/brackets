@@ -67,6 +67,12 @@ define(function (require, exports, module) {
     var _currentDocument = null;
     
     /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = {};
+    
+    /**
      * Returns the Document that is currently open in the editor UI. May be null.
      * When this changes, DocumentManager dispatches a "currentDocumentChange" event. The current
      * document always has a backing Editor (Document._masterEditor != null) and is thus modifiable.
@@ -647,7 +653,7 @@ define(function (require, exports, module) {
      * @private
      * Preferences callback. Saves the document file paths for the working set.
      */
-    function _savePreferences(storage) {
+    function _savePreferences() {
         // save the working set file paths
         var files       = [],
             isActive    = false,
@@ -656,7 +662,7 @@ define(function (require, exports, module) {
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
-            isActive = (file.fullPath === currentDoc.file.fullPath);
+            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
 
             files.push({
                 file: file.fullPath,
@@ -664,7 +670,7 @@ define(function (require, exports, module) {
             });
         });
 
-        storage.files = files;
+        _prefs.setValue("files", files);
     }
 
     /**
@@ -672,7 +678,7 @@ define(function (require, exports, module) {
      * Initializes the working set.
      */
     function _init() {
-        var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+        var prefs = _prefs.getAllValues();
 
         if (!prefs.files) {
             return;
@@ -742,8 +748,9 @@ define(function (require, exports, module) {
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
 
-    // Register preferences callback
-    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
+    // Setup preferences
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
 
     // Initialize after ProjectManager is loaded
     $(ProjectManager).on("initializeComplete", function (event, projectRoot) {
