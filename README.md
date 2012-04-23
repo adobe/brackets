@@ -43,4 +43,4 @@ please remember to include:
 * Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
 * platform/OS version
 * repro steps, actual and expected results
-* link to test files (you can create a gist on [**gist.github.com**](gist.github.com) if that's convenient).
+* link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) if that's convenient).
