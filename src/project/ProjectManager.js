@@ -88,7 +88,9 @@ define(function (require, exports, module) {
         }
         
         // redraw selection
-        $projectTreeList.trigger("selectionChanged");
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+        }
     };
 
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
