@@ -254,7 +254,13 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
             "extensions/user"
         );
-
+        
+        // Use unobtrusive scrollbars if we aren't on Lion
+        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
+        if (!(osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7)) {
+            $(".sidebar").addClass("quiet-scrollbars");
+        }
+        
         PerfUtils.addMeasurement("Application Startup");
     });
     
