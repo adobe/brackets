@@ -51,9 +51,9 @@ define(function (require, exports, module) {
     /**
      * Rembers the current cursor location that was present when showDialog() was called
      * The cursor position s restored if the user presses escape
-     * @type {!{line:number, ch:number}}
+     * @type ?{start:{line:number, ch:number}, end:{line:number, ch:number}}
      */
-    var origCursorPos;
+    var origSelection;
 
     var dialogOpen = false;
 
@@ -189,6 +189,7 @@ define(function (require, exports, module) {
         if (gotoLine) {
             var from = {line: gotoLine, ch: 0};
             var to = {line: gotoLine, ch: 99999};
+            
             EditorManager.getCurrentFullEditor().setSelection(from, to);
         }
 
@@ -217,7 +218,7 @@ define(function (require, exports, module) {
                 if (origDocPath) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
                         .done(function () {
-                            EditorManager.getCurrentFullEditor().setCursorPos(origCursorPos);
+                            EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
                         });
                 }
             } else if (e.keyCode === 13) {
@@ -246,6 +247,10 @@ define(function (require, exports, module) {
         // If I do it more directly listeners are not removed by the smart auto complete plugin
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
+
+        var editor = EditorManager.getCurrentFullEditor();
+        editor.focus();
+        editor.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
     };
     
     function filterFileList(query) {
@@ -287,21 +292,18 @@ define(function (require, exports, module) {
 
     function _handleFilter(query) {
         var curDoc = DocumentManager.getCurrentDocument();
-        if (!curDoc) {
-            return [];
-        }
+        if (curDoc) {
+            var filename = _filenameFromPath(curDoc.file.fullPath, true);
+            var extension = filename.slice(filename.lastIndexOf(".") + 1, filename.length);
 
-        var filename = _filenameFromPath(curDoc.file.fullPath, true);
-        var extension = filename.slice(filename.lastIndexOf(".") + 1, filename.length);
-
-
-        var i;
-        for (i = 0; i < plugins.length; i++) {
-            var plugin = plugins[i];
-            var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
-            if (extensionMatch &&  plugin.match && plugin.match(query)) {
-                currentPlugin = plugin;
-                return plugin.filter(query);
+            var i;
+            for (i = 0; i < plugins.length; i++) {
+                var plugin = plugins[i];
+                var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
+                if (extensionMatch &&  plugin.match && plugin.match(query)) {
+                    currentPlugin = plugin;
+                    return plugin.filter(query);
+                }
             }
         }
 
@@ -373,9 +375,9 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
         origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            origCursorPos = EditorManager.getCurrentFullEditor().getCursorPos();
+            origSelection = EditorManager.getCurrentFullEditor().getSelection();
         } else {
-            origCursorPos = null;
+            origSelection = null;
         }
 
 
@@ -400,7 +402,8 @@ define(function (require, exports, module) {
         
                 that.searchField.bind({
                     itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
-                    itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
+                    /* Disabling open on rollover right now because it causes bugs
+                    itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },*/
                     keydown: function (e) { that._handleKeyDown(e); },
                     keyIn: function (e, query) { that._handleKeyIn(e, query); }
                 });
