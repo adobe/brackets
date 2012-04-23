@@ -94,7 +94,9 @@ define(function (require, exports, module) {
         }
         
         // redraw selection
-        $projectTreeList.trigger("selectionChanged");
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+        }
     };
 
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -192,6 +194,7 @@ define(function (require, exports, module) {
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
+        $projectTreeContainer.hide();
         _projectTree = $projectTreeContainer
             .jstree(
                 {
@@ -280,10 +283,11 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
-        
+
             // fire selection changed events for sidebarSelection
             $projectTreeList = $projectTreeContainer.find("ul");
             ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
+            $projectTreeContainer.show();
         });
 
         return result;
