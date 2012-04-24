@@ -520,7 +520,7 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
+                message += "<li><span class='dialog-filename'>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</span></li>";
             });
             message += "</ul>";
             
