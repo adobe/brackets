@@ -347,19 +347,18 @@ define(function (require, exports, module) {
     }
 
     function setCaretPosition(elem, caretPos) {
-        if(elem != null) {
-            if(elem.createTextRange) {
+        if (elem !== null) {
+            if (elem.createTextRange) {
                 var range = elem.createTextRange();
                 range.move('character', caretPos);
                 range.select();
-            }
-            else {
-                if(elem.selectionStart) {
+            } else {
+                if (elem.selectionStart) {
                     elem.focus();
                     elem.setSelectionRange(caretPos, caretPos);
-                }
-                else
+                } else {
                     elem.focus();
+                }
             }
         }
     }
@@ -377,11 +376,11 @@ define(function (require, exports, module) {
      * Close the dialog when the user clicks outside of it. Note, auto smart complete has a "lostFocus" event that is
      * supposed to capture this event, but it also gets triggered on keyUp which doesn't work for quick find.
      */
-    QuickNavigateDialog.prototype.handleDocumentClick = function(e) {
-        if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0 ) {
+    QuickNavigateDialog.prototype.handleDocumentClick = function (e) {
+        if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
         }
-    }
+    };
 
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
@@ -436,7 +435,7 @@ define(function (require, exports, module) {
                     /* Disabling open on rollover right now because it causes bugs
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },*/
                     keydown: function (e) { that._handleKeyDown(e); },
-                    keyIn: function (e, query) { that._handleKeyIn(e, query); },
+                    keyIn: function (e, query) { that._handleKeyIn(e, query); }
                     // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediatelly
                     // triggers lostFocus
                 });
@@ -448,7 +447,7 @@ define(function (require, exports, module) {
     function doSearch(prefix) {
         prefix = prefix || "";
         var currentEditor = EditorManager.getFocusedEditor();
-        var initialString = currentEditor && currentEditor.getSelectedText() || "";
+        var initialString = (currentEditor && currentEditor.getSelectedText()) || "";
         initialString = prefix + initialString;
 
         if (dialogOpen) {
