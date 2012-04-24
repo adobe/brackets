@@ -47,6 +47,8 @@ define(function (require, exports, module) {
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
+        "menu-navigate-goto-line": Commands.NAVIGATE_GOTO_LINE,
+        "menu-navigate-goto-definition": Commands.NAVIGATE_GOTO_DEFINITION,
         "menu-navigate-quick-edit": Commands.SHOW_INLINE_EDITOR,
         "menu-navigate-next-css-rule": Commands.NEXT_CSS_RULE,
         "menu-navigate-previous-css-rule": Commands.PREVIOUS_CSS_RULE,

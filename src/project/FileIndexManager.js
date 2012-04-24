@@ -22,6 +22,7 @@ define(function (require, exports, module) {
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PerfUtils           = require("utils/PerfUtils"),
         ProjectManager      = require("project/ProjectManager"),
+        DocumentManager		= require("document/DocumentManager"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings");
 
@@ -30,6 +31,9 @@ define(function (require, exports, module) {
      * and the value is a FileIndex. 
      */
     var _indexList = {};
+
+    // @type {Object.<key, fileInfo>}
+    var _fileInfoMap = {};
 
     /**
      * Tracks whether _indexList should be considered dirty and invalid. Calls that access
@@ -64,19 +68,27 @@ define(function (require, exports, module) {
     function FileInfo(entry) {
         this.name = entry.name;
         this.fullPath = entry.fullPath;
+
+        /** 
+         * Clients can cache private data pertaining to a file in the dataMap
+         * of a FileInfo. The dataMap is marked dirty when the file is modified
+         * @type {Object.<data, dirty>}
+         * @private
+         */
+        this._dataMap = {};
     }
 
 
     /**
-    * Adds a new index to _indexList and marks the list dirty 
-    *
-    * A future performance optimization is to only build the new index rather than 
-    * marking them all dirty
-    *
-    * @private
-    * @param {!string} indexName must be unque
-    * @param {!function({entry} filterFunction should return true to include an
-    *   entry in the index
+     * Adds a new index to _indexList and marks the list dirty 
+     *
+     * A future performance optimization is to only build the new index rather than 
+     * marking them all dirty
+     *
+     * @private
+     * @param {!string} indexName must be unque
+     * @param {!function({entry} filterFunction should return true to include an
+     *   entry in the index
 
     */
     function _addIndex(indexName, filterFunction) {
@@ -94,15 +106,13 @@ define(function (require, exports, module) {
 
 
     /**
-    * Checks the entry against the filterFunction for each index and adds
-    * a fileInfo to the index if the entry meets the criteria. FileInfo's are
-    * shared between indexes.
-    *
-    * @private
-    * @param {!entry} entry to be added to the indexes
+     * Checks the entry against the filterFunction for each index and adds
+     * a fileInfo to the index if the entry meets the criteria. FileInfo's are
+     * shared between indexes.
+     *
+     * @private
+     * @param {!entry} entry to be added to the indexes
     */
-    // future use when files are incrementally added
-    //
     function _addFileToIndexes(entry) {
 
         // skip invisible files on mac
@@ -110,8 +120,14 @@ define(function (require, exports, module) {
             return;
         }
 
+        // Paths should be unique
+        if (_fileInfoMap.hasOwnProperty(entry.fullPath)) {
+            throw new Error("Duplicate file added to file index");
+        }
+
         var fileInfo = new FileInfo(entry);
         //console.log(entry.name);
+        _fileInfoMap[entry.fullPath] = fileInfo;
   
         $.each(_indexList, function (indexName, index) {
             if (index.filterFunction(entry)) {
@@ -132,15 +148,25 @@ define(function (require, exports, module) {
     }
 
     /* Recursively visits all files that are descendent of dirEntry and adds
-    * files files to each index when the file matches the filter critera
-    * @private
-    * @param {!DirectoryEntry} dirEntry
-    * @returns {$.Promise}
-    */
+     * files files to each index when the file matches the filter critera
+     * @private
+     * @param {!DirectoryEntry} dirEntry
+     * @returns {$.Promise}
+     */
     function _scanDirectorySubTree(dirEntry) {
         if (!dirEntry) {
             throw new Error("Bad dirEntry passed to _scanDirectorySubTree");
         }
+
+        // Clears the fileInfo array for all the indexes in _indexList
+        $.each(_indexList, function (indexName, index) {
+            index.fileInfos = [];
+        });
+
+        // Remember files we saw in the last scan so the dataMap for each fileInfo can be
+        // retained between separate directory scans
+        var old_fileInfoMap = _fileInfoMap;
+        _fileInfoMap = {};
 
         // keep track of directories as they are asynchronously read. We know we are done
         // when dirInProgress becomes empty again.
@@ -175,8 +201,11 @@ define(function (require, exports, module) {
 
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
-            // skip invisible directories on mac
-            if (brackets.platform === "mac" && dirEntry.name.charAt(0) === ".") {
+            // skip invisible directories
+            // TODO: technically speaking on Mac and Unix systems use a beginning dot to denote
+            // a hidden directory. Windows uses a hidden attribute instead. We should get the hidden
+            // attribute of the directory rather than relying on the name here.
+            if (dirEntry.name[0] === ".") {
                 return;
             }
 
@@ -204,6 +233,12 @@ define(function (require, exports, module) {
                             _addFileToIndexes(entry);
                             state.fileCount++;
 
+                            // Retain dataMap between different calls of _scanDirectoryRecurse by copying over
+                            // the dataMap for files that still exist
+                            if (old_fileInfoMap.hasOwnProperty(entry.fullPath)) {
+                                _fileInfoMap[entry.fullPath]._dataMap = old_fileInfoMap[entry.fullPath]._dataMap;
+                            }
+
                         } else if (entry.isDirectory) {
                             _scanDirectoryRecurse(entry);
                         }
@@ -224,10 +259,7 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
     
-    
 
-
-    
     // debug 
     function _logFileList(list) {
         list.forEach(function (fileInfo) {
@@ -235,22 +267,12 @@ define(function (require, exports, module) {
         });
         console.log("length: " + list.length);
     }
-    
+
 
     /**
-    * Clears the fileInfo array for all the indexes in _indexList
-    * @private
-    */
-    function _clearIndexes() {
-        $.each(_indexList, function (indexName, index) {
-            index.fileInfos = [];
-        });
-    }
-
-    /**
-     * Markes all file indexes dirty
+     * Markes all file indexes dirty.
      */
-    function markDirty() {
+    function markIndexesDirty() {
         _indexListDirty = true;
     }
 
@@ -261,9 +283,9 @@ define(function (require, exports, module) {
     var _syncFileIndexReentracyGuard = false;
 
     /**
-    * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
-    * @return {$.Promise} resolved when index has been updated
-    */
+     * Clears and rebuilds all of the fileIndexes and sets _indexListDirty to false
+     * @return {$.Promise} resolved when index has been updated
+     */
     function syncFileIndex() {
 
         // TODO (issue 330) - allow multiple calls to syncFileIndex to be batched up so that this code isn't necessary
@@ -276,8 +298,6 @@ define(function (require, exports, module) {
         var rootDir = ProjectManager.getProjectRoot();
         if (_indexListDirty) {
             PerfUtils.markStart("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
-
-            _clearIndexes();
 
             return _scanDirectorySubTree(rootDir)
                 .done(function () {
@@ -295,10 +315,10 @@ define(function (require, exports, module) {
     }
 
     /**
-    * Returns the FileInfo array for the specified index
-    * @param {!string} indexname
-    * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
-    */
+     * Returns the FileInfo array for the specified index
+     * @param {!string} indexname
+     * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
+     */
     function getFileInfoList(indexName) {
         var result = new $.Deferred();
 
@@ -312,6 +332,39 @@ define(function (require, exports, module) {
             });
 
         return result.promise();
+    }
+
+    /**
+     * Retrieves the FileInfo record associated with the fullPath
+     * @param {String} fullPath
+     * @returns {FileInfo}
+     */
+    function getFileInfo(fullPath) {
+        return _fileInfoMap[fullPath];
+    }
+
+    /**
+     * Allows client to cache file specific information on a FileInfo. Data is
+     * marked dirty when the file is changed
+     * 
+     * @param {FileInfo} fileInfo
+     * @param {String} key
+     * @param {Object} data
+     */
+    function setFileInfoData(fileInfo, key, data) {
+        fileInfo._dataMap[key] = {data: data, dirty: false};
+    }
+
+    /**
+     * Retrieves the catched data for teh fileInfo based on the key. Clients
+     * should inspect the dirty attribute of the data object before using the data.
+     * 
+     * @param {FileInfo} fileInfo
+     * @param {String} key
+     * @returns {data:Object, dirty:boolean}
+     */
+    function getFileInfoData(fileInfo, key) {
+        return fileInfo._dataMap[key];
     }
     
     /**
@@ -334,7 +387,7 @@ define(function (require, exports, module) {
                 getFileInfoList(indexName)
                     .done(function (fileList) {
                         resultList = fileList.filter(function (fileInfo) {
-                            return filterFunction(fileInfo.name);
+                            return filterFunction(fileInfo);
                         });
 
                         result.resolve(resultList);
@@ -351,14 +404,14 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved with an Array of FileInfo's
      */
     function getFilenameMatches(indexName, filename) {
-        return getFilteredList(indexName, function (item) {
-            return item === filename;
+        return getFilteredList(indexName, function (fileInfo) {
+            return fileInfo.name === filename;
         });
     }
     
     /**
-    * Add the indexes
-    */
+     * Add the indexes
+     */
 
     _addIndex(
         "all",
@@ -376,12 +429,26 @@ define(function (require, exports, module) {
     );
     
     $(ProjectManager).on("projectRootChanged", function (event, projectRoot) {
-        markDirty();
+        markIndexesDirty();
+        _fileInfoMap = {};
     });
 
-    exports.markDirty = markDirty;
+    $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
+        var fileInfo = getFileInfo(doc.file.fullPath);
+        if (fileInfo) {
+            $.each(fileInfo._dataMap, function (key, data) {
+                data.dirty = true;
+            });
+        }
+    });
+
+
+    exports.markIndexesDirty = markIndexesDirty;
     exports.getFileInfoList = getFileInfoList;
     exports.getFilenameMatches = getFilenameMatches;
+    exports.getFileInfo = getFileInfo;
+    exports.getFileInfoData = getFileInfoData;
+    exports.setFileInfoData = setFileInfoData;
 
 
 });

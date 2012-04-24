@@ -180,6 +180,8 @@ define(function (require, exports, module) {
                     
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
+                    {"Ctrl-T": Commands.NAVIGATE_GOTO_DEFINITION},
+                    {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE},
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
                     {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
                     {"Alt-Down": Commands.NEXT_CSS_RULE},
@@ -209,7 +211,7 @@ define(function (require, exports, module) {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
-                FileIndexManager.markDirty();
+                FileIndexManager.markIndexesDirty();
             });
             
             $(window).contextmenu(function (e) {
