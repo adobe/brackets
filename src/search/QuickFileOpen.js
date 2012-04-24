@@ -262,7 +262,7 @@ define(function (require, exports, module) {
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
 
-        $(document).off("click", this.handleDocumentClick);
+        $(document).off("mousedown", this.handleDocumentClick);
     };
     
     function filterFileList(query) {
@@ -395,7 +395,7 @@ define(function (require, exports, module) {
         dialogOpen = true;
 
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
-        $(document).on("click", this.handleDocumentClick);
+        $(document).on("mousedown", this.handleDocumentClick);
 
 
         // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
