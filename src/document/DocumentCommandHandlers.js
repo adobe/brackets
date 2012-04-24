@@ -185,11 +185,7 @@ define(function (require, exports, module) {
         }
         
         return _doOpenWithOptionalPath(fullPath)
-                 .always( function() {
-                    if(commandData.focusEditor) {
-                        EditorManager.focusEditor();
-                    }
-                });
+            .always(EditorManager.focusEditor);
     }
 
     function handleFileAddToWorkingSet(commandData) {
