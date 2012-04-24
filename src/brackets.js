@@ -210,10 +210,6 @@ define(function (require, exports, module) {
                 FileIndexManager.markDirty();
             });
             
-            $(window).unload(function () {
-                CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
-            });
-            
             $(window).contextmenu(function (e) {
                 e.preventDefault();
             });
