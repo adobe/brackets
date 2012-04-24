@@ -110,6 +110,11 @@
         line-height: normal;
         font-weight: @font-weight-light;
 
+        // On Win, the size+weight combo used above does not look good for the bullet character
+        .dirty-dot {
+            font-weight: normal;
+        }
+        
         white-space: nowrap;
         overflow: hidden;
         -ms-text-overflow: ellipsis;

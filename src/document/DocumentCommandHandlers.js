@@ -40,11 +40,16 @@ define(function (require, exports, module) {
     /** @type {Number} Last known height of _titleContainerToolbar */
     var _lastToolbarHeight = null;
     
+    var DIRTY_INDICATOR = " <span class='dirty-dot'>\u2022</span>";
+    
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
-            _title.text(_currentTitlePath + (currentDoc.isDirty ? " \u2022" : ""));
+            _title.text(_currentTitlePath);
             _title.attr("title", currentDoc.file.fullPath);
+            if (currentDoc.isDirty) {
+                _title.append(DIRTY_INDICATOR);
+            }
         } else {
             _title.text("");
             _title.attr("title", "");
