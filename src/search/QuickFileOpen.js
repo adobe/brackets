@@ -49,8 +49,9 @@ define(function (require, exports, module) {
     var origDocPath;
 
     /**
-     * Rembers the current cursor location that was present when showDialog() was called
-     * The cursor position s restored if the user presses escape
+     * Rembers the selection in the document origDocPath that was present when showDialog() was called.
+     * Focusing on an item can cause the current and and/or selection to change, so this variable restores it.
+     * The cursor position is restored if the user presses escape.
      * @type ?{start:{line:number, ch:number}, end:{line:number, ch:number}}
      */
     var origSelection;
@@ -136,11 +137,20 @@ define(function (require, exports, module) {
      * Closes the search dialog and resolves the promise that showDialog returned
      */
     QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
+
+        // This is a work-around to default to the first item when a selection event occurs
+        // (usually from pressing the enter key) and no item is selected in the list.
+        // This is a work-around since  Smart auto complete doesn't select the first item
+        if (!selectedItem) {
+            selectedItem = $(".smart_autocomplete_container > li:first-child");
+        }
+
         if (currentPlugin) {
             currentPlugin.itemSelect(selectedItem);
         } else {
             var query = this.searchField.val();
             var fullPath = $(selectedItem).attr("data-fullpath");
+            fullPath = decodeURIComponent(fullPath);
 
             // extract line number
             var cursor;
@@ -171,6 +181,12 @@ define(function (require, exports, module) {
      * to the currentPlugin
      */
     QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
+        /*
+        Disable opening files on focus for now since this causes focus related bugs between 
+        the editor and the search field.
+
+        Also, see related code in _handleItemFocus
+
         if (currentPlugin) {
             currentPlugin.itemFocus(selectedItem);
         } else {
@@ -180,6 +196,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
         }
+        */
     };
 
 
@@ -198,34 +215,29 @@ define(function (require, exports, module) {
             currentPlugin = null;
         }
 
-        if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
-        }
+        // Disable focusing on key events for now due to editor focus issues. See _handleItemFocus
+        // if ($(".smart_autocomplete_highlight").length === 0) {
+        //     this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+        // }
     };
 
     /**
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
-        if (e.keyCode === 13 || e.keyCode === 27) {
+        // clear the query on ESC key and restore document and cursor poisition
+        if (e.keyCode === 27) {
             e.stopPropagation();
             e.preventDefault();
 
-            // clear the query on ESC key and restore document and cursor poisition
-            if (e.keyCode === 27) {
-
-                // restore document and cursor position
-                if (origDocPath) {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
-                        .done(function () {
+            if (origDocPath) {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
+                    .done(function () {
+                        if (origSelection) {
                             EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
-                        });
-                }
-            } else if (e.keyCode === 13) {
-                // Select current item on ENTER key
-                this._handleItemSelect();
+                        }
+                    });
             }
-            
             this._close();
         }
     };
@@ -234,7 +246,7 @@ define(function (require, exports, module) {
     /**
     * Closes the search dialog and resolves the promise that showDialog returned
     */
-    QuickNavigateDialog.prototype._close = function (value) {
+    QuickNavigateDialog.prototype._close = function () {
 
         if (!dialogOpen) {
             return;
@@ -243,14 +255,14 @@ define(function (require, exports, module) {
 
         JSLintUtils.setEnabled(true);
 
+        EditorManager.focusEditor();
+
         // for some odd reason I need to remove the dialog like this through the parent
         // If I do it more directly listeners are not removed by the smart auto complete plugin
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
 
-        var editor = EditorManager.getCurrentFullEditor();
-        editor.focus();
-        editor.setSelection(origSelection.start, origSelection.end);
+        $(document).off("click", this.handleDocumentClick);
     };
     
     function filterFileList(query) {
@@ -357,17 +369,34 @@ define(function (require, exports, module) {
         var $field = $('input#quickFileOpenSearch');
         if ($field) {
             $field.val(initialValue);
-            $field.focus();
             setCaretPosition($field.get(0), initialValue.length);
         }
     }
-        
+    
+    /**
+     * Close the dialog when the user clicks outside of it. Note, auto smart complete has a "lostFocus" event that is
+     * supposed to capture this event, but it also gets triggered on keyUp which doesn't work for quick find.
+     */
+    QuickNavigateDialog.prototype.handleDocumentClick = function(e) {
+        if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0 ) {
+            this._close();
+        }
+    }
+
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
     */
     QuickNavigateDialog.prototype.showDialog = function (initialValue) {
         var that = this;
+
+        if (dialogOpen) {
+            return;
+        }
         dialogOpen = true;
+
+        this.handleDocumentClick = this.handleDocumentClick.bind(this);
+        $(document).on("click", this.handleDocumentClick);
+
 
         // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
         JSLintUtils.setEnabled(false);
@@ -393,6 +422,8 @@ define(function (require, exports, module) {
                 that.searchField.smartAutoComplete({
                     source: files,
                     maxResults: 20,
+                    //minCharLimit: 0,
+                    autocompleteFocused: true,
                     forceSelect: false,
                     typeAhead: false,   // won't work right now because smart auto complete 
                                         // using internal raw results instead of filtered results for matching
@@ -405,7 +436,9 @@ define(function (require, exports, module) {
                     /* Disabling open on rollover right now because it causes bugs
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },*/
                     keydown: function (e) { that._handleKeyDown(e); },
-                    keyIn: function (e, query) { that._handleKeyIn(e, query); }
+                    keyIn: function (e, query) { that._handleKeyIn(e, query); },
+                    // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediatelly
+                    // triggers lostFocus
                 });
         
                 setSearchFieldValue(initialValue);
@@ -431,13 +464,19 @@ define(function (require, exports, module) {
     }
 
     function doGotoLine() {
-        doSearch(":");
+        // TODO: Brackets doesn't support disabled menu items right now, when it does goto line and
+        // goto definiton should be disabled when there is not a current document
+        if (DocumentManager.getCurrentDocument()) {
+            doSearch(":");
+        }
     }
 
 
     // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plugin
     function doDefinitionSearch() {
-        doSearch("@");
+        if (DocumentManager.getCurrentDocument()) {
+            doSearch("@");
+        }
     }
 
 
