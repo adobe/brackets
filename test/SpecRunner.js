@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require: false, define: false, $: false */
+/*global require: false, define: false, $: false, beforeEach: false, afterEach: false */
 
 // Set the baseUrl to brackets/src
 require.config({
@@ -11,9 +11,6 @@ define(function (require, exports, module) {
     
     // Utility dependency
     var SpecRunnerUtils = require("spec/SpecRunnerUtils.js");
-
-    // Unique key for unit testing
-    localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
 
     // Load test specs
     require("spec/LowLevelFileIO-test.js");
@@ -32,8 +29,13 @@ define(function (require, exports, module) {
     require("spec/LiveDevelopment-test.js");
     require("spec/ViewUtils-test.js");
     
-    // Clean up preferencesKey
-    $(window).unload(function () {
+    beforeEach(function () {
+        // Unique key for unit testing
+        localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+    });
+    
+    afterEach(function () {
+        // Clean up preferencesKey
         localStorage.removeItem("preferencesKey");
     });
 });

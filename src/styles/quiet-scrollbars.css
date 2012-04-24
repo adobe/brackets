@@ -1,0 +1,43 @@
+/* Temporary implementation of unobtrusive scrollbars. 
+   FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior. 
+   Longer-term, we'll need to implement custom scrollbars. */
+
+.quiet-scrollbars ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+.quiet-scrollbars ::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
+.quiet-scrollbars ::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0);
+}​​​
+
+/* This looks like a dupe, but without it the thumb doesn't fade in
+ * properly, probably due to flakiness in how these styles are handled
+ * in the build of WebKit that's in CEF.
+ */
+.quiet-scrollbars ::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
+/* The data URIs for the thumb were generated from the Fireworks files in 
+ * styles/vertical-thumb-fw-outline.png and styles/horiz-thumb-fw-outline.png.
+ */
+.quiet-scrollbars #open-files-container:hover::-webkit-scrollbar-thumb:vertical, 
+.quiet-scrollbars #project-files-container:hover::-webkit-scrollbar-thumb:vertical {
+    -webkit-border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAUCAYAAABf2RdVAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABV0RVh0Q3JlYXRpb24gVGltZQA0LzIzLzEyckCqugAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAACPSURBVCiR7ZIhDoNAEEXfkJCsxKBJimTPwA3mDHvqsXWrquqaIH5FKUk3XKAJT87789U3SQkYgZ5fNuABvDpgrLUOOefZzBYzW3LOc6112J/pgL6UMkZE+lZERCqlHO0m6WZmCydICuDencmWK/Tfoc3dn63YbxsAkpKkyd1XwD/eV0nT7jBJAO2Ej+kCvAFNxTqyZCNcEQAAAABJRU5ErkJggg==") 9 0;
+    border-color: transparent;
+    border-width: 9px 0;
+    min-height: 20px;
+}
+
+.quiet-scrollbars #open-files-container:hover::-webkit-scrollbar-thumb:horizontal, 
+.quiet-scrollbars #project-files-container:hover::-webkit-scrollbar-thumb:horizontal {
+    -webkit-border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABV0RVh0Q3JlYXRpb24gVGltZQA0LzIzLzEyckCqugAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAACLSURBVCiRrdIxCgIxEEbhfxYFOyuxCCLazjGmTu6YKyRV7hFLCzshlcXCQoqxMWCd5B3gqx6pKgAcAJwA7NFfBVB2P+zsnLvGGI89kois3vtijAGp6sU5d+vFWsy85ZyfpKp3IuIRrKWqj2UG9N8CoFprP6MQM28NLCGE1wgqImtK6Q2g0uxtGjitL9E6N1T9Wl8CAAAAAElFTkSuQmCC") 0 9;
+    border-color: transparent;
+    border-width: 0 9px;
+    min-width: 20px;
+}
