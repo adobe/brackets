@@ -46,6 +46,8 @@ define(function (require, exports, module) {
         QuickFileOpen           = require("search/QuickFileOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
+        Strings                 = require("strings"),
+        Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules the self-register and just need to get included in the main project
@@ -220,6 +222,15 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
+
+        // Let the user know Brackets doesn't run in a web browser yet
+        if (brackets.inBrowser) {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
+                Strings.ERROR_BRACKETS_IN_BROWSER
+            );
+        }
     
         initListeners();
         initProject();
