@@ -5,7 +5,6 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var ProjectManager,     // Load from brackets.test
-        PreferencesManager, // Load from brackets.test
         SpecRunnerUtils     = require("./SpecRunnerUtils.js");
 
     describe("ProjectManager", function () {
@@ -18,7 +17,6 @@ define(function (require, exports, module) {
                 // Load module instances from brackets.test
                 brackets = testWindow.brackets;
                 ProjectManager = testWindow.brackets.test.ProjectManager;
-                PreferencesManager = testWindow.brackets.test.PreferencesManager;
             });
         });
 

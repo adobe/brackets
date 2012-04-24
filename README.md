@@ -33,3 +33,18 @@ Known Issues
 * Loading index.html directly into Chrome from the local filesystem will not work
   (the LESS processing will fail) due to Chrome security restrictions. You can run 
   it within the shell app, or load it into a different browser, like Safari.
+
+How to file bugs
+================
+
+We track bugs at [github.com](https://github.com/adobe/brackets/issues). When filing a new bug, 
+please remember to include:
+
+* Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
+* platform/OS version
+* repro steps, actual and expected results
+* link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
+if that's convenient).
+
+For bugs that are really feature requests, go ahead and file them in the issue tracker; we'll convert
+them to user stories on our public backlog.

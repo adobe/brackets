@@ -12,22 +12,24 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
+    
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 
     // Private Properties
     var preferencesKey,
-        callbacks = {}, /* associative array with clientID keys */
         prefStorage,
         persistentStorage,
         doLoadPreferences   = false;
 
     /**
-     * Retrieves a copy of the client's preferences object.
+     * Retreive preferences data for the given clientID.
      *
-     * @param {string}  unique identifier clientID
-     * @return {object} preference
+     * @param {string} clientID Unique identifier
+     * @param {string} defaults Default preferences stored as JSON
+     * @return {PreferenceStorage} 
      */
-    function getPreferences(clientID) {
+    function getPreferenceStorage(clientID, defaults) {
         if ((clientID === undefined) || (clientID === null)) {
             throw new Error("Invalid clientID");
         }
@@ -35,89 +37,20 @@ define(function (require, exports, module) {
         var prefs = prefStorage[clientID];
 
         if (prefs === undefined) {
-            return undefined;
+            // create a new empty preferences object
+            prefs = (defaults && JSON.stringify(defaults)) ? defaults : {};
+            prefStorage[clientID] = prefs;
         }
 
-        // create a deep copy to return to the client
-        return JSON.parse(JSON.stringify(prefs));
-    }
-
-    /**
-     * Saves to persistent storage.
-     */
-    function saveToPersistentStorage() {
-        // save all preferences
-        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
-    }
-
-    /**
-     * Registers a save participant callback for a client. The callback is
-     * fired when Brackets quits (window.unload). When fired, callbacks may
-     * persist data (e.g. preferences or current state) as valid JSON values
-     * to the storage argument.
-     *
-     * @param {string}          unique identifier clientID for this client
-     * @param {function(...)}   callback function
-     * @param {object}          optional "this" object for the callback
-     * @param {object}          optional default preferences object for this client
-     */
-    function addPreferencesClient(clientID, callback, instance, defaults) {
-        if (typeof callback !== "function") {
-            throw new Error("Invalid arguments");
-        }
-
-        // attempt to load existing preferences
-        var clientPrefs = getPreferences(clientID);
-
-        // if clientPrefs is undefined, try defaults
-        if (clientPrefs === undefined) {
-            if (JSON.stringify(defaults)) {
-                // use defaults if it is a valid JSON object
-                clientPrefs = defaults;
-            } else {
-                // use empty defaults if JSON validation fails
-                clientPrefs = {};
-            }
-
-            // save defaults in-memory, storage
-            prefStorage[clientID] = clientPrefs;
-            saveToPersistentStorage();
-        }
-
-        var callbackData = { clientID: clientID,
-                             callback: callback,
-                             instance: instance };
-
-        // add to callbacks list
-        callbacks[clientID] = callbackData;
+        return new PreferenceStorage(clientID, prefs);
     }
 
     /**
      * Save all preference clients.
      */
     function savePreferences() {
-        var data,
-            storage;
-
-        // iterate over all preference clients
-        $.each(callbacks, function (index, value) {
-            data = callbacks[index];
-            storage = getPreferences(data.clientID);
-
-            // fire callback with thisArg and preference storage
-            try {
-                data.callback.call(data.instance, storage);
-            } catch (e) {
-                console.log("PreferenceManager.savePreferences(): Failed to save data for clientID " + data.clientID);
-            }
-
-            // only save preferences that can be serialized with JSON
-            if (JSON.stringify(storage)) {
-                prefStorage[data.clientID] = storage;
-            }
-        });
-
-        saveToPersistentStorage();
+        // save all preferences
+        persistentStorage.setItem(preferencesKey, JSON.stringify(prefStorage));
     }
 
     /**
@@ -125,7 +58,6 @@ define(function (require, exports, module) {
      * Reset preferences and callbacks
      */
     function _reset() {
-        callbacks = {};
         prefStorage = {};
 
         // Note that storage.clear() is not used. Production and unit test code
@@ -150,7 +82,8 @@ define(function (require, exports, module) {
         }
     }
 
-    // check localStorage for a preferencesKey
+    // Check localStorage for a preferencesKey. Production and unit test keys
+    // are used to keep preferences separate within the same storage implementation.
     preferencesKey = localStorage.getItem("preferencesKey");
 
     if (!preferencesKey) {
@@ -166,10 +99,9 @@ define(function (require, exports, module) {
     _initStorage(localStorage);
 
     // Public API
-    exports.getPreferences          = getPreferences;
-    exports.addPreferencesClient    = addPreferencesClient;
+    exports.getPreferenceStorage    = getPreferenceStorage;
     exports.savePreferences         = savePreferences;
 
-    // Internal Use Only
+    // Unit test use only
     exports._reset                  = _reset;
 });

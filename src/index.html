@@ -11,6 +11,11 @@
 
     <!-- CSS for CodeMirror search support, currently for debugging only -->
     <link rel="stylesheet" href="thirdparty/CodeMirror2/lib/util/dialog.css">
+
+    <!-- Temporary CSS for unobtrusive scrollbars. This can't live in LESS because it uses
+         nonstandard WebKit-specific syntax. -->
+    <link rel="stylesheet" href="styles/quiet-scrollbars.css">
+
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="styles/brackets.less">
     <script src="thirdparty/less-1.1.5.min.js"></script>

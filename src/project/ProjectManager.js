@@ -46,9 +46,22 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to the tree control UL element
+     * @type {DOMElement}
+     */
+    var $projectTreeList;
+    
+    /**
+     * @private
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+    
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = null;
 
     /**
      * @private
@@ -78,6 +91,11 @@ define(function (require, exports, module) {
             });
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
+        }
+        
+        // redraw selection
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
         }
     };
 
@@ -118,9 +136,11 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Preferences callback. Saves current project path.
+     * Save ProjectManager project path and tree state.
      */
-    function _savePreferences(storage) {
+    function _savePreferences() {
+        var storage = {};
+        
         // save the current project
         storage.projectPath = _projectRoot.fullPath;
 
@@ -157,6 +177,8 @@ define(function (require, exports, module) {
 
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
+        
+        _prefs.setAllValues(storage);
     }
 
     /**
@@ -172,6 +194,7 @@ define(function (require, exports, module) {
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
+        $projectTreeContainer.hide();
         _projectTree = $projectTreeContainer
             .jstree(
                 {
@@ -238,6 +261,7 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    _savePreferences();
                 }
             );
 
@@ -259,6 +283,11 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
+
+            // fire selection changed events for sidebarSelection
+            $projectTreeList = $projectTreeContainer.find("ul");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
+            $projectTreeContainer.show();
         });
 
         return result;
@@ -406,7 +435,7 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID),
+        var prefs = _prefs.getAllValues(),
             result = new $.Deferred(),
             resultRenderTree,
             isFirstProjectOpen = false;
@@ -708,7 +737,9 @@ define(function (require, exports, module) {
             projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
             projectTreeState: ""
         };
-        PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+        
+        // Init PreferenceStorage
+        _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());

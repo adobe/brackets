@@ -1,4 +1,4 @@
-/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns) 
+/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns)
  *
  * This file should contain all _reusable_ UI elements / LESS definitions
  * That is, things that will either a.) be used for more than one element or
@@ -26,7 +26,6 @@
 
     padding: 0;
     margin: 0;
-    border-right: 1px solid #4e5153;
 
     .project-panel-background;
     color: #bbb;
@@ -175,9 +174,12 @@
         li {
             a {
                 font-size: @menu-item-font-size;
-                line-height: 16px;
+                line-height: 18px;
                 
-                padding: 1px 10px 1px 6px; // slightly less padding on left to account for checkmark
+                // Slightly less padding on left to account for checkmark.
+                // More padding on top than bottom to center font within its bg highlight better.
+                padding: 2px 10px 0px 6px;
+                
                 color: @bc-black;
                 text-shadow: none;
                 white-space: nowrap;
@@ -232,18 +234,27 @@
 }
 
 .dialog-message {
-    font-size: 16px;
+    font-size: 17px;
+    line-height: 26px;
     margin-bottom: 20px;
     font-weight: @font-weight-light;
 }
 
+/* bootstrap's base color for generic li is gray */
+.dialog-message li {
+    line-height: 26px;
+    color: @grayDark;
+}
+
 .dialog-filename {
     font-weight: @font-weight-semibold;
+    white-space: nowrap;
 }
 
 .btn {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: @font-weight-semibold;
+    color: #454545;
 
     &:hover {
         background-position: 0 15px;
