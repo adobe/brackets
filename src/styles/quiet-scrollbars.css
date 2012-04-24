@@ -1,0 +1,40 @@
+/* Temporary implementation of unobtrusive scrollbars. 
+   FUTURE: These currently rely on nonstandard WebKit styles, and don't have all the right behavior. 
+   Longer-term, we'll need to implement custom scrollbars. */
+
+.quiet-scrollbars ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+.quiet-scrollbars ::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
+.quiet-scrollbars ::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0);
+}​​​
+
+/* This looks like a dupe, but without it the thumb doesn't fade in
+ * properly, probably due to flakiness in how these styles are handled
+ * in the build of WebKit that's in CEF.
+ */
+.quiet-scrollbars ::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
+.quiet-scrollbars #open-files-container:hover::-webkit-scrollbar-thumb:vertical, 
+.quiet-scrollbars #project-files-container:hover::-webkit-scrollbar-thumb:vertical {
+    -webkit-border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAUCAYAAABf2RdVAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABV0RVh0Q3JlYXRpb24gVGltZQA0LzIzLzEyckCqugAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABTSURBVCiR7dKhDYAwAETRBwkToJkAzf4DoJmguhMgimghTSFhgX51d/nyBkzYMMtE7Cmls3Qj1kpQ8lp1IxZvllb6pUtdylL42EMrHfJlb2LZHi6YiwwlYyba2QAAAABJRU5ErkJggg==") 9 0;
+    border-color: transparent;
+    border-width: 9px 0;
+    min-height: 20px;
+}
+
+.quiet-scrollbars #open-files-container:hover::-webkit-scrollbar-thumb:horizontal, 
+.quiet-scrollbars #project-files-container:hover::-webkit-scrollbar-thumb:horizontal {
+    -webkit-border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAJCAYAAAAywQxIAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABV0RVh0Q3JlYXRpb24gVGltZQA0LzIzLzEyckCqugAAABx0RVh0U29mdHdhcmUAQWRvYmUgRmlyZXdvcmtzIENTNXG14zYAAABTSURBVCiRtdChDYAwFEXR0xKCRFQzARuw/wAYJqjBdIaiSPC/3AFOXl7CjB2bWBVXwoESxN5aHohByQMxkNEGem3CjQVrEKs4U+89POvbLx8O7QG/QQr+fZYfWwAAAABJRU5ErkJggg==") 0 9;
+    border-color: transparent;
+    border-width: 0 9px;
+    min-width: 20px;
+}
