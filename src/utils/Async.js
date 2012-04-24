@@ -256,7 +256,35 @@ define(function (require, exports, module) {
         return wrapper.promise();
     }
     
-    
+    /**
+     * Reduce multiple calls to a function to a single call based on a timeout threshold.
+     * @param {!function} func The function to limit.
+     * @param {number} threshold The duration to wait before calling the input function.
+     * @param {boolean} execAsap When true, the function is called immediately and is not
+     *  called at the end of the threshold.
+     * @return {function} A function that wraps the input function.
+     */
+    function debounce(func, threshold, execAsap) {
+        var timeout;
+     
+        return function debounced() {
+            var obj = this, args = arguments;
+            function delayed() {
+                if (!execAsap) {
+                    func.apply(obj, args);
+                }
+                timeout = null;
+            }
+     
+            if (timeout) {
+                clearTimeout(timeout);
+            } else if (execAsap) {
+                func.apply(obj, args);
+            }
+     
+            timeout = setTimeout(delayed, threshold || 100);
+        };
+    }
 
     // Define public API
     exports.doInParallel   = doInParallel;
@@ -264,4 +292,5 @@ define(function (require, exports, module) {
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
+    exports.debounce       = debounce;
 });
