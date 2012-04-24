@@ -490,13 +490,15 @@ define(function (require, exports, module) {
             return null;
         }
         
-        // Only provide CSS editor if the selection is an insertion point
+        // Only provide CSS editor if the selection is within a single line
         var sel = hostEditor.getSelection(false);
-        if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
+        if (sel.start.line !== sel.end.line) {
             return null;
         }
         
-        var selectorName = _getSelectorName(hostEditor, pos);
+        // Always use the selection start for determining selector name. The pos
+        // parameter is usually the selection end.        
+        var selectorName = _getSelectorName(hostEditor, hostEditor.getSelection(false).start);
         if (selectorName === "") {
             return null;
         }
