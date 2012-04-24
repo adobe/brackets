@@ -582,15 +582,14 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Waits 500ms before saving the current cursor position.
+     * Save the current cursor position for this Editor's file.
      */
-    Editor.prototype._saveCursorPos = Async.debounce(function () {
+    Editor.prototype._saveCursorPos = function () {
         // Save the curosr position
         var cursors = _prefs.getValue("cursors");
-        console.log(this.document.file.fullPath);
         cursors[this.document.file.fullPath] = this.getCursorPos();
         _prefs.setValue("cursors", cursors);
-    }, 500);
+    };
     
     /**
      * Install singleton event handlers on the CodeMirror instance, translating them into multi-
@@ -598,6 +597,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype._installEditorListeners = function () {
         var self = this;
+        var _saveCursorPosDebounce = Async.debounce(this._saveCursorPos.bind(this), 500);
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
         // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
@@ -610,13 +610,11 @@ define(function (require, exports, module) {
             return false;   // false tells CodeMirror we didn't eat the event
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
-            self._saveCursorPos();
-            
+            _saveCursorPosDebounce(); // waits 500ms between events before saving
             $(self).triggerHandler("cursorActivity", [self]);
         });
         this._codeMirror.setOption("onBlur", function (instance) {
             self._saveCursorPos();
-            
             $(self).triggerHandler("blur", [self]);
         });
         this._codeMirror.setOption("onScroll", function (instance) {

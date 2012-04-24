@@ -654,6 +654,12 @@ define(function (require, exports, module) {
      * Preferences callback. Saves the document file paths for the working set.
      */
     function _savePreferences() {
+        var projectRoot = ProjectManager.getProjectRoot();
+        
+        if (!projectRoot) {
+            return;
+        }
+        
         // save the working set file paths
         var files       = [],
             isActive    = false,
@@ -670,7 +676,13 @@ define(function (require, exports, module) {
             });
         });
 
-        _prefs.setValue("files", files);
+        // save working set for the current project
+        var projects = _prefs.getValue("projects");
+        projects[projectRoot.fullPath] = {
+            files: files
+        };
+        
+        _prefs.setValue("projects", projects);
     }
 
     /**
@@ -678,15 +690,15 @@ define(function (require, exports, module) {
      * Initializes the working set.
      */
     function _init() {
-        var prefs = _prefs.getAllValues();
+        var projectRoot         = ProjectManager.getProjectRoot(),
+            filesToOpen         = [],
+            activeFile          = null,
+            prefs               = _prefs.getAllValues(),
+            currentProjectPrefs = prefs.projects[projectRoot.fullPath];
 
-        if (!prefs.files) {
+        if (!(currentProjectPrefs && currentProjectPrefs.files)) {
             return;
         }
-
-        var projectRoot = ProjectManager.getProjectRoot(),
-            filesToOpen = [],
-            activeFile;
 
         // in parallel, check if files exist
         // TODO: (issue #298) delay this check until it becomes the current document?
@@ -712,7 +724,7 @@ define(function (require, exports, module) {
             return oneFileResult;
         }
 
-        var result = Async.doInParallel(prefs.files, checkOneFile, false);
+        var result = Async.doInParallel(currentProjectPrefs.files, checkOneFile, false);
 
         result.done(function () {
             // Add all existing files to the working set
@@ -749,11 +761,22 @@ define(function (require, exports, module) {
     exports.notifyFileDeleted = notifyFileDeleted;
 
     // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    var defaults = {
+        projects: {
+            /*
+            [project_fullPath]: {
+                files: [
+                    { file: fullPath, active: true|false }
+                ]
+            }
+            */
+        }
+    };
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
     $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
 
     // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("initializeComplete", function (event, projectRoot) {
+    $(ProjectManager).on("initializeComplete projectRootChanged", function (event, projectRoot) {
         _init();
     });
 });
