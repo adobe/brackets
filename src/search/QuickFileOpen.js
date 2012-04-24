@@ -110,7 +110,7 @@ define(function (require, exports, module) {
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div align="center">' + template + '</div>';
+        this.dialog.innerHTML = '<div align="left">' + template + '</div>';
     };
 
     function _filenameFromPath(path, includeExtension) {
