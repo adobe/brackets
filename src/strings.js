@@ -57,6 +57,10 @@ define(function (require, exports, module) {
     exports.ERROR_CREATING_FILE_TITLE         = "Error creating file";
     exports.ERROR_CREATING_FILE               = "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}";
 
+    // Application error strings
+    exports.ERROR_BRACKETS_IN_BROWSER_TITLE   = "Oops! Brackets doesn't run in browsers yet.";
+    exports.ERROR_BRACKETS_IN_BROWSER         = "Brackets is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-app</b> repo to run Brackets.";
+
     // FileIndexManager error string
     exports.ERROR_MAX_FILES_TITLE             = "Error Indexing Files";
     exports.ERROR_MAX_FILES                   = "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.";
