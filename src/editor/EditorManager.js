@@ -210,9 +210,6 @@ define(function (require, exports, module) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
-        
-        ViewUtils.addScrollerShadow(container, editor);
-        
         editor.setVisible(false);
     }
     
@@ -363,12 +360,19 @@ define(function (require, exports, module) {
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
-        var doc = DocumentManager.getCurrentDocument();
+        var doc = DocumentManager.getCurrentDocument(),
+            container = _editorHolder.get(0);
+        
+        // Remove scrollerShadow from the current editor
+        if (_currentEditor) {
+            ViewUtils.removeScrollerShadow(container, _currentEditor);
+        }
         
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
             _showEditor(doc);
+            ViewUtils.addScrollerShadow(container, _currentEditor);
         } else {
             _showNoEditor();
         }

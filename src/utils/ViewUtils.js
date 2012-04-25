@@ -85,11 +85,8 @@ define(function (require, exports, module) {
      * @param {?boolean} showBottom optionally show the bottom shadow
      */
     function addScrollerShadow(displayElement, scrollElement, showBottom) {
-        var sharedDisplayElement    = true;
-
         if (!scrollElement) {
             scrollElement = displayElement;
-            sharedDisplayElement = false;
         }
         
         // update shadows when the scrolling element is scrolled
@@ -103,17 +100,33 @@ define(function (require, exports, module) {
             _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom);
         };
         
-        $scrollElement.on("scroll", doUpdate);
-
-        if (sharedDisplayElement) {
-            $scrollElement.on("blur", function () { $scrollElement.off("scroll", doUpdate); });
-            $scrollElement.on("focus", function () { $scrollElement.on("scroll", doUpdate); });
-        }
-
-        $displayElement.on("contentChanged", doUpdate);
+        $scrollElement.on("scroll.scrollerShadow", doUpdate);
+        $displayElement.on("contentChanged.scrollerShadow", doUpdate);
         
         // update immediately
         doUpdate();
+    }
+    
+    /**
+     * Remove scrollerShadow effect.
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
+     * @param {?Object} scrollElement the object that is scrolled
+     */
+    function removeScrollerShadow(displayElement, scrollElement) {
+        if (!scrollElement) {
+            scrollElement = displayElement;
+        }
+        
+        var $displayElement = $(displayElement),
+            $scrollElement = $(scrollElement);
+        
+        // remove scrollerShadow elements from DOM
+        $(displayElement).find(".scrollerShadow.top").remove();
+        $(displayElement).find(".scrollerShadow.bottom").remove();
+        
+        // remove event handlers
+        $scrollElement.off("scroll.scrollerShadow");
+        $displayElement.off("contentChanged.scrollerShadow");
     }
     
     /** 
@@ -238,5 +251,6 @@ define(function (require, exports, module) {
     
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.addScrollerShadow = addScrollerShadow;
+    exports.removeScrollerShadow = removeScrollerShadow;
     exports.sidebarList = sidebarList;
 });
