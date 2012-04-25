@@ -340,8 +340,6 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        ViewUtils.scrollerShadow($("#editorHolder"), this);
-        
         $(this)
             .on("keyEvent", _checkElectricChars)
             .on("change", this._handleEditorChange.bind(this));

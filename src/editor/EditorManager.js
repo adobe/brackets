@@ -27,6 +27,7 @@ define(function (require, exports, module) {
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
+        ViewUtils           = require("utils/ViewUtils"),
         Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
@@ -209,6 +210,9 @@ define(function (require, exports, module) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
+        
+        ViewUtils.scrollerShadow(container, editor);
+        
         editor.setVisible(false);
     }
     
