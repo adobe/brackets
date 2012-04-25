@@ -189,6 +189,10 @@ define(function (require, exports, module) {
             var $listItem = $listElement.find(selectedClassName).closest("li"),
                 isLeaf = $listItem.find("ul").length === 0;
             
+            // always hide selection visuals first to force layout (issue #719)
+            $selectionTriangle.hide();
+            $selectionMarker.hide();
+            
             if (($listItem.length === 1) && isLeaf) {
                 // list item position is relative to scroller
                 var selectionMarkerTop = $listItem.offset().top - $scrollerElement.offset().top + $scrollerElement.get(0).scrollTop;
@@ -217,10 +221,6 @@ define(function (require, exports, module) {
                 } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
                     scrollerElement.scrollTop = selectionMarkerTop;
                 }
-            } else {
-                // hide the selection marker when no selection is found
-                $selectionTriangle.hide();
-                $selectionMarker.hide();
             }
         };
         
