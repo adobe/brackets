@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         var updateSelectionTriangle = function () {
             var scrollerOffset = $scrollerElement.offset(),
                 scrollerTop = scrollerOffset.top,
-                scrollerBottom = scrollerTop + $scrollerElement.get(0).clientHeight,
+                scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
                 scrollerLeft = scrollerOffset.left,
                 triangleTop = $selectionMarker.offset().top,
                 triangleHeight = $selectionTriangle.outerHeight(),
