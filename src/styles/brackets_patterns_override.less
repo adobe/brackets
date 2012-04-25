@@ -126,7 +126,7 @@
         margin: @toolbar-top-gap-px 0 0 4px;
         
         .experimental-label {
-            color: #0071bc;
+            color: #a0a0a0;
             font-size: 15px;
             line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
             font-weight: normal;
@@ -269,10 +269,12 @@
     font-size: 17px;
     font-weight: @font-weight-semibold;
     color: #454545;
-
+    
+    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
+    // too so we don't see the color cross-fading during the gradient slide animation
+    background-color: #fff;
     &:hover {
         background-position: 0 15px;
-        background-color: #fff;
     }
 
     &.primary {
