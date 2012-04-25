@@ -95,7 +95,10 @@ define(function (require, exports, module) {
         
         // redraw selection
         if ($projectTreeList) {
-            $projectTreeList.trigger("selectionChanged");
+            $projectTreeList.triggerHandler("selectionChanged");
+            
+            // in-lieu of resize events, manually trigger contentChanged to update scroll shadows on jstree
+            _projectTree.triggerHandler("contentChanged");
         }
     };
 
@@ -261,7 +264,10 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    
+                    // update when tree display state changes
                     _savePreferences();
+                    _projectTree.triggerHandler("contentChanged");
                 }
             );
 
@@ -273,7 +279,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.installScrollShadow(_projectTree[0]);
+            ViewUtils.scrollerShadow(_projectTree.get(0));
             
             _projectTree
                 .unbind("dblclick.jstree")

@@ -57,7 +57,7 @@ a, img {
 
     .sidebar {
         .vbox;
-        width: 200px;
+        width: @sidebar-width;
     }
 
     .content {
@@ -256,6 +256,7 @@ a, img {
 
 .sidebarSelectionTriangle {
     position: fixed;
+    z-index: 20; /* scrollerShadow appears above this triangle */
     
     margin-top: -@triangle-size;
     
@@ -283,15 +284,31 @@ a, img {
     }
 }
 
+.sidebar .scrollerShadow {
+    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+}
+
+#editorHolder .scrollerShadow {
+    width: 100%;
+}
+
 .scrollerShadow {
-    /* top shadow */
-    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
-    
-    /* hide the shadow on init */
-    background-position: 0px -9999px;
-    
-    background-size: 100% 4px;
+    background-size: 100% 5px;
     background-repeat: no-repeat;
+    height: 5px;
+    position: fixed;
+    z-index: 21;
+    
+    &.top {
+        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        background-position: 0px -5px;
+    }
+    
+    &.bottom {
+        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        background-position: 0px 5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
+    }
 }
 
 @spriteSize18: 18px;

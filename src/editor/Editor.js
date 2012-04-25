@@ -340,7 +340,7 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        ViewUtils.installScrollShadow($("#editor-scroll-shadow"), this);
+        ViewUtils.scrollerShadow($("#editorHolder"), this);
         
         $(this)
             .on("keyEvent", _checkElectricChars)
@@ -376,7 +376,7 @@ define(function (require, exports, module) {
             document._makeEditable(this);
         }
         
-        // Add a "scrollTop" property to this object for the scroll shadow code to use
+        // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
             get: function () {
                 return this._codeMirror.scrollPos().y;

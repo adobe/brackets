@@ -28,7 +28,18 @@ define(function (require, exports, module) {
     var _FILE_KEY = "file",
         $openFilesContainer = $("#open-files-container"),
         $openFilesList = $openFilesContainer.find("ul");
+    
+    /**
+     * @private
+     */
+    function _updateScrollShadow() {
+        // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
+        $openFilesContainer.triggerHandler("contentChanged");
+    }
 
+    /**
+     * @private
+     */
     function _hideShowOpenFileHeader() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
@@ -37,6 +48,9 @@ define(function (require, exports, module) {
         }
         
         ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);
+        
+        // redraw shadows
+        _updateScrollShadow();
     }
     
     /** 
@@ -251,12 +265,15 @@ define(function (require, exports, module) {
         _handleDocumentSelectionChange();
         
         // redraw selection
-        $openFilesList.trigger("selectionChanged");
+        $openFilesList.triggerHandler("selectionChanged");
+        
+        // redraw shadows
+        _updateScrollShadow();
     });
 
     _hideShowOpenFileHeader();
 
     // Show scroller shadows when open-files-container scrolls
-    ViewUtils.installScrollShadow($openFilesContainer[0]);
+    ViewUtils.scrollerShadow($openFilesContainer[0], null, true);
     ViewUtils.sidebarList($openFilesContainer);
 });
