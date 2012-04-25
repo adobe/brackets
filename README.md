@@ -33,7 +33,6 @@ application in a thin native shell, so that it can access your local files.
 
 You can download the latest builds from https://github.com/adobe/brackets-app/downloads
 **TBD: Is that right?** and run Brackets from the bin/win or bin/mac folder.
-
 (If you just pulled the http://github.com/adobe/brackets repo, you actually 
 need to grab the http://github.com/adobe/brackets-app repo, which includes 
 the brackets repo as a submodule, and run it from there.)
