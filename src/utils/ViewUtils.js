@@ -117,9 +117,10 @@ define(function (require, exports, module) {
         
         var updateSelectionMarker = function () {
             // find the selected list item
-            var $listItem = $listElement.find(selectedClassName).closest("li");
+            var $listItem = $listElement.find(selectedClassName).closest("li"),
+                isLeaf = $listItem.find("ul").length === 0;
             
-            if ($listItem.length === 1) {
+            if (($listItem.length === 1) && isLeaf) {
                 // list item position is relative to scroller
                 var selectionMarkerTop = $listItem.offset().top - $scrollerElement.offset().top + $scrollerElement.get(0).scrollTop;
                     

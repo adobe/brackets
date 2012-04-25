@@ -73,6 +73,16 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /**
+     * @private
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+        }
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
@@ -93,10 +103,7 @@ define(function (require, exports, module) {
             _projectTree.jstree("deselect_all");
         }
         
-        // redraw selection
-        if ($projectTreeList) {
-            $projectTreeList.trigger("selectionChanged");
-        }
+        _fireSelectionChanged();
     };
 
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -261,6 +268,7 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    _fireSelectionChanged();
                     _savePreferences();
                 }
             );

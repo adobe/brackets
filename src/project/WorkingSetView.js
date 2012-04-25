@@ -28,8 +28,21 @@ define(function (require, exports, module) {
     var _FILE_KEY = "file",
         $openFilesContainer = $("#open-files-container"),
         $openFilesList = $openFilesContainer.find("ul");
+    
+    /**
+     * @private
+     * Redraw selection when list size changes or DocumentManager currentDocument changes.
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        $openFilesList.trigger("selectionChanged");
+    }
 
-    function _hideShowOpenFileHeader() {
+    /**
+     * @private
+     * Shows/Hides open files list based on working set content.
+     */
+    function _updateOpenFilesContainer() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
         } else {
@@ -37,6 +50,7 @@ define(function (require, exports, module) {
         }
         
         ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);
+        _fireSelectionChanged();
     }
     
     /** 
@@ -142,7 +156,7 @@ define(function (require, exports, module) {
             _createNewListItem(file);
         });
 
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
     
     /** 
@@ -160,6 +174,8 @@ define(function (require, exports, module) {
         var items = $openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
+        
+        _fireSelectionChanged();
     }
 
     /** 
@@ -167,7 +183,7 @@ define(function (require, exports, module) {
      */
     function _handleFileAdded(file) {
         _createNewListItem(file);
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
     
     /** 
@@ -213,7 +229,7 @@ define(function (require, exports, module) {
             listItem.remove();
         }
 
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
 
     /** 
@@ -249,12 +265,9 @@ define(function (require, exports, module) {
 
     $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
         _handleDocumentSelectionChange();
-        
-        // redraw selection
-        $openFilesList.trigger("selectionChanged");
     });
 
-    _hideShowOpenFileHeader();
+    _updateOpenFilesContainer();
 
     // Show scroller shadows when open-files-container scrolls
     ViewUtils.installScrollShadow($openFilesContainer[0]);
