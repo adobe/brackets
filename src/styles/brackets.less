@@ -57,7 +57,7 @@ a, img {
 
     .sidebar {
         .vbox;
-        width: 200px;
+        width: @sidebar-width;
     }
 
     .content {
@@ -91,14 +91,6 @@ a, img {
             text-shadow: 0 1px @bc-black;
             opacity: 0.30;
         }
-    }
-    
-    /* Scroll shadow */
-    #editor-scroll-shadow {
-        position: fixed;
-        height: 4px;
-        width: 100%;
-        z-index: 12;
     }
 }
     
@@ -297,15 +289,31 @@ a, img {
     }
 }
 
+.sidebar .scrollerShadow {
+    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+}
+
+#editorHolder .scrollerShadow {
+    width: 100%;
+}
+
 .scrollerShadow {
-    /* top shadow */
-    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
-    
-    /* hide the shadow on init */
-    background-position: 0px -9999px;
-    
-    background-size: 100% 4px;
+    background-size: 100% 5px;
     background-repeat: no-repeat;
+    height: 5px;
+    position: fixed;
+    z-index: 21;
+    
+    &.top {
+        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        background-position: 0 -5px;
+    }
+    
+    &.bottom {
+        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        background-position: 0 5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
+    }
 }
 
 @spriteSize18: 18px;
