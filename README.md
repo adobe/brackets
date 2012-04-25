@@ -45,6 +45,8 @@ Most of Brackets should be pretty self-explanatory, but for information on how
 to use some of the new features we're adding like Quick Edit and Live
 Development, please read
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets).
+Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
+for a list of new features and known issues in each build.
 
 I found a bug/missing feature!
 ------------------------------
