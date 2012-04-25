@@ -171,11 +171,10 @@ define(function (require, exports, module) {
                 triangleTop = $selectionMarker.offset().top,
                 triangleHeight = $selectionTriangle.outerHeight(),
                 triangleClipOffsetYBy = Math.floor(($selectionMarker.height() - triangleHeight) / 2),
-                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy,
-                rightOffset = 0;//$scrollerElement.outerWidth() - $scrollerElement.get(0).clientWidth;
+                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
             
             $selectionTriangle.css("top", triangleTop);
-            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth() - rightOffset);
+            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             
             if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
                 $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
