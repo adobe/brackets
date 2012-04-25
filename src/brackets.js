@@ -262,6 +262,21 @@ define(function (require, exports, module) {
             "extensions/user"
         );
         
+        // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
+        // use native scroll bars when the mouse is not plugged in or when
+        // using the "Always" scroll bar setting. 
+        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
+        if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
+            // test a scrolling div for scrollbars
+            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(document.body);
+            
+            if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
+                $(".sidebar").removeClass("quiet-scrollbars");
+            }
+            
+            $testDiv.remove();
+        }
+        
         PerfUtils.addMeasurement("Application Startup");
     });
     
