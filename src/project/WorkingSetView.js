@@ -274,6 +274,6 @@ define(function (require, exports, module) {
     _hideShowOpenFileHeader();
 
     // Show scroller shadows when open-files-container scrolls
-    ViewUtils.scrollerShadow($openFilesContainer[0], null, true);
+    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
     ViewUtils.sidebarList($openFilesContainer);
 });

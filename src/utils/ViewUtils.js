@@ -78,10 +78,13 @@ define(function (require, exports, module) {
 
     /** 
      * Installs event handlers for updatng shadow background elements to indicate vertical scrolling.
-     * @param {!DOMElement} displayElement the DOMElement that displays the shadow
-     * @param {?Object} scrollElement the object that is scrolled. If null, the displayElement is used.
+     * @param {!DOMElement} displayElement the DOMElement that displays the shadow. Must fire
+     *  "contentChanged" events when the element is resized or repositioned.
+     * @param {?Object} scrollElement the object that is scrolled. Must fire "scroll" events
+     *  when the element is scrolled. If null, the displayElement is used.
+     * @param {?boolean} showBottom optionally show the bottom shadow
      */
-    function scrollerShadow(displayElement, scrollElement, showBottom) {
+    function addScrollerShadow(displayElement, scrollElement, showBottom) {
         var sharedDisplayElement    = true;
 
         if (!scrollElement) {
@@ -156,11 +159,10 @@ define(function (require, exports, module) {
                 triangleHeight = $selectionTriangle.outerHeight(),
                 triangleOffsetYBy = $selectionMarker.height() / 2,
                 triangleClipOffsetYBy = Math.floor(($selectionMarker.height() - triangleHeight) / 2),
-                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy,
-                rightOffset = $scrollerElement.outerWidth() - $scrollerElement.get(0).clientWidth;
+                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
             
             $selectionTriangle.css("top", triangleTop + triangleOffsetYBy);
-            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth() - rightOffset);
+            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             
             if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
                 $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
@@ -235,6 +237,6 @@ define(function (require, exports, module) {
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
     
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
-    exports.scrollerShadow = scrollerShadow;
+    exports.addScrollerShadow = addScrollerShadow;
     exports.sidebarList = sidebarList;
 });

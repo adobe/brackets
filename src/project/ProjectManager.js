@@ -97,7 +97,10 @@ define(function (require, exports, module) {
         if ($projectTreeList) {
             $projectTreeList.triggerHandler("selectionChanged");
             
-            // in-lieu of resize events, manually trigger contentChanged to update scroll shadows on jstree
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
             _projectTree.triggerHandler("contentChanged");
         }
     };
@@ -279,7 +282,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.scrollerShadow(_projectTree.get(0));
+            ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
                 .unbind("dblclick.jstree")

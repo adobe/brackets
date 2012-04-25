@@ -92,14 +92,6 @@ a, img {
             opacity: 0.30;
         }
     }
-    
-    /* Scroll shadow */
-    #editor-scroll-shadow {
-        position: fixed;
-        height: 4px;
-        width: 100%;
-        z-index: 12;
-    }
 }
     
 #jslint-results, #search-results {
@@ -301,12 +293,12 @@ a, img {
     
     &.top {
         #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
-        background-position: 0px -5px;
+        background-position: 0 -5px;
     }
     
     &.bottom {
         #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
-        background-position: 0px 5px;
+        background-position: 0 5px;
         background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
     }
 }

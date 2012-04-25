@@ -211,7 +211,7 @@ define(function (require, exports, module) {
         var container = _editorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
         
-        ViewUtils.scrollerShadow(container, editor);
+        ViewUtils.addScrollerShadow(container, editor);
         
         editor.setVisible(false);
     }
