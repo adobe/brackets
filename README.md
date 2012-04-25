@@ -51,7 +51,7 @@ I found a bug/missing feature!
 ------------------------------
 
 We're tracking bugs in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
-Whenfiling a new bug, please remember to include:
+When filing a new bug, please remember to include:
 
 * Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
 * platform/OS version
