@@ -73,6 +73,22 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /**
+     * @private
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+            
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
+            _projectTree.triggerHandler("contentChanged");
+        }
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
@@ -93,16 +109,7 @@ define(function (require, exports, module) {
             _projectTree.jstree("deselect_all");
         }
         
-        // redraw selection
-        if ($projectTreeList) {
-            $projectTreeList.triggerHandler("selectionChanged");
-            
-            // in-lieu of resize events, manually trigger contentChanged for every
-            // FileViewController focus change. This event triggers scroll shadows
-            // on the jstree to update. documentSelectionFocusChange fires when
-            // a new file is added and removed (causing a new selection) from the working set
-            _projectTree.triggerHandler("contentChanged");
-        }
+        _fireSelectionChanged();
     };
 
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -269,8 +276,8 @@ define(function (require, exports, module) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
                     
                     // update when tree display state changes
+                    _fireSelectionChanged();
                     _savePreferences();
-                    _projectTree.triggerHandler("contentChanged");
                 }
             );
 
