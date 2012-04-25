@@ -10,8 +10,7 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var FileIndexManager    = require("project/FileIndexManager"),
-        EditorManager       = require("editor/EditorManager"),
+    var EditorManager       = require("editor/EditorManager"),
         DocumentManager     = require("document/DocumentManager");
 
 
@@ -34,30 +33,29 @@ define(function (require, exports, module) {
 
     /**
      * Contains a list of information about ID's for a single document. This array is populated
-     * by createCachedIDList()
-     * @type {Array.<FileLocation>}
+     * by createIDList()
+     * @type {?Array.<FileLocation>}
      */
-    var idList = [];
+    var idList = null;
 
-
+    /** clears idList */
+    function done() {
+        idList = null;
+    }
 
     // create function list and caches it in FileIndexMangage
-    function createCachedIDList() {
+    function createIDList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
 
-        var fileInfo = FileIndexManager.getFileInfo(doc.file.fullPath);
-        var data = FileIndexManager.getFileInfoData(fileInfo, "HTMLIDList");
-        if (fileInfo &&  data && !data.dirty && data.data !== null) {
-            // cached function list data is present and clean so use it
-            idList = data.data;
-        } else {
+        if (!idList) {
+            idList = [];
             var docText = doc.getText();
             var lines = docText.split("\n");
 
-            var regex = new RegExp(/id\s?=\s?"(.*?)"/gi);
+            var regex = new RegExp(/\sid\s?=\s?"(.*?)"/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
@@ -70,12 +68,14 @@ define(function (require, exports, module) {
                     idList.push(new FileLocation(null, i, chFrom, chTo, id));
                 }
             }
-
-            FileIndexManager.setFileInfoData(fileInfo, "HTMLIDList", idList);
         }
     }
 
     function getLocationFromID(id) {
+        if (!idList) {
+            return null;
+        }
+
         var i, result;
         for (i = 0; i < idList.length; i++) {
             var fileLocation = idList[i];
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
      * @returns {Array.<string>} sorted and filtered results that match the query
      */
     function filter(query) {
-        createCachedIDList();
+        createIDList();
 
         query = query.slice(query.indexOf("@") + 1, query.length);
         var filteredList = $.map(idList, function (itemInfo) {
@@ -146,6 +146,7 @@ define(function (require, exports, module) {
     function getPlugin() {
         var jsFuncProvider = {  name: "html ids",
                                 fileTypes: ["html"],
+                                done: done,
                                 filter: filter,
                                 match: match,
                                 itemFocus: itemFocus,

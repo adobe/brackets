@@ -62,16 +62,18 @@ define(function (require, exports, module) {
      * Defines API for new QuickOpen plguins
      * @param {string} plugin name
      * @param {Array.<string>} filetypes array. Example: ["js", "css", "txt"]
+     * @param {Function} called when quick open is complete. Plugin should clear it's internal state
      * @param {Function} filter takes a query string and returns an array of strings that match the query
      * @param {?Functon} match takes a query string and returns true if this plugin wants to provide results for this query
      * @param {Functon} itemFocus performs an action when a result has focus
      * @param {Functon} itemSelect performs an action when a result is choosen
      * @param {?Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search resuklts
      */
-    function QuickOpenPlugin(name, fileTypes, filter, match, itemFocus, itemSelect, resultsFormatter) {
+    function QuickOpenPlugin(name, fileTypes, done, filter, match, itemFocus, itemSelect, resultsFormatter) {
         
         this.name = name;
         this.fileTypes = fileTypes; // empty array indicates all
+        this.done = done;
         this.filter = filter;
         this.match = match;
         this.itemFocus = itemFocus;
@@ -87,6 +89,7 @@ define(function (require, exports, module) {
         plugins.push(new QuickOpenPlugin(
             plugin.name,
             plugin.fileTypes,
+            plugin.done,
             plugin.filter,
             plugin.match,
             plugin.itemFocus,
@@ -110,7 +113,7 @@ define(function (require, exports, module) {
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div align="left">' + template + '</div>';
+        this.dialog.innerHTML = '<div align="center">' + template + '</div>';
     };
 
     function _filenameFromPath(path, includeExtension) {
@@ -142,35 +145,38 @@ define(function (require, exports, module) {
         // (usually from pressing the enter key) and no item is selected in the list.
         // This is a work-around since  Smart auto complete doesn't select the first item
         if (!selectedItem) {
-            selectedItem = $(".smart_autocomplete_container > li:first-child");
+            selectedItem = $(".smart_autocomplete_container > li:first-child").get(0);
         }
 
-        if (currentPlugin) {
-            currentPlugin.itemSelect(selectedItem);
-        } else {
-            var query = this.searchField.val();
-            var fullPath = $(selectedItem).attr("data-fullpath");
-            fullPath = decodeURIComponent(fullPath);
+        if (selectedItem) {
+            if (currentPlugin) {
+                currentPlugin.itemSelect(selectedItem);
+            } else {
+                var query = this.searchField.val();
+                var fullPath = $(selectedItem).attr("data-fullpath");
+                fullPath = decodeURIComponent(fullPath);
 
-            // extract line number
-            var cursor;
-            var gotoLine = extractLineNumber(query);
-            if (gotoLine) {
-                cursor = {line: gotoLine, ch: 0};
-            }
+                // extract line number
+                var cursor;
+                var gotoLine = extractLineNumber(query);
+                if (gotoLine) {
+                    cursor = {line: gotoLine, ch: 0};
+                }
 
-            // Do navigation
-            if (fullPath) {
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
-                    .done(function () {
-                        if (gotoLine) {
-                            EditorManager.getCurrentFullEditor().setCursorPos(cursor);
-                        }
-                    });
-            } else if (gotoLine) {
-                EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                // Do navigation
+                if (fullPath) {
+                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                        .done(function () {
+                            if (gotoLine) {
+                                EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                            }
+                        });
+                } else if (gotoLine) {
+                    EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                }
             }
         }
+
 
         this._close();
         EditorManager.focusEditor();
@@ -181,15 +187,15 @@ define(function (require, exports, module) {
      * to the currentPlugin
      */
     QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
-        /*
-        Disable opening files on focus for now since this causes focus related bugs between 
-        the editor and the search field.
-
-        Also, see related code in _handleItemFocus
-
         if (currentPlugin) {
             currentPlugin.itemFocus(selectedItem);
-        } else {
+        } 
+        /*
+        else {
+            Disable opening files on focus for now since this causes focus related bugs between 
+            the editor and the search field. 
+            Also, see related code in _handleItemFocus
+
             var fullPath = $(selectedItem).attr("data-fullpath");
             if (fullPath) {
                 fullPath = decodeURIComponent(fullPath);
@@ -197,6 +203,7 @@ define(function (require, exports, module) {
             }
         }
         */
+        
     };
 
 
@@ -215,10 +222,9 @@ define(function (require, exports, module) {
             currentPlugin = null;
         }
 
-        // Disable focusing on key events for now due to editor focus issues. See _handleItemFocus
-        // if ($(".smart_autocomplete_highlight").length === 0) {
-        //     this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
-        // }
+        if ($(".smart_autocomplete_highlight").length === 0) {
+            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+        }
     };
 
     /**
@@ -226,19 +232,29 @@ define(function (require, exports, module) {
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
         // clear the query on ESC key and restore document and cursor poisition
-        if (e.keyCode === 27) {
+        if (event.keyCode === 13 || e.keyCode === 27 ) { // enter or esc key
             e.stopPropagation();
             e.preventDefault();
 
-            if (origDocPath) {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
-                    .done(function () {
-                        if (origSelection) {
-                            EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
-                        }
-                    });
+            if (e.keyCode === 27) {
+
+                // restore previously view doc if user navigated away from it
+                if (origDocPath) {
+                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
+                        .done(function () {
+                            if (origSelection) {
+                                EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);
+                            }
+                        });
+                }
+
+                this._close();
             }
-            this._close();
+
+            if (e.keyCode === 27) {
+                this._handleItemSelect();
+            }
+            
         }
     };
 
@@ -252,6 +268,11 @@ define(function (require, exports, module) {
             return;
         }
         dialogOpen = false;
+
+        for (i = 0; i < plugins.length; i++) {
+            var plugin = plugins[i];
+            plugin.done();
+        }
 
         JSLintUtils.setEnabled(true);
 
@@ -397,6 +418,7 @@ define(function (require, exports, module) {
         $(document).on("mousedown", this.handleDocumentClick);
 
 
+
         // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
         JSLintUtils.setEnabled(false);
 
@@ -421,7 +443,7 @@ define(function (require, exports, module) {
                 that.searchField.smartAutoComplete({
                     source: files,
                     maxResults: 20,
-                    //minCharLimit: 0,
+                    minCharLimit: 0,
                     autocompleteFocused: true,
                     forceSelect: false,
                     typeAhead: false,   // won't work right now because smart auto complete 
@@ -432,8 +454,7 @@ define(function (require, exports, module) {
         
                 that.searchField.bind({
                     itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
-                    /* Disabling open on rollover right now because it causes bugs
-                    itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },*/
+                    itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
                     keydown: function (e) { that._handleKeyDown(e); },
                     keyIn: function (e, query) { that._handleKeyIn(e, query); }
                     // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediatelly
@@ -444,10 +465,13 @@ define(function (require, exports, module) {
             });
     };
 
-    function doSearch(prefix) {
-        prefix = prefix || "";
+    function getCurrentEditorSelectedText() {
         var currentEditor = EditorManager.getFocusedEditor();
-        var initialString = (currentEditor && currentEditor.getSelectedText()) || "";
+        return (currentEditor && currentEditor.getSelectedText()) || "";
+    }
+
+    function doSearch(prefix, initialString) {
+        prefix = prefix || "";
         initialString = prefix + initialString;
 
         if (dialogOpen) {
@@ -459,14 +483,14 @@ define(function (require, exports, module) {
     }
 
     function doFileSearch() {
-        doSearch();
+        doSearch("", getCurrentEditorSelectedText());
     }
 
     function doGotoLine() {
         // TODO: Brackets doesn't support disabled menu items right now, when it does goto line and
         // goto definiton should be disabled when there is not a current document
         if (DocumentManager.getCurrentDocument()) {
-            doSearch(":");
+            doSearch(":", "");
         }
     }
 
@@ -474,7 +498,7 @@ define(function (require, exports, module) {
     // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plugin
     function doDefinitionSearch() {
         if (DocumentManager.getCurrentDocument()) {
-            doSearch("@");
+            doSearch("@", getCurrentEditorSelectedText());
         }
     }
 

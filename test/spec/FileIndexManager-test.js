@@ -170,7 +170,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // mark FileIndexManager dirty after new file was created
-                FileIndexManager.markIndexesDirty();
+                FileIndexManager.markDirty();
             });
             
             // verify 9 files
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
             
             runs(function () {
                 // mark FileIndexManager dirty after new file was deleted
-                FileIndexManager.markIndexesDirty();
+                FileIndexManager.markDirty();
             });
             
             // verify that we're back to 8 files

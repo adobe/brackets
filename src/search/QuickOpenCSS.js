@@ -10,41 +10,42 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var FileIndexManager    = require("project/FileIndexManager"),
-        EditorManager       = require("editor/EditorManager"),
+    var EditorManager       = require("editor/EditorManager"),
         CSSUtils            = require("language/CSSUtils"),
         DocumentManager     = require("document/DocumentManager");
 
 
     /**
      * Contains a list of information about selectors for a single document. This array is populated
-     * by createCachedSelectorList()
-     * @type {Array.<FileLocation>}
+     * by createSelectorList()
+     * @type {?Array.<FileLocation>}
      */
-    var selectorList = [];
+    var selectorList = null;
 
+    /** clears selectorList */
+    function done() {
+        selectorList = null;
+    }
 
-
-    // create function list and caches it in FileIndexMangage
-    function createCachedSelectorList() {
+    // create function list and caches it in FileIndexMangager
+    function createSelectorList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
 
-        var fileInfo = FileIndexManager.getFileInfo(doc.file.fullPath);
-        var data = FileIndexManager.getFileInfoData(fileInfo, "CSSSelectorsList");
-        if (fileInfo &&  data && !data.dirty && data.data !== null) {
-            // cached function list data is present and clean so use it
-            selectorList = data.data;
-        } else {
+        if (!selectorList) {
+            selectorList = [];
             var docText = doc.getText();
             selectorList = CSSUtils.extractAllSelectors(docText);
-            FileIndexManager.setFileInfoData(fileInfo, "CSSSelectorsList", selectorList);
         }
     }
 
     function getLocationFromSelectorName(selector) {
+        if (!selectorList) {
+            return null;
+        }
+        
         var i, result;
         for (i = 0; i < selectorList.length; i++) {
             var selectorInfo = selectorList[i];
@@ -62,7 +63,7 @@ define(function (require, exports, module) {
      * @returns {Array.<string>} sorted and filtered results that match the query
      */
     function filter(query) {
-        createCachedSelectorList();
+        createSelectorList();
 
         query = query.slice(query.indexOf("@") + 1, query.length);
         var filteredList = $.map(selectorList, function (itemInfo) {
@@ -125,6 +126,7 @@ define(function (require, exports, module) {
     function getPlugin() {
         var jsFuncProvider = {  name: "CSS Selectors",
                                 fileTypes: ["css"],
+                                done: done,
                                 filter: filter,
                                 match: match,
                                 itemFocus: itemFocus,

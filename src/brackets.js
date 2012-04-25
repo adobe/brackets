@@ -209,7 +209,7 @@ define(function (require, exports, module) {
             // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
-                FileIndexManager.markIndexesDirty();
+                FileIndexManager.markDirty();
             });
             
             $(window).unload(function () {

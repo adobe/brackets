@@ -10,8 +10,7 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var FileIndexManager    = require("project/FileIndexManager"),
-        EditorManager       = require("editor/EditorManager"),
+    var EditorManager       = require("editor/EditorManager"),
         DocumentManager     = require("document/DocumentManager");
 
 
@@ -34,10 +33,10 @@ define(function (require, exports, module) {
 
     /**
      * Contains a list of information about functions for a single document. This array is populated
-     * by createCachedFunctionList()
-     * @type {Array.<FileLocation>}
+     * by createFunctionList()
+     * @type {?Array.<FileLocation>}
      */
-    var functionList = [];
+    var functionList = null;
 
     // currently NOT used. This was an attempt to use CodeMirror tokens to find functions
     function generateFunctionList2() {
@@ -66,12 +65,20 @@ define(function (require, exports, module) {
         }
     }
 
+    function done() {
+        functionList = null;
+    }
+
     /**
      * Retrieves the FileLocation object stored in the functionsList for a given functon name
      * @param {string} functionName
      * @returns {FileLocation}
      */
     function getLocationFromFunctionName(functionName) {
+        if (!functionList) {
+            return null;
+        }
+
         var i, fileLocation;
         for (i = 0; i < functionList.length; i++) {
             var functionInfo = functionList[i];
@@ -84,25 +91,16 @@ define(function (require, exports, module) {
         return fileLocation;
     }
 
-
     /**
-     *
-     *
+     * Populates the functionList array
      */
-    // create function list and caches it in FileIndexMangage
-    function createCachedFunctionList() {
+    function createFunctionList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
             return;
         }
 
-        var fileInfo = FileIndexManager.getFileInfo(doc.file.fullPath);
-        var data = FileIndexManager.getFileInfoData(fileInfo, "JavaScriptFunctionList");
-        if (fileInfo &&  data && !data.dirty && data.data !== null) {
-            // cached function list data is present and clean so use it
-            functionList = data.data;
-        } else {
-            // function list data is not cached or is dirty, so rebuild
+        if (!functionList) {
             functionList = [];
             var docText = doc.getText();
             
@@ -149,8 +147,6 @@ define(function (require, exports, module) {
                     functionList.push(new FileLocation(null, i, chFrom, chTo, funcName));
                 }
             }
-
-            FileIndexManager.setFileInfoData(fileInfo, "JavaScriptFunctionList", functionList);
         }
     }
 
@@ -159,7 +155,7 @@ define(function (require, exports, module) {
      * @returns {Array.<string>} sorted and filtered results that match the query
      */
     function filter(query) {
-        createCachedFunctionList();
+        createFunctionList();
 
         query = query.slice(query.indexOf("@") + 1, query.length);
         var filteredList = $.map(functionList, function (itemInfo) {
@@ -222,6 +218,7 @@ define(function (require, exports, module) {
     function getPlugin() {
         var jsFuncProvider = {  name: "JavaScript functions",
                                 fileTypes: ["js"],
+                                done: done,
                                 filter: filter,
                                 match: match,
                                 itemFocus: itemFocus,
