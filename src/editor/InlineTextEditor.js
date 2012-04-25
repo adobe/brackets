@@ -222,10 +222,7 @@ define(function (require, exports, module) {
         });
         
         // set dirty indicator state
-        // use setTimeout to allow filenameDiv to render first
-        setTimeout(function () {
-            _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
-        }, 0);
+        _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
     };
 
     /**
