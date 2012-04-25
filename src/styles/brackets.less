@@ -247,14 +247,27 @@ a, img {
 }
 
 .sidebarSelectionTriangle {
+    background: url("styles/images/active_back.png");
+    width: 10px;
+    height: 25px;
     position: fixed;
+
     z-index: 20; /* scrollerShadow appears above this triangle */
-    
-    margin-top: -@triangle-size;
+}
+
+.sidebarSelectionTriangle:before {
+    content: "";
     
     border-top: @triangle-size solid transparent;
     border-bottom: @triangle-size solid transparent; 
     border-right: @triangle-size solid @background-color-3;
+    
+    display: block;
+    position: absolute;
+    top: 2px;
+    right: 0;
+    width: 0;
+    height: 0;
     
     .scaleX(0.9, right, top);
 }
