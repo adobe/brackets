@@ -10,6 +10,7 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        Editor                  = require("editor/Editor").Editor,
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         NativeApp               = require("utils/NativeApp");
@@ -17,8 +18,9 @@ define(function (require, exports, module) {
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
         JSLintUtils.run();
-        $("#jslint-enabled-checkbox").css("display", JSLintUtils.getEnabled() ? "" : "none");
+        $("#menu-debug-jslint").toggleClass("selected", JSLintUtils.getEnabled());
     }
+    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
@@ -40,7 +42,7 @@ define(function (require, exports, module) {
     function _handleShowPerfData() {
         var perfHeader = $("<div class='modal-header' />")
             .append("<a href='#' class='close'>&times;</a>")
-            .append("<h3 class='dialog-title'>Performance Data</h3>");
+            .append("<h1 class='dialog-title'>Performance Data</h1>");
         
         var perfBody = $("<div class='modal-body' style='padding: 0' />");
 
@@ -94,31 +96,23 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
-    /* TODO: Support arbitrary widths with grabber
-        When the new theme lands with the CSS, potentially
-        adjust how this is done. */
-    function _handleHideSidebar() {
-        var currentWidth = $(".sidebar").width();
-        if (currentWidth > 0) {
-            $(".sidebar").width(0);
-            $("#menu-debug-hide-sidebar").text("Show Sidebar");
-        } else {
-            $(".sidebar").width(200);
-            $("#menu-debug-hide-sidebar").text("Hide Sidebar");
-        }
-        
-    }
-    
     function _handleCloseAllLiveBrowsers() {
         NativeApp.closeAllLiveBrowsers().always(function () {
             console.log("all live browsers closed");
         });
     }
     
+    function _handleUseTabChars() {
+        Editor.setUseTabChar(!Editor.getUseTabChar());
+        $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
+    }
+    
+    
+    // Register all the command handlers
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
     CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
     CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
     CommandManager.register(Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
-    CommandManager.register(Commands.DEBUG_HIDE_SIDEBAR, _handleHideSidebar);
     CommandManager.register(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
+    CommandManager.register(Commands.DEBUG_USE_TAB_CHARS, _handleUseTabChars);
 });

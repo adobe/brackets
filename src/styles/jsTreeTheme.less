@@ -9,14 +9,6 @@
 .jstree-brackets .jstree-closed > ins { background-position:-54px 0; }
 .jstree-brackets .jstree-leaf > ins { background-position:-36px 0; }
 
-.jstree-brackets .jstree-hovered {
-    background: #e7f4f9;
-}
-.jstree-brackets .jstree-clicked {
-    color: #fff;
-    #gradient > .vertical(#5fa3e0, #0065be);
-}
-
 /* Make the links in the JS tree the width of the container
  * by shifting the off the screen by negative margin and moving the
  * content back by pushing the padding. The icons are positioned absolute
@@ -34,6 +26,30 @@
     position: relative;
 }
 
+.jstree-brackets li {
+    line-height: 24px;
+    vertical-align: baseline;
+    a {
+        color: #BBB;
+        font-size: 14px;
+        cursor: default;
+        
+        &.jstree-clicked {
+            color: #fff;
+            font-weight: @font-weight-semibold;
+        }
+    }
+    .extension a {
+        color: #8e9a9d;
+    }
+    &.jstree-closed, &.jstree-open {
+        > a {
+            color: #fff;
+            font-weight: @font-weight-semibold;
+        }
+    }
+}
+
 .jstree ins {
     position: absolute;
 }
@@ -42,8 +58,8 @@
 .jstree-brackets a.jstree-loading .jstree-icon { background:url("styles/images/throbber.gif") center center no-repeat !important; }
 
 .jstree-brackets li > a {
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 .jstree-brackets li > ins {
     margin-top: 2px;

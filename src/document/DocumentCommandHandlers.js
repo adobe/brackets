@@ -28,19 +28,46 @@ define(function (require, exports, module) {
      * Handlers for commands related to document handling (opening, saving, etc.)
      */
     
-    /** @type {jQueryObject} Container for label shown above editor */
+    /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
     var _title = null;
+    /** @type {jQueryObject} Container for _title; need not be an inline element */
+    var _titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
+    
+    /** @type {jQueryObject} Container for _titleWrapper; if changing title changes this element's height, must kick editor to resize */
+    var _titleContainerToolbar = null;
+    /** @type {Number} Last known height of _titleContainerToolbar */
+    var _lastToolbarHeight = null;
+    
+    var DIRTY_INDICATOR = " <span class='dirty-dot'>\u2022</span>";
     
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
-            _title.text(_currentTitlePath + (currentDoc.isDirty ? " \u2022" : ""));
+            _title.text(_currentTitlePath);
             _title.attr("title", currentDoc.file.fullPath);
+            if (currentDoc.isDirty) {
+                _title.append(DIRTY_INDICATOR);
+            }
         } else {
             _title.text("");
             _title.attr("title", "");
+        }
+        
+        // Set _titleWrapper to a fixed width just large enough to accomodate _title. This seems equivalent to what
+        // the browser would do automatically, but the CSS trick we use for layout requires _titleWrapper to have a
+        // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
+        _titleWrapper.css("width", "");
+        var newWidth = _title.width();
+        _titleWrapper.css("width", newWidth);
+        
+        // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
+        // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
+        var newToolbarHeight = _titleContainerToolbar.height();
+        if (_lastToolbarHeight !== newToolbarHeight) {
+            _lastToolbarHeight = newToolbarHeight;
+            EditorManager.resizeEditor();
         }
     }
     
@@ -498,7 +525,7 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</li>";
+                message += "<li><span class='dialog-filename'>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</span></li>";
             });
             message += "</ul>";
             
@@ -578,6 +605,10 @@ define(function (require, exports, module) {
         });
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
+
+    function handleShowDeveloperTools(commandData) {
+        brackets.app.showDeveloperTools();
+    }
     
      /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
@@ -586,8 +617,10 @@ define(function (require, exports, module) {
         });
     }
 
-    function init(title) {
-        _title = title;
+    function init(titleContainerToolbar) {
+        _titleContainerToolbar = titleContainerToolbar;
+        _titleWrapper = $(".title-wrapper", _titleContainerToolbar);
+        _title = $(".title", _titleWrapper);
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
@@ -601,7 +634,8 @@ define(function (require, exports, module) {
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
         CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
-        CommandManager.register(Commands.FILE_RELOAD, handleFileReload);
+        CommandManager.register(Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
+        CommandManager.register(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

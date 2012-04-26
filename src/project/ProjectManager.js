@@ -46,9 +46,22 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to the tree control UL element
+     * @type {DOMElement}
+     */
+    var $projectTreeList;
+    
+    /**
+     * @private
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+    
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = null;
 
     /**
      * @private
@@ -59,6 +72,22 @@ define(function (require, exports, module) {
         id              : 0,    /* incrementing id */
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
+    
+    /**
+     * @private
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+            
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
+            _projectTree.triggerHandler("contentChanged");
+        }
+    }
     
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
@@ -79,6 +108,8 @@ define(function (require, exports, module) {
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
         }
+        
+        _fireSelectionChanged();
     };
 
     $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
@@ -118,9 +149,11 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Preferences callback. Saves current project path.
+     * Save ProjectManager project path and tree state.
      */
-    function _savePreferences(storage) {
+    function _savePreferences() {
+        var storage = {};
+        
         // save the current project
         storage.projectPath = _projectRoot.fullPath;
 
@@ -157,8 +190,9 @@ define(function (require, exports, module) {
 
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
+        
+        _prefs.setAllValues(storage);
     }
-
 
     /**
      * @private
@@ -168,12 +202,13 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var projectTreeContainer = $("#project-files-container"),
+        var $projectTreeContainer = $("#project-files-container"),
             result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
-        _projectTree = projectTreeContainer
+        $projectTreeContainer.hide();
+        _projectTree = $projectTreeContainer
             .jstree(
                 {
                     plugins : ["ui", "themes", "json_data", "crrm", "sort"],
@@ -239,6 +274,10 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    
+                    // update when tree display state changes
+                    _fireSelectionChanged();
+                    _savePreferences();
                 }
             );
 
@@ -249,6 +288,9 @@ define(function (require, exports, module) {
         // and add our own double-click handler here.
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
+            // install scroller shadows
+            ViewUtils.addScrollerShadow(_projectTree.get(0));
+            
             _projectTree
                 .unbind("dblclick.jstree")
                 .bind("dblclick.jstree", function (event) {
@@ -257,6 +299,11 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
+
+            // fire selection changed events for sidebarSelection
+            $projectTreeList = $projectTreeContainer.find("ul");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
+            $projectTreeContainer.show();
         });
 
         return result;
@@ -404,7 +451,7 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID),
+        var prefs = _prefs.getAllValues(),
             result = new $.Deferred(),
             resultRenderTree,
             isFirstProjectOpen = false;
@@ -702,12 +749,14 @@ define(function (require, exports, module) {
 
     // Initialize now
     (function () {
-        
-        
         var defaults = {
             projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
             projectTreeState: ""
         };
-        PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+        
+        // Init PreferenceStorage
+        _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+        CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());
 });

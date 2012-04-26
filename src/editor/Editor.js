@@ -41,10 +41,13 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager");
-    var TextRange        = require("document/TextRange").TextRange;
+    var EditorManager    = require("editor/EditorManager"),
+        Commands         = require("command/Commands"),
+        CommandManager   = require("command/CommandManager"),
+        TextRange        = require("document/TextRange").TextRange,
+        ViewUtils        = require("utils/ViewUtils");
     
-    
+
     /**
      * @private
      * Handle Tab key press.
@@ -182,17 +185,64 @@ define(function (require, exports, module) {
             }
         }
     }
+
+    function _handleSelectAll() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._selectAllVisible();
+        }
+    }
     
     /** Launches CodeMirror's basic Find-within-single-editor feature */
-    function _launchFind(codeMirror) {
-        // Bring up CodeMirror's existing search bar UI
-        codeMirror.execCommand("find");
-        
-        // Prepopulate the search field with the current selection, if any
-        var findBarTextField = $(".CodeMirror-dialog input[type='text']");
-        findBarTextField.attr("value", codeMirror.getSelection());
-        findBarTextField.get(0).select();
+    function _launchFind() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            var codeMirror = editor._codeMirror;
+
+            // Bring up CodeMirror's existing search bar UI
+            codeMirror.execCommand("find");
+
+            // Prepopulate the search field with the current selection, if any
+            var findBarTextField = $(".CodeMirror-dialog input[type='text']");
+            findBarTextField.attr("value", codeMirror.getSelection());
+            findBarTextField.get(0).select();
+        }
     }
+
+    function _findNext() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("findNext");
+        }
+    }
+
+    function _findPrevious() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("findPrev");
+        }
+    }
+
+    function _replace() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            editor._codeMirror.execCommand("replace");
+        }
+    }
+    
+    
+    
+    /**
+     * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
+     * that affect all editors, e.g. tabbing or color scheme settings.
+     * @type {Array.<Editor>}
+     */
+    var _instances = [];
+    
+    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
+    var _useTabChar = false;
+    
+    
     
     /**
      * @constructor
@@ -219,6 +269,8 @@ define(function (require, exports, module) {
     function Editor(document, makeMasterEditor, mode, container, additionalKeys, range) {
         var self = this;
         
+        _instances.push(this);
+        
         // Attach to document: add ref & handlers
         this.document = document;
         document.addRef();
@@ -239,7 +291,8 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab"  : _handleTabKey,
+            "Tab" : _handleTabKey,
+
             "Left" : function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
@@ -260,17 +313,6 @@ define(function (require, exports, module) {
                     CodeMirror.commands.delCharRight(instance);
                 }
             },
-            "Ctrl-A": function () {
-                self._selectAllVisible();
-            },
-            "Cmd-A": function () {
-                self._selectAllVisible();
-            },
-            "Ctrl-F": _launchFind,
-            "Cmd-F": _launchFind,
-            "F3": "findNext",
-            "Shift-F3": "findPrev",
-            "Ctrl-H": "replace",
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
             "Shift-Insert": "paste"
@@ -289,7 +331,8 @@ define(function (require, exports, module) {
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            indentUnit : 4,
+            indentUnit: 4,
+            indentWithTabs: _useTabChar,
             lineNumbers: true,
             matchBrackets: true,
             extraKeys: codeMirrorKeyMap
@@ -330,6 +373,13 @@ define(function (require, exports, module) {
         if (makeMasterEditor) {
             document._makeEditable(this);
         }
+        
+        // Add scrollTop property to this object for the scroll shadow code to use
+        Object.defineProperty(this, "scrollTop", {
+            get: function () {
+                return this._codeMirror.scrollPos().y;
+            }
+        });
     }
     
     /**
@@ -341,6 +391,8 @@ define(function (require, exports, module) {
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
         $(this.getRootElement()).remove();
+        
+        _instances.splice(_instances.indexOf(this), 1);
         
         // Disconnect from Document
         this.document.releaseRef();
@@ -887,6 +939,34 @@ define(function (require, exports, module) {
      * @type {?TextRange}
      */
     Editor.prototype._visibleRange = null;
+    
+    
+    // Global settings that affect all Editor instances (both currently open Editors as well as those created
+    // in the future)
+
+    /**
+     * Sets whether to use tab characters (vs. spaces) when inserting new text. Affects all Editors.
+     * @param {boolean} value
+     */
+    Editor.setUseTabChar = function (value) {
+        _useTabChar = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("indentWithTabs", _useTabChar);
+        });
+    };
+    
+    /** @type {boolean}  Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    Editor.getUseTabChar = function (value) {
+        return _useTabChar;
+    };
+
+    
+    // Global commands that affect the currently focused Editor instance, wherever it may be
+    CommandManager.register(Commands.EDIT_FIND, _launchFind);
+    CommandManager.register(Commands.EDIT_FIND_NEXT, _findNext);
+    CommandManager.register(Commands.EDIT_REPLACE, _replace);
+    CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // Define public API
     exports.Editor = Editor;

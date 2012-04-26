@@ -25,20 +25,35 @@ define(function (require, exports, module) {
     /** Each list item in the working set stores a references to the related document in the list item's data.  
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
-    var _FILE_KEY = "file";
+    var _FILE_KEY = "file",
+        $openFilesContainer = $("#open-files-container"),
+        $openFilesList = $openFilesContainer.find("ul");
+    
+    /**
+     * @private
+     * Redraw selection when list size changes or DocumentManager currentDocument changes.
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        $openFilesList.trigger("selectionChanged");
 
-    function _hideShowOpenFileHeader() {
+        // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
+        $openFilesContainer.triggerHandler("contentChanged");
+    }
+
+    /**
+     * @private
+     * Shows/Hides open files list based on working set content.
+     */
+    function _updateOpenFilesContainer() {
         if (DocumentManager.getWorkingSet().length === 0) {
-            $("#open-files-header").hide();
-            $("#open-files-container").hide();
-            $("#open-files-divider").hide();
+            $openFilesContainer.hide();
         } else {
-            $("#open-files-header").show();
-            $("#open-files-container").show();
-            $("#open-files-divider").show();
+            $openFilesContainer.show();
         }
         
-        ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
+        ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);
+        _fireSelectionChanged();
     }
     
     /** 
@@ -111,7 +126,7 @@ define(function (require, exports, module) {
             .append(link)
             .data(_FILE_KEY, file);
 
-        $("#open-files-container > ul").append(newItem);
+        $openFilesContainer.find("ul").append(newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
 
@@ -138,13 +153,13 @@ define(function (require, exports, module) {
      * @private
      */
     function _rebuildWorkingSet() {
-        $("#open-files-container > ul").empty();
+        $openFilesContainer.find("ul").empty();
 
         DocumentManager.getWorkingSet().forEach(function (file) {
             _createNewListItem(file);
         });
 
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
     
     /** 
@@ -159,9 +174,11 @@ define(function (require, exports, module) {
         }
             
         // Iterate through working set list and update the selection on each
-        var items = $("#open-files-container > ul").children().each(function () {
+        var items = $openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
+        
+        _fireSelectionChanged();
     }
 
     /** 
@@ -169,7 +186,7 @@ define(function (require, exports, module) {
      */
     function _handleFileAdded(file) {
         _createNewListItem(file);
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
     
     /** 
@@ -191,7 +208,7 @@ define(function (require, exports, module) {
         var result = null;
 
         if (file) {
-            var items = $("#open-files-container > ul").children();
+            var items = $openFilesContainer.find("ul").children();
             items.each(function () {
                 var listItem = $(this);
                 if (listItem.data(_FILE_KEY).fullPath === file.fullPath) {
@@ -215,7 +232,7 @@ define(function (require, exports, module) {
             listItem.remove();
         }
 
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
 
     /** 
@@ -251,9 +268,14 @@ define(function (require, exports, module) {
 
     $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
         _handleDocumentSelectionChange();
+        
+        // redraw shadows
+        _fireSelectionChanged();
     });
 
-    _hideShowOpenFileHeader();
+    _updateOpenFilesContainer();
 
-
+    // Show scroller shadows when open-files-container scrolls
+    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+    ViewUtils.sidebarList($openFilesContainer);
 });

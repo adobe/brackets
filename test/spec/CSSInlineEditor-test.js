@@ -85,8 +85,8 @@ define(function (require, exports, module) {
             cssInlineEditor.load(hostEditor);
             
             var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
-            expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js:1");
-            expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js:2");
+            expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js : 1");
+            expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js : 2");
         });
 
         it("should change selection to the next rule", function () {

@@ -27,9 +27,8 @@ define(function (require, exports, module) {
      */
     function _showDirtyIndicator($indicatorDiv, isDirty) {
         // Show or hide the dirty indicator by adjusting
-        // the width of the div. The "hidden" width is 
-        // 4 pixels to make the padding look correct.
-        $indicatorDiv.css("width", isDirty ? 16 : 4);
+        // the width of the div.
+        $indicatorDiv.css("width", isDirty ? 16 : 0);
     }
     
     /**
@@ -192,12 +191,17 @@ define(function (require, exports, module) {
         // save file path data to dirty-indicator
         var $dirtyIndicatorDiv = $(document.createElement("div"))
             .addClass("dirty-indicator")
-            .width(4); // initialize indicator as hidden
+            .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
+<<<<<<< HEAD
         var $lineNumber = $("<span>" + (startLine + 1) + "</span>");
 
         var $nameWithTooltip = $("<span></span>").text(doc.file.name).attr("title", doc.file.fullPath);
+=======
+        var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
+        
+>>>>>>> upstream/master
         $filenameDiv.append($dirtyIndicatorDiv)
             .append($nameWithTooltip)
             .append(" : ")

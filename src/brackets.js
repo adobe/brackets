@@ -46,12 +46,15 @@ define(function (require, exports, module) {
         QuickFileOpen           = require("search/QuickFileOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
+        Strings                 = require("strings"),
+        Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules the self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
     require("debug/DebugCommandHandlers");
+    require("view/ViewCommandHandlers");
     require("search/FindInFiles");
 
     // Define core brackets namespace if it isn't already defined
@@ -132,24 +135,13 @@ define(function (require, exports, module) {
 
             // Open project button
             $("#btn-open-project").click(function () {
-                ProjectManager.openProject();
-            });
-
-
-            // Handle toggling top level disclosure arrows of file list area
-            $("#open-files-header").click(function () {
-                $("#open-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
-                $("#open-files-container").toggle();
-            });
-            $("#project-files-header").click(function () {
-                $("#project-files-disclosure-arrow").toggleClass("disclosure-arrow-closed");
-                $("#project-files-container").toggle();
+                CommandManager.execute(Commands.FILE_OPEN_FOLDER);
             });
         }
         
         
         function initCommandHandlers() {
-            DocumentCommandHandlers.init($("#main-toolbar .title"));
+            DocumentCommandHandlers.init($("#main-toolbar"));
         }
 
         function initKeyBindings() {
@@ -157,24 +149,60 @@ define(function (require, exports, module) {
             // TODO: (issue #268) show keyboard equivalents in the menus
             var _globalKeymap = KeyMap.create({
                 "bindings": [
+                    // FILE
+                    {"Ctrl-N": Commands.FILE_NEW},
                     {"Ctrl-O": Commands.FILE_OPEN},
                     {"Ctrl-S": Commands.FILE_SAVE},
                     {"Ctrl-W": Commands.FILE_CLOSE},
-                    {"Ctrl-Shift-O": Commands.FILE_QUICK_NAVIGATE},
-                    {"Ctrl-Shift-F": Commands.FIND_IN_FILES},
-                    {"Ctrl-Shift-H": Commands.DEBUG_HIDE_SIDEBAR},
-                    {"Ctrl-R": Commands.FILE_RELOAD, "platform": "mac"},
-                    {"F5"    : Commands.FILE_RELOAD, "platform": "win"}
+                    {"Ctrl-Alt-P": Commands.FILE_LIVE_FILE_PREVIEW},
+                    {"Ctrl-Q": Commands.FILE_QUIT},
+
+                    // EDIT 
+                    // disabled until the menu items are connected to the commands. Keyboard shortcuts work via CodeMirror
+                    //{"Ctrl-Z": Commands.EDIT_UNDO},
+                    //{"Ctrl-Y": Commands.EDIT_REDO},
+                    //{"Ctrl-X": Commands.EDIT_CUT},
+                    //{"Ctrl-C": Commands.EDIT_COPY}, 
+                    //{"Ctrl-V": Commands.EDIT_PASTE},
+
+                    {"Ctrl-A": Commands.EDIT_SELECT_ALL},
+                    {"Ctrl-F": Commands.EDIT_FIND},
+                    {"Ctrl-Shift-F": Commands.EDIT_FIND_IN_FILES},
+                    {"Ctrl-G": Commands.EDIT_FIND_NEXT, "platform": "mac"},
+                    {"F3": Commands.EDIT_FIND_NEXT, "platform": "win"},
+                    {"Ctrl-Shift-G": Commands.EDIT_FIND_PREVIOUS, "platform": "mac"},
+                    {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
+                    {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
+                    {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
+
+                    // VIEW
+                    {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
+                    
+                    // Navigate
+                    {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
+                    {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
+                    {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
+                    {"Alt-Down": Commands.NEXT_CSS_RULE},
+
+                    // DEBUG
+                    {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
+                    {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"}
+
+
                 ],
                 "platform": brackets.platform
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            $(document.body).keydown(function (event) {
-                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                    event.preventDefault();
-                }
-            });
+            document.body.addEventListener(
+                "keydown",
+                function (event) {
+                    if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
+                        event.stopPropagation();
+                    }
+                },
+                true
+            );
         }
         
         function initWindowListeners() {
@@ -182,10 +210,6 @@ define(function (require, exports, module) {
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
                 FileIndexManager.markDirty();
-            });
-            
-            $(window).unload(function () {
-                CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
             });
             
             $(window).contextmenu(function (e) {
@@ -198,12 +222,21 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
+
+        // Let the user know Brackets doesn't run in a web browser yet
+        if (brackets.inBrowser) {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
+                Strings.ERROR_BRACKETS_IN_BROWSER
+            );
+        }
     
         initListeners();
         initProject();
-        Menus.init();
         initCommandHandlers();
         initKeyBindings();
+        Menus.init(); // key bindings should be initialized first
         initWindowListeners();
 
         // Load extensions
@@ -228,7 +261,13 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
             "extensions/user"
         );
-
+        
+        // Use unobtrusive scrollbars if we aren't on Lion
+        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
+        if (!(osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7)) {
+            $(".sidebar").addClass("quiet-scrollbars");
+        }
+        
         PerfUtils.addMeasurement("Application Startup");
     });
     

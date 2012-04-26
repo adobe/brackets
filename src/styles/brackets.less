@@ -45,28 +45,10 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
-
-    .topbar {
-        position: static;
-    }
 }
 
 a, img {
     -webkit-user-drag: none;
-}
-
-.topbar-inner {
-    /* We don't want to use the default .container in here, 
-       so we need to .clearfix the children. */
-    .clearfix;
-
-    .brand {
-        .sane-box-model;
-        margin-left: 0;
-        width: 200px;
-        padding-left: @base-padding;
-        padding-right: @base-padding;
-    }
 }
 
 .main-view {
@@ -75,7 +57,7 @@ a, img {
 
     .sidebar {
         .vbox;
-        width: 200px;
+        width: @sidebar-width;
     }
 
     .content {
@@ -123,9 +105,12 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        font-size: 0.9em;
+        z-index: 19;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
-
+        .title {
+            font-size: @label-font-size;
+            font-weight: bold;
+        }
         .close {
             position: absolute;
             right: 10px;
@@ -154,48 +139,61 @@ a, img {
 #gold-star {
     display: none;
     font-size: 1.2em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
-    text-shadow: 0 -1px @bc-black;
+    color: #ffe13b;
 }
+
+#toolbar-go-live {
+    padding-right: 8px;
+    
+    // Default icon is for the 'disconnected' state
+    // The 'connecting failed' (.warning) state also maps here
+    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
+    &:hover {
+        .spriteSwap(0,11px);
+    }
+    // 'Connected' state
+    &.success {
+        .spriteSwap(0,22px);
+    }
+    &.success:hover {
+        .spriteSwap(0,33px);
+    }
+    // 'Connection in progress' state
+    &.info {
+        .spriteSwap(0,44px);
+    }
+}
+
 
 /* Project panel */
 
-#projects .toolbar {    
-    .picker {
-        .box;
-        .box-flex(1);
-    }
+#project-header {
+    /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
+    height: 29px;
 }
 
 #file-section {
     .vbox;
     .box-flex(1);
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px 0px 0px;
+    position: relative;
     
     .project-file-header-area {
-        padding: 4px 4px 2px 0px;
-        
-        span {
-            font-weight: bold;
-            vertical-align: middle;        
-        }
+        padding: 6px 6px 2px 10px;
+        font-size: 14px;
+        color: #929292;
     }
 
     .file-list-divider {
         border-bottom: 1px solid #9a9a9a;  
         box-shadow: 0px 1px #eeeeee;
     }
-    
-    
 }
-
-
 
 #open-files-container {
     .box-flex(0);
-    margin: 0px;
+    margin: 0 0 22px 0;
     padding: 0px;
-    overflow: auto;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
     
@@ -210,35 +208,99 @@ a, img {
         }
         
         li {
-            padding: 2px 0px 2px 2px;
             white-space: nowrap;
             position: relative; // so that children can be positioned absolute
-            
-            &:hover {
-                background: #E7F4F9;
+            line-height: 24px;
+            padding: 0 0 0 8px;
+            height: 25px;
+            vertical-align: baseline;
+            a {
+                color: #BBB;
+                font-size: 14px;
+                margin-left: 18px;
+                padding-right: @triangle-size * 2;
+                cursor: default;
             }
-            
+            .extension a {
+                color: #8e9a9d;
+            }
+            &:hover {
+                background: transparent;
+            }
+            &:active {
+                background-position: 0 1px;
+            }
             &.selected {
-                #gradient.vertical(#5fa3e0, #0065be);
-        
-                a { color: white; }    
-            }             
-        }        
+                a {
+                    font-weight: @font-weight-semibold;
+                    color: #fff;
+                }
+            }
+        }
     }
 }
 
+.sidebarSelection {
+    background: url("styles/images/active_back.png") no-repeat top right;
+    height: 25px;
+    position: absolute;
+}
+
+.sidebarSelectionTriangle {
+    position: fixed;
+    z-index: 20; /* scrollerShadow appears above this triangle */
+    
+    margin-top: -@triangle-size;
+    
+    border-top: @triangle-size solid transparent;
+    border-bottom: @triangle-size solid transparent; 
+    border-right: @triangle-size solid @background-color-3;
+    
+    .scaleX(0.9, right, top);
+}
+
 //Initially start with the open files hidden, they will get show as files are added
-#open-files-header, #open-files-container, #open-files-divider {
+#open-files-container {
     display:none;
 }
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px 0px 0px 8px;
-    margin: 0;
-    overflow: auto;
     
-    ul { margin-top: 0; }
+    .jstree-brackets li > a {
+        padding-right: @triangle-size * 2;
+    }
+    
+    ul {
+        padding-left: 8px;
+    }
+}
+
+.sidebar .scrollerShadow {
+    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+}
+
+#editorHolder .scrollerShadow {
+    width: 100%;
+}
+
+.scrollerShadow {
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+    height: 5px;
+    position: fixed;
+    z-index: 21;
+    
+    &.top {
+        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        background-position: 0 -5px;
+    }
+    
+    &.bottom {
+        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        background-position: 0 5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
+    }
 }
 
 @spriteSize18: 18px;
@@ -270,17 +332,17 @@ a, img {
 */
 
 .bracketSprite {
-    background-image: url("styles/images/bracketsSprites.png");
+    background-image: url("styles/images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: 15px;
+    height: 16px;
 }
 
 
 .file-status-icon {
-    margin: 0px 0px 0px 10px;
+    margin: 3px 0 0 8px;
     .bracketSprite;
     display: inline-block;
     position: absolute;
@@ -288,52 +350,61 @@ a, img {
     top: 1px;
     
     &.dirty {
-        background-position: 0 0;
+        background-position: -30px 0;
     }
     
     &.canClose {
-        background-position: -@spriteSize18 0;
+        background-position: 0 0;
     }
   
     &.canClose:hover {
-        background-position: -@spriteSize18*2 0;
+        background-position: -15px 0;
+    }
+    
+    &.canClose:active {
+        background-position: -15px 1px;
     }
 }
 
 /* Styles for inline editors */
 .InlineWidget {
-    border-top:         1px solid #C0C0C0;
-    border-bottom:      1px solid #C0C0C0;
-    background-color:   #eaeaea;
+    background-color:   @inline-background-color-1;
     
     .filename {
-        font-family: sans-serif;
-        font-size: 14px;
-        color: #656565;
+        font-family: @fontStackSansSerif;
+        font-size: 1.1em;
+        color: @inline-color-1;
         padding: 10px 10px 0px 10px;
         
         .dirty-indicator {
             .bracketSprite;
             display: inline-block;
-            background-position: 0 0;
+            background-position: -32px 0;
             padding-top: 3px;
         }
+        
+        .lineNumber {
+            color: @inline-color-2;
+        }
     }
+    
     .shadow {
         display: block;
-        height: 6px;
+        height: 4px;
         width: 100%;
         position: absolute;
         content: " ";
         left: 0;
         z-index: 10;
     }
+    
     .shadow.top {
         top: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
+    
     .shadow.bottom {
-        bottom: -1px;
+        bottom: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
     
@@ -344,51 +415,71 @@ a, img {
     }
 }
 
+/* CSSInlineEditor rule list */
 .relatedContainer {
+    @top-margin: 12px;
+    
     /*width: 0;*/
-    font-family: sans-serif;
+    font-family: @fontStackSansSerif;
     position: fixed;
     width: 250px;
-    overflow: auto;
+    overflow: hidden;
     /*-webkit-transition: width 0.15s ease-out;*/
-    background: #f2f2f2;
-    border-left: 1px solid #ccc;
-    box-shadow: -1px 0 0 0 #fff;
+    background: @inline-background-color-2;
     
-    @top-margin: 12px;
-        
     .selection {
-        display: block;
         width: 100%;
-        background: #e6e6e6;
+        background: #d0d5d5;
         position: absolute;
         -webkit-transition: height 0.1s ease-out;
         -webkit-transition: top 0.1s ease-out;
-        border-top: 1px solid #d6d6d6;
-        border-bottom: 1px solid #d6d6d6;
-        box-shadow: 0 1px 0 #fff;
+        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
+        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
         top: @top-margin;
     }
     
+    /*
+     * CSS triangle hack with anti-alias workarounds:
+     * (a) Use selection-background-color instead of transparent.
+     * (b) Use transform scaleX and origin to adjust width.
+     */
+    .selection:before {
+        content: " ";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: @triangle-size solid @inline-background-color-3;
+        border-bottom: @triangle-size solid @inline-background-color-3;
+        border-left: @triangle-size solid @inline-background-color-1;
+        margin-top: -@triangle-size;
+        top: 50%;
+        .scaleX(0.9, left, top);
+    }
+    
     .related {
+        font-size: 12px;
         position: absolute;
         top: 0;
         left: 1px;
-        font-size: 12px;
+        width: 100%;
         
         ul {
             margin: 0;
             padding: @top-margin 0px;
             list-style: none;
-            color: #656565;
             
             li {
-                padding: 0px 15px;
+                color: @inline-color-2;
+                margin: 0;
+                overflow: hidden;
+                padding: 2px 0px 2px 15px;
+                text-overflow: ellipsis;
                 white-space: nowrap;
             }
             
-            .location {
-                color: #acacac;
+            .selected {
+                color: @inline-color-3;
+                -webkit-transition: color 0.1s ease-out .15s;
             }
         }
     }
@@ -402,7 +493,7 @@ a, img {
 }
 
 .CodeMirror-dialog > div {
-  font-family: sans-serif;
+  font-family: @fontStackSansSerif;
   position: absolute;
   top: 0; left: 0; right: 0;
   background: @background-color-2;
@@ -415,7 +506,7 @@ a, img {
 }
 
 .CodeMirror-dialog input {
-  font-family: sans-serif;
+  font-family: @fontStackSansSerif;
   border: 1px solid @content-color-weaker;
   outline: none;
   background: @background-color-3;

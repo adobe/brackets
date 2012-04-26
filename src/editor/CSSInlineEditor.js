@@ -14,7 +14,9 @@ define(function (require, exports, module) {
         HTMLUtils           = require("language/HTMLUtils"),
         CSSUtils            = require("language/CSSUtils"),
         EditorManager       = require("editor/EditorManager"),
-        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor;
+        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager");
 
     /**
      * Remove trailing "px" from a style size value.
@@ -41,7 +43,11 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.textRange = null;
     SearchResultItem.prototype.$listItem = null;
     
-
+    function updateRuleLabel(listItem, rule) {
+        var text = rule.selector + " " + rule.textRange.document.file.name + " : " + (rule.textRange.startLine + 1);
+        listItem.text(text);
+        listItem.attr("title", text);
+    }
     /**
      * @constructor
      * @extends {InlineWidget}
@@ -92,6 +98,8 @@ define(function (require, exports, module) {
         this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
         this._relatedContainerInserted = false;
         this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
+        
+        // FIXME (jasonsj): deprecated event http://www.w3.org/TR/DOM-Level-3-Events/
         this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
@@ -104,23 +112,20 @@ define(function (require, exports, module) {
         var $ruleList = $(document.createElement("ul")).appendTo($related);
         
         // create rule list & add listeners for rule textrange changes
+        var ruleItemText;
         this._rules.forEach(function (rule, i) {
             // Create list item UI
             var $ruleItem = $(document.createElement("li")).appendTo($ruleList);
-            $ruleItem.text(rule.selector + " ");
+            updateRuleLabel($ruleItem, rule);
             $ruleItem.mousedown(function () {
                 self.setSelectedRule(i);
             });
-            
-            var $location = $(document.createElement("span")).appendTo($ruleItem)
-                    .addClass("location")
-                    .text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
 
             self._rules[i].$listItem = $ruleItem;
             
             // Update list item as TextRange changes
             $(self._rules[i].textRange).on("change", function () {
-                $location.text(rule.textRange.document.file.name + ":" + (rule.textRange.startLine + 1));
+                updateRuleLabel($ruleItem, rule);
             });
             
             // If TextRange lost sync, react just as we do for an inline Editor's lostContent event:
@@ -167,29 +172,31 @@ define(function (require, exports, module) {
             return;
         }
 
+        // Remove selected class(es)
+        var previousItem = (this._selectedRuleIndex >= 0) ? this._rules[this._selectedRuleIndex].$listItem : null;
+        
+        if (previousItem) {
+            previousItem.toggleClass("selected", false);
+        }
+        
         this._selectedRuleIndex = newIndex;
         var $ruleItem = this._rules[this._selectedRuleIndex].$listItem;
-
-        $ruleItem.toggleClass("selected", true);
+        
+        this._rules[this._selectedRuleIndex].$listItem.toggleClass("selected", true);
 
         // Remove previous editors
+        $(this.editors[0]).off("change", this._updateRelatedContainer);
+
         this.editors.forEach(function (editor) {
             editor.destroy(); //release ref on Document
         });
+        
         this.editors = [];
         this.$editorsDiv.children().remove();
-        $(this.editors[0]).off("change", this._updateRelatedContainer);
-
-        // Keyboard shortcuts
-        var extraKeys = {
-            "Alt-Up" : $.proxy(this.previousRule, this),
-            "Alt-Down" : $.proxy(this.nextRule, this)
-        };
-
 
         // Add new editor
         var rule = this.getSelectedRule();
-        this.createInlineEditorFromText(rule.textRange.document, rule.textRange.startLine, rule.textRange.endLine, this.$editorsDiv.get(0), extraKeys);
+        this.createInlineEditorFromText(rule.textRange.document, rule.textRange.startLine, rule.textRange.endLine, this.$editorsDiv.get(0));
         this.editors[0].focus();
 
         // Changes in size to the inline editor should update the relatedContainer
@@ -215,7 +222,7 @@ define(function (require, exports, module) {
                 scrollTop = self.$relatedContainer.scrollTop();
             
             self.$selectedMarker.css("top", itemTop);
-            self.$selectedMarker.height($ruleItem.height());
+            self.$selectedMarker.height($ruleItem.outerHeight());
             
             if (containerHeight <= 0) {
                 return;
@@ -483,13 +490,15 @@ define(function (require, exports, module) {
             return null;
         }
         
-        // Only provide CSS editor if the selection is an insertion point
+        // Only provide CSS editor if the selection is within a single line
         var sel = hostEditor.getSelection(false);
-        if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
+        if (sel.start.line !== sel.end.line) {
             return null;
         }
         
-        var selectorName = _getSelectorName(hostEditor, pos);
+        // Always use the selection start for determining selector name. The pos
+        // parameter is usually the selection end.        
+        var selectorName = _getSelectorName(hostEditor, hostEditor.getSelection(false).start);
         if (selectorName === "") {
             return null;
         }
@@ -516,9 +525,49 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Returns the currently focused CSSInlineEditor.
+     * @returns {CSSInlineEditor}
+     */
+    function _getFocusedCSSInlineEditor() {
+        
+        var focusedCSSInlineEditor = null,
+            result = EditorManager.getFocusedInlineWidget();
+        
+        if (result) {
+            var focusedWidget = result.widget;
+            if (focusedWidget && focusedWidget instanceof CSSInlineEditor) {
+                focusedCSSInlineEditor = focusedWidget;
+            }
+        }
+        
+        return focusedCSSInlineEditor;
+    }
+
+    /**
+     * Previous Rule command handler
+     */
+    function _previousRule() {
+        var focusedCSSInlineEditor = _getFocusedCSSInlineEditor();
+        if (focusedCSSInlineEditor) {
+            focusedCSSInlineEditor.previousRule();
+        }
+    }
+    
+    /**
+     * Next Rule command handler
+     */
+    function _nextRule() {
+        var focusedCSSInlineEditor = _getFocusedCSSInlineEditor();
+        if (focusedCSSInlineEditor) {
+            focusedCSSInlineEditor.nextRule();
+        }
+    }
 
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);
     
+    CommandManager.register(Commands.PREVIOUS_CSS_RULE, _previousRule);
+    CommandManager.register(Commands.NEXT_CSS_RULE, _nextRule);
 
     exports.CSSInlineEditor = CSSInlineEditor;
 
