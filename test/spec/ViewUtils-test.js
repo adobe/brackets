@@ -48,7 +48,7 @@ define(function (require, exports, module) {
         
             it("should not show the top shadow when no scrolling is available", function () {
                 $fixture.find("#content").height(50); // make height shorter than the viewport
-                ViewUtils.scrollerShadow(fixture, null, true);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 
                 expect(fixture.scrollTop).toEqual(0);
                 expect(backgroundY("top")).toEqual(-ViewUtils.SCROLL_SHADOW_HEIGHT);
@@ -56,7 +56,7 @@ define(function (require, exports, module) {
             });
         
             it("should partially reveal the shadow", function () {
-                ViewUtils.scrollerShadow(fixture, null, true);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 scrollTop(3);
                 expect(backgroundY("top")).toEqual(3 - ViewUtils.SCROLL_SHADOW_HEIGHT);
                 expect(backgroundY("bottom")).toEqual(0);
@@ -68,13 +68,13 @@ define(function (require, exports, module) {
         
             it("should update shadow position when installed", function () {
                 scrollTop(100);
-                ViewUtils.scrollerShadow(fixture, null, true);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 
                 expect(backgroundY("top")).toEqual(0);
             });
         
             it("should fully reveal the shadow at the bottommost scroll position", function () {
-                ViewUtils.scrollerShadow(fixture, null, true);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 scrollTop(900);
                 
                 expect(backgroundY("top")).toEqual(0);
