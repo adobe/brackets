@@ -59,7 +59,7 @@
 <body>
     <!-- Main UI -->
     <div class="main-view">
-        <div class="sidebar">
+        <div class="sidebar quiet-scrollbars">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-header"></div>
@@ -84,6 +84,7 @@
         <div class="content">
             <!-- Toolbar containing menus, filename, and icons -->
             <div id="main-toolbar" class="toolbar">
+                <!-- Menu bar -->
                 <ul class="nav" data-dropdown="dropdown">
                     <!-- File menu -->
                     <li class="dropdown">
@@ -171,7 +172,10 @@
                     </li>
                 </ul>
                 
+                <!-- Toolbar -->
                 <div class="buttons">
+                    <span class="experimental-label">Experimental Build</span>
+                    
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
                     
                     <span id="gold-star" title="No JSLint errors - good job!">
@@ -179,6 +183,7 @@
                     </span>
                 </div>
                 
+                <!-- Filename label -->
                 <div class="title-wrapper">
                     <span class="title"></span>
                 </div>
@@ -187,8 +192,6 @@
             <div id="editorHolder">
                 <div id="notEditor">
                     <div id="notEditorContent">[&nbsp;&nbsp;]</div>
-                </div>
-                <div id="editor-scroll-shadow">
                 </div>
             </div>
             

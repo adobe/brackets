@@ -34,13 +34,14 @@ define(function (require, exports, module) {
         When the new theme lands with the CSS, potentially
         adjust how this is done. */
     function _handleHideSidebar() {
-        var currentWidth = $(".sidebar").width();
-        if (currentWidth > 0) {
-            $(".sidebar").width(0);
-            $("#menu-view-hide-sidebar span").first().text("Show Sidebar");
-        } else {
-            $(".sidebar").width(200);
+        var $sidebar = $(".sidebar");
+        
+        if ($sidebar.css("display") === "none") {
+            $sidebar.show();
             $("#menu-view-hide-sidebar span").first().text("Hide Sidebar");
+        } else {
+            $sidebar.hide();
+            $("#menu-view-hide-sidebar span").first().text("Show Sidebar");
         }
         
     }

@@ -99,6 +99,12 @@ define(function (require, exports, module) {
         // redraw selection
         if ($projectTreeList) {
             $projectTreeList.trigger("selectionChanged");
+            
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
+            _projectTree.triggerHandler("contentChanged");
         }
     }
     
@@ -124,8 +130,6 @@ define(function (require, exports, module) {
         
         _fireSelectionChanged();
     };
-
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
 
     /**
      * Unique PreferencesManager clientID
@@ -287,6 +291,8 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    
+                    // update when tree display state changes
                     _fireSelectionChanged();
                     _savePreferences();
                 }
@@ -300,7 +306,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.installScrollShadow(_projectTree[0]);
+            ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
                 .unbind("dblclick.jstree")
@@ -767,6 +773,10 @@ define(function (require, exports, module) {
         
         // Init PreferenceStorage
         _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+        // Event Handlers
+        $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+        $("#open-files-container").on("contentChanged", _fireSelectionChanged); // redraw jstree when working set size changes
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());

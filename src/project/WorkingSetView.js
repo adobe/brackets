@@ -56,6 +56,9 @@ define(function (require, exports, module) {
     function _fireSelectionChanged() {
         // redraw selection
         $openFilesList.trigger("selectionChanged");
+
+        // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
+        $openFilesContainer.triggerHandler("contentChanged");
     }
 
     /**
@@ -285,11 +288,14 @@ define(function (require, exports, module) {
 
     $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
         _handleDocumentSelectionChange();
+        
+        // redraw shadows
+        _fireSelectionChanged();
     });
 
     _updateOpenFilesContainer();
 
     // Show scroller shadows when open-files-container scrolls
-    ViewUtils.installScrollShadow($openFilesContainer[0]);
+    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
     ViewUtils.sidebarList($openFilesContainer);
 });
