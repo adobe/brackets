@@ -6,18 +6,18 @@ and JavaScript that's *built* in HTML, CSS and JavaScript.
 
 What makes Brackets different from other web code editors?
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
-environment with lots of panels and icons, our Quick Edit UI puts 
+environment with lots of panels and icons, the Quick Edit UI in Brackets puts 
 context-specific code and tools inline.
 * **Brackets is in sync with your browser.** With Live Development, Brackets
 works directly with your browser to push code edits instantly, set breakpoints, 
 and jump back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
-and JavaScript, you can help us build the best code editor for the web.
+and JavaScript, you can help build the best code editor for the web.
 
-We're *very* early in development, so many of the features you would
+Brackets is *very* early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
-we're going, please contribute!
+it's going, please contribute!
 
 How to run Brackets
 -------------------
@@ -31,8 +31,8 @@ Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 
-You can download the latest builds from https://github.com/adobe/brackets-app/downloads
-**TBD: Is that right?** and run Brackets from the bin/win or bin/mac folder.
+You can download the latest builds from https://github.com/adobe/brackets/downloads
+and run Brackets from the bin/win or bin/mac folder.
 (If you just pulled the http://github.com/adobe/brackets repo, you actually 
 need to grab the http://github.com/adobe/brackets-app repo, which includes 
 the brackets repo as a submodule, and run it from there.)
@@ -41,8 +41,7 @@ By default, Brackets shows its own source code (MIND BLOWN). You can choose
 a different folder to edit from *File > Open Folder*.
 
 Most of Brackets should be pretty self-explanatory, but for information on how
-to use some of the new features we're adding like Quick Edit and Live
-Development, please read
+to use its unique features, like Quick Edit and Live Development, please read
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets).
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
@@ -50,7 +49,7 @@ for a list of new features and known issues in each build.
 I found a bug/missing feature!
 ------------------------------
 
-We're tracking bugs in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
+Brackets bugs are tracked in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
 When filing a new bug, please remember to include:
 
 * Brackets version/sprint number (or commit SHA if you're pulling directly from the repo)
@@ -59,18 +58,18 @@ When filing a new bug, please remember to include:
 * link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
 if that's convenient)
 
-For feature requests, go ahead and file them in the issue tracker; we'll convert
-them to user stories on our public backlog **link TBD**.
+For feature requests, go ahead and file them in the issue tracker; they'll be converted
+to user stories on the public Brackets backlog (**link TBD**).
 
 I want to help!
 ---------------
 
 Awesome! Please read [How to Hack on Brackets](https://github.com/adobe/brackets/wiki/How-to-Hack-on-Brackets).
 
-I want to keep track of what you're doing!
-------------------------------------------
+I want to keep track of how Brackets is doing!
+----------------------------------------------
 
-Not sure you needed the exclamation point there, but we like your enthusiasm.
+Not sure you needed the exclamation point there, but I like your enthusiasm.
 
 * **Twitter:** [@CodeBrackets](http://twitter.com/#!/CodeBrackets)
 * **IRC:** [#brackets on freenode](http://freenode.net)
