@@ -1,5 +1,24 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -56,6 +75,10 @@ define(function (require, exports, module) {
     exports.FILE_ALREADY_EXISTS               = "The file <span class='dialog-filename'>{0}</span> already exists.";
     exports.ERROR_CREATING_FILE_TITLE         = "Error creating file";
     exports.ERROR_CREATING_FILE               = "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}";
+
+    // Application error strings
+    exports.ERROR_BRACKETS_IN_BROWSER_TITLE   = "Oops! Brackets doesn't run in browsers yet.";
+    exports.ERROR_BRACKETS_IN_BROWSER         = "Brackets is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-app</b> repo to run Brackets.";
 
     // FileIndexManager error string
     exports.ERROR_MAX_FILES_TITLE             = "Error Indexing Files";

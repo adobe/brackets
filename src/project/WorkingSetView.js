@@ -1,6 +1,26 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
+
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, $: true  */
@@ -28,8 +48,24 @@ define(function (require, exports, module) {
     var _FILE_KEY = "file",
         $openFilesContainer = $("#open-files-container"),
         $openFilesList = $openFilesContainer.find("ul");
+    
+    /**
+     * @private
+     * Redraw selection when list size changes or DocumentManager currentDocument changes.
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        $openFilesList.trigger("selectionChanged");
 
-    function _hideShowOpenFileHeader() {
+        // in-lieu of resize events, manually trigger contentChanged to update scroll shadows
+        $openFilesContainer.triggerHandler("contentChanged");
+    }
+
+    /**
+     * @private
+     * Shows/Hides open files list based on working set content.
+     */
+    function _updateOpenFilesContainer() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
         } else {
@@ -37,6 +73,7 @@ define(function (require, exports, module) {
         }
         
         ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);
+        _fireSelectionChanged();
     }
     
     /** 
@@ -142,7 +179,7 @@ define(function (require, exports, module) {
             _createNewListItem(file);
         });
 
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
     
     /** 
@@ -160,6 +197,8 @@ define(function (require, exports, module) {
         var items = $openFilesContainer.find("ul").children().each(function () {
             _updateListItemSelection(this, doc);
         });
+        
+        _fireSelectionChanged();
     }
 
     /** 
@@ -167,7 +206,7 @@ define(function (require, exports, module) {
      */
     function _handleFileAdded(file) {
         _createNewListItem(file);
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
     
     /** 
@@ -213,7 +252,7 @@ define(function (require, exports, module) {
             listItem.remove();
         }
 
-        _hideShowOpenFileHeader();
+        _updateOpenFilesContainer();
     }
 
     /** 
@@ -250,13 +289,13 @@ define(function (require, exports, module) {
     $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
         _handleDocumentSelectionChange();
         
-        // redraw selection
-        $openFilesList.trigger("selectionChanged");
+        // redraw shadows
+        _fireSelectionChanged();
     });
 
-    _hideShowOpenFileHeader();
+    _updateOpenFilesContainer();
 
     // Show scroller shadows when open-files-container scrolls
-    ViewUtils.installScrollShadow($openFilesContainer[0]);
+    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
     ViewUtils.sidebarList($openFilesContainer);
 });

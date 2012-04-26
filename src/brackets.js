@@ -1,6 +1,26 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
+
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, brackets: true, $: false, PathUtils: false */
@@ -46,6 +66,8 @@ define(function (require, exports, module) {
         QuickFileOpen           = require("search/QuickFileOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
+        Strings                 = require("strings"),
+        Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules the self-register and just need to get included in the main project
@@ -210,10 +232,6 @@ define(function (require, exports, module) {
                 FileIndexManager.markDirty();
             });
             
-            $(window).unload(function () {
-                CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
-            });
-            
             $(window).contextmenu(function (e) {
                 e.preventDefault();
             });
@@ -224,6 +242,15 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editorHolder'));
+
+        // Let the user know Brackets doesn't run in a web browser yet
+        if (brackets.inBrowser) {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
+                Strings.ERROR_BRACKETS_IN_BROWSER
+            );
+        }
     
         initListeners();
         initProject();
@@ -255,10 +282,19 @@ define(function (require, exports, module) {
             "extensions/user"
         );
         
-        // Use unobtrusive scrollbars if we aren't on Lion
+        // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
+        // use native scroll bars when the mouse is not plugged in or when
+        // using the "Always" scroll bar setting. 
         var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
-        if (!(osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7)) {
-            $(".sidebar").addClass("quiet-scrollbars");
+        if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
+            // test a scrolling div for scrollbars
+            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(document.body);
+            
+            if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
+                $(".sidebar").removeClass("quiet-scrollbars");
+            }
+            
+            $testDiv.remove();
         }
         
         PerfUtils.addMeasurement("Application Startup");
