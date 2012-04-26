@@ -214,13 +214,15 @@ define(function (require, exports, module) {
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
+        var $nameWithTooltip = $("<span></span>").text(doc.file.name).attr("title", doc.file.fullPath);
         var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
-        
+
         $filenameDiv.append($dirtyIndicatorDiv)
-                    .append(doc.file.name + " : ")
-                    .append($lineNumber);
+            .append($nameWithTooltip)
+            .append(" : ")
+            .append($lineNumber);
         $wrapperDiv.append($filenameDiv);
-        
+
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
