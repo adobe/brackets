@@ -68,7 +68,8 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
-        ExtensionLoader         = require("utils/ExtensionLoader");
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        ViewUtils               = require("utils/ViewUtils.js");
         
     //Load modules the self-register and just need to get included in the main project
     require("language/JSLintUtils");
@@ -251,13 +252,86 @@ define(function (require, exports, module) {
                 Strings.ERROR_BRACKETS_IN_BROWSER
             );
         }
-    
+        
+        function initSidebarListeners() {
+            $(".sidebar").mousemove(function (e) {
+                var sidebar_width = parseInt($(".sidebar").width(), 10);
+                var sidebar_diff = sidebar_width - e.screenX;
+                console.log(sidebar_diff);
+                var sidebar_resizer = $('<div/>', {id: 'sidebar-resizer'});
+                
+                // set 15 pixels as the threshold, if we're moving the mouse within
+                // 15 pixels of the sidebar edge, assume we may want to resize. 
+                if (sidebar_diff < 15) {
+                    console.log($("#blah").length);
+                    if ($("#sidebar-resizer").length === 0) {
+                        $(sidebar_resizer).css("width", 3);
+                        $(sidebar_resizer).css("height", "100%");
+                        $(sidebar_resizer).css("position", "absolute");
+                        $(sidebar_resizer).css("left", sidebar_width - 3);
+                        $(sidebar_resizer).css("top", 0);
+                        $(sidebar_resizer).css("z-index", 50);
+                        $(sidebar_resizer).css("background-color", "#f00");
+
+                        // make it invisible because we don't want to mess with XD's design
+                        $(sidebar_resizer).css("opacity", 0);
+                        
+                        $(sidebar_resizer).css("cursor", "col-resize");
+                        
+                        // Append to .main-view so it's not limited to sidebar events.
+                        $(sidebar_resizer).appendTo(".main-view");
+                        
+                        // When we mouseup, stop the drag and kill the div. 
+                        $(sidebar_resizer).bind('mouseup', function (e) {
+                            $(".main-view").unbind('mousemove');
+                            
+                            // if we're close to the edge of the screen, leave the resizer there
+                            // so we can get the sidebar back. 
+                            if (e.screenX > 5) {
+                                // good-bye sweet resizer. Until we meet again.
+                                $(sidebar_resizer).remove();
+                            }
+                            e.preventDefault();
+                        });
+                        $(sidebar_resizer).bind('mousedown', function (e) {
+                            $(".main-view").bind('mousemove', function (e) {
+                                // as we drag, move the resizer and have it slighly overlap both panels
+                                // (the sidebar and the main code editor)
+                                $(sidebar_resizer).css("left", e.screenX - 2);
+                                
+                                // this doesn't seem to update quite as quickly as would be ideal.
+                                // it sometimes leaves a space if you drag really fast. 
+                                ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
+                                
+                                // change the project title element
+                                $("#project-title").width(e.screenX);
+                                
+                                // change the scroller shadow 
+                                $("#project-files-container .scrollerShadow").css("width", e.screenX);
+                                
+                                // move the selection triangle accordingly (and offset it by its width)
+                                $(".sidebarSelectionTriangle").css("left", e.screenX - 10);
+
+                                // finally move the scrollbar
+                                $(".sidebar").width(e.screenX);
+                                e.preventDefault();
+                            });
+                        });
+                        
+                        
+                    }
+                }
+                // e.preventDefault(); - what did I have this for?
+            });
+        }
+
         initListeners();
         initProject();
         initCommandHandlers();
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
         initWindowListeners();
+        initSidebarListeners();
 
         // Load extensions
 

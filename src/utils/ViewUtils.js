@@ -46,10 +46,13 @@ define(function (require, exports, module) {
         //clear the width first so we get the natural scrollWidth below
         $children.width("");
         
+        // I don't think we want the parent here. We want the overall sidebar width. 
         var targetWidth = $parent[0].scrollWidth -
             parseInt($parent.css("paddingLeft"), 10) -
             parseInt($parent.css("paddingRight"), 10);
         
+        targetWidth = $(".sidebar").width();
+        console.log($parent[0]);
         $children.width(targetWidth);
     }
 

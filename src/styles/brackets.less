@@ -198,9 +198,10 @@ a, img {
     position: relative;
     
     .project-file-header-area {
-        padding: 6px 6px 2px 10px;
+        padding: 6px 0px 2px 10px;
         font-size: 14px;
         color: #929292;
+        overflow: hidden;
     }
 
     .file-list-divider {
@@ -270,7 +271,6 @@ a, img {
     width: 10px;
     height: 25px;
     position: fixed;
-
     z-index: 20; /* scrollerShadow appears above this triangle */
 }
 
@@ -309,7 +309,7 @@ a, img {
 }
 
 .sidebar .scrollerShadow {
-    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+    //max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
 }
 
 #editorHolder .scrollerShadow {
