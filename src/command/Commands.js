@@ -58,6 +58,7 @@ define(function (require, exports, module) {
     exports.EDIT_REPLACE        = "edit.replace";
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
+    exports.EDIT_LINE_COMMENT   = "edit.lineComment";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR  = "view.hideSidebar";
