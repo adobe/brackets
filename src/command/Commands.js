@@ -77,6 +77,6 @@ define(function (require, exports, module) {
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
     exports.DEBUG_USE_TAB_CHARS = "debug.useTabChars";
 
-
+    exports.HELP_ABOUT = "help.about";
 });
 
