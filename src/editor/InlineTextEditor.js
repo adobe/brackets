@@ -1,6 +1,26 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
+
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, $: false, CodeMirror: false */
@@ -194,13 +214,15 @@ define(function (require, exports, module) {
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
+        var $nameWithTooltip = $("<span></span>").text(doc.file.name).attr("title", doc.file.fullPath);
         var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
-        
+
         $filenameDiv.append($dirtyIndicatorDiv)
-                    .append(doc.file.name + " : ")
-                    .append($lineNumber);
+            .append($nameWithTooltip)
+            .append(" : ")
+            .append($lineNumber);
         $wrapperDiv.append($filenameDiv);
-        
+
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
@@ -222,10 +244,7 @@ define(function (require, exports, module) {
         });
         
         // set dirty indicator state
-        // use setTimeout to allow filenameDiv to render first
-        setTimeout(function () {
-            _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
-        }, 0);
+        _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
     };
 
     /**

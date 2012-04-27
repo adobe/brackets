@@ -1,3 +1,25 @@
+
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+//  
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// DEALINGS IN THE SOFTWARE.
+
+
 /* Brackets patterns (and overrides and re-definitions of Bootstrap patterns)
  *
  * This file should contain all _reusable_ UI elements / LESS definitions
@@ -124,6 +146,15 @@
     
     .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
+        
+        .experimental-label {
+            color: #a0a0a0;
+            font-size: 15px;
+            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
+            font-weight: normal;
+            font-style: italic;
+            padding-right: 22px;
+        }
     }
 }
 
@@ -260,10 +291,12 @@
     font-size: 16px;
     font-weight: @font-weight-semibold;
     color: #454545;
-
+    
+    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
+    // too so we don't see the color cross-fading during the gradient slide animation
+    background-color: #fff;
     &:hover {
         background-position: 0 15px;
-        background-color: #fff;
     }
 
     &.primary {

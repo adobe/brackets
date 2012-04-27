@@ -26,7 +26,7 @@ define(function (require, exports, module) {
             
             beforeEach(function () {
                 /* 100% x 100px scroller with 100px x 1000px content */
-                $fixture = $("<div style='overflow:auto;height:100px'><div style='width:100px;height:1000px'></div></div>");
+                $fixture = $("<div style='overflow:auto;height:100px'><div id='content' style='width:100px;height:1000px'></div></div>");
                 fixture = $fixture[0];
                 $(document.body).append($fixture);
             });
@@ -42,36 +42,43 @@ define(function (require, exports, module) {
                 $fixture.trigger("scroll");
             }
             
-            function backgroundY() {
-                return parseInt($fixture.css("background-position").split(" ")[1], 10);
+            function backgroundY(position) {
+                return parseInt($fixture.find(".scrollerShadow." + position).css("background-position").split(" ")[1], 10);
             }
         
             it("should not show the top shadow when no scrolling is available", function () {
-                ViewUtils.installScrollShadow(fixture);
+                $fixture.find("#content").height(50); // make height shorter than the viewport
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 
                 expect(fixture.scrollTop).toEqual(0);
-                expect(backgroundY()).toEqual(-ViewUtils.SCROLL_SHADOW_HEIGHT);
+                expect(backgroundY("top")).toEqual(-ViewUtils.SCROLL_SHADOW_HEIGHT);
+                expect(backgroundY("bottom")).toEqual(ViewUtils.SCROLL_SHADOW_HEIGHT);
             });
         
             it("should partially reveal the shadow", function () {
-                ViewUtils.installScrollShadow($fixture[0]);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 scrollTop(3);
+                expect(backgroundY("top")).toEqual(3 - ViewUtils.SCROLL_SHADOW_HEIGHT);
+                expect(backgroundY("bottom")).toEqual(0);
                 
-                expect(backgroundY()).toEqual(3 - ViewUtils.SCROLL_SHADOW_HEIGHT);
+                scrollTop(899);
+                expect(backgroundY("top")).toEqual(0);
+                expect(backgroundY("bottom")).toEqual(4);
             });
         
             it("should update shadow position when installed", function () {
                 scrollTop(100);
-                ViewUtils.installScrollShadow($fixture[0]);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 
-                expect(backgroundY()).toEqual(0);
+                expect(backgroundY("top")).toEqual(0);
             });
         
             it("should fully reveal the shadow at the bottommost scroll position", function () {
-                ViewUtils.installScrollShadow($fixture[0]);
+                ViewUtils.addScrollerShadow(fixture, null, true);
                 scrollTop(900);
                 
-                expect(backgroundY()).toEqual(0);
+                expect(backgroundY("top")).toEqual(0);
+                expect(backgroundY("bottom")).toEqual(ViewUtils.SCROLL_SHADOW_HEIGHT);
             });
         
         });

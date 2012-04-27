@@ -1,5 +1,24 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
@@ -73,6 +92,22 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /**
+     * @private
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+            
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
+            _projectTree.triggerHandler("contentChanged");
+        }
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
@@ -93,13 +128,8 @@ define(function (require, exports, module) {
             _projectTree.jstree("deselect_all");
         }
         
-        // redraw selection
-        if ($projectTreeList) {
-            $projectTreeList.trigger("selectionChanged");
-        }
+        _fireSelectionChanged();
     };
-
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
 
     /**
      * Unique PreferencesManager clientID
@@ -261,6 +291,9 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    
+                    // update when tree display state changes
+                    _fireSelectionChanged();
                     _savePreferences();
                 }
             );
@@ -273,7 +306,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.installScrollShadow(_projectTree[0]);
+            ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
                 .unbind("dblclick.jstree")
@@ -740,6 +773,10 @@ define(function (require, exports, module) {
         
         // Init PreferenceStorage
         _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+        // Event Handlers
+        $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+        $("#open-files-container").on("contentChanged", _fireSelectionChanged); // redraw jstree when working set size changes
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());
