@@ -257,13 +257,12 @@ define(function (require, exports, module) {
             $(".sidebar").mousemove(function (e) {
                 var sidebar_width = parseInt($(".sidebar").width(), 10);
                 var sidebar_diff = sidebar_width - e.screenX;
-                console.log(sidebar_diff);
+
                 var sidebar_resizer = $('<div/>', {id: 'sidebar-resizer'});
                 
                 // set 15 pixels as the threshold, if we're moving the mouse within
                 // 15 pixels of the sidebar edge, assume we may want to resize. 
                 if (sidebar_diff < 15) {
-                    console.log($("#blah").length);
                     if ($("#sidebar-resizer").length === 0) {
                         $(sidebar_resizer).css("width", 3);
                         $(sidebar_resizer).css("height", "100%");
