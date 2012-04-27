@@ -44,7 +44,8 @@ define(function (require, exports, module) {
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
+        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
+        DIALOG_ID_ABOUT = "about-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -108,8 +109,10 @@ define(function (require, exports, module) {
      *    of elements with "dialog-button" class, each of which has a "data-button-id".
      *
      * @param {string} dlgClass The class of the dialog node in the HTML.
-     * @param {string} title The title of the error dialog. Can contain HTML markup.
-     * @param {string} message The message to display in the error dialog. Can contain HTML markup.
+     * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
+     *      the HTML template is used unchanged.
+     * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
+     *      unspecified, body in the HTML template is used unchanged.
      * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
@@ -125,10 +128,18 @@ define(function (require, exports, module) {
             .removeClass("template")
             .addClass("instance")
             .appendTo(document.body);
+        
+        if (dlg.length === 0) {
+            throw new Error("Dialog id " + dlgClass + " does not exist");
+        }
 
         // Set title and message
-        $(".dialog-title", dlg).html(title);
-        $(".dialog-message", dlg).html(message);
+        if (title) {
+            $(".dialog-title", dlg).html(title);
+        }
+        if (message) {
+            $(".dialog-message", dlg).html(message);
+        }
 
         var handleKeyDown = _handleKeyDown.bind(dlg);
 
@@ -201,6 +212,7 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_CHANGED = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
     exports.DIALOG_ID_LIVE_DEVELOPMENT = DIALOG_ID_LIVE_DEVELOPMENT;
+    exports.DIALOG_ID_ABOUT = DIALOG_ID_ABOUT;
     
     exports.showModalDialog = showModalDialog;
     exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;
