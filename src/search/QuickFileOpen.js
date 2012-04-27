@@ -6,16 +6,16 @@
 /*global define, $ */
 
 /*
-* Displays an auto suggest popup list of files to allow the user to quickly navigate to a file and lines
+* Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
 * within a file.
 * Uses FileIndexManger to supply the file list.
 * 
-* TODO (issue 333) - currently jquery smart auto complete is used for the popup list. While it mostly works
+* TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
 * it has several issues, so it should be replace with an alternative. Issues:
-* - only accepts an array of strings. A list of objects is preferred to avoid some work arounds to display 
+* - only accepts an array of strings. A list of objects is preferred to avoid some workarounds to display 
 *   both the path and filename.
-* - the popup position logic has flaws that require css work-arounds
-* - the popup properties cannot be modified once the object is constructed
+* - the pop-up position logic has flaws that require CSS workarounds
+* - the pop-up properties cannot be modified once the object is constructed
 */
 
 
@@ -23,7 +23,6 @@ define(function (require, exports, module) {
     'use strict';
     
     var FileIndexManager    = require("project/FileIndexManager"),
-        JSLintUtils         = require("language/JSLintUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
@@ -39,17 +38,19 @@ define(function (require, exports, module) {
 
     /** @type {QuickOpenPlugin} */
     var currentPlugin = null;
+
+    /** @type Array.<FileInfo>*/
     var fileList;
 
     /**
-     * Rembers the current document that was displayed when showDialog() was called
+     * Remembers the current document that was displayed when showDialog() was called
      * The current document is restored if the user presses escape
-     * @type {string} fullpath
+     * @type {string} full path
      */
     var origDocPath;
 
     /**
-     * Rembers the selection in the document origDocPath that was present when showDialog() was called.
+     * Remembers the selection in the document origDocPath that was present when showDialog() was called.
      * Focusing on an item can cause the current and and/or selection to change, so this variable restores it.
      * The cursor position is restored if the user presses escape.
      * @type ?{start:{line:number, ch:number}, end:{line:number, ch:number}}
@@ -59,15 +60,15 @@ define(function (require, exports, module) {
     var dialogOpen = false;
 
     /**
-     * Defines API for new QuickOpen plguins
-     * @param {string} plugin name
-     * @param {Array.<string>} filetypes array. Example: ["js", "css", "txt"]
-     * @param {Function} called when quick open is complete. Plugin should clear it's internal state
+     * Defines API for new QuickOpen plug-ins
+     * @param {string} plug-in name
+     * @param {Array.<string>} file types array. Example: ["js", "css", "txt"]
+     * @param {Function} called when quick open is complete. Plug-in should clear it's internal state
      * @param {Function} filter takes a query string and returns an array of strings that match the query
-     * @param {?Functon} match takes a query string and returns true if this plugin wants to provide results for this query
+     * @param {?Functon} match takes a query string and returns true if this plug-in wants to provide results for this query
      * @param {Functon} itemFocus performs an action when a result has focus
-     * @param {Functon} itemSelect performs an action when a result is choosen
-     * @param {?Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search resuklts
+     * @param {Functon} itemSelect performs an action when a result is chosen
+     * @param {?Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search results
      */
     function QuickOpenPlugin(name, fileTypes, done, filter, match, itemFocus, itemSelect, resultsFormatter) {
         
@@ -83,7 +84,7 @@ define(function (require, exports, module) {
     
     /**
      * Registers new QuickOpenPlugin
-     * @param {QuickOpenPlugin} plugin
+     * @param {QuickOpenPlugin} plug-in
      */
     function addQuickOpenPlugin(plugin) {
         plugins.push(new QuickOpenPlugin(
@@ -183,7 +184,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Opens the file specified by selected item if there is no current plugin, otherwise defers handling
+     * Opens the file specified by selected item if there is no current plug-in, otherwise defers handling
      * to the currentPlugin
      */
     QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
@@ -231,8 +232,8 @@ define(function (require, exports, module) {
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
-        // clear the query on ESC key and restore document and cursor poisition
-        if (event.keyCode === 13 || e.keyCode === 27 ) { // enter or esc key
+        // clear the query on ESC key and restore document and cursor position
+        if (event.keyCode === 13 || e.keyCode === 27 ) { // enter or ESC key
             e.stopPropagation();
             e.preventDefault();
 
@@ -274,12 +275,13 @@ define(function (require, exports, module) {
             plugin.done();
         }
 
-        JSLintUtils.setEnabled(true);
+        // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
+        //JSLintUtils.setEnabled(true);
 
         EditorManager.focusEditor();
 
         // for some odd reason I need to remove the dialog like this through the parent
-        // If I do it more directly listeners are not removed by the smart auto complete plugin
+        // If I do it more directly listeners are not removed by the smart auto complete plug-in
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
 
@@ -388,8 +390,8 @@ define(function (require, exports, module) {
         initialValue = initialValue || "";
         var $field = $('input#quickFileOpenSearch');
         if ($field) {
-            $field.val(initialValue);
-            setCaretPosition($field.get(0), initialValue.length);
+            $field.val(initialValue)
+               . select();
         }
     }
     
@@ -418,9 +420,9 @@ define(function (require, exports, module) {
         $(document).on("mousedown", this.handleDocumentClick);
 
 
-
-        // To improve performance during list selection disable JSLint until a document is choosen or dialog is closed
-        JSLintUtils.setEnabled(false);
+        // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
+        // To improve performance during list selection disable JSLint until a document is chosen or dialog is closed
+        //JSLintUtils.setEnabled(false);
 
         var curDoc = DocumentManager.getCurrentDocument();
         origDocPath = curDoc ? curDoc.file.fullPath : null;
@@ -430,8 +432,7 @@ define(function (require, exports, module) {
             origSelection = null;
         }
 
-
-        // Move file list getting code so all this code isn't wrapped in it 
+        // Get the file list and initialize the smart auto completes
         FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
@@ -457,7 +458,7 @@ define(function (require, exports, module) {
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
                     keydown: function (e) { that._handleKeyDown(e); },
                     keyIn: function (e, query) { that._handleKeyIn(e, query); }
-                    // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediatelly
+                    // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
                     // triggers lostFocus
                 });
         
@@ -488,14 +489,14 @@ define(function (require, exports, module) {
 
     function doGotoLine() {
         // TODO: Brackets doesn't support disabled menu items right now, when it does goto line and
-        // goto definiton should be disabled when there is not a current document
+        // goto definition should be disabled when there is not a current document
         if (DocumentManager.getCurrentDocument()) {
             doSearch(":", "");
         }
     }
 
 
-    // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plugin
+    // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plug-in
     function doDefinitionSearch() {
         if (DocumentManager.getCurrentDocument()) {
             doSearch("@", getCurrentEditorSelectedText());
@@ -504,7 +505,7 @@ define(function (require, exports, module) {
 
 
 
-    // TODO: in future we would dynamally discover quick open plugins and get their plugins
+    // TODO: in future we would dynamical discover quick open plug-ins and get their plug-ins
     var jsFuncPlugin = QuickOpenJSSymbol.getPlugin();
     addQuickOpenPlugin(jsFuncPlugin);
 
@@ -514,7 +515,7 @@ define(function (require, exports, module) {
     var htmlIDPlugin = QuickOpenHTML.getPlugin();
     addQuickOpenPlugin(htmlIDPlugin);
 
-    // TODO: allow QuickOpenJS to register it's own commands and keybindings
+    // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Commands.NAVIGATE_QUICK_OPEN, doFileSearch);
     CommandManager.register(Commands.NAVIGATE_GOTO_DEFINITION, doDefinitionSearch);
     CommandManager.register(Commands.NAVIGATE_GOTO_LINE, doGotoLine);

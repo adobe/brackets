@@ -70,7 +70,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Retrieves the FileLocation object stored in the functionsList for a given functon name
+     * Retrieves the FileLocation object stored in the functionsList for a given function name
      * @param {string} functionName
      * @returns {FileLocation}
      */
@@ -179,7 +179,7 @@ define(function (require, exports, module) {
 
     /**
      * @param {string} query what the user is searching for
-     * @param {boolean} returns true if this plugin wants to provide results for this query
+     * @param {boolean} returns true if this plug-in wants to provide results for this query
      */
     function match(query) {
         if (query.indexOf("@") !== -1) {
@@ -210,8 +210,8 @@ define(function (require, exports, module) {
 
 
     /**
-     * Returns quick open plugin
-     * TODO: would like to use the QuickOpenPlugin plugin object type in QuickFileOpen.js,
+     * Returns quick open plug-in
+     * TODO: would like to use the QuickOpenPlugin plug-in object type in QuickFileOpen.js,
      * but right now I can't make this file depend on  QuickFileOpen.js because it would
      * create a circular dependency
      */

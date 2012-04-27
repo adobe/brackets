@@ -513,7 +513,6 @@ define(function (require, exports, module) {
         }
     };
     
-    
     /**
      * Handles changes from the master backing Editor. Changes are triggered either by direct edits
      * to that Editor's UI, OR by our setText()/refreshText() methods.

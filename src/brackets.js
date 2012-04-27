@@ -181,7 +181,8 @@ define(function (require, exports, module) {
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     {"Ctrl-T": Commands.NAVIGATE_GOTO_DEFINITION},
-                    {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE},
+                    {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE, "platform": "win"},
+                    {"Ctrl-G": Commands.NAVIGATE_GOTO_LINE, "platform": "mac"},
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
                     {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
                     {"Alt-Down": Commands.NEXT_CSS_RULE},
