@@ -93,6 +93,7 @@ a, img {
 #editorHolder {
     .vbox;
     .box-flex(1);
+    position: relative;
     
     /* Placeholder shown when there is no editor open */
     #notEditor {
@@ -271,7 +272,7 @@ a, img {
     height: 25px;
     position: fixed;
 
-    z-index: 20; /* scrollerShadow appears above this triangle */
+    z-index: 10; /* scrollerShadow appears above this triangle */
 }
 
 .sidebarSelectionTriangle:before {
@@ -309,7 +310,8 @@ a, img {
 }
 
 .sidebar .scrollerShadow {
-    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+    min-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+    max-width: @sidebar-width;
 }
 
 #editorHolder .scrollerShadow {
@@ -321,7 +323,7 @@ a, img {
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
-    z-index: 21;
+    z-index: 11;
     
     &.top {
         #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
