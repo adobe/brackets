@@ -369,29 +369,34 @@ define(function (require, exports, module) {
         }
     }
 
-    function setCaretPosition(elem, caretPos) {
-        if (elem !== null) {
-            if (elem.createTextRange) {
-                var range = elem.createTextRange();
-                range.move('character', caretPos);
-                range.select();
-            } else {
-                if (elem.selectionStart) {
-                    elem.focus();
-                    elem.setSelectionRange(caretPos, caretPos);
-                } else {
-                    elem.focus();
-                }
-            }
+    function selectFieldRange(field, start, end) {
+        if( field.createTextRange ) {
+            var selRange = field.createTextRange();
+            selRange.collapse(true);
+            selRange.moveStart('character', start);
+            selRange.moveEnd('character', end-start);
+            selRange.select();
+        } else if (field.setSelectionRange) {
+            field.setSelectionRange(start, end);
+        } else if (field.selectionStart) {
+            field.selectionStart = start;
+            field.selectionEnd = end;
         }
+
+        field.focus();
     }
 
-    function setSearchFieldValue(initialValue) {
-        initialValue = initialValue || "";
+
+    function setSearchFieldValue(prefix, initialString) {
+        prefix = prefix || "";
+        initialString = initialString || "";
+        initialString = prefix + initialString;
+
+        
         var $field = $('input#quickFileOpenSearch');
         if ($field) {
-            $field.val(initialValue)
-               . select();
+            $field.val(initialString);
+            selectFieldRange($field.get(0), prefix.length, initialString.length + prefix.length);
         }
     }
     
@@ -408,7 +413,7 @@ define(function (require, exports, module) {
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
     */
-    QuickNavigateDialog.prototype.showDialog = function (initialValue) {
+    QuickNavigateDialog.prototype.showDialog = function (prefix, initialString) {
         var that = this;
 
         if (dialogOpen) {
@@ -462,7 +467,7 @@ define(function (require, exports, module) {
                     // triggers lostFocus
                 });
         
-                setSearchFieldValue(initialValue);
+                setSearchFieldValue(prefix, initialString);
             });
     };
 
@@ -472,14 +477,11 @@ define(function (require, exports, module) {
     }
 
     function doSearch(prefix, initialString) {
-        prefix = prefix || "";
-        initialString = prefix + initialString;
-
         if (dialogOpen) {
-            setSearchFieldValue(initialString);
+            setSearchFieldValue(prefix, initialString);
         } else {
             var dialog = new QuickNavigateDialog();
-            dialog.showDialog(initialString);
+            dialog.showDialog(prefix, initialString);
         }
     }
 

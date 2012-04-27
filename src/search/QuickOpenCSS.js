@@ -91,7 +91,10 @@ define(function (require, exports, module) {
      * @param {boolean} returns true if this plugin wants to provide results for this query
      */
     function match(query) {
-        if (query.indexOf("@") !== -1) {
+        // TODO: match any location of @ when QuickFileOpen._handleItemFocus() is modified to
+        // dynamic open files
+        //if (query.indexOf("@") !== -1) {
+        if (query.indexOf("@") === 0) {
             return true;
         }
     }
