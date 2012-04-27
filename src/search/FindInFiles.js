@@ -82,9 +82,8 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-            
         this.dialog.parentNode.removeChild(this.dialog);
-
+        EditorManager.focusEditor();
         this.result.resolve(value);
     };
         
