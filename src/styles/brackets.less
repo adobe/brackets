@@ -93,6 +93,7 @@ a, img {
 #editorHolder {
     .vbox;
     .box-flex(1);
+    position: relative;
     
     /* Placeholder shown when there is no editor open */
     #notEditor {
@@ -271,7 +272,8 @@ a, img {
     width: 10px;
     height: 25px;
     position: fixed;
-    z-index: 20; /* scrollerShadow appears above this triangle */
+
+    z-index: 10; /* scrollerShadow appears above this triangle */
 }
 
 .sidebarSelectionTriangle:before {
@@ -321,7 +323,7 @@ a, img {
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
-    z-index: 21;
+    z-index: 11;
     
     &.top {
         #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
