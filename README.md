@@ -75,7 +75,6 @@ Not sure you needed the exclamation point there, but I like your enthusiasm.
 * **IRC:** [#brackets on freenode](http://freenode.net)
 * **Mailing list (users):** http://groups.google.com/group/codebrackets
 * **Mailing list (developers):** http://groups.google.com/group/brackets-dev
-* **Google+:** [Brackets](https://plus.google.com/b/115365194873502050036/)
 
 
 
