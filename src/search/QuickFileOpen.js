@@ -190,7 +190,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
         if (currentPlugin) {
             currentPlugin.itemFocus(selectedItem);
-        } 
+        }
         /*
         else {
             Disable opening files on focus for now since this causes focus related bugs between 
@@ -232,12 +232,14 @@ define(function (require, exports, module) {
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
+        var ESCKey = 27, EnterKey = 13;
+
         // clear the query on ESC key and restore document and cursor position
-        if (event.keyCode === 13 || e.keyCode === 27 ) { // enter or ESC key
+        if (event.keyCode === EnterKey || e.keyCode === ESCKey) {
             e.stopPropagation();
             e.preventDefault();
 
-            if (e.keyCode === 27) {
+            if (e.keyCode === ESCKey) {
 
                 // restore previously view doc if user navigated away from it
                 if (origDocPath) {
@@ -252,7 +254,7 @@ define(function (require, exports, module) {
                 this._close();
             }
 
-            if (e.keyCode === 27) {
+            if (e.keyCode === EnterKey) {
                 this._handleItemSelect();
             }
             
@@ -270,6 +272,7 @@ define(function (require, exports, module) {
         }
         dialogOpen = false;
 
+        var i;
         for (i = 0; i < plugins.length; i++) {
             var plugin = plugins[i];
             plugin.done();
@@ -370,11 +373,11 @@ define(function (require, exports, module) {
     }
 
     function selectFieldRange(field, start, end) {
-        if( field.createTextRange ) {
+        if (field.createTextRange) {
             var selRange = field.createTextRange();
             selRange.collapse(true);
             selRange.moveStart('character', start);
-            selRange.moveEnd('character', end-start);
+            selRange.moveEnd('character', end - start);
             selRange.select();
         } else if (field.setSelectionRange) {
             field.setSelectionRange(start, end);
