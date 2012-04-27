@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                         $(sidebar_resizer).css("background-color", "#f00");
 
                         // make it invisible because we don't want to mess with XD's design
-                        //$(sidebar_resizer).css("opacity", 0);
+                        $(sidebar_resizer).css("opacity", 0);
                         
                         $(sidebar_resizer).css("cursor", "col-resize");
                         
