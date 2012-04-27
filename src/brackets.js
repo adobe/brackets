@@ -256,7 +256,7 @@ define(function (require, exports, module) {
         function initSidebarListeners() {
             $(".sidebar").mousemove(function (e) {
                 var sidebar_width = parseInt($(".sidebar").width(), 10);
-                var sidebar_diff = sidebar_width - e.screenX;
+                var sidebar_diff = sidebar_width - e.clientX;
 
                 var sidebar_resizer = $('<div/>', {id: 'sidebar-resizer'});
                 
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                         $(sidebar_resizer).css("background-color", "#f00");
 
                         // make it invisible because we don't want to mess with XD's design
-                        $(sidebar_resizer).css("opacity", 0);
+                        //$(sidebar_resizer).css("opacity", 0);
                         
                         $(sidebar_resizer).css("cursor", "col-resize");
                         
@@ -282,6 +282,7 @@ define(function (require, exports, module) {
                         
                         // When we mouseup, stop the drag and kill the div. 
                         $(sidebar_resizer).bind('mouseup', function (e) {
+                            console.log('mouseup');
                             $(".main-view").unbind('mousemove');
                             
                             // if we're close to the edge of the screen, leave the resizer there
@@ -296,23 +297,23 @@ define(function (require, exports, module) {
                             $(".main-view").bind('mousemove', function (e) {
                                 // as we drag, move the resizer and have it slighly overlap both panels
                                 // (the sidebar and the main code editor)
-                                $(sidebar_resizer).css("left", e.screenX - 2);
+                                $(sidebar_resizer).css("left", e.clientX - 2);
                                 
                                 // this doesn't seem to update quite as quickly as would be ideal.
                                 // it sometimes leaves a space if you drag really fast. 
                                 ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
                                 
                                 // change the project title element
-                                $("#project-title").width(e.screenX);
+                                $("#project-title").width(e.clientX);
                                 
                                 // change the scroller shadow 
-                                $("#project-files-container .scrollerShadow").css("width", e.screenX);
+                                $("#project-files-container .scrollerShadow").css("width", e.clientX);
                                 
                                 // move the selection triangle accordingly (and offset it by its width)
-                                $(".sidebarSelectionTriangle").css("left", e.screenX - 10);
+                                $(".sidebarSelectionTriangle").css("left", e.clientX - 10);
 
                                 // finally move the scrollbar
-                                $(".sidebar").width(e.screenX);
+                                $(".sidebar").width(e.clientX);
                                 e.preventDefault();
                             });
                         });
@@ -320,7 +321,6 @@ define(function (require, exports, module) {
                         
                     }
                 }
-                // e.preventDefault(); - what did I have this for?
             });
         }
 
