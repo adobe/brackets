@@ -271,10 +271,10 @@ a, img {
     height: 25px;
     position: fixed;
 
-    z-index: 20; /* scrollerShadow appears above this triangle */
+    z-index: 10; /* scrollerShadow appears above this triangle */
 }
 
-.sidebarSelectionTriangle:before {
+.sidebarSelectionTriangle.triangleVisible:before {
     content: "";
     
     border-top: @triangle-size solid transparent;
