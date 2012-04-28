@@ -293,6 +293,17 @@ a, img {
     .scaleX(0.9, right, top);
 }
 
+ .sidebarResizer {
+    width: 3px;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    z-index: 50;
+    background-color: #f00;
+    opacity: 0; // make it invisible so we don't mess with the design.
+    cursor: col-resize;
+}
+
 //Initially start with the open files hidden, they will get show as files are added
 #open-files-container {
     display:none;
@@ -308,10 +319,6 @@ a, img {
     ul {
         padding-left: 8px;
     }
-}
-
-.sidebar .scrollerShadow {
-    //max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
 }
 
 #editorHolder .scrollerShadow {

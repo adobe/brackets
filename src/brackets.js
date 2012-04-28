@@ -265,32 +265,21 @@ define(function (require, exports, module) {
                 var sidebar_width = parseInt($(".sidebar").width(), 10);
                 var sidebar_diff = sidebar_width - e.clientX;
 
-                var sidebar_resizer = $('<div/>', {id: 'sidebar-resizer'});
+                var sidebar_resizer = $("<div/>", {id: "sidebar-resizer"});
                 
                 // set 15 pixels as the threshold, if we're moving the mouse within
                 // 15 pixels of the sidebar edge, assume we may want to resize. 
                 if (sidebar_diff < 15) {
                     if ($("#sidebar-resizer").length === 0) {
-                        $(sidebar_resizer).css("width", 3);
-                        $(sidebar_resizer).css("height", "100%");
-                        $(sidebar_resizer).css("position", "absolute");
+                        $(sidebar_resizer).addClass("sidebarResizer");
                         $(sidebar_resizer).css("left", sidebar_width - 3);
-                        $(sidebar_resizer).css("top", 0);
-                        $(sidebar_resizer).css("z-index", 50);
-                        $(sidebar_resizer).css("background-color", "#f00");
-
-                        // make it invisible because we don't want to mess with XD's design
-                        $(sidebar_resizer).css("opacity", 0);
-                        
-                        $(sidebar_resizer).css("cursor", "col-resize");
                         
                         // Append to .main-view so it's not limited to sidebar events.
                         $(sidebar_resizer).appendTo(".main-view");
                         
                         // When we mouseup, stop the drag and kill the div. 
-                        $(sidebar_resizer).bind('mouseup', function (e) {
-                            console.log('mouseup');
-                            $(".main-view").unbind('mousemove');
+                        $(sidebar_resizer).bind("mouseup", function (e) {
+                            $(".main-view").unbind("mousemove");
                             
                             // if we're close to the edge of the screen, leave the resizer there
                             // so we can get the sidebar back. 
@@ -300,8 +289,8 @@ define(function (require, exports, module) {
                             }
                             e.preventDefault();
                         });
-                        $(sidebar_resizer).bind('mousedown', function (e) {
-                            $(".main-view").bind('mousemove', function (e) {
+                        $(sidebar_resizer).bind("mousedown", function (e) {
+                            $(".main-view").bind("mousemove", function (e) {
                                 // as we drag, move the resizer and have it slighly overlap both panels
                                 // (the sidebar and the main code editor)
                                 $(sidebar_resizer).css("left", e.clientX - 2);
@@ -317,7 +306,9 @@ define(function (require, exports, module) {
                                 $("#project-files-container .scrollerShadow").css("width", e.clientX);
                                 
                                 // move the selection triangle accordingly (and offset it by its width)
-                                $(".sidebarSelectionTriangle").css("left", e.clientX - 10);
+                                var triangle_width = parseInt($(".sidebarSelectionTriangle").width(), 10);
+                                
+                                $(".sidebarSelectionTriangle").css("left", e.clientX - triangle_width);
 
                                 // finally move the scrollbar
                                 $(".sidebar").width(e.clientX);
