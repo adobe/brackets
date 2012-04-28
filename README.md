@@ -30,12 +30,10 @@ for awhile now, so what's there is reasonably stable.
 Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
-
-You can download the latest builds from https://github.com/adobe/brackets/downloads
-and run Brackets from the bin/win or bin/mac folder.
-(If you just pulled the http://github.com/adobe/brackets repo, you actually 
-need to grab the http://github.com/adobe/brackets-app repo, which includes 
-the brackets repo as a submodule, and run it from there.)
+The native shell for Brackets lives in a separate repo, 
+http://github.com/adobe/brackets-app, which includes this repo as a submodule.
+See [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
+for instructions on how to pull everything down.
 
 By default, Brackets shows its own source code (MIND BLOWN). You can choose
 a different folder to edit from *File > Open Folder*.
