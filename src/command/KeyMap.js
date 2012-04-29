@@ -132,9 +132,6 @@ define(function (require, exports, module) {
             } else if (finalMap[normalizedKey]) {
                 console.log("KeyMap _normalizeMap() - Rejecting key because it was defined twice: " + ele + " (value: " + val + ")");
             } else {
-                if (normalizedKey !== ele) {
-                    console.log("KeyMap _normalizeMap() - Corrected a malformed key: " + ele + " (value: " + val + ")");
-                }
                 finalMap[normalizedKey] = val;
             }
         });
