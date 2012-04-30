@@ -31,7 +31,7 @@ Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
-http://github.com/adobe/brackets-app, which includes this repo as a submodule.
+[adobe/brackets-app](https://github.com/adobe/brackets-app/), which includes this repo as a submodule.
 
 You can download "stable" builds of Brackets from the
 [downloads page](http://github.com/adobe/brackets/downloads).
