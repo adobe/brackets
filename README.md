@@ -32,8 +32,12 @@ application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
 http://github.com/adobe/brackets-app, which includes this repo as a submodule.
-See [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
-for instructions on how to pull everything down.
+
+You can download a ZIP of Brackets from http://github.com/adobe/brackets/downloads.
+If you want to pull the repos directly via git, see 
+[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
+for instructions on how to get everything. Either way, you can launch Brackets
+from the `bin/win` or `bin/mac` folder.
 
 By default, Brackets shows its own source code (MIND BLOWN). You can choose
 a different folder to edit from *File > Open Folder*.
