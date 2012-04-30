@@ -33,7 +33,8 @@ application in a thin native shell, so that it can access your local files.
 The native shell for Brackets lives in a separate repo, 
 http://github.com/adobe/brackets-app, which includes this repo as a submodule.
 
-You can download a ZIP of Brackets from http://github.com/adobe/brackets/downloads.
+You can download "stable" builds of Brackets from the
+[downlaods page](http://github.com/adobe/brackets/downloads).
 If you want to pull the repos directly via git, see 
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
 for instructions on how to get everything. Either way, you can launch Brackets
