@@ -66,7 +66,7 @@ define(function (require, exports, module) {
     }
     /**
      * @constructor
-     * @extends {InlineWidget}
+     * @extends {InlineTextEditor}
      */
     function MultiRangeInlineEditor(ranges) {
         InlineTextEditor.call(this);
