@@ -103,11 +103,20 @@ define(function (require, exports, module) {
      * @return {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}
      */
     function _getInitialContext(editor, pos) {
-        return {
-            "editor": editor,
-            "pos": pos,
-            "token": editor.getTokenAt(pos)
-        };
+        var token = editor.getTokenAt(pos),
+            testToken;
+
+        if (token.string.length > 0 && token.string.trim().length === 0) {
+            // token at (i.e. before) pos is whitespace, so test token at next pos
+            // note: getTokenAt() does range checking for ch
+            testToken = editor.getTokenAt({ch: pos.ch + 1, line: pos.line});
+            if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
+                // pos has whitespace before it and non-whitespace after it, so use token after
+                token = testToken;
+            }
+        }
+        
+        return { editor: editor, pos: pos, token: token  };
     }
     
     /**
