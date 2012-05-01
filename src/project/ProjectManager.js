@@ -65,6 +65,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to previous selectiooon jstree node
+     * @type {DOMElement}
+     */
+    var _lastSelected = null;
+    
+    /**
+     * @private
      * Reference to the tree control UL element
      * @type {DOMElement}
      */
@@ -126,6 +133,7 @@ define(function (require, exports, module) {
             });
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
+            _lastSelected = null;
         }
         
         _fireSelectionChanged();
@@ -252,11 +260,23 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
-                    }
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
                     
-                    // update when tree display state changes
-                    _fireSelectionChanged();
+                        openResult.done(function () {
+                            // update when tree display state changes
+                            _fireSelectionChanged();
+                            _lastSelected = data.rslt.obj;
+                        }).fail(function () {
+                            if (_lastSelected) {
+                                // revert this new selection and restore previous selection
+                                _projectTree.jstree("deselect_node", data.rslt.obj);
+                                _projectTree.jstree("select_node", _lastSelected, false);
+                            } else {
+                                _projectTree.jstree("deselect_all");
+                                _lastSelected = null;
+                            }
+                        });
+                    }
                 }
             )
             .bind(
