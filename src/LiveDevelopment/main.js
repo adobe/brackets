@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, less, document, window, setTimeout, XMLHttpRequest */
+/*global define, $, less, window, XMLHttpRequest */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -76,7 +76,7 @@ define(function main(require, exports, module) {
             parser.parse(request.responseText, function onParse(err, tree) {
                 console.assert(!err, err);
                 var style = $("<style>" + tree.toCSS() + "</style>");
-                $(document.head).append(style);
+                $(window.document.head).append(style);
             });
         };
         request.send(null);
@@ -171,7 +171,7 @@ define(function main(require, exports, module) {
             _setupDebugHelpers();
         }
     }
-    setTimeout(init);
+    window.setTimeout(init);
 
     CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, document, setTimeout */
+/*global define, $, brackets, window */
 
 /**
  * Utilities for creating and managing standard modal dialogs.
@@ -127,7 +127,7 @@ define(function (require, exports, module) {
             .clone()
             .removeClass("template")
             .addClass("instance")
-            .appendTo(document.body);
+            .appendTo(window.document.body);
         
         if (dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
-            setTimeout(function () {
+            window.setTimeout(function () {
                 result.resolve(buttonId);
             }, 0);
             
@@ -161,7 +161,7 @@ define(function (require, exports, module) {
             dlg.remove();
 
             // Remove keydown event handler
-            document.body.removeEventListener("keydown", handleKeyDown, true);
+            window.document.body.removeEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
@@ -172,7 +172,7 @@ define(function (require, exports, module) {
             }
 
             // Listen for dialog keyboard shortcuts
-            document.body.addEventListener("keydown", handleKeyDown, true);
+            window.document.body.addEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(false);
         });
         

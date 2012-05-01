@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, PathUtils, document, window, navigator */
+/*global define, brackets: true, $, PathUtils, window, navigator */
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
@@ -128,13 +128,13 @@ define(function (require, exports, module) {
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     // Main Brackets initialization
-    $(document).ready(function () {
+    $(window.document).ready(function () {
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
             // the entire Brackets app. This doesn't prevent children from choosing to
             // handle drops.
-            $(document.body)
+            $(window.document.body)
                 .on("dragover", function (event) {
                     if (event.originalEvent.dataTransfer.files) {
                         event.stopPropagation();
@@ -221,7 +221,7 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            document.body.addEventListener(
+            window.document.body.addEventListener(
                 "keydown",
                 function (event) {
                     if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
@@ -295,7 +295,7 @@ define(function (require, exports, module) {
         var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
         if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
             // test a scrolling div for scrollbars
-            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(document.body);
+            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);
             
             if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
                 $(".sidebar").removeClass("quiet-scrollbars");

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, setTimeout, clearTimeout */
+/*global define, $, window */
 
 /**
  * Utilities for working with Deferred, Promise, and other asynchronous processes.
@@ -262,11 +262,11 @@ define(function (require, exports, module) {
     function withTimeout(promise, timeout) {
         var wrapper = new $.Deferred();
         
-        var timer = setTimeout(function () {
+        var timer = window.setTimeout(function () {
             wrapper.reject(ERROR_TIMEOUT);
         }, timeout);
         promise.always(function () {
-            clearTimeout(timer);
+            window.clearTimeout(timer);
         });
         
         // If the wrapper was already rejected due to timeout, the Promise's calls to resolve/reject

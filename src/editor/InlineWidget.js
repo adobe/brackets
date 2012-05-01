@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, document */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
      */
     function InlineWidget() {
         // create the outer wrapper div
-        this.htmlContent = document.createElement("div");
+        this.htmlContent = window.document.createElement("div");
         this.$htmlContent = $(this.htmlContent).addClass("InlineWidget");
         this.$htmlContent.append('<div class="shadow top"/>')
             .append('<div class="shadow bottom"/>');

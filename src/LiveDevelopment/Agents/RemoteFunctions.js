@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, document, setTimeout */
+/*global define, $, window */
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -33,7 +33,7 @@
 function RemoteFunctions() {
     'use strict';
 
-    var _body = document.getElementsByTagName("body")[0]; // the document body
+    var _body = window.document.getElementsByTagName("body")[0]; // the document body
     var _sourceHighlight; // the highlighted element in the source
     var _highlight = []; // the highlighted elements
     var _dialog; // the active dialog
@@ -78,7 +78,7 @@ function RemoteFunctions() {
         var width = element.offsetWidth;
 
         // create the container
-        _dialog = document.createElement("div");
+        _dialog = window.document.createElement("div");
         _dialog.style.setProperty("z-index", 2147483647);
         _dialog.style.setProperty("position", "absolute");
         _dialog.style.setProperty("left", x + "px");
@@ -113,7 +113,7 @@ function RemoteFunctions() {
         if (value !== undefined && value !== null) {
             element.setAttribute(key, value);
             if (autoRemove) {
-                setTimeout(element.removeAttribute.bind(element, key));
+                window.setTimeout(element.removeAttribute.bind(element, key));
             }
         } else {
             element.removeAttribute(key);
@@ -154,7 +154,7 @@ function RemoteFunctions() {
     function _showEdit(text) {
         _editText = text;
         var dialog = _createDialog(_target);
-        _editor = document.createElement("input");
+        _editor = window.document.createElement("input");
         _editor.setAttribute("value", text);
         _editor.setAttribute("width", _target.attributes.width);
         _editor.addEventListener("keyup", _onEditKeyUp);
@@ -237,7 +237,7 @@ function RemoteFunctions() {
         var i, target, row, file;
         for (i in targets) {
             target = targets[i];
-            row = document.createElement("div");
+            row = window.document.createElement("div");
             row.style.setProperty("padding", "6px 12px");
             row.style.setProperty("display", "block");
             row.style.setProperty("border-bottom", "1px solid #ccc");
@@ -248,7 +248,7 @@ function RemoteFunctions() {
             row.addEventListener("mouseover", _onGotoMouse.bind(undefined, row, target.type));
             row.addEventListener("mouseout", _onGotoMouse.bind(undefined, row, target.type));
             if (target.file) {
-                file = document.createElement("i");
+                file = window.document.createElement("i");
                 file.style.setProperty("float", "right");
                 file.style.setProperty("margin-left", "12px");
                 file.innerHTML = " " + target.file;
@@ -279,7 +279,7 @@ function RemoteFunctions() {
     // highlight a rule
     function highlightRule(rule) {
         hideHighlight();
-        var i, nodes = document.querySelectorAll(rule);
+        var i, nodes = window.document.querySelectorAll(rule);
         for (i = 0; i < nodes.length; i++) {
             highlight(nodes[i]);
         }
@@ -289,9 +289,9 @@ function RemoteFunctions() {
     function insertNode(payload, parent, index) {
         var node;
         if (payload.value) {
-            node = document.createTextNode(payload.value);
+            node = window.document.createTextNode(payload.value);
         } else {
-            node = document.createElement(payload.nodeName);
+            node = window.document.createElement(payload.nodeName);
         }
         var sibling;
         if (index !== undefined) {
@@ -316,12 +316,12 @@ function RemoteFunctions() {
     // install event listeners
     
     /* FUTURE
-    document.addEventListener("keyup", _onKeyUp);
-    document.addEventListener("mousemove", _onMouse);
-    document.addEventListener("mouseout", _onMouse);
-    document.addEventListener("mousedown", _preventEventWhenMeta, true);
-    document.addEventListener("mouseup", _preventEventWhenMeta, true);
-    document.addEventListener("click", _onClick, true);
+    window.document.addEventListener("keyup", _onKeyUp);
+    window.document.addEventListener("mousemove", _onMouse);
+    window.document.addEventListener("mouseout", _onMouse);
+    window.document.addEventListener("mousedown", _preventEventWhenMeta, true);
+    window.document.addEventListener("mouseup", _preventEventWhenMeta, true);
+    window.document.addEventListener("click", _onClick, true);
     */
     
     return {

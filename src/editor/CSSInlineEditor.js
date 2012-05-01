@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, document, window, setTimeout */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -112,10 +112,10 @@ define(function (require, exports, module) {
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
-        this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
+        this.$editorsDiv = $(window.document.createElement('div')).addClass("inlineEditorHolder");
         
         // Outer container for border-left and scrolling
-        this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        this.$relatedContainer = $(window.document.createElement("div")).addClass("relatedContainer");
         this._relatedContainerInserted = false;
         this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
         
@@ -123,19 +123,19 @@ define(function (require, exports, module) {
         this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
-        this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
+        this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
         
         // Inner container
-        var $related = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
+        var $related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
         // Rule list
-        var $ruleList = $(document.createElement("ul")).appendTo($related);
+        var $ruleList = $(window.document.createElement("ul")).appendTo($related);
         
         // create rule list & add listeners for rule textrange changes
         var ruleItemText;
         this._rules.forEach(function (rule, i) {
             // Create list item UI
-            var $ruleItem = $(document.createElement("li")).appendTo($ruleList);
+            var $ruleItem = $(window.document.createElement("li")).appendTo($ruleList);
             updateRuleLabel($ruleItem, rule);
             $ruleItem.mousedown(function () {
                 self.setSelectedRule(i);
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
         this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
         
         // initialize position based on the main #editorHolder
-        setTimeout(this._updateRelatedContainer, 0);
+        window.setTimeout(this._updateRelatedContainer, 0);
         
         // Changes to the host editor should update the relatedContainer
         // Note: normally it's not kosher to listen to changes on a specific editor,
@@ -236,7 +236,7 @@ define(function (require, exports, module) {
 
         // scroll the selection to the ruleItem, use setTimeout to wait for DOM updates
         var self = this;
-        setTimeout(function () {
+        window.setTimeout(function () {
             var containerHeight = self.$relatedContainer.height(),
                 itemTop = $ruleItem.position().top,
                 scrollTop = self.$relatedContainer.scrollTop();
@@ -332,7 +332,7 @@ define(function (require, exports, module) {
             scrollerTop = scrollerOffset.top,
             scrollerBottom = scrollerTop + hostScroller.clientHeight,
             scrollerLeft = scrollerOffset.left,
-            rightOffset = $(document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
+            rightOffset = $(window.document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
             this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
                                        (rcHeight - Math.max(rcBottom - scrollerBottom, 0)) + "px, auto)");
@@ -375,7 +375,7 @@ define(function (require, exports, module) {
      * scroll position of the host editor to ensure that the cursor is visible.
      */
     CSSInlineEditor.prototype._ensureCursorVisible = function () {
-        if ($.contains(this.editors[0].getRootElement(), document.activeElement)) {
+        if ($.contains(this.editors[0].getRootElement(), window.document.activeElement)) {
             var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
                 lineSpaceOffset = $(this.editors[0]._getLineSpaceElement()).offset(),
                 ruleListOffset = this.$relatedContainer.offset();

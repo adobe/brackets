@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, document */
+/*global define, $, PathUtils, window */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     */
     FindInFilesDialog.prototype._createDialogDiv = function (template) {
         var wrap = $("#editorHolder")[0];
-        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div>' + template + '</div>';
     };

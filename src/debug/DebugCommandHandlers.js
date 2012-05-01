@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window, document */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
         var perfDlog = $("<div class='modal hide' />")
             .append(perfHeader)
             .append(perfBody)
-            .appendTo(document.body)
+            .appendTo(window.document.body)
             .modal({
                 backdrop: "static",
                 show: true

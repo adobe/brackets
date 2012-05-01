@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, FileError, brackets, setTimeout */
+/*global define, $, FileError, brackets, window */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -320,7 +320,7 @@ define(function LiveDevelopment(require, exports, module) {
                             NativeApp.closeLiveBrowser()
                                 .done(function () {
                                     browserStarted = false;
-                                    setTimeout(open);
+                                    window.setTimeout(open);
                                 })
                                 .fail(function (err) {
                                     // Report error?
@@ -366,7 +366,7 @@ define(function LiveDevelopment(require, exports, module) {
                 }
                 
                 if (exports.status !== -1) {
-                    setTimeout(function retryConnect() {
+                    window.setTimeout(function retryConnect() {
                         Inspector.connectToURL(doc.root.url).fail(onConnectFail);
                     }, 500);
                 }
@@ -399,12 +399,12 @@ define(function LiveDevelopment(require, exports, module) {
                 /* FUTURE: support live connections for docments other than html */
                 if (doc.extension && doc.extension.indexOf('htm') === 0 && doc.file.fullPath !== _htmlDocumentPath) {
                     close();
-                    setTimeout(open);
+                    window.setTimeout(open);
                     _htmlDocumentPath = doc.file.fullPath;
                 }
             }
         } else if (exports.config.autoconnect) {
-            setTimeout(open);
+            window.setTimeout(open);
         }
     }
     

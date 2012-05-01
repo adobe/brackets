@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document */
+/*global define, $, window */
 
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
         var wrap = $("#editorHolder")[0];
-        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div>' + template + '</div>';
     };
