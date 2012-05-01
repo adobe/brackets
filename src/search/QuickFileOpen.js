@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
         var wrap = $("#editorHolder")[0];
-        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div>' + template + '</div>';
     };
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
     * @param {?string} initialString Default text to prepopulate the search field with
-    * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
+    * @returns {$.Promise} a promise that is resolved when the dialog closes with the string value from the search field
     */
     QuickNavigateDialog.prototype.showDialog = function (initialString) {
         var that = this;
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                 searchField.focus();
             });
 
-        return this.result;
+        return this.result.promise();
     };
 
 

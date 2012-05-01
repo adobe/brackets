@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
                     // the keypress is handled before auto-indenting.
                     // This is the same timeout value used by the
                     // electricChars feature in CodeMirror.
-                    setTimeout(function () {
+                    window.setTimeout(function () {
                         instance.indentLine(lineNum);
                     }, 75);
                 }
@@ -633,11 +633,18 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var cursorPos = this.getCursorPos(),
+            scrollPos = this.getScrollPos();
+        
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
         
         // Make sure we can't undo back to the empty state before setValue()
         this._codeMirror.clearHistory();
+        
+        // restore cursor and scroll positions
+        this.setCursorPos(cursorPos);
+        this.setScrollPos(scrollPos.x, scrollPos.y);
     };
     
     
@@ -769,6 +776,15 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getScrollPos = function () {
         return this._codeMirror.scrollPos();
+    };
+    
+    /**
+     * Sets the current scroll position of the editor.
+     * @param {number} x scrollLeft position
+     * @param {number} y scrollTop position
+     */
+    Editor.prototype.setScrollPos = function (x, y) {
+        this._codeMirror.scrollTo(x, y);
     };
 
     /**

@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets, PathUtils */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, PathUtils */
 
 /*
  * Manages a collection of FileIndexes where each index maintains a list of information about

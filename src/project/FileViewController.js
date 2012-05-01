@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
      * fileSelectionFocus
      * @param {!fullPath}
      * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
-     * @returns {!Deferred}
+     * @returns {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         var result;
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             $(exports).triggerHandler("documentSelectionFocusChange");
             // Ensure the editor has focus even though we didn't open a new file.
             EditorManager.focusEditor();
-            result = (new $.Deferred()).resolve();
+            result = (new $.Deferred()).resolve().promise();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
         }

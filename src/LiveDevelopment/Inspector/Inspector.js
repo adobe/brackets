@@ -23,8 +23,8 @@
 
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -105,7 +105,7 @@ define(function Inspector(require, exports, module) {
         var i, handlers = _handlers[name];
         var args = Array.prototype.slice.call(arguments, 1);
         for (i in handlers) {
-            setTimeout(_triggerHandler.bind(undefined, handlers[i], args));
+            window.setTimeout(_triggerHandler.bind(undefined, handlers[i], args));
         }
     }
 

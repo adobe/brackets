@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, XMLHttpRequest */
 
 /**
  * DOMAgent constructs and maintains a tree of {DOMNode}s that represents the
