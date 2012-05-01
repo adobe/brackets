@@ -286,66 +286,41 @@ define(function (require, exports, module) {
      * An asynchronous command is called when the user presses a keyboard shortcut. The command
      * should not execute when an existing call to it is executing and the user should be able to
      * issue the command to queue up additional executions while earlier executions are processing.
-     * DeferredQueue helps solve this problem by allowing each command to be managed in a chained list
+     * PromiseQueue helps solve this problem by allowing each command to be managed in a chained list
      * of promises.
      */
-    function DeferredQueue() {
+
+     // TODO: name to promise queue
+    function PromiseQueue() {
         this.promise = $(this).promise();
-        this.length = 0;
     }
+
+    /**
+     * @type {number} the number of promises in the queue
+     */
+    PromiseQueue.prototype.length = 0;
      
     /**
      * Adds supplied promise to the end of the queue
-     * @param {!$.Promise} promise to add to queue]
-     * @param {$.Promise} promise
+     * @param {!$.Promise} promise to add to queue
+     * @returns {$.Promise} new promise created by piping the supplied promise on to the queue
      */
-    DeferredQueue.prototype.append = function (promise) {
+    PromiseQueue.prototype.append = function (promise) {
         var self = this;
         this.length++;
         promise.always(function () { self.length--; });
-        return (this.promise = this.promise.pipe(promise));
-    };
-
-    /**
-     * Wraps the provided function in a deferred object and adds it to the end of the queue. 
-     * Func will be called any arguments that are passed in after the func argument.
-     * @param {!function(...)} function to be wrapped in promise
-     * @param {...number} vargs - variable args to be supplied to func when it is called
-     * @returns {$.Promise} promise for the deferred that wraps the function
-     */
-    DeferredQueue.prototype.appendFunction = function (func) {
-        var self = this;
-        var args = arguments;
-     
-        var fn = args[0];
-        if (!fn || !$.isFunction(fn)) {
-            throw new TypeError('1st parameter should be a function');
-        }
-     
-        args = Array.prototype.slice.call(args, 1);
-        this.length++;
-        // Create a new deferred object that calls the function. Return a promise
-        // from the deferred object and use pipe to add the promise onto the queue
         return (this.promise = this.promise.pipe(function () {
-            return $.Deferred(function () {
-                self.length--;
-                try {
-                    return fn.apply(this, args);
-                } catch (ex) {
-                    this.reject(ex);
-                    return (self.promise = $(self).promise());
-                }
-            }).promise();
+            return promise;
         }));
     };
-    
-    
 
+
+    
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.DeferredQueue = DeferredQueue;
+    exports.PromiseQueue = PromiseQueue;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });
