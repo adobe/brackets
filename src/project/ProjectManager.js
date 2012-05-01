@@ -346,7 +346,7 @@ define(function (require, exports, module) {
             $projectTreeContainer.show();
         });
 
-        return result;
+        return result.promise();
     }
     
     /** @param {Entry} entry File or directory to filter */
@@ -483,7 +483,7 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @return {Deferred} A $.Deferred() object that will be resolved when the
+     * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
@@ -572,7 +572,7 @@ define(function (require, exports, module) {
                 );
         }
 
-        return result;
+        return result.promise();
     }
 
     /**
@@ -629,7 +629,7 @@ define(function (require, exports, module) {
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
-     * @return {Deferred} A $.Deferred() object that will be resolved with the FileEntry
+     * @return {$.Promise} A promise object that will be resolved with the FileEntry
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
@@ -775,7 +775,7 @@ define(function (require, exports, module) {
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
 
-        return result;
+        return result.promise();
     }
 
     // Define public API

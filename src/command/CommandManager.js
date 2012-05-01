@@ -57,19 +57,19 @@ define(function (require, exports, module) {
      * Runs a global command. Additional arguments are passed to the command.
      *
      * @param {string} id The ID of the command to run.
-     * @return {Deferred} a jQuery Deferred that will be resolved when the command completes.
+     * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     function execute(id) {
         var command = _commands[id];
         if (command) {
             var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
             if (!result) {
-                return (new $.Deferred()).resolve();
+                return (new $.Deferred()).resolve().promise();
             } else {
                 return result;
             }
         } else {
-            return (new $.Deferred()).reject();
+            return (new $.Deferred()).reject().promise();
         }
     }
 
