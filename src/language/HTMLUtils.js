@@ -288,27 +288,41 @@ define(function (require, exports, module) {
             tokenType;
         
         //check and see where we are in the tag
-        //first check, if we're in an all whitespace token and move back
-        //and see what's before us
         if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
-            if (!_movePrevToken(ctx)) {
-                return createTagInfo();
-            }
-            
-            if (ctx.token.className !== "tag") {
-                //if wasn't the tag name, assume it was an attr value
-                tagInfo = _getTagInfoStartingFromAttrValue(ctx);
-                //We don't want to give context for the previous attr
-                //and we want it to look like the user is going to add a new attr
-                if (tagInfo.tagName) {
-                    return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+
+            // token at (i.e. before) pos is whitespace, so test token at next pos
+            //
+            // note: getTokenAt() does range checking for ch. If it detects that ch is past
+            // EOL, it uses EOL, same token is returned, and the following condition fails,
+            // so we don't need to worry about testPos being valid.
+            var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                testToken = editor._codeMirror.getTokenAt(testPos);
+
+            if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
+                // pos has whitespace before it and non-whitespace after it, so use token after
+                ctx.pos = testPos;
+                ctx.token = testToken;
+            } else {
+                // next, see what's before pos
+                if (!_movePrevToken(ctx)) {
+                    return createTagInfo();
                 }
-                return createTagInfo();
-            }
             
-            //we know the tag was here, so they user is adding an attr name
-            tokenType = ATTR_NAME;
-            offset = 0;
+                if (ctx.token.className !== "tag") {
+                    //if wasn't the tag name, assume it was an attr value
+                    tagInfo = _getTagInfoStartingFromAttrValue(ctx);
+                    //We don't want to give context for the previous attr
+                    //and we want it to look like the user is going to add a new attr
+                    if (tagInfo.tagName) {
+                        return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+                    }
+                    return createTagInfo();
+                }
+                
+                //we know the tag was here, so they user is adding an attr name
+                tokenType = ATTR_NAME;
+                offset = 0;
+            }
         }
         
         if (ctx.token.className === "tag") {
