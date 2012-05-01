@@ -990,7 +990,8 @@
 			e1.add(e2).remove();
 		} 
 		else {
-			e1 = $('<div />').css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: 0 })
+			// brackets hack: add quiet-scrollbars class so width is calculated correctly
+			e1 = $('<div class="quiet-scrollbars" />').css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: 0 })
 					.prependTo('body').append('<div />').find('div').css({ width: '100%', height: 200 });
 			scrollbar_width = 100 - e1.width();
 			e1.parent().remove();
@@ -1108,7 +1109,7 @@
 				//if(this.data.ui.hovered && obj.get(0) === this.data.ui.hovered.get(0)) { return; }
 				if(!obj.hasClass("jstree-hovered")) { this.dehover_node(); }
 				this.data.ui.hovered = obj.children("a").addClass("jstree-hovered").parent();
-				this._fix_scroll(obj);
+				//this._fix_scroll(obj);
 				this.__callback({ "obj" : obj });
 			},
 			dehover_node : function () {
