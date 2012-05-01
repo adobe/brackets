@@ -260,6 +260,9 @@ define(function (require, exports, module) {
                     if (entry.isFile) {
                         FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
                     }
+                    
+                    // update when tree display state changes
+                    _fireSelectionChanged();
                 }
             )
             .bind(
@@ -325,7 +328,7 @@ define(function (require, exports, module) {
 
             // fire selection changed events for sidebarSelection
             $projectTreeList = $projectTreeContainer.find("ul");
-            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
             $projectTreeContainer.show();
         });
 

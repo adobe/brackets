@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader");
         
-    //Load modules the self-register and just need to get included in the main project
+    //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
     require("debug/DebugCommandHandlers");
@@ -161,7 +161,14 @@ define(function (require, exports, module) {
         
         
         function initCommandHandlers() {
+            // Most command handlers are automatically registered when their module is loaded (see "modules
+            // that self-register" above for some). A few commands need an extra kick here though:
+            
             DocumentCommandHandlers.init($("#main-toolbar"));
+            
+            CommandManager.register(Commands.HELP_ABOUT, function () {
+                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+            });
         }
 
         function initKeyBindings() {
