@@ -40,8 +40,8 @@ define(function (require, exports, module) {
      * @param {string} id The ID of the command.
      * @param {function(...)} command The function to call when the command is executed. Any arguments passed to
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
-     *     it must return a jQuery Deferred that is resolved when the command completes. Otherwise, the
-     *     CommandManager will assume it is synchronous, and return a Deferred that is already resolved.
+     *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
+     *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
      */
     function register(id, command) {
         if (_commands[id]) {
