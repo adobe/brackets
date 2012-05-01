@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -202,14 +202,14 @@ define(function (require, exports, module) {
         }
         
         // create the filename div
-        var wrapperDiv = document.createElement("div");
+        var wrapperDiv = window.document.createElement("div");
         var $wrapperDiv = $(wrapperDiv);
         
         // dirty indicator followed by filename
-        var $filenameDiv = $(document.createElement("div")).addClass("filename");
+        var $filenameDiv = $(window.document.createElement("div")).addClass("filename");
         
         // save file path data to dirty-indicator
-        var $dirtyIndicatorDiv = $(document.createElement("div"))
+        var $dirtyIndicatorDiv = $(window.document.createElement("div"))
             .addClass("dirty-indicator")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);

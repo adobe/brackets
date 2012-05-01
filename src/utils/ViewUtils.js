@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
         var $findShadow = $displayElement.find(".scrollerShadow." + position);
 
         if ($findShadow.length === 0) {
-            $findShadow = $(document.createElement("div")).addClass("scrollerShadow " + position);
+            $findShadow = $(window.document.createElement("div")).addClass("scrollerShadow " + position);
             $displayElement.append($findShadow);
         }
         
@@ -186,7 +186,7 @@ define(function (require, exports, module) {
             showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
-        $selectionMarker = $(document.createElement("div")).addClass("sidebarSelection");
+        $selectionMarker = $(window.document.createElement("div")).addClass("sidebarSelection");
         $scrollerElement.prepend($selectionMarker);
         
         // enable scrolling
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
         $scrollerElement.css("position", "relative");
         
         // build selectionTriangle and position fixed to the window
-        $selectionTriangle = $(document.createElement("div")).addClass("sidebarSelectionTriangle");
+        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebarSelectionTriangle");
         $fileSection.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
