@@ -26,6 +26,16 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, $: false, CodeMirror: false */
 
+/**
+ * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a 
+ * contiguous set of lines in a file. 
+ * 
+ * In the current implementation, only one range is visible at a time. A list on the right side
+ * of the editor allows the user to select which range is visible. 
+ *
+ * This module does not dispatch any events.
+ */
+
 define(function (require, exports, module) {
     'use strict';
     
@@ -42,7 +52,7 @@ define(function (require, exports, module) {
      * @param {!string} styleName Style name to query
      * @return {number} Style value converted from string to number, removing "px" units
      */
-    function parseStyleSize($target, styleName) {
+    function _parseStyleSize($target, styleName) {
         return parseInt($target.css(styleName), 10);
     }
     
@@ -61,13 +71,15 @@ define(function (require, exports, module) {
     SearchResultItem.prototype.textRange = null;
     SearchResultItem.prototype.$listItem = null;
     
-    function updateRangeLabel(listItem, range) {
+    function _updateRangeLabel(listItem, range) {
         var text = range.name + " " + range.textRange.document.file.name + " : " + (range.textRange.startLine + 1);
         listItem.text(text);
         listItem.attr("title", text);
     }
+    
     /**
      * @constructor
+     * @param {Array.<{name:String,document:Document,startLine:number,endLine:number}>} ranges The text ranges to display.
      * @extends {InlineTextEditor}
      */
     function MultiRangeInlineEditor(ranges) {
@@ -134,16 +146,16 @@ define(function (require, exports, module) {
         this._ranges.forEach(function (range, i) {
             // Create list item UI
             var $rangeItem = $(document.createElement("li")).appendTo($rangeList);
-            updateRangeLabel($rangeItem, range);
+            _updateRangeLabel($rangeItem, range);
             $rangeItem.mousedown(function () {
-                self.setSelectedRange(i);
+                self.setSelectedIndex(i);
             });
 
             self._ranges[i].$listItem = $rangeItem;
             
             // Update list item as TextRange changes
             $(self._ranges[i].textRange).on("change", function () {
-                updateRangeLabel($rangeItem, range);
+                _updateRangeLabel($rangeItem, range);
             });
             
             // If TextRange lost sync, react just as we do for an inline Editor's lostContent event:
@@ -154,7 +166,7 @@ define(function (require, exports, module) {
         });
         
         // select the first range
-        self.setSelectedRange(0);
+        self.setSelectedIndex(0);
         
         // attach to main container
         this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
@@ -180,10 +192,11 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Specify the range that is shown in the editor.
      *
-     *
+     * @param {!number} index The index of the range to select.
      */
-    MultiRangeInlineEditor.prototype.setSelectedRange = function (index) {
+    MultiRangeInlineEditor.prototype.setSelectedIndex = function (index) {
         var newIndex = Math.min(Math.max(0, index), this._ranges.length - 1);
         
         if (newIndex === this._selectedRangeIndex) {
@@ -213,7 +226,7 @@ define(function (require, exports, module) {
         this.$editorsDiv.children().remove();
 
         // Add new editor
-        var range = this.getSelectedRange();
+        var range = this._getSelectedRange();
         this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
         this.editors[0].focus();
 
@@ -246,12 +259,12 @@ define(function (require, exports, module) {
                 return;
             }
             
-            var paddingTop = parseStyleSize($rangeItem.parent(), "paddingTop");
+            var paddingTop = _parseStyleSize($rangeItem.parent(), "paddingTop");
             
             if ((itemTop - paddingTop) < scrollTop) {
                 self.$relatedContainer.scrollTop(itemTop - paddingTop);
             } else {
-                var itemBottom = itemTop + $rangeItem.height() + parseStyleSize($rangeItem.parent(), "paddingBottom");
+                var itemBottom = itemTop + $rangeItem.height() + _parseStyleSize($rangeItem.parent(), "paddingBottom");
                 
                 if (itemBottom > (scrollTop + containerHeight)) {
                     self.$relatedContainer.scrollTop(itemBottom - containerHeight);
@@ -408,22 +421,22 @@ define(function (require, exports, module) {
     /**
      * @return {!SearchResultItem}
      */
-    MultiRangeInlineEditor.prototype.getSelectedRange = function () {
+    MultiRangeInlineEditor.prototype._getSelectedRange = function () {
         return this._ranges[this._selectedRangeIndex];
     };
 
     /**
      * Display the next range in the range list
      */
-    MultiRangeInlineEditor.prototype.nextRange = function () {
-        this.setSelectedRange(this._selectedRangeIndex + 1);
+    MultiRangeInlineEditor.prototype._selectNextRange = function () {
+        this.setSelectedIndex(this._selectedRangeIndex + 1);
     };
     
     /**
      *  Display the previous range in the range list
      */
-    MultiRangeInlineEditor.prototype.previousRange = function () {
-        this.setSelectedRange(this._selectedRangeIndex - 1);
+    MultiRangeInlineEditor.prototype._selectPreviousRange = function () {
+        this.setSelectedIndex(this._selectedRangeIndex - 1);
     };
 
     /**
@@ -468,7 +481,7 @@ define(function (require, exports, module) {
     function _previousRange() {
         var focusedMultiRangeInlineEditor = _getFocusedMultiRangeInlineEditor();
         if (focusedMultiRangeInlineEditor) {
-            focusedMultiRangeInlineEditor.previousRange();
+            focusedMultiRangeInlineEditor._selectPreviousRange();
         }
     }
     
@@ -478,7 +491,7 @@ define(function (require, exports, module) {
     function _nextRange() {
         var focusedMultiRangeInlineEditor = _getFocusedMultiRangeInlineEditor();
         if (focusedMultiRangeInlineEditor) {
-            focusedMultiRangeInlineEditor.nextRange();
+            focusedMultiRangeInlineEditor._selectNextRange();
         }
     }
     

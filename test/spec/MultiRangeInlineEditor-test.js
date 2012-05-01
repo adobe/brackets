@@ -129,7 +129,7 @@ define(function (require, exports, module) {
             
             cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             cssInlineEditor.load(hostEditor);
-            cssInlineEditor.nextRange();
+            cssInlineEditor._selectNextRange();
             
             var $selection = $(cssInlineEditor.htmlContent).find(".selection");
             var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
@@ -158,7 +158,7 @@ define(function (require, exports, module) {
             cssInlineEditor.load(hostEditor);
             
             // select .foo
-            cssInlineEditor.setSelectedRange(1);
+            cssInlineEditor.setSelectedIndex(1);
             
             // verify selection moves
             var $selection = $(cssInlineEditor.htmlContent).find(".selection");
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
             expect($selection.position().top).toBe($($ruleListItems.get(1)).position().top);
             
             // select div
-            cssInlineEditor.previousRange();
+            cssInlineEditor._selectPreviousRange();
             
             // verify selection moves again
             expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
@@ -225,11 +225,11 @@ define(function (require, exports, module) {
             cssInlineEditor.load(hostEditor);
             
             // "div" rule should be selected by default
-            expectResultItemToEqual(cssInlineEditor.getSelectedRange(), mockRanges[0]);
+            expectResultItemToEqual(cssInlineEditor._getSelectedRange(), mockRanges[0]);
             
             // select ".foo" rule - should be next
-            cssInlineEditor.nextRange();
-            expectResultItemToEqual(cssInlineEditor.getSelectedRange(), mockRanges[1]);
+            cssInlineEditor._selectNextRange();
+            expectResultItemToEqual(cssInlineEditor._getSelectedRange(), mockRanges[1]);
         });
 
         it("should close and return to the host editor", function () {
