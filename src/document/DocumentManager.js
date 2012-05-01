@@ -609,7 +609,7 @@ define(function (require, exports, module) {
      * refs and listeners for that Editor UI).
      *
      * @param {!string} fullPath
-     * @return {Deferred} A Deferred object that will be resolved with the Document, or rejected
+     * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
@@ -628,7 +628,7 @@ define(function (require, exports, module) {
                     result.reject(fileError);
                 });
         }
-        return result;
+        return result.promise();
     }
     
     /**
@@ -729,7 +729,7 @@ define(function (require, exports, module) {
                     oneFileResult.resolve();
                 });
             
-            return oneFileResult;
+            return oneFileResult.promise();
         }
 
         var result = Async.doInParallel(prefs.files, checkOneFile, false);

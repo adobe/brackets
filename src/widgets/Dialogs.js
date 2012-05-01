@@ -113,7 +113,7 @@ define(function (require, exports, module) {
      *      the HTML template is used unchanged.
      * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
      *      unspecified, body in the HTML template is used unchanged.
-     * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
+     * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
             show: true,
             keyboard: true
         });
-        return result;
+        return result.promise();
     }
     
     /**
