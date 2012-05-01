@@ -28,14 +28,14 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var CSSInlineEditor     = require("editor/CSSInlineEditor").CSSInlineEditor,
-        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
-        InlineWidget        = require("editor/InlineWidget").InlineWidget,
-        Editor              = require("editor/Editor").Editor,
-        EditorManager       = require("editor/EditorManager"),
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+    var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+        InlineTextEditor        = require("editor/InlineTextEditor").InlineTextEditor,
+        InlineWidget            = require("editor/InlineWidget").InlineWidget,
+        Editor                  = require("editor/Editor").Editor,
+        EditorManager           = require("editor/EditorManager"),
+        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
 
-    describe("CSSInlineEditor", function () {
+    describe("MultiRangeInlineEditor", function () {
         
         var cssInlineEditor,
             $editorHolder,
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
         });
 
         it("should initialize to a default state", function () {
-            cssInlineEditor = new CSSInlineEditor([]);
+            cssInlineEditor = new MultiRangeInlineEditor([]);
             
             expect(cssInlineEditor instanceof InlineTextEditor).toBe(true);
             expect(cssInlineEditor instanceof InlineWidget).toBe(true);
@@ -70,13 +70,13 @@ define(function (require, exports, module) {
 
         it("should load a single rule and initialize htmlContent and editor", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("inlineDoc\nstartLine\nendLine\n");
-            var mockRule = {
+            var mockRange = {
                 document: inlineDoc,
                 lineStart: 1,
                 lineEnd: 2
             };
             
-            cssInlineEditor = new CSSInlineEditor([mockRule]);
+            cssInlineEditor = new MultiRangeInlineEditor([mockRange]);
             cssInlineEditor.load(hostEditor);
             
             expect(cssInlineEditor.editors.length).toBe(1);
@@ -86,22 +86,22 @@ define(function (require, exports, module) {
         it("should contain a rule list widget displaying info for each rule", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
-            var mockRules = [
+            var mockRanges = [
                 {
                     document: inlineDoc,
-                    selector: "div",
+                    name: "div",
                     lineStart: 0,
                     lineEnd: 0
                 },
                 {
                     document: inlineDoc,
-                    selector: ".foo",
+                    name: ".foo",
                     lineStart: 1,
                     lineEnd: 1
                 }
             ];
             
-            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             cssInlineEditor.load(hostEditor);
             
             var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
@@ -112,24 +112,24 @@ define(function (require, exports, module) {
         it("should change selection to the next rule", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
-            var mockRules = [
+            var mockRanges = [
                 {
                     document: inlineDoc,
-                    selector: "div",
+                    name: "div",
                     lineStart: 0,
                     lineEnd: 0
                 },
                 {
                     document: inlineDoc,
-                    selector: ".foo",
+                    name: ".foo",
                     lineStart: 1,
                     lineEnd: 1
                 }
             ];
             
-            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             cssInlineEditor.load(hostEditor);
-            cssInlineEditor.nextRule();
+            cssInlineEditor.nextRange();
             
             var $selection = $(cssInlineEditor.htmlContent).find(".selection");
             var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
@@ -139,26 +139,26 @@ define(function (require, exports, module) {
         it("should change selection to the previous rule", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
-            var mockRules = [
+            var mockRanges = [
                 {
                     document: inlineDoc,
-                    selector: "div",
+                    name: "div",
                     lineStart: 0,
                     lineEnd: 0
                 },
                 {
                     document: inlineDoc,
-                    selector: ".foo",
+                    name: ".foo",
                     lineStart: 1,
                     lineEnd: 1
                 }
             ];
             
-            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             cssInlineEditor.load(hostEditor);
             
             // select .foo
-            cssInlineEditor.setSelectedRule(1);
+            cssInlineEditor.setSelectedRange(1);
             
             // verify selection moves
             var $selection = $(cssInlineEditor.htmlContent).find(".selection");
@@ -166,85 +166,85 @@ define(function (require, exports, module) {
             expect($selection.position().top).toBe($($ruleListItems.get(1)).position().top);
             
             // select div
-            cssInlineEditor.previousRule();
+            cssInlineEditor.previousRange();
             
             // verify selection moves again
             expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
         });
         
         
-        function expectResultItemToEqual(resultItem, mockRule) {
-            expect(resultItem.selector).toBe(mockRule.selector);
-            expect(resultItem.textRange.startLine).toBe(mockRule.lineStart);
-            expect(resultItem.textRange.endLine).toBe(mockRule.lineEnd);
+        function expectResultItemToEqual(resultItem, mockRange) {
+            expect(resultItem.name).toBe(mockRange.name);
+            expect(resultItem.textRange.startLine).toBe(mockRange.lineStart);
+            expect(resultItem.textRange.endLine).toBe(mockRange.lineEnd);
         }
 
         it("should retreive all rules", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
-            var mockRules = [
+            var mockRanges = [
                 {
                     document: inlineDoc,
-                    selector: "div",
+                    name: "div",
                     lineStart: 0,
                     lineEnd: 0
                 },
                 {
                     document: inlineDoc,
-                    selector: ".foo",
+                    name: ".foo",
                     lineStart: 1,
                     lineEnd: 1
                 }
             ];
             
-            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             
-            expect(cssInlineEditor.getRules().length).toEqual(mockRules.length);
-            expectResultItemToEqual(cssInlineEditor.getRules()[0], mockRules[0]);
-            expectResultItemToEqual(cssInlineEditor.getRules()[1], mockRules[1]);
+            expect(cssInlineEditor.getRanges().length).toEqual(mockRanges.length);
+            expectResultItemToEqual(cssInlineEditor.getRanges()[0], mockRanges[0]);
+            expectResultItemToEqual(cssInlineEditor.getRanges()[1], mockRanges[1]);
         });
 
         it("should retreive the selected rule", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
-            var mockRules = [
+            var mockRanges = [
                 {
                     document: inlineDoc,
-                    selector: "div",
+                    name: "div",
                     lineStart: 0,
                     lineEnd: 0
                 },
                 {
                     document: inlineDoc,
-                    selector: ".foo",
+                    name: ".foo",
                     lineStart: 1,
                     lineEnd: 1
                 }
             ];
             
-            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             cssInlineEditor.load(hostEditor);
             
             // "div" rule should be selected by default
-            expectResultItemToEqual(cssInlineEditor.getSelectedRule(), mockRules[0]);
+            expectResultItemToEqual(cssInlineEditor.getSelectedRange(), mockRanges[0]);
             
             // select ".foo" rule - should be next
-            cssInlineEditor.nextRule();
-            expectResultItemToEqual(cssInlineEditor.getSelectedRule(), mockRules[1]);
+            cssInlineEditor.nextRange();
+            expectResultItemToEqual(cssInlineEditor.getSelectedRange(), mockRanges[1]);
         });
 
         it("should close and return to the host editor", function () {
             var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
             
-            var mockRules = [
+            var mockRanges = [
                 {
                     document: inlineDoc,
-                    selector: "div",
+                    name: "div",
                     lineStart: 0,
                     lineEnd: 0
                 }
             ];
             
-            cssInlineEditor = new CSSInlineEditor(mockRules);
+            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
             cssInlineEditor.load(hostEditor);
             
             // add widget directly, bypass _openInlineWidget
