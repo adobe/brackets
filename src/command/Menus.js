@@ -68,8 +68,8 @@ define(function (require, exports, module) {
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
         "menu-navigate-quick-edit": Commands.SHOW_INLINE_EDITOR,
-        "menu-navigate-next-css-rule": Commands.NEXT_CSS_RULE,
-        "menu-navigate-previous-css-rule": Commands.PREVIOUS_CSS_RULE,
+        "menu-navigate-next-match": Commands.QUICK_EDIT_NEXT_MATCH,
+        "menu-navigate-previous-match": Commands.QUICK_EDIT_PREV_MATCH,
 
         // Debug
         "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,

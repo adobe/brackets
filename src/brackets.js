@@ -208,8 +208,8 @@ define(function (require, exports, module) {
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
-                    {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
-                    {"Alt-Down": Commands.NEXT_CSS_RULE},
+                    {"Alt-Up": Commands.QUICK_EDIT_PREV_MATCH},
+                    {"Alt-Down": Commands.QUICK_EDIT_NEXT_MATCH},
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},

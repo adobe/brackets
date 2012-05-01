@@ -49,7 +49,7 @@ define(function (require, exports, module) {
     require("spec/CodeHintUtils-test.js");
     require("spec/CSSUtils-test.js");
     require("spec/InlineEditorProviders-test.js");
-    require("spec/CSSInlineEditor-test.js");
+    require("spec/MultiRangeInlineEditor-test.js");
     require("spec/LiveDevelopment-test.js");
     require("spec/ViewUtils-test.js");
     
