@@ -63,7 +63,7 @@ define(function (require, exports, module) {
      * Defines API for new QuickOpen plug-ins
      * @param {string} plug-in name
      * @param {Array.<string>} file types array. Example: ["js", "css", "txt"]
-     * @param {Function} called when quick open is complete. Plug-in should clear it's internal state
+     * @param {Function} called when quick open is complete. Plug-in should clear its internal state
      * @param {Function} filter takes a query string and returns an array of strings that match the query
      * @param {?Functon} match takes a query string and returns true if this plug-in wants to provide results for this query
      * @param {Functon} itemFocus performs an action when a result has focus
