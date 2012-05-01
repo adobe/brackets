@@ -63,7 +63,9 @@ When filing a new bug, please remember to include:
 if that's convenient)
 
 For feature requests, go ahead and file them in the issue tracker; they'll be converted
-to user stories on the [public Brackets backlog](https://trello.com/board/brackets/4f90a6d98f77505d7940ce88).
+to user stories on the [public Brackets backlog*](https://trello.com/board/brackets/4f90a6d98f77505d7940ce88).
+
+* Please excuse the mess in the public backlog ("Backlog Archive To Be Sorted"). We're still importing data from our internal system.
 
 I want to help!
 ---------------
