@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $: false, define: false, brackets: false, FileError: false, InvalidateStateError: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
+/*global $, define, brackets, FileError */
 
 define(function (require, exports, module) {
     'use strict';

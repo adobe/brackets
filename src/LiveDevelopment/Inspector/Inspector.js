@@ -23,8 +23,8 @@
 
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket, FileError */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, WebSocket, FileError, setTimeout, XMLHttpRequest */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.

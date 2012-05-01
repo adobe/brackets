@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: true, $: false, PathUtils: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets: true, $, PathUtils, document, window, navigator */
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
