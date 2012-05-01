@@ -275,15 +275,12 @@ define(function (require, exports, module) {
 
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        console.log("start gen new name");
-
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false).pipe(deferred.resolve, deferred.reject, deferred.notify);
         };
 
         var filenameDeferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js")
             .done(function (suggestedName) {
-                console.log("create new item: " + suggestedName);
                 createWithSuggestedName(suggestedName);
             })
             .fail(function createWithDefault() {
@@ -294,30 +291,19 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @type {$.Deferred} used to chain multiple calls to handleFileNewInProject and force them to execute serially serially
+     * @type {!Async.DeferredQueue} used to chain multiple calls to handleFileNewInProject and force them to execute serially serially
      * This handles the case when the tries to create many new files in rapid succession
      */
-    var fileNewDeferred = null;
-
+    var fileNewQueue = new Async.DeferredQueue();
     function handleFileNewInProject() {
-
-        if (fileNewDeferred !== null && fileNewDeferred.state() === "pending") {
-            fileNewDeferred.done(function () {
-                console.log("handleFileNewInProject after done");
-                handleFileNewInProject();
-            });
-
-            $(".jstree-rename-input").blur();
-
-        } else {
-            fileNewDeferred = newAutonamedFile();
-            fileNewDeferred.always(function () {fileNewDeferred = null; });
+        if (fileNewQueue.length > 0) {
+            // User has previously executed this command, but the file hasn't been written yet
+            // because they are still naming it. Force the completion of naming to write out the file.
+            ProjectManager.createNewItemForceFinish();
         }
         
-
-        return fileNewDeferred.promise();
+        return fileNewQueue.append(newAutonamedFile());
     }
-
 
     
     function showSaveFileError(code, path) {
