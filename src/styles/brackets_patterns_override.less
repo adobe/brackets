@@ -303,3 +303,38 @@
         background-color: @blue;
     }
 }
+
+/* About dialog */
+.about-dialog .modal-body {
+    // Simple two-column layout: image on left, text taking up remaining space on right
+    position: relative;
+    .about-icon {
+        position: absolute;
+        left: 10px;  // relative to border of modal-body (bounds outside padding)
+        top:  11px;
+    }
+    .about-text {
+        // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
+        margin: 0 10px 0 123px;
+    }
+    
+    h2 {
+        font-weight: normal;
+        font-size: 25px;
+        margin-bottom: -8px;
+        margin-top: 3px;
+    }
+    .dialog-message {
+        font-size: 14px;
+        line-height: 17px;
+        
+        // Enable text selection, since URLs aren't clickable
+        cursor: auto;
+        -webkit-user-select: text;
+        -khtml-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        -o-user-select: text;
+        user-select: text;
+    }
+}

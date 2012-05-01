@@ -30,12 +30,16 @@ for awhile now, so what's there is reasonably stable.
 Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop 
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
+The native shell for Brackets lives in a separate repo, 
+[adobe/brackets-app](https://github.com/adobe/brackets-app/), which includes 
+this repo as a submodule.
 
-You can download the latest builds from https://github.com/adobe/brackets/downloads
-and run Brackets from the bin/win or bin/mac folder.
-(If you just pulled the http://github.com/adobe/brackets repo, you actually 
-need to grab the http://github.com/adobe/brackets-app repo, which includes 
-the brackets repo as a submodule, and run it from there.)
+You can download "stable" builds of Brackets from the
+[downloads page](http://github.com/adobe/brackets/downloads).
+If you want to pull the repos directly via git, see 
+[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
+for instructions on how to get everything. Either way, you can launch Brackets
+from the `bin/win` or `bin/mac` folder.
 
 By default, Brackets shows its own source code (MIND BLOWN). You can choose
 a different folder to edit from *File > Open Folder*.
@@ -73,10 +77,4 @@ Not sure you needed the exclamation point there, but I like your enthusiasm.
 
 * **Twitter:** [@CodeBrackets](http://twitter.com/#!/CodeBrackets)
 * **IRC:** [#brackets on freenode](http://freenode.net)
-* **Mailing list (users):** http://groups.google.com/group/codebrackets
-* **Mailing list (developers):** http://groups.google.com/group/brackets-dev
-* **Google+:** [Brackets](https://plus.google.com/b/115365194873502050036/)
-
-
-
-
+* **Developers mailing list:** http://groups.google.com/group/brackets-dev

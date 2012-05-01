@@ -178,11 +178,12 @@ define(function (require, exports, module) {
      * @param {!DOMElement} scrollElement A DOMElement containing a ul list element
      * @param {!string} selectedClassName A CSS class name on at most one list item in the contained list
      */
-    function sidebarList($scrollerElement, selectedClassName) {
+    function sidebarList($scrollerElement, selectedClassName, leafClassName) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
             $selectionTriangle,
-            $fileSection = $("#file-section");
+            $fileSection = $("#file-section"),
+            showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
         $selectionMarker = $(document.createElement("div")).addClass("sidebarSelection");
@@ -201,36 +202,45 @@ define(function (require, exports, module) {
         selectedClassName = "." + (selectedClassName || "selected");
         
         var updateSelectionTriangle = function () {
-            var scrollerOffset = $scrollerElement.offset(),
+            var selectionMarkerHeight = $selectionMarker.height(),
+                selectionMarkerOffset = $selectionMarker.offset(),
+                scrollerOffset = $scrollerElement.offset(),
+                triangleHeight = $selectionTriangle.outerHeight(),
                 scrollerTop = scrollerOffset.top,
                 scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
                 scrollerLeft = scrollerOffset.left,
-                triangleTop = $selectionMarker.offset().top,
-                triangleHeight = $selectionTriangle.outerHeight(),
-                triangleClipOffsetYBy = Math.floor(($selectionMarker.height() - triangleHeight) / 2),
-                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+                triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
             $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
+            $selectionTriangle.toggleClass("triangleVisible", showTriangle);
             
-            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
-                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
-                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
-            } else {
-                $selectionTriangle.css("clip", "");
+            if (showTriangle) {
+                var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
+                    triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+                
+                if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
+                    $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
+                                               (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+                } else {
+                    $selectionTriangle.css("clip", "");
+                }
             }
         };
         
         var updateSelectionMarker = function () {
             // find the selected list item
-            var $listItem = $listElement.find(selectedClassName).closest("li"),
-                isLeaf = $listItem.find("ul").length === 0;
+            var $listItem = $listElement.find(selectedClassName).closest("li");
+            
+            if (leafClassName) {
+                showTriangle = $listItem.hasClass(leafClassName);
+            }
             
             // always hide selection visuals first to force layout (issue #719)
             $selectionTriangle.hide();
             $selectionMarker.hide();
             
-            if (($listItem.length === 1) && isLeaf) {
+            if ($listItem.length === 1) {
                 // list item position is relative to scroller
                 var selectionMarkerTop = $listItem.offset().top - $scrollerElement.offset().top + $scrollerElement.get(0).scrollTop;
                     
@@ -242,7 +252,6 @@ define(function (require, exports, module) {
                 $selectionMarker.show();
                 
                 updateSelectionTriangle();
-                
                 $selectionTriangle.show();
             
                 // fully scroll to the selectionMarker if it's not initially in the viewport
