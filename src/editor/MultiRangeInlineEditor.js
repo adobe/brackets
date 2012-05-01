@@ -21,6 +21,8 @@
  * 
  */
 
+// FUTURE: Merge part (or all) of this class with InlineTextEditor
+
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, $: false, CodeMirror: false */
 
@@ -51,16 +53,16 @@ define(function (require, exports, module) {
      * in the results list.
      */
     function SearchResultItem(rangeResult) {
-        this.selector = rangeResult.selector;
+        this.name = rangeResult.name;
         this.textRange = new TextRange(rangeResult.document, rangeResult.lineStart, rangeResult.lineEnd);
         // this.$listItem is assigned in load()
     }
-    SearchResultItem.prototype.selector = null;
+    SearchResultItem.prototype.name = null;
     SearchResultItem.prototype.textRange = null;
     SearchResultItem.prototype.$listItem = null;
     
     function updateRangeLabel(listItem, range) {
-        var text = range.selector + " " + range.textRange.document.file.name + " : " + (range.textRange.startLine + 1);
+        var text = range.name + " " + range.textRange.document.file.name + " : " + (range.textRange.startLine + 1);
         listItem.text(text);
         listItem.attr("title", text);
     }
