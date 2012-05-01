@@ -609,7 +609,7 @@ define(function (require, exports, module) {
                         }
                     });
                     
-                    return deferred;
+                    return deferred.promise();
                 }, true);
 
                 // We want the error callback to get called after some timeout (in case some deferreds don't return).

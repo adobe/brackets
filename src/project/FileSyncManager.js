@@ -83,7 +83,7 @@ define(function (require, exports, module) {
      *  deleteConflicts - deleted on disk; also dirty in Brackets
      *
      * @param {!Array.<Document>} docs
-     * @return {$.Deferred}  Resolved when all scanning done, or rejected immediately if there's any
+     * @return {$.Promise}  Resolved when all scanning done, or rejected immediately if there's any
      *      error while reading file timestamps. Errors are logged but no UI is shown.
      */
     function findExternalChanges(docs) {
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
      * Reloads the Document's contents from disk, discarding any unsaved changes in the editor.
      *
      * @param {!Document} doc
-     * @return {$.Deferred} Resolved after editor has been refreshed; rejected if unable to load the
+     * @return {$.Promise} Resolved after editor has been refreshed; rejected if unable to load the
      *      file's new content. Errors are logged but no UI is shown.
      */
     function reloadDoc(doc) {
@@ -194,7 +194,7 @@ define(function (require, exports, module) {
     /**
      * Reloads all the documents in "toReload" silently (no prompts). The operations are all run
      * in parallel.
-     * @return {$.Deferred} Resolved/rejected after all reloads done; will be rejected if any one
+     * @return {$.Promise} Resolved/rejected after all reloads done; will be rejected if any one
      *      file's reload failed. Errors are logged (by reloadDoc()) but no UI is shown.
      */
     function reloadChangedDocs() {
@@ -205,7 +205,7 @@ define(function (require, exports, module) {
     /**
      * @param {FileError} error
      * @param {!Document} doc
-     * @return {$.Deferred}
+     * @return {$.Promise}
      */
     function showReloadError(error, doc) {
         return Dialogs.showModalDialog(
@@ -235,7 +235,7 @@ define(function (require, exports, module) {
      * about each one. Processing is sequential: if the user chooses to reload a document, the next
      * prompt is not shown until after the reload has completed.
      *
-     * @return {$.Deferred} Resolved/rejected after all documents have been prompted and (if
+     * @return {$.Promise} Resolved/rejected after all documents have been prompted and (if
      *      applicable) reloaded (and any resulting error UI has been dismissed). Rejected if any
      *      one reload failed.
      */
@@ -244,12 +244,12 @@ define(function (require, exports, module) {
         var allConflicts = editConflicts.concat(deleteConflicts);
         
         function presentConflict(doc, i) {
-            var result = new $.Deferred();
+            var result = new $.Deferred(), promise = result.promise();
             
             // If window has been re-focused, skip all remaining conflicts so the sync can bail & restart
             if (_restartPending) {
                 result.resolve();
-                return result;
+                return promise;
             }
             
             var message;
@@ -306,7 +306,7 @@ define(function (require, exports, module) {
                     }
                 });
             
-            return result;
+            return promise;
         }
         
         // Begin walking through the conflicts, one at a time
