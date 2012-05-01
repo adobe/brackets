@@ -37,7 +37,7 @@ define(function (require, exports, module) {
 
     describe("MultiRangeInlineEditor", function () {
         
-        var cssInlineEditor,
+        var inlineEditor,
             $editorHolder,
             hostEditor;
         
@@ -57,15 +57,15 @@ define(function (require, exports, module) {
         });
 
         it("should initialize to a default state", function () {
-            cssInlineEditor = new MultiRangeInlineEditor([]);
+            inlineEditor = new MultiRangeInlineEditor([]);
             
-            expect(cssInlineEditor instanceof InlineTextEditor).toBe(true);
-            expect(cssInlineEditor instanceof InlineWidget).toBe(true);
-            expect(cssInlineEditor.editors.length).toBe(0);
-            expect(cssInlineEditor.htmlContent instanceof HTMLElement).toBe(true);
-            expect(cssInlineEditor.height).toBe(0);
-            expect(cssInlineEditor.id).toBeNull();
-            expect(cssInlineEditor.hostEditor).toBeNull();
+            expect(inlineEditor instanceof InlineTextEditor).toBe(true);
+            expect(inlineEditor instanceof InlineWidget).toBe(true);
+            expect(inlineEditor.editors.length).toBe(0);
+            expect(inlineEditor.htmlContent instanceof HTMLElement).toBe(true);
+            expect(inlineEditor.height).toBe(0);
+            expect(inlineEditor.id).toBeNull();
+            expect(inlineEditor.hostEditor).toBeNull();
         });
 
         it("should load a single rule and initialize htmlContent and editor", function () {
@@ -76,11 +76,11 @@ define(function (require, exports, module) {
                 lineEnd: 2
             };
             
-            cssInlineEditor = new MultiRangeInlineEditor([mockRange]);
-            cssInlineEditor.load(hostEditor);
+            inlineEditor = new MultiRangeInlineEditor([mockRange]);
+            inlineEditor.load(hostEditor);
             
-            expect(cssInlineEditor.editors.length).toBe(1);
-            expect(cssInlineEditor.editors[0].document).toBe(inlineDoc);
+            expect(inlineEditor.editors.length).toBe(1);
+            expect(inlineEditor.editors[0].document).toBe(inlineDoc);
         });
 
         it("should contain a rule list widget displaying info for each rule", function () {
@@ -101,10 +101,10 @@ define(function (require, exports, module) {
                 }
             ];
             
-            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
-            cssInlineEditor.load(hostEditor);
+            inlineEditor = new MultiRangeInlineEditor(mockRanges);
+            inlineEditor.load(hostEditor);
             
-            var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
+            var $ruleListItems = $(inlineEditor.htmlContent).find("li");
             expect($($ruleListItems.get(0)).text()).toBe("div _unitTestDummyFile_.js : 1");
             expect($($ruleListItems.get(1)).text()).toBe(".foo _unitTestDummyFile_.js : 2");
         });
@@ -127,12 +127,12 @@ define(function (require, exports, module) {
                 }
             ];
             
-            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
-            cssInlineEditor.load(hostEditor);
-            cssInlineEditor._selectNextRange();
+            inlineEditor = new MultiRangeInlineEditor(mockRanges);
+            inlineEditor.load(hostEditor);
+            inlineEditor._selectNextRange();
             
-            var $selection = $(cssInlineEditor.htmlContent).find(".selection");
-            var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
+            var $selection = $(inlineEditor.htmlContent).find(".selection");
+            var $ruleListItems = $(inlineEditor.htmlContent).find("li");
             expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
         });
 
@@ -154,19 +154,19 @@ define(function (require, exports, module) {
                 }
             ];
             
-            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
-            cssInlineEditor.load(hostEditor);
+            inlineEditor = new MultiRangeInlineEditor(mockRanges);
+            inlineEditor.load(hostEditor);
             
             // select .foo
-            cssInlineEditor.setSelectedIndex(1);
+            inlineEditor.setSelectedIndex(1);
             
             // verify selection moves
-            var $selection = $(cssInlineEditor.htmlContent).find(".selection");
-            var $ruleListItems = $(cssInlineEditor.htmlContent).find("li");
+            var $selection = $(inlineEditor.htmlContent).find(".selection");
+            var $ruleListItems = $(inlineEditor.htmlContent).find("li");
             expect($selection.position().top).toBe($($ruleListItems.get(1)).position().top);
             
             // select div
-            cssInlineEditor._selectPreviousRange();
+            inlineEditor._selectPreviousRange();
             
             // verify selection moves again
             expect($selection.position().top).toBe($($ruleListItems.get(0)).position().top);
@@ -196,11 +196,11 @@ define(function (require, exports, module) {
                 }
             ];
             
-            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
+            inlineEditor = new MultiRangeInlineEditor(mockRanges);
             
-            expect(cssInlineEditor.getRanges().length).toEqual(mockRanges.length);
-            expectResultItemToEqual(cssInlineEditor.getRanges()[0], mockRanges[0]);
-            expectResultItemToEqual(cssInlineEditor.getRanges()[1], mockRanges[1]);
+            expect(inlineEditor._getRanges().length).toEqual(mockRanges.length);
+            expectResultItemToEqual(inlineEditor._getRanges()[0], mockRanges[0]);
+            expectResultItemToEqual(inlineEditor._getRanges()[1], mockRanges[1]);
         });
 
         it("should retreive the selected rule", function () {
@@ -221,15 +221,15 @@ define(function (require, exports, module) {
                 }
             ];
             
-            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
-            cssInlineEditor.load(hostEditor);
+            inlineEditor = new MultiRangeInlineEditor(mockRanges);
+            inlineEditor.load(hostEditor);
             
             // "div" rule should be selected by default
-            expectResultItemToEqual(cssInlineEditor._getSelectedRange(), mockRanges[0]);
+            expectResultItemToEqual(inlineEditor._getSelectedRange(), mockRanges[0]);
             
             // select ".foo" rule - should be next
-            cssInlineEditor._selectNextRange();
-            expectResultItemToEqual(cssInlineEditor._getSelectedRange(), mockRanges[1]);
+            inlineEditor._selectNextRange();
+            expectResultItemToEqual(inlineEditor._getSelectedRange(), mockRanges[1]);
         });
 
         it("should close and return to the host editor", function () {
@@ -244,18 +244,18 @@ define(function (require, exports, module) {
                 }
             ];
             
-            cssInlineEditor = new MultiRangeInlineEditor(mockRanges);
-            cssInlineEditor.load(hostEditor);
+            inlineEditor = new MultiRangeInlineEditor(mockRanges);
+            inlineEditor.load(hostEditor);
             
             // add widget directly, bypass _openInlineWidget
-            hostEditor.addInlineWidget({line: 0, ch: 0}, cssInlineEditor);
+            hostEditor.addInlineWidget({line: 0, ch: 0}, inlineEditor);
             
             // verify it was added
             expect(hostEditor.hasFocus()).toBe(false);
             expect(hostEditor.getInlineWidgets().length).toBe(1);
             
             // close the inline editor directly, should call EditorManager and removeInlineWidget
-            cssInlineEditor.close();
+            inlineEditor.close();
             
             // verify no editors
             expect(hostEditor.getInlineWidgets().length).toBe(0);

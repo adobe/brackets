@@ -414,7 +414,7 @@ define(function (require, exports, module) {
     /**
      * @return {Array.<SearchResultItem>}
      */
-    MultiRangeInlineEditor.prototype.getRanges = function () {
+    MultiRangeInlineEditor.prototype._getRanges = function () {
         return this._ranges;
     };
 
