@@ -253,31 +253,72 @@ define(function (require, exports, module) {
 
         return result;
     }
+    
+    /**
+     * This function manages two asynchronous processes: generating a unique file name and created a new file.
+     * A single deferred is returns when both sub asynchronous processes have resolved.
+     */
+    function newAutonamedFile() {
+        var deferred = new $.Deferred();
 
-    function handleFileNewInProject() {
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
         // If nothing is selected, put it at the root of the project
-        var baseDir,
-            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
+        var baseDir;
+        var selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
         baseDir = selected.fullPath;
         if (selected.isFile) {
             baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
         }
-        
+
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
+        console.log("start gen new name");
+
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false).pipe(deferred.resolve, deferred.reject, deferred.notify);
         };
 
-        deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled.js"); });
-        return deferred;
+        var filenameDeferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js")
+            .done(function (suggestedName) {
+                console.log("create new item: " + suggestedName);
+                createWithSuggestedName(suggestedName);
+            })
+            .fail(function createWithDefault() {
+                createWithSuggestedName("Untitled.js");
+            });
+
+        return deferred.promise();
     }
+
+    /**
+     * @type {$.Deferred} used to chain multiple calls to handleFileNewInProject and force them to execute serially serially
+     * This handles the case when the tries to create many new files in rapid succession
+     */
+    var fileNewDeferred = null;
+
+    function handleFileNewInProject() {
+
+        if (fileNewDeferred !== null && fileNewDeferred.state() === "pending") {
+            fileNewDeferred.done(function () {
+                console.log("handleFileNewInProject after done");
+                handleFileNewInProject();
+            });
+
+            $(".jstree-rename-input").blur();
+
+        } else {
+            fileNewDeferred = newAutonamedFile();
+            fileNewDeferred.always(function () {fileNewDeferred = null; });
+        }
+        
+
+        return fileNewDeferred.promise();
+    }
+
+
     
     function showSaveFileError(code, path) {
         return Dialogs.showModalDialog(
