@@ -824,7 +824,9 @@ define(function (require, exports, module) {
      * @param {number} inlineId  id returned by addInlineWidget().
      */
     Editor.prototype._removeInlineWidgetInternal = function (inlineId) {
-        for(var i = 0; i < this._inlineWidgets.length; i++) {
+        var i;
+        var l = this._inlineWidgets.length;
+        for (i = 0; i < l; i++) {
             if (this._inlineWidgets[i].id === inlineId) {
                 this._inlineWidgets.splice(i, 1);
                 break;
