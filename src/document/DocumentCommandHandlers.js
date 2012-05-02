@@ -49,15 +49,15 @@ define(function (require, exports, module) {
      */
     
     /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
-    var _title = null;
-    /** @type {jQueryObject} Container for _title; need not be an inline element */
-    var _titleWrapper = null;
+    var _$title = null;
+    /** @type {jQueryObject} Container for _$title; need not be an inline element */
+    var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
     var _currentTitlePath = null;
     
-    /** @type {jQueryObject} Container for _titleWrapper; if changing title changes this element's height, must kick editor to resize */
-    var _titleContainerToolbar = null;
-    /** @type {Number} Last known height of _titleContainerToolbar */
+    /** @type {jQueryObject} Container for _$titleWrapper; if changing title changes this element's height, must kick editor to resize */
+    var _$titleContainerToolbar = null;
+    /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
     
     var DIRTY_INDICATOR = " <span class='dirty-dot'>\u2022</span>";
@@ -65,26 +65,26 @@ define(function (require, exports, module) {
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
-            _title.text(_currentTitlePath);
-            _title.attr("title", currentDoc.file.fullPath);
+            _$title.text(_currentTitlePath);
+            _$title.attr("title", currentDoc.file.fullPath);
             if (currentDoc.isDirty) {
-                _title.append(DIRTY_INDICATOR);
+                _$title.append(DIRTY_INDICATOR);
             }
         } else {
-            _title.text("");
-            _title.attr("title", "");
+            _$title.text("");
+            _$title.attr("title", "");
         }
         
-        // Set _titleWrapper to a fixed width just large enough to accomodate _title. This seems equivalent to what
-        // the browser would do automatically, but the CSS trick we use for layout requires _titleWrapper to have a
+        // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
+        // the browser would do automatically, but the CSS trick we use for layout requires _$titleWrapper to have a
         // fixed width set on it (see the "#main-toolbar.toolbar" CSS rule for details).
-        _titleWrapper.css("width", "");
-        var newWidth = _title.width();
-        _titleWrapper.css("width", newWidth);
+        _$titleWrapper.css("width", "");
+        var newWidth = _$title.width();
+        _$titleWrapper.css("width", newWidth);
         
         // Changing the width of the title may cause the toolbar layout to change height, which needs to resize the
         // editor beneath it (toolbar changing height due to window resize is already caught by EditorManager).
-        var newToolbarHeight = _titleContainerToolbar.height();
+        var newToolbarHeight = _$titleContainerToolbar.height();
         if (_lastToolbarHeight !== newToolbarHeight) {
             _lastToolbarHeight = newToolbarHeight;
             EditorManager.resizeEditor();
@@ -642,10 +642,10 @@ define(function (require, exports, module) {
         });
     }
 
-    function init(titleContainerToolbar) {
-        _titleContainerToolbar = titleContainerToolbar;
-        _titleWrapper = $(".title-wrapper", _titleContainerToolbar);
-        _title = $(".title", _titleWrapper);
+    function init($titleContainerToolbar) {
+        _$titleContainerToolbar = $titleContainerToolbar;
+        _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
+        _$title = $(".title", _$titleWrapper);
 
         // Register global commands
         CommandManager.register(Commands.FILE_OPEN, handleFileOpen);

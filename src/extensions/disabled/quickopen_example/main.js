@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     * Creates a dialog div floating on top of the current code mirror editor
     */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
+        // FUTURE: consider using jQuery for all the DOM manipulation here
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
@@ -105,10 +106,10 @@ define(function (require, exports, module) {
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
                 that._createDialogDiv(dialogHTML);
                 var closed = false;
-                var searchField = $('input#quickFileOpenSearch');
+                var $searchField = $('input#quickFileOpenSearch');
                 
-                searchField.attr("value", initialString || "");
-                searchField.get(0).select();
+                $searchField.attr("value", initialString || "");
+                $searchField.get(0).select();
 
                 // auto suggest list helper function
                 function _handleResultsFormatter(path) {
@@ -147,7 +148,7 @@ define(function (require, exports, module) {
                 }
 
                 // Create the auto suggest list of filenames
-                searchField.smartAutoComplete({
+                $searchField.smartAutoComplete({
                     source: fileInfoList,
                     maxResults: 10,
                     forceSelect: false,
@@ -156,7 +157,7 @@ define(function (require, exports, module) {
                     resultFormatter: _handleResultsFormatter
                 });
         
-                searchField.bind({
+                $searchField.bind({
                     // close the dialog when the user selects an item
                     itemSelect: function (ev, selected_item) {
                         var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
@@ -164,7 +165,7 @@ define(function (require, exports, module) {
                     },
         
                     keydown: function (e) {
-                        var query = searchField.val();
+                        var query = $searchField.val();
 
                         // close the dialog when the ENTER (23) or ESC (27) key is pressed
                         if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
@@ -184,7 +185,7 @@ define(function (require, exports, module) {
         
                 });
         
-                searchField.focus();
+                $searchField.focus();
             });
 
         return this.result.promise();
