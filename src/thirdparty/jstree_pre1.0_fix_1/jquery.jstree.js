@@ -991,7 +991,7 @@
 		} 
 		else {
 			// brackets hack: add quiet-scrollbars class so width is calculated correctly
-			e1 = $('<div class="quiet-scrollbars" />').css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: 0 })
+			e1 = $('<div />').css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: 0 })
 					.prependTo('body').append('<div />').find('div').css({ width: '100%', height: 200 });
 			scrollbar_width = 100 - e1.width();
 			e1.parent().remove();
