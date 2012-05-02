@@ -62,11 +62,13 @@ define(function (require, exports, module) {
         var offsetTop           = $displayElement.offset().top,
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
-            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
+            sidebarWidth        = parseInt($(".sidebar").width(), 10);
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");
             $shadowTop.css("top", offsetTop);
+            $shadowTop.css("width", sidebarWidth);
         }
         
         if ($shadowBottom) {
@@ -82,6 +84,7 @@ define(function (require, exports, module) {
     
             $shadowBottom.css("background-position", "0px " + bottomShadowOffset + "px");
             $shadowBottom.css("top", offsetTop + outerHeight - SCROLL_SHADOW_HEIGHT);
+            $shadowBottom.css("width", sidebarWidth);
         }
     }
 
@@ -194,6 +197,7 @@ define(function (require, exports, module) {
                 triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
             
             $selectionTriangle.css("top", triangleTop);
+            
             $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             
             if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
@@ -202,6 +206,7 @@ define(function (require, exports, module) {
             } else {
                 $selectionTriangle.css("clip", "");
             }
+            
         };
         
         var updateSelectionMarker = function () {
@@ -268,7 +273,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
-    
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.addScrollerShadow = addScrollerShadow;
     exports.removeScrollerShadow = removeScrollerShadow;

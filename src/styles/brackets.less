@@ -191,6 +191,16 @@ a, img {
     height: 29px;
 }
 
+#sidebar-resizer {
+    position: absolute;
+    width: 3px;
+    background-color: #f00;
+    height: 100%;
+    z-index: 50;
+    opacity: 0;
+    cursor: col-resize;
+}
+
 #file-section {
     .vbox;
     .box-flex(1);
@@ -308,9 +318,11 @@ a, img {
     }
 }
 
+/*
 .sidebar .scrollerShadow {
-    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+    max-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() 
 }
+*/
 
 #editorHolder .scrollerShadow {
     width: 100%;

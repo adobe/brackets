@@ -68,7 +68,8 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
-        ExtensionLoader         = require("utils/ExtensionLoader");
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        ViewUtils               = require("utils/ViewUtils");
         
     //Load modules the self-register and just need to get included in the main project
     require("language/JSLintUtils");
@@ -236,6 +237,28 @@ define(function (require, exports, module) {
                 e.preventDefault();
             });
         }
+        
+        function initSidebarListeners() {
+            var sidebar_width = parseInt($(".sidebar").width(), 10);
+            $("#sidebar-resizer").css("left", sidebar_width - 3);
+            $("#sidebar-resizer").mousedown(function (e) {
+                $(".main-view").mousemove(function (e) {
+                    $("#sidebar-resizer").css("left", e.clientX);
+                    $(".sidebar").css("width", e.clientX);
+                    $("#project-files-container").trigger("scroll");
+                    $("#open-files-container").trigger("scroll");
+                    $(".sidebarSelection").width(e.clientX);
+                    //$(".sidebarSelection".width(e.clientX));
+                    //ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    e.preventDefault();
+                });
+                e.preventDefault();
+            });
+            $("#sidebar-resizer").mouseup(function (e) {
+                $(".main-view").unbind("mousemove");
+            });
+            
+        }
 
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
@@ -258,6 +281,7 @@ define(function (require, exports, module) {
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
         initWindowListeners();
+        initSidebarListeners();
 
         // Load extensions
 
