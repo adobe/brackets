@@ -98,9 +98,9 @@ define(function (require, exports, module) {
         
         var maxWidth = 0;
         allHostedEditors.forEach(function (editor) {
-            var gutter = $(editor._codeMirror.getGutterElement());
-            gutter.css("min-width", "");
-            var curWidth = gutter.width();
+            var $gutter = $(editor._codeMirror.getGutterElement());
+            $gutter.css("min-width", "");
+            var curWidth = $gutter.width();
             if (curWidth > maxWidth) {
                 maxWidth = curWidth;
             }

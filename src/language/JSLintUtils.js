@@ -50,8 +50,8 @@ define(function (require, exports, module) {
     function run() {
         var currentDoc = DocumentManager.getCurrentDocument();
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
-        var lintResults = $("#jslint-results");
-        var goldStar = $("#gold-star");
+        var $lintResults = $("#jslint-results");
+        var $goldStar = $("#gold-star");
         
         if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
             var text = currentDoc.getText();
@@ -70,9 +70,9 @@ define(function (require, exports, module) {
             var result = JSLINT(text, null);
             
             if (!result) {
-                var errorTable = $("<table class='zebra-striped condensed-table'>")
+                var $errorTable = $("<table class='zebra-striped condensed-table'>")
                                    .append("<tbody>");
-                var selectedRow;
+                var $selectedRow;
                 
                 JSLINT.errors.forEach(function (item, i) {
                     if (item) {
@@ -81,18 +81,18 @@ define(function (require, exports, module) {
                         };
                         
                         // Add row to error table
-                        var row = $("<tr/>")
+                        var $row = $("<tr/>")
                             .append(makeCell(item.line))
                             .append(makeCell(item.reason))
                             .append(makeCell(item.evidence || ""))
-                            .appendTo(errorTable);
+                            .appendTo($errorTable);
                         
-                        row.click(function () {
-                            if (selectedRow) {
-                                selectedRow.removeClass("selected");
+                        $row.click(function () {
+                            if ($selectedRow) {
+                                $selectedRow.removeClass("selected");
                             }
-                            row.addClass("selected");
-                            selectedRow = row;
+                            $row.addClass("selected");
+                            $selectedRow = $row;
                             
                             var editor = EditorManager.getCurrentFullEditor();
                             editor.setCursorPos(item.line - 1, item.character - 1);
@@ -103,18 +103,18 @@ define(function (require, exports, module) {
 
                 $("#jslint-results .table-container")
                     .empty()
-                    .append(errorTable);
-                lintResults.show();
-                goldStar.hide();
+                    .append($errorTable);
+                $lintResults.show();
+                $goldStar.hide();
             } else {
-                lintResults.hide();
-                goldStar.show();
+                $lintResults.hide();
+                $goldStar.show();
             }
         } else {
             // JSLint is disabled or does not apply to the current file, hide
             // both the results and the gold star
-            lintResults.hide();
-            goldStar.hide();
+            $lintResults.hide();
+            $goldStar.hide();
         }
         
         EditorManager.resizeEditor();
