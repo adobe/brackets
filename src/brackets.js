@@ -306,26 +306,21 @@ define(function (require, exports, module) {
                                 // it sometimes leaves a space if you drag really fast. 
                                 ViewUtils.updateChildrenToParentScrollwidth($("#open-files-container"));
                                 
-                                // change the project title element
-                                $("#project-title").width(e.clientX);
-                                
                                 // change the scroller shadow 
                                 $("#project-files-container .scrollerShadow").css("width", e.clientX);
                                 
-                                // move the selection triangle accordingly (and offset it by its width)
-                                var triangle_width = parseInt($(".sidebarSelectionTriangle").width(), 10);
+                                $("#project-files-container").trigger("scroll");
+                                $("#open-files-container").trigger("scroll");
                                 
-                                $(".sidebarSelectionTriangle").css("left", e.clientX - triangle_width);
-
-                                // finally move the scrollbar and set the new sidebar width
+                                // finally move the scrollbar, set the new sidebar width, and resize
+                                // the entire editor.
                                 $(".sidebar").width(e.clientX);
                                 _sidebar_width = parseInt($(".sidebar").width(), 10);
+                                EditorManager.resizeEditor();
                                 
                                 e.preventDefault();
                             });
                         });
-                        
-                        
                     }
                 }
             });
