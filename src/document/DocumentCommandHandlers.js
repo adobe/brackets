@@ -256,31 +256,74 @@ define(function (require, exports, module) {
 
         return result.promise();
     }
+    
+    /**
+     * This function manages two asynchronous processes: generating a unique file name and created a new file.
+     * A single deferred is returns when both sub asynchronous processes have resolved.
+     */
+    function newAutonamedFile() {
+        var deferred = new $.Deferred();
 
-    function handleFileNewInProject() {
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
         // If nothing is selected, put it at the root of the project
-        var baseDir,
-            selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
+        var baseDir;
+        var selected = ProjectManager.getSelectedItem() || ProjectManager.getProjectRoot();
         
         baseDir = selected.fullPath;
         if (selected.isFile) {
             baseDir = baseDir.substr(0, baseDir.lastIndexOf("/"));
         }
-        
+
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false).pipe(deferred.resolve, deferred.reject, deferred.notify);
         };
 
-        deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled.js"); });
-        return deferred;
+        var filenameDeferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js")
+            .done(function (suggestedName) {
+                createWithSuggestedName(suggestedName);
+            })
+            .fail(function createWithDefault() {
+                createWithSuggestedName("Untitled.js");
+            });
+
+        return deferred.promise();
     }
+
+    var fileNewQueue = [];
+    var fileNewPromise = null;
+    function handleFileNewInProject() {
+
+
+        
+        if (fileNewPromise === null || fileNewPromise.state() !== "pending") {
+            // start new queue
+            fileNewQueue.push(newAutonamedFile);
+            fileNewPromise = Async.doFunctionsSequentially(fileNewQueue, true);
+            fileNewPromise.always( function (){ 
+                fileNewPromise = null; 
+                fileNewQueue = [];
+            } );
+        } else {
+            
+            // User has previously executed this command, but the file hasn't been written yet
+            // because they are still naming it. Force the completion of naming to write out the file.
+            ProjectManager.closeRenameInput();
+
+            // queue up a call to create a new file
+            fileNewQueue.push(newAutonamedFile);
+
+        }
+
+        console.log(fileNewQueue.length);
+
+        // TODO: this returns master promise. Would like to return promise just for this call, but not sure how.
+        return fileNewPromise;
+    }
+
     
     function showSaveFileError(code, path) {
         return Dialogs.showModalDialog(

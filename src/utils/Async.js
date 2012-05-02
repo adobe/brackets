@@ -275,13 +275,32 @@ define(function (require, exports, module) {
         
         return wrapper.promise();
     }
-    
-    
 
+    /**
+     * 
+     * @param {!Array.<function>} items
+     * @param {!boolean} failAndStopFast
+     * @returns {$.Promise}
+     */
+    function doFunctionsSequentially(functions, failAndStopFast) {
+
+        var doOneFunction = function (value, index) {
+            return value.apply(null);
+        };
+
+        return doSequentially(functions, doOneFunction, failAndStopFast);
+
+    }
+
+
+
+
+    
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
+    exports.doFunctionsSequentially = doFunctionsSequentially;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });

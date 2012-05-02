@@ -623,8 +623,11 @@ define(function (require, exports, module) {
         return null;
     }
 
+
+
     /**
-     * Create a new item in the project tree.
+     * Create a new item in the project tree and prompts the user to name it. A new file is written
+     * when the rename fields loses focus
      *
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
@@ -778,6 +781,14 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function closeRenameInput() {
+        $(".jstree-rename-input").blur();
+    }
+
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
     exports.isWithinProject = isWithinProject;
@@ -786,6 +797,7 @@ define(function (require, exports, module) {
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
+    exports.closeRenameInput = closeRenameInput;
 
     // Initialize now
     (function () {
