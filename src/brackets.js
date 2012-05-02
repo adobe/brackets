@@ -261,39 +261,46 @@ define(function (require, exports, module) {
         }
         
         function initSidebarListeners() {
+            var _sidebar_resizer_created = false;
+            var _sidebar_width = parseInt($(".sidebar").width(), 10);
+            var _sidebar_resizer;
+            
             $(".sidebar").mousemove(function (e) {
-                var sidebar_width = parseInt($(".sidebar").width(), 10);
-                var sidebar_diff = sidebar_width - e.clientX;
 
-                var sidebar_resizer = $("<div/>", {id: "sidebar-resizer"});
+                var sidebar_diff = _sidebar_width - e.clientX;
+                if (!_sidebar_resizer_created) {
+                    _sidebar_resizer = $("<div/>", {id: "sidebar-resizer"});
+                    _sidebar_resizer_created = true;
+                }
                 
                 // set 15 pixels as the threshold, if we're moving the mouse within
                 // 15 pixels of the sidebar edge, assume we may want to resize. 
                 if (sidebar_diff < 15) {
-                    if ($("#sidebar-resizer").length === 0) {
-                        $(sidebar_resizer).addClass("sidebarResizer");
-                        $(sidebar_resizer).css("left", sidebar_width - 3);
+                    if (_sidebar_resizer_created) {
+                        $(_sidebar_resizer).addClass("sidebarResizer");
+                        $(_sidebar_resizer).css("left", _sidebar_width - 3);
                         
                         // Append to .main-view so it's not limited to sidebar events.
-                        $(sidebar_resizer).appendTo(".main-view");
+                        $(_sidebar_resizer).appendTo(".main-view");
                         
                         // When we mouseup, stop the drag and kill the div. 
-                        $(sidebar_resizer).bind("mouseup", function (e) {
+                        $(_sidebar_resizer).bind("mouseup", function (e) {
                             $(".main-view").unbind("mousemove");
                             
                             // if we're close to the edge of the screen, leave the resizer there
                             // so we can get the sidebar back. 
                             if (e.screenX > 5) {
                                 // good-bye sweet resizer. Until we meet again.
-                                $(sidebar_resizer).remove();
+                                $(_sidebar_resizer).remove();
+                                _sidebar_resizer_created = false;
                             }
                             e.preventDefault();
                         });
-                        $(sidebar_resizer).bind("mousedown", function (e) {
+                        $(_sidebar_resizer).bind("mousedown", function (e) {
                             $(".main-view").bind("mousemove", function (e) {
                                 // as we drag, move the resizer and have it slighly overlap both panels
                                 // (the sidebar and the main code editor)
-                                $(sidebar_resizer).css("left", e.clientX - 2);
+                                $(_sidebar_resizer).css("left", e.clientX - 2);
                                 
                                 // this doesn't seem to update quite as quickly as would be ideal.
                                 // it sometimes leaves a space if you drag really fast. 
@@ -310,8 +317,10 @@ define(function (require, exports, module) {
                                 
                                 $(".sidebarSelectionTriangle").css("left", e.clientX - triangle_width);
 
-                                // finally move the scrollbar
+                                // finally move the scrollbar and set the new sidebar width
                                 $(".sidebar").width(e.clientX);
+                                _sidebar_width = parseInt($(".sidebar").width(), 10);
+                                
                                 e.preventDefault();
                             });
                         });
