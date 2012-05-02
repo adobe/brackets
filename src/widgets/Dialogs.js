@@ -123,29 +123,29 @@ define(function (require, exports, module) {
         // type happen to show up, they can appear at the same time. (This is an edge case that
         // shouldn't happen often, but we can't prevent it from happening since everything is
         // asynchronous.)
-        var dlg = $("." + dlgClass + ".template")
+        var $dlg = $("." + dlgClass + ".template")
             .clone()
             .removeClass("template")
             .addClass("instance")
             .appendTo(window.document.body);
         
-        if (dlg.length === 0) {
+        if ($dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
 
         // Set title and message
         if (title) {
-            $(".dialog-title", dlg).html(title);
+            $(".dialog-title", $dlg).html(title);
         }
         if (message) {
-            $(".dialog-message", dlg).html(message);
+            $(".dialog-message", $dlg).html(message);
         }
 
-        var handleKeyDown = _handleKeyDown.bind(dlg);
+        var handleKeyDown = _handleKeyDown.bind($dlg);
 
         // Pipe dialog-closing notification back to client code
-        dlg.one("hidden", function () {
-            var buttonId = dlg.data("buttonId");
+        $dlg.one("hidden", function () {
+            var buttonId = $dlg.data("buttonId");
             if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
                 buttonId = DIALOG_BTN_CANCEL;
             }
@@ -158,14 +158,14 @@ define(function (require, exports, module) {
             }, 0);
             
             // Remove the dialog instance from the DOM.
-            dlg.remove();
+            $dlg.remove();
 
             // Remove keydown event handler
             window.document.body.removeEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
-            var primaryBtn = dlg.find(".primary");
+            var primaryBtn = $dlg.find(".primary");
 
             if (primaryBtn) {
                 primaryBtn.focus();
@@ -177,12 +177,12 @@ define(function (require, exports, module) {
         });
         
         // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            _dismissDialog(dlg, $(this).attr("data-button-id"));
+        $dlg.one("click", ".dialog-button", function (e) {
+            _dismissDialog($dlg, $(this).attr("data-button-id"));
         });
 
         // Run the dialog
-        dlg.modal({
+        $dlg.modal({
             backdrop: "static",
             show: true,
             keyboard: true

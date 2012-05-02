@@ -67,6 +67,7 @@ define(function (require, exports, module) {
     * Creates a dialog div floating on top of the current code mirror editor
     */
     FindInFilesDialog.prototype._createDialogDiv = function (template) {
+        // FUTURE: consider using jQuery for all the DOM manipulation here
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
@@ -96,18 +97,18 @@ define(function (require, exports, module) {
         var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
-        var searchField = $('input#findInFilesInput');
+        var $searchField = $('input#findInFilesInput');
         var that = this;
         
-        searchField.attr("value", initialString || "");
-        searchField.get(0).select();
+        $searchField.attr("value", initialString || "");
+        $searchField.get(0).select();
         
-        searchField.bind("keydown", function (event) {
+        $searchField.bind("keydown", function (event) {
             if (event.keyCode === 13 || event.keyCode === 27) {  // Enter/Return key or Esc key
                 event.stopPropagation();
                 event.preventDefault();
                 
-                var query = searchField.val();
+                var query = $searchField.val();
                 
                 if (event.keyCode === 27) {
                     query = null;
@@ -169,7 +170,7 @@ define(function (require, exports, module) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
-            var resultTable = $("<table class='zebra-striped condensed-table'>")
+            var $resultTable = $("<table class='zebra-striped condensed-table'>")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -205,18 +206,18 @@ define(function (require, exports, module) {
                     // Add row for file name
                     $("<tr/>")
                         .append("<td colspan='3'>File: <b>" + item.fullPath + "</b></td>")
-                        .appendTo(resultTable);
+                        .appendTo($resultTable);
                     
                     // Add row for each match in file
                     item.matches.forEach(function (match) {
                         if (resultsDisplayed < 100) {
-                            var row = $("<tr/>")
+                            var $row = $("<tr/>")
                                 .append(makeCell(" "))      // Indent
                                 .append(makeCell("line: " + (match.start.line + 1)))
                                 .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
-                                .appendTo(resultTable);
+                                .appendTo($resultTable);
                             
-                            row.click(function () {
+                            $row.click(function () {
                                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
                                     .done(function (doc) {
                                         // Opened document is now the current main editor
@@ -232,7 +233,7 @@ define(function (require, exports, module) {
             
             $("#search-results .table-container")
                 .empty()
-                .append(resultTable);
+                .append($resultTable);
             
             $("#search-results .close")
                 .one("click", function () {

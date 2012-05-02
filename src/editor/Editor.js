@@ -223,9 +223,9 @@ define(function (require, exports, module) {
             codeMirror.execCommand("find");
 
             // Prepopulate the search field with the current selection, if any
-            var findBarTextField = $(".CodeMirror-dialog input[type='text']");
-            findBarTextField.attr("value", codeMirror.getSelection());
-            findBarTextField.get(0).select();
+            $(".CodeMirror-dialog input[type='text']")
+                .attr("value", codeMirror.getSelection())
+                .get(0).select();
         }
     }
 
@@ -766,8 +766,7 @@ define(function (require, exports, module) {
      * @returns {Object} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
-        var lineSpaceParent = $(".CodeMirror-lines", this.getScrollerElement()).get(0);
-        return $(lineSpaceParent).children().get(0);
+        return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
     };
     
     /**
