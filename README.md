@@ -2,7 +2,7 @@ Welcome to Brackets!
 -------------------
 
 This is a very early version of Brackets, a code editor for HTML, CSS 
-and JavaScript that's *built* in HTML, CSS and JavaScript.
+and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
 What makes Brackets different from other web code editors?
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
@@ -13,6 +13,10 @@ works directly with your browser to push code edits instantly, set breakpoints,
 and jump back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
 and JavaScript, you can help build the best code editor for the web.
+
+You can see some 
+[screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
+on the wiki.
 
 Brackets is *very* early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
