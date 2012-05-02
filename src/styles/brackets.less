@@ -87,12 +87,13 @@ a, img {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 20;
+    z-index: @z-index-brackets-toolbar;
 }
 
 #editorHolder {
     .vbox;
     .box-flex(1);
+    position: relative;
     
     /* Placeholder shown when there is no editor open */
     #notEditor {
@@ -124,7 +125,7 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        z-index: 19;
+        z-index: @z-index-brackets-results-panel;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
         .title {
             font-size: @label-font-size;
@@ -281,10 +282,10 @@ a, img {
     height: 25px;
     position: fixed;
 
-    z-index: 20; /* scrollerShadow appears above this triangle */
+    z-index: @z-index-brackets-selection-triangle; /* scrollerShadow appears above this triangle */
 }
 
-.sidebarSelectionTriangle:before {
+.sidebarSelectionTriangle.triangleVisible:before {
     content: "";
     
     border-top: @triangle-size solid transparent;
@@ -333,7 +334,7 @@ a, img {
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
-    z-index: 21;
+    z-index: @z-index-brackets-scroller-shadow;
     
     &.top {
         #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
@@ -439,7 +440,7 @@ a, img {
         position: absolute;
         content: " ";
         left: 0;
-        z-index: 10;
+        z-index: @z-index-brackets-inline-editor-shadow;
     }
     
     .shadow.top {
@@ -533,7 +534,7 @@ a, img {
 
 .CodeMirror-dialog {
   position: relative;
-  z-index: 11;
+  z-index: @z-index-cm-dialog-override;
 }
 
 .CodeMirror-dialog > div {

@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -132,9 +132,6 @@ define(function (require, exports, module) {
             } else if (finalMap[normalizedKey]) {
                 console.log("KeyMap _normalizeMap() - Rejecting key because it was defined twice: " + ele + " (value: " + val + ")");
             } else {
-                if (normalizedKey !== ele) {
-                    console.log("KeyMap _normalizeMap() - Corrected a malformed key: " + ele + " (value: " + val + ")");
-                }
                 finalMap[normalizedKey] = val;
             }
         });
