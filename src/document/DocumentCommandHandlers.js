@@ -290,19 +290,35 @@ define(function (require, exports, module) {
         return deferred.promise();
     }
 
-    /**
-     * @type {!Async.DeferredQueue} used to chain multiple calls to handleFileNewInProject and force them to execute serially
-     * This handles the case when the user tries to create many new files in rapid succession
-     */
-    var fileNewQueue = new Async.PromiseQueue();
+    var fileNewQueue = [];
+    var fileNewPromise = null;
     function handleFileNewInProject() {
-        if (fileNewQueue.length > 0) {
+
+
+        
+        if (fileNewPromise === null || fileNewPromise.state() !== "pending") {
+            // start new queue
+            fileNewQueue.push(newAutonamedFile);
+            fileNewPromise = Async.doFunctionsSequentially(fileNewQueue, true);
+            fileNewPromise.always( function (){ 
+                fileNewPromise = null; 
+                fileNewQueue = [];
+            } );
+        } else {
+            
             // User has previously executed this command, but the file hasn't been written yet
             // because they are still naming it. Force the completion of naming to write out the file.
             ProjectManager.closeRenameInput();
+
+            // queue up a call to create a new file
+            fileNewQueue.push(newAutonamedFile);
+
         }
-        
-        return fileNewQueue.append(newAutonamedFile());
+
+        console.log(fileNewQueue.length);
+
+        // TODO: this returns master promise. Would like to return promise just for this call, but not sure how.
+        return fileNewPromise;
     }
 
     

@@ -277,42 +277,22 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Manages a FIFO queue of promises. Each promise is serially executed in order and new work 
-     * can be added to the queue during execution. New promise objects can be added to the queue
-     * via the append() method. Alternatively the appendFunction() can be used to add a function
-     * that is automatically wrapped in a deferred object.
      * 
-     * Example:
-     * An asynchronous command is called when the user presses a keyboard shortcut. The command
-     * should not execute when an existing call to it is executing and the user should be able to
-     * issue the command to queue up additional executions while earlier executions are processing.
-     * PromiseQueue helps solve this problem by allowing each command to be managed in a chained list
-     * of promises.
+     * @param {!Array.<function>} items
+     * @param {!boolean} failAndStopFast
+     * @returns {$.Promise}
      */
+    function doFunctionsSequentially(functions, failAndStopFast) {
 
-     // TODO: name to promise queue
-    function PromiseQueue() {
-        this.promise = $(this).promise();
+        var doOneFunction = function (value, index) {
+            return value.apply(null);
+        };
+
+        return doSequentially(functions, doOneFunction, failAndStopFast);
+
     }
 
-    /**
-     * @type {number} the number of promises in the queue
-     */
-    PromiseQueue.prototype.length = 0;
-     
-    /**
-     * Adds supplied promise to the end of the queue
-     * @param {!$.Promise} promise to add to queue
-     * @returns {$.Promise} new promise created by piping the supplied promise on to the queue
-     */
-    PromiseQueue.prototype.append = function (promise) {
-        var self = this;
-        this.length++;
-        promise.always(function () { self.length--; });
-        return (this.promise = this.promise.pipe(function () {
-            return promise;
-        }));
-    };
+
 
 
     
@@ -320,7 +300,7 @@ define(function (require, exports, module) {
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
-    exports.PromiseQueue = PromiseQueue;
+    exports.doFunctionsSequentially = doFunctionsSequentially;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
 });
