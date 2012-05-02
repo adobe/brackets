@@ -1109,6 +1109,7 @@
 				//if(this.data.ui.hovered && obj.get(0) === this.data.ui.hovered.get(0)) { return; }
 				if(!obj.hasClass("jstree-hovered")) { this.dehover_node(); }
 				this.data.ui.hovered = obj.children("a").addClass("jstree-hovered").parent();
+                // brackets: jstree uses default scroll bar widths, and there's no clean way to override the code from brackets, which causes continuous scrolling, so just disable for now
 				//this._fix_scroll(obj);
 				this.__callback({ "obj" : obj });
 			},
