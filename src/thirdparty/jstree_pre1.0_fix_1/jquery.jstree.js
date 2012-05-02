@@ -990,7 +990,6 @@
 			e1.add(e2).remove();
 		} 
 		else {
-			// brackets hack: add quiet-scrollbars class so width is calculated correctly
 			e1 = $('<div />').css({ width: 100, height: 100, overflow: 'auto', position: 'absolute', top: -1000, left: 0 })
 					.prependTo('body').append('<div />').find('div').css({ width: '100%', height: 200 });
 			scrollbar_width = 100 - e1.width();
@@ -1109,7 +1108,7 @@
 				//if(this.data.ui.hovered && obj.get(0) === this.data.ui.hovered.get(0)) { return; }
 				if(!obj.hasClass("jstree-hovered")) { this.dehover_node(); }
 				this.data.ui.hovered = obj.children("a").addClass("jstree-hovered").parent();
-                // brackets: jstree uses default scroll bar widths, and there's no clean way to override the code from brackets, which causes continuous scrolling, so just disable for now
+				// brackets: jstree uses default scroll bar widths, and there's no clean way to override the code from brackets, which causes continuous scrolling, so just disable for now
 				//this._fix_scroll(obj);
 				this.__callback({ "obj" : obj });
 			},
