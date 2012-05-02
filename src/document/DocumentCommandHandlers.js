@@ -433,10 +433,14 @@ define(function (require, exports, module) {
         if (commandData) {
             file = commandData.file;
         }
+        var promptOnly = false;
+        if (commandData) {
+            promptOnly = commandData.promptOnly;
+        }
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(file) {
-            if (!commandData || !commandData.promptOnly) {
+            if (!promptOnly) {
                 // This selects a different document if the working set has any other options
                 DocumentManager.closeFullEditor(file);
             
@@ -489,8 +493,9 @@ define(function (require, exports, module) {
                     // copy of whatever's on disk.
                     doClose(file);
                     
-                    // Only reload from disk if other views still exist
-                    if (DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                    // Only reload from disk if we've executed the Close for real,
+                    // *and* if at least one other view still exists
+                    if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
                         doRevert(doc)
                             .pipe(result.resolve, result.reject);
                     } else {
