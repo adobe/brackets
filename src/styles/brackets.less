@@ -199,9 +199,10 @@ a, img {
     position: relative;
     
     .project-file-header-area {
-        padding: 6px 6px 2px 10px;
+        padding: 6px 0px 2px 10px;
         font-size: 14px;
         color: #929292;
+        text-overflow: ellipsis
     }
 
     .file-list-divider {
@@ -292,6 +293,17 @@ a, img {
     .scaleX(0.9, right, top);
 }
 
+ .sidebarResizer {
+    width: 3px;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    z-index: 50;
+    background-color: #f00;
+    opacity: 0; // make it invisible so we don't mess with the design.
+    cursor: col-resize;
+}
+
 //Initially start with the open files hidden, they will get show as files are added
 #open-files-container {
     display:none;
@@ -307,11 +319,6 @@ a, img {
     ul {
         padding-left: 8px;
     }
-}
-
-.sidebar .scrollerShadow {
-    min-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
-    max-width: @sidebar-width;
 }
 
 #editorHolder .scrollerShadow {

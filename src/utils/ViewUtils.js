@@ -46,10 +46,12 @@ define(function (require, exports, module) {
         //clear the width first so we get the natural scrollWidth below
         $children.width("");
         
-        var targetWidth = $parent[0].scrollWidth -
-            parseInt($parent.css("paddingLeft"), 10) -
-            parseInt($parent.css("paddingRight"), 10);
-        
+        /*
+            This used to grab the scrollWidth of the parent minus the left/right
+            padding. But it seems more ideal just to get the width of the sidebar
+            and set accordingly. Maybe this was used before we had scrolling?
+        */
+        var targetWidth = $(".sidebar").width();
         $children.width(targetWidth);
     }
 
