@@ -507,7 +507,7 @@ define(function (require, exports, module) {
         if (this._visibleRange) {
             oldWidth = this._maxWidthInfo ? this._maxWidthInfo.width : -1;
             this._recomputeMaxWidth();
-            if (this._maxWidthInfo.width !== oldWidth) {
+            if (this._maxWidthInfo && this._maxWidthInfo.width !== oldWidth) {
                 $(this).triggerHandler("desiredWidthChange");
             }
         }
