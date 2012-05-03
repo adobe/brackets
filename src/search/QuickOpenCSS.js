@@ -106,8 +106,8 @@ define(function (require, exports, module) {
     function itemFocus(selectedItem) {
         var selectorInfo = getLocationFromSelectorName($(selectedItem).text());
         if (selectorInfo) {
-            var from = {line: selectorInfo.line, ch: selectorInfo.character};
-            var to = {line: selectorInfo.line, ch: selectorInfo.selectorEndChar};
+            var from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
+            var to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
             EditorManager.getCurrentFullEditor().setSelection(from, to);
         }
     }
