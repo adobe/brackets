@@ -78,9 +78,10 @@ define(function (require, exports, module) {
             functionList = [];
             var docText = doc.getText();
             
+            // TODO: use a shared JS language intelligence module
             var regexA = new RegExp(/(function\b)(.+)\b\(.*?\)/gi);  // recognizes the form: function functionName()
-            var regexB = new RegExp(/(.+)\s=\sfunction\s(\(.*?\))/gi); // recognizes the form: functionName = function()
-            var regexC = new RegExp(/(.+:\sfunction\s\(.*?\))/gi); // recognizes the form: functionName: function()
+            var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\(.*?\))/gi); // recognizes the form: functionName = function()
+            var regexC = new RegExp(/((\w+)\s*:\s*function\s*\(.*?\))/gi); // recognizes the form: functionName: function()
             var infoA, infoB, infoC, i, line;
             var funcName, chFrom, chTo;
 
