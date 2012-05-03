@@ -782,7 +782,7 @@ define(function (require, exports, module) {
      * Forces createNewItem() to complete by removing focus from the rename field which causes
      * the new file to be written to disk
      */
-    function closeRenameInput() {
+    function forceFinishRename() {
         $(".jstree-rename-input").blur();
     }
 
@@ -794,7 +794,7 @@ define(function (require, exports, module) {
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
-    exports.closeRenameInput = closeRenameInput;
+    exports.forceFinishRename = forceFinishRename;
 
     // Initialize now
     (function () {
