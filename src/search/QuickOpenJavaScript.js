@@ -38,32 +38,6 @@ define(function (require, exports, module) {
      */
     var functionList = null;
 
-    // currently NOT used. This was an attempt to use CodeMirror tokens to find functions
-    function generateFunctionList2() {
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var docText = doc.editor.getText();
-        var mode = CodeMirror.getMode({indentUnit: 2}, "javascript");
-        var state = CodeMirror.startState(mode);
-
-        var stream = new CodeMirror.StringStream(docText);
-        var style, token;
-        while (!stream.eol()) {
-            style = mode.token(stream, state);
-            token = stream.current();
-
-            stream.start = stream.pos;
-
-            console.log(token + " " + style);
-
-            //  if(style==="tag") {
-            //  console.log( token + "    " + style );
-            //  }
-        }
-    }
 
     function done() {
         functionList = null;
@@ -182,6 +156,7 @@ define(function (require, exports, module) {
      * @param {boolean} returns true if this plug-in wants to provide results for this query
      */
     function match(query) {
+        // only match @ at beginning of query for now
         // TODO: match any location of @ when QuickFileOpen._handleItemFocus() is modified to
         // dynamic open files
         //if (query.indexOf("@") !== -1) {
@@ -192,7 +167,7 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {string} selectedItem
+     * @param {HTMLLIElement} selectedItem
      */
     function itemFocus(selectedItem) {
         var fileLocation = getLocationFromFunctionName($(selectedItem).text());

@@ -62,18 +62,23 @@ define(function (require, exports, module) {
     /**
      * Defines API for new QuickOpen plug-ins
      * @param {string} plug-in name
-     * @param {Array.<string>} file types array. Example: ["js", "css", "txt"]
-     * @param {Function} called when quick open is complete. Plug-in should clear its internal state
-     * @param {Function} filter takes a query string and returns an array of strings that match the query
-     * @param {?Functon} match takes a query string and returns true if this plug-in wants to provide results for this query
-     * @param {Functon} itemFocus performs an action when a result has focus
-     * @param {Functon} itemSelect performs an action when a result is chosen
-     * @param {?Functon} resultFormatter takes a query string and an item string and returns a <LI> item to insert into the displayed search results
+     * @param {Array.<string>} file types array. Example: ["js", "css", "txt"]. An empty array
+     *   indicates all file types.
+     * @param {function()} done is called when quick open is complete. Plug-in should clear
+     * its internal state.
+     * @param {function(string):Array.<string>} filter takes a query string and returns an 
+     *   array of strings that match the query.
+     * @param {function(string):boolean} match takes a query string and returns true if this 
+     *   plug-in wants to provide results for this query.
+     * @param {functon(HTMLLIElement)} itemFocus performs an action when a result has focus.
+     * @param {functon(HTMLLIElement)} itemSelect performs an action when a result is chosen.
+     * @param {?Functon(string, string):string} resultFormatter takes a query string and an item string 
+        and returns a <LI> item to insert into the displayed search results.
      */
     function QuickOpenPlugin(name, fileTypes, done, filter, match, itemFocus, itemSelect, resultsFormatter) {
         
         this.name = name;
-        this.fileTypes = fileTypes; // empty array indicates all
+        this.fileTypes = fileTypes;
         this.done = done;
         this.filter = filter;
         this.match = match;
@@ -84,7 +89,7 @@ define(function (require, exports, module) {
     
     /**
      * Registers new QuickOpenPlugin
-     * @param {QuickOpenPlugin} plug-in
+     * @param {QuickOpenPlugin} plugin
      */
     function addQuickOpenPlugin(plugin) {
         plugins.push(new QuickOpenPlugin(
@@ -104,7 +109,7 @@ define(function (require, exports, module) {
     * @constructor
     */
     function QuickNavigateDialog() {
-        this.searchField = undefined; // defined when showDialog() is called
+        this.$searchField = undefined; // defined when showDialog() is called
     }
 
     /**
@@ -114,7 +119,7 @@ define(function (require, exports, module) {
         var wrap = $("#editorHolder")[0];
         this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div align="center">' + template + '</div>';
+        this.dialog.innerHTML = '<div align="right">' + template + '</div>';
     };
 
     function _filenameFromPath(path, includeExtension) {
@@ -127,8 +132,22 @@ define(function (require, exports, module) {
         return path.slice(path.lastIndexOf("/") + 1, end);
     }
 
+    /**
+     * Attempts to extract a line number from the query where the line number
+     * is followed by a colon. Callers should explicitly test result with isNaN()
+     * 
+     * @param {string} query string to extract line number from
+     * @returns {number} line number. Returns NaN to indicate no line numbeer was found
+     */
     function extractLineNumber(query) {
-        var result;
+        // only match : at beginning of query for now
+        // TODO: match any location of : when QuickFileOpen._handleItemFocus() is modified to
+        // dynamic open files
+        if (query.indexOf(":") !== 0) {
+            return NaN;
+        }
+
+        var result = NaN;
         var regInfo = query.match(/(!?:)(\d+)/); // colon followed by a digit
         if (regInfo) {
             result = regInfo[2] - 1;
@@ -138,7 +157,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Closes the search dialog and resolves the promise that showDialog returned
+     * Navigates to the appropriate file and file location given the selected item 
+     * and closes the dialog.
+     *
+     * Note, if selectedItem is null quick search should inspect $searchField for text
+     * that may have not matched anything in in the list, but may have information
+     * for carrying out an action.
      */
     QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
 
@@ -149,32 +173,36 @@ define(function (require, exports, module) {
             selectedItem = $(".smart_autocomplete_container > li:first-child").get(0);
         }
 
-        if (selectedItem) {
-            if (currentPlugin) {
-                currentPlugin.itemSelect(selectedItem);
-            } else {
-                var query = this.searchField.val();
-                var fullPath = $(selectedItem).attr("data-fullpath");
-                fullPath = decodeURIComponent(fullPath);
 
-                // extract line number
-                var cursor;
-                var gotoLine = extractLineNumber(query);
-                if (gotoLine) {
-                    cursor = {line: gotoLine, ch: 0};
-                }
+        // Delegate to current plugin
+        if (currentPlugin) {
+            currentPlugin.itemSelect(selectedItem);
+        } else {
 
-                // Do navigation
-                if (fullPath) {
-                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
-                        .done(function () {
-                            if (gotoLine) {
-                                EditorManager.getCurrentFullEditor().setCursorPos(cursor);
-                            }
-                        });
-                } else if (gotoLine) {
-                    EditorManager.getCurrentFullEditor().setCursorPos(cursor);
-                }
+            // extract line number
+            var cursor,
+                query = this.$searchField.val(),
+                gotoLine = extractLineNumber(query);
+            if (!isNaN(gotoLine)) {
+                cursor = {line: gotoLine, ch: 0};
+            }
+
+            // Extract file path
+            var fullPath;
+            if (selectedItem) {
+                fullPath = decodeURIComponent($(selectedItem).attr("data-fullpath"));
+            }
+
+            // Nagivate to file and line number
+            if (fullPath) {
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                    .done(function () {
+                        if (!isNaN(gotoLine)) {
+                            EditorManager.getCurrentFullEditor().setCursorPos(cursor);
+                        }
+                    });
+            } else if (!isNaN(gotoLine)) {
+                EditorManager.getCurrentFullEditor().setCursorPos(cursor);
             }
         }
 
@@ -191,12 +219,11 @@ define(function (require, exports, module) {
         if (currentPlugin) {
             currentPlugin.itemFocus(selectedItem);
         }
+        // TODO: Disable opening files on focus for now since this causes focus related bugs between 
+        // the editor and the search field. 
+        // Also, see related code in _handleItemFocus
         /*
         else {
-            Disable opening files on focus for now since this causes focus related bugs between 
-            the editor and the search field. 
-            Also, see related code in _handleItemFocus
-
             var fullPath = $(selectedItem).attr("data-fullpath");
             if (fullPath) {
                 fullPath = decodeURIComponent(fullPath);
@@ -211,7 +238,7 @@ define(function (require, exports, module) {
     QuickNavigateDialog.prototype._handleKeyIn = function (e, query) {
         // extract line number
         var gotoLine = extractLineNumber(query);
-        if (gotoLine) {
+        if (!isNaN(gotoLine)) {
             var from = {line: gotoLine, ch: 0};
             var to = {line: gotoLine, ch: 99999};
             
@@ -241,7 +268,7 @@ define(function (require, exports, module) {
 
             if (e.keyCode === ESCKey) {
 
-                // restore previously view doc if user navigated away from it
+                // restore previously viewed doc if user navigated away from it
                 if (origDocPath) {
                     CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
                         .done(function () {
@@ -263,7 +290,8 @@ define(function (require, exports, module) {
 
 
     /**
-    * Closes the search dialog and resolves the promise that showDialog returned
+    * Closes the search dialog and notifies all quick open plugins that
+    * searching is done. 
     */
     QuickNavigateDialog.prototype._close = function () {
 
@@ -292,9 +320,9 @@ define(function (require, exports, module) {
     };
     
     function filterFileList(query) {
-        var filteredList = $.map(fileList, function (itemInfo) {
+        var filteredList = $.map(fileList, function (fileInfo) {
             // match query against filename only (not the full path)
-            var path = itemInfo.fullPath;
+            var path = fileInfo.fullPath;
             var filename = _filenameFromPath(path, true);
             if (filename.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
                 return path;
@@ -357,7 +385,7 @@ define(function (require, exports, module) {
 
 
     function _handleResultsFormatter(item) {
-        var query = $('input#quickFileOpenSearch').val();
+        var query = htmlEscape(($('input#quickFileOpenSearch').val()));
 
         if (currentPlugin) {
             var formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
@@ -365,29 +393,24 @@ define(function (require, exports, module) {
         } else {
             // Format filename result
             var filename = _filenameFromPath(item, true);
-            var rPath = ProjectManager.makeProjectRelativeIfPossible(item);
+            var rPath = htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
             var boldName = filename.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
             return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + boldName +
                 "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
         }
     }
 
-    function selectFieldRange(field, start, end) {
-        if (field.createTextRange) {
-            var selRange = field.createTextRange();
-            selRange.collapse(true);
-            selRange.moveStart('character', start);
-            selRange.moveEnd('character', end - start);
-            selRange.select();
-        } else if (field.setSelectionRange) {
-            field.setSelectionRange(start, end);
-        } else if (field.selectionStart) {
-            field.selectionStart = start;
-            field.selectionEnd = end;
-        }
-
-        field.focus();
+    // TODO: move this to a general string utility file
+    function htmlEscape(str) {
+        return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
+
+
 
 
     function setSearchFieldValue(prefix, initialString) {
@@ -399,7 +422,7 @@ define(function (require, exports, module) {
         var $field = $('input#quickFileOpenSearch');
         if ($field) {
             $field.val(initialString);
-            selectFieldRange($field.get(0), prefix.length, initialString.length + prefix.length);
+            $field.get(0).setSelectionRange(prefix.length, initialString.length);
         }
     }
     
@@ -446,10 +469,10 @@ define(function (require, exports, module) {
                 fileList = files;
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
                 that._createDialogDiv(dialogHTML);
-                that.searchField = $('input#quickFileOpenSearch');
+                that.$searchField = $('input#quickFileOpenSearch');
 
 
-                that.searchField.smartAutoComplete({
+                that.$searchField.smartAutoComplete({
                     source: files,
                     maxResults: 20,
                     minCharLimit: 0,
@@ -461,11 +484,11 @@ define(function (require, exports, module) {
                     resultFormatter: _handleResultsFormatter
                 });
         
-                that.searchField.bind({
+                that.$searchField.bind({
                     itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
                     keydown: function (e) { that._handleKeyDown(e); },
-                    keyIn: function (e, query) { that._handleKeyIn(e, query); }
+                    keyIn: function (e, query) { that._handleKeyIn(e, query); } // note camelcase is correct
                     // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
                     // triggers lostFocus
                 });

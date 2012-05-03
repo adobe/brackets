@@ -121,7 +121,7 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {string} selectedItem
+     * @param {HTMLLIElement} selectedItem
      */
     function itemFocus(selectedItem) {
         var fileLocation = getLocationFromID($(selectedItem).text());
