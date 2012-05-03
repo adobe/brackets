@@ -263,9 +263,9 @@ define(function (require, exports, module) {
                 
                 // update scrollTop to reveal the selected list item
                 if (selectionMarkerTop >= currentScrollBottom) {
-                    scrollerElement.scrollTop = Math.max(0, selectionMarkerTop + selectionMarkerHeight - scrollerHeight);
+                    $listItem.get(0).scrollIntoView(false);
                 } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
-                    scrollerElement.scrollTop = selectionMarkerTop;
+                    $listItem.get(0).scrollIntoView(true);
                 }
             }
         };
