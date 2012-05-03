@@ -68,8 +68,7 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
-        ExtensionLoader         = require("utils/ExtensionLoader"),
-        ViewUtils               = require("utils/ViewUtils");
+        ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
