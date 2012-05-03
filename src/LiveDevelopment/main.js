@@ -1,10 +1,29 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
- * @author Jonathan Diehl <jdiehl@adobe.com>
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, less */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, less, window, XMLHttpRequest */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -45,8 +64,8 @@ define(function main(require, exports, module) {
     var _statusStyle = ["warning", "", "info", "info", "success"];  // Status indicator's CSS class
     var _allStatusStyles = _statusStyle.join(" ");
     
-    var _btnGoLive; // reference to the GoLive button
-    var _btnHighlight; // reference to the HighlightButton
+    var _$btnGoLive; // reference to the GoLive button
+    var _$btnHighlight; // reference to the HighlightButton
 
     /** Load Live Development LESS Style */
     function _loadStyles() {
@@ -56,8 +75,8 @@ define(function main(require, exports, module) {
             var parser = new less.Parser();
             parser.parse(request.responseText, function onParse(err, tree) {
                 console.assert(!err, err);
-                var style = $("<style>" + tree.toCSS() + "</style>");
-                $(document.head).append(style);
+                $("<style>" + tree.toCSS() + "</style>")
+                    .appendTo(window.document.head);
             });
         };
         request.send(null);
@@ -67,23 +86,23 @@ define(function main(require, exports, module) {
      * Change the appearance of a button. Omit text to remove any extra text; omit style to return to default styling;
      * omit tooltip to leave tooltip unchanged.
      */
-    function _setLabel(btn, text, style, tooltip) {
+    function _setLabel($btn, text, style, tooltip) {
         // Clear text/styles from previous status
-        $("span", btn).remove();
-        btn.removeClass(_allStatusStyles);
+        $("span", $btn).remove();
+        $btn.removeClass(_allStatusStyles);
         
         // Set text/styles for new status
         if (text && text.length > 0) {
-            var label = $("<span class=\"label\">");
-            label.addClass(style);
-            label.text(text);
-            btn.append(label);
+            $("<span class=\"label\">")
+                .addClass(style)
+                .text(text)
+                .appendTo($btn);
         } else {
-            btn.addClass(style);
+            $btn.addClass(style);
         }
         
         if (tooltip) {
-            btn.attr("title", tooltip);
+            $btn.attr("title", tooltip);
         }
     }
 
@@ -100,37 +119,37 @@ define(function main(require, exports, module) {
 
     /** Create the menu item "Go Live" */
     function _setupGoLiveButton() {
-        _btnGoLive = $("#toolbar-go-live");
-        _btnGoLive.click(function onGoLive() {
+        _$btnGoLive = $("#toolbar-go-live");
+        _$btnGoLive.click(function onGoLive() {
             _handleGoLiveCommand();
         });
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // status starts at -1 (error), so add one when looking up name and style
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
-            _setLabel(_btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
         });
         
         // Initialize tooltip for 'not connected' state
-        _setLabel(_btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
+        _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
     }
 
     /** Create the menu item "Highlight" */
     function _setupHighlightButton() {
         // TODO: this should be moved into index.html like the Go Live button once it's re-enabled
-        _btnHighlight = $("<a href=\"#\">Highlight </a>");
-        $(".nav").append($("<li>").append(_btnHighlight));
-        _btnHighlight.click(function onClick() {
+        _$btnHighlight = $("<a href=\"#\">Highlight </a>");
+        $(".nav").append($("<li>").append(_$btnHighlight));
+        _$btnHighlight.click(function onClick() {
             config.highlight = !config.highlight;
             if (config.highlight) {
-                _setLabel(_btnHighlight, _checkMark, "success");
+                _setLabel(_$btnHighlight, _checkMark, "success");
             } else {
-                _setLabel(_btnHighlight);
+                _setLabel(_$btnHighlight);
                 LiveDevelopment.hideHighlight();
             }
         });
         if (config.highlight) {
-            _setLabel(_btnHighlight, _checkMark, "success");
+            _setLabel(_$btnHighlight, _checkMark, "success");
         }
     }
 
@@ -152,7 +171,7 @@ define(function main(require, exports, module) {
             _setupDebugHelpers();
         }
     }
-    setTimeout(init);
+    window.setTimeout(init);
 
     CommandManager.register(Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 

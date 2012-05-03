@@ -1,8 +1,27 @@
-/*!
- * Brackets
- *
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
- *
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+/*
  * This file first imports all of the shared LESS/CSS, and then defines 
  * version-specific layout (e.g. layout for the App shell, or layout for
  * the In-Browser version on Firefox).
@@ -57,7 +76,7 @@ a, img {
 
     .sidebar {
         .vbox;
-        width: 200px;
+        width: @sidebar-width;
     }
 
     .content {
@@ -68,12 +87,13 @@ a, img {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 20;
+    z-index: @z-index-brackets-toolbar;
 }
 
 #editorHolder {
     .vbox;
     .box-flex(1);
+    position: relative;
     
     /* Placeholder shown when there is no editor open */
     #notEditor {
@@ -92,14 +112,6 @@ a, img {
             opacity: 0.30;
         }
     }
-    
-    /* Scroll shadow */
-    #editor-scroll-shadow {
-        position: fixed;
-        height: 4px;
-        width: 100%;
-        z-index: 12;
-    }
 }
     
 #jslint-results, #search-results {
@@ -113,7 +125,7 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        z-index: 19;
+        z-index: @z-index-brackets-results-panel;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
         .title {
             font-size: @label-font-size;
@@ -255,13 +267,27 @@ a, img {
 }
 
 .sidebarSelectionTriangle {
+    background: url("styles/images/active_back.png");
+    width: 10px;
+    height: 25px;
     position: fixed;
-    
-    margin-top: -@triangle-size;
+
+    z-index: @z-index-brackets-selection-triangle; /* scrollerShadow appears above this triangle */
+}
+
+.sidebarSelectionTriangle.triangleVisible:before {
+    content: "";
     
     border-top: @triangle-size solid transparent;
     border-bottom: @triangle-size solid transparent; 
     border-right: @triangle-size solid @background-color-3;
+    
+    display: block;
+    position: absolute;
+    top: 2px;
+    right: 0;
+    width: 0;
+    height: 0;
     
     .scaleX(0.9, right, top);
 }
@@ -283,15 +309,32 @@ a, img {
     }
 }
 
+.sidebar .scrollerShadow {
+    min-width: @sidebar-width;  /* width is clobbered by ViewUtils.updateChildrenToParentScrollwidth() */
+    max-width: @sidebar-width;
+}
+
+#editorHolder .scrollerShadow {
+    width: 100%;
+}
+
 .scrollerShadow {
-    /* top shadow */
-    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
-    
-    /* hide the shadow on init */
-    background-position: 0px -9999px;
-    
-    background-size: 100% 4px;
+    background-size: 100% 5px;
     background-repeat: no-repeat;
+    height: 5px;
+    position: fixed;
+    z-index: @z-index-brackets-scroller-shadow;
+    
+    &.top {
+        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        background-position: 0 -5px;
+    }
+    
+    &.bottom {
+        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        background-position: 0 5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
+    }
 }
 
 @spriteSize18: 18px;
@@ -386,7 +429,7 @@ a, img {
         position: absolute;
         content: " ";
         left: 0;
-        z-index: 10;
+        z-index: @z-index-brackets-inline-editor-shadow;
     }
     
     .shadow.top {
@@ -480,7 +523,7 @@ a, img {
 
 .CodeMirror-dialog {
   position: relative;
-  z-index: 11;
+  z-index: @z-index-cm-dialog-override;
 }
 
 .CodeMirror-dialog > div {

@@ -1,9 +1,29 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 /**
  * Editor is a 1-to-1 wrapper for a CodeMirror editor instance. It layers on Brackets-specific
@@ -178,7 +198,7 @@ define(function (require, exports, module) {
                     // the keypress is handled before auto-indenting.
                     // This is the same timeout value used by the
                     // electricChars feature in CodeMirror.
-                    setTimeout(function () {
+                    window.setTimeout(function () {
                         instance.indentLine(lineNum);
                     }, 75);
                 }
@@ -203,9 +223,9 @@ define(function (require, exports, module) {
             codeMirror.execCommand("find");
 
             // Prepopulate the search field with the current selection, if any
-            var findBarTextField = $(".CodeMirror-dialog input[type='text']");
-            findBarTextField.attr("value", codeMirror.getSelection());
-            findBarTextField.get(0).select();
+            $(".CodeMirror-dialog input[type='text']")
+                .attr("value", codeMirror.getSelection())
+                .get(0).select();
         }
     }
 
@@ -340,8 +360,6 @@ define(function (require, exports, module) {
         
         this._installEditorListeners();
         
-        ViewUtils.installScrollShadow($("#editor-scroll-shadow"), this);
-        
         $(this)
             .on("keyEvent", _checkElectricChars)
             .on("change", this._handleEditorChange.bind(this));
@@ -376,7 +394,7 @@ define(function (require, exports, module) {
             document._makeEditable(this);
         }
         
-        // Add a "scrollTop" property to this object for the scroll shadow code to use
+        // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
             get: function () {
                 return this._codeMirror.scrollPos().y;
@@ -615,11 +633,18 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var cursorPos = this.getCursorPos(),
+            scrollPos = this.getScrollPos();
+        
         // This *will* fire a change event, but we clear the undo immediately afterward
         this._codeMirror.setValue(text);
         
         // Make sure we can't undo back to the empty state before setValue()
         this._codeMirror.clearHistory();
+        
+        // restore cursor and scroll positions
+        this.setCursorPos(cursorPos);
+        this.setScrollPos(scrollPos.x, scrollPos.y);
     };
     
     
@@ -741,8 +766,7 @@ define(function (require, exports, module) {
      * @returns {Object} The editor's lineSpace element.
      */
     Editor.prototype._getLineSpaceElement = function () {
-        var lineSpaceParent = $(".CodeMirror-lines", this.getScrollerElement()).get(0);
-        return $(lineSpaceParent).children().get(0);
+        return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
     };
     
     /**
@@ -751,6 +775,15 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getScrollPos = function () {
         return this._codeMirror.scrollPos();
+    };
+    
+    /**
+     * Sets the current scroll position of the editor.
+     * @param {number} x scrollLeft position
+     * @param {number} y scrollTop position
+     */
+    Editor.prototype.setScrollPos = function (x, y) {
+        this._codeMirror.scrollTo(x, y);
     };
 
     /**
@@ -792,7 +825,8 @@ define(function (require, exports, module) {
      */
     Editor.prototype._removeInlineWidgetInternal = function (inlineId) {
         var i;
-        for (i = 0; i < this._inlineWidgets.length; i++) {
+        var l = this._inlineWidgets.length;
+        for (i = 0; i < l; i++) {
             if (this._inlineWidgets[i].id === inlineId) {
                 this._inlineWidgets.splice(i, 1);
                 break;

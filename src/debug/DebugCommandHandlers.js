@@ -1,9 +1,29 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false*/
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,16 +60,16 @@ define(function (require, exports, module) {
     }
     
     function _handleShowPerfData() {
-        var perfHeader = $("<div class='modal-header' />")
+        var $perfHeader = $("<div class='modal-header' />")
             .append("<a href='#' class='close'>&times;</a>")
             .append("<h1 class='dialog-title'>Performance Data</h1>");
         
-        var perfBody = $("<div class='modal-body' style='padding: 0' />");
+        var $perfBody = $("<div class='modal-body' style='padding: 0' />");
 
-        var data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+        var $data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
             .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
             .append("<tbody />")
-            .appendTo(perfBody);
+            .appendTo($perfBody);
         
         var makeCell = function (content) {
             return $("<td/>").text(content);
@@ -75,17 +95,17 @@ define(function (require, exports, module) {
         for (testName in perfData) {
             if (perfData.hasOwnProperty(testName)) {
                 // Add row to error table
-                var row = $("<tr/>")
+                $("<tr/>")
                     .append(makeCell(testName))
                     .append(makeCell(getValue(perfData[testName])))
-                    .appendTo(data);
+                    .appendTo($data);
             }
         }
                                                      
-        var perfDlog = $("<div class='modal hide' />")
-            .append(perfHeader)
-            .append(perfBody)
-            .appendTo(document.body)
+        $("<div class='modal hide' />")
+            .append($perfHeader)
+            .append($perfBody)
+            .appendTo(window.document.body)
             .modal({
                 backdrop: "static",
                 show: true

@@ -1,6 +1,26 @@
 <!doctype html>
 
-<!-- Copyright 2011 Adobe Systems Incorporated. All Rights Reserved. -->
+<!-- 
+  Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+   
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"), 
+  to deal in the Software without restriction, including without limitation 
+  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+  and/or sell copies of the Software, and to permit persons to whom the 
+  Software is furnished to do so, subject to the following conditions:
+   
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+   
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+  DEALINGS IN THE SOFTWARE.
+-->
 
 <html>
 <head>
@@ -39,7 +59,7 @@
 <body>
     <!-- Main UI -->
     <div class="main-view">
-        <div class="sidebar">
+        <div class="sidebar quiet-scrollbars">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-header"></div>
@@ -64,6 +84,7 @@
         <div class="content">
             <!-- Toolbar containing menus, filename, and icons -->
             <div id="main-toolbar" class="toolbar">
+                <!-- Menu bar -->
                 <ul class="nav" data-dropdown="dropdown">
                     <!-- File menu -->
                     <li class="dropdown">
@@ -128,8 +149,8 @@
                             <li><a href="#" id="menu-navigate-goto-definition">Go to Symbol</a></li>
                             <li><hr class="divider"></li>
                             <li><a href="#" id="menu-navigate-quick-edit">Quick Edit</a></li>
-                            <li><a href="#" id="menu-navigate-previous-css-rule">Previous CSS Rule</a></li>
-                            <li><a href="#" id="menu-navigate-next-css-rule">Next CSS Rule</a></li>
+                            <li><a href="#" id="menu-navigate-previous-match">Previous Match</a></li>
+                            <li><a href="#" id="menu-navigate-next-match">Next Match</a></li>
                         </ul>
                     </li>
     
@@ -151,7 +172,10 @@
                     </li>
                 </ul>
                 
+                <!-- Toolbar -->
                 <div class="buttons">
+                    <span class="experimental-label">Experimental Build</span>
+                    
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
                     
                     <span id="gold-star" title="No JSLint errors - good job!">
@@ -159,6 +183,7 @@
                     </span>
                 </div>
                 
+                <!-- Filename label -->
                 <div class="title-wrapper">
                     <span class="title"></span>
                 </div>
@@ -167,8 +192,6 @@
             <div id="editorHolder">
                 <div id="notEditor">
                     <div id="notEditorContent">[&nbsp;&nbsp;]</div>
-                </div>
-                <div id="editor-scroll-shadow">
                 </div>
             </div>
             
@@ -250,6 +273,24 @@
         <div class="modal-footer">
             <a href="#" class="dialog-button btn left" data-button-id="cancel">Cancel</a>
             <a href="#" class="dialog-button btn primary" data-button-id="ok">Relaunch Chrome</a>
+        </div>
+    </div>
+    <div class="about-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">About</h1>
+        </div>
+        <div class="modal-body">
+            <img class="about-icon" src="styles/images/brackets_icon.png">
+            <div class="about-text">
+                <h2>Brackets</h2>
+                <p class="dialog-message">sprint 8 experimental build</p>
+                <p class="dialog-message">Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
+                <p class="dialog-message">Notices, terms and conditions pertaining to third party software are located at <span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.</p>
+                <p class="dialog-message">Documentation and source at <span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Close</a>
         </div>
     </div>
 </body>

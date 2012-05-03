@@ -1,9 +1,28 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets: false, FileError: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, FileError, window */
 
 /**
  * ProjectManager is the model for the set of currently open project. It is responsible for
@@ -46,6 +65,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to previous selectiooon jstree node
+     * @type {DOMElement}
+     */
+    var _lastSelected = null;
+    
+    /**
+     * @private
      * Reference to the tree control UL element
      * @type {DOMElement}
      */
@@ -73,6 +99,22 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /**
+     * @private
+     */
+    function _fireSelectionChanged() {
+        // redraw selection
+        if ($projectTreeList) {
+            $projectTreeList.trigger("selectionChanged");
+            
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
+            _projectTree.triggerHandler("contentChanged");
+        }
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc
@@ -91,15 +133,11 @@ define(function (require, exports, module) {
             });
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
+            _lastSelected = null;
         }
         
-        // redraw selection
-        if ($projectTreeList) {
-            $projectTreeList.trigger("selectionChanged");
-        }
+        _fireSelectionChanged();
     };
-
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
 
     /**
      * Unique PreferencesManager clientID
@@ -222,7 +260,22 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                    
+                        openResult.done(function () {
+                            // update when tree display state changes
+                            _fireSelectionChanged();
+                            _lastSelected = data.rslt.obj;
+                        }).fail(function () {
+                            if (_lastSelected) {
+                                // revert this new selection and restore previous selection
+                                _projectTree.jstree("deselect_node", data.rslt.obj);
+                                _projectTree.jstree("select_node", _lastSelected, false);
+                            } else {
+                                _projectTree.jstree("deselect_all");
+                                _lastSelected = null;
+                            }
+                        });
                     }
                 }
             )
@@ -261,6 +314,9 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    
+                    // update when tree display state changes
+                    _fireSelectionChanged();
                     _savePreferences();
                 }
             );
@@ -273,7 +329,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.installScrollShadow(_projectTree[0]);
+            ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
                 .unbind("dblclick.jstree")
@@ -286,11 +342,11 @@ define(function (require, exports, module) {
 
             // fire selection changed events for sidebarSelection
             $projectTreeList = $projectTreeContainer.find("ul");
-            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
             $projectTreeContainer.show();
         });
 
-        return result;
+        return result.promise();
     }
     
     /** @param {Entry} entry File or directory to filter */
@@ -427,7 +483,7 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @return {Deferred} A $.Deferred() object that will be resolved when the
+     * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
@@ -516,7 +572,7 @@ define(function (require, exports, module) {
                 );
         }
 
-        return result;
+        return result.promise();
     }
 
     /**
@@ -573,7 +629,7 @@ define(function (require, exports, module) {
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
-     * @return {Deferred} A $.Deferred() object that will be resolved with the FileEntry
+     * @return {$.Promise} A promise object that will be resolved with the FileEntry
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
@@ -719,7 +775,15 @@ define(function (require, exports, module) {
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
 
-        return result;
+        return result.promise();
+    }
+
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
     }
 
     // Define public API
@@ -730,6 +794,7 @@ define(function (require, exports, module) {
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
+    exports.forceFinishRename = forceFinishRename;
 
     // Initialize now
     (function () {
@@ -740,6 +805,10 @@ define(function (require, exports, module) {
         
         // Init PreferenceStorage
         _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+        // Event Handlers
+        $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+        $("#open-files-container").on("contentChanged", _fireSelectionChanged); // redraw jstree when working set size changes
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());

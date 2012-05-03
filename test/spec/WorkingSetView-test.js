@@ -1,6 +1,26 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
+
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global $: false, define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false */
@@ -75,10 +95,10 @@ define(function (require, exports, module) {
         it("should add a list item when a file is dirtied", function () {
             // check if files are added to work set and dirty icons are present
             runs(function () {
-                var listItems = testWindow.$("#open-files-container > ul").children();
-                expect(listItems.length).toBe(2);
-                expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
-                expect(listItems.find(".file-status-icon").length).toBe(2);
+                var $listItems = testWindow.$("#open-files-container > ul").children();
+                expect($listItems.length).toBe(2);
+                expect($listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
+                expect($listItems.find(".file-status-icon").length).toBe(2);
             });
         });
         
@@ -107,9 +127,9 @@ define(function (require, exports, module) {
                 var secondItem =  $($("#open-files-container > ul").children()[1]);
                 secondItem.trigger('click');
                 
-                var listItems = $("#open-files-container > ul").children();
-                expect($(listItems[0]).hasClass("selected")).not.toBeTruthy();
-                expect($(listItems[1]).hasClass("selected")).toBeTruthy();
+                var $listItems = $("#open-files-container > ul").children();
+                expect($($listItems[0]).hasClass("selected")).not.toBeTruthy();
+                expect($($listItems[1]).hasClass("selected")).toBeTruthy();
             });
         });
         
@@ -133,28 +153,28 @@ define(function (require, exports, module) {
                 testWindow = w;
             });
             
-            var listItems;
+            var $listItems;
             
             // wait for working set to populate
             waitsFor(
                 function () {
                     // check working set UI list content
-                    listItems = testWindow.$("#open-files-container > ul").children();
-                    return listItems.length > 0;
+                    $listItems = testWindow.$("#open-files-container > ul").children();
+                    return $listItems.length > 0;
                 },
                 1000
             );
 
             // files should be in the working set
             runs(function () {
-                expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
-                expect(listItems.find("a").get(1).text === "file_two.js").toBeTruthy();
+                expect($listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
+                expect($listItems.find("a").get(1).text === "file_two.js").toBeTruthy();
 
                 // files should be clean
-                expect(listItems.find(".file-status-icon dirty").length).toBe(0);
+                expect($listItems.find(".file-status-icon dirty").length).toBe(0);
 
                 // file_two.js should be active
-                expect($(listItems[1]).hasClass("selected")).toBeTruthy();
+                expect($($listItems[1]).hasClass("selected")).toBeTruthy();
             });
         });
         
@@ -190,9 +210,9 @@ define(function (require, exports, module) {
             waitsFor(function () { return didClose; }, "click on working set close icon timeout", 1000);
                             
             runs(function () {
-                var listItems = $("#open-files-container > ul").children();
-                expect(listItems.length).toBe(1);
-                expect(listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
+                var $listItems = $("#open-files-container > ul").children();
+                expect($listItems.length).toBe(1);
+                expect($listItems.find("a").get(0).text === "file_one.js").toBeTruthy();
             });
         });
         

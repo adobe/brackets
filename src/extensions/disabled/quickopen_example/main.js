@@ -1,9 +1,29 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: false, $ */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets, $, window */
 
 /*
 * Displays an auto suggest popup list of files to allow the user to quickly navigate to a file.
@@ -42,8 +62,9 @@ define(function (require, exports, module) {
     * Creates a dialog div floating on top of the current code mirror editor
     */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
+        // FUTURE: consider using jQuery for all the DOM manipulation here
         var wrap = $("#editorHolder")[0];
-        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div style=\'background-image:url(' + require.toUrl("./ty.jpg") + ')\'>' + template + '</div>';
     };
@@ -72,7 +93,7 @@ define(function (require, exports, module) {
     /**
     * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
     * @param {?string} initialString Default text to prepopulate the search field with
-    * @returns {$.Promise} a promise that is resolved when the dialgo closes with the string value from the search field
+    * @returns {$.Promise} a promise that is resolved when the dialog closes with the string value from the search field
     */
     QuickNavigateDialog.prototype.showDialog = function (initialString) {
         var that = this;
@@ -85,10 +106,10 @@ define(function (require, exports, module) {
                 var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
                 that._createDialogDiv(dialogHTML);
                 var closed = false;
-                var searchField = $('input#quickFileOpenSearch');
+                var $searchField = $('input#quickFileOpenSearch');
                 
-                searchField.attr("value", initialString || "");
-                searchField.get(0).select();
+                $searchField.attr("value", initialString || "");
+                $searchField.get(0).select();
 
                 // auto suggest list helper function
                 function _handleResultsFormatter(path) {
@@ -127,7 +148,7 @@ define(function (require, exports, module) {
                 }
 
                 // Create the auto suggest list of filenames
-                searchField.smartAutoComplete({
+                $searchField.smartAutoComplete({
                     source: fileInfoList,
                     maxResults: 10,
                     forceSelect: false,
@@ -136,7 +157,7 @@ define(function (require, exports, module) {
                     resultFormatter: _handleResultsFormatter
                 });
         
-                searchField.bind({
+                $searchField.bind({
                     // close the dialog when the user selects an item
                     itemSelect: function (ev, selected_item) {
                         var value = decodeURIComponent($(selected_item).attr("data-fullpath"));
@@ -144,7 +165,7 @@ define(function (require, exports, module) {
                     },
         
                     keydown: function (e) {
-                        var query = searchField.val();
+                        var query = $searchField.val();
 
                         // close the dialog when the ENTER (23) or ESC (27) key is pressed
                         if ((e.keyCode === 13 && query.charAt(0) === ":") || e.keyCode === 27) {
@@ -164,10 +185,10 @@ define(function (require, exports, module) {
         
                 });
         
-                searchField.focus();
+                $searchField.focus();
             });
 
-        return this.result;
+        return this.result.promise();
     };
 
 
