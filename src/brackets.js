@@ -247,16 +247,51 @@ define(function (require, exports, module) {
         
         function initSidebarListeners() {
             var sidebar_width = parseInt($(".sidebar").width(), 10);
+            var is_sidebar_hidden = false;
+            var sidebar_snapped_close = false;
+            
             $("#sidebar-resizer").css("left", sidebar_width - 3);
             $("#sidebar-resizer").mousedown(function (e) {
-                $(".main-view").mousemove(function (e) {
-                    $("#sidebar-resizer").css("left", e.clientX);
+                
+                // check to see if we're currently in hidden mode
+                if (is_sidebar_hidden) {
+                    // when we click, start modifying the sidebar size and then
+                    // modify the variables to set the sidebar state correctly. 
                     $(".sidebar").css("width", e.clientX);
-                    $("#project-files-container").trigger("scroll");
-                    $("#open-files-container").trigger("scroll");
-                    $(".sidebarSelection").width(e.clientX);
-                    //$(".sidebarSelection".width(e.clientX));
-                    //ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR);
+                    is_sidebar_hidden = false;
+                    
+                    // this keeps the triangle from jumping around
+                    $(".triangleVisible").css("display", "none");
+                }
+                $(".main-view").mousemove(function (e) {
+                    // if we've gone below 10 pixels on a mouse move, and the
+                    // sidebar has not been snapped close, hide the sidebar 
+                    // automatically an unbind the mouse event. 
+                    if (e.clientX < 10 && !sidebar_snapped_close) {
+                        CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR);
+                        is_sidebar_hidden = true;
+                        sidebar_snapped_close = true;
+                        $("#sidebar-resizer").css("left", 0);
+                        $(".main-view").unbind("mousemove");
+                    } else {
+                        // if we've moving past 10 pixels, make the triangle visible again
+                        // an register that the sidebar is no loner snapped closed. 
+                        if (e.clientX > 10) {
+                            sidebar_snapped_close = false;
+                            $(".triangleVisible").css("display", "block");
+                        }
+                        $("#sidebar-resizer").css("left", e.clientX);
+                        $(".sidebar").css("width", e.clientX);
+                        
+                        // trigger the scroll events to resize things correctly.
+                        $("#project-files-container").trigger("scroll");
+                        $("#open-files-container").trigger("scroll");
+                        
+                        // the .sidebarSelection needs to be explicitly set
+                        $(".sidebarSelection").width(e.clientX);
+                    }
+                    EditorManager.resizeEditor();
                     e.preventDefault();
                 });
                 e.preventDefault();

@@ -75,6 +75,7 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
+            $shadowTop.css("width", sidebarWidth);
         }
         
         if ($shadowBottom) {
@@ -199,6 +200,7 @@ define(function (require, exports, module) {
         
         // build selectionTriangle and position fixed to the window
         $selectionTriangle = $(window.document.createElement("div")).addClass("sidebarSelectionTriangle");
+        
         $fileSection.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
@@ -229,7 +231,6 @@ define(function (require, exports, module) {
                     $selectionTriangle.css("clip", "");
                 }
             }
-            
         };
         
         var updateSelectionMarker = function () {
