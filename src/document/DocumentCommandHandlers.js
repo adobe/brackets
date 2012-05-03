@@ -257,7 +257,22 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Prevent re-entrancy into handleFileNewInProject()
+     *
+     * handleFileNewInProject() first prompts users to name a file and then asynchronously writes the file when the
+     * file name field loses focus. This boolean prevent additional calls to handleFileNewInProject() when an exist
+     * file creation call is outstanding
+     */
+    var isCreatingNewFile = false;
     function handleFileNewInProject() {
+
+        if (isCreatingNewFile) {
+            ProjectManager.closeRenameInput();
+            return;
+        }
+        isCreatingNewFile = true;
+
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
@@ -274,7 +289,9 @@ define(function (require, exports, module) {
         // of validating file name, creating the new file and selecting.
         var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
         var createWithSuggestedName = function (suggestedName) {
-            ProjectManager.createNewItem(baseDir, suggestedName, false).pipe(deferred.resolve, deferred.reject, deferred.notify);
+            ProjectManager.createNewItem(baseDir, suggestedName, false)
+                .pipe(deferred.resolve, deferred.reject, deferred.notify)
+                .always(function () { isCreatingNewFile = false; });
         };
 
         deferred.done(createWithSuggestedName);

@@ -778,6 +778,14 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function closeRenameInput() {
+        $(".jstree-rename-input").blur();
+    }
+
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
     exports.isWithinProject = isWithinProject;
@@ -786,6 +794,7 @@ define(function (require, exports, module) {
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
+    exports.closeRenameInput = closeRenameInput;
 
     // Initialize now
     (function () {
