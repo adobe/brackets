@@ -166,7 +166,7 @@ define(function (require, exports, module) {
      */
     QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
 
-        // This is a work-around to default to the first item when a selection event occurs
+        // This is a work-around to select first item when a selection event occurs
         // (usually from pressing the enter key) and no item is selected in the list.
         // This is a work-around since  Smart auto complete doesn't select the first item
         if (!selectedItem) {
@@ -282,7 +282,7 @@ define(function (require, exports, module) {
             }
 
             if (e.keyCode === EnterKey) {
-                this._handleItemSelect();
+                this._handleItemSelect($(".smart_autocomplete_highlight").get(0));
             }
             
         }
