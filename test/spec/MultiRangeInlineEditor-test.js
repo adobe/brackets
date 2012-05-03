@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, HTMLElement: false */
+/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waits: false, waitsFor: false, runs: false, $: false, HTMLElement: false */
 
 define(function (require, exports, module) {
     'use strict';
@@ -233,33 +233,40 @@ define(function (require, exports, module) {
         });
 
         it("should close and return to the host editor", function () {
-            var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+            runs(function () {
+                var inlineDoc = SpecRunnerUtils.createMockDocument("div{}\n.foo{}\n");
+                
+                var mockRanges = [
+                    {
+                        document: inlineDoc,
+                        name: "div",
+                        lineStart: 0,
+                        lineEnd: 0
+                    }
+                ];
+                
+                inlineEditor = new MultiRangeInlineEditor(mockRanges);
+                inlineEditor.load(hostEditor);
+            });
             
-            var mockRanges = [
-                {
-                    document: inlineDoc,
-                    name: "div",
-                    lineStart: 0,
-                    lineEnd: 0
-                }
-            ];
+            // Wait for asynchronous side-effects of load() to finish
+            waits(100);
             
-            inlineEditor = new MultiRangeInlineEditor(mockRanges);
-            inlineEditor.load(hostEditor);
-            
-            // add widget directly, bypass _openInlineWidget
-            hostEditor.addInlineWidget({line: 0, ch: 0}, inlineEditor);
-            
-            // verify it was added
-            expect(hostEditor.hasFocus()).toBe(false);
-            expect(hostEditor.getInlineWidgets().length).toBe(1);
-            
-            // close the inline editor directly, should call EditorManager and removeInlineWidget
-            inlineEditor.close();
-            
-            // verify no editors
-            expect(hostEditor.getInlineWidgets().length).toBe(0);
-            expect(hostEditor.hasFocus()).toBe(true);
+            runs(function () {
+                // add widget directly, bypass _openInlineWidget
+                hostEditor.addInlineWidget({line: 0, ch: 0}, inlineEditor);
+                
+                // verify it was added
+                expect(hostEditor.hasFocus()).toBe(false);
+                expect(hostEditor.getInlineWidgets().length).toBe(1);
+                
+                // close the inline editor directly, should call EditorManager and removeInlineWidget
+                inlineEditor.close();
+                
+                // verify no editors
+                expect(hostEditor.getInlineWidgets().length).toBe(0);
+                expect(hostEditor.hasFocus()).toBe(true);
+            });
         });
         
     });
