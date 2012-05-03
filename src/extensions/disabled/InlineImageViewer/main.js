@@ -55,14 +55,30 @@ define(function (require, exports, module) {
             var string = token.string;
             
             // Strip quotes
-            if (string[0] === "\"") {
+            var char = string[0];
+            if (char === "\"" || char === "'") {
                 string = string.substr(1);
             }
-            if (string[string.length - 1] === "\"") {
+            char = string[string.length - 1];
+            if (char === "\"" || char === "'") {
                 string = string.substr(0, string.length - 1);
             }
             
             return string;
+        } else {
+            
+            // Check for url(...);
+            var line = hostEditor._codeMirror.getLine(pos.line);
+            var match = /url\s*\(([^)]*)\)/.exec(line);
+            
+            if (match && match[1]) {
+                // URLs are relative to the doc
+                var docPath = hostEditor.document.file.fullPath;
+                
+                docPath = docPath.substr(0, docPath.lastIndexOf("/"));
+                
+                return docPath + "/" + match[1];
+            }
         }
         
         return "";
@@ -99,10 +115,14 @@ define(function (require, exports, module) {
         }
 
         // TODO: Check for relative path
-        var fullPath = ProjectManager.getProjectRoot().fullPath + fileName;
+        var projectPath = ProjectManager.getProjectRoot().fullPath;
+        
+        if (fileName.indexOf(projectPath) !== 0) {
+            fileName = projectPath + fileName;
+        }
         var result = new $.Deferred();
 
-        var imageViewer = new InlineImageViewer(fileName, fullPath);
+        var imageViewer = new InlineImageViewer(fileName.substr(fileName.lastIndexOf("/")), fileName);
         imageViewer.load(hostEditor);
         
         result.resolve(imageViewer);
