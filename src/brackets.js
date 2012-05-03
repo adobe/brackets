@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: true, $: false, PathUtils: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets: true, $, PathUtils, window, navigator */
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
@@ -70,7 +70,7 @@ define(function (require, exports, module) {
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader");
         
-    //Load modules the self-register and just need to get included in the main project
+    //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
@@ -129,13 +129,13 @@ define(function (require, exports, module) {
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     // Main Brackets initialization
-    $(document).ready(function () {
+    $(window.document).ready(function () {
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
             // the entire Brackets app. This doesn't prevent children from choosing to
             // handle drops.
-            $(document.body)
+            $(window.document.body)
                 .on("dragover", function (event) {
                     if (event.originalEvent.dataTransfer.files) {
                         event.stopPropagation();
@@ -162,7 +162,14 @@ define(function (require, exports, module) {
         
         
         function initCommandHandlers() {
+            // Most command handlers are automatically registered when their module is loaded (see "modules
+            // that self-register" above for some). A few commands need an extra kick here though:
+            
             DocumentCommandHandlers.init($("#main-toolbar"));
+            
+            CommandManager.register(Commands.HELP_ABOUT, function () {
+                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+            });
         }
 
         function initKeyBindings() {
@@ -203,8 +210,8 @@ define(function (require, exports, module) {
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
-                    {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
-                    {"Alt-Down": Commands.NEXT_CSS_RULE},
+                    {"Alt-Up": Commands.QUICK_EDIT_PREV_MATCH},
+                    {"Alt-Down": Commands.QUICK_EDIT_NEXT_MATCH},
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
@@ -216,7 +223,7 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            document.body.addEventListener(
+            window.document.body.addEventListener(
                 "keydown",
                 function (event) {
                     if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
@@ -290,7 +297,7 @@ define(function (require, exports, module) {
         var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
         if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
             // test a scrolling div for scrollbars
-            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(document.body);
+            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);
             
             if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
                 $(".sidebar").removeClass("quiet-scrollbars");

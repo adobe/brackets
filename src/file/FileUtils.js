@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, FileError, brackets, unescape */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define, $, FileError, brackets, unescape, window */
 
 /**
  * Set of utilites for working with files and text content.
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
-     * @return {Deferred} a jQuery Deferred that will be resolved with the 
+     * @return {$.Promise} a jQuery promise that will be resolved with the 
      *  file's text content plus its timestamp, or rejected with a FileError if
      *  the file can not be read.
      */
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
      * Asynchronously writes a file as UTF-8 encoded text.
      * @param {!FileEntry} fileEntry
      * @param {!string} text
-     * @return {Deferred} a jQuery Deferred that will be resolved when
+     * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a FileError.
      */
     function writeText(fileEntry, text) {

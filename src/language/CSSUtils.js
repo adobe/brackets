@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror */
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
     function _addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
         selectorsToAdd.forEach(function (selectorInfo) {
             resultSelectors.push({
-                selector: selectorInfo.selector,
+                name: selectorInfo.selector,
                 document: sourceDoc,
                 lineStart: selectorInfo.ruleStartLine + lineOffset,
                 lineEnd: selectorInfo.declListEndLine + lineOffset

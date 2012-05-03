@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
 
 define(function (require, exports, module) {
     'use strict';
@@ -64,10 +64,10 @@ define(function (require, exports, module) {
     exports.VIEW_HIDE_SIDEBAR  = "view.hideSidebar";
     
     // Navigate
-    exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
-    exports.SHOW_INLINE_EDITOR  = "navigate.showInlineEditor";
-    exports.NEXT_CSS_RULE       = "navigate.nextCssRule";
-    exports.PREVIOUS_CSS_RULE   = "navigate.previousCssRule";
+    exports.NAVIGATE_QUICK_OPEN     = "navigate.quickOpen";
+    exports.SHOW_INLINE_EDITOR      = "navigate.showInlineEditor";
+    exports.QUICK_EDIT_NEXT_MATCH   = "navigate.nextMatch";
+    exports.QUICK_EDIT_PREV_MATCH   = "navigate.previousMatch";
 
     exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";
@@ -78,6 +78,6 @@ define(function (require, exports, module) {
     exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
     exports.DEBUG_USE_TAB_CHARS = "debug.useTabChars";
 
-
+    exports.HELP_ABOUT = "help.about";
 });
 
