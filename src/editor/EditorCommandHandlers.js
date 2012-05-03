@@ -21,11 +21,12 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, $: false, CodeMirror: false */
 
+
 /**
+ * Text-editing commands that apply to whichever Editor is currently focused
  */
 define(function (require, exports, module) {
     'use strict';
@@ -36,42 +37,52 @@ define(function (require, exports, module) {
         EditorManager      = require("editor/EditorManager");
     
     
-    function handleLineComment() {
+    /** Returns true if the language has Java-like commenting and blocks */
+    function _isJavaLikeLanguage(editor) {
+        // TODO: use current mode at selection, so we can support mixed-mode e.g. JS in script blocks
+        var mode = editor._codeMirror.getOption("mode");
+        
+        // It would be nice if CodeMirror modes stored information like this, but instead we need to
+        // hardcode a list
+        return (mode === "javascript" || mode === "less");
+    }
+    
+    
+    /**
+     * Add or remove line-comment tokens to all the lines in the selected range, preserving selection
+     * and cursor position. Applies to currently focused Editor.
+     * 
+     * If all non-whitespace lines are already commented out, then we uncomment; otherwise we comment
+     * out. Commenting out adds "//" to at column 0 of every line. Uncommenting removes the first "//"
+     * on each line (if any - empty lines might not have one).
+     */
+    function lineComment() {
         var editor = EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
         
-        // TODO: check Editor mode, proxy to JSUtils...? (ideally should be extendible per-language w/o hardcoded mapping)
+        // TODO: should be extensible per-language
+        if (!_isJavaLikeLanguage(editor)) {
+            return;
+        }
         
-        
-        // Behavior comparison:
-        // Brackets preserves exact selection & never moves cursor;  "//" inserted at 0;  [ctrl+/];
-        //       w/ not-tabs, all lines jump in 2 chars;  block = n/a yet
-        // IntelliJ preserves exact selection; moves cursor to next line only if there was NO selection
-        //      (altho bug: cursor moves right 2 cols in that case);  "//" inserted at 0;  [ctrl+/];
-        //      w/ not-tabs, all lines jump in 2 chars;  block = [ctrl+shift+/](win+mac)
-        // Eclipse(FB) preserves exact selection & never moves cursor;  "//" inserted at 0;  [ctrl+/];
-        //      w/ not-tabs, all lines jump in 2 chars;  block = [ctrl+shift+/](win+mac)
-        // Espresso preserves exact selection & never moves cursor (altho bug: first // excluded from sel);
-        //      "//" inserted at 0;  [ctrl+/];  w/ not-tabs, all lines jump in 2 chars;  block = n/a?
-        // Sublime preserves exact selection & never moves cursor;  "// " inserted at first non-ws col,
-        //      leaves all-ws lines untouched;  [ctrl+/];  tabs or not, all lines jump in 3 chars;
-        //      block = [ctrl+shift+/](win) [cmd+alt+/](mac)
-        // TextMate preserves exact selection & never moves cursor; "// " inserted at first non-ws col;  [ctrl+/];
-        //      tabs or not, all lines jump in 3 chars;  block = [ctrl+alt+/]
-        // Coda has block comment only, bound to [ctrl+/]
         
         var sel = editor.getSelection();
         var startLine = sel.start.line;
         var endLine = sel.end.line;
         
+        // Is a range of text selected? (vs just an insertion pt)
+        var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
+        
         // In full-line selection, cursor pos is start of next line - but don't want to modify that line
-        if (sel.end.ch === 0 && startLine < endLine) {
+        if (sel.end.ch === 0 && hasSelection) {
             endLine--;
         }
         
-        // Are there any non-blank lines that aren't commented out?
+        // Decide if we're commenting vs. un-commenting
+        // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
+        // some editors like Sublime don't comment them out)
         var containsUncommented = false;
         var i;
         var line;
@@ -86,22 +97,23 @@ define(function (require, exports, module) {
         
         // Make the edit
         // TODO: should go through Document
-        
         var cm = editor._codeMirror;
         cm.operation(function () {
+            
             if (containsUncommented) {
+                // Comment out - prepend "//" to each line
                 for (i = startLine; i <= endLine; i++) {
                     cm.replaceRange("//", {line: i, ch: 0});
                 }
                 
-                var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-                
                 // Make sure selection includes "//" that was added at start of range
                 if (sel.start.ch === 0 && hasSelection) {
-                    // note: grabbing *current* selection end instead of old one, so it's been updated for our text insertions
-                    cm.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
+                    // use *current* selection end, which has been updated for our text insertions
+                    editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
                 }
+                
             } else {
+                // Uncomment - remove first "//" on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
                     line = editor.getLineText(i);
                     var commentI = line.indexOf("//");
@@ -116,5 +128,5 @@ define(function (require, exports, module) {
     
 
     // Register commands
-    CommandManager.register(Commands.EDIT_LINE_COMMENT, handleLineComment);
+    CommandManager.register(Commands.EDIT_LINE_COMMENT, lineComment);
 });
