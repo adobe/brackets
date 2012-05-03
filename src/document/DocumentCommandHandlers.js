@@ -260,18 +260,18 @@ define(function (require, exports, module) {
     /**
      * Prevent re-entrancy into handleFileNewInProject()
      *
-     * handleFileNewInProject() first prompts users to name a file and then asynchronously writes the file when the
-     * file name field loses focus. This boolean prevent additional calls to handleFileNewInProject() when an exist
+     * handleFileNewInProject() first prompts the user to name a file and then asynchronously writes the file when the
+     * filename field loses focus. This boolean prevent additional calls to handleFileNewInProject() when an existing
      * file creation call is outstanding
      */
-    var isCreatingNewFile = false;
+    var fileNewInProgress = false;
     function handleFileNewInProject() {
 
-        if (isCreatingNewFile) {
+        if (fileNewInProgress) {
             ProjectManager.closeRenameInput();
             return;
         }
-        isCreatingNewFile = true;
+        fileNewInProgress = true;
 
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
@@ -291,7 +291,7 @@ define(function (require, exports, module) {
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
-                .always(function () { isCreatingNewFile = false; });
+                .always(function () { fileNewInProgress = false; });
         };
 
         deferred.done(createWithSuggestedName);
