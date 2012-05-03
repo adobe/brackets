@@ -257,7 +257,23 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Prevents re-entrancy into handleFileNewInProject()
+     *
+     * handleFileNewInProject() first prompts the user to name a file and then asynchronously writes the file when the
+     * filename field loses focus. This boolean prevent additional calls to handleFileNewInProject() when an existing
+     * file creation call is outstanding
+     */
+    var fileNewInProgress = false;
+
     function handleFileNewInProject() {
+
+        if (fileNewInProgress) {
+            ProjectManager.forceFinishRename();
+            return;
+        }
+        fileNewInProgress = true;
+
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
@@ -274,7 +290,9 @@ define(function (require, exports, module) {
         // of validating file name, creating the new file and selecting.
         var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
         var createWithSuggestedName = function (suggestedName) {
-            ProjectManager.createNewItem(baseDir, suggestedName, false).pipe(deferred.resolve, deferred.reject, deferred.notify);
+            ProjectManager.createNewItem(baseDir, suggestedName, false)
+                .pipe(deferred.resolve, deferred.reject, deferred.notify)
+                .always(function () { fileNewInProgress = false; });
         };
 
         deferred.done(createWithSuggestedName);
