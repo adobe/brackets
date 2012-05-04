@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager");
 
-    // This dialog class was mostly copied from QuickFileOpen. We should have a common dialog
+    // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
     
     /**

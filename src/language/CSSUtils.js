@@ -60,7 +60,7 @@ define(function (require, exports, module) {
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function _extractAllSelectors(text) {
+    function extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state = CodeMirror.startState(mode);
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
      *      matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = _extractAllSelectors(text);
+        var allSelectors = extractAllSelectors(text);
         var result = [];
         var i;
         
@@ -391,4 +391,5 @@ define(function (require, exports, module) {
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
+    exports.extractAllSelectors = extractAllSelectors;
 });

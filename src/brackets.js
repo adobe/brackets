@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
-        QuickFileOpen           = require("search/QuickFileOpen"),
+        QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
@@ -209,6 +209,9 @@ define(function (require, exports, module) {
                     
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
+                    {"Ctrl-T": Commands.NAVIGATE_GOTO_DEFINITION},
+                    {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE, "platform": "mac"},
+                    {"Ctrl-G": Commands.NAVIGATE_GOTO_LINE, "platform": "win"},
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
                     {"Alt-Up": Commands.QUICK_EDIT_PREV_MATCH},
                     {"Alt-Down": Commands.QUICK_EDIT_NEXT_MATCH},
