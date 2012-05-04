@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
-        QuickFileOpen           = require("search/QuickOpen"),
+        QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),

@@ -420,25 +420,47 @@ define(function (require, exports, module) {
     }
 
     function defaultResultsFormatter(item, query) {
-        query = StringUtils.htmlEscape(query.slice(query.indexOf("@") + 1, query.length));
-        var boldName = item.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
-        return "<li>" + boldName + "</li>";
+        query = query.slice(query.indexOf("@") + 1, query.length);
+
+        // Escape both query and item so the replace works properly below
+        query = StringUtils.htmlEscape(query);
+        item = StringUtils.htmlEscape(item);
+
+        var displayName;
+        if(query.length > 0 ) {
+            // make the users query bold within the item's text
+            displayName = item.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
+        } else {
+            displayName = item;
+        }
+
+        return "<li>" + displayName + "</li>";
     }
 
 
 
     function _handleResultsFormatter(item) {
-        var query = StringUtils.htmlEscape(($('input#quickOpenSearch').val()));
+        var query = $('input#quickOpenSearch').val();
 
         if (currentPlugin) {
+            // Plugins use their own formatter or the default formatter
             var formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
             return formatter(item, query);
         } else {
-            // Format filename result
-            var filename = _filenameFromPath(item, true);
+            // Use the filename formatter
+            query = StringUtils.htmlEscape(query);
+            var filename = StringUtils.htmlEscape(_filenameFromPath(item, true));
             var rPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
-            var boldName = filename.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
-            return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + boldName +
+
+            var displayName;
+            if(query.length > 0 ) {
+                // make the users query bold within the item's text
+                displayName = filename.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
+            } else {
+                displayName = filename;
+            }
+
+            return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + displayName +
                 "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
         }
     }
