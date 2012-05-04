@@ -68,6 +68,7 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules that self-register and just need to get included in the main project
@@ -160,15 +161,62 @@ define(function (require, exports, module) {
         }
         
         
+        function initAboutDialog() {
+            function loadSHA(path, callback) {
+                var fileEntry = new NativeFileSystem.FileEntry(path);
+                var reader = new NativeFileSystem.FileReader();
+                
+                // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
+                // to a file in /refs which in turn contains the SHA
+                fileEntry.file(function (file) {
+                    reader.onload = function (event) {
+                        var text = event.target.result;
+                        
+                        if (text.indexOf("ref: ") === 0) {
+                            var basePath = path.substr(0, path.lastIndexOf("/"));
+                            var refRelPath = text.substr(5).trim();
+                            loadSHA(basePath + "/" + refRelPath, callback);
+                        } else {
+                            callback(text);
+                        }
+                    };
+                    // no onerror handler - if Git metadata nonexistent or unreadable, ignore
+                    
+                    reader.readAsText(file, "utf8");
+                });
+            }
+            
+            var loadedPath = window.location.pathname;
+            var bracketsSrc = FileUtils.convertToNativePath( loadedPath.substr(0, loadedPath.lastIndexOf("/")) );
+            var bracketsGitRoot = bracketsSrc + "/../../.git/";
+            var bracketsSubmoduleRoot = bracketsGitRoot + "modules/brackets/";
+            
+            loadSHA(bracketsSubmoduleRoot + "HEAD", function (text) {
+                brackets.bracketsSHA = text;
+            });
+            loadSHA(bracketsGitRoot + "HEAD", function (text) {
+                brackets.bracketsAppSHA = text;
+            });
+            
+            CommandManager.register(Commands.HELP_ABOUT, function () {
+                var versionLabel = "";
+                if (brackets.bracketsSHA) {
+                    versionLabel += " (" + brackets.bracketsSHA.substr(0, 5) + ")";
+                }
+                if (brackets.bracketsAppSHA) {
+                    versionLabel += " (shell " + brackets.bracketsAppSHA.substr(0, 5) + ")";
+                }
+                $("#about-version").text(versionLabel);
+                
+                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+            });
+        }
         function initCommandHandlers() {
             // Most command handlers are automatically registered when their module is loaded (see "modules
             // that self-register" above for some). A few commands need an extra kick here though:
             
             DocumentCommandHandlers.init($("#main-toolbar"));
-            
-            CommandManager.register(Commands.HELP_ABOUT, function () {
-                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-            });
+            initAboutDialog();
         }
 
         function initKeyBindings() {
