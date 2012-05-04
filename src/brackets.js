@@ -73,6 +73,7 @@ define(function (require, exports, module) {
     //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
+    require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
@@ -201,6 +202,7 @@ define(function (require, exports, module) {
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
                     {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
+                    {"Ctrl-/": Commands.EDIT_LINE_COMMENT},
 
                     // VIEW
                     {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
