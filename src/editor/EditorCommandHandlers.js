@@ -37,17 +37,6 @@ define(function (require, exports, module) {
         EditorManager      = require("editor/EditorManager");
     
     
-    /** Returns true if the language has Java-like commenting and blocks */
-    function _isJavaLikeLanguage(editor) {
-        // TODO: use current mode at selection, so we can support mixed-mode e.g. JS in script blocks
-        var mode = editor._codeMirror.getOption("mode");
-        
-        // It would be nice if CodeMirror modes stored information like this, but instead we need to
-        // hardcode a list
-        return (mode === "javascript" || mode === "less");
-    }
-    
-    
     /**
      * Add or remove line-comment tokens to all the lines in the selected range, preserving selection
      * and cursor position. Applies to currently focused Editor.
@@ -56,17 +45,7 @@ define(function (require, exports, module) {
      * out. Commenting out adds "//" to at column 0 of every line. Uncommenting removes the first "//"
      * on each line (if any - empty lines might not have one).
      */
-    function lineComment() {
-        var editor = EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        
-        // TODO: should be extensible per-language
-        if (!_isJavaLikeLanguage(editor)) {
-            return;
-        }
-        
+    function lineCommentSlashSlash(editor) {
         
         var sel = editor.getSelection();
         var startLine = sel.start.line;
@@ -89,14 +68,14 @@ define(function (require, exports, module) {
         for (i = startLine; i <= endLine; i++) {
             line = editor.getLineText(i);
             // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!line.match(/^\s*\/\//) && line.trim().length > 0) {
+            if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
                 containsUncommented = true;
                 break;
             }
         }
         
         // Make the edit
-        // TODO: should go through Document
+        // TODO (#803): should go through Document, not Editor._codeMirror
         var cm = editor._codeMirror;
         cm.operation(function () {
             
@@ -127,6 +106,23 @@ define(function (require, exports, module) {
     }
     
 
+    /** Invokes a language-specific line-comment/uncomment handler */
+    function lineComment() {
+        var editor = EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        // TODO: use mode *at cursor location*, so we can support mixed-mode e.g. JS in script blocks
+        var mode = editor._codeMirror.getOption("mode");
+        
+        // Currently we only support languages with "//" commenting
+        if (mode === "javascript" || mode === "less") {
+            lineCommentSlashSlash(editor);
+        }
+    }
+    
+    
     // Register commands
     CommandManager.register(Commands.EDIT_LINE_COMMENT, lineComment);
 });
