@@ -965,11 +965,10 @@ define(function (require, exports, module) {
     /**
      * Returns the right edge of the given line.
      * @param {number} num The line number to measure.
-     * @param {number} length The length of that line; if unspecified, we'll get it from the editor.
      */
-    Editor.prototype._getLineRightEdge = function (num, length) {
-        var lineLen = (length !== undefined ? length : this.getLineText(num).length);
-        return this._codeMirror.charCoords({line: num, ch: lineLen}).x - $(this.getRootElement()).offset().left;
+    Editor.prototype._getLineRightEdge = function (num) {
+        // By passing Number.MAX_VALUE for ch, CodeMirror will get the position immediately after the last character.
+        return this._codeMirror.charCoords({line: num, ch: Number.MAX_VALUE}).x - $(this.getRootElement()).offset().left;
     };
     
     /**
@@ -988,7 +987,7 @@ define(function (require, exports, module) {
                 maxLineNum = i;
             }
         }
-        this._maxWidthInfo = { num: maxLineNum, width: this._getLineRightEdge(maxLineNum, maxLength) };
+        this._maxWidthInfo = { num: maxLineNum, width: this._getLineRightEdge(maxLineNum) };
     };
     
     /**
