@@ -1,8 +1,27 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $ */
 
 /*
@@ -127,8 +146,8 @@ define(function (require, exports, module) {
      * Creates a dialog div floating on top of the current code mirror editor
      */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        var wrap = $("#editorHolder")[0];
-        this.dialog = wrap.insertBefore(document.createElement("div"), wrap.firstChild);
+        var $wrap = $("#editorHolder")[0];
+        this.dialog = $wrap.insertBefore(window.document.createElement("div"), $wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div align="right">' + template + '</div>';
     };
@@ -245,8 +264,13 @@ define(function (require, exports, module) {
         
     };
 
+    /**
+     * KeyUp is for cases that handle AFTER a character has been committed to $searchField
+     *
+     */
+    QuickNavigateDialog.prototype._handleKeyUp = function (e) {
+        var query = this.$searchField.val();
 
-    QuickNavigateDialog.prototype._handleKeyIn = function (e, query) {
         // extract line number
         var gotoLine = extractLineNumber(query);
         if (!isNaN(gotoLine)) {
@@ -268,6 +292,9 @@ define(function (require, exports, module) {
 
     /**
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
+     *
+     * Note, when keydown is handled $searchField does not yet have the character added
+     * for the current event e. 
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
 
@@ -492,7 +519,7 @@ define(function (require, exports, module) {
                     itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
                     itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
                     keydown: function (e) { that._handleKeyDown(e); },
-                    keyIn: function (e, query) { that._handleKeyIn(e, query); } // note camelcase is correct
+                    keyup: function (e, query) { that._handleKeyUp(e); }
                     // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
                     // triggers lostFocus
                 });
