@@ -87,6 +87,6 @@ I want to keep track of how Brackets is doing!
 
 Not sure you needed the exclamation point there, but I like your enthusiasm.
 
-* **Twitter:** [@brackets](http://twitter.com/#!/brackets)
-* **IRC:** [#brackets on freenode](http://freenode.net)
+* **Twitter:** [@brackets](http://twitter.com/#!/brackets
+* **IRC:** [#brackets on freenode](irc://irc.freenode.net:6667/brackets)
 * **Developers mailing list:** http://groups.google.com/group/brackets-dev
