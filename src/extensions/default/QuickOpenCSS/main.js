@@ -3,16 +3,17 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 
 
 define(function (require, exports, module) {
     'use strict';
 
-    var EditorManager       = require("editor/EditorManager"),
-        CSSUtils            = require("language/CSSUtils"),
-        DocumentManager     = require("document/DocumentManager");
+    var EditorManager       = brackets.getModule("editor/EditorManager"),
+        QuickOpen           = brackets.getModule("search/QuickOpen"),
+        CSSUtils            = brackets.getModule("language/CSSUtils"),
+        DocumentManager     = brackets.getModule("document/DocumentManager");
 
 
     /**
@@ -46,6 +47,7 @@ define(function (require, exports, module) {
             return null;
         }
         
+        // TODO: handle multiple selectors with same name in CSS file
         var i, result;
         for (i = 0; i < selectorList.length; i++) {
             var selectorInfo = selectorList[i];
@@ -62,7 +64,7 @@ define(function (require, exports, module) {
      * @param {string} query what the user is searching for
      * @returns {Array.<string>} sorted and filtered results that match the query
      */
-    function filter(query) {
+    function search(query) {
         createSelectorList();
 
         query = query.slice(query.indexOf("@") + 1, query.length);
@@ -74,6 +76,8 @@ define(function (require, exports, module) {
                 return selector;
             }
         }).sort(function (a, b) {
+            a = a.toLowerCase();
+            b = b.toLowerCase();
             if (a > b) {
                 return -1;
             } else if (a < b) {
@@ -91,7 +95,7 @@ define(function (require, exports, module) {
      * @param {boolean} returns true if this plugin wants to provide results for this query
      */
     function match(query) {
-        // TODO: match any location of @ when QuickFileOpen._handleItemFocus() is modified to
+        // TODO: match any location of @ when QuickOpen._handleItemFocus() is modified to
         // dynamic open files
         //if (query.indexOf("@") !== -1) {
         if (query.indexOf("@") === 0) {
@@ -120,27 +124,19 @@ define(function (require, exports, module) {
     }
 
 
-    /**
-     * Returns quick open plugin
-     * TODO: would like to use the QuickOpenPlugin plugin object type in QuickFileOpen.js,
-     * but right now I can't make this file depend on  QuickFileOpen.js because it would
-     * create a circular dependency
-     */
-    function getPlugin() {
-        var jsFuncProvider = {  name: "CSS Selectors",
-                                fileTypes: ["css"],
-                                done: done,
-                                filter: filter,
-                                match: match,
-                                itemFocus: itemFocus,
-                                itemSelect: itemSelect,
-                                resultsFormatter: null // use default
-                            };
 
-        return jsFuncProvider;
-    }
+    QuickOpen.addQuickOpenPlugin(
+        {
+            name: "CSS Selectors",
+            fileTypes: ["css"],
+            done: done,
+            search: search,
+            match: match,
+            itemFocus: itemFocus,
+            itemSelect: itemSelect,
+            resultsFormatter: null // use default
+        }
+    );
 
-
-    exports.getPlugin = getPlugin;
 
 });

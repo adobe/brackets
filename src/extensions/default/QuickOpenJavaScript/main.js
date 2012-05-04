@@ -3,15 +3,16 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $, brackets */
 
 
 
 define(function (require, exports, module) {
     'use strict';
 
-    var EditorManager       = require("editor/EditorManager"),
-        DocumentManager     = require("document/DocumentManager");
+    var EditorManager       = brackets.getModule("editor/EditorManager"),
+        QuickOpen           = brackets.getModule("search/QuickOpen"),
+        DocumentManager     = brackets.getModule("document/DocumentManager");
 
 
    /** 
@@ -53,6 +54,7 @@ define(function (require, exports, module) {
             return null;
         }
 
+        // TODO: doesn't handle case where two functions have same name
         var i, fileLocation;
         for (i = 0; i < functionList.length; i++) {
             var functionInfo = functionList[i];
@@ -79,6 +81,7 @@ define(function (require, exports, module) {
             var docText = doc.getText();
             
             // TODO: use a shared JS language intelligence module
+            // TODO: this doesn't handle functions with params that spread across lines
             var regexA = new RegExp(/(function\b)(.+)\b\(.*?\)/gi);  // recognizes the form: function functionName()
             var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\(.*?\))/gi); // recognizes the form: functionName = function()
             var regexC = new RegExp(/((\w+)\s*:\s*function\s*\(.*?\))/gi); // recognizes the form: functionName: function()
@@ -129,7 +132,7 @@ define(function (require, exports, module) {
      * @param {string} query what the user is searching for
      * @returns {Array.<string>} sorted and filtered results that match the query
      */
-    function filter(query) {
+    function search(query) {
         createFunctionList();
 
         query = query.slice(query.indexOf("@") + 1, query.length);
@@ -140,6 +143,8 @@ define(function (require, exports, module) {
                 return functionName;
             }
         }).sort(function (a, b) {
+            a = a.toLowerCase();
+            b = b.toLowerCase();
             if (a > b) {
                 return -1;
             } else if (a < b) {
@@ -158,7 +163,7 @@ define(function (require, exports, module) {
      */
     function match(query) {
         // only match @ at beginning of query for now
-        // TODO: match any location of @ when QuickFileOpen._handleItemFocus() is modified to
+        // TODO: match any location of @ when QuickOpen._handleItemFocus() is modified to
         // dynamic open files
         //if (query.indexOf("@") !== -1) {
         if (query.indexOf("@") === 0) {
@@ -188,27 +193,18 @@ define(function (require, exports, module) {
     }
 
 
-    /**
-     * Returns quick open plug-in
-     * TODO: would like to use the QuickOpenPlugin plug-in object type in QuickFileOpen.js,
-     * but right now I can't make this file depend on  QuickFileOpen.js because it would
-     * create a circular dependency
-     */
-    function getPlugin() {
-        var jsFuncProvider = {  name: "JavaScript functions",
-                                fileTypes: ["js"],
-                                done: done,
-                                filter: filter,
-                                match: match,
-                                itemFocus: itemFocus,
-                                itemSelect: itemSelect,
-                                resultsFormatter: null // use default
-                            };
 
-        return jsFuncProvider;
-    }
-
-
-    exports.getPlugin = getPlugin;
+    QuickOpen.addQuickOpenPlugin(
+        {
+            name: "JavaScript functions",
+            fileTypes: ["js"],
+            done: done,
+            search: search,
+            match: match,
+            itemFocus: itemFocus,
+            itemSelect: itemSelect,
+            resultsFormatter: null // use default
+        }
+    );
 
 });

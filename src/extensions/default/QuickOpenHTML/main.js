@@ -3,15 +3,16 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, regexp: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 
 
 define(function (require, exports, module) {
     'use strict';
 
-    var EditorManager       = require("editor/EditorManager"),
-        DocumentManager     = require("document/DocumentManager");
+    var EditorManager       = brackets.getModule("editor/EditorManager"),
+        QuickOpen           = brackets.getModule("search/QuickOpen"),
+        DocumentManager     = brackets.getModule("document/DocumentManager");
 
 
    /** 
@@ -43,7 +44,7 @@ define(function (require, exports, module) {
         idList = null;
     }
 
-    // create function list and caches it in FileIndexMangage
+    // create list of ids found in html file
     function createIDList() {
         var doc = DocumentManager.getCurrentDocument();
         if (!doc) {
@@ -55,14 +56,17 @@ define(function (require, exports, module) {
             var docText = doc.getText();
             var lines = docText.split("\n");
 
-            var regex = new RegExp(/\sid\s?=\s?"(.*?)"/gi);
+
+            var regex = new RegExp(/\s*id\s*?=\s*?["'](.*?)["']/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
-
                 var info;
                 while ((info = regex.exec(line)) !== null) {
                     id = info[1];
+                    // TODO: this doesn't handle id's that share the 
+                    // same portion of a name on the same line or when
+                    // the id and value are on different lines
                     chFrom = line.indexOf(id);
                     chTo = chFrom + id.length;
                     idList.push(new FileLocation(null, i, chFrom, chTo, id));
@@ -92,7 +96,7 @@ define(function (require, exports, module) {
      * @param {string} query what the user is searching for
      * @returns {Array.<string>} sorted and filtered results that match the query
      */
-    function filter(query) {
+    function search(query) {
         createIDList();
 
         query = query.slice(query.indexOf("@") + 1, query.length);
@@ -110,7 +114,7 @@ define(function (require, exports, module) {
      * @param {boolean} returns true if this plug-in wants to provide results for this query
      */
     function match(query) {
-        // TODO: match any location of @ when QuickFileOpen._handleItemFocus() is modified to
+        // TODO: match any location of @ when QuickOpen._handleItemFocus() is modified to
         // dynamic open files
         //if (query.indexOf("@") !== -1) {
         if (query.indexOf("@") === 0) {
@@ -140,27 +144,17 @@ define(function (require, exports, module) {
     }
 
 
-    /**
-     * Returns quick open plug-in
-     * TODO: would like to use the QuickOpenPlugin plug-in object type in QuickFileOpen.js,
-     * but right now I can't make this file depend on  QuickFileOpen.js because it would
-     * create a circular dependency
-     */
-    function getPlugin() {
-        var jsFuncProvider = {  name: "html ids",
-                                fileTypes: ["html"],
-                                done: done,
-                                filter: filter,
-                                match: match,
-                                itemFocus: itemFocus,
-                                itemSelect: itemSelect,
-                                resultsFormatter: null // use default
-                            };
-
-        return jsFuncProvider;
-    }
-
-
-    exports.getPlugin = getPlugin;
+    QuickOpen.addQuickOpenPlugin(
+        {
+            name: "html ids",
+            fileTypes: ["html"],
+            done: done,
+            search: search,
+            match: match,
+            itemFocus: itemFocus,
+            itemSelect: itemSelect,
+            resultsFormatter: null // use default
+        }
+    );
 
 });

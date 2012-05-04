@@ -26,10 +26,8 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
+        StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
-        QuickOpenJSSymbol   = require("search/QuickOpenJavaScript"),
-        QuickOpenCSS        = require("search/QuickOpenCSS"),
-        QuickOpenHTML       = require("search/QuickOpenHTML"),
         ProjectManager      = require("project/ProjectManager");
     
 
@@ -61,26 +59,13 @@ define(function (require, exports, module) {
 
     /**
      * Defines API for new QuickOpen plug-ins
-     * @param {string} plug-in name
-     * @param {Array.<string>} file types array. Example: ["js", "css", "txt"]. An empty array
-     *   indicates all file types.
-     * @param {function()} done is called when quick open is complete. Plug-in should clear
-     * its internal state.
-     * @param {function(string):Array.<string>} filter takes a query string and returns an 
-     *   array of strings that match the query.
-     * @param {function(string):boolean} match takes a query string and returns true if this 
-     *   plug-in wants to provide results for this query.
-     * @param {functon(HTMLLIElement)} itemFocus performs an action when a result has focus.
-     * @param {functon(HTMLLIElement)} itemSelect performs an action when a result is chosen.
-     * @param {?Functon(string, string):string} resultFormatter takes a query string and an item string 
-        and returns a <LI> item to insert into the displayed search results.
      */
-    function QuickOpenPlugin(name, fileTypes, done, filter, match, itemFocus, itemSelect, resultsFormatter) {
+    function QuickOpenPlugin(name, fileTypes, done, search, match, itemFocus, itemSelect, resultsFormatter) {
         
         this.name = name;
         this.fileTypes = fileTypes;
         this.done = done;
-        this.filter = filter;
+        this.search = search;
         this.match = match;
         this.itemFocus = itemFocus;
         this.itemSelect = itemSelect;
@@ -88,19 +73,45 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Registers new QuickOpenPlugin
-     * @param {QuickOpenPlugin} plugin
+     * Creates and registers a new QuickOpenPlugin
+     *
+     * @param { name: string, 
+     *          fileTypes:Array.<string>} plugin,
+     *          done: function(),
+     *          search: function(string):Array.<string>,
+     *          match: function(string):boolean,
+     *          itemFocus: functon(HTMLLIElement),
+     *          itemSelect: functon(HTMLLIElement),
+     *          resultsFormatter: ?Functon(string, string):string }
+     *
+     * @returns {QuickOpenPlugin} plugin
+     *
+     * Parameter Documentation:
+     *
+     * name - plug-in name
+     * filetypes - file types array. Example: ["js", "css", "txt"]. An empty array
+     *      indicates all file types.
+     * done - called when quick open is complete. Plug-in should clear its internal state.
+     * search - takes a query string and returns an array of strings that match the query.
+     * match - takes a query string and returns true if this plug-in wants to provide
+     *      results for this query.
+     * itemFocus - performs an action when a result has focus. 
+     *      The focused HTMLLIElement is passed as an argument.
+     * itemSelect - performs an action when a result is chosen.
+     *      The selected HTMLLIElement is passed as an argument.
+     * resultFormatter - takes a query string and an item string and returns 
+     *      a <LI> item to insert into the displayed search results. If null, default is provided.
      */
-    function addQuickOpenPlugin(plugin) {
+    function addQuickOpenPlugin(pluginDef) {
         plugins.push(new QuickOpenPlugin(
-            plugin.name,
-            plugin.fileTypes,
-            plugin.done,
-            plugin.filter,
-            plugin.match,
-            plugin.itemFocus,
-            plugin.itemSelect,
-            plugin.resultsFormatter
+            pluginDef.name,
+            pluginDef.fileTypes,
+            pluginDef.done,
+            pluginDef.search,
+            pluginDef.match,
+            pluginDef.itemFocus,
+            pluginDef.itemSelect,
+            pluginDef.resultsFormatter
         ));
     }
 
@@ -141,7 +152,7 @@ define(function (require, exports, module) {
      */
     function extractLineNumber(query) {
         // only match : at beginning of query for now
-        // TODO: match any location of : when QuickFileOpen._handleItemFocus() is modified to
+        // TODO: match any location of : when QuickOpen._handleItemFocus() is modified to
         // dynamic open files
         if (query.indexOf(":") !== 0) {
             return NaN;
@@ -259,6 +270,10 @@ define(function (require, exports, module) {
      * Close the dialog when the ENTER (13) or ESC (27) key is pressed
      */
     QuickNavigateDialog.prototype._handleKeyDown = function (e) {
+
+        // TODO: pass event through KeyMap.translateKeyboardEvent() to get friendly names
+        // instead of using these constants here. Note, translateKeyboardEvent() doesn't yet
+        // make friendly names for the escape and enter key.
         var ESCKey = 27, EnterKey = 13;
 
         // clear the query on ESC key and restore document and cursor position
@@ -368,7 +383,7 @@ define(function (require, exports, module) {
                 var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
                 if (extensionMatch &&  plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
-                    return plugin.filter(query);
+                    return plugin.search(query);
                 }
             }
         }
@@ -378,14 +393,15 @@ define(function (require, exports, module) {
     }
 
     function defaultResultsFormatter(item, query) {
-        query = query.slice(query.indexOf("@") + 1, query.length);
+        query = StringUtils.htmlEscape(query.slice(query.indexOf("@") + 1, query.length));
         var boldName = item.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
         return "<li>" + boldName + "</li>";
     }
 
 
+
     function _handleResultsFormatter(item) {
-        var query = htmlEscape(($('input#quickFileOpenSearch').val()));
+        var query = StringUtils.htmlEscape(($('input#quickOpenSearch').val()));
 
         if (currentPlugin) {
             var formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
@@ -393,24 +409,12 @@ define(function (require, exports, module) {
         } else {
             // Format filename result
             var filename = _filenameFromPath(item, true);
-            var rPath = htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
+            var rPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
             var boldName = filename.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
             return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + boldName +
                 "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
         }
     }
-
-    // TODO: move this to a general string utility file
-    function htmlEscape(str) {
-        return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    }
-
-
 
 
     function setSearchFieldValue(prefix, initialString) {
@@ -419,7 +423,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
 
         
-        var $field = $('input#quickFileOpenSearch');
+        var $field = $('input#quickOpenSearch');
         if ($field) {
             $field.val(initialString);
             $field.get(0).setSelectionRange(prefix.length, initialString.length);
@@ -467,9 +471,9 @@ define(function (require, exports, module) {
         FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
-                var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickFileOpenSearch" style="width: 30em">';
+                var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickOpenSearch" style="width: 30em">';
                 that._createDialogDiv(dialogHTML);
-                that.$searchField = $('input#quickFileOpenSearch');
+                that.$searchField = $('input#quickOpenSearch');
 
 
                 that.$searchField.smartAutoComplete({
@@ -532,16 +536,6 @@ define(function (require, exports, module) {
     }
 
 
-
-    // TODO: in future we would dynamical discover quick open plug-ins and get their plug-ins
-    var jsFuncPlugin = QuickOpenJSSymbol.getPlugin();
-    addQuickOpenPlugin(jsFuncPlugin);
-
-    var cssSelectorsPlugin = QuickOpenCSS.getPlugin();
-    addQuickOpenPlugin(cssSelectorsPlugin);
-
-    var htmlIDPlugin = QuickOpenHTML.getPlugin();
-    addQuickOpenPlugin(htmlIDPlugin);
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
     CommandManager.register(Commands.NAVIGATE_QUICK_OPEN, doFileSearch);
