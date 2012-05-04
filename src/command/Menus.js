@@ -69,6 +69,8 @@ define(function (require, exports, module) {
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
+        "menu-navigate-goto-line": Commands.NAVIGATE_GOTO_LINE,
+        "menu-navigate-goto-definition": Commands.NAVIGATE_GOTO_DEFINITION,
         "menu-navigate-quick-edit": Commands.SHOW_INLINE_EDITOR,
         "menu-navigate-next-match": Commands.QUICK_EDIT_NEXT_MATCH,
         "menu-navigate-previous-match": Commands.QUICK_EDIT_PREV_MATCH,
