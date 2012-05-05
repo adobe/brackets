@@ -70,6 +70,9 @@ define(function (require, exports, module) {
     exports.SHOW_INLINE_EDITOR      = "navigate.showInlineEditor";
     exports.QUICK_EDIT_NEXT_MATCH   = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH   = "navigate.previousMatch";
+    
+    exports.NAVIGATE_NEXT_PROJECT_FILE     = "navigate.nextProjectFile";
+    exports.NAVIGATE_PREV_PROJECT_FILE     = "navigate.prevProjectFile";
 
     exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";
