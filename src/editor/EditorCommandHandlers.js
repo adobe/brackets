@@ -106,9 +106,12 @@ define(function (require, exports, module) {
     }
     
 
-    /** Invokes a language-specific line-comment/uncomment handler */
-    function lineComment() {
-        var editor = EditorManager.getFocusedEditor();
+    /**
+     * Invokes a language-specific line-comment/uncomment handler
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function lineComment(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
