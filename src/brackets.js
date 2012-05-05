@@ -68,7 +68,8 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
-        ExtensionLoader         = require("utils/ExtensionLoader");
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        PerformanceLogging      = require("utils/PerformanceLogging");
         
     //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
@@ -126,6 +127,8 @@ define(function (require, exports, module) {
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
+    
+    brackets.performanceLogging = true;
 
     // Main Brackets initialization
     $(window.document).ready(function () {

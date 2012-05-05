@@ -34,7 +34,8 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
- * This module does not dispatch any events.
+ * This module dispatches the following events:
+ *    - currentEditorChange -- When the value of getCurrentFullEditor() changes and DOM updates (size and visibility) are complete.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -339,6 +340,8 @@ define(function (require, exports, module) {
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
+        
+        $(exports).triggerHandler("currentEditorChange", _currentEditor);
     }
 
     /**
@@ -375,6 +378,8 @@ define(function (require, exports, module) {
             _currentEditor = null;
             
             $("#notEditor").css("display", "");
+        
+            $(exports).triggerHandler("currentEditorChange", _currentEditor);
         }
     }
 
