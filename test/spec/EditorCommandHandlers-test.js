@@ -43,7 +43,7 @@ define(function (require, exports, module) {
                              "        \n" +
                              "    }\n" +
                              "\n" +
-                             "}\n";
+                             "}";
 
         var myDocument, myEditor;
         beforeEach(function () {
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
 
         describe("Line comment/uncomment", function () {
 
-            it("should comment/uncomment a single line at cursor", function () {
+            it("should comment/uncomment a single line, cursor at start", function () {
                 myEditor.setCursorPos(3, 0);
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
@@ -95,6 +95,42 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(defaultContent);
                 expectCursorAt({line: 3, ch: 0});
+            });
+            
+            it("should comment/uncomment a single line, cursor at end", function () {
+                myEditor.setCursorPos(3, 12);
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines[3] = "//        a();";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 3, ch: 14});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectCursorAt({line: 3, ch: 12});
+            });
+            
+            it("should comment/uncomment first line in file", function () {
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                lines[0] = "//function foo() {";
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 0, ch: 2});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectCursorAt({line: 0, ch: 0});
             });
             
             it("should comment/uncomment a single partly-selected line", function () {
@@ -197,6 +233,28 @@ define(function (require, exports, module) {
                 
                 expect(myDocument.getText()).toEqual(defaultContent);
                 expectSelection({start: {line: 1, ch: 6}, end: {line: 3, ch: 9}});
+            });
+            
+            it("should comment/uncomment after select all", function () {
+                myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                var expectedText = "//function foo() {\n" +
+                                   "//    function bar() {\n" +
+                                   "//        \n" +
+                                   "//        a();\n" +
+                                   "//        \n" +
+                                   "//    }\n" +
+                                   "//\n" +
+                                   "//}";
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 3}});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
             });
             
             it("should comment/uncomment lines that were partially commented out already, our style", function () {
