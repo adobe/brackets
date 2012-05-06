@@ -693,7 +693,6 @@ define(function (require, exports, module) {
         _prefs.setValue("files", files);
     }
 
-    
     /**
      * @private
      * Initializes the working set.
@@ -752,7 +751,6 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile.fullPath });
             }
         });
-        
     }
 
 
