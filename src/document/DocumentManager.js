@@ -692,55 +692,8 @@ define(function (require, exports, module) {
 
         _prefs.setValue("files", files);
     }
-    
-    
-    /**
-     * @private
-     * Cycle files in the project set.
-     */
-    function _cycleProjectFile(inc) {
-        var i, file, oSelectFile, iNewIndex, workingSet = getWorkingSet();
-        var oDocCurrent = getCurrentDocument();
-        
-        for (i = 0; i < workingSet.length; i++) {
-            file = workingSet[i];
-            if (oDocCurrent.file.fullPath === file.fullPath) {
-                if (inc < 0 && i === 0) {
-                    i = workingSet.length;
-                }
-                iNewIndex = Math.min(Math.max(0, (i + inc) % workingSet.length), workingSet.length - 1);
-                
-                oSelectFile = workingSet[iNewIndex];
-                break;
-            }
-        }
-        
-        if (oSelectFile) {
-            getDocumentForPath(oSelectFile.fullPath).done(function (doc) {
-                setCurrentDocument(doc);
-            });
-        }
-    }
 
-    /**
-     * @private
-     * navigate to the previous project file
-     */
-    function _prevProjectFile() {
-        _cycleProjectFile(-1);
-    }
     
-    /**
-     * @private
-     * navigate to the next project file
-     */
-    function _nextProjectFile() {
-        _cycleProjectFile(1);
-    }
-    
-    
-    
-
     /**
      * @private
      * Initializes the working set.
@@ -799,9 +752,6 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile.fullPath });
             }
         });
-        
-        CommandManager.register(Commands.NAVIGATE_PREV_PROJECT_FILE, _prevProjectFile);
-        CommandManager.register(Commands.NAVIGATE_NEXT_PROJECT_FILE, _nextProjectFile);
         
     }
 
