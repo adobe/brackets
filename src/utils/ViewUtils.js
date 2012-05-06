@@ -66,7 +66,7 @@ define(function (require, exports, module) {
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
             topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
-            sidebarWidth        = parseInt($(".sidebar").width(), 10);
+            sidebarWidth        = $(".sidebar").width();
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");

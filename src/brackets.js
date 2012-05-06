@@ -250,45 +250,49 @@ define(function (require, exports, module) {
         }
         
         function initSidebarListeners() {
-            var sidebar_width = parseInt($(".sidebar").width(), 10);
-            var is_sidebar_hidden = false;
-            var sidebar_snapped_close = false;
+            var $sidebar = $(".sidebar");
+            var sidebarWidth = $sidebar.width();
+            var isSidebarHidden = false;
+            var sidebarSnappedClosed = false;
+            var startingSidebarPosition = sidebarWidth;
             
-            $("#sidebar-resizer").css("left", sidebar_width - 3);
-            $("#sidebar-resizer").mousedown(function (e) {
+            $("#sidebar-resizer").css("left", sidebarWidth - 1);
+            $("#sidebar-resizer").on("mousedown.sidebar", function (e) {
                 
                 // check to see if we're currently in hidden mode
-                if (is_sidebar_hidden) {
+                if (ProjectManager.getSidebarState() === ProjectManager.SIDEBAR_CLOSED) {
                     // when we click, start modifying the sidebar size and then
                     // modify the variables to set the sidebar state correctly. 
-                    $(".sidebar").css("width", e.clientX);
-                    CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR);
-                    is_sidebar_hidden = false;
+                    CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR, 1);
+
+                    // this makes sure we don't snap back when we drag from a hidden position
+                    sidebarSnappedClosed = true;
                     
                     // this keeps the triangle from jumping around
                     $(".triangleVisible").css("display", "none");
                 }
-                $(".main-view").mousemove(function (e) {
+                $(".main-view").on("mousemove.sidebar", function (e) {
                     // if we've gone below 10 pixels on a mouse move, and the
                     // sidebar has not been snapped close, hide the sidebar 
                     // automatically an unbind the mouse event. 
-                    if (e.clientX < 10 && !sidebar_snapped_close) {
-                        CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR);
-                        is_sidebar_hidden = true;
-                        sidebar_snapped_close = true;
+                    if (e.clientX < 10 && !sidebarSnappedClosed) {
+                        
+                        CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR, startingSidebarPosition);
+
                         $("#sidebar-resizer").css("left", 0);
-                        $(".main-view").unbind("mousemove");
+                        $(".main-view").off("mousemove.sidebar");
                     } else {
                         // if we've moving past 10 pixels, make the triangle visible again
-                        // an register that the sidebar is no loner snapped closed. 
+                        // and register that the sidebar is no longer snapped closed. 
                         if (e.clientX > 10) {
-                            sidebar_snapped_close = false;
+                            sidebarSnappedClosed = false;
                             $(".triangleVisible").css("display", "block");
                         }
-                        $("#sidebar-resizer").css("left", e.clientX);
-                        $(".sidebar").css("width", e.clientX);
                         
-                        // trigger the scroll events to resize things correctly.
+                        $("#sidebar-resizer").css("left", e.clientX);
+                        $sidebar.css("width", e.clientX);
+                        
+                        // trigger the scroll events to resize shadows and the selectionTriangle
                         $("#project-files-container").trigger("scroll");
                         $("#open-files-container").trigger("scroll");
                         
@@ -300,8 +304,10 @@ define(function (require, exports, module) {
                 });
                 e.preventDefault();
             });
-            $("#sidebar-resizer").mouseup(function (e) {
-                $(".main-view").unbind("mousemove");
+            $("#sidebar-resizer").on("mouseup.sidebar", function (e) {
+                $(".main-view").off("mousemove.sidebar");
+                startingSidebarPosition = $sidebar.width();
+                console.log(startingSidebarPosition);
             });
             
         }

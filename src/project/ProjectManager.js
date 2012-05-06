@@ -785,6 +785,39 @@ define(function (require, exports, module) {
     function forceFinishRename() {
         $(".jstree-rename-input").blur();
     }
+    
+    /***** Start of Sidebar methods ******/
+    
+    /** 
+     * Static variables for open/closed state
+     */
+    var SIDEBAR_OPEN = "open";
+    var SIDEBAR_CLOSED = "closed";
+    
+    var _sidebarState = SIDEBAR_OPEN;
+    
+    /**
+     * Gets the current state of the sidebar
+     */
+    function getSidebarState() {
+        return _sidebarState;
+    }
+    
+    /**
+     * Sets the sidebar state when something happens
+     * @param newState {string} new state for sidebar
+     */
+    function setSidebarState(newState) {
+        _sidebarState = newState;
+    }
+
+    /**
+     * Sets the sidebar state when something happens
+     * @param width {number} new state for sidebar
+     */
+    function notifyResize(width) {
+    
+    }
 
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
@@ -795,6 +828,11 @@ define(function (require, exports, module) {
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
     exports.forceFinishRename = forceFinishRename;
+    exports.SIDEBAR_OPEN = SIDEBAR_OPEN;
+    exports.SIDEBAR_CLOSED = SIDEBAR_CLOSED;
+    exports.getSidebarState = getSidebarState;
+    exports.setSidebarState = setSidebarState;
+    exports.notifyResize = notifyResize;
 
     // Initialize now
     (function () {
