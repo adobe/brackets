@@ -75,7 +75,7 @@ define(function (require, exports, module) {
         }
         
         // Make the edit
-        // TODO (#803): should go through Document, not Editor._codeMirror
+        // TODO (#803): should go through Document, not editor._codeMirror
         var cm = editor._codeMirror;
         cm.operation(function () {
             
