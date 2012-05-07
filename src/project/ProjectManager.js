@@ -99,6 +99,26 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /** 
+     * @const
+     * Sidebar open constant
+     */
+    var SIDEBAR_OPEN = "open";
+
+    /** 
+     * @const
+     * Sidebar closed constant
+     */
+    var SIDEBAR_CLOSED = "closed";
+    
+    /** 
+     * @private
+     * Current state of sidebar
+     */
+    var _sidebarState = SIDEBAR_OPEN;
+        
+    
+    
     /**
      * @private
      */
@@ -785,6 +805,23 @@ define(function (require, exports, module) {
     function forceFinishRename() {
         $(".jstree-rename-input").blur();
     }
+    
+    /***** Start of Sidebar methods ******/
+
+    /**
+     * Gets the current state of the sidebar
+     */
+    function getSidebarState() {
+        return _sidebarState;
+    }
+    
+    /**
+     * Sets the sidebar state when something happens
+     * @param newState {string} new state for sidebar
+     */
+    function setSidebarState(newState) {
+        _sidebarState = newState;
+    }
 
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
@@ -795,6 +832,10 @@ define(function (require, exports, module) {
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
     exports.forceFinishRename = forceFinishRename;
+    exports.SIDEBAR_OPEN = SIDEBAR_OPEN;
+    exports.SIDEBAR_CLOSED = SIDEBAR_CLOSED;
+    exports.getSidebarState = getSidebarState;
+    exports.setSidebarState = setSidebarState;
 
     // Initialize now
     (function () {

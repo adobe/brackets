@@ -65,7 +65,8 @@ define(function (require, exports, module) {
         var offsetTop           = 0,
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
-            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
+            sidebarWidth        = $(".sidebar").width();
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");
@@ -74,6 +75,7 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
+            $shadowTop.css("width", sidebarWidth);
         }
         
         if ($shadowBottom) {
@@ -89,6 +91,7 @@ define(function (require, exports, module) {
     
             $shadowBottom.css("background-position", "0px " + bottomShadowOffset + "px");
             $shadowBottom.css("top", offsetTop + outerHeight - SCROLL_SHADOW_HEIGHT);
+            $shadowBottom.css("width", sidebarWidth);
         }
     }
 
@@ -197,6 +200,7 @@ define(function (require, exports, module) {
         
         // build selectionTriangle and position fixed to the window
         $selectionTriangle = $(window.document.createElement("div")).addClass("sidebarSelectionTriangle");
+        
         $fileSection.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
@@ -212,6 +216,7 @@ define(function (require, exports, module) {
                 triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
+            
             $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             $selectionTriangle.toggleClass("triangleVisible", showTriangle);
             
@@ -294,7 +299,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
-    
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.addScrollerShadow = addScrollerShadow;
     exports.removeScrollerShadow = removeScrollerShadow;
