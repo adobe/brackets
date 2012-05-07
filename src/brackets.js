@@ -127,8 +127,6 @@ define(function (require, exports, module) {
     brackets.inBrowser = !brackets.hasOwnProperty("fs");
     
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
-    
-    brackets.performanceLogging = true;
 
     // Main Brackets initialization
     $(window.document).ready(function () {

@@ -35,7 +35,7 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- When the value of getCurrentFullEditor() changes and DOM updates (size and visibility) are complete.
+ *    - focusedEditorChange -- When the focused editor (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     'use strict';
