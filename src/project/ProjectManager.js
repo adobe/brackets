@@ -99,6 +99,26 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /** 
+     * @const
+     * Sidebar open constant
+     */
+    var SIDEBAR_OPEN = "open";
+
+    /** 
+     * @const
+     * Sidebar closed constant
+     */
+    var SIDEBAR_CLOSED = "closed";
+    
+    /** 
+     * @private
+     * Current state of sidebar
+     */
+    var _sidebarState = SIDEBAR_OPEN;
+        
+    
+    
     /**
      * @private
      */
@@ -787,15 +807,7 @@ define(function (require, exports, module) {
     }
     
     /***** Start of Sidebar methods ******/
-    
-    /** 
-     * Static variables for open/closed state
-     */
-    var SIDEBAR_OPEN = "open";
-    var SIDEBAR_CLOSED = "closed";
-    
-    var _sidebarState = SIDEBAR_OPEN;
-    
+
     /**
      * Gets the current state of the sidebar
      */
@@ -811,14 +823,6 @@ define(function (require, exports, module) {
         _sidebarState = newState;
     }
 
-    /**
-     * Sets the sidebar state when something happens
-     * @param width {number} new state for sidebar
-     */
-    function notifyResize(width) {
-    
-    }
-
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
     exports.isWithinProject = isWithinProject;
@@ -832,7 +836,6 @@ define(function (require, exports, module) {
     exports.SIDEBAR_CLOSED = SIDEBAR_CLOSED;
     exports.getSidebarState = getSidebarState;
     exports.setSidebarState = setSidebarState;
-    exports.notifyResize = notifyResize;
 
     // Initialize now
     (function () {
