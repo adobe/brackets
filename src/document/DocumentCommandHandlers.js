@@ -206,7 +206,7 @@ define(function (require, exports, module) {
         }
         
         return _doOpenWithOptionalPath(fullPath)
-                 .always(EditorManager.focusEditor);
+            .always(EditorManager.focusEditor);
     }
 
     function handleFileAddToWorkingSet(commandData) {
@@ -257,7 +257,23 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Prevents re-entrancy into handleFileNewInProject()
+     *
+     * handleFileNewInProject() first prompts the user to name a file and then asynchronously writes the file when the
+     * filename field loses focus. This boolean prevent additional calls to handleFileNewInProject() when an existing
+     * file creation call is outstanding
+     */
+    var fileNewInProgress = false;
+
     function handleFileNewInProject() {
+
+        if (fileNewInProgress) {
+            ProjectManager.forceFinishRename();
+            return;
+        }
+        fileNewInProgress = true;
+
         // Determine the directory to put the new file
         // If a file is currently selected, put it next to it.
         // If a directory is currently selected, put it in it.
@@ -274,7 +290,9 @@ define(function (require, exports, module) {
         // of validating file name, creating the new file and selecting.
         var deferred = _getUntitledFileSuggestion(baseDir, "Untitled", ".js");
         var createWithSuggestedName = function (suggestedName) {
-            ProjectManager.createNewItem(baseDir, suggestedName, false).pipe(deferred.resolve, deferred.reject, deferred.notify);
+            ProjectManager.createNewItem(baseDir, suggestedName, false)
+                .pipe(deferred.resolve, deferred.reject, deferred.notify)
+                .always(function () { fileNewInProgress = false; });
         };
 
         deferred.done(createWithSuggestedName);
@@ -429,14 +447,13 @@ define(function (require, exports, module) {
      *      FUTURE: should we reject the promise if no file is open?
      */
     function handleFileClose(commandData) {
-        var file = null;
-        if (commandData) {
-            file = commandData.file;
-        }
+        // If not specified, file defaults to null; promptOnly defaults to falsy
+        var file       = commandData && commandData.file,
+            promptOnly = commandData && commandData.promptOnly;
         
         // utility function for handleFileClose: closes document & removes from working set
         function doClose(file) {
-            if (!commandData || !commandData.promptOnly) {
+            if (!promptOnly) {
                 // This selects a different document if the working set has any other options
                 DocumentManager.closeFullEditor(file);
             
@@ -489,8 +506,9 @@ define(function (require, exports, module) {
                     // copy of whatever's on disk.
                     doClose(file);
                     
-                    // Only reload from disk if other views still exist
-                    if (DocumentManager.getOpenDocumentForPath(file.fullPath)) {
+                    // Only reload from disk if we've executed the Close for real,
+                    // *and* if at least one other view still exists
+                    if (!promptOnly && DocumentManager.getOpenDocumentForPath(file.fullPath)) {
                         doRevert(doc)
                             .pipe(result.resolve, result.reject);
                     } else {
