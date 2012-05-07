@@ -566,6 +566,9 @@ define(function (require, exports, module) {
      */
     Document.prototype._markClean = function () {
         this.isDirty = false;
+        if (this._masterEditor) {
+            this._masterEditor._codeMirror.markClean();
+        }
         $(exports).triggerHandler("dirtyFlagChange", this);
     };
     
