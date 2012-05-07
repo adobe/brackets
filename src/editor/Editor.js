@@ -600,9 +600,6 @@ define(function (require, exports, module) {
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
         });
-        this._codeMirror.setOption("onUpdate", function (instance) {
-            $(self).triggerHandler("updateDisplay", [self]);
-        });
         this._codeMirror.setOption("onScroll", function (instance) {
             $(self).triggerHandler("scroll", [self]);
         

@@ -35,7 +35,7 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - currentEditorChange -- When the value of getCurrentFullEditor() changes and DOM updates (size and visibility) are complete.
+ *    - focusedEditorChange -- When the value of getCurrentFullEditor() changes and DOM updates (size and visibility) are complete.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -256,6 +256,8 @@ define(function (require, exports, module) {
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range, additionalKeys);
         
+        $(exports).triggerHandler("focusedEditorChange", inlineEditor);
+        
         return { content: inlineContent, editor: inlineEditor };
     }
     
@@ -341,7 +343,7 @@ define(function (require, exports, module) {
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
         
-        $(exports).triggerHandler("currentEditorChange", _currentEditor);
+        $(exports).triggerHandler("focusedEditorChange", _currentEditor);
     }
 
     /**
@@ -379,7 +381,7 @@ define(function (require, exports, module) {
             
             $("#notEditor").css("display", "");
         
-            $(exports).triggerHandler("currentEditorChange", _currentEditor);
+            $(exports).triggerHandler("focusedEditorChange", _currentEditor);
         }
     }
 
