@@ -104,7 +104,6 @@ define(function (require, exports, module) {
         });
         
     }
-    
 
     /**
      * Invokes a language-specific line-comment/uncomment handler
@@ -126,6 +125,35 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Duplicates the selected text, or current line if no selection. The cursor/selection is left
+     * on the second copy.
+     */
+    function duplicateText(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var sel = editor.getSelection();
+        
+        var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+        
+        if (!hasSelection) {
+            sel.start.ch = 0;
+            sel.end = {line: sel.start.line + 1, ch: 0};
+        }
+        
+        // Make the edit
+        // TODO (#803): should go through Document, not Editor._codeMirror
+        var cm = editor._codeMirror;
+        
+        var selectedText = cm.getRange(sel.start, sel.end);
+        cm.replaceRange(selectedText, sel.start);
+    }
+    
+    
     // Register commands
     CommandManager.register(Commands.EDIT_LINE_COMMENT, lineComment);
+    CommandManager.register(Commands.EDIT_DUPLICATE, duplicateText);
 });
