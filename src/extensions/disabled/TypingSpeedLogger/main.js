@@ -27,10 +27,22 @@
 
 define(function (require, exports, module) {
     'use strict';
-    
 
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         PerfUtils       = brackets.getModule("utils/PerfUtils");
+    
+    // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+    // shim layer with setTimeout fallback
+    var requestAnimFrame = function() {
+        return window.requestAnimationFrame    || 
+            window.webkitRequestAnimationFrame || 
+            window.mozRequestAnimationFrame    || 
+            window.oRequestAnimationFrame      || 
+            window.msRequestAnimationFrame     || 
+            function( callback ){
+                window.setTimeout(callback, 1000 / 60);
+            };
+    };
     
     function KeystrokeData(init) {
         init = init || 0;
@@ -151,7 +163,7 @@ define(function (require, exports, module) {
                     charCount += change.text[i].length;
                 }
                 
-                window.webkitRequestAnimationFrame(repaintAfterChangeHandler);
+                requestAnimFrame(repaintAfterChangeHandler);
             };
             
             window.webkitRequestAnimationFrame(repaintBeforeChangeHandler);
