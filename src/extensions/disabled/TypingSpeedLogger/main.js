@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         sum,
         avg,
         max,
-        inputCount,
+        charCount, /* using charCount instead of inputEventCount will artificially lower metrics */
+        inputEventCount,
         perfData = PerfUtils.perfData;
     
     function _writePerfData(metricName, propName, recent) {
@@ -66,10 +67,10 @@ define(function (require, exports, module) {
         sum.onChange += data.onChange;
         sum.paintAfterChange += data.paintAfterChange;
         
-        avg.firstPaint = Math.round(sum.firstPaint / inputCount);
-        avg.paintBeforeChange = Math.round(sum.paintBeforeChange / inputCount);
-        avg.onChange = Math.round(sum.onChange / inputCount);
-        avg.paintAfterChange = Math.round(sum.paintAfterChange / inputCount);
+        avg.firstPaint = Math.round(sum.firstPaint / inputEventCount);
+        avg.paintBeforeChange = Math.round(sum.paintBeforeChange / inputEventCount);
+        avg.onChange = Math.round(sum.onChange / inputEventCount);
+        avg.paintAfterChange = Math.round(sum.paintAfterChange / inputEventCount);
         
         max.firstPaint = Math.max(max.firstPaint, data.firstPaint);
         max.paintBeforeChange = Math.max(max.paintBeforeChange, data.paintBeforeChange);
@@ -91,7 +92,7 @@ define(function (require, exports, module) {
         sum = new KeystrokeData(0);
         avg = new KeystrokeData(0);
         max = new KeystrokeData(Number.NEGATIVE_INFINITY);
-        inputCount = 0;
+        inputEventCount = 0;
     }
     
     /**
@@ -111,14 +112,9 @@ define(function (require, exports, module) {
             }
             
             inProgress = true;
-            inputCount++;
             
-            var startPos = editor.getCursorPos(),
-                key = startPos.line + ":" + startPos.ch;
-            
-            if (inProgress[key]) {
-                return;
-            }
+            // Since input events are batched, inputEventCount isn't 1:1 with actual input events.
+            inputEventCount++;
             
             var data = new KeystrokeData(0);
             data.input = Date.now();
@@ -145,13 +141,17 @@ define(function (require, exports, module) {
             };
         
             var onChangeHandler = function (event, editor, change) {
-                // match the change from position to the original input event position 
-                if ((startPos.line === change.from.line) && (startPos.ch === change.from.ch)) {
-                    data.onChange = Date.now() - data.input;
-                    $(editor).off("change.typingSpeedLogger", onChangeHandler);
-                    
-                    window.webkitRequestAnimationFrame(repaintAfterChangeHandler);
+                var textChangesLen = change.text.length,
+                    i = 0;
+                
+                data.onChange = Date.now() - data.input;
+                $(editor).off("change.typingSpeedLogger", onChangeHandler);
+                
+                for (i = 0; i < textChangesLen; i++) {
+                    charCount += change.text[i].length;
                 }
+                
+                window.webkitRequestAnimationFrame(repaintAfterChangeHandler);
             };
             
             window.webkitRequestAnimationFrame(repaintBeforeChangeHandler);
