@@ -139,11 +139,22 @@ define(function (require, exports, module) {
             }
         }
 
-        // Prevent clicks on the top-level menu bar from taking focus
-        // Note, bootstrap handles this already for the menu drop downs 
-        $("#main-toolbar .dropdown").mousedown(function (e) {
-            e.preventDefault();
-        });
+        $("#main-toolbar .dropdown")
+            // Prevent clicks on the top-level menu bar from taking focus
+            // Note, bootstrap handles this already for the menu drop downs 
+            .mousedown(function (e) {
+                e.preventDefault();
+            })
+            // Switch menus when the mouse enters an adjacent menu
+            // Only open the menu if another one has already been opened
+            // by clicking
+            .mouseenter(function (e) {
+                var open = $(this).siblings(".open");
+                if (open.length > 0) {
+                    open.removeClass("open");
+                    $(this).addClass("open");
+                }
+            });
 
 // Other debug menu items
 //            $("#menu-debug-wordwrap").click(function() {
