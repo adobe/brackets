@@ -206,7 +206,7 @@ define(function (require, exports, module) {
         }
         
         return _doOpenWithOptionalPath(fullPath)
-                 .always(EditorManager.focusEditor);
+            .always(EditorManager.focusEditor);
     }
 
     function handleFileAddToWorkingSet(commandData) {

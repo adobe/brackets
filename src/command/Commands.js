@@ -58,12 +58,16 @@ define(function (require, exports, module) {
     exports.EDIT_REPLACE        = "edit.replace";
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
+    exports.EDIT_DUPLICATE      = "edit.duplicate";
+    exports.EDIT_LINE_COMMENT   = "edit.lineComment";
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR  = "view.hideSidebar";
+    exports.VIEW_HIDE_SIDEBAR   = "view.hideSidebar";
     
     // Navigate
     exports.NAVIGATE_QUICK_OPEN     = "navigate.quickOpen";
+    exports.NAVIGATE_GOTO_DEFINITION = "navigate.gotoDefinition";
+    exports.NAVIGATE_GOTO_LINE  	= "navigate.gotoLine";
     exports.SHOW_INLINE_EDITOR      = "navigate.showInlineEditor";
     exports.QUICK_EDIT_NEXT_MATCH   = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH   = "navigate.previousMatch";
