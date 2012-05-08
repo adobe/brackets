@@ -542,12 +542,8 @@ define(function (require, exports, module) {
         // On any change, mark the file dirty. In the future, we should make it so that if you
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
-        if (editor._codeMirror.isDirty) {
-            this.isDirty = editor._codeMirror.isDirty();
-        } else {
-            this.isDirty = true;
-        }
-
+        this.isDirty = editor._codeMirror.isDirty();
+        
         // If file just became dirty, notify listeners, and add it to working set (if not already there)
         if (wasDirty !== this.isDirty) {
             $(exports).triggerHandler("dirtyFlagChange", [this]);
@@ -566,7 +562,7 @@ define(function (require, exports, module) {
      */
     Document.prototype._markClean = function () {
         this.isDirty = false;
-        if (this._masterEditor && this._masterEditor._codeMirror.markClean) {
+        if (this._masterEditor) {
             this._masterEditor._codeMirror.markClean();
         }
         $(exports).triggerHandler("dirtyFlagChange", this);
