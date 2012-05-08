@@ -215,6 +215,11 @@ define(function (require, exports, module) {
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
                     {"Alt-Up": Commands.QUICK_EDIT_PREV_MATCH},
                     {"Alt-Down": Commands.QUICK_EDIT_NEXT_MATCH},
+                    
+                    //Cmd on mac is bound to toggle the debugger and main window but the control key does work... so Alt for now
+                    {"Alt-`": Commands.NAVIGATE_NEXT_PROJECT_FILE},
+                    {"Alt-Shift-~": Commands.NAVIGATE_PREV_PROJECT_FILE},
+                    
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
@@ -231,6 +236,10 @@ define(function (require, exports, module) {
                 function (event) {
                     if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
                         event.stopPropagation();
+                        
+                        // without preventDefault some handled keystrokes make it into CodeMirror
+                        // without it the keystroke "Alt-Shift-~" causes a ' character to flow into a document while cycling
+                        event.preventDefault();
                     }
                 },
                 true

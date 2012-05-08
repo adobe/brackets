@@ -154,7 +154,40 @@ define(function (require, exports, module) {
         return _fileSelectionFocus;
     }
 
+    
+    /**
+     * @private
+     * Cycle files in the project set.
+     */
+    function _cycleProjectFile(inc) {
+        var i,
+            file,
+            fileSelected,
+            newIndex,
+            workingSet = DocumentManager.getWorkingSet(),
+            docCurrent = DocumentManager.getCurrentDocument();
+        
+        for (i = 0; i < workingSet.length; i++) {
+            file = workingSet[i];
+            if (docCurrent.file.fullPath === file.fullPath) {
+                if (inc < 0 && i === 0) {
+                    i = workingSet.length;
+                }
+                newIndex = Math.min(Math.max(0, (i + inc) % workingSet.length), workingSet.length - 1);
+                
+                fileSelected = workingSet[newIndex];
+                break;
+            }
+        }
+        
+        if (fileSelected) {
+            openAndSelectDocument(fileSelected.fullPath, WORKING_SET_VIEW);
+        }
+    }
 
+    CommandManager.register(Commands.NAVIGATE_PREV_PROJECT_FILE, function () { _cycleProjectFile(-1); });
+    CommandManager.register(Commands.NAVIGATE_NEXT_PROJECT_FILE, function () { _cycleProjectFile(1); });
+    
 
     // Define public API
     exports.getFileSelectionFocus = getFileSelectionFocus;
