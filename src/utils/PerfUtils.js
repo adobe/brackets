@@ -133,7 +133,7 @@ define(function (require, exports, module) {
             result = "";
         for (testName in perfData) {
             if (perfData.hasOwnProperty(testName)) {
-                result += testName + "\t" + getValue(perfData[testName]) + "\n";
+                result += getValue(perfData[testName]) + "\t" + testName + "\n";
             }
         }
 
