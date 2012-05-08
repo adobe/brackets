@@ -62,7 +62,8 @@ define(function (require, exports, module) {
     function _handleShowPerfData() {
         var $perfHeader = $("<div class='modal-header' />")
             .append("<a href='#' class='close'>&times;</a>")
-            .append("<h1 class='dialog-title'>Performance Data</h1>");
+            .append("<h1 class='dialog-title'>Performance Data</h1>")
+            .append("<div align=right>Raw data (copy paste out): <textarea rows=1 style='width:30px; height:8px; overflow: hidden; resize: none' id='brackets-perf-raw-data'>" + PerfUtils.getDelimitedPerfData() + "</textarea></div>");
         
         var $perfBody = $("<div class='modal-body' style='padding: 0' />");
 
