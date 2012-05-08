@@ -22,8 +22,9 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+// FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -97,9 +98,9 @@ define(function (require, exports, module) {
         
         var maxWidth = 0;
         allHostedEditors.forEach(function (editor) {
-            var gutter = $(editor._codeMirror.getGutterElement());
-            gutter.css("min-width", "");
-            var curWidth = gutter.width();
+            var $gutter = $(editor._codeMirror.getGutterElement());
+            $gutter.css("min-width", "");
+            var curWidth = $gutter.width();
             if (curWidth > maxWidth) {
                 maxWidth = curWidth;
             }
@@ -202,14 +203,14 @@ define(function (require, exports, module) {
         }
         
         // create the filename div
-        var wrapperDiv = document.createElement("div");
+        var wrapperDiv = window.document.createElement("div");
         var $wrapperDiv = $(wrapperDiv);
         
         // dirty indicator followed by filename
-        var $filenameDiv = $(document.createElement("div")).addClass("filename");
+        var $filenameDiv = $(window.document.createElement("div")).addClass("filename");
         
         // save file path data to dirty-indicator
-        var $dirtyIndicatorDiv = $(document.createElement("div"))
+        var $dirtyIndicatorDiv = $(window.document.createElement("div"))
             .addClass("dirty-indicator")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);

@@ -21,26 +21,51 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false*/
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 define(function (require, exports, module) {
     'use strict';
     
     var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager");
+        CommandManager          = require("command/CommandManager"),
+        ProjectManager          = require("project/ProjectManager");
     
     /* TODO: Support arbitrary widths with grabber
         When the new theme lands with the CSS, potentially
         adjust how this is done. */
-    function _handleHideSidebar() {
+    function _handleHideSidebar(sidebarWidth) {
         var $sidebar = $(".sidebar");
+        var $sidebarResizer = $("#sidebar-resizer");
         
-        if ($sidebar.css("display") === "none") {
+        // if we specify a width with the handler call, use that. Otherwise use
+        // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
+        sidebarWidth = sidebarWidth || Math.max(parseInt($sidebar.width(), 10), 200);
+        
+        if (ProjectManager.getSidebarState() === ProjectManager.SIDEBAR_CLOSED) {
+            $sidebar.width(sidebarWidth);
+            
+            $sidebarResizer.css("left", sidebarWidth - 1);
+            
+            ProjectManager.setSidebarState(ProjectManager.SIDEBAR_OPEN);
             $sidebar.show();
+            
+            // the following three lines help resize things when the sidebar shows
+            // but ultimately these should go into ProjectManager.js with a "notify" 
+            // event that we can just call from anywhere instead of hard-coding it.
+            // waiting on a ProjectManager refactor to add that. 
+            $(".sidebarSelection").width(sidebarWidth);
+            $("#project-files-container").trigger("scroll");
+            $("#open-files-container").trigger("scroll");
+
+            // reset the menu text
             $("#menu-view-hide-sidebar span").first().text("Hide Sidebar");
         } else {
+            $sidebarResizer.css("left", 0);
+            ProjectManager.setSidebarState(ProjectManager.SIDEBAR_CLOSED);
             $sidebar.hide();
+            
+            // reset the menu text
             $("#menu-view-hide-sidebar span").first().text("Show Sidebar");
         }
         

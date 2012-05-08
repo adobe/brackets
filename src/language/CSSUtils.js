@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror */
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
      * @param text {!String} CSS text to extract from
      * @return {Array.<Object>} Array with objects specifying selectors.
      */
-    function _extractAllSelectors(text) {
+    function extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
         var state = CodeMirror.startState(mode);
@@ -233,7 +233,7 @@ define(function (require, exports, module) {
      *      matched selector.
      */
     function _findAllMatchingSelectorsInText(text, selector) {
-        var allSelectors = _extractAllSelectors(text);
+        var allSelectors = extractAllSelectors(text);
         var result = [];
         var i;
         
@@ -280,7 +280,7 @@ define(function (require, exports, module) {
     function _addSelectorsToResults(resultSelectors, selectorsToAdd, sourceDoc, lineOffset) {
         selectorsToAdd.forEach(function (selectorInfo) {
             resultSelectors.push({
-                selector: selectorInfo.selector,
+                name: selectorInfo.selector,
                 document: sourceDoc,
                 lineStart: selectorInfo.ruleStartLine + lineOffset,
                 lineEnd: selectorInfo.declListEndLine + lineOffset
@@ -391,4 +391,5 @@ define(function (require, exports, module) {
     
     exports._findAllMatchingSelectorsInText = _findAllMatchingSelectorsInText; // For testing only
     exports.findMatchingRules = findMatchingRules;
+    exports.extractAllSelectors = extractAllSelectors;
 });

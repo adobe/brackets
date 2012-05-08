@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -65,7 +65,8 @@ define(function (require, exports, module) {
         var offsetTop           = 0,
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
-            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
+            sidebarWidth        = $(".sidebar").width();
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");
@@ -74,6 +75,7 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
+            $shadowTop.css("width", sidebarWidth);
         }
         
         if ($shadowBottom) {
@@ -89,6 +91,7 @@ define(function (require, exports, module) {
     
             $shadowBottom.css("background-position", "0px " + bottomShadowOffset + "px");
             $shadowBottom.css("top", offsetTop + outerHeight - SCROLL_SHADOW_HEIGHT);
+            $shadowBottom.css("width", sidebarWidth);
         }
     }
 
@@ -96,7 +99,7 @@ define(function (require, exports, module) {
         var $findShadow = $displayElement.find(".scrollerShadow." + position);
 
         if ($findShadow.length === 0) {
-            $findShadow = $(document.createElement("div")).addClass("scrollerShadow " + position);
+            $findShadow = $(window.document.createElement("div")).addClass("scrollerShadow " + position);
             $displayElement.append($findShadow);
         }
         
@@ -178,14 +181,15 @@ define(function (require, exports, module) {
      * @param {!DOMElement} scrollElement A DOMElement containing a ul list element
      * @param {!string} selectedClassName A CSS class name on at most one list item in the contained list
      */
-    function sidebarList($scrollerElement, selectedClassName) {
+    function sidebarList($scrollerElement, selectedClassName, leafClassName) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
             $selectionTriangle,
-            $fileSection = $("#file-section");
+            $fileSection = $("#file-section"),
+            showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
-        $selectionMarker = $(document.createElement("div")).addClass("sidebarSelection");
+        $selectionMarker = $(window.document.createElement("div")).addClass("sidebarSelection");
         $scrollerElement.prepend($selectionMarker);
         
         // enable scrolling
@@ -195,42 +199,53 @@ define(function (require, exports, module) {
         $scrollerElement.css("position", "relative");
         
         // build selectionTriangle and position fixed to the window
-        $selectionTriangle = $(document.createElement("div")).addClass("sidebarSelectionTriangle");
+        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebarSelectionTriangle");
+        
         $fileSection.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
         
         var updateSelectionTriangle = function () {
-            var scrollerOffset = $scrollerElement.offset(),
+            var selectionMarkerHeight = $selectionMarker.height(),
+                selectionMarkerOffset = $selectionMarker.offset(),
+                scrollerOffset = $scrollerElement.offset(),
+                triangleHeight = $selectionTriangle.outerHeight(),
                 scrollerTop = scrollerOffset.top,
                 scrollerBottom = scrollerTop + $scrollerElement.outerHeight(),
                 scrollerLeft = scrollerOffset.left,
-                triangleTop = $selectionMarker.offset().top,
-                triangleHeight = $selectionTriangle.outerHeight(),
-                triangleClipOffsetYBy = Math.floor(($selectionMarker.height() - triangleHeight) / 2),
-                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+                triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
-            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             
-            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
-                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
-                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
-            } else {
-                $selectionTriangle.css("clip", "");
+            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
+            $selectionTriangle.toggleClass("triangleVisible", showTriangle);
+            
+            if (showTriangle) {
+                var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
+                    triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+                
+                if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
+                    $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
+                                               (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+                } else {
+                    $selectionTriangle.css("clip", "");
+                }
             }
         };
         
         var updateSelectionMarker = function () {
             // find the selected list item
-            var $listItem = $listElement.find(selectedClassName).closest("li"),
-                isLeaf = $listItem.find("ul").length === 0;
+            var $listItem = $listElement.find(selectedClassName).closest("li");
+            
+            if (leafClassName) {
+                showTriangle = $listItem.hasClass(leafClassName);
+            }
             
             // always hide selection visuals first to force layout (issue #719)
             $selectionTriangle.hide();
             $selectionMarker.hide();
             
-            if (($listItem.length === 1) && isLeaf) {
+            if ($listItem.length === 1) {
                 // list item position is relative to scroller
                 var selectionMarkerTop = $listItem.offset().top - $scrollerElement.offset().top + $scrollerElement.get(0).scrollTop;
                     
@@ -242,7 +257,6 @@ define(function (require, exports, module) {
                 $selectionMarker.show();
                 
                 updateSelectionTriangle();
-                
                 $selectionTriangle.show();
             
                 // fully scroll to the selectionMarker if it's not initially in the viewport
@@ -254,9 +268,9 @@ define(function (require, exports, module) {
                 
                 // update scrollTop to reveal the selected list item
                 if (selectionMarkerTop >= currentScrollBottom) {
-                    scrollerElement.scrollTop = Math.max(0, selectionMarkerTop + selectionMarkerHeight - scrollerHeight);
+                    $listItem.get(0).scrollIntoView(false);
                 } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
-                    scrollerElement.scrollTop = selectionMarkerTop;
+                    $listItem.get(0).scrollIntoView(true);
                 }
             }
         };
@@ -285,7 +299,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
-    
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.addScrollerShadow = addScrollerShadow;
     exports.removeScrollerShadow = removeScrollerShadow;

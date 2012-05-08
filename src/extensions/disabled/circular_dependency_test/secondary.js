@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -32,7 +32,7 @@ define(function (require, exports, module) {
 
     exports.bar = function bar() {
         console.log("in bar in secondary!");
-        setTimeout(function () { require("main").bar(); }, 300);
+        window.setTimeout(function () { require("main").bar(); }, 300);
     };
 
 });
