@@ -38,4 +38,5 @@ define(function (require, exports, module) {
     }
 
     exports.htmlEscape = htmlEscape;
+    
 });
