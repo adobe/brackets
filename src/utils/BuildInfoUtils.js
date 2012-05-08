@@ -74,7 +74,8 @@ define(function (require, exports, module) {
                 if (text.indexOf("ref: ") === 0) {
                     var basePath = path.substr(0, path.lastIndexOf("/"));
                     var refRelPath = text.substr(5).trim();
-                    _loadSHA(basePath + "/" + refRelPath, callback);
+                    _loadSHA(basePath + "/" + refRelPath, callback)
+                        .pipe(result.resolve, result.reject);
                 } else {
                     result.resolve(text);
                 }
