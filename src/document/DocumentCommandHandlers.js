@@ -162,56 +162,77 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Creates a document and displays an editor for the specified file path. 
-     * If no path is specified, a file prompt is provided for input.
-     * @param {?string} fullPath - The path of the file to open; if it's null we'll prompt for it
-     * @return {$.Promise} a jQuery promise that will be resolved with a new 
-     *  document for the specified file path, or rejected if the file can not be read.
+     * Creates and opens documents for a list of files. If the files are specified, it will open
+     * the specified files, otherwise it will prompt the user to select the files to open.
+     * @param {?Array.<string>} files - A list of the files to open. If no files are specified, it
+     * will prompt the user to select the files to open.
+     * @return {$.Promise} a jQuery promise that will be resolved with a list of the new 
+     *  documents for the specified files, or rejected if the files can not be read.
      */
-    function _doOpenWithOptionalPath(fullPath) {
-        var result;
-        if (!fullPath) {
+    function _doOpenWithOptionalFiles(files) {
+        var result = new $.Deferred();
+        
+        function open(files) {
+            var i,
+                results = [];
+            
+            function finishCallback(doc) {
+                results.push(doc);
+                if (results.length === files.length) {
+                    // Done with all documents
+                    result.resolve(results);
+                }
+            }
+            
+            function failureCallback() {
+                result.reject();
+            }
+            
+            for (i = 0; i < files.length; i++) {
+                doOpen(files[i]).then(finishCallback, failureCallback);
+            }
+        }
+        
+        // Check if the files are specified
+        if (!files) {
             //first time through, default to the current project path
             if (!_defaultOpenDialogFullPath) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
+            
             // Prompt the user with a dialog
-            // TODO (issue #117): we're relying on this to not be asynchronous ('result' not set until
-            // dialog is dismissed); won't work in a browser-based version
-            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                null, function (files) {
-                    if (files.length > 0) {
-                        result = doOpen(files[0])
-                            .always(function updateDefualtOpenDialogFullPath(doc) {
-                                var url = PathUtils.parseUrl(doc.file.fullPath);
-                                //reconstruct the url but use the directory and stop there
-                                _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
-                            });
-                        return;
-                    }
+            NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
+                null, function (selected) {
+                    open(selected);
+                    result.done(function (docs) {
+                        var url;
+                        if (docs.length > 0) {
+                            url = PathUtils.parseUrl(docs[0].file.fullpath);
+                            //reconstruct the url but use the directory and stop there
+                            _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
+                        }
+                    });
                 });
         } else {
-            result = doOpen(fullPath);
+            open(files);
         }
-        if (!result) {
-            result = (new $.Deferred()).reject().promise();
-        }
+
         return result;
     }
 
     function handleFileOpen(commandData) {
-        var fullPath = null;
-        if (commandData) {
-            fullPath = commandData.fullPath;
-        }
+        var files = commandData ? commandData.files : null;
         
-        return _doOpenWithOptionalPath(fullPath)
+        return _doOpenWithOptionalFiles(files)
             .always(EditorManager.focusEditor);
     }
 
     function handleFileAddToWorkingSet(commandData) {
-        handleFileOpen(commandData).done(function (doc) {
-            DocumentManager.addToWorkingSet(doc.file);
+        handleFileOpen(commandData).done(function (docs) {
+            var i;
+            for (i = 0; i < docs.length; i++) {
+                DocumentManager.addToWorkingSet(docs[i].file);
+            }
         });
     }
 

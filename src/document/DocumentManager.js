@@ -282,7 +282,7 @@ define(function (require, exports, module) {
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath });
+                CommandManager.execute(Commands.FILE_OPEN, { files: [nextFile.fullPath] });
             } else {
                 _clearCurrentDocument();
             }
@@ -748,7 +748,7 @@ define(function (require, exports, module) {
             }
 
             if (activeFile) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: activeFile.fullPath });
+                CommandManager.execute(Commands.FILE_OPEN, { files: [activeFile.fullPath] });
             }
         });
     }

@@ -225,7 +225,7 @@ define(function (require, exports, module) {
 
             // Nagivate to file and line number
             if (fullPath) {
-                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
+                CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { files: [fullPath] })
                     .done(function () {
                         if (!isNaN(gotoLine)) {
                             EditorManager.getCurrentFullEditor().setCursorPos(cursor);
@@ -257,7 +257,7 @@ define(function (require, exports, module) {
             var fullPath = $(selectedItem).attr("data-fullpath");
             if (fullPath) {
                 fullPath = decodeURIComponent(fullPath);
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
+                CommandManager.execute(Commands.FILE_OPEN, { files: [fullPath], focusEditor: false });
             }
         }
         */
@@ -312,7 +312,7 @@ define(function (require, exports, module) {
 
                 // restore previously viewed doc if user navigated away from it
                 if (origDocPath) {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: origDocPath})
+                    CommandManager.execute(Commands.FILE_OPEN, { files: [origDocPath] })
                         .done(function () {
                             if (origSelection) {
                                 EditorManager.getCurrentFullEditor().setSelection(origSelection.start, origSelection.end);

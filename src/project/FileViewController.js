@@ -120,7 +120,7 @@ define(function (require, exports, module) {
             EditorManager.focusEditor();
             result = (new $.Deferred()).resolve().promise();
         } else {
-            result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
+            result = CommandManager.execute(Commands.FILE_OPEN, { files: [fullPath] });
         }
         
         // clear after notification is done
@@ -138,7 +138,7 @@ define(function (require, exports, module) {
      * @return {!$.Promise}
      */
     function addToWorkingSetAndSelect(fullPath) {
-        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
+        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { files: [fullPath] });
 
         // This properly handles sending the right nofications in cases where the document
         // is already the curruent one. In that case we will want to notify with

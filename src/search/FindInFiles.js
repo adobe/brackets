@@ -218,8 +218,8 @@ define(function (require, exports, module) {
                                 .appendTo($resultTable);
                             
                             $row.click(function () {
-                                CommandManager.execute(Commands.FILE_OPEN, {fullPath: item.fullPath})
-                                    .done(function (doc) {
+                                CommandManager.execute(Commands.FILE_OPEN, { files: [item.fullPath] })
+                                    .done(function (docs) {
                                         // Opened document is now the current main editor
                                         EditorManager.getCurrentFullEditor().setSelection(match.start, match.end);
                                     });
