@@ -257,8 +257,12 @@ define(function (require, exports, module) {
             var startingSidebarPosition = sidebarWidth;
             
             $("#sidebar-resizer").css("left", sidebarWidth - 1);
+            
+            $("#sidebar-resizer").on("dblclick", function (e) {
+                CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR);
+            });
+            
             $("#sidebar-resizer").on("mousedown.sidebar", function (e) {
-                
                 // check to see if we're currently in hidden mode
                 if (ProjectManager.getSidebarState() === ProjectManager.SIDEBAR_CLOSED) {
                     // when we click, start modifying the sidebar size and then
@@ -307,7 +311,6 @@ define(function (require, exports, module) {
             $("#sidebar-resizer").on("mouseup.sidebar", function (e) {
                 $(".main-view").off("mousemove.sidebar");
                 startingSidebarPosition = $sidebar.width();
-                console.log(startingSidebarPosition);
             });
             
         }
