@@ -215,16 +215,14 @@ define(function (require, exports, module) {
             $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             $selectionTriangle.toggleClass("triangleVisible", showTriangle);
             
-            if (showTriangle) {
-                var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
-                    triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
-                
-                if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
-                    $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
-                                               (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
-                } else {
-                    $selectionTriangle.css("clip", "");
-                }
+            var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
+                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+            
+            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
+                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
+                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+            } else {
+                $selectionTriangle.css("clip", "");
             }
         };
         

@@ -276,6 +276,8 @@ define(function (require, exports, module) {
                                 _lastSelected = null;
                             }
                         });
+                    } else {
+                        _fireSelectionChanged();
                     }
                 }
             )
