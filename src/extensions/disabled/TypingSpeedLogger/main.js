@@ -33,16 +33,16 @@ define(function (require, exports, module) {
     
     // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
     // shim layer with setTimeout fallback
-    var requestAnimFrame = function() {
-        return window.requestAnimationFrame    || 
-            window.webkitRequestAnimationFrame || 
-            window.mozRequestAnimationFrame    || 
-            window.oRequestAnimationFrame      || 
-            window.msRequestAnimationFrame     || 
-            function( callback ){
+    var requestAnimFrame = (function () {
+        return window.requestAnimationFrame    ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function (callback) {
                 window.setTimeout(callback, 1000 / 60);
             };
-    };
+    }());
     
     function KeystrokeData(init) {
         init = init || 0;
@@ -139,7 +139,7 @@ define(function (require, exports, module) {
                 // keep logging until we hit onChange
                 if (data.onChange === 0) {
                     data.paintBeforeChange = Date.now() - data.input;
-                    window.webkitRequestAnimationFrame(repaintBeforeChangeHandler);
+                    requestAnimFrame(repaintBeforeChangeHandler);
                 }
             };
             
@@ -166,7 +166,7 @@ define(function (require, exports, module) {
                 requestAnimFrame(repaintAfterChangeHandler);
             };
             
-            window.webkitRequestAnimationFrame(repaintBeforeChangeHandler);
+            requestAnimFrame(repaintBeforeChangeHandler);
             $(editor).on("change.typingSpeedLogger", onChangeHandler);
         };
 
