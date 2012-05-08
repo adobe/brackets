@@ -98,24 +98,6 @@ define(function (require, exports, module) {
         id              : 0,    /* incrementing id */
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
-    
-    /** 
-     * @const
-     * Sidebar open constant
-     */
-    var SIDEBAR_OPEN = "open";
-
-    /** 
-     * @const
-     * Sidebar closed constant
-     */
-    var SIDEBAR_CLOSED = "closed";
-    
-    /** 
-     * @private
-     * Current state of sidebar
-     */
-    var _sidebarState = SIDEBAR_OPEN;
         
     
     
@@ -335,8 +317,6 @@ define(function (require, exports, module) {
             .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
-                    ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
-                    
                     // update when tree display state changes
                     _fireSelectionChanged();
                     _savePreferences();
@@ -544,9 +524,6 @@ define(function (require, exports, module) {
 
                     // Success!
                     _projectRoot = rootEntry;
-
-                    // Set title
-                    $("#project-title").html(_projectRoot.name);
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -807,23 +784,6 @@ define(function (require, exports, module) {
     function forceFinishRename() {
         $(".jstree-rename-input").blur();
     }
-    
-    /***** Start of Sidebar methods ******/
-
-    /**
-     * Gets the current state of the sidebar
-     */
-    function getSidebarState() {
-        return _sidebarState;
-    }
-    
-    /**
-     * Sets the sidebar state when something happens
-     * @param newState {string} new state for sidebar
-     */
-    function setSidebarState(newState) {
-        _sidebarState = newState;
-    }
 
     // Define public API
     exports.getProjectRoot  = getProjectRoot;
@@ -834,10 +794,6 @@ define(function (require, exports, module) {
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
     exports.forceFinishRename = forceFinishRename;
-    exports.SIDEBAR_OPEN = SIDEBAR_OPEN;
-    exports.SIDEBAR_CLOSED = SIDEBAR_CLOSED;
-    exports.getSidebarState = getSidebarState;
-    exports.setSidebarState = setSidebarState;
 
     // Initialize now
     (function () {

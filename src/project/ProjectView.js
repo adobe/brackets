@@ -22,22 +22,26 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets, FileError, window */
 
+/**
+ * ProjectManager is the model for the set of currently open project. It is responsible for
+ * creating and updating the project tree when projects are opened and when changes occur to
+ * the file tree.
+ *
+ * This module dispatches these events:
+ *    - initializeComplete -- When the ProjectManager initializes the first 
+ *                            project at application start-up.
+ *    - projectRootChanged -- when _projectRoot changes
+ *
+ * These are jQuery events, so to listen for them you do something like this:
+ *    $(ProjectManager).on("eventname", handler);
+ */
 define(function (require, exports, module) {
     'use strict';
     
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        SidebarView             = require("project/SidebarView"),
-        ProjectManager          = require("project/ProjectManager");
-    
-    /* TODO: Support arbitrary widths with grabber
-        When the new theme lands with the CSS, potentially
-        adjust how this is done. */
-    function _handleHideSidebar(width) {
-        SidebarView.setWidth(width, true);
+    function create(element) {
     }
     
-    CommandManager.register(Commands.VIEW_HIDE_SIDEBAR, _handleHideSidebar);
+    exports.create  = create;
 });
