@@ -64,6 +64,7 @@ define(function (require, exports, module) {
     var EditorManager    = require("editor/EditorManager"),
         Commands         = require("command/Commands"),
         CommandManager   = require("command/CommandManager"),
+        PerfUtils           = require("utils/PerfUtils"),
         TextRange        = require("document/TextRange").TextRange,
         ViewUtils        = require("utils/ViewUtils");
     
@@ -633,6 +634,8 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var perfTimerName = PerfUtils.markStart("Edtitor._resetText()\t" + (!this.document || this.document.file.fullPath));
+
         var cursorPos = this.getCursorPos(),
             scrollPos = this.getScrollPos();
         
@@ -645,6 +648,8 @@ define(function (require, exports, module) {
         // restore cursor and scroll positions
         this.setCursorPos(cursorPos);
         this.setScrollPos(scrollPos.x, scrollPos.y);
+
+        PerfUtils.addMeasurement(perfTimerName);
     };
     
     

@@ -45,6 +45,7 @@ define(function (require, exports, module) {
     var DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         EditorManager       = require("editor/EditorManager"),
+        PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands");
 
     /** 
@@ -79,6 +80,7 @@ define(function (require, exports, module) {
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
+            var perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
             if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
@@ -87,6 +89,8 @@ define(function (require, exports, module) {
         }
 
         $(exports).triggerHandler("documentSelectionFocusChange");
+
+        PerfUtils.addMeasurement(perfTimerName);
     });
 
     /** 

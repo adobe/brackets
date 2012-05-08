@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var DocumentManager         = require("document/DocumentManager"),
+        PerfUtils               = require("utils/PerfUtils"),
         EditorManager           = require("editor/EditorManager");
     
     var _enabled = true;
@@ -49,6 +50,9 @@ define(function (require, exports, module) {
     
     function run() {
         var currentDoc = DocumentManager.getCurrentDocument();
+        
+        var perfTimerName = PerfUtils.markStart("JSLint run():\t" + (!currentDoc || currentDoc.file.fullPath));
+
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
         var $lintResults = $("#jslint-results");
         var $goldStar = $("#gold-star");
@@ -118,6 +122,8 @@ define(function (require, exports, module) {
         }
         
         EditorManager.resizeEditor();
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     

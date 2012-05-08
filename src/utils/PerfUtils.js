@@ -29,6 +29,12 @@
  */
 define(function (require, exports, module) {
     'use strict';
+
+    /**
+     * Flag to enable/disable performance data gathering. Default is true (enabled)
+     * @type {boolean} enabled
+     */
+    var enabled = true;
     
     /**
      * Peformance data is stored in this hash object. The key is the name of the
@@ -51,16 +57,25 @@ define(function (require, exports, module) {
      *
      * Multiple timers can be opened simultaneously, but all open timers must have
      * a unique name. 
+     *
+     * @param {string} timer name
+     * @returns {string} timer name. Returned for convenience to store and use
+     *      for calling addMeasure(). Since name is often creating via concatenating
+     *      strings this return value allows clients to construct the name once.
      */
     function markStart(name) {
-        if (activeTests[name]) {
-            console.log("Recursive tests with the same name are not supported.");
-            return;
+        if (enabled) {
+            if (activeTests[name]) {
+                console.log("Recursive tests with the same name are not supported.");
+                return;
+            }
+            
+            activeTests[name] = {
+                startTime: brackets.app.getElapsedMilliseconds()
+            };
+
+            return name;
         }
-        
-        activeTests[name] = {
-            startTime: brackets.app.getElapsedMilliseconds()
-        };
     }
     
     /**
@@ -73,27 +88,60 @@ define(function (require, exports, module) {
      * measured time is relative to app startup.
      */
     function addMeasurement(name) {
-        var elapsedTime = brackets.app.getElapsedMilliseconds();
-        
-        if (activeTests[name]) {
-            elapsedTime -= activeTests[name].startTime;
-            delete activeTests[name];
-        }
-        
-        if (perfData[name]) {
-            // We have existing data, add to it
-            if (Array.isArray(perfData[name])) {
-                perfData[name].push(elapsedTime);
-            } else {
-                // Current data is a number, convert to Array
-                perfData[name] = [perfData[name], elapsedTime];
+        if (enabled) {
+            var elapsedTime = brackets.app.getElapsedMilliseconds();
+            
+            if (activeTests[name]) {
+                elapsedTime -= activeTests[name].startTime;
+                delete activeTests[name];
             }
-        } else {
-            perfData[name] = elapsedTime;
+            
+            if (perfData[name]) {
+                // We have existing data, add to it
+                if (Array.isArray(perfData[name])) {
+                    perfData[name].push(elapsedTime);
+                } else {
+                    // Current data is a number, convert to Array
+                    perfData[name] = [perfData[name], elapsedTime];
+                }
+            } else {
+                perfData[name] = elapsedTime;
+            }
+
+            // Real time console
+            //console.log(name + " " + elapsedTime);
         }
+    }
+
+    function getDelimitedPerfData() {
+        var getValue = function (entry) {
+            // entry is either an Array or a number
+            // If it is an Array, return the average value
+            if (Array.isArray(entry)) {
+                var i, sum = 0;
+                
+                for (i = 0; i < entry.length; i++) {
+                    sum += entry[i];
+                }
+                return String(Math.floor(sum / entry.length)) + " (avg)";
+            } else {
+                return entry;
+            }
+        };
+
+        var testName,
+            result = "";
+        for (testName in perfData) {
+            if (perfData.hasOwnProperty(testName)) {
+                result += testName + "\t" + getValue(perfData[testName]) + "\n";
+            }
+        }
+
+        return result;
     }
     
     exports.markStart       = markStart;
     exports.addMeasurement  = addMeasurement;
     exports.perfData        = perfData;
+    exports.getDelimitedPerfData = getDelimitedPerfData;
 });
