@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
+        StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
@@ -306,7 +307,7 @@ define(function (require, exports, module) {
             Strings.ERROR_SAVING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
-                path,
+                StringUtils.htmlEscape(path),
                 FileUtils.getFileErrorString(code)
             )
         );
@@ -486,7 +487,7 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename)
+                Strings.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -568,7 +569,9 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li><span class='dialog-filename'>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</span></li>";
+                message += "<li><span class='dialog-filename'>"
+                    + StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
+                    + "</span></li>";
             });
             message += "</ul>";
             
