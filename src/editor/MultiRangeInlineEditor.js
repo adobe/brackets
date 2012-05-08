@@ -119,6 +119,7 @@ define(function (require, exports, module) {
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
         this._ensureCursorVisible = this._ensureCursorVisible.bind(this);
+        this._updateEditorWidth = this._updateEditorWidth.bind(this);
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
@@ -228,17 +229,27 @@ define(function (require, exports, module) {
         // Add new editor
         var range = this._getSelectedRange();
         this.createInlineEditorFromText(range.textRange.document, range.textRange.startLine, range.textRange.endLine, this.$editorsDiv.get(0));
+        
+        // Set the container of the editor to be float: left. This is a bit of a hack: it makes it
+        // so that the container's width is the full width of the CodeMirror editor's content, and
+        // therefore CodeMirror never thinks it needs to scroll. We need this because we want to
+        // artificially set the width of the $editorsDiv to fit the longest line in the visible range
+        // (as opposed to the longest line in the editor's content), and we want to do this without
+        // allowing the embedded editor to do its own scrolling. By letting it be its natural width,
+        // we make it so it thinks it never needs to scroll horizontally.
+        $(this.editors[0].getRootElement()).parent().css("float", "left");
+        
         this.editors[0].focus();
 
-        // Changes in size to the inline editor should update the relatedContainer
-        // Note: normally it's not kosher to listen to changes on a specific editor,
-        // but in this case we're specifically concerned with changes in the given
-        // editor, not general document changes.
-        $(this.editors[0]).on("change", this._updateRelatedContainer);
+        // Changes in desired width to the inline editor should resize the editor to fit the
+        // content, and also update the relatedContainer.
+        // Note: We don't need to call _updateRelatedContainer() on general edits to the inline
+        // editor (change events) because all change events currently cause sizeInlineEditorToContents(),
+        // which calls _updateRelatedContainer().
+        $(this.editors[0]).on("desiredWidthChange", this._updateEditorWidth);
         
         // Cursor activity in the inline editor may cause us to horizontally scroll.
         $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
-
         
         this.editors[0].refresh();
         // ensureVisibility is set to false because we don't want to scroll the main editor when the user selects a view
@@ -270,6 +281,8 @@ define(function (require, exports, module) {
                     self.$relatedContainer.scrollTop(itemBottom - containerHeight);
                 }
             }
+            
+            self._updateEditorWidth();
         }, 0);
     };
 
@@ -281,8 +294,8 @@ define(function (require, exports, module) {
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
-        $(this.editors[0]).off("change", this._updateRelatedContainer);
         $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
+        $(this.editors[0]).off("desiredWidthChange", this._updateEditorWidth);
         $(this).off("offsetTopChanged", this._updateRelatedContainer);
         $(window).off("resize", this._updateRelatedContainer);
         
@@ -325,8 +338,23 @@ define(function (require, exports, module) {
     };
     
     /**
-     *
-     *
+     * Set the inline editor container to the desired width of the currently visible editor.
+     */
+    MultiRangeInlineEditor.prototype._updateEditorWidth = function () {
+        // If the editor's desired width is shorter than the actual width of the overall editor area,
+        // set it to the full editor area width, so that clicks in the dead space are handled by the
+        // editor.
+        this.$editorsDiv.width(Math.max(this.editors[0].getDesiredWidth(),
+                                        this.hostEditor.getScrollerElement().clientWidth - this.$relatedContainer.outerWidth()));
+        this._ensureCursorVisible();
+    };
+    
+    /**
+     * Update the size and position of the rule list.
+     * FUTURE: We should probably call this less often, and break out different kinds of changes that need
+     * different kinds of updates to the rule list. Right now this gets called on every keystroke in the
+     * inline editor (via sizeWidgetToContents()), and a number of the operations in here (like figuring 
+     * out offset() or outerWidth()), as well as resetting style values, are probably nontrivial.
      */
     MultiRangeInlineEditor.prototype._updateRelatedContainer = function () {
         var borderThickness = (this.$htmlContent.outerHeight() - this.$htmlContent.innerHeight()) / 2;
@@ -454,6 +482,14 @@ define(function (require, exports, module) {
 
         // The related ranges container size itself based on htmlContent which is set by setInlineWidgetHeight above.
         this._updateRelatedContainer();
+    };
+    
+    /**
+     * Handles refreshing the inline editor when its host editor is reshown.
+     */
+    MultiRangeInlineEditor.prototype.onParentShown = function () {
+        this.parentClass.onParentShown.call(this);
+        this._updateEditorWidth();
     };
 
     /**

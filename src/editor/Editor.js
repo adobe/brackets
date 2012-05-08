@@ -50,7 +50,11 @@
  *    - lostContent -- When the backing Document changes in such a way that this Editor is no longer
  *          able to display accurate text. This occurs if the Document's file is deleted, or in certain
  *          Document->editor syncing edge cases that we do not yet support (the latter cause will
- *          eventually go away). 
+ *          eventually go away).
+ *    - desiredWidthChange -- When the maximum width of the longest line in the currently visible content
+ *          changes. Note that this is only dispatched if the editor is restricted to a specific visible
+ *          range (by passing a range argument to the constructor). The desired width can be retrieved
+ *          using getDesiredWidth().
  *
  * The Editor also dispatches "change" events internally, but you should listen for those on
  * Documents, not Editors.
@@ -495,6 +499,20 @@ define(function (require, exports, module) {
         }
     };
     
+    Editor.prototype._checkMaxWidth = function () {
+        var oldWidth;
+                        
+        // Whenever the document is being changed (even if it's due to our own editor), check if we
+        // need to update the maximum line width.
+        if (this._visibleRange) {
+            oldWidth = this._maxWidthInfo ? this._maxWidthInfo.width : -1;
+            this._recomputeMaxWidth();
+            if (this._maxWidthInfo && this._maxWidthInfo.width !== oldWidth) {
+                $(this).triggerHandler("desiredWidthChange");
+            }
+        }
+    };
+    
     /**
      * Responds to changes in the CodeMirror editor's text, syncing the changes to the Document.
      * There are several cases where we want to ignore a CodeMirror change:
@@ -508,6 +526,8 @@ define(function (require, exports, module) {
         if (this._duringSync) {
             return;
         }
+        
+        this._checkMaxWidth();
         
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
         if (!this.document._masterEditor) {
@@ -550,8 +570,6 @@ define(function (require, exports, module) {
      *    the document an editor change that originated with us
      */
     Editor.prototype._handleDocumentChange = function (event, doc, changeList) {
-        var change;
-        
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -565,6 +583,8 @@ define(function (require, exports, module) {
             this._duringSync = true;
             this._applyChanges(changeList);
             this._duringSync = false;
+
+            this._checkMaxWidth();
         }
         // Else, Master editor:
         // we're the ground truth; nothing to do since Document change is just echoing our
@@ -943,6 +963,50 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Returns the right edge of the given line.
+     * @param {number} num The line number to measure.
+     */
+    Editor.prototype._getLineRightEdge = function (num) {
+        // By passing Number.MAX_VALUE for ch, CodeMirror will get the position immediately after the last character.
+        return this._codeMirror.charCoords({line: num, ch: Number.MAX_VALUE}).x - $(this.getRootElement()).offset().left;
+    };
+    
+    /**
+     * Recalculates the desired width of the editor based on the widest visible line.
+     */
+    Editor.prototype._recomputeMaxWidth = function () {
+        if (!this._visibleRange || this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
+            return;
+        }
+
+        var i, lineLength, maxLineNum = -1, maxLength = -1;
+        for (i = this._visibleRange.startLine; i <= this._visibleRange.endLine; i++) {
+            lineLength = this.getLineText(i).length;
+            if (lineLength > maxLength) {
+                maxLength = lineLength;
+                maxLineNum = i;
+            }
+        }
+        this._maxWidthInfo = { num: maxLineNum, width: this._getLineRightEdge(maxLineNum) };
+    };
+    
+    /**
+     * Returns the desired width of the editor based on the longest visible line. Note that this is only available
+     * if the editor is viewing a specific range.
+     * @return {number} The width in pixels of the longest visible line, or null if the editor is viewing
+     * the whole document.
+     */
+    Editor.prototype.getDesiredWidth = function () {
+        if (!this._visibleRange) {
+            return null;
+        }
+        if (!this._maxWidthInfo) {
+            this._recomputeMaxWidth();
+        }
+        return this._maxWidthInfo ? this._maxWidthInfo.width : 0;
+    };
+
+    /**
      * The Document we're bound to
      * @type {!Document}
      */
@@ -976,7 +1040,12 @@ define(function (require, exports, module) {
      */
     Editor.prototype._visibleRange = null;
     
-    
+    /**
+     * @private
+     * @type {{num: number, width: number}}
+     */
+    Editor.prototype._maxWidthInfo = null;
+        
     // Global settings that affect all Editor instances (both currently open Editors as well as those created
     // in the future)
 
