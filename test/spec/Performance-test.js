@@ -73,7 +73,6 @@
                 });
 
                 afterEach(function () {
-                	//SpecRunnerUtils.closeTestWindow();
                         JSLintUtils.setEnabled(jsLintPrevSetting);
                         console.log( PerfUtils.getDelimitedPerfData());
                         CommandManager.execute(Commands.DEBUG_SHOW_PERF_DATA);
@@ -83,16 +82,16 @@
 
                 it("File open performance", function () {
                         var i;
-                        for( i = 0; i < 1; i++ ) {
+                        for( i = 0; i < 5; i++ ) {
                                 openFile(testPath + "all-classes.js");
-                                // openFile(testPath + "jquery_ui_index.html");
-                                // openFile(testPath + "blank.js");
-                                // openFile(testPath + "example-data.js");
-                                // openFile(testPath + "sink.css");
-                                // openFile(testPath + "England(Chinese).htm");
-                                // openFile(testPath + "jquery.mobile-1.0b2.min.css");
-                                // openFile(testPath + "jquery.mobile-1.1.0.css");
-                                // openFile(testPath + "jquery.mobile-1.0b2.min.js");
+                                openFile(testPath + "jquery_ui_index.html");
+                                openFile(testPath + "blank.js");
+                                openFile(testPath + "example-data.js");
+                                openFile(testPath + "sink.css");
+                                openFile(testPath + "England(Chinese).htm");
+                                openFile(testPath + "jquery.mobile-1.0b2.min.css");
+                                openFile(testPath + "jquery.mobile-1.1.0.css");
+                                openFile(testPath + "jquery.mobile-1.0b2.min.js");
                                 CommandManager.execute(Commands.FILE_CLOSE_ALL);
                         }
                 });

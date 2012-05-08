@@ -30,7 +30,7 @@
  * property maintained by DocumentManager's model.
  *
  * Note that there is a little bit of unusual overlap between EditorManager and DocumentManager:
- * because the Document state is actually stored in the CodeMirorr editor UI, DocumentManager is
+ * because the Document state is actually stored in the CodeMirror editor UI, DocumentManager is
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
