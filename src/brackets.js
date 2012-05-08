@@ -60,6 +60,7 @@ define(function (require, exports, module) {
         KeyMap                  = require("command/KeyMap"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        BuildInfoUtils          = require("utils/BuildInfoUtils"),
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
@@ -68,7 +69,6 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
-        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         ExtensionLoader         = require("utils/ExtensionLoader");
         
     //Load modules that self-register and just need to get included in the main project
@@ -161,62 +161,28 @@ define(function (require, exports, module) {
         }
         
         
-        function initAboutDialog() {
-            function loadSHA(path, callback) {
-                var fileEntry = new NativeFileSystem.FileEntry(path);
-                var reader = new NativeFileSystem.FileReader();
-                
-                // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
-                // to a file in /refs which in turn contains the SHA
-                fileEntry.file(function (file) {
-                    reader.onload = function (event) {
-                        var text = event.target.result;
-                        
-                        if (text.indexOf("ref: ") === 0) {
-                            var basePath = path.substr(0, path.lastIndexOf("/"));
-                            var refRelPath = text.substr(5).trim();
-                            loadSHA(basePath + "/" + refRelPath, callback);
-                        } else {
-                            callback(text);
-                        }
-                    };
-                    // no onerror handler - if Git metadata nonexistent or unreadable, ignore
-                    
-                    reader.readAsText(file, "utf8");
-                });
-            }
-            
-            var loadedPath = window.location.pathname;
-            var bracketsSrc = FileUtils.convertToNativePath( loadedPath.substr(0, loadedPath.lastIndexOf("/")) );
-            var bracketsGitRoot = bracketsSrc + "/../../.git/";
-            var bracketsSubmoduleRoot = bracketsGitRoot + "modules/brackets/";
-            
-            loadSHA(bracketsSubmoduleRoot + "HEAD", function (text) {
-                brackets.bracketsSHA = text;
-            });
-            loadSHA(bracketsGitRoot + "HEAD", function (text) {
-                brackets.bracketsAppSHA = text;
-            });
-            
-            CommandManager.register(Commands.HELP_ABOUT, function () {
-                var versionLabel = "";
-                if (brackets.bracketsSHA) {
-                    versionLabel += " (" + brackets.bracketsSHA.substr(0, 5) + ")";
-                }
-                if (brackets.bracketsAppSHA) {
-                    versionLabel += " (shell " + brackets.bracketsAppSHA.substr(0, 5) + ")";
-                }
-                $("#about-version").text(versionLabel);
-                
-                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-            });
-        }
         function initCommandHandlers() {
             // Most command handlers are automatically registered when their module is loaded (see "modules
             // that self-register" above for some). A few commands need an extra kick here though:
             
             DocumentCommandHandlers.init($("#main-toolbar"));
-            initAboutDialog();
+            
+            // About dialog
+            CommandManager.register(Commands.HELP_ABOUT, function () {
+                // If we've successfully determined a "build number" via .git metadata, add it to dialog
+                var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
+                    bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
+                    versionLabel = "";
+                if (bracketsSHA) {
+                    versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
+                }
+                if (bracketsAppSHA) {
+                    versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
+                }
+                $("#about-build-number").text(versionLabel);
+                
+                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+            });
         }
 
         function initKeyBindings() {
@@ -313,6 +279,10 @@ define(function (require, exports, module) {
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
         initWindowListeners();
+        
+        // Read "build number" SHAs off disk at the time the matching Brackets JS code is being loaded, instead
+        // of later, when they may have been updated to a different version
+        BuildInfoUtils.init();
 
         // Load extensions
 
