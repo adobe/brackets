@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 /**
  * Utilities for determining the current "build number" / version
@@ -63,6 +63,8 @@ define(function (require, exports, module) {
         var fileEntry = new NativeFileSystem.FileEntry(path);
         var reader = new NativeFileSystem.FileReader();
         
+        var result = new $.Deferred();
+        
         // HEAD contains a SHA in detached-head mode; otherwise it contains a relative path
         // to a file in /refs which in turn contains the SHA
         fileEntry.file(function (file) {
@@ -74,29 +76,46 @@ define(function (require, exports, module) {
                     var refRelPath = text.substr(5).trim();
                     _loadSHA(basePath + "/" + refRelPath, callback);
                 } else {
-                    callback(text);
+                    result.resolve(text);
                 }
             };
-            // No onerror handler: if Git metadata nonexistent or unreadable, silently ignore
+            reader.onerror = function (event) {
+                result.reject();
+            };
             
             reader.readAsText(file, "utf8");
         });
+        
+        return result.promise();
     }
     
     function init() {
         // Look for Git metadata on disk to load the SHAs for 'brackets' and 'brackets-app'. Done on
         // startup instead of on demand because the version that's currently running is what was
-        // loaded at startup (the src on disk may be updated to a different version later)
+        // loaded at startup (the src on disk may be updated to a different version later).
+        // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
         var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
         var bracketsGitRoot = bracketsSrc + "/../../.git/";
         var bracketsSubmoduleRoot = bracketsGitRoot + "modules/brackets/";
         
-        _loadSHA(bracketsSubmoduleRoot + "HEAD", function (text) {
-            _bracketsSHA = text;
-        });
-        _loadSHA(bracketsGitRoot + "HEAD", function (text) {
-            _bracketsAppSHA = text;
-        });
+        _loadSHA(bracketsGitRoot + "HEAD")
+            .done(function (text) {
+                _bracketsAppSHA = text;
+            });
+        
+        // brackets submodule metadata may be in brackets/.git OR a subfolder of brackets-app/.git,
+        // so try both locations
+        _loadSHA(bracketsSubmoduleRoot + "HEAD")
+            .done(function (text) {
+                _bracketsSHA = text;
+            })
+            .fail(function () {
+                bracketsSubmoduleRoot = bracketsSrc + "/../.git/";
+                _loadSHA(bracketsSubmoduleRoot + "HEAD")
+                    .done(function (text) {
+                        _bracketsSHA = text;
+                    });
+            });
     }
     
     
