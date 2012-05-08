@@ -30,7 +30,6 @@ define(function (require, exports, module) {
     
     var ProjectManager          = require("project/ProjectManager"),
         WorkingSetView          = require("project/WorkingSetView"),
-        ProjectView             = require("project/ProjectView"),
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
         EditorManager           = require("editor/EditorManager");
@@ -67,8 +66,8 @@ define(function (require, exports, module) {
             // event that we can just call from anywhere instead of hard-coding it.
             // waiting on a ProjectManager refactor to add that. 
             $sidebar.find(".sidebarSelection").width(width);
-            $projectFilesContainer.trigger("scroll");
-            $openFilesContainer.trigger("scroll");
+            $projectFilesContainer.triggerHandler("scroll");
+            $openFilesContainer.triggerHandler("scroll");
         } else {
             $sidebarResizer.css("left", 0);
             isSidebarClosed = true;
@@ -148,7 +147,6 @@ define(function (require, exports, module) {
     // init
     (function () {
         WorkingSetView.create($openFilesContainer);
-        ProjectView.create($projectFilesContainer);
         
         $(ProjectManager).on("projectRootChanged", _updateProjectTitle);
         

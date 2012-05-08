@@ -104,10 +104,12 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function _fireSelectionChanged() {
+    function _redraw(selectionChanged) {
         // redraw selection
         if ($projectTreeList) {
-            $projectTreeList.trigger("selectionChanged");
+            if (selectionChanged) {
+                $projectTreeList.trigger("selectionChanged");
+            }
             
             // in-lieu of resize events, manually trigger contentChanged for every
             // FileViewController focus change. This event triggers scroll shadows
@@ -138,7 +140,7 @@ define(function (require, exports, module) {
             _lastSelected = null;
         }
         
-        _fireSelectionChanged();
+        _redraw(true);
     };
 
     /**
@@ -266,7 +268,7 @@ define(function (require, exports, module) {
                     
                         openResult.done(function () {
                             // update when tree display state changes
-                            _fireSelectionChanged();
+                            _redraw(true);
                             _lastSelected = data.rslt.obj;
                         }).fail(function () {
                             if (_lastSelected) {
@@ -279,7 +281,7 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
-                        _fireSelectionChanged();
+                        _redraw(true);
                     }
                 }
             )
@@ -318,7 +320,7 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     // update when tree display state changes
-                    _fireSelectionChanged();
+                    _redraw(false);
                     _savePreferences();
                 }
             );
@@ -807,7 +809,9 @@ define(function (require, exports, module) {
 
         // Event Handlers
         $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-        $("#open-files-container").on("contentChanged", _fireSelectionChanged); // redraw jstree when working set size changes
+        $("#open-files-container").on("contentChanged", function () {
+            _redraw(false); // redraw jstree when working set size changes
+        });
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());
