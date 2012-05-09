@@ -54,7 +54,7 @@ define(function (require, exports, module) {
             // but ultimately these should go into ProjectManager.js with a "notify" 
             // event that we can just call from anywhere instead of hard-coding it.
             // waiting on a ProjectManager refactor to add that. 
-            $(".sidebarSelection").width(sidebarWidth);
+            $(".sidebar-selection").width(sidebarWidth);
             $("#project-files-container").trigger("scroll");
             $("#open-files-container").trigger("scroll");
 
