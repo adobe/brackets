@@ -192,7 +192,7 @@ define(function (require, exports, module) {
                 // If all text before the cursor is whitespace, auto-indent it
                 var cursor = instance.getCursor();
                 var lineStr = instance.getLine(cursor.line);
-                var nonWS = lineStr.search(/S/);
+                var nonWS = lineStr.search(/\S/);
                 
                 if (nonWS === -1 || nonWS >= cursor.ch) {
                     // Need to do the auto-indent on a timeout to ensure
