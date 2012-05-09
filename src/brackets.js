@@ -151,16 +151,6 @@ define(function (require, exports, module) {
                 });
         }
         
-        function initProject() {
-            ProjectManager.loadProject();
-
-            // Open project button
-            $("#btn-open-project").click(function () {
-                CommandManager.execute(Commands.FILE_OPEN_FOLDER);
-            });
-        }
-        
-        
         function initCommandHandlers() {
             // Most command handlers are automatically registered when their module is loaded (see "modules
             // that self-register" above for some). A few commands need an extra kick here though:
@@ -329,7 +319,6 @@ define(function (require, exports, module) {
         }
     
         initListeners();
-        initProject();
         initCommandHandlers();
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
@@ -375,6 +364,8 @@ define(function (require, exports, module) {
         }
         
         PerfUtils.addMeasurement("Application Startup");
+        
+        ProjectManager.loadProject();
     });
     
 });
