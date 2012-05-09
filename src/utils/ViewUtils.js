@@ -167,7 +167,7 @@ define(function (require, exports, module) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
             $selectionTriangle,
-            $fileSection = $("#file-section"),
+            $sidebar = $("#sidebar"),
             showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
@@ -198,7 +198,7 @@ define(function (require, exports, module) {
                 triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
-            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
+            $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
             $selectionTriangle.toggleClass("triangleVisible", showTriangle);
             
             var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),

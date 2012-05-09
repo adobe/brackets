@@ -50,16 +50,21 @@ define(function (require, exports, module) {
         $projectTitle.html(ProjectManager.getProjectRoot().name);
     }
     
-    function setWidth(width, updateMenu) {
+    function setWidth(width, updateMenu, displayTriangle) {
         // if we specify a width with the handler call, use that. Otherwise use
         // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
         width = width || Math.max($sidebar.width(), 200);
         
+        if (typeof displayTriangle === "boolean") {
+            var display = (displayTriangle) ? "block" : "none";
+            $sidebar.find(".triangleVisible").css("display", display);
+        }
+        
         if (isSidebarClosed) {
+            $sidebarResizer.css("left", 0);
+        } else {
             $sidebar.width(width);
             $sidebarResizer.css("left", width - 1);
-            
-            isSidebarClosed = false;
             
             // the following three lines help resize things when the sidebar shows
             // but ultimately these should go into ProjectManager.js with a "notify" 
@@ -68,26 +73,29 @@ define(function (require, exports, module) {
             $sidebar.find(".sidebarSelection").width(width);
             $projectFilesContainer.triggerHandler("scroll");
             $openFilesContainer.triggerHandler("scroll");
-        } else {
-            $sidebarResizer.css("left", 0);
-            isSidebarClosed = true;
         }
         
         if (updateMenu) {
-            var text;
-            
-            if (isSidebarClosed) {
-                text = "Show Sidebar";
-                $sidebar.hide();
-            } else {
-                text = "Hide Sidebar";
-                $sidebar.show();
-            }
-            
+            var text = (isSidebarClosed) ? "Show Sidebar" : "Hide Sidebar";
             $sidebarMenuText.first().text(text);
         }
         
         EditorManager.resizeEditor();
+    }
+    
+    /**
+     * Toggle sidebar visibility.
+     */
+    function toggleSidebar(width) {
+        if (isSidebarClosed) {
+            $sidebar.show();
+        } else {
+            $sidebar.hide();
+        }
+        
+        isSidebarClosed = !isSidebarClosed;
+        
+        setWidth(width, true, !isSidebarClosed);
     }
     
     /**
@@ -102,36 +110,38 @@ define(function (require, exports, module) {
             startingSidebarPosition = sidebarWidth;
         
         $sidebarResizer.css("left", sidebarWidth - 1);
+        $sidebarResizer.on("dblclick", function () {
+            toggleSidebar();
+        });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 // when we click, start modifying the sidebar size and then
                 // modify the variables to set the sidebar state correctly. 
-                setWidth(1, true);
+                setWidth(1, true, false);
 
                 // this makes sure we don't snap back when we drag from a hidden position
                 sidebarSnappedClosed = true;
-                
-                // this keeps the triangle from jumping around
-                $sidebar.find(".triangleVisible").css("display", "none");
             }
             
             $mainView.on("mousemove.sidebar", function (e) {
                 // if we've gone below 10 pixels on a mouse move, and the
                 // sidebar has not been snapped close, hide the sidebar 
                 // automatically an unbind the mouse event. 
-                if (e.clientX < 10 && !sidebarSnappedClosed) {
-                    setWidth(startingSidebarPosition, true);
+                if (!isSidebarClosed && (e.clientX < 10)) {
+                    toggleSidebar(startingSidebarPosition);
                     $mainView.off("mousemove.sidebar");
                 } else {
                     // if we've moving past 10 pixels, make the triangle visible again
                     // and register that the sidebar is no longer snapped closed. 
-                    if (e.clientX > 10) {
-                        sidebarSnappedClosed = false;
-                        $sidebar.find(".triangleVisible").css("display", "block");
+                    var forceTriangle = null;
+                    
+                    if (isSidebarClosed && (e.clientX > 10)) {
+                        isSidebarClosed = false;
+                        forceTriangle = true;
                     }
                     
-                    setWidth(e.clientX, false);
+                    setWidth(e.clientX, false, forceTriangle);
                 }
                 e.preventDefault();
             });
@@ -153,5 +163,5 @@ define(function (require, exports, module) {
         _initSidebarResizer();
     }());
     
-    exports.setWidth = setWidth;
+    exports.toggleSidebar = toggleSidebar;
 });
