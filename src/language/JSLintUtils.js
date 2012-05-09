@@ -51,7 +51,7 @@ define(function (require, exports, module) {
     function run() {
         var currentDoc = DocumentManager.getCurrentDocument();
         
-        var perfTimerName = PerfUtils.markStart("JSLint run():\t" + (!currentDoc || currentDoc.file.fullPath));
+        var perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
 
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
         var $lintResults = $("#jslint-results");
@@ -72,6 +72,9 @@ define(function (require, exports, module) {
             text = arr.join("\n");
             
             var result = JSLINT(text, null);
+
+            PerfUtils.addMeasurement(perfTimerLint);
+            var perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
             
             if (!result) {
                 var $errorTable = $("<table class='zebra-striped condensed-table'>")
@@ -123,7 +126,7 @@ define(function (require, exports, module) {
         
         EditorManager.resizeEditor();
 
-        PerfUtils.addMeasurement(perfTimerName);
+        PerfUtils.addMeasurement(perfTimerDOM);
     }
     
     
