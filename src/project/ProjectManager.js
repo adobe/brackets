@@ -362,7 +362,7 @@ define(function (require, exports, module) {
                     }
                 });
 
-            // fire selection changed events for sidebarSelection
+            // fire selection changed events for sidebar-selection
             $projectTreeList = $projectTreeContainer.find("ul");
             ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
             $projectTreeContainer.show();

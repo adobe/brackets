@@ -39,7 +39,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _editorHolderWidth() {
-        return $("#editorHolder").width();
+        return $("#editor-holder").width();
     }
 
     /**
@@ -216,7 +216,7 @@ define(function (require, exports, module) {
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
         var $nameWithTooltip = $("<span></span>").text(doc.file.name).attr("title", doc.file.fullPath);
-        var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
+        var $lineNumber = $("<span class='line-number'>" + (startLine + 1) + "</span>");
 
         $filenameDiv.append($dirtyIndicatorDiv)
             .append($nameWithTooltip)
