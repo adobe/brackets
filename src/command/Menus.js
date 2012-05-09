@@ -33,6 +33,130 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("command/KeyBindingManager"),
         EditorManager           = require("editor/EditorManager"),
         CommandManager          = require("command/CommandManager");
+
+    function createExecMenuFunc(commandStr) {
+        return function () {
+            // TODO TY: should flash menu here on Mac
+            //console.log(commandStr);
+            CommandManager.execute(commandStr);
+        };
+    }
+
+
+    function Menu(id) {
+        this.id = id;
+    }
+
+    function MenuItem(id) {
+        this.id = id;
+    }
+
+    function getMenuByName(name) {
+        
+    }
+
+    function getMenuByID(name) {
+        var $menubar = $("#main-toolbar .nav")
+        return $menubar.find("#" + id);
+    }
+
+    /**
+     * @param {string} name
+     * @param {string }relativeMenu
+     * @returns {Menu}
+     */
+    function createMenu(name, relativeMenuID) {
+        var $menubar = $("#main-toolbar .nav");
+        var newMenuID = name.toLowerCase() + "-menu";
+        var $newMenu = $("<li class='dropdown' id='" + newMenuID + "'></li>")
+            .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
+            .append("<ul class='dropdown-menu'></ul>");
+
+        if (relativeMenuID) {
+             var relative = getMenuByID(relativeMenuID);
+             // TODO: handle not found
+            relative.after($newMenu);
+        } else {
+            $menubar.append($newMenu);
+        }
+
+        // todo error handling
+
+        return new Menu(newMenuID);
+    }
+
+    /**
+     * @param {string} name
+     * @param {position}
+     * @param TODO
+     * @param {string} commandStr
+     */
+    Menu.prototype.createMenuItem = function(name, keyCmd, commandStr, relativeMenuItemID) {
+        var newItem;
+
+        if (name === "---" ) {
+            newItem = $("<li><hr class='divider'></li>"); 
+        } else {
+            newItem = $("<li><a href='#' id='" + name.toLowerCase() + "-menu-item'>" + name + "</a></li>")
+                .click(createExecMenuFunc(commandStr));
+
+            if (keyCmd) {
+
+                var keys;
+                if ($.isArray(keyCmd)) {
+                    keys = keyCmd;
+                } else {
+                    keys = [{keyCmd: "all"}];
+                }
+
+                // todo normal keycmd
+                var key;
+                for (key in keys) {
+                    if (keys.hasOwnProperty(key)) {
+                        
+                        // Convert normalized key representation to display appropriate for platform
+                        var shortcut;
+                        if (brackets.platform === "mac") {
+                            shortcut = key.replace(/-/g, "");        // remove dashes
+                            shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+                            shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
+                            shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
+                        } else {
+                            shortcut = key.replace(/-/g, "+");
+                        }
+
+                        newItem.find("a").append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                    }
+                }
+
+                
+            }
+            
+        }
+        $("#main-toolbar #" + this.id + " .dropdown-menu").append(newItem);
+
+        return this;
+    }
+
+    // TEST
+    createMenu("filenew")
+        .createMenuItem("New",              "Ctrl-N",       Commands.FILE_NEW)
+        .createMenuItem("Open",             "Ctrl-O",       Commands.FILE_OPEN)
+        .createMenuItem("Open Folder")
+        .createMenuItem("Close",            "Ctrl-W",       Commands.FILE_CLOSE)
+        .createMenuItem("---")
+        .createMenuItem("Save",             "Ctrl-S",       Commands.FILE_SAVE)
+        .createMenuItem("---")
+        .createMenuItem("Live File Preview","Ctrl-Alt-P",   Commands.FILE_LIVE_FILE_PREVIEW)
+        .createMenuItem("---")
+        .createMenuItem("Quit",             "Ctrl-Q",       Commands.FILE_QUIT);
+
+
+    createMenu("debugnew")
+        .createMenuItem("Refresh Window",   [{"F5": "win"},
+                                            {"Ctrl-R": "mac"}],
+                                                            Commands.DEBUG_REFRESH_WINDOW);
+
     
     /**
      * Maps the dom id's of menus to command strings in Commands.js 
@@ -81,7 +205,6 @@ define(function (require, exports, module) {
         "menu-debug-jslint": Commands.DEBUG_JSLINT,
         "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
         "menu-debug-show-perf": Commands.DEBUG_SHOW_PERF_DATA,
-
 
         // Experimental
         "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
