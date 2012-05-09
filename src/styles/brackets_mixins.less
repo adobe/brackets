@@ -65,15 +65,15 @@
 /* Helpers for spritesheet images */
 /* Sets the background to the given offset in the spritesheet. Typically, the element you set this on requires
    a fixed size so that other parts of the spritesheet don't show. */
-.sprite(@xOffset, @yOffset, @spriteSheet) {
-    background: url(@spriteSheet) -@xOffset -@yOffset no-repeat;
+.sprite(@x-offset, @y-offset, @sprite-sheet) {
+    background: url(@sprite-sheet) -@x-offset -@y-offset no-repeat;
 }
 
 /* Turns the given element into an icon showing the given rectangle in the spritesheet. Can be used on empty elements
    (e.g. a link with no text) or on the :before/:after selector of elements that have content. */
-.sprite-icon(@xOffset, @yOffset, @width, @height, @spriteSheet) {
+.sprite-icon(@x-offset, @y-offset, @width, @height, @sprite-sheet) {
     content: "";
-    .sprite(@xOffset, @yOffset, @spriteSheet);
+    .sprite(@x-offset, @y-offset, @sprite-sheet);
     display: inline-block;
     width: @width;
     height: @height;
@@ -81,8 +81,8 @@
 
 /* Changes an element that's already showing one area of a spritesheet to show a different area of the same size.
    Should be used with an element whose base styling includes .sprite() or .sprite-icon() */
-.sprite-swap(@xOffset, @yOffset) {
-    background-position: -@xOffset -@yOffset;
+.sprite-swap(@x-offset, @y-offset) {
+    background-position: -@x-offset -@y-offset;
 }
 
     
