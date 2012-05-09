@@ -199,7 +199,7 @@ a, img {
     
     .project-file-header-area {
         padding: 6px 6px 2px 10px;
-        font-size: 14px;
+        font-size: 13px;
         color: #929292;
     }
 
@@ -231,11 +231,11 @@ a, img {
             position: relative; // so that children can be positioned absolute
             line-height: 24px;
             padding: 0 0 0 8px;
-            height: 25px;
+            height: 22px;
             vertical-align: baseline;
             a {
                 color: #BBB;
-                font-size: 14px;
+                font-size: 13px;
                 margin-left: 18px;
                 padding-right: @triangle-size * 2;
                 cursor: default;
@@ -261,14 +261,14 @@ a, img {
 
 .sidebarSelection {
     background: url("styles/images/active_back.png") no-repeat top right;
-    height: 25px;
+    height: 22px;
     position: absolute;
 }
 
 .sidebarSelectionTriangle {
     background: url("styles/images/active_back.png");
     width: 10px;
-    height: 25px;
+    height: 22px;
     position: fixed;
 
     z-index: 20; /* scrollerShadow appears above this triangle */
@@ -335,7 +335,7 @@ a, img {
     }
 }
 
-@spriteSize18: 18px;
+@spriteSize18: 4px;
 
 /** Classes for icons from jsTreeSprites.png 
 */
@@ -359,7 +359,9 @@ a, img {
     display: inline-block;
     background-position: 0px 0px;
 }
-
+ins.jstree-icon {
+    left: -12px !important;
+}
 /** Classes for icons from bracketSprites.png 
 */
 
