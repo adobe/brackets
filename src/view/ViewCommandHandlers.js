@@ -32,9 +32,6 @@ define(function (require, exports, module) {
         SidebarView             = require("project/SidebarView"),
         ProjectManager          = require("project/ProjectManager");
     
-    /* TODO: Support arbitrary widths with grabber
-        When the new theme lands with the CSS, potentially
-        adjust how this is done. */
     function _handleHideSidebar() {
         SidebarView.toggleSidebar();
     }

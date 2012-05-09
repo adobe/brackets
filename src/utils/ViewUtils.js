@@ -48,7 +48,7 @@ define(function (require, exports, module) {
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
             topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
-            sidebarWidth        = $displayElement.width();
+            displayElementWidth = $displayElement.width();
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
-            $shadowTop.css("width", sidebarWidth);
+            $shadowTop.css("width", displayElementWidth);
         }
         
         if ($shadowBottom) {
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
     
             $shadowBottom.css("background-position", "0px " + bottomShadowOffset + "px");
             $shadowBottom.css("top", offsetTop + outerHeight - SCROLL_SHADOW_HEIGHT);
-            $shadowBottom.css("width", sidebarWidth);
+            $shadowBottom.css("width", displayElementWidth);
         }
     }
 

@@ -80,7 +80,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Intrnal flag to suppress firing of selectionChanged event.
+     * Internal flag to suppress firing of selectionChanged event.
      * @type {boolean}
      */
     var _suppressSelectionChange = false;
@@ -361,8 +361,8 @@ define(function (require, exports, module) {
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     
-                    // select the current document if it becomes visible when this folder is opened
                     if (event.type === "open_node") {
+                        // select the current document if it becomes visible when this folder is opened
                         var curDoc = DocumentManager.getCurrentDocument();
                         
                         if (_hasFileSelectionFocus() && curDoc) {
@@ -370,11 +370,16 @@ define(function (require, exports, module) {
                             
                             if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
                                 _forceSelection(data.rslt.obj, _lastSelected);
+                            } else {
+                                _redraw(true, false);
                             }
                         }
+                    } else if (event.type === "close_node") {
+                        // always update selection marker position when collapsing a node
+                        _redraw(true, false);
+                    } else {
+                        _redraw(false);
                     }
-                    
-                    _redraw(false);
                     
                     _savePreferences();
                 }

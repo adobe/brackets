@@ -50,15 +50,13 @@ define(function (require, exports, module) {
         $projectTitle.html(ProjectManager.getProjectRoot().name);
     }
     
-    function setWidth(width, updateMenu, displayTriangle) {
+    function _setWidth(width, updateMenu, displayTriangle) {
         // if we specify a width with the handler call, use that. Otherwise use
         // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
         width = width || Math.max($sidebar.width(), 200);
         
-        if (typeof displayTriangle === "boolean") {
-            var display = (displayTriangle) ? "block" : "none";
-            $sidebar.find(".triangleVisible").css("display", display);
-        }
+        var display = (displayTriangle) ? "block" : "none";
+        $sidebar.find(".triangleVisible").css("display", display);
         
         if (isSidebarClosed) {
             $sidebarResizer.css("left", 0);
@@ -95,7 +93,7 @@ define(function (require, exports, module) {
         
         isSidebarClosed = !isSidebarClosed;
         
-        setWidth(width, true, !isSidebarClosed);
+        _setWidth(width, true, !isSidebarClosed);
     }
     
     /**
@@ -118,7 +116,7 @@ define(function (require, exports, module) {
             if (isSidebarClosed) {
                 // when we click, start modifying the sidebar size and then
                 // modify the variables to set the sidebar state correctly. 
-                setWidth(1, true, false);
+                _setWidth(1, true, false);
 
                 // this makes sure we don't snap back when we drag from a hidden position
                 sidebarSnappedClosed = true;
@@ -141,7 +139,7 @@ define(function (require, exports, module) {
                         forceTriangle = true;
                     }
                     
-                    setWidth(e.clientX, false, forceTriangle);
+                    _setWidth(e.clientX, false, forceTriangle);
                 }
                 e.preventDefault();
             });
