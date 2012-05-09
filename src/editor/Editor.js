@@ -192,8 +192,9 @@ define(function (require, exports, module) {
                 // If all text before the cursor is whitespace, auto-indent it
                 var cursor = instance.getCursor();
                 var lineStr = instance.getLine(cursor.line);
+                var nonWS = lineStr.search(/S/);
                 
-                if (lineStr.search(/\S/) >= cursor.ch) {
+                if (nonWS === -1 || nonWS >= cursor.ch) {
                     // Need to do the auto-indent on a timeout to ensure
                     // the keypress is handled before auto-indenting.
                     // This is the same timeout value used by the
