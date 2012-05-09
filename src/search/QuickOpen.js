@@ -146,7 +146,7 @@ define(function (require, exports, module) {
      * Creates a dialog div floating on top of the current code mirror editor
      */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        var $wrap = $("#editorHolder")[0];
+        var $wrap = $("#editor-holder")[0];
         this.dialog = $wrap.insertBefore(window.document.createElement("div"), $wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div align="right">' + template + '</div>';
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
             }
 
             return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + displayName +
-                "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
+                "<br><span class='quick-open-path'>" + rPath + "</span></li>";
         }
     }
 

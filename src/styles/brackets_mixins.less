@@ -71,7 +71,7 @@
 
 /* Turns the given element into an icon showing the given rectangle in the spritesheet. Can be used on empty elements
    (e.g. a link with no text) or on the :before/:after selector of elements that have content. */
-.spriteIcon(@xOffset, @yOffset, @width, @height, @spriteSheet) {
+.sprite-icon(@xOffset, @yOffset, @width, @height, @spriteSheet) {
     content: "";
     .sprite(@xOffset, @yOffset, @spriteSheet);
     display: inline-block;
@@ -80,14 +80,14 @@
 }
 
 /* Changes an element that's already showing one area of a spritesheet to show a different area of the same size.
-   Should be used with an element whose base styling includes .sprite() or .spriteIcon() */
-.spriteSwap(@xOffset, @yOffset) {
+   Should be used with an element whose base styling includes .sprite() or .sprite-icon() */
+.sprite-swap(@xOffset, @yOffset) {
     background-position: -@xOffset -@yOffset;
 }
 
     
 /* Scale x-axis using top-left as the origin  */
-.scaleX (@value: 1.0, @horizontal: 50%, @vertical: 50%) {
+.scale-x (@value: 1.0, @horizontal: 50%, @vertical: 50%) {
     -ms-transform: scaleX(@value);
     -moz-transform: scaleX(@value);
     -webkit-transform: scaleX(@value);

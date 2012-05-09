@@ -269,7 +269,7 @@ define(function (require, exports, module) {
                     sidebarSnappedClosed = true;
                     
                     // this keeps the triangle from jumping around
-                    $(".triangleVisible").css("display", "none");
+                    $(".triangle-visible").css("display", "none");
                 }
                 $(".main-view").on("mousemove.sidebar", function (e) {
                     // if we've gone below 10 pixels on a mouse move, and the
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
                         // and register that the sidebar is no longer snapped closed. 
                         if (e.clientX > 10) {
                             sidebarSnappedClosed = false;
-                            $(".triangleVisible").css("display", "block");
+                            $(".triangle-visible").css("display", "block");
                         }
                         
                         $("#sidebar-resizer").css("left", e.clientX);
@@ -296,8 +296,8 @@ define(function (require, exports, module) {
                         $("#project-files-container").trigger("scroll");
                         $("#open-files-container").trigger("scroll");
                         
-                        // the .sidebarSelection needs to be explicitly set
-                        $(".sidebarSelection").width(e.clientX);
+                        // the .sidebar-selection needs to be explicitly set
+                        $(".sidebar-selection").width(e.clientX);
                     }
                     EditorManager.resizeEditor();
                     e.preventDefault();
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
         $("body").addClass("platform-" + brackets.platform);
 
 
-        EditorManager.setEditorHolder($('#editorHolder'));
+        EditorManager.setEditorHolder($('#editor-holder'));
 
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {

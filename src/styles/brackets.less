@@ -90,20 +90,20 @@ a, img {
     z-index: @z-index-brackets-toolbar;
 }
 
-#editorHolder {
+#editor-holder {
     .vbox;
     .box-flex(1);
     position: relative;
     
     /* Placeholder shown when there is no editor open */
-    #notEditor {
+    #not-editor {
         .box-flex(1);
         .vbox;
         .box-pack(center);
         .box-align(center);
         background-color: @background-color-2;
         
-        #notEditorContent {
+        #not-editor-content {
             color: @background-color-1;
             font-size: 350px;
             line-height: normal;
@@ -167,20 +167,20 @@ a, img {
     
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
     &:hover {
-        .spriteSwap(0,11px);
+        .sprite-swap(0,11px);
     }
     // 'Connected' state
     &.success {
-        .spriteSwap(0,22px);
+        .sprite-swap(0,22px);
     }
     &.success:hover {
-        .spriteSwap(0,33px);
+        .sprite-swap(0,33px);
     }
     // 'Connection in progress' state
     &.info {
-        .spriteSwap(0,44px);
+        .sprite-swap(0,44px);
     }
 }
 
@@ -269,22 +269,22 @@ a, img {
     }
 }
 
-.sidebarSelection {
+.sidebar-selection {
     background: url("styles/images/active_back.png") no-repeat top right;
     height: 25px;
     position: absolute;
 }
 
-.sidebarSelectionTriangle {
+.sidebar-selection-triangle {
     background: url("styles/images/active_back.png");
     width: 10px;
     height: 25px;
     position: fixed;
 
-    z-index: @z-index-brackets-selection-triangle; /* scrollerShadow appears above this triangle */
+    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
 }
 
-.sidebarSelectionTriangle.triangleVisible:before {
+.sidebar-selection-triangle.triangle-visible:before {
     content: "";
     
     border-top: @triangle-size solid transparent;
@@ -298,7 +298,7 @@ a, img {
     width: 0;
     height: 0;
     
-    .scaleX(0.9, right, top);
+    .scale-x(0.9, right, top);
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -318,11 +318,11 @@ a, img {
     }
 }
 
-#editorHolder .scrollerShadow {
+#editor-holder .scroller-shadow {
     width: 100%;
 }
 
-.scrollerShadow {
+.scroller-shadow {
     background-size: 100% 5px;
     background-repeat: no-repeat;
     height: 5px;
@@ -341,27 +341,27 @@ a, img {
     }
 }
 
-@spriteSize18: 18px;
+@sprite-size-18: 18px;
 
 /** Classes for icons from jsTreeSprites.png 
 */
-.jsTreeSprite {
+.jstree-sprite {
     background-image: url("styles/images/jsTreeSprites.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: @sprite-size-18;
+    height: @sprite-size-18;
 }
 
 .disclosure-arrow-opened {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
-    background-position: -@spriteSize18 0px;
+    background-position: -@sprite-size-18 0px;
 }
 
 .disclosure-arrow-closed {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
     background-position: 0px 0px;
 }
@@ -369,7 +369,7 @@ a, img {
 /** Classes for icons from bracketSprites.png 
 */
 
-.bracketSprite {
+.bracket-sprite {
     background-image: url("styles/images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
@@ -381,7 +381,7 @@ a, img {
 
 .file-status-icon {
     margin: 3px 0 0 8px;
-    .bracketSprite;
+    .bracket-sprite;
     display: inline-block;
     position: absolute;
     left: 0px;
@@ -391,21 +391,21 @@ a, img {
         background-position: -30px 0;
     }
     
-    &.canClose {
+    &.can-close {
         background-position: 0 0;
     }
   
-    &.canClose:hover {
+    &.can-close:hover {
         background-position: -15px 0;
     }
     
-    &.canClose:active {
+    &.can-close:active {
         background-position: -15px 1px;
     }
 }
 
 /* Styles for inline editors */
-.InlineWidget {
+.inline-widget {
     background-color:   @inline-background-color-1;
     
     .filename {
@@ -415,13 +415,13 @@ a, img {
         padding: 10px 10px 0px 10px;
         
         .dirty-indicator {
-            .bracketSprite;
+            .bracket-sprite;
             display: inline-block;
             background-position: -32px 0;
             padding-top: 3px;
         }
         
-        .lineNumber {
+        .line-number {
             color: @inline-color-2;
         }
     }
@@ -454,7 +454,7 @@ a, img {
 }
 
 /* CSSInlineEditor rule list */
-.relatedContainer {
+.related-container {
     @top-margin: 12px;
     
     /*width: 0;*/
@@ -491,7 +491,7 @@ a, img {
         border-left: @triangle-size solid @inline-background-color-1;
         margin-top: -@triangle-size;
         top: 50%;
-        .scaleX(0.9, left, top);
+        .scale-x(0.9, left, top);
     }
     
     .related {
@@ -567,7 +567,7 @@ a, img {
     padding: 0px 8px 0px 0px;
     margin: 9px 0px 0px 0px;
 
-    .quickOpenPath {
+    .quick-open-path {
         font-size: 11px;
         color: gray;
     }
