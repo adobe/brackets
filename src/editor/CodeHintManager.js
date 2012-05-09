@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         if (keyboardEvent.type !== "keypress") {
             return;
         }
-        setTimeout(function () { _checkForHint(editor); }, 40);
+        window.setTimeout(function () { _checkForHint(editor); }, 40);
     }
     
     // Register our listeners

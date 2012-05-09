@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: true  */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -84,18 +84,18 @@ define(function (require, exports, module) {
      * @param {bool} canClose
      */
     function _updateFileStatusIcon(listElement, isDirty, canClose) {
-        var fileStatusIcon = listElement.find(".file-status-icon");
+        var $fileStatusIcon = listElement.find(".file-status-icon");
         var showIcon = isDirty || canClose;
 
         // remove icon if its not needed
-        if (!showIcon && fileStatusIcon.length !== 0) {
-            fileStatusIcon.remove();
-            fileStatusIcon = null;
+        if (!showIcon && $fileStatusIcon.length !== 0) {
+            $fileStatusIcon.remove();
+            $fileStatusIcon = null;
             
         // create icon if its needed and doesn't exist
-        } else if (showIcon && fileStatusIcon.length === 0) {
+        } else if (showIcon && $fileStatusIcon.length === 0) {
             
-            fileStatusIcon = $("<div class='file-status-icon'></div>")
+            $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
                 .click(function () {
                     // Clicking the "X" button is equivalent to File > Close; it doesn't merely
@@ -106,10 +106,10 @@ define(function (require, exports, module) {
         }
 
         // Set icon's class
-        if (fileStatusIcon) {
+        if ($fileStatusIcon) {
             // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
-            fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            fileStatusIcon.toggleClass("canClose", Boolean(canClose));
+            $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
+            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
         }
     }
     
@@ -141,24 +141,24 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var link = $("<a href='#'></a>").text(file.name);
-        var newItem = $("<li></li>")
-            .append(link)
+        var $link = $("<a href='#'></a>").text(file.name);
+        var $newItem = $("<li></li>")
+            .append($link)
             .data(_FILE_KEY, file);
 
-        $openFilesContainer.find("ul").append(newItem);
+        $openFilesContainer.find("ul").append($newItem);
         
         // working set item might never have been opened; if so, then it's definitely not dirty
 
         // Update the listItem's apperance
-        _updateFileStatusIcon(newItem, isOpenAndDirty(file), false);
-        _updateListItemSelection(newItem, curDoc);
+        _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
+        _updateListItemSelection($newItem, curDoc);
 
-        newItem.click(function () {
+        $newItem.click(function () {
             FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
         });
 
-        newItem.hover(
+        $newItem.hover(
             function () {
                 _updateFileStatusIcon($(this), isOpenAndDirty(file), true);
             },
@@ -230,9 +230,9 @@ define(function (require, exports, module) {
         if (file) {
             var items = $openFilesContainer.find("ul").children();
             items.each(function () {
-                var listItem = $(this);
-                if (listItem.data(_FILE_KEY).fullPath === file.fullPath) {
-                    result = listItem;
+                var $listItem = $(this);
+                if ($listItem.data(_FILE_KEY).fullPath === file.fullPath) {
+                    result = $listItem;
                     return false;
                     // breaks each
                 }
@@ -247,9 +247,9 @@ define(function (require, exports, module) {
      * @param {FileEntry} file 
      */
     function _handleFileRemoved(file) {
-        var listItem = _findListItemFromFile(file);
-        if (listItem) {
-            listItem.remove();
+        var $listItem = _findListItemFromFile(file);
+        if ($listItem) {
+            $listItem.remove();
         }
 
         _updateOpenFilesContainer();
@@ -262,7 +262,7 @@ define(function (require, exports, module) {
     function _handleDirtyFlagChanged(doc) {
         var listItem = _findListItemFromFile(doc.file);
         if (listItem) {
-            var canClose = $(listItem).find("canClose").length === 1;
+            var canClose = $(listItem).find("can-close").length === 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
 

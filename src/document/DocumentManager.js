@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -542,10 +542,10 @@ define(function (require, exports, module) {
         // On any change, mark the file dirty. In the future, we should make it so that if you
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
-        this.isDirty = true;
-
+        this.isDirty = editor._codeMirror.isDirty();
+        
         // If file just became dirty, notify listeners, and add it to working set (if not already there)
-        if (!wasDirty) {
+        if (wasDirty !== this.isDirty) {
             $(exports).triggerHandler("dirtyFlagChange", [this]);
             addToWorkingSet(this.file);
         }
@@ -562,6 +562,9 @@ define(function (require, exports, module) {
      */
     Document.prototype._markClean = function () {
         this.isDirty = false;
+        if (this._masterEditor) {
+            this._masterEditor._codeMirror.markClean();
+        }
         $(exports).triggerHandler("dirtyFlagChange", this);
     };
     
@@ -609,7 +612,7 @@ define(function (require, exports, module) {
      * refs and listeners for that Editor UI).
      *
      * @param {!string} fullPath
-     * @return {Deferred} A Deferred object that will be resolved with the Document, or rejected
+     * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
@@ -628,7 +631,7 @@ define(function (require, exports, module) {
                     result.reject(fileError);
                 });
         }
-        return result;
+        return result.promise();
     }
     
     /**
@@ -729,7 +732,7 @@ define(function (require, exports, module) {
                     oneFileResult.resolve();
                 });
             
-            return oneFileResult;
+            return oneFileResult.promise();
         }
 
         var result = Async.doInParallel(prefs.files, checkOneFile, false);

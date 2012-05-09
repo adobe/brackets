@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets: false, FileError: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, FileError, window */
 
 /**
  * ProjectManager is the model for the set of currently open project. It is responsible for
@@ -65,6 +65,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to previous selectiooon jstree node
+     * @type {DOMElement}
+     */
+    var _lastSelected = null;
+    
+    /**
+     * @private
      * Reference to the tree control UL element
      * @type {DOMElement}
      */
@@ -91,6 +98,26 @@ define(function (require, exports, module) {
         id              : 0,    /* incrementing id */
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
+    
+    /** 
+     * @const
+     * Sidebar open constant
+     */
+    var SIDEBAR_OPEN = "open";
+
+    /** 
+     * @const
+     * Sidebar closed constant
+     */
+    var SIDEBAR_CLOSED = "closed";
+    
+    /** 
+     * @private
+     * Current state of sidebar
+     */
+    var _sidebarState = SIDEBAR_OPEN;
+        
+    
     
     /**
      * @private
@@ -126,6 +153,7 @@ define(function (require, exports, module) {
             });
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
+            _lastSelected = null;
         }
         
         _fireSelectionChanged();
@@ -252,7 +280,24 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                    
+                        openResult.done(function () {
+                            // update when tree display state changes
+                            _fireSelectionChanged();
+                            _lastSelected = data.rslt.obj;
+                        }).fail(function () {
+                            if (_lastSelected) {
+                                // revert this new selection and restore previous selection
+                                _projectTree.jstree("deselect_node", data.rslt.obj);
+                                _projectTree.jstree("select_node", _lastSelected, false);
+                            } else {
+                                _projectTree.jstree("deselect_all");
+                                _lastSelected = null;
+                            }
+                        });
+                    } else {
+                        _fireSelectionChanged();
                     }
                 }
             )
@@ -317,13 +362,13 @@ define(function (require, exports, module) {
                     }
                 });
 
-            // fire selection changed events for sidebarSelection
+            // fire selection changed events for sidebar-selection
             $projectTreeList = $projectTreeContainer.find("ul");
-            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
             $projectTreeContainer.show();
         });
 
-        return result;
+        return result.promise();
     }
     
     /** @param {Entry} entry File or directory to filter */
@@ -460,7 +505,7 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @return {Deferred} A $.Deferred() object that will be resolved when the
+     * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
@@ -549,7 +594,7 @@ define(function (require, exports, module) {
                 );
         }
 
-        return result;
+        return result.promise();
     }
 
     /**
@@ -606,7 +651,7 @@ define(function (require, exports, module) {
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
-     * @return {Deferred} A $.Deferred() object that will be resolved with the FileEntry
+     * @return {$.Promise} A promise object that will be resolved with the FileEntry
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
@@ -752,7 +797,32 @@ define(function (require, exports, module) {
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
 
-        return result;
+        return result.promise();
+    }
+
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
+    }
+    
+    /***** Start of Sidebar methods ******/
+
+    /**
+     * Gets the current state of the sidebar
+     */
+    function getSidebarState() {
+        return _sidebarState;
+    }
+    
+    /**
+     * Sets the sidebar state when something happens
+     * @param newState {string} new state for sidebar
+     */
+    function setSidebarState(newState) {
+        _sidebarState = newState;
     }
 
     // Define public API
@@ -763,6 +833,11 @@ define(function (require, exports, module) {
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
+    exports.forceFinishRename = forceFinishRename;
+    exports.SIDEBAR_OPEN = SIDEBAR_OPEN;
+    exports.SIDEBAR_CLOSED = SIDEBAR_CLOSED;
+    exports.getSidebarState = getSidebarState;
+    exports.setSidebarState = setSidebarState;
 
     // Initialize now
     (function () {

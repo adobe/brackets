@@ -59,6 +59,7 @@
 <body>
     <!-- Main UI -->
     <div class="main-view">
+        <div id="sidebar-resizer"></div>
         <div class="sidebar quiet-scrollbars">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
@@ -124,6 +125,9 @@
                             <li><a href="#" id="menu-edit-find-previous">Find Previous</a></li>
                             <li><hr class="divider"></li>
                             <li><a href="#" id="menu-edit-replace">Replace</a></li>
+                            <li><hr class="divider"></li>
+                            <li><a href="#" id="menu-edit-duplicate">Duplicate</a></li>
+                            <li><a href="#" id="menu-edit-line-comment">Comment/Uncomment Lines</a></li>
                         </ul>
                     </li>
     
@@ -145,12 +149,12 @@
                         <a href="#" class="dropdown-toggle">Navigate</a>
                         <ul class="dropdown-menu">
                             <li><a href="#" id="menu-navigate-quick-open">Quick Open</a></li>
-                            <li><a href="#" id="menu-navigate-go-to-line">Go to Line</a></li>
-                            <li><a href="#" id="menu-navigate-go-to-symbol">Go to Symbol</a></li>
+                            <li><a href="#" id="menu-navigate-goto-line">Go to Line</a></li>
+                            <li><a href="#" id="menu-navigate-goto-definition">Go to Symbol</a></li>
                             <li><hr class="divider"></li>
                             <li><a href="#" id="menu-navigate-quick-edit">Quick Edit</a></li>
-                            <li><a href="#" id="menu-navigate-previous-css-rule">Previous CSS Rule</a></li>
-                            <li><a href="#" id="menu-navigate-next-css-rule">Next CSS Rule</a></li>
+                            <li><a href="#" id="menu-navigate-previous-match">Previous Match</a></li>
+                            <li><a href="#" id="menu-navigate-next-match">Next Match</a></li>
                         </ul>
                     </li>
     
@@ -158,7 +162,7 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle">Debug</a>
                         <ul class="dropdown-menu">
-                            <li><a href="#" id="menu-debug-refresh-window">Refresh Window</a></li>
+                            <li><a href="#" id="menu-debug-refresh-window">Reload Window</a></li>
                             <li><a href="#" id="menu-debug-show-developer-tools">Show Developer Tools</a></li>
                             <li><a href="#" id="menu-debug-runtests">Run Tests</a></li>
                             <li><a href="#" id="menu-debug-jslint" class="selected">Enable JSLint</a></li>
@@ -189,20 +193,20 @@
                 </div>
             </div>
             
-            <div id="editorHolder">
-                <div id="notEditor">
-                    <div id="notEditorContent">[&nbsp;&nbsp;]</div>
+            <div id="editor-holder">
+                <div id="not-editor">
+                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>
                 </div>
             </div>
             
-            <div id="jslint-results">
-                <div class="toolbar simpleToolbarLayout">
+            <div id="jslint-results" class="bottom-panel">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">JSLint errors</div>
                 </div>
                 <div class="table-container"></div>
             </div>
-            <div id="search-results">
-                <div class="toolbar simpleToolbarLayout">
+            <div id="search-results" class="bottom-panel">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">Search Results</div>
                     <div class="title" id="search-result-summary"></div>
                     <a href="#" class="close">&times;</a>
@@ -273,6 +277,24 @@
         <div class="modal-footer">
             <a href="#" class="dialog-button btn left" data-button-id="cancel">Cancel</a>
             <a href="#" class="dialog-button btn primary" data-button-id="ok">Relaunch Chrome</a>
+        </div>
+    </div>
+    <div class="about-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">About</h1>
+        </div>
+        <div class="modal-body">
+            <img class="about-icon" src="styles/images/brackets_icon.png">
+            <div class="about-text">
+                <h2>Brackets</h2>
+                <p class="dialog-message">sprint 8 experimental build</p>
+                <p class="dialog-message">Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
+                <p class="dialog-message">Notices, terms and conditions pertaining to third party software are located at <span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.</p>
+                <p class="dialog-message">Documentation and source at <span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Close</a>
         </div>
     </div>
 </body>
