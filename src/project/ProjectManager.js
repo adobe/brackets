@@ -58,6 +58,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to the tree control container div
+     * @type {jQueryObject}
+     */
+    var $projectTreeContainer = $("#project-files-container");
+    
+    /**
+     * @private
      * Reference to the tree control
      * @type {jQueryObject}
      */
@@ -65,10 +72,18 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Reference to previous selectiooon jstree node
+     * Reference to previous selected jstree leaf node when ProjectManager had
+     * selection focus from FileViewController.
      * @type {DOMElement}
      */
     var _lastSelected = null;
+    
+    /**
+     * @private
+     * Intrnal flag to suppress firing of selectionChanged event.
+     * @type {boolean}
+     */
+    var _suppressSelectionChange = false;
     
     /**
      * @private
@@ -98,18 +113,28 @@ define(function (require, exports, module) {
         id              : 0,    /* incrementing id */
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
-        
-    
     
     /**
      * @private
      */
-    function _redraw(selectionChanged) {
+    function _hasFileSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
+    }
+    
+    /**
+     * @private
+     */
+    function _redraw(selectionChanged, reveal) {
+        reveal = (reveal === undefined) ? true : reveal;
+        
         // redraw selection
         if ($projectTreeList) {
-            if (selectionChanged) {
-                $projectTreeList.trigger("selectionChanged");
+            if (selectionChanged && !_suppressSelectionChange) {
+                $projectTreeList.triggerHandler("selectionChanged", reveal);
             }
+            
+            // reposition the selection triangle
+            $projectTreeContainer.triggerHandler("scroll");
             
             // in-lieu of resize events, manually trigger contentChanged for every
             // FileViewController focus change. This event triggers scroll shadows
@@ -121,8 +146,7 @@ define(function (require, exports, module) {
     
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc
-                && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
+        if (curDoc && _hasFileSelectionFocus()) {
             $("#project-files-container li").is(function (index) {
                 var entry = $(this).data("entry");
                 
@@ -222,6 +246,25 @@ define(function (require, exports, module) {
         
         _prefs.setAllValues(storage);
     }
+    
+    /**
+     * @private
+     */
+    function _forceSelection(current, target) {
+        // select_node will force the target to be revealed. Instead,
+        // keep the scroller position stable.
+        var savedScrollTop = $projectTreeContainer.get(0).scrollTop;
+        
+        // suppress selectionChanged event from firing by jstree select_node
+        _suppressSelectionChange = true;
+        _projectTree.jstree("deselect_node", current);
+        _projectTree.jstree("select_node", target, false);
+        _suppressSelectionChange = false;
+        
+        $projectTreeContainer.get(0).scrollTop = savedScrollTop;
+        
+        _redraw(true, false);
+    }
 
     /**
      * @private
@@ -231,8 +274,7 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var $projectTreeContainer = $("#project-files-container"),
-            result = new $.Deferred();
+        var result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -264,7 +306,7 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                     
                         openResult.done(function () {
                             // update when tree display state changes
@@ -273,8 +315,7 @@ define(function (require, exports, module) {
                         }).fail(function () {
                             if (_lastSelected) {
                                 // revert this new selection and restore previous selection
-                                _projectTree.jstree("deselect_node", data.rslt.obj);
-                                _projectTree.jstree("select_node", _lastSelected, false);
+                                _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _projectTree.jstree("deselect_all");
                                 _lastSelected = null;
@@ -319,8 +360,22 @@ define(function (require, exports, module) {
             .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
-                    // update when tree display state changes
+                    
+                    // select the current document if it becomes visible when this folder is opened
+                    if (event.type === "open_node") {
+                        var curDoc = DocumentManager.getCurrentDocument();
+                        
+                        if (_hasFileSelectionFocus() && curDoc) {
+                            var entry = data.rslt.obj.data("entry");
+                            
+                            if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                                _forceSelection(data.rslt.obj, _lastSelected);
+                            }
+                        }
+                    }
+                    
                     _redraw(false);
+                    
                     _savePreferences();
                 }
             );

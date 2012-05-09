@@ -183,7 +183,7 @@ define(function (require, exports, module) {
         // build selectionTriangle and position fixed to the window
         $selectionTriangle = $(window.document.createElement("div")).addClass("sidebarSelectionTriangle");
         
-        $fileSection.append($selectionTriangle);
+        $scrollerElement.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
         
@@ -198,7 +198,6 @@ define(function (require, exports, module) {
                 triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
-            
             $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
             $selectionTriangle.toggleClass("triangleVisible", showTriangle);
             
@@ -213,7 +212,7 @@ define(function (require, exports, module) {
             }
         };
         
-        var updateSelectionMarker = function () {
+        var updateSelectionMarker = function (event, reveal) {
             // find the selected list item
             var $listItem = $listElement.find(selectedClassName).closest("li");
             
@@ -247,10 +246,12 @@ define(function (require, exports, module) {
                     currentScrollBottom = scrollerElement.scrollTop + scrollerHeight;
                 
                 // update scrollTop to reveal the selected list item
-                if (selectionMarkerTop >= currentScrollBottom) {
-                    $listItem.get(0).scrollIntoView(false);
-                } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
-                    $listItem.get(0).scrollIntoView(true);
+                if (reveal) {
+                    if (selectionMarkerTop >= currentScrollBottom) {
+                        $listItem.get(0).scrollIntoView(false);
+                    } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
+                        $listItem.get(0).scrollIntoView(true);
+                    }
                 }
             }
         };
