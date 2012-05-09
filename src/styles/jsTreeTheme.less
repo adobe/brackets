@@ -51,11 +51,11 @@
 }
 
 .jstree-brackets li {
-    line-height: 24px;
+    line-height: 10px;
     vertical-align: baseline;
     a {
         color: #BBB;
-        font-size: 14px;
+        font-size: 13px;
         cursor: default;
         
         &.jstree-clicked {
@@ -67,10 +67,14 @@
         color: #8e9a9d;
     }
     &.jstree-closed, &.jstree-open {
+        margin-left: 10px;
         > a {
             color: #fff;
             font-weight: @font-weight-semibold;
         }
+    }
+    &.jstree-leaf {
+        margin-left: 10px;
     }
 }
 
@@ -82,8 +86,8 @@
 .jstree-brackets a.jstree-loading .jstree-icon { background:url("styles/images/throbber.gif") center center no-repeat !important; }
 
 .jstree-brackets li > a {
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding-top: 3px;
+    padding-bottom: 3px;
 }
 .jstree-brackets li > ins {
     margin-top: 2px;
