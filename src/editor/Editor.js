@@ -188,18 +188,19 @@ define(function (require, exports, module) {
         var instance = editor._codeMirror;
         if (event.type === "keypress") {
             var keyStr = String.fromCharCode(event.which || event.keyCode);
-            if (/[\]\}\)]/.test(keyStr)) {
-                // If the whole line is whitespace, auto-indent it
-                var lineNum = instance.getCursor().line;
-                var lineStr = instance.getLine(lineNum);
+            if (/[\]\{\}\)]/.test(keyStr)) {
+                // If all text before the cursor is whitespace, auto-indent it
+                var cursor = instance.getCursor();
+                var lineStr = instance.getLine(cursor.line);
+                var nonWS = lineStr.search(/\S/);
                 
-                if (!/\S/.test(lineStr)) {
+                if (nonWS === -1 || nonWS >= cursor.ch) {
                     // Need to do the auto-indent on a timeout to ensure
                     // the keypress is handled before auto-indenting.
                     // This is the same timeout value used by the
                     // electricChars feature in CodeMirror.
                     window.setTimeout(function () {
-                        instance.indentLine(lineNum);
+                        instance.indentLine(cursor.line);
                     }, 75);
                 }
             }
