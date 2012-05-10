@@ -171,6 +171,9 @@ define(function (require, exports, module) {
     function _doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
+            // Create placeholder deferred
+            result = new $.Deferred();
+            
             //first time through, default to the current project path
             if (!_defaultOpenDialogFullPath) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
@@ -178,24 +181,34 @@ define(function (require, exports, module) {
             // Prompt the user with a dialog
             // TODO (issue #117): we're relying on this to not be asynchronous ('result' not set until
             // dialog is dismissed); won't work in a browser-based version
-            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                null, function (files) {
-                    if (files.length > 0) {
-                        result = doOpen(files[0])
-                            .always(function updateDefualtOpenDialogFullPath(doc) {
+            NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
+                null, function (paths) {
+                    var i;
+                    
+                    if (paths.length > 0) {
+                        for (i = 0; i < paths.length - 1; i++) {
+                            DocumentManager.addToWorkingSet(new NativeFileSystem.FileEntry(paths[i]));
+                        }
+                        
+                        doOpen(paths[paths.length - 1])
+                            .done(function (doc) {
                                 var url = PathUtils.parseUrl(doc.file.fullPath);
                                 //reconstruct the url but use the directory and stop there
                                 _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
-                            });
-                        return;
+                                
+                                DocumentManager.addToWorkingSet(doc.file);
+                            })
+                            // Send the resulting document that was opened
+                            .then(
+                                function (doc) { result.resolve(doc); },
+                                function () { result.reject(); }
+                            );
                     }
                 });
         } else {
             result = doOpen(fullPath);
         }
-        if (!result) {
-            result = (new $.Deferred()).reject().promise();
-        }
+        
         return result;
     }
 
