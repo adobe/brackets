@@ -43,6 +43,18 @@ define(function (require, exports, module) {
      * but have not yet had addMeasurement() called.
      */
     var activeTests = {};
+
+    /**
+     * Private helper function for markStart()
+     */
+    function _markStart(name, time) {
+        if (activeTests[name]) {
+            console.log("Recursive tests with the same name are not supported.");
+            return;
+        }
+        
+        activeTests[name] = { startTime: time };
+    }
     
     /**
      * Start a new named timer. The name should be as descriptive as possible, since
@@ -53,14 +65,17 @@ define(function (require, exports, module) {
      * a unique name. 
      */
     function markStart(name) {
-        if (activeTests[name]) {
-            console.log("Recursive tests with the same name are not supported.");
-            return;
+        var time = brackets.app.getElapsedMilliseconds();
+
+        // Array of names can be passed in to have multiple timers with same start time
+        if (Array.isArray(name)) {
+            var i;
+            for (i = 0; i < name.length; i++) {
+                _markStart(name[i], time);
+            }
+        } else {
+            _markStart(name, time);
         }
-        
-        activeTests[name] = {
-            startTime: brackets.app.getElapsedMilliseconds()
-        };
     }
     
     /**
