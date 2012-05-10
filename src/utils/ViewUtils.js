@@ -124,9 +124,23 @@ define(function (require, exports, module) {
         
         $scrollElement.on("scroll.scroller-shadow", doUpdate);
         $displayElement.on("contentChanged.scroller-shadow", doUpdate);
+        var resizeHandlersLen = _resizeHandlers.push(doUpdate);
         
         // update immediately
         doUpdate();
+        
+        $displayElement.on("remove-scroller-shadow", function () {
+            $displayElement.find(".scroller-shadow.top").remove();
+            $displayElement.find(".scroller-shadow.bottom").remove();
+            
+            $displayElement.off("contentChanged.scroller-shadow");
+            
+            _resizeHandlers.splice(resizeHandlersLen - 1, 1);
+        });
+        
+        $scrollElement.on("remove-scroller-shadow", function () {
+            $scrollElement.off("scroll.scroller-shadow");
+        });
     }
     
     /**
@@ -135,20 +149,11 @@ define(function (require, exports, module) {
      * @param {?Object} scrollElement the object that is scrolled
      */
     function removeScrollerShadow(displayElement, scrollElement) {
-        if (!scrollElement) {
-            scrollElement = displayElement;
+        if (scrollElement) {
+            $(scrollElement).triggerHandler("remove-scroller-shadow");
         }
         
-        var $displayElement = $(displayElement),
-            $scrollElement = $(scrollElement);
-        
-        // remove scroller-shadow elements from DOM
-        $(displayElement).find(".scroller-shadow.top").remove();
-        $(displayElement).find(".scroller-shadow.bottom").remove();
-        
-        // remove event handlers
-        $scrollElement.off("scroll.scroller-shadow");
-        $displayElement.off("contentChanged.scroller-shadow");
+        $(displayElement).triggerHandler("remove-scroller-shadow");
     }
     
     /** 
@@ -269,14 +274,14 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function handleResize() {
+    function _handleResize() {
         _resizeHandlers.forEach(function (f) {
             f.apply();
         });
     }
     
     // handle all resize handlers in a single listener
-    $(window).resize(handleResize);
+    $(window).resize(_handleResize);
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
