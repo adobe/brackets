@@ -56,7 +56,7 @@ define(function (require, exports, module) {
         width = width || Math.max($sidebar.width(), 200);
         
         var display = (displayTriangle) ? "block" : "none";
-        $sidebar.find(".triangleVisible").css("display", display);
+        $sidebar.find(".triangle-visible").css("display", display);
         
         if (isSidebarClosed) {
             $sidebarResizer.css("left", 0);
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
             // but ultimately these should go into ProjectManager.js with a "notify" 
             // event that we can just call from anywhere instead of hard-coding it.
             // waiting on a ProjectManager refactor to add that. 
-            $sidebar.find(".sidebarSelection").width(width);
+            $sidebar.find(".sidebar-selection").width(width);
             $projectFilesContainer.triggerHandler("scroll");
             $openFilesContainer.triggerHandler("scroll");
         }
