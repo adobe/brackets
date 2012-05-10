@@ -203,6 +203,9 @@ define(function (require, exports, module) {
                                 function (doc) { result.resolve(doc); },
                                 function () { result.reject(); }
                             );
+                    } else {
+                        // Reject if the user canceled the dialog
+                        result.reject();
                     }
                 });
         } else {
