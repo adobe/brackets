@@ -48,6 +48,7 @@ define(function (require, exports, module) {
      */
     function _updateProjectTitle() {
         $projectTitle.html(ProjectManager.getProjectRoot().name);
+        $projectTitle.attr("title", ProjectManager.getProjectRoot().fullPath);
     }
     
     /**
