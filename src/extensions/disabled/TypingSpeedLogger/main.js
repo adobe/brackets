@@ -100,9 +100,6 @@ define(function (require, exports, module) {
             };
         
             var onChangeHandler = function (event, editor, change) {
-                var textChangesLen = change.text.length,
-                    i = 0;
-                
                 PerfUtils.addMeasurement(STRING_ONCHANGE);
                 $(editor).off("change.typingSpeedLogger", onChangeHandler);
 

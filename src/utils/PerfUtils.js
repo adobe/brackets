@@ -52,12 +52,15 @@ define(function (require, exports, module) {
     var updatableTests = {};
     
     /**
-     * Private helper function for markStart()
+     * @private
+     * Helper function for markStart()
+     *
+     * @param {string} name  Timer name.
+     * @param {number} time  Timer start time.
      */
     function _markStart(name, time) {
         if (activeTests[name]) {
-            console.log("Recursive tests with the same name are not supported.");
-            return;
+            throw new Error("Recursive tests with the same name are not supported.");
         }
         
         activeTests[name] = { startTime: time };
@@ -69,7 +72,9 @@ define(function (require, exports, module) {
      * For example: "Open file: /Users/brackets/src/ProjectManager.js"
      *
      * Multiple timers can be opened simultaneously, but all open timers must have
-     * a unique name. 
+     * a unique name.
+     *
+     * @param {(string|Array.<string>)} name  Single name or an Array of names.
      */
     function markStart(name) {
         var time = brackets.app.getElapsedMilliseconds();
@@ -93,6 +98,8 @@ define(function (require, exports, module) {
      *
      * If markStart() was not called for the specified timer, the
      * measured time is relative to app startup.
+     *
+     * @param {string} name  Timer name.
      */
     function addMeasurement(name) {
         var elapsedTime = brackets.app.getElapsedMilliseconds();
@@ -131,6 +138,8 @@ define(function (require, exports, module) {
      * If markStart() was not called for the specified timer, there is no way to
      * determine if this is the first or subsequent call, so the measurement is
      * not updatable, and it is handled in addMeasurement().
+     *
+     * @param {string} name  Timer name.
      */
     function updateMeasurement(name) {
         var elapsedTime = brackets.app.getElapsedMilliseconds();
@@ -166,6 +175,8 @@ define(function (require, exports, module) {
      * 
      * updateMeasurement may not have been called, so timer may be
      * in either or neither list, but should never be in both.
+     *
+     * @param {string} name  Timer name.
      */
     function finalizeMeasurement(name) {
         if (activeTests[name]) {
@@ -177,7 +188,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Return whether a timer is active or not.
+     * Returns whether a timer is active or not, where "active" means that
+     * timer has been started with addMark(), but has not been added to perfdata
+     * with addMeasurement().
+     *
+     * @param {string} name  Timer name.
+     * @return {boolean} Whether a timer is active or not.
      */
     function isActive(name) {
         return (activeTests[name]) ? true : false;
