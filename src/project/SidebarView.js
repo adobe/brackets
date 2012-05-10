@@ -112,55 +112,66 @@ define(function (require, exports, module) {
     function _initSidebarResizer() {
         var $mainView               = $(".main-view"),
             sidebarWidth            = $sidebar.width(),
-            isSidebarHidden         = false,
-            startingSidebarPosition = sidebarWidth,
-            sidebarSnappedClosed    = false;
+            startingSidebarPosition = sidebarWidth;
         
         $sidebarResizer.css("left", sidebarWidth - 1);
         $sidebarResizer.on("dblclick", function () {
-            if (sidebarSnappedClosed) {
-                sidebarSnappedClosed = false;
+            if ($sidebar.width() === 1) {
+                // mousedown is fired first. Sidebar is already toggeled open to 1px.
                 _setWidth(null, true, true);
             } else {
                 toggleSidebar();
             }
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
+            var startX = e.clientX;
+            
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
-                sidebarSnappedClosed = true;
             }
             
             $mainView.on("mousemove.sidebar", function (e) {
+                var doResize = true,
+                    newWidth = Math.max(e.clientX, 0);
+                
                 // if we've gone below 10 pixels on a mouse move, and the
-                // sidebar has not been snapped close, hide the sidebar 
-                // automatically an unbind the mouse event. 
-                if (!sidebarSnappedClosed && (e.clientX < 10)) {
+                // sidebar is shrinking, hide the sidebar automatically an
+                // unbind the mouse event. 
+                if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
                     $mainView.off("mousemove.sidebar");
-                } else {
-                    sidebarSnappedClosed = false;
-                    
+                    doResize = false;
+                } else if (startX < 10) {
+                    // reset startX if we're going from a snapped closed position to open
+                    startX = startingSidebarPosition;
+                }
+                
+                if (doResize) {
                     // if we've moving past 10 pixels, make the triangle visible again
                     // and register that the sidebar is no longer snapped closed. 
                     var forceTriangle = null;
                     
-                    if (isSidebarClosed && (e.clientX > 10)) {
-                        isSidebarClosed = false;
+                    if (newWidth > 10) {
                         forceTriangle = true;
                     }
                     
-                    _setWidth(e.clientX, false, forceTriangle);
+                    _setWidth(newWidth, false, forceTriangle);
                 }
+                
+                if (newWidth === 0) {
+                    $mainView.off("mousemove.sidebar");
+                }
+                    
                 e.preventDefault();
             });
                 
+            $mainView.one("mouseup.sidebar", function (e) {
+                $mainView.off("mousemove.sidebar");
+                startingSidebarPosition = $sidebar.width();
+            });
+                
             e.preventDefault();
-        });
-        $sidebarResizer.on("mouseup.sidebar", function (e) {
-            $mainView.off("mousemove.sidebar");
-            startingSidebarPosition = $sidebar.width();
         });
     }
     
