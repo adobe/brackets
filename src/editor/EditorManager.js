@@ -354,7 +354,7 @@ define(function (require, exports, module) {
     function _showEditor(document) {
         // Hide whatever was visible before
         if (!_currentEditor) {
-            $("#notEditor").css("display", "none");
+            $("#not-editor").css("display", "none");
         } else {
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
@@ -379,7 +379,7 @@ define(function (require, exports, module) {
             _currentEditorsDocument = null;
             _currentEditor = null;
             
-            $("#notEditor").css("display", "");
+            $("#not-editor").css("display", "");
         
             $(exports).triggerHandler("focusedEditorChange", _currentEditor);
         }
@@ -390,7 +390,7 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getCurrentDocument(),
             container = _editorHolder.get(0);
         
-        // Remove scrollerShadow from the current editor
+        // Remove scroller-shadow from the current editor
         if (_currentEditor) {
             ViewUtils.removeScrollerShadow(container, _currentEditor);
         }

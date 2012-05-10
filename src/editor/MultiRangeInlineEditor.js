@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
         
         // Outer container for border-left and scrolling
-        this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        this.$relatedContainer = $(document.createElement("div")).addClass("related-container");
         this._relatedContainerInserted = false;
         this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
         
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
         // attach to main container
         this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
         
-        // initialize position based on the main #editorHolder
+        // initialize position based on the main #editor-holder
         setTimeout(this._updateRelatedContainer, 0);
         
         // Changes to the host editor should update the relatedContainer

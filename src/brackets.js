@@ -203,6 +203,7 @@ define(function (require, exports, module) {
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
                     {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
+                    {"Ctrl-D": Commands.EDIT_DUPLICATE},
                     {"Ctrl-/": Commands.EDIT_LINE_COMMENT},
 
                     // VIEW
@@ -254,7 +255,7 @@ define(function (require, exports, module) {
         $("body").addClass("platform-" + brackets.platform);
 
 
-        EditorManager.setEditorHolder($('#editorHolder'));
+        EditorManager.setEditorHolder($('#editor-holder'));
 
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {

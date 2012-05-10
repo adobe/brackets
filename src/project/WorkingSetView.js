@@ -108,7 +108,7 @@ define(function (require, exports, module) {
         if ($fileStatusIcon) {
             // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
             $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("canClose", Boolean(canClose));
+            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
         }
     }
     
@@ -259,7 +259,7 @@ define(function (require, exports, module) {
     function _handleDirtyFlagChanged(doc) {
         var listItem = _findListItemFromFile(doc.file);
         if (listItem) {
-            var canClose = $(listItem).find("canClose").length === 1;
+            var canClose = $(listItem).find("can-close").length === 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
 

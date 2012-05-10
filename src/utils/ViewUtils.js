@@ -39,8 +39,8 @@ define(function (require, exports, module) {
      * Positions shadow background elements to indicate vertical scrolling.
      * @param {!DOMElement} $displayElement the DOMElement that displays the shadow
      * @param {!Object} $scrollElement the object that is scrolled
-     * @param {!DOMElement} $shadowTop div .scrollerShadow.top
-     * @param {!DOMElement} $shadowBottom div .scrollerShadow.bottom
+     * @param {!DOMElement} $shadowTop div .scroller-shadow.top
+     * @param {!DOMElement} $shadowBottom div .scroller-shadow.bottom
      * @param {boolean} isPositionFixed When using absolute position, top remains at 0.
      */
     function _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed) {
@@ -78,10 +78,10 @@ define(function (require, exports, module) {
     }
 
     function getOrCreateShadow($displayElement, position, isPositionFixed) {
-        var $findShadow = $displayElement.find(".scrollerShadow." + position);
+        var $findShadow = $displayElement.find(".scroller-shadow." + position);
 
         if ($findShadow.length === 0) {
-            $findShadow = $(window.document.createElement("div")).addClass("scrollerShadow " + position);
+            $findShadow = $(window.document.createElement("div")).addClass("scroller-shadow " + position);
             $displayElement.append($findShadow);
         }
         
@@ -122,15 +122,15 @@ define(function (require, exports, module) {
             _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed);
         };
         
-        $scrollElement.on("scroll.scrollerShadow", doUpdate);
-        $displayElement.on("contentChanged.scrollerShadow", doUpdate);
+        $scrollElement.on("scroll.scroller-shadow", doUpdate);
+        $displayElement.on("contentChanged.scroller-shadow", doUpdate);
         
         // update immediately
         doUpdate();
     }
     
     /**
-     * Remove scrollerShadow effect.
+     * Remove scroller-shadow effect.
      * @param {!DOMElement} displayElement the DOMElement that displays the shadow
      * @param {?Object} scrollElement the object that is scrolled
      */
@@ -142,13 +142,13 @@ define(function (require, exports, module) {
         var $displayElement = $(displayElement),
             $scrollElement = $(scrollElement);
         
-        // remove scrollerShadow elements from DOM
-        $(displayElement).find(".scrollerShadow.top").remove();
-        $(displayElement).find(".scrollerShadow.bottom").remove();
+        // remove scroller-shadow elements from DOM
+        $(displayElement).find(".scroller-shadow.top").remove();
+        $(displayElement).find(".scroller-shadow.bottom").remove();
         
         // remove event handlers
-        $scrollElement.off("scroll.scrollerShadow");
-        $displayElement.off("contentChanged.scrollerShadow");
+        $scrollElement.off("scroll.scroller-shadow");
+        $displayElement.off("contentChanged.scroller-shadow");
     }
     
     /** 
@@ -171,7 +171,7 @@ define(function (require, exports, module) {
             showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
-        $selectionMarker = $(window.document.createElement("div")).addClass("sidebarSelection");
+        $selectionMarker = $(window.document.createElement("div")).addClass("sidebar-selection");
         $scrollerElement.prepend($selectionMarker);
         
         // enable scrolling
@@ -181,7 +181,7 @@ define(function (require, exports, module) {
         $scrollerElement.css("position", "relative");
         
         // build selectionTriangle and position fixed to the window
-        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebarSelectionTriangle");
+        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebar-selection-triangle");
         
         $scrollerElement.append($selectionTriangle);
         
@@ -199,7 +199,7 @@ define(function (require, exports, module) {
             
             $selectionTriangle.css("top", triangleTop);
             $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
-            $selectionTriangle.toggleClass("triangleVisible", showTriangle);
+            $selectionTriangle.toggleClass("triangle-visible", showTriangle);
             
             var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
                 triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
