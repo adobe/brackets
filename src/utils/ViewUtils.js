@@ -57,7 +57,10 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
-            $shadowTop.css("width", displayElementWidth);
+            
+            if (isPositionFixed) {
+                $shadowTop.css("width", displayElementWidth);
+            }
         }
         
         if ($shadowBottom) {
@@ -124,23 +127,9 @@ define(function (require, exports, module) {
         
         $scrollElement.on("scroll.scroller-shadow", doUpdate);
         $displayElement.on("contentChanged.scroller-shadow", doUpdate);
-        var resizeHandlersLen = _resizeHandlers.push(doUpdate);
         
         // update immediately
         doUpdate();
-        
-        $displayElement.on("remove-scroller-shadow", function () {
-            $displayElement.find(".scroller-shadow.top").remove();
-            $displayElement.find(".scroller-shadow.bottom").remove();
-            
-            $displayElement.off("contentChanged.scroller-shadow");
-            
-            _resizeHandlers.splice(resizeHandlersLen - 1, 1);
-        });
-        
-        $scrollElement.on("remove-scroller-shadow", function () {
-            $scrollElement.off("scroll.scroller-shadow");
-        });
     }
     
     /**
@@ -149,10 +138,20 @@ define(function (require, exports, module) {
      * @param {?Object} scrollElement the object that is scrolled
      */
     function removeScrollerShadow(displayElement, scrollElement) {
-        if (scrollElement) {
-            $(scrollElement).triggerHandler("remove-scroller-shadow");
+        if (!scrollElement) {
+            scrollElement = displayElement;
         }
         
+        var $displayElement = $(displayElement),
+            $scrollElement = $(scrollElement);
+        
+        // remove scrollerShadow elements from DOM
+        $displayElement.find(".scrollerShadow.top").remove();
+        $displayElement.find(".scrollerShadow.bottom").remove();
+        
+        // remove event handlers
+        $scrollElement.off("scroll.scrollerShadow");
+        $displayElement.off("contentChanged.scrollerShadow");
         $(displayElement).triggerHandler("remove-scroller-shadow");
     }
     
