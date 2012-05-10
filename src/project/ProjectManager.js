@@ -622,9 +622,6 @@ define(function (require, exports, module) {
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
-                            // Actually close all the old files now that we know for sure we're proceeding
-                            DocumentManager.closeAll();
-                            
                             // Load the new project into the folder tree
                             loadProject(files[0]);
                         }

@@ -82,6 +82,12 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {DirectoryEntry}
+     */
+    var _currentProject = null;
+    
+    /**
+     * @private
      * @see DocumentManager.getCurrentDocument()
      */
     var _currentDocument = null;
@@ -677,9 +683,7 @@ define(function (require, exports, module) {
      * Preferences callback. Saves the document file paths for the working set.
      */
     function _savePreferences() {
-        var projectRoot = ProjectManager.getProjectRoot();
-        
-        if (!projectRoot) {
+        if (!_currentProject) {
             return;
         }
         
@@ -701,7 +705,7 @@ define(function (require, exports, module) {
 
         // save working set for the current project
         var projects = _prefs.getValue("projects");
-        projects[projectRoot.fullPath] = {
+        projects[_currentProject.fullPath] = {
             files: files
         };
         
@@ -712,9 +716,8 @@ define(function (require, exports, module) {
      * @private
      * Initializes the working set.
      */
-    function _init() {
-        var projectRoot         = ProjectManager.getProjectRoot(),
-            filesToOpen         = [],
+    function _init(projectRoot) {
+        var filesToOpen         = [],
             activeFile          = null,
             prefs               = _prefs.getAllValues(),
             currentProjectPrefs = prefs.projects[projectRoot.fullPath];
@@ -722,6 +725,9 @@ define(function (require, exports, module) {
         if (!(currentProjectPrefs && currentProjectPrefs.files)) {
             return;
         }
+        
+        // update projectRoot
+        _currentProject = projectRoot;
 
         // in parallel, check if files exist
         // TODO: (issue #298) delay this check until it becomes the current document?
@@ -729,7 +735,7 @@ define(function (require, exports, module) {
             var oneFileResult = new $.Deferred();
             
             // check if the file still exists; silently drop from working set if it doesn't
-            projectRoot.getFile(value.file, {},
+            _currentProject.getFile(value.file, {},
                 function (fileEntry) {
                     // maintain original sequence
                     filesToOpen[index] = fileEntry;
@@ -796,10 +802,20 @@ define(function (require, exports, module) {
         }
     };
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
 
     // Initialize after ProjectManager is loaded
     $(ProjectManager).on("initializeComplete projectRootChanged", function (event, projectRoot) {
-        _init();
+        // disable auto-saving preferences when changing projects
+        $(exports).off("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
+        
+        // save the previous project before loading the new one
+        _savePreferences();
+
+        // close editors, clear out working set
+        closeAll();
+     
+        _init(projectRoot);
+    
+        $(exports).on("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
     });
 });

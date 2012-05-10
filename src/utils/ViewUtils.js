@@ -206,6 +206,10 @@ define(function (require, exports, module) {
         selectedClassName = "." + (selectedClassName || "selected");
         
         var updateSelectionTriangle = function () {
+            if (!$selectionTriangle.is(":visible")) {
+                return;
+            }
+            
             var selectionMarkerHeight = $selectionMarker.height(),
                 selectionMarkerOffset = $selectionMarker.offset(),
                 scrollerOffset = $scrollerElement.offset(),
