@@ -714,9 +714,9 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Initializes the working set.
+     * Initializes the working set for the specified project
      */
-    function _init(projectRoot) {
+    function _initProject(projectRoot) {
         var filesToOpen         = [],
             activeFile          = null,
             prefs               = _prefs.getAllValues(),
@@ -775,20 +775,6 @@ define(function (require, exports, module) {
     }
 
 
-    // Define public API
-    exports.Document = Document;
-    exports.getCurrentDocument = getCurrentDocument;
-    exports.getDocumentForPath = getDocumentForPath;
-    exports.getOpenDocumentForPath = getOpenDocumentForPath;
-    exports.getWorkingSet = getWorkingSet;
-    exports.findInWorkingSet = findInWorkingSet;
-    exports.getAllOpenDocuments = getAllOpenDocuments;
-    exports.setCurrentDocument = setCurrentDocument;
-    exports.addToWorkingSet = addToWorkingSet;
-    exports.closeFullEditor = closeFullEditor;
-    exports.closeAll = closeAll;
-    exports.notifyFileDeleted = notifyFileDeleted;
-
     // Setup preferences
     var defaults = {
         projects: {
@@ -814,8 +800,22 @@ define(function (require, exports, module) {
         // close editors, clear out working set
         closeAll();
      
-        _init(projectRoot);
+        _initProject(projectRoot);
     
         $(exports).on("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
     });
+
+    // Define public API
+    exports.Document = Document;
+    exports.getCurrentDocument = getCurrentDocument;
+    exports.getDocumentForPath = getDocumentForPath;
+    exports.getOpenDocumentForPath = getOpenDocumentForPath;
+    exports.getWorkingSet = getWorkingSet;
+    exports.findInWorkingSet = findInWorkingSet;
+    exports.getAllOpenDocuments = getAllOpenDocuments;
+    exports.setCurrentDocument = setCurrentDocument;
+    exports.addToWorkingSet = addToWorkingSet;
+    exports.closeFullEditor = closeFullEditor;
+    exports.closeAll = closeAll;
+    exports.notifyFileDeleted = notifyFileDeleted;
 });
