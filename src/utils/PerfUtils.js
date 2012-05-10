@@ -45,6 +45,13 @@ define(function (require, exports, module) {
     var activeTests = {};
 
     /**
+     * Updatable tests. This is a hash of all tests that have had markStart() called,
+     * and have had updateMeasurement() called. Caller must explicitly remove tests
+     * from this list using finalizeMeasurement()
+     */
+    var updatableTests = {};
+    
+    /**
      * Private helper function for markStart()
      */
     function _markStart(name, time) {
@@ -84,7 +91,7 @@ define(function (require, exports, module) {
      * Multiple measurements can be stored for any given name. If there are
      * multiple values for a name, they are stored in an Array.
      *
-     * If the markStart() was not called for the specified timer, the
+     * If markStart() was not called for the specified timer, the
      * measured time is relative to app startup.
      */
     function addMeasurement(name) {
@@ -107,8 +114,79 @@ define(function (require, exports, module) {
             perfData[name] = elapsedTime;
         }
     }
+
+    /**
+     * This function is similar to addMeasurement(), but it allows timing the
+     * *last* event, when you don't know which event will be the last one.
+     *
+     * Tests that are in the activeTests list, have not yet been added, so add
+     * measurements to the performance data, and move test to updatableTests list.
+     * A test is moved to the updatable list so that it no longer passes isActive().
+     *
+     * Tests that are already in the updatableTests list are updated.
+     *
+     * Caller must explicitly remove test from the updatableTests list using
+     * finalizeMeasurement().
+     *
+     * If markStart() was not called for the specified timer, there is no way to
+     * determine if this is the first or subsequent call, so the measurement is
+     * not updatable, and it is handled in addMeasurement().
+     */
+    function updateMeasurement(name) {
+        var elapsedTime = brackets.app.getElapsedMilliseconds();
+
+        if (updatableTests[name]) {
+            // update existing measurement
+            elapsedTime -= updatableTests[name].startTime;
+            
+            // update
+            if (perfData[name] && Array.isArray(perfData[name])) {
+                // We have existing data and it's an array, so update the last entry
+                perfData[name][perfData[name].length - 1] = elapsedTime;
+            } else {
+                // No current data or a single entry, so set/update it
+                perfData[name] = elapsedTime;
+            }
+            
+        } else {
+            // not yet in updatable list
+
+            if (activeTests[name]) {
+                // save startTime in updatable list before addMeasurement() deletes it
+                updatableTests[name] = { startTime: activeTests[name].startTime };
+            }
+            
+            // let addMeasurement() handle the initial case
+            addMeasurement(name);
+        }
+    }
+
+    /**
+     * Remove timer from lists so next action starts a new measurement
+     * 
+     * updateMeasurement may not have been called, so timer may be
+     * in either or neither list, but should never be in both.
+     */
+    function finalizeMeasurement(name) {
+        if (activeTests[name]) {
+            delete activeTests[name];
+        }
+        if (updatableTests[name]) {
+            delete updatableTests[name];
+        }
+    }
     
-    exports.markStart       = markStart;
-    exports.addMeasurement  = addMeasurement;
-    exports.perfData        = perfData;
+    /**
+     * Return whether a timer is active or not.
+     */
+    function isActive(name) {
+        return (activeTests[name]) ? true : false;
+    }
+
+    exports.addMeasurement          = addMeasurement;
+    exports.finalizeMeasurement     = finalizeMeasurement;
+    exports.isActive                = isActive;
+    exports.markStart               = markStart;
+    exports.perfData                = perfData;
+    exports.updateMeasurement       = updateMeasurement;
 });
