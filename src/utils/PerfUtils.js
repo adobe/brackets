@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define, brackets, $ */
 
 /**
  * This is a collection of utility functions for gathering performance data.
@@ -64,18 +64,20 @@ define(function (require, exports, module) {
      *      strings this return value allows clients to construct the name once.
      */
     function markStart(name) {
-        if (enabled) {
-            if (activeTests[name]) {
-                console.log("Recursive tests with the same name are not supported.");
-                return;
-            }
-            
-            activeTests[name] = {
-                startTime: brackets.app.getElapsedMilliseconds()
-            };
-
-            return name;
+        if (!enabled) {
+            return;
         }
+
+        if (activeTests[name]) {
+            console.log("Recursive tests with the same name are not supported.");
+            return;
+        }
+        
+        activeTests[name] = {
+            startTime: brackets.app.getElapsedMilliseconds()
+        };
+
+        return name;
     }
     
     /**
@@ -88,54 +90,61 @@ define(function (require, exports, module) {
      * measured time is relative to app startup.
      */
     function addMeasurement(name) {
-        if (enabled) {
-            var elapsedTime = brackets.app.getElapsedMilliseconds();
-            
-            if (activeTests[name]) {
-                elapsedTime -= activeTests[name].startTime;
-                delete activeTests[name];
-            }
-            
-            if (perfData[name]) {
-                // We have existing data, add to it
-                if (Array.isArray(perfData[name])) {
-                    perfData[name].push(elapsedTime);
-                } else {
-                    // Current data is a number, convert to Array
-                    perfData[name] = [perfData[name], elapsedTime];
-                }
-            } else {
-                perfData[name] = elapsedTime;
-            }
-
-            // Real time console
-            //console.log(name + " " + elapsedTime);
+        if (!enabled) {
+            return;
         }
+
+        var elapsedTime = brackets.app.getElapsedMilliseconds();
+        
+        if (activeTests[name]) {
+            elapsedTime -= activeTests[name].startTime;
+            delete activeTests[name];
+        }
+        
+        if (perfData[name]) {
+            // We have existing data, add to it
+            if (Array.isArray(perfData[name])) {
+                perfData[name].push(elapsedTime);
+            } else {
+                // Current data is a number, convert to Array
+                perfData[name] = [perfData[name], elapsedTime];
+            }
+        } else {
+            perfData[name] = elapsedTime;
+        }
+
+        // Real time logging
+        //console.log(name + " " + elapsedTime);
     }
 
+    /**
+     * Returns the performance data as a tab deliminted string
+     * @returns {string}
+     */
     function getDelimitedPerfData() {
         var getValue = function (entry) {
-            // entry is either an Array or a number
-            // If it is an Array, return the average value
+            // return single value, or tab deliminted values for an array
             if (Array.isArray(entry)) {
-                var i, sum = 0;
+                var i, values = "";
                 
                 for (i = 0; i < entry.length; i++) {
-                    sum += entry[i];
+                    values += entry[i];
+                    if (i < entry.length - 1) {
+                        values += ", ";
+                    }
                 }
-                return String(Math.floor(sum / entry.length)) + " (avg)";
+                return values;
             } else {
                 return entry;
             }
         };
 
         var testName,
+            index,
             result = "";
-        for (testName in perfData) {
-            if (perfData.hasOwnProperty(testName)) {
-                result += getValue(perfData[testName]) + "\t" + testName + "\n";
-            }
-        }
+        $.each(perfData, function (testName, entry) {
+            result += getValue(entry) + "\t" + testName + "\n";
+        });
 
         return result;
     }
