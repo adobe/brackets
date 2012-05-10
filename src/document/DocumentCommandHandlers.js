@@ -212,7 +212,7 @@ define(function (require, exports, module) {
             result = doOpen(fullPath);
         }
         
-        return result;
+        return result.promise();
     }
 
     function handleFileOpen(commandData) {
