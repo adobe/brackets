@@ -146,13 +146,12 @@ define(function (require, exports, module) {
             $scrollElement = $(scrollElement);
         
         // remove scrollerShadow elements from DOM
-        $displayElement.find(".scrollerShadow.top").remove();
-        $displayElement.find(".scrollerShadow.bottom").remove();
+        $displayElement.find(".scroller-shadow.top").remove();
+        $displayElement.find(".scroller-shadow.bottom").remove();
         
         // remove event handlers
-        $scrollElement.off("scroll.scrollerShadow");
-        $displayElement.off("contentChanged.scrollerShadow");
-        $(displayElement).triggerHandler("remove-scroller-shadow");
+        $scrollElement.off("scroll.scroller-shadow");
+        $displayElement.off("contentChanged.scroller-shadow");
     }
     
     /** 
