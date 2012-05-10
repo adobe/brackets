@@ -52,7 +52,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets sidebar width and resizes editor. Does not manage 
+     * Sets sidebar width and resizes editor. Does not change internal sidebar open/closed state.
      * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
      * @param {!boolean} updateMenu Updates "View" menu label to indicate current sidebar state.
      * @param {!boolean} displayTriangle Display selection marker triangle in the active view.
