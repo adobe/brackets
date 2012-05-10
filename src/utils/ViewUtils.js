@@ -35,24 +35,6 @@ define(function (require, exports, module) {
      */
     var _resizeHandlers = [];
 
-    /** If a parent div has overflow:auto then the child will have a problem
-     * setting the background color. The reason for this is the width of the 
-     * child is the visible width of the parent and not the scrollWidth, so if
-     * the div scrolls the background looks wrong.
-     * @param {!JQuery} $parent the jQuery parent for the object 
-     */
-    function updateChildrenToParentScrollwidth($parent) {
-        var $children = $parent.children();
-        //clear the width first so we get the natural scrollWidth below
-        $children.width("");
-        
-        var targetWidth = $parent[0].scrollWidth -
-            parseInt($parent.css("paddingLeft"), 10) -
-            parseInt($parent.css("paddingRight"), 10);
-        
-        $children.width(targetWidth);
-    }
-
     /** 
      * Positions shadow background elements to indicate vertical scrolling.
      * @param {!DOMElement} $displayElement the DOMElement that displays the shadow
@@ -66,7 +48,7 @@ define(function (require, exports, module) {
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
             topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
-            sidebarWidth        = $(".sidebar").width();
+            displayElementWidth = $displayElement.width();
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");
@@ -75,7 +57,10 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
-            $shadowTop.css("width", sidebarWidth);
+            
+            if (isPositionFixed) {
+                $shadowTop.css("width", displayElementWidth);
+            }
         }
         
         if ($shadowBottom) {
@@ -91,7 +76,7 @@ define(function (require, exports, module) {
     
             $shadowBottom.css("background-position", "0px " + bottomShadowOffset + "px");
             $shadowBottom.css("top", offsetTop + outerHeight - SCROLL_SHADOW_HEIGHT);
-            $shadowBottom.css("width", sidebarWidth);
+            $shadowBottom.css("width", displayElementWidth);
         }
     }
 
@@ -160,9 +145,9 @@ define(function (require, exports, module) {
         var $displayElement = $(displayElement),
             $scrollElement = $(scrollElement);
         
-        // remove scroller-shadow elements from DOM
-        $(displayElement).find(".scroller-shadow.top").remove();
-        $(displayElement).find(".scroller-shadow.bottom").remove();
+        // remove scrollerShadow elements from DOM
+        $displayElement.find(".scroller-shadow.top").remove();
+        $displayElement.find(".scroller-shadow.bottom").remove();
         
         // remove event handlers
         $scrollElement.off("scroll.scroller-shadow");
@@ -185,7 +170,7 @@ define(function (require, exports, module) {
         var $listElement = $scrollerElement.find("ul"),
             $selectionMarker,
             $selectionTriangle,
-            $fileSection = $("#file-section"),
+            $sidebar = $("#sidebar"),
             showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
@@ -201,7 +186,7 @@ define(function (require, exports, module) {
         // build selectionTriangle and position fixed to the window
         $selectionTriangle = $(window.document.createElement("div")).addClass("sidebar-selection-triangle");
         
-        $fileSection.append($selectionTriangle);
+        $scrollerElement.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
         
@@ -216,8 +201,7 @@ define(function (require, exports, module) {
                 triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
-            
-            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
+            $selectionTriangle.css("left", $sidebar.width() - $selectionTriangle.outerWidth());
             $selectionTriangle.toggleClass("triangle-visible", showTriangle);
             
             var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
@@ -231,7 +215,7 @@ define(function (require, exports, module) {
             }
         };
         
-        var updateSelectionMarker = function () {
+        var updateSelectionMarker = function (event, reveal) {
             // find the selected list item
             var $listItem = $listElement.find(selectedClassName).closest("li");
             
@@ -265,10 +249,12 @@ define(function (require, exports, module) {
                     currentScrollBottom = scrollerElement.scrollTop + scrollerHeight;
                 
                 // update scrollTop to reveal the selected list item
-                if (selectionMarkerTop >= currentScrollBottom) {
-                    $listItem.get(0).scrollIntoView(false);
-                } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
-                    $listItem.get(0).scrollIntoView(true);
+                if (reveal) {
+                    if (selectionMarkerTop >= currentScrollBottom) {
+                        $listItem.get(0).scrollIntoView(false);
+                    } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
+                        $listItem.get(0).scrollIntoView(true);
+                    }
                 }
             }
         };
@@ -286,18 +272,17 @@ define(function (require, exports, module) {
     /**
      * @private
      */
-    function handleResize() {
+    function _handleResize() {
         _resizeHandlers.forEach(function (f) {
             f.apply();
         });
     }
     
     // handle all resize handlers in a single listener
-    $(window).resize(handleResize);
+    $(window).resize(_handleResize);
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
-    exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.addScrollerShadow = addScrollerShadow;
     exports.removeScrollerShadow = removeScrollerShadow;
     exports.sidebarList = sidebarList;
