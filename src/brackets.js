@@ -68,7 +68,8 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
-        ExtensionLoader         = require("utils/ExtensionLoader");
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        SidebarView             = require("project/SidebarView");
         
     //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
@@ -249,69 +250,6 @@ define(function (require, exports, module) {
                 e.preventDefault();
             });
         }
-        
-        function initSidebarListeners() {
-            var $sidebar = $(".sidebar");
-            var sidebarWidth = $sidebar.width();
-            var isSidebarHidden = false;
-            var sidebarSnappedClosed = false;
-            var startingSidebarPosition = sidebarWidth;
-            
-            $("#sidebar-resizer").css("left", sidebarWidth - 1);
-            $("#sidebar-resizer").on("mousedown.sidebar", function (e) {
-                
-                // check to see if we're currently in hidden mode
-                if (ProjectManager.getSidebarState() === ProjectManager.SIDEBAR_CLOSED) {
-                    // when we click, start modifying the sidebar size and then
-                    // modify the variables to set the sidebar state correctly. 
-                    CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR, 1);
-
-                    // this makes sure we don't snap back when we drag from a hidden position
-                    sidebarSnappedClosed = true;
-                    
-                    // this keeps the triangle from jumping around
-                    $(".triangle-visible").css("display", "none");
-                }
-                $(".main-view").on("mousemove.sidebar", function (e) {
-                    // if we've gone below 10 pixels on a mouse move, and the
-                    // sidebar has not been snapped close, hide the sidebar 
-                    // automatically an unbind the mouse event. 
-                    if (e.clientX < 10 && !sidebarSnappedClosed) {
-                        
-                        CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR, startingSidebarPosition);
-
-                        $("#sidebar-resizer").css("left", 0);
-                        $(".main-view").off("mousemove.sidebar");
-                    } else {
-                        // if we've moving past 10 pixels, make the triangle visible again
-                        // and register that the sidebar is no longer snapped closed. 
-                        if (e.clientX > 10) {
-                            sidebarSnappedClosed = false;
-                            $(".triangle-visible").css("display", "block");
-                        }
-                        
-                        $("#sidebar-resizer").css("left", e.clientX);
-                        $sidebar.css("width", e.clientX);
-                        
-                        // trigger the scroll events to resize shadows and the selectionTriangle
-                        $("#project-files-container").trigger("scroll");
-                        $("#open-files-container").trigger("scroll");
-                        
-                        // the .sidebar-selection needs to be explicitly set
-                        $(".sidebar-selection").width(e.clientX);
-                    }
-                    EditorManager.resizeEditor();
-                    e.preventDefault();
-                });
-                e.preventDefault();
-            });
-            $("#sidebar-resizer").on("mouseup.sidebar", function (e) {
-                $(".main-view").off("mousemove.sidebar");
-                startingSidebarPosition = $sidebar.width();
-                console.log(startingSidebarPosition);
-            });
-            
-        }
 
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
@@ -334,7 +272,6 @@ define(function (require, exports, module) {
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
         initWindowListeners();
-        initSidebarListeners();
 
         // Load extensions
 
