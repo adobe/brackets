@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -34,7 +34,8 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
- * This module does not dispatch any events.
+ * This module dispatches the following events:
+ *    - focusedEditorChange -- When the focused editor (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     'use strict';
@@ -255,6 +256,8 @@ define(function (require, exports, module) {
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range, additionalKeys);
         
+        $(exports).triggerHandler("focusedEditorChange", inlineEditor);
+        
         return { content: inlineContent, editor: inlineEditor };
     }
     
@@ -339,6 +342,8 @@ define(function (require, exports, module) {
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
+        
+        $(exports).triggerHandler("focusedEditorChange", _currentEditor);
     }
 
     /**
@@ -349,7 +354,7 @@ define(function (require, exports, module) {
     function _showEditor(document) {
         // Hide whatever was visible before
         if (!_currentEditor) {
-            $("#notEditor").css("display", "none");
+            $("#not-editor").css("display", "none");
         } else {
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
@@ -374,7 +379,9 @@ define(function (require, exports, module) {
             _currentEditorsDocument = null;
             _currentEditor = null;
             
-            $("#notEditor").css("display", "");
+            $("#not-editor").css("display", "");
+        
+            $(exports).triggerHandler("focusedEditorChange", _currentEditor);
         }
     }
 
@@ -383,7 +390,7 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getCurrentDocument(),
             container = _editorHolder.get(0);
         
-        // Remove scrollerShadow from the current editor
+        // Remove scroller-shadow from the current editor
         if (_currentEditor) {
             ViewUtils.removeScrollerShadow(container, _currentEditor);
         }

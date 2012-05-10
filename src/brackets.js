@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: true, $: false, PathUtils: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets: true, $, PathUtils, window, navigator */
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         CodeHintManager         = require("editor/CodeHintManager"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
-        QuickFileOpen           = require("search/QuickFileOpen"),
+        QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
@@ -73,6 +73,7 @@ define(function (require, exports, module) {
     //Load modules that self-register and just need to get included in the main project
     require("language/JSLintUtils");
     require("editor/CodeHintManager");
+    require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
@@ -128,13 +129,13 @@ define(function (require, exports, module) {
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     // Main Brackets initialization
-    $(document).ready(function () {
+    $(window.document).ready(function () {
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
             // the entire Brackets app. This doesn't prevent children from choosing to
             // handle drops.
-            $(document.body)
+            $(window.document.body)
                 .on("dragover", function (event) {
                     if (event.originalEvent.dataTransfer.files) {
                         event.stopPropagation();
@@ -201,15 +202,20 @@ define(function (require, exports, module) {
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
                     {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
+                    {"Ctrl-D": Commands.EDIT_DUPLICATE},
+                    {"Ctrl-/": Commands.EDIT_LINE_COMMENT},
 
                     // VIEW
                     {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
                     
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
+                    {"Ctrl-T": Commands.NAVIGATE_GOTO_DEFINITION},
+                    {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE, "platform": "mac"},
+                    {"Ctrl-G": Commands.NAVIGATE_GOTO_LINE, "platform": "win"},
                     {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
-                    {"Alt-Up": Commands.PREVIOUS_CSS_RULE},
-                    {"Alt-Down": Commands.NEXT_CSS_RULE},
+                    {"Alt-Up": Commands.QUICK_EDIT_PREV_MATCH},
+                    {"Alt-Down": Commands.QUICK_EDIT_NEXT_MATCH},
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
@@ -221,7 +227,7 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            document.body.addEventListener(
+            window.document.body.addEventListener(
                 "keydown",
                 function (event) {
                     if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
@@ -243,12 +249,75 @@ define(function (require, exports, module) {
                 e.preventDefault();
             });
         }
+        
+        function initSidebarListeners() {
+            var $sidebar = $(".sidebar");
+            var sidebarWidth = $sidebar.width();
+            var isSidebarHidden = false;
+            var sidebarSnappedClosed = false;
+            var startingSidebarPosition = sidebarWidth;
+            
+            $("#sidebar-resizer").css("left", sidebarWidth - 1);
+            $("#sidebar-resizer").on("mousedown.sidebar", function (e) {
+                
+                // check to see if we're currently in hidden mode
+                if (ProjectManager.getSidebarState() === ProjectManager.SIDEBAR_CLOSED) {
+                    // when we click, start modifying the sidebar size and then
+                    // modify the variables to set the sidebar state correctly. 
+                    CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR, 1);
+
+                    // this makes sure we don't snap back when we drag from a hidden position
+                    sidebarSnappedClosed = true;
+                    
+                    // this keeps the triangle from jumping around
+                    $(".triangle-visible").css("display", "none");
+                }
+                $(".main-view").on("mousemove.sidebar", function (e) {
+                    // if we've gone below 10 pixels on a mouse move, and the
+                    // sidebar has not been snapped close, hide the sidebar 
+                    // automatically an unbind the mouse event. 
+                    if (e.clientX < 10 && !sidebarSnappedClosed) {
+                        
+                        CommandManager.execute(Commands.VIEW_HIDE_SIDEBAR, startingSidebarPosition);
+
+                        $("#sidebar-resizer").css("left", 0);
+                        $(".main-view").off("mousemove.sidebar");
+                    } else {
+                        // if we've moving past 10 pixels, make the triangle visible again
+                        // and register that the sidebar is no longer snapped closed. 
+                        if (e.clientX > 10) {
+                            sidebarSnappedClosed = false;
+                            $(".triangle-visible").css("display", "block");
+                        }
+                        
+                        $("#sidebar-resizer").css("left", e.clientX);
+                        $sidebar.css("width", e.clientX);
+                        
+                        // trigger the scroll events to resize shadows and the selectionTriangle
+                        $("#project-files-container").trigger("scroll");
+                        $("#open-files-container").trigger("scroll");
+                        
+                        // the .sidebar-selection needs to be explicitly set
+                        $(".sidebar-selection").width(e.clientX);
+                    }
+                    EditorManager.resizeEditor();
+                    e.preventDefault();
+                });
+                e.preventDefault();
+            });
+            $("#sidebar-resizer").on("mouseup.sidebar", function (e) {
+                $(".main-view").off("mousemove.sidebar");
+                startingSidebarPosition = $sidebar.width();
+                console.log(startingSidebarPosition);
+            });
+            
+        }
 
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
 
 
-        EditorManager.setEditorHolder($('#editorHolder'));
+        EditorManager.setEditorHolder($('#editor-holder'));
 
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
@@ -265,6 +334,7 @@ define(function (require, exports, module) {
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
         initWindowListeners();
+        initSidebarListeners();
 
         // Load extensions
 
@@ -295,7 +365,7 @@ define(function (require, exports, module) {
         var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
         if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
             // test a scrolling div for scrollbars
-            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(document.body);
+            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);
             
             if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
                 $(".sidebar").removeClass("quiet-scrollbars");

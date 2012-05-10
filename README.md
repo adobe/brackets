@@ -2,7 +2,7 @@ Welcome to Brackets!
 -------------------
 
 This is a very early version of Brackets, a code editor for HTML, CSS 
-and JavaScript that's *built* in HTML, CSS and JavaScript.
+and JavaScript that's *built* in HTML, CSS and JavaScript. 
 
 What makes Brackets different from other web code editors?
 * **Tools shouldn't get in your way.** Instead of cluttering up your coding
@@ -14,10 +14,20 @@ and jump back and forth between your real source code and the browser view.
 * **Do it yourself.** Because Brackets is open source, and built with HTML, CSS
 and JavaScript, you can help build the best code editor for the web.
 
+You can see some 
+[screenshots of Brackets](https://github.com/adobe/brackets/wiki/Brackets-Screenshots)
+on the wiki.
+
 Brackets is *very* early in development, so many of the features you would
 expect in a code editor are missing, and some existing features might be
 incomplete or not as useful as you'd want. But if you like the direction
 it's going, please contribute!
+
+The text editor inside Brackets is based on 
+[CodeMirror](http://github.com/marijnh/CodeMirror2)--thanks to Marijn for
+taking our pull requests :) See 
+[Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
+for info on upcoming things we're planning to contribute to CodeMirror.
 
 How to run Brackets
 -------------------
@@ -63,7 +73,9 @@ When filing a new bug, please remember to include:
 if that's convenient)
 
 For feature requests, go ahead and file them in the issue tracker; they'll be converted
-to user stories on the [public Brackets backlog](https://trello.com/board/brackets/4f90a6d98f77505d7940ce88).
+to user stories on the [public Brackets backlog*](http://bit.ly/BracketsBacklog).
+
+\* Please excuse the mess in the public backlog ("Backlog Archive To Be Sorted"). We're still importing data from our internal system.
 
 I want to help!
 ---------------
@@ -75,6 +87,6 @@ I want to keep track of how Brackets is doing!
 
 Not sure you needed the exclamation point there, but I like your enthusiasm.
 
-* **Twitter:** [@CodeBrackets](http://twitter.com/#!/CodeBrackets)
-* **IRC:** [#brackets on freenode](http://freenode.net)
+* **Twitter:** [@brackets](http://twitter.com/#!/brackets)
+* **IRC:** [#brackets on freenode](http://webchat.freenode.net/?channels=brackets)
 * **Developers mailing list:** http://groups.google.com/group/brackets-dev

@@ -42,6 +42,7 @@ define(function (require, exports, module) {
     require("spec/NativeFileSystem-test.js");
     require("spec/PreferencesManager-test.js");
     require("spec/Editor-test.js");
+    require("spec/EditorCommandHandlers-test.js");
     require("spec/ProjectManager-test.js");
     require("spec/WorkingSetView-test.js");
     require("spec/KeyMap-test.js");
@@ -49,7 +50,7 @@ define(function (require, exports, module) {
     require("spec/CodeHintUtils-test.js");
     require("spec/CSSUtils-test.js");
     require("spec/InlineEditorProviders-test.js");
-    require("spec/CSSInlineEditor-test.js");
+    require("spec/MultiRangeInlineEditor-test.js");
     require("spec/LiveDevelopment-test.js");
     require("spec/ViewUtils-test.js");
     

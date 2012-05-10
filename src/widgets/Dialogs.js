@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window */
 
 /**
  * Utilities for creating and managing standard modal dialogs.
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
      *      the HTML template is used unchanged.
      * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
      *      unspecified, body in the HTML template is used unchanged.
-     * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
+     * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
@@ -123,29 +123,29 @@ define(function (require, exports, module) {
         // type happen to show up, they can appear at the same time. (This is an edge case that
         // shouldn't happen often, but we can't prevent it from happening since everything is
         // asynchronous.)
-        var dlg = $("." + dlgClass + ".template")
+        var $dlg = $("." + dlgClass + ".template")
             .clone()
             .removeClass("template")
             .addClass("instance")
-            .appendTo(document.body);
+            .appendTo(window.document.body);
         
-        if (dlg.length === 0) {
+        if ($dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
 
         // Set title and message
         if (title) {
-            $(".dialog-title", dlg).html(title);
+            $(".dialog-title", $dlg).html(title);
         }
         if (message) {
-            $(".dialog-message", dlg).html(message);
+            $(".dialog-message", $dlg).html(message);
         }
 
-        var handleKeyDown = _handleKeyDown.bind(dlg);
+        var handleKeyDown = _handleKeyDown.bind($dlg);
 
         // Pipe dialog-closing notification back to client code
-        dlg.one("hidden", function () {
-            var buttonId = dlg.data("buttonId");
+        $dlg.one("hidden", function () {
+            var buttonId = $dlg.data("buttonId");
             if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
                 buttonId = DIALOG_BTN_CANCEL;
             }
@@ -153,41 +153,41 @@ define(function (require, exports, module) {
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
-            setTimeout(function () {
+            window.setTimeout(function () {
                 result.resolve(buttonId);
             }, 0);
             
             // Remove the dialog instance from the DOM.
-            dlg.remove();
+            $dlg.remove();
 
             // Remove keydown event handler
-            document.body.removeEventListener("keydown", handleKeyDown, true);
+            window.document.body.removeEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
-            var primaryBtn = dlg.find(".primary");
+            var primaryBtn = $dlg.find(".primary");
 
             if (primaryBtn) {
                 primaryBtn.focus();
             }
 
             // Listen for dialog keyboard shortcuts
-            document.body.addEventListener("keydown", handleKeyDown, true);
+            window.document.body.addEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(false);
         });
         
         // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            _dismissDialog(dlg, $(this).attr("data-button-id"));
+        $dlg.one("click", ".dialog-button", function (e) {
+            _dismissDialog($dlg, $(this).attr("data-button-id"));
         });
 
         // Run the dialog
-        dlg.modal({
+        $dlg.modal({
             backdrop: "static",
             show: true,
             keyboard: true
         });
-        return result;
+        return result.promise();
     }
     
     /**

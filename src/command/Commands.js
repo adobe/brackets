@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
 
 define(function (require, exports, module) {
     'use strict';
@@ -58,15 +58,19 @@ define(function (require, exports, module) {
     exports.EDIT_REPLACE        = "edit.replace";
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
+    exports.EDIT_DUPLICATE      = "edit.duplicate";
+    exports.EDIT_LINE_COMMENT   = "edit.lineComment";
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR  = "view.hideSidebar";
+    exports.VIEW_HIDE_SIDEBAR   = "view.hideSidebar";
     
     // Navigate
-    exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
-    exports.SHOW_INLINE_EDITOR  = "navigate.showInlineEditor";
-    exports.NEXT_CSS_RULE       = "navigate.nextCssRule";
-    exports.PREVIOUS_CSS_RULE   = "navigate.previousCssRule";
+    exports.NAVIGATE_QUICK_OPEN     = "navigate.quickOpen";
+    exports.NAVIGATE_GOTO_DEFINITION = "navigate.gotoDefinition";
+    exports.NAVIGATE_GOTO_LINE  	= "navigate.gotoLine";
+    exports.SHOW_INLINE_EDITOR      = "navigate.showInlineEditor";
+    exports.QUICK_EDIT_NEXT_MATCH   = "navigate.nextMatch";
+    exports.QUICK_EDIT_PREV_MATCH   = "navigate.previousMatch";
 
     exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
     exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";

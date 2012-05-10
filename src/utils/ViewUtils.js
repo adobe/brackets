@@ -22,8 +22,8 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -57,15 +57,16 @@ define(function (require, exports, module) {
      * Positions shadow background elements to indicate vertical scrolling.
      * @param {!DOMElement} $displayElement the DOMElement that displays the shadow
      * @param {!Object} $scrollElement the object that is scrolled
-     * @param {!DOMElement} $shadowTop div .scrollerShadow.top
-     * @param {!DOMElement} $shadowBottom div .scrollerShadow.bottom
+     * @param {!DOMElement} $shadowTop div .scroller-shadow.top
+     * @param {!DOMElement} $shadowBottom div .scroller-shadow.bottom
      * @param {boolean} isPositionFixed When using absolute position, top remains at 0.
      */
     function _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed) {
         var offsetTop           = 0,
             scrollElement       = $scrollElement.get(0),
             scrollTop           = scrollElement.scrollTop,
-            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0);
+            topShadowOffset     = Math.min(scrollTop - SCROLL_SHADOW_HEIGHT, 0),
+            sidebarWidth        = $(".sidebar").width();
         
         if ($shadowTop) {
             $shadowTop.css("background-position", "0px " + topShadowOffset + "px");
@@ -74,6 +75,7 @@ define(function (require, exports, module) {
                 offsetTop = $displayElement.offset().top;
                 $shadowTop.css("top", offsetTop);
             }
+            $shadowTop.css("width", sidebarWidth);
         }
         
         if ($shadowBottom) {
@@ -89,14 +91,15 @@ define(function (require, exports, module) {
     
             $shadowBottom.css("background-position", "0px " + bottomShadowOffset + "px");
             $shadowBottom.css("top", offsetTop + outerHeight - SCROLL_SHADOW_HEIGHT);
+            $shadowBottom.css("width", sidebarWidth);
         }
     }
 
     function getOrCreateShadow($displayElement, position, isPositionFixed) {
-        var $findShadow = $displayElement.find(".scrollerShadow." + position);
+        var $findShadow = $displayElement.find(".scroller-shadow." + position);
 
         if ($findShadow.length === 0) {
-            $findShadow = $(document.createElement("div")).addClass("scrollerShadow " + position);
+            $findShadow = $(window.document.createElement("div")).addClass("scroller-shadow " + position);
             $displayElement.append($findShadow);
         }
         
@@ -137,15 +140,15 @@ define(function (require, exports, module) {
             _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed);
         };
         
-        $scrollElement.on("scroll.scrollerShadow", doUpdate);
-        $displayElement.on("contentChanged.scrollerShadow", doUpdate);
+        $scrollElement.on("scroll.scroller-shadow", doUpdate);
+        $displayElement.on("contentChanged.scroller-shadow", doUpdate);
         
         // update immediately
         doUpdate();
     }
     
     /**
-     * Remove scrollerShadow effect.
+     * Remove scroller-shadow effect.
      * @param {!DOMElement} displayElement the DOMElement that displays the shadow
      * @param {?Object} scrollElement the object that is scrolled
      */
@@ -157,13 +160,13 @@ define(function (require, exports, module) {
         var $displayElement = $(displayElement),
             $scrollElement = $(scrollElement);
         
-        // remove scrollerShadow elements from DOM
-        $(displayElement).find(".scrollerShadow.top").remove();
-        $(displayElement).find(".scrollerShadow.bottom").remove();
+        // remove scroller-shadow elements from DOM
+        $(displayElement).find(".scroller-shadow.top").remove();
+        $(displayElement).find(".scroller-shadow.bottom").remove();
         
         // remove event handlers
-        $scrollElement.off("scroll.scrollerShadow");
-        $displayElement.off("contentChanged.scrollerShadow");
+        $scrollElement.off("scroll.scroller-shadow");
+        $displayElement.off("contentChanged.scroller-shadow");
     }
     
     /** 
@@ -186,7 +189,7 @@ define(function (require, exports, module) {
             showTriangle = true;
         
         // build selectionMarker and position absolute within the scroller
-        $selectionMarker = $(document.createElement("div")).addClass("sidebarSelection");
+        $selectionMarker = $(window.document.createElement("div")).addClass("sidebar-selection");
         $scrollerElement.prepend($selectionMarker);
         
         // enable scrolling
@@ -196,7 +199,8 @@ define(function (require, exports, module) {
         $scrollerElement.css("position", "relative");
         
         // build selectionTriangle and position fixed to the window
-        $selectionTriangle = $(document.createElement("div")).addClass("sidebarSelectionTriangle");
+        $selectionTriangle = $(window.document.createElement("div")).addClass("sidebar-selection-triangle");
+        
         $fileSection.append($selectionTriangle);
         
         selectedClassName = "." + (selectedClassName || "selected");
@@ -212,19 +216,18 @@ define(function (require, exports, module) {
                 triangleTop = selectionMarkerOffset.top;
             
             $selectionTriangle.css("top", triangleTop);
-            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
-            $selectionTriangle.toggleClass("triangleVisible", showTriangle);
             
-            if (showTriangle) {
-                var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
-                    triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
-                
-                if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
-                    $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
-                                               (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
-                } else {
-                    $selectionTriangle.css("clip", "");
-                }
+            $selectionTriangle.css("left", $fileSection.width() - $selectionTriangle.outerWidth());
+            $selectionTriangle.toggleClass("triangle-visible", showTriangle);
+            
+            var triangleClipOffsetYBy = Math.floor((selectionMarkerHeight - triangleHeight) / 2),
+                triangleBottom = triangleTop + triangleHeight + triangleClipOffsetYBy;
+            
+            if (triangleTop < scrollerTop || triangleBottom > scrollerBottom) {
+                $selectionTriangle.css("clip", "rect(" + Math.max(scrollerTop - triangleTop - triangleClipOffsetYBy, 0) + "px, auto, " +
+                                           (triangleHeight - Math.max(triangleBottom - scrollerBottom, 0)) + "px, auto)");
+            } else {
+                $selectionTriangle.css("clip", "");
             }
         };
         
@@ -263,9 +266,9 @@ define(function (require, exports, module) {
                 
                 // update scrollTop to reveal the selected list item
                 if (selectionMarkerTop >= currentScrollBottom) {
-                    scrollerElement.scrollTop = Math.max(0, selectionMarkerTop + selectionMarkerHeight - scrollerHeight);
+                    $listItem.get(0).scrollIntoView(false);
                 } else if (selectionMarkerBottom <= scrollerElement.scrollTop) {
-                    scrollerElement.scrollTop = selectionMarkerTop;
+                    $listItem.get(0).scrollIntoView(true);
                 }
             }
         };
@@ -294,7 +297,6 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
-    
     exports.updateChildrenToParentScrollwidth = updateChildrenToParentScrollwidth;
     exports.addScrollerShadow = addScrollerShadow;
     exports.removeScrollerShadow = removeScrollerShadow;

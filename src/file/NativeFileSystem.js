@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $: false, define: false, brackets: false, FileError: false, InvalidateStateError: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
+/*global $, define, brackets, FileError, InvalidateStateError */
 
 define(function (require, exports, module) {
     'use strict';
@@ -609,7 +609,7 @@ define(function (require, exports, module) {
                         }
                     });
                     
-                    return deferred;
+                    return deferred.promise();
                 }, true);
 
                 // We want the error callback to get called after some timeout (in case some deferreds don't return).
@@ -709,7 +709,7 @@ define(function (require, exports, module) {
         var self = this;
 
         if (!encoding) {
-            encoding = "utf-8";
+            encoding = "utf8";
         }
 
         if (this.readyState === this.LOADING) {

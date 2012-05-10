@@ -264,6 +264,18 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should also open a class selector", function () {
+                initInlineTest("test1.html", 7);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[1]);
+                });
+            });
+            
             it("should open an id selector", function () {
                 initInlineTest("test1.html", 2);
                 
