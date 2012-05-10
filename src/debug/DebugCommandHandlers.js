@@ -111,6 +111,12 @@ define(function (require, exports, module) {
                 backdrop: "static",
                 show: true
             });
+
+        // Select the raw perf data field on click since select all doesn't 
+        // work outside of the editor
+        $("#brackets-perf-raw-data").click(function () {
+            $(this).focus().select();
+        });
     }
     
     function _handleNewBracketsWindow() {

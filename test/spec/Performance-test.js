@@ -80,7 +80,6 @@ define(function (require, exports, module) {
         
         afterEach(function () {
             JSLintUtils.setEnabled(jsLintPrevSetting);
-            console.log(PerfUtils.getDelimitedPerfData());
             CommandManager.execute(Commands.DEBUG_SHOW_PERF_DATA);
         });
         
