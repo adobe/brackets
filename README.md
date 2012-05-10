@@ -44,6 +44,10 @@ The native shell for Brackets lives in a separate repo,
 [adobe/brackets-app](https://github.com/adobe/brackets-app/), which includes 
 this repo as a submodule.
 
+The Brackets native shell currently runs on Mac and Windows. Since it's based on 
+CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
+been done yet. Stay tuned.
+
 You can download "stable" builds of Brackets from the
 [downloads page](http://github.com/adobe/brackets/downloads).
 If you want to pull the repos directly via git, see 
