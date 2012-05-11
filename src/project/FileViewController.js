@@ -76,11 +76,11 @@ define(function (require, exports, module) {
       * Update the file selection focus when ever the current document changes
       */
     $(DocumentManager).on("currentDocumentChange", function (event) {
-
+        var perfTimerName;
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
-            var perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
+            perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
             if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
