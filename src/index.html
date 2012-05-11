@@ -59,7 +59,8 @@
 <body>
     <!-- Main UI -->
     <div class="main-view">
-        <div class="sidebar quiet-scrollbars">
+        <div id="sidebar-resizer"></div>
+        <div id="sidebar" class="sidebar quiet-scrollbars">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-header"></div>
@@ -125,6 +126,7 @@
                             <li><hr class="divider"></li>
                             <li><a href="#" id="menu-edit-replace">Replace</a></li>
                             <li><hr class="divider"></li>
+                            <li><a href="#" id="menu-edit-duplicate">Duplicate</a></li>
                             <li><a href="#" id="menu-edit-line-comment">Comment/Uncomment Lines</a></li>
                         </ul>
                     </li>
@@ -147,8 +149,8 @@
                         <a href="#" class="dropdown-toggle">Navigate</a>
                         <ul class="dropdown-menu">
                             <li><a href="#" id="menu-navigate-quick-open">Quick Open</a></li>
-                            <li><a href="#" id="menu-navigate-go-to-line">Go to Line</a></li>
-                            <li><a href="#" id="menu-navigate-go-to-symbol">Go to Symbol</a></li>
+                            <li><a href="#" id="menu-navigate-goto-line">Go to Line</a></li>
+                            <li><a href="#" id="menu-navigate-goto-definition">Go to Symbol</a></li>
                             <li><hr class="divider"></li>
                             <li><a href="#" id="menu-navigate-quick-edit">Quick Edit</a></li>
                             <li><a href="#" id="menu-navigate-previous-match">Previous Match</a></li>
@@ -160,7 +162,7 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle">Debug</a>
                         <ul class="dropdown-menu">
-                            <li><a href="#" id="menu-debug-refresh-window">Reload Brackets</a></li>
+                            <li><a href="#" id="menu-debug-refresh-window">Reload Window</a></li>
                             <li><a href="#" id="menu-debug-show-developer-tools">Show Developer Tools</a></li>
                             <li><a href="#" id="menu-debug-runtests">Run Tests</a></li>
                             <li><a href="#" id="menu-debug-jslint" class="selected">Enable JSLint</a></li>
@@ -191,20 +193,20 @@
                 </div>
             </div>
             
-            <div id="editorHolder">
-                <div id="notEditor">
-                    <div id="notEditorContent">[&nbsp;&nbsp;]</div>
+            <div id="editor-holder">
+                <div id="not-editor">
+                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>
                 </div>
             </div>
             
-            <div id="jslint-results">
-                <div class="toolbar simpleToolbarLayout">
+            <div id="jslint-results" class="bottom-panel">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">JSLint errors</div>
                 </div>
                 <div class="table-container"></div>
             </div>
-            <div id="search-results">
-                <div class="toolbar simpleToolbarLayout">
+            <div id="search-results" class="bottom-panel">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">Search Results</div>
                     <div class="title" id="search-result-summary"></div>
                     <a href="#" class="close">&times;</a>

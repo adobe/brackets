@@ -709,7 +709,7 @@ define(function (require, exports, module) {
         var self = this;
 
         if (!encoding) {
-            encoding = "utf-8";
+            encoding = "utf8";
         }
 
         if (this.readyState === this.LOADING) {

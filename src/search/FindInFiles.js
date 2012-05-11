@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager");
 
-    // This dialog class was mostly copied from QuickFileOpen. We should have a common dialog
+    // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
     
     /**
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
     */
     FindInFilesDialog.prototype._createDialogDiv = function (template) {
         // FUTURE: consider using jQuery for all the DOM manipulation here
-        var wrap = $("#editorHolder")[0];
+        var wrap = $("#editor-holder")[0];
         this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div>' + template + '</div>';

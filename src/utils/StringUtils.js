@@ -21,20 +21,27 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
+/**
+ *	Utilities functions related to string manipulation
+ *
+ */
 define(function (require, exports, module) {
     'use strict';
-    
-    var Commands                = require("command/Commands"),
-        CommandManager          = require("command/CommandManager"),
-        SidebarView             = require("project/SidebarView"),
-        ProjectManager          = require("project/ProjectManager");
-    
-    function _handleHideSidebar() {
-        SidebarView.toggleSidebar();
+
+    function htmlEscape(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
-    
-    CommandManager.register(Commands.VIEW_HIDE_SIDEBAR, _handleHideSidebar);
+
+    function regexEscape(str) {
+        return (str+'').replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    }
+
+    exports.htmlEscape = htmlEscape;
+    exports.regexEscape = regexEscape;
+
 });

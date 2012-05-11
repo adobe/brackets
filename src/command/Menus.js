@@ -69,6 +69,8 @@ define(function (require, exports, module) {
 
         // Navigate
         "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
+        "menu-navigate-goto-line": Commands.NAVIGATE_GOTO_LINE,
+        "menu-navigate-goto-definition": Commands.NAVIGATE_GOTO_DEFINITION,
         "menu-navigate-quick-edit": Commands.SHOW_INLINE_EDITOR,
         "menu-navigate-next-match": Commands.QUICK_EDIT_NEXT_MATCH,
         "menu-navigate-previous-match": Commands.QUICK_EDIT_PREV_MATCH,
@@ -137,11 +139,22 @@ define(function (require, exports, module) {
             }
         }
 
-        // Prevent clicks on the top-level menu bar from taking focus
-        // Note, bootstrap handles this already for the menu drop downs 
-        $("#main-toolbar .dropdown").mousedown(function (e) {
-            e.preventDefault();
-        });
+        $("#main-toolbar .dropdown")
+            // Prevent clicks on the top-level menu bar from taking focus
+            // Note, bootstrap handles this already for the menu drop downs 
+            .mousedown(function (e) {
+                e.preventDefault();
+            })
+            // Switch menus when the mouse enters an adjacent menu
+            // Only open the menu if another one has already been opened
+            // by clicking
+            .mouseenter(function (e) {
+                var open = $(this).siblings(".open");
+                if (open.length > 0) {
+                    open.removeClass("open");
+                    $(this).addClass("open");
+                }
+            });
 
 // Other debug menu items
 //            $("#menu-debug-wordwrap").click(function() {

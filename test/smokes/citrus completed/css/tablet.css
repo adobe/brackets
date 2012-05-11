@@ -3,7 +3,7 @@
 	width:700px;
 }
 #logo {
-	background-image:url(../../images/med_logo.png);
+	background-image:url(../images/med_logo.png);
 	height:100px;
 }
 nav {
@@ -21,7 +21,7 @@ nav ul a {
 	width: 700px;
 }
 #vision {
-	background-image:url(../../images/med_hero.jpg);
+	background-image:url(../images/med_hero.jpg);
 	width: 289px;
 	height:217px;
 	padding-top:45px;
