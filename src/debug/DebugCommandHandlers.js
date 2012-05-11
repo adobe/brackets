@@ -139,15 +139,13 @@ define(function (require, exports, module) {
         $("#menu-debug-jslint").toggleClass("selected", enabled);
     }
     
-    (function (){
-        // update menu item
-        $(JSLintUtils).on("enabledChanged", function (event, enabled) {
-            _updateJSLintMenuItem(enabled);
-        });
-        
-        // initialize menu
-        _updateJSLintMenuItem(JSLintUtils.getEnabled());
-    }());
+    // update menu item when enabled state changes
+    $(JSLintUtils).on("enabledChanged", function (event, enabled) {
+        _updateJSLintMenuItem(enabled);
+    });
+    
+    // initialize menu immediately
+    _updateJSLintMenuItem(JSLintUtils.getEnabled());
     
     // Register all the command handlers
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
