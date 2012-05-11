@@ -52,13 +52,14 @@ define(function (require, exports, module) {
         var currentDoc = DocumentManager.getCurrentDocument();
         
         var perfTimerDOM,
-            perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
+            perfTimerLint;
 
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
         var $lintResults = $("#jslint-results");
         var $goldStar = $("#gold-star");
         
         if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
+            perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
             
             // If a line contains only whitespace, remove the whitespace
