@@ -429,7 +429,7 @@ define(function (require, exports, module) {
         var displayName;
         if (query.length > 0) {
             // make the users query bold within the item's text
-            item = item.replace(
+            displayName = item.replace(
                 new RegExp(StringUtils.regexEscape(query), "gi"),
                 "<strong>$&</strong>"
             );
