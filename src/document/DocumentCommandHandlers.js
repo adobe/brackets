@@ -93,6 +93,7 @@ define(function (require, exports, module) {
     
     function handleCurrentDocumentChange() {
         var newDocument = DocumentManager.getCurrentDocument();
+        var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
@@ -107,6 +108,8 @@ define(function (require, exports, module) {
         
         // Update title text & "dirty dot" display
         updateTitle();
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     function handleDirtyChange(event, changedDoc) {
@@ -133,9 +136,9 @@ define(function (require, exports, module) {
             return promise;
         }
         
-        PerfUtils.markStart("Open File: " + fullPath);
+        var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
         result.always(function () {
-            PerfUtils.addMeasurement("Open File: " + fullPath);
+            PerfUtils.addMeasurement(perfTimerName);
         });
         
         // Load the file if it was never open before, and then switch to it in the UI
