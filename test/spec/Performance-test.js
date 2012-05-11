@@ -96,9 +96,10 @@ define(function (require, exports, module) {
                 openFile(testPath + "example-data.js");
                 openFile(testPath + "sink.css");
                 openFile(testPath + "England(Chinese).htm");
-                openFile(testPath + "jquery.mobile-1.0b2.min.css");
                 openFile(testPath + "jquery.mobile-1.1.0.css");
-                openFile(testPath + "jquery.mobile-1.0b2.min.js");
+                openFile(testPath + "jquery.mobile-1.1.0.min.css");
+                openFile(testPath + "jquery.mobile-1.1.0.js");
+                openFile(testPath + "jquery.mobile-1.1.0.min.js");
                 CommandManager.execute(Commands.FILE_CLOSE_ALL);
             }
         });
