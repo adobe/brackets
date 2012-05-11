@@ -106,30 +106,30 @@ define(function (require, exports, module) {
                 if ($.isArray(keyCmd)) {
                     keys = keyCmd;
                 } else {
-                    keys = [{keyCmd: "all"}];
+                    var map = {};
+                    map[keyCmd] = commandStr;
+                    keys = [map];
                 }
 
                 // todo normal keycmd
-                var key;
-                for (key in keys) {
-                    if (keys.hasOwnProperty(key)) {
-                        
-                        // Convert normalized key representation to display appropriate for platform
-                        var shortcut;
-                        if (brackets.platform === "mac") {
-                            shortcut = key.replace(/-/g, "");        // remove dashes
-                            shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-                            shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
-                            shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
-                        } else {
-                            shortcut = key.replace(/-/g, "+");
-                        }
-
-                        newItem.find("a").append("<span class='menu-shortcut'>" + shortcut + "</span>");
+                var key, i;
+                for (i = 0; i < keys.length; i++) {
+                    key = keys[i];                        
+                    // Convert normalized key representation to display appropriate for platform
+                    var shortcut;
+                    if (brackets.platform === "mac") {
+                        shortcut = key.replace(/-/g, "");        // remove dashes
+                        shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+                        shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
+                        shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
+                    } else {
+                        shortcut = key.replace(/-/g, "+");
                     }
+
+                    newItem.find("a").append("<span class='menu-shortcut'>" + shortcut + "</span>");
                 }
 
-                
+                //KeyBindingManager.addKeys( KeyMap.Create
             }
             
         }
@@ -153,8 +153,8 @@ define(function (require, exports, module) {
 
 
     createMenu("debugnew")
-        .createMenuItem("Refresh Window",   [{"F5": "win"},
-                                            {"Ctrl-R": "mac"}],
+        .createMenuItem("Refresh Window",   [{"F5":     "win"},
+                                            {"Ctrl-R":  "mac"}],
                                                             Commands.DEBUG_REFRESH_WINDOW);
 
     
