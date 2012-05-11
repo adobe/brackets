@@ -77,14 +77,18 @@ define(function (require, exports, module) {
         
         var getValue = function (entry) {
             // entry is either an Array or a number
-            // If it is an Array, return the average value
             if (Array.isArray(entry)) {
-                var i, sum = 0;
+                // For Array of values, return: minimum/average/maximum/last
+                var i, e, avg, sum = 0, min = Number.MAX_VALUE, max = 0;
                 
                 for (i = 0; i < entry.length; i++) {
-                    sum += entry[i];
+                    e = entry[i];
+                    min = Math.min(min, e);
+                    sum += e;
+                    max = Math.max(max, e);
                 }
-                return String(Math.floor(sum / entry.length)) + " (avg)";
+                avg = Math.round(sum / entry.length);
+                return String(min) + "/" + String(avg) + "/" + String(max) + "/" + String(e);
             } else {
                 return entry;
             }

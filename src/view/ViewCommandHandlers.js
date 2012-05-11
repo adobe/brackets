@@ -29,46 +29,11 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        SidebarView             = require("project/SidebarView"),
         ProjectManager          = require("project/ProjectManager");
     
-    /* TODO: Support arbitrary widths with grabber
-        When the new theme lands with the CSS, potentially
-        adjust how this is done. */
-    function _handleHideSidebar(sidebarWidth) {
-        var $sidebar = $(".sidebar");
-        var $sidebarResizer = $("#sidebar-resizer");
-        
-        // if we specify a width with the handler call, use that. Otherwise use
-        // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
-        sidebarWidth = sidebarWidth || Math.max(parseInt($sidebar.width(), 10), 200);
-        
-        if (ProjectManager.getSidebarState() === ProjectManager.SIDEBAR_CLOSED) {
-            $sidebar.width(sidebarWidth);
-            
-            $sidebarResizer.css("left", sidebarWidth - 1);
-            
-            ProjectManager.setSidebarState(ProjectManager.SIDEBAR_OPEN);
-            $sidebar.show();
-            
-            // the following three lines help resize things when the sidebar shows
-            // but ultimately these should go into ProjectManager.js with a "notify" 
-            // event that we can just call from anywhere instead of hard-coding it.
-            // waiting on a ProjectManager refactor to add that. 
-            $(".sidebarSelection").width(sidebarWidth);
-            $("#project-files-container").trigger("scroll");
-            $("#open-files-container").trigger("scroll");
-
-            // reset the menu text
-            $("#menu-view-hide-sidebar span").first().text("Hide Sidebar");
-        } else {
-            $sidebarResizer.css("left", 0);
-            ProjectManager.setSidebarState(ProjectManager.SIDEBAR_CLOSED);
-            $sidebar.hide();
-            
-            // reset the menu text
-            $("#menu-view-hide-sidebar span").first().text("Show Sidebar");
-        }
-        
+    function _handleHideSidebar() {
+        SidebarView.toggleSidebar();
     }
     
     CommandManager.register(Commands.VIEW_HIDE_SIDEBAR, _handleHideSidebar);

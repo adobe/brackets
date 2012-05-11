@@ -60,7 +60,7 @@
     <!-- Main UI -->
     <div class="main-view">
         <div id="sidebar-resizer"></div>
-        <div class="sidebar quiet-scrollbars">
+        <div id="sidebar" class="sidebar quiet-scrollbars">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-header"></div>
@@ -193,20 +193,20 @@
                 </div>
             </div>
             
-            <div id="editorHolder">
-                <div id="notEditor">
-                    <div id="notEditorContent">[&nbsp;&nbsp;]</div>
+            <div id="editor-holder">
+                <div id="not-editor">
+                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>
                 </div>
             </div>
             
             <div id="jslint-results" class="bottom-panel">
-                <div class="toolbar simpleToolbarLayout">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">JSLint errors</div>
                 </div>
                 <div class="table-container"></div>
             </div>
             <div id="search-results" class="bottom-panel">
-                <div class="toolbar simpleToolbarLayout">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">Search Results</div>
                     <div class="title" id="search-result-summary"></div>
                     <a href="#" class="close">&times;</a>

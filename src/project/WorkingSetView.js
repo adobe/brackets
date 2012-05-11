@@ -46,8 +46,8 @@ define(function (require, exports, module) {
      *  Use listItem.data(_FILE_KEY) to get the document reference
      */
     var _FILE_KEY = "file",
-        $openFilesContainer = $("#open-files-container"),
-        $openFilesList = $openFilesContainer.find("ul");
+        $openFilesContainer,
+        $openFilesList;
     
     /**
      * @private
@@ -65,14 +65,13 @@ define(function (require, exports, module) {
      * @private
      * Shows/Hides open files list based on working set content.
      */
-    function _updateOpenFilesContainer() {
+    function _redraw() {
         if (DocumentManager.getWorkingSet().length === 0) {
             $openFilesContainer.hide();
         } else {
             $openFilesContainer.show();
         }
         
-        ViewUtils.updateChildrenToParentScrollwidth($openFilesContainer);
         _fireSelectionChanged();
     }
     
@@ -109,7 +108,7 @@ define(function (require, exports, module) {
         if ($fileStatusIcon) {
             // cast to Boolean needed because toggleClass() distinguishes true/false from truthy/falsy
             $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
-            $fileStatusIcon.toggleClass("canClose", Boolean(canClose));
+            $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
         }
     }
     
@@ -179,7 +178,7 @@ define(function (require, exports, module) {
             _createNewListItem(file);
         });
 
-        _updateOpenFilesContainer();
+        _redraw();
     }
     
     /** 
@@ -206,7 +205,7 @@ define(function (require, exports, module) {
      */
     function _handleFileAdded(file) {
         _createNewListItem(file);
-        _updateOpenFilesContainer();
+        _redraw();
     }
     
     /** 
@@ -215,8 +214,6 @@ define(function (require, exports, module) {
     function _handleDocumentSelectionChange() {
         _updateListSelection();
     }
-
-
 
     /** 
      * Finds the listItem item assocated with the file. Returns null if not found.
@@ -252,7 +249,7 @@ define(function (require, exports, module) {
             $listItem.remove();
         }
 
-        _updateOpenFilesContainer();
+        _redraw();
     }
 
     /** 
@@ -262,40 +259,41 @@ define(function (require, exports, module) {
     function _handleDirtyFlagChanged(doc) {
         var listItem = _findListItemFromFile(doc.file);
         if (listItem) {
-            var canClose = $(listItem).find("canClose").length === 1;
+            var canClose = $(listItem).find("can-close").length === 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
 
     }
-    
-    // Initialize: register listeners
-    $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
-        //console.log("Working set ++ " + addedFile);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
-        _handleFileAdded(addedFile);
-    });
 
-    $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
-        //console.log("Working set -- " + removedFile);
-        //console.log("  set: " + DocumentManager.getWorkingSet().join());
-        _handleFileRemoved(removedFile);
-    });
-
-    $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
-        //console.log("Dirty flag change: " + doc);
-        _handleDirtyFlagChanged(doc);
-    });
-
-    $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
-        _handleDocumentSelectionChange();
+    function create(element) {
+        // Init DOM element
+        $openFilesContainer = element;
+        $openFilesList = $openFilesContainer.find("ul");
         
-        // redraw shadows
-        _fireSelectionChanged();
-    });
-
-    _updateOpenFilesContainer();
-
-    // Show scroller shadows when open-files-container scrolls
-    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
-    ViewUtils.sidebarList($openFilesContainer);
+        // Register listeners
+        $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
+            _handleFileAdded(addedFile);
+        });
+    
+        $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
+            _handleFileRemoved(removedFile);
+        });
+    
+        $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
+            _handleDirtyFlagChanged(doc);
+        });
+    
+        $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
+            _handleDocumentSelectionChange();
+            _fireSelectionChanged();
+        });
+        
+        // Show scroller shadows when open-files-container scrolls
+        ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+        ViewUtils.sidebarList($openFilesContainer);
+        
+        _redraw();
+    }
+    
+    exports.create = create;
 });
