@@ -82,6 +82,12 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * @type {DirectoryEntry}
+     */
+    var _currentProject = null;
+    
+    /**
+     * @private
      * @see DocumentManager.getCurrentDocument()
      */
     var _currentDocument = null;
@@ -677,6 +683,10 @@ define(function (require, exports, module) {
      * Preferences callback. Saves the document file paths for the working set.
      */
     function _savePreferences() {
+        if (!_currentProject) {
+            return;
+        }
+        
         // save the working set file paths
         var files       = [],
             isActive    = false,
@@ -693,23 +703,31 @@ define(function (require, exports, module) {
             });
         });
 
-        _prefs.setValue("files", files);
+        // save working set for the current project
+        var projects = _prefs.getValue("projects");
+        projects[_currentProject.fullPath] = {
+            files: files
+        };
+        
+        _prefs.setValue("projects", projects);
     }
 
     /**
      * @private
-     * Initializes the working set.
+     * Initializes the working set for the specified project
      */
-    function _init() {
-        var prefs = _prefs.getAllValues();
+    function _initProject(projectRoot) {
+        var filesToOpen         = [],
+            activeFile          = null,
+            prefs               = _prefs.getAllValues(),
+            currentProjectPrefs = prefs.projects[projectRoot.fullPath];
 
-        if (!prefs.files) {
+        if (!(currentProjectPrefs && currentProjectPrefs.files)) {
             return;
         }
-
-        var projectRoot = ProjectManager.getProjectRoot(),
-            filesToOpen = [],
-            activeFile;
+        
+        // update projectRoot
+        _currentProject = projectRoot;
 
         // in parallel, check if files exist
         // TODO: (issue #298) delay this check until it becomes the current document?
@@ -717,7 +735,7 @@ define(function (require, exports, module) {
             var oneFileResult = new $.Deferred();
             
             // check if the file still exists; silently drop from working set if it doesn't
-            projectRoot.getFile(value.file, {},
+            _currentProject.getFile(value.file, {},
                 function (fileEntry) {
                     // maintain original sequence
                     filesToOpen[index] = fileEntry;
@@ -735,7 +753,7 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
 
-        var result = Async.doInParallel(prefs.files, checkOneFile, false);
+        var result = Async.doInParallel(currentProjectPrefs.files, checkOneFile, false);
 
         result.done(function () {
             // Add all existing files to the working set
@@ -757,6 +775,36 @@ define(function (require, exports, module) {
     }
 
 
+    // Setup preferences
+    var defaults = {
+        projects: {
+            /*
+            [project_fullPath]: {
+                files: [
+                    { file: fullPath, active: true|false }
+                ]
+            }
+            */
+        }
+    };
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+    // Initialize after ProjectManager is loaded
+    $(ProjectManager).on("initializeComplete projectRootChanged", function (event, projectRoot) {
+        // disable auto-saving preferences when changing projects
+        $(exports).off("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
+        
+        // save the previous project before loading the new one
+        _savePreferences();
+
+        // close editors, clear out working set
+        closeAll();
+     
+        _initProject(projectRoot);
+    
+        $(exports).on("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
+    });
+
     // Define public API
     exports.Document = Document;
     exports.getCurrentDocument = getCurrentDocument;
@@ -770,13 +818,4 @@ define(function (require, exports, module) {
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
-
-    // Setup preferences
-    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
-
-    // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("initializeComplete", function (event, projectRoot) {
-        _init();
-    });
 });

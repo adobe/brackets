@@ -205,10 +205,17 @@ define(function (require, exports, module) {
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
-        var storage = {};
+        // skip if there isn't an open project
+        if (!_projectRoot) {
+            return;
+        }
+        
+        var currentProjectPrefs = {},
+            allProjectPrefs     = _prefs.getValue("projects");
         
         // save the current project
-        storage.projectPath = _projectRoot.fullPath;
+        _prefs.setValue("currentProject", _projectRoot.fullPath);
+        allProjectPrefs[_projectRoot.fullPath] = currentProjectPrefs;
 
         // save jstree state
         var openNodes = [],
@@ -242,9 +249,8 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        storage.projectTreeState = openNodes;
-        
-        _prefs.setAllValues(storage);
+        currentProjectPrefs.projectTreeState = openNodes;
+        _prefs.setValue("projects", allProjectPrefs);
     }
     
     /**
@@ -552,6 +558,9 @@ define(function (require, exports, module) {
      *  fails to load.
      */
     function loadProject(rootPath) {
+        // save current project
+        _savePreferences();
+        
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
@@ -562,10 +571,8 @@ define(function (require, exports, module) {
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
-            rootPath = prefs.projectPath;
+            rootPath = prefs.currentProject;
             isFirstProjectOpen = true;
-
-            _projectInitialLoad.previous = prefs.projectTreeState;
 
             if (brackets.inBrowser) {
                 // In browser: dummy folder tree (hardcoded in ProjectManager)
@@ -586,6 +593,9 @@ define(function (require, exports, module) {
 
                     // Success!
                     _projectRoot = rootEntry;
+                    
+                    var projectPrefs = prefs.projects[_projectRoot.fullPath];
+                    _projectInitialLoad.previous = (projectPrefs) ? projectPrefs.projectTreeState : [];
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -651,9 +661,6 @@ define(function (require, exports, module) {
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
-                            // Actually close all the old files now that we know for sure we're proceeding
-                            DocumentManager.closeAll();
-                            
                             // Load the new project into the folder tree
                             loadProject(files[0]);
                         }
@@ -859,9 +866,18 @@ define(function (require, exports, module) {
 
     // Initialize now
     (function () {
+        /* initialze to brackets source */
+        var defaultProject  = _getDefaultProjectPath(),
+            projects        = {};
+        
+        // Each project entry records it's last known tree state
+        projects[defaultProject] = {
+            projectTreeState: []
+        };
+        
         var defaults = {
-            projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
-            projectTreeState: ""
+            currentProject  : defaultProject,
+            projects        : projects
         };
         
         // Init PreferenceStorage

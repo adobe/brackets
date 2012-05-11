@@ -61,12 +61,21 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager"),
-        Commands         = require("command/Commands"),
-        CommandManager   = require("command/CommandManager"),
-        TextRange        = require("document/TextRange").TextRange,
-        ViewUtils        = require("utils/ViewUtils");
+    var EditorManager       = require("editor/EditorManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
+        TextRange           = require("document/TextRange").TextRange,
+        ViewUtils           = require("utils/ViewUtils"),
+        Async               = require("utils/Async");
     
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "brackets/editor/Editor";
+    
+    /** @type {PreferenceStorage} */
+    var _prefs = null;
 
     /**
      * @private
@@ -401,6 +410,16 @@ define(function (require, exports, module) {
                 return this._codeMirror.scrollPos().y;
             }
         });
+        
+        // restore cursor position for master editors
+        if (makeMasterEditor) {
+            var cursors = _prefs.getValue("cursors"),
+                pos = cursors[document.file.fullPath];
+            
+            if (pos) {
+                this.setCursorPos(pos.line, pos.ch);
+            }
+        }
     }
     
     /**
@@ -580,6 +599,16 @@ define(function (require, exports, module) {
         $(this).triggerHandler("lostContent");
     };
     
+    /**
+     * @private
+     * Save the current cursor position for this Editor's file.
+     */
+    Editor.prototype._saveCursorPos = function () {
+        // Save the curosr position
+        var cursors = _prefs.getValue("cursors");
+        cursors[this.document.file.fullPath] = this.getCursorPos();
+        _prefs.setValue("cursors", cursors);
+    };
     
     /**
      * Install singleton event handlers on the CodeMirror instance, translating them into multi-
@@ -587,6 +616,7 @@ define(function (require, exports, module) {
      */
     Editor.prototype._installEditorListeners = function () {
         var self = this;
+        var _saveCursorPosDebounce = Async.debounce(this._saveCursorPos.bind(this), 500);
         
         // FUTURE: if this list grows longer, consider making this a more generic mapping
         // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
@@ -599,7 +629,12 @@ define(function (require, exports, module) {
             return false;   // false tells CodeMirror we didn't eat the event
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
+            _saveCursorPosDebounce(); // waits 500ms between events before saving
             $(self).triggerHandler("cursorActivity", [self]);
+        });
+        this._codeMirror.setOption("onBlur", function (instance) {
+            self._saveCursorPos();
+            $(self).triggerHandler("blur", [self]);
         });
         this._codeMirror.setOption("onScroll", function (instance) {
             $(self).triggerHandler("scroll", [self]);
@@ -997,6 +1032,11 @@ define(function (require, exports, module) {
         return _useTabChar;
     };
 
+    // Load preferences
+    var defaults = {
+        cursors: {}
+    };
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Commands.EDIT_FIND, _launchFind);

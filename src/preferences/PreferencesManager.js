@@ -60,6 +60,13 @@ define(function (require, exports, module) {
             // create a new empty preferences object
             prefs = (defaults && JSON.stringify(defaults)) ? defaults : {};
             prefStorage[clientID] = prefs;
+        } else {
+            // append new default values not found in storage
+            $.each(defaults, function (key, value) {
+                if (!prefs[key]) {
+                    prefs[key] = value;
+                }
+            });
         }
 
         return new PreferenceStorage(clientID, prefs);
