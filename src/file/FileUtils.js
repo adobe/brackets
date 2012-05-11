@@ -35,6 +35,8 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings");
     
+    var Encodings           = NativeFileSystem.Encodings;
+    
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
      * @return {$.Promise} a jQuery promise that will be resolved with the 
@@ -63,7 +65,7 @@ define(function (require, exports, module) {
                 result.reject(event.target.error);
             };
 
-            reader.readAsText(file, "utf8");
+            reader.readAsText(file, Encodings._IANAToNodeEncoding(Encodings.UTF8));
         });
 
         return result.promise();

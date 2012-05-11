@@ -134,7 +134,31 @@ define(function (require, exports, module) {
             return new NativeFileSystem.FileError(error);
         }
     };
-
+    
+    /** class: Encodings
+     *
+     * Static class that contains constants for file
+     * encoding types.
+     */
+    NativeFileSystem.Encodings = {};
+    NativeFileSystem.Encodings.UTF8 = "UTF-8";
+    
+    //NativeFileSystem.NodeEncodingsMap = {};
+    //NativeFileSystem.NodeEncodingsMap[NativeFileSystem.Encodings.UTF8] = "utf8";
+    
+    var Encodings = NativeFileSystem.Encodings;
+    
+    //todo: current encoding strings are case sensitive. Double check if they
+    //are supposed to be
+    Encodings._IANAToNodeEncoding = function (encoding) {
+        switch (encoding) {
+        case (NativeFileSystem.Encodings.UTF8):
+            return "utf8";
+        default:
+            return undefined;
+        }
+    };
+    
     /** class: Entry
      *
      * @param {string} name
@@ -272,7 +296,7 @@ define(function (require, exports, module) {
 
             var self = this;
 
-            brackets.fs.writeFile(fileEntry.fullPath, data, "utf8", function (err) {
+            brackets.fs.writeFile(fileEntry.fullPath, data, Encodings._IANAToNodeEncoding(Encodings.UTF8), function (err) {
 
                 if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
                     var fileError = NativeFileSystem._nativeToFileError(err);
@@ -317,7 +341,7 @@ define(function (require, exports, module) {
 
         // initialize file length
         var result = new $.Deferred();
-        brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+        brackets.fs.readFile(fileEntry.fullPath, Encodings._IANAToNodeEncoding(Encodings.UTF8), function (err, contents) {
             // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
             if (err !== brackets.fs.ERR_NOT_FOUND) {
                 fileWriter._err = err;
@@ -546,7 +570,7 @@ define(function (require, exports, module) {
 
                 // create the file
                 if (options.create) {
-                    brackets.fs.writeFile(fileFullPath, "", "utf8", function (err) {
+                    brackets.fs.writeFile(fileFullPath, "", Encodings._IANAToNodeEncoding(Encodings.UTF8), function (err) {
                         if (err) {
                             createFileError(err);
                         } else {
@@ -708,8 +732,10 @@ define(function (require, exports, module) {
     NativeFileSystem.FileReader.prototype.readAsText = function (blob, encoding) {
         var self = this;
 
+        encoding  = Encodings._IANAToNodeEncoding(encoding);
+        
         if (!encoding) {
-            encoding = "utf8";
+            encoding = Encodings._IANAToNodeEncoding(Encodings.UTF8);
         }
 
         if (this.readyState === this.LOADING) {
