@@ -97,7 +97,8 @@ define(function (require, exports, module) {
         // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
         var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
         var bracketsGitRoot = bracketsSrc + "/../../.git/";
-        var bracketsSubmoduleRoot = bracketsGitRoot + "modules/brackets/";
+        var bracketsSubmoduleRoot_inParent = bracketsGitRoot + "modules/brackets/";
+        var bracketsSubmoduleRoot_inSubmodule = bracketsSrc + "/../.git/";
         
         _loadSHA(bracketsGitRoot + "HEAD")
             .done(function (text) {
@@ -106,13 +107,12 @@ define(function (require, exports, module) {
         
         // brackets submodule metadata may be in brackets/.git OR a subfolder of brackets-app/.git,
         // so try both locations
-        _loadSHA(bracketsSubmoduleRoot + "HEAD")
+        _loadSHA(bracketsSubmoduleRoot_inSubmodule + "HEAD")
             .done(function (text) {
                 _bracketsSHA = text;
             })
             .fail(function () {
-                bracketsSubmoduleRoot = bracketsSrc + "/../.git/";
-                _loadSHA(bracketsSubmoduleRoot + "HEAD")
+                _loadSHA(bracketsSubmoduleRoot_inParent + "HEAD")
                     .done(function (text) {
                         _bracketsSHA = text;
                     });
