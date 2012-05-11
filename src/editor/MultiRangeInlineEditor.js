@@ -326,8 +326,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     *
-     *
+     * Set the size, position, and clip rect of the range list.
      */
     MultiRangeInlineEditor.prototype._updateRelatedContainer = function () {
         var borderThickness = (this.$htmlContent.outerHeight() - this.$htmlContent.innerHeight()) / 2;
