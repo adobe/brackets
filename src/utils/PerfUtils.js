@@ -22,13 +22,19 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define, brackets, $, window */
 
 /**
  * This is a collection of utility functions for gathering performance data.
  */
 define(function (require, exports, module) {
     'use strict';
+
+    /**
+     * Flag to enable/disable performance data gathering. Default is true (enabled)
+     * @type {boolean} enabled
+     */
+    var enabled = true;
     
     /**
      * Peformance data is stored in this hash object. The key is the name of the
@@ -60,7 +66,7 @@ define(function (require, exports, module) {
      */
     function _markStart(name, time) {
         if (activeTests[name]) {
-            throw new Error("Recursive tests with the same name are not supported.");
+            throw new Error("Recursive tests with the same name are not supported. Timer name: " + name);
         }
         
         activeTests[name] = { startTime: time };
@@ -75,8 +81,15 @@ define(function (require, exports, module) {
      * a unique name.
      *
      * @param {(string|Array.<string>)} name  Single name or an Array of names.
+     * @returns {string} timer name. Returned for convenience to store and use
+     *      for calling addMeasure(). Since name is often creating via concatenating
+     *      strings this return value allows clients to construct the name once.
      */
     function markStart(name) {
+        if (!enabled) {
+            return;
+        }
+
         var time = brackets.app.getElapsedMilliseconds();
 
         // Array of names can be passed in to have multiple timers with same start time
@@ -88,6 +101,8 @@ define(function (require, exports, module) {
         } else {
             _markStart(name, time);
         }
+
+        return name;
     }
     
     /**
@@ -102,6 +117,10 @@ define(function (require, exports, module) {
      * @param {string} name  Timer name.
      */
     function addMeasurement(name) {
+        if (!enabled) {
+            return;
+        }
+
         var elapsedTime = brackets.app.getElapsedMilliseconds();
         
         if (activeTests[name]) {
@@ -120,6 +139,9 @@ define(function (require, exports, module) {
         } else {
             perfData[name] = elapsedTime;
         }
+
+        // Real time logging
+        //console.log(name + " " + elapsedTime);
     }
 
     /**
@@ -199,10 +221,43 @@ define(function (require, exports, module) {
         return (activeTests[name]) ? true : false;
     }
 
+    /**
+      * Returns the performance data as a tab deliminted string
+      * @returns {string}
+      */
+    function getDelimitedPerfData() {
+        var getValue = function (entry) {
+            // return single value, or tab deliminted values for an array
+            if (Array.isArray(entry)) {
+                var i, values = "";
+                 
+                for (i = 0; i < entry.length; i++) {
+                    values += entry[i];
+                    if (i < entry.length - 1) {
+                        values += ", ";
+                    }
+                }
+                return values;
+            } else {
+                return entry;
+            }
+        };
+
+        var testName,
+            index,
+            result = "";
+        $.each(perfData, function (testName, entry) {
+            result += getValue(entry) + "\t" + testName + "\n";
+        });
+
+        return result;
+    }
+
     exports.addMeasurement          = addMeasurement;
     exports.finalizeMeasurement     = finalizeMeasurement;
     exports.isActive                = isActive;
     exports.markStart               = markStart;
     exports.perfData                = perfData;
     exports.updateMeasurement       = updateMeasurement;
+    exports.getDelimitedPerfData    = getDelimitedPerfData;
 });
