@@ -97,6 +97,11 @@ define(function (require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
     
     /**
      * @private
@@ -166,11 +171,6 @@ define(function (require, exports, module) {
         
         _redraw(true);
     };
-
-    /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
