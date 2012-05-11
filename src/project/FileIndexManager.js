@@ -295,13 +295,13 @@ define(function (require, exports, module) {
 
         var rootDir = ProjectManager.getProjectRoot();
         if (_indexListDirty) {
-            PerfUtils.markStart("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
+            var perfTimerName = PerfUtils.markStart("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
 
             _clearIndexes();
 
             return _scanDirectorySubTree(rootDir)
                 .done(function () {
-                    PerfUtils.addMeasurement("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
+                    PerfUtils.addMeasurement(perfTimerName);
                     _indexListDirty = false;
                     _syncFileIndexReentracyGuard = false;
 

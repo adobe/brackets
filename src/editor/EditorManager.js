@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
+        PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
@@ -390,6 +391,8 @@ define(function (require, exports, module) {
         var doc = DocumentManager.getCurrentDocument(),
             container = _editorHolder.get(0);
         
+        var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
+
         // Remove scroller-shadow from the current editor
         if (_currentEditor) {
             ViewUtils.removeScrollerShadow(container, _currentEditor);
@@ -403,6 +406,9 @@ define(function (require, exports, module) {
         } else {
             _showNoEditor();
         }
+
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     /** Handles removals from DocumentManager's working set list */

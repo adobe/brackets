@@ -41,6 +41,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager         = require("document/DocumentManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
+        PerfUtils               = require("utils/PerfUtils"),
         EditorManager           = require("editor/EditorManager");
     
     /**
@@ -68,11 +69,16 @@ define(function (require, exports, module) {
      */
     function run() {
         var currentDoc = DocumentManager.getCurrentDocument();
+        
+        var perfTimerDOM,
+            perfTimerLint;
+
         var ext = currentDoc ? PathUtils.filenameExtension(currentDoc.file.fullPath) : "";
         var $lintResults = $("#jslint-results");
         var $goldStar = $("#gold-star");
         
         if (getEnabled() && /^(\.js|\.htm|\.html)$/i.test(ext)) {
+            perfTimerLint = PerfUtils.markStart("JSLint linting:\t" + (!currentDoc || currentDoc.file.fullPath));
             var text = currentDoc.getText();
             
             // If a line contains only whitespace, remove the whitespace
@@ -87,6 +93,9 @@ define(function (require, exports, module) {
             text = arr.join("\n");
             
             var result = JSLINT(text, null);
+
+            PerfUtils.addMeasurement(perfTimerLint);
+            perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
             
             if (!result) {
                 var $errorTable = $("<table class='zebra-striped condensed-table'>")
@@ -137,6 +146,8 @@ define(function (require, exports, module) {
         }
         
         EditorManager.resizeEditor();
+
+        PerfUtils.addMeasurement(perfTimerDOM);
     }
     
     /**
@@ -183,11 +194,9 @@ define(function (require, exports, module) {
         }
     }
     
-    (function () {
-        // Init PreferenceStorage
-        _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });
-        _setEnabled(_prefs.getValue("enabled"));
-    }());
+    // Init PreferenceStorage
+    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });
+    _setEnabled(_prefs.getValue("enabled"));
     
     // Define public API
     exports.run = run;

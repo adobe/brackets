@@ -574,7 +574,7 @@ define(function (require, exports, module) {
             }
         }
         
-        PerfUtils.markStart("Load Project: " + rootPath);
+        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
@@ -607,7 +607,7 @@ define(function (require, exports, module) {
                         result.reject();
                     });
                     resultRenderTree.always(function () {
-                        PerfUtils.addMeasurement("Load Project: " + rootPath);
+                        PerfUtils.addMeasurement(perfTimerName);
                     });
                 },
                 function (error) {

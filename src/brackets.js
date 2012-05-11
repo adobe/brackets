@@ -61,6 +61,7 @@ define(function (require, exports, module) {
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         CodeHintManager         = require("editor/CodeHintManager"),
+        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
         QuickOpen               = require("search/QuickOpen"),
@@ -72,7 +73,6 @@ define(function (require, exports, module) {
         SidebarView             = require("project/SidebarView");
         
     //Load modules that self-register and just need to get included in the main project
-    require("language/JSLintUtils");
     require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
@@ -107,6 +107,8 @@ define(function (require, exports, module) {
         EditorManager           : EditorManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
+        JSLintUtils             : JSLintUtils,
+        PerfUtils               : PerfUtils,
         CommandManager          : require("command/CommandManager"),
         FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
