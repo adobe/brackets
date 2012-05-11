@@ -61,12 +61,12 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager"),
-        Commands         = require("command/Commands"),
-        CommandManager   = require("command/CommandManager"),
-        PerfUtils           = require("utils/PerfUtils"),
-        TextRange        = require("document/TextRange").TextRange,
-        ViewUtils        = require("utils/ViewUtils");
+    var EditorManager   = require("editor/EditorManager"),
+        Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        PerfUtils       = require("utils/PerfUtils"),
+        TextRange       = require("document/TextRange").TextRange,
+        ViewUtils       = require("utils/ViewUtils");
     
 
     /**
