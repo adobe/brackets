@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      */
     function _markStart(name, time) {
         if (activeTests[name]) {
-            throw new Error("Recursive tests with the same name are not supported.");
+            throw new Error("Recursive tests with the same name are not supported. Timer name: " + name);
         }
         
         activeTests[name] = { startTime: time };
