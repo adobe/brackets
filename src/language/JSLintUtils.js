@@ -41,7 +41,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager         = require("document/DocumentManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-            EditorManager           = require("editor/EditorManager");
+        EditorManager           = require("editor/EditorManager");
     
     /**
      * @private
