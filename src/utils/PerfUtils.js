@@ -225,33 +225,33 @@ define(function (require, exports, module) {
       * Returns the performance data as a tab deliminted string
       * @returns {string}
       */
-     function getDelimitedPerfData() {
-         var getValue = function (entry) {
-             // return single value, or tab deliminted values for an array
-             if (Array.isArray(entry)) {
-                 var i, values = "";
+    function getDelimitedPerfData() {
+        var getValue = function (entry) {
+            // return single value, or tab deliminted values for an array
+            if (Array.isArray(entry)) {
+                var i, values = "";
                  
-                 for (i = 0; i < entry.length; i++) {
-                     values += entry[i];
-                     if (i < entry.length - 1) {
-                         values += ", ";
-                     }
-                 }
-                 return values;
-             } else {
-                 return entry;
-             }
-         };
+                for (i = 0; i < entry.length; i++) {
+                    values += entry[i];
+                    if (i < entry.length - 1) {
+                        values += ", ";
+                    }
+                }
+                return values;
+            } else {
+                return entry;
+            }
+        };
 
-         var testName,
-             index,
-             result = "";
-         $.each(perfData, function (testName, entry) {
-             result += getValue(entry) + "\t" + testName + "\n";
-         });
+        var testName,
+            index,
+            result = "";
+        $.each(perfData, function (testName, entry) {
+            result += getValue(entry) + "\t" + testName + "\n";
+        });
 
-         return result;
-     }
+        return result;
+    }
 
     exports.addMeasurement          = addMeasurement;
     exports.finalizeMeasurement     = finalizeMeasurement;
