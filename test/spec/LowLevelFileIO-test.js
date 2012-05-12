@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+    var _FSEncodings        = require("file/NativeFileSystem").NativeFileSystem._FSEncodings;
     
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.
@@ -239,7 +240,7 @@ define(function (require, exports, module) {
             });
         
             it("should read a text file", function () {
-                brackets.fs.readFile(baseDir + "file_one.txt", "utf8", function (err, contents) {
+                brackets.fs.readFile(baseDir + "file_one.txt", _FSEncodings.UTF8, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -254,7 +255,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a non-existent file", function () {
-                brackets.fs.readFile("/This/file/doesnt/exist.txt", "utf8", function (err, contents) {
+                brackets.fs.readFile("/This/file/doesnt/exist.txt", _FSEncodings.UTF8, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -296,7 +297,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a directory", function () {
-                brackets.fs.readFile(baseDir, "utf8", function (err, contents) {
+                brackets.fs.readFile(baseDir, _FSEncodings.UTF8, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -318,7 +319,7 @@ define(function (require, exports, module) {
             });
         
             it("should write the entire contents of a file", function () {
-                brackets.fs.writeFile(baseDir + "write_test.txt", contents, "utf8", function (err) {
+                brackets.fs.writeFile(baseDir + "write_test.txt", contents, _FSEncodings.UTF8, function (err) {
                     error = err;
                     complete = true;
                 });
@@ -332,7 +333,7 @@ define(function (require, exports, module) {
                 // Read contents to verify
                 runs(function () {
                     complete = false;
-                    brackets.fs.readFile(baseDir + "write_test.txt", "utf8", function (err, data) {
+                    brackets.fs.readFile(baseDir + "write_test.txt", _FSEncodings.UTF8, function (err, data) {
                         error = err;
                         content = data;
                         complete = true;
@@ -349,7 +350,7 @@ define(function (require, exports, module) {
         
             it("should return an error if the file can't be written (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, "utf8", function (err) {
+                    brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, _FSEncodings.UTF8, function (err) {
                         error = err;
                         complete = true;
                     });
@@ -377,7 +378,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if trying to write a directory", function () {
-                brackets.fs.writeFile(baseDir, contents, "utf8", function (err) {
+                brackets.fs.writeFile(baseDir, contents, _FSEncodings.UTF8, function (err) {
                     error = err;
                     complete = true;
                 });
@@ -401,7 +402,7 @@ define(function (require, exports, module) {
             it("should remove a file", function () {
                 var filename = baseDir + "remove_me.txt";
             
-                brackets.fs.writeFile(filename, contents, "utf8", function (err) {
+                brackets.fs.writeFile(filename, contents, _FSEncodings.UTF8, function (err) {
                     error = err;
                     complete = true;
                 });
@@ -416,7 +417,7 @@ define(function (require, exports, module) {
                 // Read contents to verify
                 runs(function () {
                     complete = false;
-                    brackets.fs.readFile(filename, "utf8", function (err, data) {
+                    brackets.fs.readFile(filename, _FSEncodings.UTF8, function (err, data) {
                         error = err;
                         content = data;
                         complete = true;
