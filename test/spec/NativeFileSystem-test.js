@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
     
     var Encodings               = NativeFileSystem.Encodings;
+    var _FSEncodings            = NativeFileSystem._FSEncodings;
 
     describe("NativeFileSystem", function () {
         
@@ -446,7 +447,7 @@ define(function (require, exports, module) {
 
                 // read the new file
                 runs(function () {
-                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
                         actualContents = contents;
                     });
                 });
@@ -595,7 +596,7 @@ define(function (require, exports, module) {
                 var actualContents = null;
 
                 runs(function () {
-                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
                         actualContents = contents;
                     });
                 });
@@ -609,7 +610,7 @@ define(function (require, exports, module) {
 
                     // reset file1 content
                     // reset file1 content
-                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8", function () {
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, _FSEncodings.UTF8, function () {
                         rewriteComplete = true;
                     });
                 });
@@ -652,7 +653,7 @@ define(function (require, exports, module) {
                 var actualContents = null;
 
                 runs(function () {
-                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
                         actualContents = contents;
                     });
                 });
@@ -665,7 +666,7 @@ define(function (require, exports, module) {
                     expect(actualContents).toEqual("");
 
                     // reset file1 content
-                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8", function () {
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, _FSEncodings.UTF8, function () {
                         rewriteComplete = true;
                     });
                 });
