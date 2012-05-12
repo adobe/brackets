@@ -258,31 +258,38 @@ define(function (require, exports, module) {
         });
 
         describe("Reading a file", function () {
-            it("should read a file from disk", function () {
-                var gotFile = false, readFile = false, gotError = false, content;
-                var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
-                fileEntry.file(function (file) {
-                    gotFile = true;
-                    var reader = new NativeFileSystem.FileReader();
-                    reader.onload = function (event) {
-                        readFile = true;
-                        content = event.target.result;
-                    };
-                    reader.onerror = function (event) {
-                        gotError = true;
-                    };
-                    reader.readAsText(file, Encodings.UTF8);
-                });
-
-                waitsFor(function () { return gotFile && readFile; }, 1000);
-
-                runs(function () {
-                    expect(gotFile).toBe(true);
-                    expect(readFile).toBe(true);
-                    expect(gotError).toBe(false);
-                    expect(content).toBe(this.file1content);
-                });
-            });
+            
+            var readFile = function (encoding) {
+                return function () {
+                    var gotFile = false, readFile = false, gotError = false, content;
+                    var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
+                    fileEntry.file(function (file) {
+                        gotFile = true;
+                        var reader = new NativeFileSystem.FileReader();
+                        reader.onload = function (event) {
+                            readFile = true;
+                            content = event.target.result;
+                        };
+                        reader.onerror = function (event) {
+                            gotError = true;
+                        };
+                        reader.readAsText(file, encoding);
+                    });
+    
+                    waitsFor(function () { return gotFile && readFile; }, 1000);
+    
+                    runs(function () {
+                        expect(gotFile).toBe(true);
+                        expect(readFile).toBe(true);
+                        expect(gotError).toBe(false);
+                        expect(content).toBe(this.file1content);
+                    });
+                };
+            };
+            
+            it("should read a file from disk", readFile(Encodings.UTF8));
+            it("should read a file from disk with lower case encoding", readFile(Encodings.UTF8.toLowerCase()));
+            it("should read a file from disk with upper case encoding", readFile(Encodings.UTF8.toUpperCase()));
 
             it("should return an error if the file is not found", function () {
                 var gotFile = false, readFile = false, errorCode;
@@ -307,7 +314,7 @@ define(function (require, exports, module) {
                     expect(errorCode).toBe(FileError.NOT_FOUND_ERR);
                 });
             });
-
+            
             it("should fire appropriate events when the file is done loading", function () {
                 var gotFile = false, gotLoad = false, gotLoadStart = false, gotLoadEnd = false,
                     gotProgress = false, gotError = false, gotAbort = false;
