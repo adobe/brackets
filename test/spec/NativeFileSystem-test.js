@@ -31,6 +31,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+    
+    var Encodings               = NativeFileSystem.Encodings;
 
     describe("NativeFileSystem", function () {
         
@@ -268,7 +270,7 @@ define(function (require, exports, module) {
                     reader.onerror = function (event) {
                         gotError = true;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotFile && readFile; }, 1000);
@@ -293,7 +295,7 @@ define(function (require, exports, module) {
                     reader.onerror = function (event) {
                         errorCode = event.target.error.code;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotFile && errorCode; }, 1000);
@@ -330,7 +332,7 @@ define(function (require, exports, module) {
                     reader.onabort = function (event) {
                         gotAbort = true;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotLoad && gotLoadEnd && gotProgress; }, 1000);
@@ -358,7 +360,7 @@ define(function (require, exports, module) {
                     reader.onerror = function (event) {
                         gotError = true;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotError; }, 1000);
