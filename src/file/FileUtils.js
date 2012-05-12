@@ -65,7 +65,7 @@ define(function (require, exports, module) {
                 result.reject(event.target.error);
             };
 
-            reader.readAsText(file, Encodings._IANAToNodeEncoding(Encodings.UTF8));
+            reader.readAsText(file, Encodings.UTF8);
         });
 
         return result.promise();
