@@ -269,7 +269,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to use an unsppported encoding", function () {
-                brackets.fs.readFile(baseDir + "file_one.txt", "utf16", function (err, contents) {
+                brackets.fs.readFile(baseDir + "file_one.txt", _FSEncodings.UTF16, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
