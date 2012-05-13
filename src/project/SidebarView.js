@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $  */
+/*global define, $, document  */
 
 define(function (require, exports, module) {
     'use strict';
@@ -126,6 +126,8 @@ define(function (require, exports, module) {
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
             var startX = e.clientX;
+            // make sure the cursor displays as col-resize across the entire page
+            $("body,a,.CodeMirror-lines").addClass("resizing");
             
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
@@ -169,6 +171,8 @@ define(function (require, exports, module) {
                 
             $mainView.one("mouseup.sidebar", function (e) {
                 $mainView.off("mousemove.sidebar");
+                // reset the cursors back to their normal state
+                $("body,a,.CodeMirror-lines").removeClass("resizing");
                 startingSidebarPosition = $sidebar.width();
             });
                 
