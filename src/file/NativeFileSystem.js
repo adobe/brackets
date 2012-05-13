@@ -144,6 +144,12 @@ define(function (require, exports, module) {
     NativeFileSystem.Encodings.UTF8 = "UTF-8";
     NativeFileSystem.Encodings.UTF16 = "UTF-16";
     
+    /** class: _FSEncodings
+     *
+     * Internal static class that contains constants for file
+     * encoding types to be used by internal file system
+     * implimentation.
+     */
 	NativeFileSystem._FSEncodings = {};
     NativeFileSystem._FSEncodings.UTF8 = "utf8";
     NativeFileSystem._FSEncodings.UTF16 = "utf16";
