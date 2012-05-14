@@ -65,9 +65,9 @@ define(function (require, exports, module) {
             .append("<h1 class='dialog-title'>Performance Data</h1>")
             .append("<div align=right>Raw data (copy paste out): <textarea rows=1 style='width:30px; height:8px; overflow: hidden; resize: none' id='brackets-perf-raw-data'>" + PerfUtils.getDelimitedPerfData() + "</textarea></div>");
         
-        var $perfBody = $("<div class='modal-body' style='padding: 0' />");
+        var $perfBody = $("<div class='modal-body' style='padding: 0; max-height: 500px; overflow: auto;' />");
 
-        var $data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+        var $data = $("<table class='zebra-striped condensed-table'>")
             .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
             .append("<tbody />")
             .appendTo($perfBody);
