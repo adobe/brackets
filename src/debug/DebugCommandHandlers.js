@@ -37,10 +37,7 @@ define(function (require, exports, module) {
     
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
-        JSLintUtils.run();
-        $("#menu-debug-jslint").toggleClass("selected", JSLintUtils.getEnabled());
     }
-    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
@@ -138,6 +135,17 @@ define(function (require, exports, module) {
         $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
     }
     
+    function _updateJSLintMenuItem(enabled) {
+        $("#menu-debug-jslint").toggleClass("selected", enabled);
+    }
+    
+    // update menu item when enabled state changes
+    $(JSLintUtils).on("enabledChanged", function (event, enabled) {
+        _updateJSLintMenuItem(enabled);
+    });
+    
+    // initialize menu immediately
+    _updateJSLintMenuItem(JSLintUtils.getEnabled());
     
     // Register all the command handlers
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
