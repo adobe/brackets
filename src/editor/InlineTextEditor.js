@@ -32,6 +32,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
         InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
@@ -202,14 +204,15 @@ define(function (require, exports, module) {
             self.close();
         }
         
-        // create the filename div
+        // root container holding header & editor
         var wrapperDiv = window.document.createElement("div");
         var $wrapperDiv = $(wrapperDiv);
         
-        // dirty indicator followed by filename
-        var $filenameDiv = $(window.document.createElement("div")).addClass("filename");
+        // header containing filename, dirty indicator, line number
+        var $header = $(window.document.createElement("div")).addClass("inline-editor-header");
+        var $filenameDiv = $(window.document.createElement("span")).addClass("filename");
         
-        // save file path data to dirty-indicator
+        // dirty indicator, with file path stored on it
         var $dirtyIndicatorDiv = $(window.document.createElement("div"))
             .addClass("dirty-indicator")
             .width(0); // initialize indicator as hidden
@@ -222,8 +225,18 @@ define(function (require, exports, module) {
             .append($nameWithTooltip)
             .append(" : ")
             .append($lineNumber);
-        $wrapperDiv.append($filenameDiv);
+        $header.append($filenameDiv);
+        $wrapperDiv.append($header);
+        
+        // Clicking filename jumps to full editor view
+        $filenameDiv.click(function () {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
+                .done(function () {
+                    EditorManager.getCurrentFullEditor().setCursorPos(startLine);
+                });
+        });
 
+        // Create actual Editor instance
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
