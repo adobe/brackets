@@ -693,6 +693,14 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Replace the selection with the given string.
+     * @param {String} text The text that the selection will be replaced with.
+     */
+    Editor.prototype.replaceSelection = function (text) {
+        this._codeMirror.replaceSelection(text);
+    };
+    
+    /**
      * Sets the current selection. Start is inclusive, end is exclusive. Places the cursor at the
      * end of the selection range.
      * @param {!{line:number, ch:number}} start
