@@ -70,6 +70,7 @@ define(function (require, exports, module) {
 
         case "html":
         case "htm":
+        case "xhtml":
             return "htmlmixed";
 
         default:
