@@ -37,10 +37,7 @@ define(function (require, exports, module) {
     
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
-        JSLintUtils.run();
-        $("#menu-debug-jslint").toggleClass("selected", JSLintUtils.getEnabled());
     }
-    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
@@ -65,9 +62,9 @@ define(function (require, exports, module) {
             .append("<h1 class='dialog-title'>Performance Data</h1>")
             .append("<div align=right>Raw data (copy paste out): <textarea rows=1 style='width:30px; height:8px; overflow: hidden; resize: none' id='brackets-perf-raw-data'>" + PerfUtils.getDelimitedPerfData() + "</textarea></div>");
         
-        var $perfBody = $("<div class='modal-body' style='padding: 0' />");
+        var $perfBody = $("<div class='modal-body' style='padding: 0; max-height: 500px; overflow: auto;' />");
 
-        var $data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+        var $data = $("<table class='zebra-striped condensed-table'>")
             .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
             .append("<tbody />")
             .appendTo($perfBody);
@@ -138,6 +135,17 @@ define(function (require, exports, module) {
         $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
     }
     
+    function _updateJSLintMenuItem(enabled) {
+        $("#menu-debug-jslint").toggleClass("selected", enabled);
+    }
+    
+    // update menu item when enabled state changes
+    $(JSLintUtils).on("enabledChanged", function (event, enabled) {
+        _updateJSLintMenuItem(enabled);
+    });
+    
+    // initialize menu immediately
+    _updateJSLintMenuItem(JSLintUtils.getEnabled());
     
     // Register all the command handlers
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
