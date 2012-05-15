@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         isSidebarClosed         = false;
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
-        defaultPrefs = { 'sidebarWidth': '200' };
+        defaultPrefs = { sidebarWidth: 200 };
     
     
     /**
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
         }
         
         var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-        prefs.setValue("sidebarWidth", String(width));
+        prefs.setValue("sidebarWidth", width);
 
         EditorManager.resizeEditor();
     }
