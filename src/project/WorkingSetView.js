@@ -140,7 +140,7 @@ define(function (require, exports, module) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
-        var $link = $("<a href='#'></a>").text(file.name);
+        var $link = $("<a href='#'></a>").text("*****" + file.name + "***");
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
