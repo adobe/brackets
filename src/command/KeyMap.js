@@ -40,7 +40,6 @@ define(function (require, exports, module) {
      */
     function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key, origDescriptor) {
         if (!key) {
-            
             if (origDescriptor && origDescriptor.search(/^.+--$/) !== -1) { // Check if the binding is for "-"
                 key = "-";
             } else {
