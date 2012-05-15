@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         WorkingSetView          = require("project/WorkingSetView"),
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
+        PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
 
     var $sidebar                = $("#sidebar"),
@@ -41,6 +42,10 @@ define(function (require, exports, module) {
         $projectTitle           = $("#project-title"),
         $projectFilesContainer  = $("#project-files-container"),
         isSidebarClosed         = false;
+    
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
+        defaultPrefs = { 'sidebarWidth': '200' };
+    
     
     /**
      * @private
@@ -88,6 +93,9 @@ define(function (require, exports, module) {
             $sidebarMenuText.first().text(text);
         }
         
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+        prefs.setValue("sidebarWidth", String(width));
+
         EditorManager.resizeEditor();
     }
     
@@ -112,8 +120,11 @@ define(function (require, exports, module) {
      */
     function _initSidebarResizer() {
         var $mainView               = $(".main-view"),
-            sidebarWidth            = $sidebar.width(),
+            prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
+            sidebarWidth            = prefs.getValue("sidebarWidth"),
             startingSidebarPosition = sidebarWidth;
+        
+        _setWidth(sidebarWidth, true, true);
         
         $sidebarResizer.css("left", sidebarWidth - 1);
         $sidebarResizer.on("dblclick", function () {
