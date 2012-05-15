@@ -156,6 +156,7 @@ define(function (require, exports, module) {
                 // unbind the mouse event. 
                 if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
+                    $mainView.off("mousemove.sidebar");
                     $(document.body).toggleClass("resizing");
                     doResize = false;
                 } else if (startX < 10) {
