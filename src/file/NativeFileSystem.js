@@ -134,7 +134,49 @@ define(function (require, exports, module) {
             return new NativeFileSystem.FileError(error);
         }
     };
+    
+    /** class: Encodings
+     *
+     * Static class that contains constants for file
+     * encoding types.
+     */
+    NativeFileSystem.Encodings = {};
+    NativeFileSystem.Encodings.UTF8 = "UTF-8";
+    NativeFileSystem.Encodings.UTF16 = "UTF-16";
+    
+    /** class: _FSEncodings
+     *
+     * Internal static class that contains constants for file
+     * encoding types to be used by internal file system
+     * implimentation.
+    */
+    NativeFileSystem._FSEncodings = {};
+    NativeFileSystem._FSEncodings.UTF8 = "utf8";
+    NativeFileSystem._FSEncodings.UTF16 = "utf16";
+    
+    /**
+     * Converts an IANA encoding name to internal encoding name.
+     * http://www.iana.org/assignments/character-sets
+     *
+     * @param {String} encoding The IANA encoding string.
+     */
+    NativeFileSystem.Encodings._IANAToFS = function (encoding) {
+        //IANA names are case-insensitive
+        encoding = encoding.toUpperCase();
 
+        switch (encoding) {
+        case (NativeFileSystem.Encodings.UTF8):
+            return NativeFileSystem._FSEncodings.UTF8;
+        case (NativeFileSystem.Encodings.UTF16):
+            return NativeFileSystem._FSEncodings.UTF16;
+        default:
+            return undefined;
+        }
+    };
+    
+    var Encodings = NativeFileSystem.Encodings;
+    var _FSEncodings = NativeFileSystem._FSEncodings;
+    
     /** class: Entry
      *
      * @param {string} name
@@ -272,7 +314,7 @@ define(function (require, exports, module) {
 
             var self = this;
 
-            brackets.fs.writeFile(fileEntry.fullPath, data, "utf8", function (err) {
+            brackets.fs.writeFile(fileEntry.fullPath, data, _FSEncodings.UTF8, function (err) {
 
                 if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
                     var fileError = NativeFileSystem._nativeToFileError(err);
@@ -317,7 +359,7 @@ define(function (require, exports, module) {
 
         // initialize file length
         var result = new $.Deferred();
-        brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+        brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
             // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
             if (err !== brackets.fs.ERR_NOT_FOUND) {
                 fileWriter._err = err;
@@ -546,7 +588,7 @@ define(function (require, exports, module) {
 
                 // create the file
                 if (options.create) {
-                    brackets.fs.writeFile(fileFullPath, "", "utf8", function (err) {
+                    brackets.fs.writeFile(fileFullPath, "", _FSEncodings.UTF8, function (err) {
                         if (err) {
                             createFileError(err);
                         } else {
@@ -703,14 +745,16 @@ define(function (require, exports, module) {
     /** readAsText
      *
      * @param {Blob} blob
-     * @param {string} encoding
+     * @param {string} encoding (IANA Encoding Name)
      */
     NativeFileSystem.FileReader.prototype.readAsText = function (blob, encoding) {
         var self = this;
 
         if (!encoding) {
-            encoding = "utf8";
+            encoding = Encodings.UTF8;
         }
+        
+        var internalEncoding  = Encodings._IANAToFS(encoding);
 
         if (this.readyState === this.LOADING) {
             throw new InvalidateStateError();
@@ -722,7 +766,7 @@ define(function (require, exports, module) {
             this.onloadstart(); // TODO (issue #241): progressevent
         }
 
-        brackets.fs.readFile(blob._fullPath, encoding, function (err, data) {
+        brackets.fs.readFile(blob._fullPath, internalEncoding, function (err, data) {
 
             // TODO (issue #241): the event objects passed to these event handlers is fake and incomplete right now
             var fakeEvent = {
