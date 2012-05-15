@@ -108,12 +108,27 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Remove event listeners and clean up the sidebar
+     * Decided this belonged in a separate function in case there are other
+     * things that need to be cleaned up. But it might be better to move
+     * the element references (mainView, resizingDiv) up in the scope chain.
+     * @param {mainView} the mainView object
+     * @param {resizingDiv} the resizingDiv object
+     */
+    function _cleanupSidebar($mainView, $resizingDiv) {
+        $mainView.off("mousemove.sidebar");
+        $resizingDiv.remove();
+    }
+    
+    /**
+     * @private
      * Install sidebar resize handling.
      */
     function _initSidebarResizer() {
         var $mainView               = $(".main-view"),
             sidebarWidth            = $sidebar.width(),
-            startingSidebarPosition = sidebarWidth;
+            startingSidebarPosition = sidebarWidth,
+            $resizingDiv            = null;
         
         $sidebarResizer.css("left", sidebarWidth - 1);
         $sidebarResizer.on("dblclick", function () {
@@ -126,9 +141,7 @@ define(function (require, exports, module) {
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
             var startX = e.clientX;
-            // make sure the cursor displays as col-resize across the entire page
-            $("body,a,.CodeMirror-lines").addClass("resizing");
-            
+            $(document.body).toggleClass("resizing");
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
@@ -143,7 +156,7 @@ define(function (require, exports, module) {
                 // unbind the mouse event. 
                 if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
-                    $mainView.off("mousemove.sidebar");
+                    //$("body").toggleClass("resizing");
                     doResize = false;
                 } else if (startX < 10) {
                     // reset startX if we're going from a snapped closed position to open
@@ -164,6 +177,7 @@ define(function (require, exports, module) {
                 
                 if (newWidth === 0) {
                     $mainView.off("mousemove.sidebar");
+                    //$("body").toggleClass("resizing");
                 }
                     
                 e.preventDefault();
@@ -171,8 +185,7 @@ define(function (require, exports, module) {
                 
             $mainView.one("mouseup.sidebar", function (e) {
                 $mainView.off("mousemove.sidebar");
-                // reset the cursors back to their normal state
-                $("body,a,.CodeMirror-lines").removeClass("resizing");
+                //$("body").toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
             });
                 

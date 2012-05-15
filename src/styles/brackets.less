@@ -64,6 +64,11 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
+    
+    &.resizing {
+    /* class for temporary full-screen div to show resize cursor */
+        cursor: col-resize;
+    }
 }
 
 a, img {
@@ -201,10 +206,18 @@ a, img {
     cursor: col-resize;
 }
 
+/*
 .resizing {
-    /* setting the cursor to col-resize for everything while we drag */
-    cursor: col-resize !important;
+    cursor: col-resize;
+    width: 100%;
+    height: 100%;
+    z-index: @z-index-brackets-resizer-div;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
+*/
 
 #file-section {
     .vbox;
@@ -255,6 +268,10 @@ a, img {
                 padding-right: @triangle-size * 2;
                 cursor: default;
             }
+            .resizing a {
+                /* class for temporary full-screen div to show resize cursor */
+                cursor: col-resize;
+            }            
             .extension a {
                 color: #8e9a9d;
             }
