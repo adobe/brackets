@@ -64,12 +64,12 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
-    
-    &.resizing {
-    /* class for temporary full-screen div to show resize cursor */
-        cursor: col-resize;
+    &.resizing #sidebar #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines, 
+    &.resizing .toolbar .nav a  {
+        cursor: col-resize;   
     }
 }
+
 
 a, img {
     -webkit-user-drag: none;
@@ -204,7 +204,7 @@ a, img {
     z-index: @z-index-brackets-sidebar-resizer;
     opacity: 0;
     cursor: col-resize;
-}
+} 
 
 /*
 .resizing {
@@ -268,10 +268,7 @@ a, img {
                 padding-right: @triangle-size * 2;
                 cursor: default;
             }
-            .resizing a {
-                /* class for temporary full-screen div to show resize cursor */
-                cursor: col-resize;
-            }            
+            
             .extension a {
                 color: #8e9a9d;
             }

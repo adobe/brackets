@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                 // unbind the mouse event. 
                 if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
-                    //$("body").toggleClass("resizing");
+                    $(document.body).toggleClass("resizing");
                     doResize = false;
                 } else if (startX < 10) {
                     // reset startX if we're going from a snapped closed position to open
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
                 
                 if (newWidth === 0) {
                     $mainView.off("mousemove.sidebar");
-                    //$("body").toggleClass("resizing");
+                    $(document.body).toggleClass("resizing");
                 }
                     
                 e.preventDefault();
@@ -185,7 +185,7 @@ define(function (require, exports, module) {
                 
             $mainView.one("mouseup.sidebar", function (e) {
                 $mainView.off("mousemove.sidebar");
-                //$("body").toggleClass("resizing");
+                $(document.body).toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
             });
                 
