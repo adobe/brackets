@@ -77,9 +77,17 @@ define(function (require, exports, module) {
                           " !important;line-height:" + lhStr + " !important;}";
         $("head").append(style);
 
-        var editor = EditorManager.getFocusedEditor();
-        var codeMirror = editor._codeMirror;
-        codeMirror.refresh();
+        var fullEditor = EditorManager.getCurrentFullEditor();
+        fullEditor._codeMirror.refresh();
+        
+        var inlineEditors = fullEditor.getInlineWidgets();
+        inlineEditors.forEach(function (multilineEditor, i, arr) {
+            multilineEditor.sizeInlineWidgetToContents(true);
+            multilineEditor._updateRelatedContainer();
+            multilineEditor.editors.forEach(function (editor, j, arr) {
+                editor._codeMirror.refresh();
+            });
+        });
     }
 
     function _handleIncreaseFontSize() {
