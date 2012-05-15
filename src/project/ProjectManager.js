@@ -835,7 +835,25 @@ define(function (require, exports, module) {
         // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
+        
+        // reposition sideview's scroll such that the new file is within view
+        var $projectFilesContainer = $('#project-files-container');
 
+        var renameInpOffsetTop = parseInt(renameInput.offset().top, 10);
+        var renameIntHeight = parseInt(renameInput.height(), 10);
+        var projContOffsetTop = parseInt($projectFilesContainer.offset().top, 10);
+        var projContScrollTop = parseInt($projectFilesContainer.scrollTop(), 10);
+        var projContHeight = $projectFilesContainer.height();
+
+        if (renameInpOffsetTop < projContOffsetTop) {
+            // new file is too high on the side bar
+            $projectFilesContainer.scrollTop(projContScrollTop - (Math.abs(renameInpOffsetTop)) - projContOffsetTop);
+        } else if (projContHeight <= renameInpOffsetTop - renameIntHeight) {
+            // new file is too low on the sidebar 
+            var yDelta = renameIntHeight + renameInpOffsetTop - projContHeight;
+            $projectFilesContainer.scrollTop(projContScrollTop + yDelta);
+        }
+        
         return result.promise();
     }
 
