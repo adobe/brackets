@@ -149,8 +149,8 @@ define(function (require, exports, module) {
      * Internal static class that contains constants for file
      * encoding types to be used by internal file system
      * implimentation.
-     */
-	NativeFileSystem._FSEncodings = {};
+    */
+    NativeFileSystem._FSEncodings = {};
     NativeFileSystem._FSEncodings.UTF8 = "utf8";
     NativeFileSystem._FSEncodings.UTF16 = "utf16";
     
@@ -751,10 +751,10 @@ define(function (require, exports, module) {
         var self = this;
 
         if (!encoding) {
-            encoding = _FSEncodings.UTF8;
+            encoding = Encodings.UTF8;
         }
         
-        encoding  = Encodings._IANAToFS(encoding);
+        var internalEncoding  = Encodings._IANAToFS(encoding);
 
         if (this.readyState === this.LOADING) {
             throw new InvalidateStateError();
@@ -766,7 +766,7 @@ define(function (require, exports, module) {
             this.onloadstart(); // TODO (issue #241): progressevent
         }
 
-        brackets.fs.readFile(blob._fullPath, encoding, function (err, data) {
+        brackets.fs.readFile(blob._fullPath, internalEncoding, function (err, data) {
 
             // TODO (issue #241): the event objects passed to these event handlers is fake and incomplete right now
             var fakeEvent = {

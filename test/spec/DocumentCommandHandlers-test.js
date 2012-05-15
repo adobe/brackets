@@ -33,10 +33,9 @@ define(function (require, exports, module) {
         Commands,            // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
-    
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
-    var _FSEncodings        = NativeFileSystem._FSEncodings;
+        SpecRunnerUtils     = require("./SpecRunnerUtils.js"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        _FSEncodings        = NativeFileSystem._FSEncodings;
     
     
     describe("DocumentCommandHandlers", function () {

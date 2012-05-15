@@ -33,9 +33,9 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         Dialogs             = require("widgets/Dialogs"),
-        Strings             = require("strings");
-    
-    var Encodings           = NativeFileSystem.Encodings;
+        Strings             = require("strings"),
+        Encodings           = NativeFileSystem.Encodings;
+
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
