@@ -117,19 +117,20 @@ define(function (require, exports, module) {
                     key = keys[i];                        
                     // Convert normalized key representation to display appropriate for platform
                     var shortcut;
-                    if (brackets.platform === "mac") {
-                        shortcut = key.replace(/-/g, "");        // remove dashes
-                        shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-                        shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
-                        shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
-                    } else {
-                        shortcut = key.replace(/-/g, "+");
-                    }
+                    // if (brackets.platform === "mac") {
+                    //     shortcut = key.replace(/-/g, "");        // remove dashes
+                    //     shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+                    //     shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
+                    //     shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
+                    // } else {
+                    //     shortcut = key.replace(/-/g, "+");
+                    // }
 
                     newItem.find("a").append("<span class='menu-shortcut'>" + shortcut + "</span>");
                 }
 
-                //KeyBindingManager.addKeys( KeyMap.Create
+                // Todo: Ray
+                //KeyBindingManager.addKeys( shortcut, commandStr, platform )
             }
             
         }
