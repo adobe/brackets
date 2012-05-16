@@ -179,8 +179,6 @@ define(function (require, exports, module) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            // TODO (issue #117): we're relying on this to not be asynchronous ('result' not set until
-            // dialog is dismissed); won't work in a browser-based version
             NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
                 null, function (paths) {
                     var i;
