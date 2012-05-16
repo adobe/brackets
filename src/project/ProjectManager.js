@@ -835,7 +835,10 @@ define(function (require, exports, module) {
         // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
-
+        
+        // make sure edit box is within the sidebar's view
+        renameInput.get(0).scrollIntoView();
+        
         return result.promise();
     }
 
