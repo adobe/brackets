@@ -199,10 +199,7 @@ define(function (require, exports, module) {
                                 DocumentManager.addToWorkingSet(doc.file);
                             })
                             // Send the resulting document that was opened
-                            .then(
-                                function (doc) { result.resolve(doc); },
-                                function () { result.reject(); }
-                            );
+                            .pipe(result.resolve, result.reject);
                     } else {
                         // Reject if the user canceled the dialog
                         result.reject();
