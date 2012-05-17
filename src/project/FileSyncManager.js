@@ -48,6 +48,7 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         FileUtils           = require("file/FileUtils");
 
     
@@ -213,7 +214,7 @@ define(function (require, exports, module) {
             Strings.ERROR_RELOADING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_RELOADING_FILE,
-                doc.file.fullPath,
+                StringUtils.htmlEscape(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.code)
             )
         );
@@ -262,7 +263,7 @@ define(function (require, exports, module) {
                 dialogId = Dialogs.DIALOG_ID_EXT_CHANGED;
                 message = Strings.format(
                     Strings.EXT_MODIFIED_MESSAGE,
-                    ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
                 );
                 
             } else {
@@ -270,7 +271,7 @@ define(function (require, exports, module) {
                 dialogId = Dialogs.DIALOG_ID_EXT_DELETED;
                 message = Strings.format(
                     Strings.EXT_DELETED_MESSAGE,
-                    ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath)
+                    StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
                 );
             }
             
