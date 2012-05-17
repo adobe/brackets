@@ -43,70 +43,16 @@ define(function (require, exports, module) {
                 window.setTimeout(callback, 1000 / 60);
             };
     }());
-    
-    function KeystrokeData(init) {
-        init = init || 0;
-        this.input = init;
-        this.firstPaint = init;
-        this.paintBeforeChange = init;
-        this.onChange = init;
-        this.paintAfterChange = init;
-    }
-    
-    var min,
-        sum,
-        avg,
-        max,
-        charCount, /* using charCount instead of inputEventCount will artificially lower metrics */
-        inputEventCount,
-        perfData = PerfUtils.perfData;
-    
-    function _writePerfData(metricName, propName, recent) {
-        perfData[metricName] = min[propName]
-            + " / " + avg[propName]
-            + " / " + max[propName]
-            + " / " + recent[propName];
-    }
-    
-    function _updateKeystrokeStats(data) {
-        min.firstPaint = Math.min(min.firstPaint, data.firstPaint);
-        min.paintBeforeChange = Math.min(min.paintBeforeChange, data.paintBeforeChange);
-        min.onChange = Math.min(min.onChange, data.onChange);
-        min.paintAfterChange = Math.min(min.paintAfterChange, data.paintAfterChange);
-        
-        sum.firstPaint += data.firstPaint;
-        sum.paintBeforeChange += data.paintBeforeChange;
-        sum.onChange += data.onChange;
-        sum.paintAfterChange += data.paintAfterChange;
-        
-        avg.firstPaint = Math.round(sum.firstPaint / inputEventCount);
-        avg.paintBeforeChange = Math.round(sum.paintBeforeChange / inputEventCount);
-        avg.onChange = Math.round(sum.onChange / inputEventCount);
-        avg.paintAfterChange = Math.round(sum.paintAfterChange / inputEventCount);
-        
-        max.firstPaint = Math.max(max.firstPaint, data.firstPaint);
-        max.paintBeforeChange = Math.max(max.paintBeforeChange, data.paintBeforeChange);
-        max.onChange = Math.max(max.onChange, data.onChange);
-        max.paintAfterChange = Math.max(max.paintAfterChange, data.paintAfterChange);
-        
-        _writePerfData("Typing Speed: First repaint (min / avg / max / recent)", "firstPaint", data);
-        _writePerfData("Typing Speed: Paint before DOM update", "paintBeforeChange", data);
-        _writePerfData("Typing Speed: DOM update complete", "onChange", data);
-        _writePerfData("Typing Speed: Paint after DOM update", "paintAfterChange", data);
-    }
+
+    var STRING_FIRSTPAINT        = "Typing Speed: First repaint",
+        STRING_PAINTBEFORECHANGE = "Typing Speed: Paint before DOM update",
+        STRING_ONCHANGE          = "Typing Speed: DOM update complete",
+        STRING_PAINTAFTERCHANGE  = "Typing Speed: Paint after DOM update";
     
     function _getInputField(editor) {
         return editor._codeMirror.getInputField();
     }
-    
-    function resetTypingSpeedLogs() {
-        min = new KeystrokeData(Number.POSITIVE_INFINITY);
-        sum = new KeystrokeData(0);
-        avg = new KeystrokeData(0);
-        max = new KeystrokeData(Number.NEGATIVE_INFINITY);
-        inputEventCount = 0;
-    }
-    
+
     /**
      * Installs input event handler on the current editor (full or inline).
      */
@@ -114,9 +60,7 @@ define(function (require, exports, module) {
         var editor = null,
             inputField = null,
             inProgress = false;
-        
-        resetTypingSpeedLogs();
-        
+
         var inputChangedHandler = function () {
             // CodeMirror's fastPoll will batch up input events into a consolidated change
             if (inProgress) {
@@ -124,45 +68,41 @@ define(function (require, exports, module) {
             }
             
             inProgress = true;
-            
-            // Since input events are batched, inputEventCount isn't 1:1 with actual input events.
-            inputEventCount++;
-            
-            var data = new KeystrokeData(0);
-            data.input = Date.now();
+
+            // use a single markStart call so all start times are the same
+            PerfUtils.markStart([
+                STRING_FIRSTPAINT,
+                STRING_PAINTBEFORECHANGE,
+                STRING_ONCHANGE,
+                STRING_PAINTAFTERCHANGE
+            ]);
         
             var repaintBeforeChangeHandler = function () {
-                if (data.firstPaint === 0) {
-                    data.firstPaint = Date.now() - data.input;
+                if (PerfUtils.isActive(STRING_FIRSTPAINT)) {
+                    PerfUtils.addMeasurement(STRING_FIRSTPAINT);
                 }
                 
-                // keep logging until we hit onChange
-                if (data.onChange === 0) {
-                    data.paintBeforeChange = Date.now() - data.input;
+                if (PerfUtils.isActive(STRING_ONCHANGE)) {
+                    // don't know which paint event will be the last one,
+                    // so keep updating measurement until we hit onChange
+                    PerfUtils.updateMeasurement(STRING_PAINTBEFORECHANGE);
                     requestAnimFrame(repaintBeforeChangeHandler);
                 }
             };
             
             var repaintAfterChangeHandler = function () {
-                data.paintAfterChange = Date.now() - data.input;
-                
+                PerfUtils.addMeasurement(STRING_PAINTAFTERCHANGE);
+
+                // need to tell PerfUtils that we are done updating this measurement
+                PerfUtils.finalizeMeasurement(STRING_PAINTBEFORECHANGE);
+
                 inProgress = false;
-                
-                // we have all the data for this input sequence. compute min/avg/max.
-                _updateKeystrokeStats(data);
             };
         
             var onChangeHandler = function (event, editor, change) {
-                var textChangesLen = change.text.length,
-                    i = 0;
-                
-                data.onChange = Date.now() - data.input;
+                PerfUtils.addMeasurement(STRING_ONCHANGE);
                 $(editor).off("change.typingSpeedLogger", onChangeHandler);
-                
-                for (i = 0; i < textChangesLen; i++) {
-                    charCount += change.text[i].length;
-                }
-                
+
                 requestAnimFrame(repaintAfterChangeHandler);
             };
             
@@ -194,6 +134,4 @@ define(function (require, exports, module) {
     (function () {
         initTypingSpeedLogging();
     }());
-    
-    exports.resetTypingSpeedLogs = resetTypingSpeedLogs;
 });

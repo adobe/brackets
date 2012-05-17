@@ -33,7 +33,10 @@ define(function (require, exports, module) {
         Commands,            // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils     = require("./SpecRunnerUtils.js"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        _FSEncodings        = NativeFileSystem._FSEncodings;
+    
     
     describe("DocumentCommandHandlers", function () {
 
@@ -148,7 +151,7 @@ define(function (require, exports, module) {
                 // confirm file contents
                 var actualContent = null, error = -1;
                 runs(function () {
-                    brackets.fs.readFile(filePath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(filePath, _FSEncodings.UTF8, function (err, contents) {
                         error = err;
                         actualContent = contents;
                     });
@@ -162,7 +165,7 @@ define(function (require, exports, module) {
 
                 // reset file contents
                 runs(function () {
-                    brackets.fs.writeFile(filePath, TEST_JS_CONTENT, "utf8");
+                    brackets.fs.writeFile(filePath, TEST_JS_CONTENT, _FSEncodings.UTF8);
                 });
             });
         });

@@ -59,6 +59,13 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to the tree control container div
+     * @type {jQueryObject}
+     */
+    var $projectTreeContainer = $("#project-files-container");
+    
+    /**
+     * @private
      * Reference to the tree control
      * @type {jQueryObject}
      */
@@ -66,10 +73,18 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Reference to previous selectiooon jstree node
+     * Reference to previous selected jstree leaf node when ProjectManager had
+     * selection focus from FileViewController.
      * @type {DOMElement}
      */
     var _lastSelected = null;
+    
+    /**
+     * @private
+     * Internal flag to suppress firing of selectionChanged event.
+     * @type {boolean}
+     */
+    var _suppressSelectionChange = false;
     
     /**
      * @private
@@ -83,6 +98,11 @@ define(function (require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
     
     /**
      * @private
@@ -100,33 +120,27 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
-    /** 
-     * @const
-     * Sidebar open constant
-     */
-    var SIDEBAR_OPEN = "open";
-
-    /** 
-     * @const
-     * Sidebar closed constant
-     */
-    var SIDEBAR_CLOSED = "closed";
-    
-    /** 
+    /**
      * @private
-     * Current state of sidebar
      */
-    var _sidebarState = SIDEBAR_OPEN;
-        
-    
+    function _hasFileSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
+    }
     
     /**
      * @private
      */
-    function _fireSelectionChanged() {
+    function _redraw(selectionChanged, reveal) {
+        reveal = (reveal === undefined) ? true : reveal;
+        
         // redraw selection
         if ($projectTreeList) {
-            $projectTreeList.trigger("selectionChanged");
+            if (selectionChanged && !_suppressSelectionChange) {
+                $projectTreeList.triggerHandler("selectionChanged", reveal);
+            }
+            
+            // reposition the selection triangle
+            $projectTreeContainer.triggerHandler("scroll");
             
             // in-lieu of resize events, manually trigger contentChanged for every
             // FileViewController focus change. This event triggers scroll shadows
@@ -138,8 +152,7 @@ define(function (require, exports, module) {
     
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc
-                && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
+        if (curDoc && _hasFileSelectionFocus()) {
             $("#project-files-container li").is(function (index) {
                 var entry = $(this).data("entry");
                 
@@ -157,13 +170,8 @@ define(function (require, exports, module) {
             _lastSelected = null;
         }
         
-        _fireSelectionChanged();
+        _redraw(true);
     };
-
-    /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
@@ -239,6 +247,25 @@ define(function (require, exports, module) {
         
         _prefs.setAllValues(storage);
     }
+    
+    /**
+     * @private
+     */
+    function _forceSelection(current, target) {
+        // select_node will force the target to be revealed. Instead,
+        // keep the scroller position stable.
+        var savedScrollTop = $projectTreeContainer.get(0).scrollTop;
+        
+        // suppress selectionChanged event from firing by jstree select_node
+        _suppressSelectionChange = true;
+        _projectTree.jstree("deselect_node", current);
+        _projectTree.jstree("select_node", target, false);
+        _suppressSelectionChange = false;
+        
+        $projectTreeContainer.get(0).scrollTop = savedScrollTop;
+        
+        _redraw(true, false);
+    }
 
     /**
      * @private
@@ -248,8 +275,7 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var $projectTreeContainer = $("#project-files-container"),
-            result = new $.Deferred();
+        var result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -281,24 +307,23 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
                     
                         openResult.done(function () {
                             // update when tree display state changes
-                            _fireSelectionChanged();
+                            _redraw(true);
                             _lastSelected = data.rslt.obj;
                         }).fail(function () {
                             if (_lastSelected) {
                                 // revert this new selection and restore previous selection
-                                _projectTree.jstree("deselect_node", data.rslt.obj);
-                                _projectTree.jstree("select_node", _lastSelected, false);
+                                _forceSelection(data.rslt.obj, _lastSelected);
                             } else {
                                 _projectTree.jstree("deselect_all");
                                 _lastSelected = null;
                             }
                         });
                     } else {
-                        _fireSelectionChanged();
+                        _redraw(true);
                     }
                 }
             )
@@ -336,10 +361,27 @@ define(function (require, exports, module) {
             .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
-                    ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
                     
-                    // update when tree display state changes
-                    _fireSelectionChanged();
+                    if (event.type === "open_node") {
+                        // select the current document if it becomes visible when this folder is opened
+                        var curDoc = DocumentManager.getCurrentDocument();
+                        
+                        if (_hasFileSelectionFocus() && curDoc) {
+                            var entry = data.rslt.obj.data("entry");
+                            
+                            if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                                _forceSelection(data.rslt.obj, _lastSelected);
+                            } else {
+                                _redraw(true, false);
+                            }
+                        }
+                    } else if (event.type === "close_node") {
+                        // always update selection marker position when collapsing a node
+                        _redraw(true, false);
+                    } else {
+                        _redraw(false);
+                    }
+                    
                     _savePreferences();
                 }
             );
@@ -363,7 +405,7 @@ define(function (require, exports, module) {
                     }
                 });
 
-            // fire selection changed events for sidebarSelection
+            // fire selection changed events for sidebar-selection
             $projectTreeList = $projectTreeContainer.find("ul");
             ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
             $projectTreeContainer.show();
@@ -535,7 +577,7 @@ define(function (require, exports, module) {
             }
         }
         
-        PerfUtils.markStart("Load Project: " + rootPath);
+        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
@@ -547,9 +589,6 @@ define(function (require, exports, module) {
 
                     // Success!
                     _projectRoot = rootEntry;
-
-                    // Set title
-                    $("#project-title").html(_projectRoot.name);
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -571,7 +610,7 @@ define(function (require, exports, module) {
                         result.reject();
                     });
                     resultRenderTree.always(function () {
-                        PerfUtils.addMeasurement("Load Project: " + rootPath);
+                        PerfUtils.addMeasurement(perfTimerName);
                     });
                 },
                 function (error) {
@@ -803,7 +842,10 @@ define(function (require, exports, module) {
         // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
         renameInput.css({ left: "17px", height: "24px"})
             .parent().css({ height: "26px"});
-
+        
+        // make sure edit box is within the sidebar's view
+        renameInput.get(0).scrollIntoView();
+        
         return result.promise();
     }
 
@@ -813,23 +855,6 @@ define(function (require, exports, module) {
      */
     function forceFinishRename() {
         $(".jstree-rename-input").blur();
-    }
-    
-    /***** Start of Sidebar methods ******/
-
-    /**
-     * Gets the current state of the sidebar
-     */
-    function getSidebarState() {
-        return _sidebarState;
-    }
-    
-    /**
-     * Sets the sidebar state when something happens
-     * @param newState {string} new state for sidebar
-     */
-    function setSidebarState(newState) {
-        _sidebarState = newState;
     }
 
     // Define public API
@@ -841,10 +866,6 @@ define(function (require, exports, module) {
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
     exports.forceFinishRename = forceFinishRename;
-    exports.SIDEBAR_OPEN = SIDEBAR_OPEN;
-    exports.SIDEBAR_CLOSED = SIDEBAR_CLOSED;
-    exports.getSidebarState = getSidebarState;
-    exports.setSidebarState = setSidebarState;
 
     // Initialize now
     (function () {
@@ -858,7 +879,9 @@ define(function (require, exports, module) {
 
         // Event Handlers
         $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-        $("#open-files-container").on("contentChanged", _fireSelectionChanged); // redraw jstree when working set size changes
+        $("#open-files-container").on("contentChanged", function () {
+            _redraw(false); // redraw jstree when working set size changes
+        });
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());

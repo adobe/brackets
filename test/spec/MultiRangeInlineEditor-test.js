@@ -43,8 +43,8 @@ define(function (require, exports, module) {
         
         beforeEach(function () {
             // init Editor instance (containing a CodeMirror instance)
-            $("body").append("<div id='editorHolder'/>");
-            $editorHolder = $("#editorHolder");
+            $("body").append("<div id='editor-holder'/>");
+            $editorHolder = $("#editor-holder");
             EditorManager.setEditorHolder(this.$editorHolder);
             
             var doc = SpecRunnerUtils.createMockDocument("hostEditor");

@@ -32,8 +32,11 @@ define(function (require, exports, module) {
     'use strict';
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        Encodings           = NativeFileSystem.Encodings;
+
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
@@ -43,8 +46,16 @@ define(function (require, exports, module) {
      */
     function readAsText(fileEntry) {
         var result = new $.Deferred(),
-            reader = new NativeFileSystem.FileReader();
+            reader;
 
+        // Measure performance
+        var perfTimerName = PerfUtils.markStart("readAsText:\t" + fileEntry.fullPath);
+        result.always(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        });
+
+        // Read file
+        reader = new NativeFileSystem.FileReader();
         fileEntry.file(function (file) {
             reader.onload = function (event) {
                 var text = event.target.result;
@@ -63,7 +74,7 @@ define(function (require, exports, module) {
                 result.reject(event.target.error);
             };
 
-            reader.readAsText(file, "utf8");
+            reader.readAsText(file, Encodings.UTF8);
         });
 
         return result.promise();
