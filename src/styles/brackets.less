@@ -418,7 +418,8 @@ ins.jstree-icon {
             font-size: 1.1em;
             color: @inline-color-1;
             
-            // Filename header is clickable
+            // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
+            // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
             cursor: pointer;
             
             .dirty-indicator {
