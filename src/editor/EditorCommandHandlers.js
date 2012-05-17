@@ -21,7 +21,7 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, continue: true */
 /*global define: false, $: false, CodeMirror: false */
 
 
@@ -36,95 +36,204 @@ define(function (require, exports, module) {
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager");
     
-    
+
     /**
-     * Add or remove line-comment tokens to all the lines in the selected range, preserving selection
-     * and cursor position. Applies to currently focused Editor.
-     * 
-     * If all non-whitespace lines are already commented out, then we uncomment; otherwise we comment
-     * out. Commenting out adds "//" to at column 0 of every line. Uncommenting removes the first "//"
-     * on each line (if any - empty lines might not have one).
+     * @return html, javascript, css, or less
      */
-    function lineCommentSlashSlash(editor) {
-        
+    function _getActualMode(editor) {
+        var mode = editor._codeMirror.getOption("mode"),
+            endMode;
+        if (mode === "htmlmixed") {
+            var sel = editor.getSelection();
+            mode = editor._codeMirror.getLineHandle(sel.start.line).stateAfter.mode;
+            // Check to see if there are mixed modes. That's not allowed.
+            endMode = editor._codeMirror.getLineHandle(sel.end.line).stateAfter.mode;
+            if (mode !== endMode) {
+                return null;
+            }
+        }
+        return mode;
+    }
+    
+    function _getSelectionInfo(editor) {
         var sel = editor.getSelection();
         var startLine = sel.start.line;
         var endLine = sel.end.line;
-        
-        // Is a range of text selected? (vs just an insertion pt)
-        var hasSelection = (startLine !== endLine) || (sel.start.ch !== sel.end.ch);
-        
-        // In full-line selection, cursor pos is start of next line - but don't want to modify that line
-        if (sel.end.ch === 0 && hasSelection) {
-            endLine--;
+        var line;
+        var i;
+
+        if (startLine !== endLine && sel.end.ch === 0) {
+            --endLine;
         }
         
-        // Decide if we're commenting vs. un-commenting
-        // Are there any non-blank lines that aren't commented out? (We ignore blank lines because
-        // some editors like Sublime don't comment them out)
-        var containsUncommented = false;
-        var i;
-        var line;
+        // Ignore leading and trailing empty lines.
         for (i = startLine; i <= endLine; i++) {
             line = editor.getLineText(i);
-            // A line is commented out if it starts with 0-N whitespace chars, then "//"
-            if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
-                containsUncommented = true;
+            if (line.match(/\S/)) {
+                startLine = i;
                 break;
             }
         }
-        
-        // Make the edit
-        // TODO (#803): should go through Document, not editor._codeMirror
-        var cm = editor._codeMirror;
-        cm.operation(function () {
-            
-            if (containsUncommented) {
-                // Comment out - prepend "//" to each line
-                for (i = startLine; i <= endLine; i++) {
-                    cm.replaceRange("//", {line: i, ch: 0});
-                }
-                
-                // Make sure selection includes "//" that was added at start of range
-                if (sel.start.ch === 0 && hasSelection) {
-                    // use *current* selection end, which has been updated for our text insertions
-                    editor.setSelection({line: startLine, ch: 0}, editor.getSelection().end);
-                }
-                
-            } else {
-                // Uncomment - remove first "//" on each line (if any)
-                for (i = startLine; i <= endLine; i++) {
-                    line = editor.getLineText(i);
-                    var commentI = line.indexOf("//");
-                    if (commentI !== -1) {
-                        cm.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});
-                    }
-                }
+
+        for (i = endLine; i >= startLine; i--) {
+            line = editor.getLineText(i);
+            if (line.match(/\S/)) {
+                endLine = i;
+                break;
             }
-        });
-        
+        }
+                
+        return {"startLine": startLine, "endLine": endLine, startCh: sel.start.ch, endCh: sel.end.ch};
     }
 
+    function _commentToRegExp(comment, includeLeadingWhitespace, includeTrailingWhitespace) {
+        var commentStr = "";
+        var i;
+        for (i = 0; i < comment.length; ++i) {
+            commentStr += "\\";
+            commentStr += comment.charAt(i);
+        }
+        if (includeLeadingWhitespace) {
+            commentStr = "^\\s*" + commentStr;
+        }
+        if (includeTrailingWhitespace) {
+            commentStr = commentStr + "\\s?";
+        }
+        return new RegExp(commentStr);
+    }
+    
+    function _toggleComments(editor, type, startComment, endComment) {
+        var selectionInfo = _getSelectionInfo(editor),
+            origSel = editor.getSelection();
+        var addComments = true;
+        var cm = editor._codeMirror;
+        var i;
+        var commentIndex,
+            endCommentIndex,
+            leftmostColumn;
+        var line,
+            firstLine = editor.getLineText(selectionInfo.startLine),
+            lastLine = editor.getLineText(selectionInfo.endLine);
+        var startCommentRE = _commentToRegExp(startComment, false, false),
+            endCommentRE;
+        
+        if (endComment) {
+            endCommentRE = _commentToRegExp(endComment, false, false);
+        }
+
+        // Are we adding or removing comments?
+        if (firstLine.match(_commentToRegExp(startComment, (type === "line"), false))) {
+            addComments = false;
+        }
+        
+        // TODO (#803): should go through Document, not editor._codeMirror
+        
+        if (type === "block") {
+            if (addComments) {
+                cm.operation(function () {
+                    if (selectionInfo.endCh === 0 || selectionInfo.endCh === selectionInfo.startCh) {
+                        commentIndex = lastLine.length;
+                    } else {
+                        commentIndex = selectionInfo.endCh;
+                    }
+                    cm.replaceRange(endComment, {line: selectionInfo.endLine, ch: commentIndex});
+                    if (selectionInfo.startCh === 0 || selectionInfo.endCh === selectionInfo.startCh) {
+                        commentIndex = firstLine.search(/\S/);
+                    } else {
+                        commentIndex = selectionInfo.startCh;
+                    }
+                    cm.replaceRange(startComment, {line: selectionInfo.startLine, ch: commentIndex});
+                });
+
+                if (origSel.start.line === origSel.end.line) {
+                    origSel.start.ch += startComment.length;
+                    origSel.end.ch += (startComment.length);
+                } else {
+                    if (selectionInfo.startCh !== 0) {
+                        origSel.start.ch += startComment.length;
+                    }
+                }
+                editor.setSelection(origSel.start, origSel.end);
+            } else { // Removing block comments.
+                cm.operation(function () {
+                    commentIndex = lastLine.search(endCommentRE);
+                    cm.replaceRange("", {line: selectionInfo.endLine, ch: commentIndex},
+                                        {line: selectionInfo.endLine, ch: (commentIndex + endComment.length)});
+                    commentIndex = firstLine.search(startCommentRE);
+                    cm.replaceRange("", {line: selectionInfo.startLine, ch: commentIndex},
+                                        {line: selectionInfo.startLine, ch: (commentIndex + startComment.length)});
+                });
+            }
+        } else { // type === "line"
+            // Comments must begin at the left-most column of the selection.
+            if (addComments) {
+                leftmostColumn = firstLine.search(/\S/);
+                for (i = selectionInfo.startLine; i <= selectionInfo.endLine; i++) {
+                    line = editor.getLineText(i);
+                    leftmostColumn = Math.min(leftmostColumn, line.search(/\S/));
+                }
+            }
+            
+            // Start actually adding or removing comments.
+            for (i = selectionInfo.startLine; i <= selectionInfo.endLine; i++) {
+                line = editor.getLineText(i);
+                if (!line.match(/\S/)) { // Blank line.
+                    continue;
+                }
+                if (addComments) {
+                    cm.replaceRange(startComment + " ", {line: i, ch: leftmostColumn});
+                } else { // Removing line comments.
+                    commentIndex = line.search(startCommentRE);
+                    endCommentIndex = commentIndex + line.match(_commentToRegExp(startComment, false, true))[0].length;
+                    cm.replaceRange("", {line: i, ch: commentIndex},
+                                        {line: i, ch: endCommentIndex});
+                }
+            }
+        }
+    }
+
+    function _defineCommentData(editor, type) {
+        var mode = _getActualMode(editor);
+        if (mode === null) {
+            return;
+        }
+        if (mode === "javascript" || mode === "less") {
+            if (type === "block") {
+                _toggleComments(editor, "block", "/*", "*/");
+            } else {
+                _toggleComments(editor, "line", "//");
+            }
+        } else if (mode === "html") {
+            _toggleComments(editor, "block", "<!--", "-->");
+        } else if (mode === "css") {
+            _toggleComments(editor, "block", "/*", "*/");
+        }
+    }
+    
     /**
-     * Invokes a language-specific line-comment/uncomment handler
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     * Invokes a language-specific line-comment/uncomment handler.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor.
      */
     function lineComment(editor) {
         editor = editor || EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
-        
-        // TODO: use mode *at cursor location*, so we can support mixed-mode e.g. JS in script blocks
-        var mode = editor._codeMirror.getOption("mode");
-        
-        // Currently we only support languages with "//" commenting
-        if (mode === "javascript" || mode === "less") {
-            lineCommentSlashSlash(editor);
-        }
+        _defineCommentData(editor, "line");
     }
-    
-    
+        
+    /**
+     * Invokes a language-specific block-comment/uncomment handler.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor.
+     */
+    function blockComment(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        _defineCommentData(editor, "block");
+    }
+
     /**
      * Duplicates the selected text, or current line if no selection. The cursor/selection is left
      * on the second copy.
@@ -154,6 +263,7 @@ define(function (require, exports, module) {
     
     
     // Register commands
-    CommandManager.register(Commands.EDIT_LINE_COMMENT, lineComment);
-    CommandManager.register(Commands.EDIT_DUPLICATE, duplicateText);
+    CommandManager.register(Commands.EDIT_LINE_COMMENT,  lineComment);
+    CommandManager.register(Commands.EDIT_BLOCK_COMMENT, blockComment);
+    CommandManager.register(Commands.EDIT_DUPLICATE,     duplicateText);
 });
