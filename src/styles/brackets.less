@@ -229,42 +229,35 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
+    }
         
-        a {
-            color: black;
-            text-decoration: none;
-            margin-left: 26px;
-        }
+    li {
+        white-space: nowrap;
+        position: relative; // so that children can be positioned absolute
+        line-height: 18px;
+        padding: 0 0 0 8px;
+        min-height: 18px;
+        vertical-align: baseline;
+    }
+            
+    a {
+        color: #BBB;
         
-        li {
-            white-space: nowrap;
-            position: relative; // so that children can be positioned absolute
-            line-height: 24px;
-            padding: 0 0 0 8px;
-            height: 22px;
-            vertical-align: baseline;
-            a {
-                color: #BBB;
-                font-size: 13px;
-                margin-left: 18px;
-                padding-right: @triangle-size * 2;
-                cursor: default;
-            }
-            .extension a {
-                color: #8e9a9d;
-            }
-            &:hover {
-                background: transparent;
-            }
-            &:active {
-                background-position: 0 1px;
-            }
-            &.selected {
-                a {
-                    color: #fff;
-                }
-            }
-        }
+        font-size: 13px;
+        text-decoration: none;
+        
+        display: block;
+        height: 16px;
+        line-height: 16px;
+        margin-left: 18px;
+        padding: 3px 0px;
+        padding-right: @triangle-size * 2;
+        
+        cursor: default;
+    }
+    
+    .selected a {
+        color: #fff;
     }
 }
 
