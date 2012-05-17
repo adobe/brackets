@@ -87,20 +87,35 @@ define(function (require, exports, module) {
             return "xml";
 
         case "php":
+        case "php3":
+        case "php4":
+        case "php5":
+        case "phtm":
+        case "phtml":
             return "php";
 
-        case "c":
         case "cc":
-        case "c++":
-        case "cxx":
         case "cp":
         case "cpp":
-        case "h":
+        case "c++":
+        case "cxx":
+        case "hh":
         case "hpp":
-        case "vert":
-        case "frag":
+        case "hxx":
+        case "h++":
+        case "ii":
+            return "text/x-c++src";
+
+        case "c":
+        case "h":
+        case "i":
+            return "text/x-csrc";
+
+        case "cs":
+            return "text/x-csharp";
+
         case "java":
-            return "clike";
+            return "text/x-java";
 
         case "coffee":
             return "coffeescript";
@@ -110,7 +125,7 @@ define(function (require, exports, module) {
 
         case "pl":
             return "perl";
-        
+
         case "rb":
             return "ruby";
 
