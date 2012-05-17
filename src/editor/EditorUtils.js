@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/css/css");
     require("thirdparty/CodeMirror2/mode/less/less");
     require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
+    require("thirdparty/CodeMirror2/mode/coffeescript/coffeescript");
 
     /**
      * @private
@@ -67,6 +68,9 @@ define(function (require, exports, module) {
 
         case "less":
             return "less";
+
+        case "coffee":
+            return "coffeescript";
 
         case "html":
         case "htm":
