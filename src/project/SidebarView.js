@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         isSidebarClosed         = false;
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
-        defaultPrefs = { sidebarWidth: 200 };
+        defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
     
     
     /**
@@ -66,9 +66,13 @@ define(function (require, exports, module) {
     function _setWidth(width, updateMenu, displayTriangle) {
         // if we specify a width with the handler call, use that. Otherwise use
         // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
-        width = width || Math.max($sidebar.width(), 200);
         
-        if (typeof displayTriangle === "boolean") {
+        var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
+            sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10),
+        
+        width = width || Math.max($sidebar.width(), sidebarWidth);
+        
+        if (typeof displayTriangle === "boolean") {   
             var display = (displayTriangle) ? "block" : "none";
             $sidebar.find(".triangle-visible").css("display", display);
         }
@@ -86,6 +90,10 @@ define(function (require, exports, module) {
             $sidebar.find(".sidebar-selection").width(width);
             $projectFilesContainer.triggerHandler("scroll");
             $openFilesContainer.triggerHandler("scroll");
+            
+            if(width > 10) {
+                prefs.setValue("sidebarWidth", width);
+            }
         }
         
         if (updateMenu) {
@@ -93,9 +101,6 @@ define(function (require, exports, module) {
             $sidebarMenuText.first().text(text);
         }
         
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-        prefs.setValue("sidebarWidth", width);
-
         EditorManager.resizeEditor();
     }
     
@@ -111,6 +116,9 @@ define(function (require, exports, module) {
         
         isSidebarClosed = !isSidebarClosed;
         
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+        prefs.setValue("sidebarClosed", isSidebarClosed);
+        
         _setWidth(width, true, !isSidebarClosed);
     }
     
@@ -124,9 +132,15 @@ define(function (require, exports, module) {
             sidebarWidth            = prefs.getValue("sidebarWidth"),
             startingSidebarPosition = sidebarWidth;
         
-        _setWidth(sidebarWidth, true, true);
-        
         $sidebarResizer.css("left", sidebarWidth - 1);
+        
+        if(prefs.getValue("sidebarClosed")) {
+            toggleSidebar(sidebarWidth);
+        }
+        else {
+            _setWidth(sidebarWidth, true, true);
+        }
+        
         $sidebarResizer.on("dblclick", function () {
             if ($sidebar.width() === 1) {
                 // mousedown is fired first. Sidebar is already toggeled open to 1px.
@@ -182,7 +196,7 @@ define(function (require, exports, module) {
                 $mainView.off("mousemove.sidebar");
                 startingSidebarPosition = $sidebar.width();
             });
-                
+            
             e.preventDefault();
         });
     }
