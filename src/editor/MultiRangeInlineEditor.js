@@ -311,10 +311,16 @@ define(function (require, exports, module) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if ($(editorRoot).find(event.target).length === 0) {
+        
+        function containsClick($parent) {
+            return $parent.find(event.target) > 0 || $parent[0] === event.target;
+        }
+        
+        // Ignore clicks in editor and clicks on filename link
+        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$editorsDiv))) {
             childEditor.focus();
             // Only set the cursor if the click isn't in the range list.
-            if (this.$relatedContainer.find(event.target).length === 0) {
+            if (!containsClick(this.$relatedContainer)) {
                 if (event.pageY < editorPos.top) {
                     childEditor.setCursorPos(0, 0);
                 } else if (event.pageY > editorPos.top + $(editorRoot).height()) {

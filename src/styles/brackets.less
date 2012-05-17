@@ -410,21 +410,28 @@ ins.jstree-icon {
 .inline-widget {
     background-color:   @inline-background-color-1;
     
-    .filename {
-        font-family: @fontstack-sans-serif;
-        font-size: 1.1em;
-        color: @inline-color-1;
+    .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
-        .dirty-indicator {
-            .bracket-sprite;
-            display: inline-block;
-            background-position: -32px 0;
-            padding-top: 3px;
-        }
-        
-        .line-number {
-            color: @inline-color-2;
+        .filename {
+            font-family: @fontstack-sans-serif;
+            font-size: 1.1em;
+            color: @inline-color-1;
+            
+            // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
+            // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
+            cursor: pointer;
+            
+            .dirty-indicator {
+                .bracket-sprite;
+                display: inline-block;
+                background-position: -32px 0;
+                padding-top: 3px;
+            }
+            
+            .line-number {
+                color: @inline-color-2;
+            }
         }
     }
     
