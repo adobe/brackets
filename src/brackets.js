@@ -211,6 +211,8 @@ define(function (require, exports, module) {
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
                     {"Ctrl-D": Commands.EDIT_DUPLICATE},
                     {"Ctrl-/": Commands.EDIT_LINE_COMMENT},
+                    {"Ctrl-Alt-/": Commands.EDIT_BLOCK_COMMENT, "platform": "mac"},
+                    {"Ctrl-Shift-/": Commands.EDIT_BLOCK_COMMENT, "platform": "win"},
 
                     // VIEW
                     {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
@@ -227,8 +229,6 @@ define(function (require, exports, module) {
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
                     {"Ctrl-R": Commands.DEBUG_REFRESH_WINDOW, "platform": "mac"}
-
-
                 ],
                 "platform": brackets.platform
             });
