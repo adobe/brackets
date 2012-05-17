@@ -666,7 +666,7 @@ define(function (require, exports, module) {
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
-     * @param {number} ch   The 0 based character position.
+     * @param {number=} ch  The 0 based character position; treated as 0 if unspecified.
      */
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
