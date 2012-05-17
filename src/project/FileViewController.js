@@ -67,7 +67,7 @@ define(function (require, exports, module) {
     /** 
      * Change the doc selection to the working set when ever a new file is added to the working set
      */
-    $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
+    $(DocumentManager).on("workingSetAdd", function (event, data) {
         _fileSelectionFocus = WORKING_SET_VIEW;
         $(exports).triggerHandler("documentSelectionFocusChange");
     });

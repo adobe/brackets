@@ -136,7 +136,7 @@ define(function (require, exports, module) {
      * @param {FileEntry} file
      * @return {HTMLLIElement} newListItem
      */
-    function _createNewListItem(file) {
+    function _createNewListItem(file, index) {
         var curDoc = DocumentManager.getCurrentDocument();
 
         // Create new list item with a link
@@ -144,8 +144,20 @@ define(function (require, exports, module) {
         var $newItem = $("<li></li>")
             .append($link)
             .data(_FILE_KEY, file);
+        var $list = $openFilesContainer.find("ul");
+        var previous;
 
-        $openFilesContainer.find("ul").append($newItem);
+        // Insert the item at the right position
+        if (index === 0) {
+            $list.prepend($newItem);
+        } else {
+            previous = $list.children()[index - 1];
+            if (previous) {
+                $(previous).after($newItem);
+            } else {
+                $list.append($newItem);
+            }
+        }
         
         // working set item might never have been opened; if so, then it's definitely not dirty
 
@@ -203,8 +215,8 @@ define(function (require, exports, module) {
     /** 
      * @private
      */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
+    function _handleFileAdded(file, index) {
+        _createNewListItem(file, index);
         _redraw();
     }
     
@@ -271,8 +283,8 @@ define(function (require, exports, module) {
         $openFilesList = $openFilesContainer.find("ul");
         
         // Register listeners
-        $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
-            _handleFileAdded(addedFile);
+        $(DocumentManager).on("workingSetAdd", function (event, data) {
+            _handleFileAdded(data.file, data.index);
         });
     
         $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
@@ -291,7 +303,19 @@ define(function (require, exports, module) {
         $openFilesList.sortable({
             axis: 'y',
             scroll: false,
-            update: _updateListSelection
+            update: function (event, ui) {
+                var file = ui.item.data('file');
+                var index = $openFilesList
+                    .children()
+                    .toArray()
+                    .indexOf(ui.item[0]);
+
+                if (index !== -1) {
+                    DocumentManager.insertInWorkingSet(index, file);
+                }
+
+                _updateListSelection();
+            }
         });
         
         // Show scroller shadows when open-files-container scrolls
