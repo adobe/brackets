@@ -312,8 +312,8 @@ define(function (require, exports, module) {
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
         
-        function containsClick(parent) {
-            return parent.find(event.target) > 0 || parent[0] === event.target;
+        function containsClick($parent) {
+            return $parent.find(event.target) > 0 || $parent[0] === event.target;
         }
         
         // Ignore clicks in editor and clicks on filename link
