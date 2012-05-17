@@ -288,6 +288,12 @@ define(function (require, exports, module) {
             _fireSelectionChanged();
         });
         
+        $openFilesList.sortable({
+            axis: 'y',
+            scroll: false,
+            update: _updateListSelection
+        });
+        
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
         ViewUtils.sidebarList($openFilesContainer);
