@@ -37,22 +37,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils = require("spec/SpecRunnerUtils.js");
 
     // Load test specs
-    require("spec/LowLevelFileIO-test.js");
-    require("spec/DocumentCommandHandlers-test.js");
-    require("spec/NativeFileSystem-test.js");
-    require("spec/PreferencesManager-test.js");
-    require("spec/Editor-test.js");
-    require("spec/EditorCommandHandlers-test.js");
-    require("spec/ProjectManager-test.js");
-    require("spec/WorkingSetView-test.js");
-    require("spec/KeyMap-test.js");
-    require("spec/FileIndexManager-test.js");
-    require("spec/CodeHintUtils-test.js");
     require("spec/CSSUtils-test.js");
-    require("spec/InlineEditorProviders-test.js");
-    require("spec/MultiRangeInlineEditor-test.js");
-    require("spec/LiveDevelopment-test.js");
-    require("spec/ViewUtils-test.js");
 
     // AUTOMATED PERFORMANCE
     // Disabled in repo. Uncomment to run performance tests
