@@ -858,6 +858,7 @@ define(function (require, exports, module) {
             } else if (renameInputOffset.top <= scrollTop) {
                 // above viewport
                 renameInput.scrollIntoView(true);
+            }
         }
         
         return result.promise();
