@@ -21,8 +21,8 @@
  * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, window, $ */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,7 +40,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Increases or decreases the editor's font size.
-     * @param {string} "up" or "down"
+     * @param {number} -1 to make the font smaller; 1 to make it bigger.
      */
     function _adjustFontSize(direction) {
         var styleId = "codemirror-dynamic-fonts";
@@ -48,6 +48,15 @@ define(function (require, exports, module) {
         var fs = $(".CodeMirror-scroll").css("font-size");
         var lh = $(".CodeMirror-scroll").css("line-height");
 
+        var validFont = /^[\d\.]+(px|em)$/;
+        
+        // Make sure the font size and line height are expressed in terms
+        // we can handle (px or em). If not, simply bail.
+        if (fs.search(validFont) === -1 || lh.search(validFont) === -1) {
+            return;
+        }
+        
+        // Guaranteed to work by the validation above.
         var fsUnits = fs.substring(fs.length - 2, fs.length);
         var lhUnits = lh.substring(lh.length - 2, lh.length);
 
@@ -57,7 +66,7 @@ define(function (require, exports, module) {
         var fsDelta = (fsUnits === "px") ? 1 : 0.1;
         var lhDelta = (lhUnits === "px") ? 1 : 0.1;
 
-        if (direction === "down") {
+        if (direction === -1) {
             fsDelta *= -1;
             lhDelta *= -1;
         }
@@ -65,37 +74,28 @@ define(function (require, exports, module) {
         var fsStr = (parseFloat(fs) + fsDelta) + fsUnits;
         var lhStr = (parseFloat(lh) + lhDelta) + lhUnits;
 
-        if (fsStr === "1px" || fsStr === ".1em") {
+        // Don't let the fonts get too small.
+        if (direction === -1 && ((fsUnits === "px" && fs <= 1) || (fsUnits === "em" && fs <= 0.1))) {
             return;
         }
 
+        // It's necessary to inject a new rule to address all editors.
         $("#" + styleId).remove();
-        var style = window.document.createElement("style");
-        style.setAttribute("type", "text/css");
-        style.setAttribute("id", styleId);
-        style.innerHTML = ".CodeMirror-scroll{font-size:" + fsStr +
-                          " !important;line-height:" + lhStr + " !important;}";
+        var style = $("<style type='text/css'></style>").attr("id", styleId);
+        style.html(".CodeMirror-scroll {" +
+                   "font-size: "   + fsStr + " !important;" +
+                   "line-height: " + lhStr + " !important;}");
         $("head").append(style);
 
-        var fullEditor = EditorManager.getCurrentFullEditor();
-        fullEditor._codeMirror.refresh();
-        
-        var inlineEditors = fullEditor.getInlineWidgets();
-        inlineEditors.forEach(function (multilineEditor, i, arr) {
-            multilineEditor.sizeInlineWidgetToContents(true);
-            multilineEditor._updateRelatedContainer();
-            multilineEditor.editors.forEach(function (editor, j, arr) {
-                editor._codeMirror.refresh();
-            });
-        });
+        EditorManager.getCurrentFullEditor().refreshAll();
     }
 
     function _handleIncreaseFontSize() {
-        _adjustFontSize("up");
+        _adjustFontSize(1);
     }
 
     function _handleDecreaseFontSize() {
-        _adjustFontSize("down");
+        _adjustFontSize(-1);
     }
     
     CommandManager.register(Commands.VIEW_HIDE_SIDEBAR,       _handleHideSidebar);
