@@ -830,21 +830,23 @@ define(function (require, exports, module) {
         // Create the node and open the editor
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
-        var renameInput = _projectTree.find(".jstree-rename-input");
-
-        renameInput.on("keydown", function (event) {
-            // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-            if (event.keyCode === 27) {
-                escapeKeyPressed = true;
-            }
-        });
-
-        // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
-        renameInput.css({ left: "17px", height: "24px"})
-            .parent().css({ height: "26px"});
-        
-        // make sure edit box is within the sidebar's view
-        renameInput.get(0).scrollIntoView();
+        if (!skipRename) {
+            var renameInput = _projectTree.find(".jstree-rename-input");
+    
+            renameInput.on("keydown", function (event) {
+                // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+                if (event.keyCode === 27) {
+                    escapeKeyPressed = true;
+                }
+            });
+    
+            // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
+            renameInput.css({ left: "17px", height: "24px"})
+                .parent().css({ height: "26px"});
+            
+            // make sure edit box is within the sidebar's view
+            renameInput.get(0).scrollIntoView();
+        }
         
         return result.promise();
     }
