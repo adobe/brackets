@@ -57,7 +57,8 @@
  *      Document that has been saved.
  *    - currentDocumentChange -- When the value of getCurrentDocument() changes.
  *    - workingSetAdd -- When a file is added to the working set (see getWorkingSet()). The 2nd arg
- *      to the listener is the added FileEntry.
+ *      to the listener is an object that has a file field which is a FileEntry of the added file
+ *      and an index field which is the index at which the file is added.
  *    - workingSetRemove -- When a file is removed from the working set (see getWorkingSet()). The
  *      2nd arg to the listener is the removed FileEntry.
  *
@@ -167,6 +168,13 @@ define(function (require, exports, module) {
         return result;
     }
     
+    function _doWorkingSetInsert(file, index) {
+        // Insert the file
+        _workingSet.splice(index, 0, file);
+
+        // Dispatch event
+        $(exports).triggerHandler("workingSetAdd", { file: file, index: index });
+    }
     
     /**
      * Adds the given file to the end of the working set list, if it is not already in the list.
@@ -178,14 +186,10 @@ define(function (require, exports, module) {
         if (findInWorkingSet(file.fullPath) !== -1) {
             return;
         }
-        
-        // Add
-        _workingSet.push(file);
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetAdd", file);
+
+        _doWorkingSetInsert(file, _workingSet.length);
     }
-    
+
     /**
      * Removes the given file from the working set list, if it was in the list. Does not change
      * the current editor even if it's for this file.
@@ -204,8 +208,28 @@ define(function (require, exports, module) {
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
     }
+            
+    /**
+     * Inserts a file into the working set at the given position. If the file was in the list, it
+     * removes it first. Does not change the current editor.
+     * @param {!FileEntry} file
+    */
+    function insertInWorkingSet(index, file) {
+        var existingIndex = findInWorkingSet(file.fullPath);
 
-    
+        // If doc is already in working set, remove it for reordering
+        if (existingIndex !== -1) {
+            _removeFromWorkingSet(file);
+
+            // Move the index to insert at to compensate for the removed item
+            if (existingIndex < index) {
+                index -= 1;
+            }
+        }
+
+        _doWorkingSetInsert(file, index);
+    }
+
     /**
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
      * causes this Document's main editor UI to be shown in the editor pane, updates the selection
@@ -782,6 +806,7 @@ define(function (require, exports, module) {
     exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
+    exports.insertInWorkingSet = insertInWorkingSet;
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
