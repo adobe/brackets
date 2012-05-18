@@ -917,6 +917,20 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Re-renders the editor, and all children inline editors.
+     */
+    Editor.prototype.refreshAll = function () {
+        this.refresh();
+        this.getInlineWidgets().forEach(function (multilineEditor, i, arr) {
+            multilineEditor.sizeInlineWidgetToContents(true);
+            multilineEditor._updateRelatedContainer();
+            multilineEditor.editors.forEach(function (editor, j, arr) {
+                editor.refresh();
+            });
+        });
+    };
+    
+    /**
      * Shows or hides the editor within its parent. Does not force its ancestors to
      * become visible.
      * @param {boolean} show true to show the editor, false to hide it
