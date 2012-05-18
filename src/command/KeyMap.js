@@ -35,17 +35,12 @@ define(function (require, exports, module) {
      * @param {boolean} hasAlt Is Alt key enabled
      * @param {boolean} hasShift Is Shift key enabled
      * @param {string} key The key that's pressed
-     * @param {string} origDescriptor The optional original descriptor
      * @return {string} The normalized key descriptor
      */
-    function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key, origDescriptor) {
+    function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key) {
         if (!key) {
-            if (origDescriptor && origDescriptor.search(/^.+--$/) !== -1) { // Check if the binding is for "-"
-                key = "-";
-            } else {
-                console.log("KeyMap _buildKeyDescriptor() - No key provided!");
-                return "";
-            }
+            console.log("KeyMap _buildKeyDescriptor() - No key provided!");
+            return "";
         }
         
         var keyDescriptor = [];
@@ -115,8 +110,13 @@ define(function (require, exports, module) {
                 key = ele;
             }
         });
+
+        // Check to see if the binding is for "-".
+        if (key === "" && origDescriptor.search(/^.+--$/) !== -1) {
+            key = "-";
+        }
         
-        return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key, origDescriptor);
+        return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
     
     /**
