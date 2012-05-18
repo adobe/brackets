@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp:true */
 /*global define, brackets */
 
 define(function (require, exports, module) {
@@ -110,6 +110,11 @@ define(function (require, exports, module) {
                 key = ele;
             }
         });
+
+        // Check to see if the binding is for "-".
+        if (key === "" && origDescriptor.search(/^.+--$/) !== -1) {
+            key = "-";
+        }
         
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
