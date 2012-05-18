@@ -836,11 +836,10 @@ define(function (require, exports, module) {
 
         if (!skipRename) {
             var $renameInput = _projectTree.find(".jstree-rename-input"),
+                projectTreeOffset = _projectTree.offset(),
                 projectTreeScroller = _projectTree.get(0),
                 renameInput = $renameInput.get(0),
-                renameInputOffset = $renameInput.offset(),
-                scrollTop = projectTreeScroller.scrollTop,
-                scrollLeft = projectTreeScroller.scrollLeft;
+                renameInputOffset = $renameInput.offset();
 
             $renameInput.on("keydown", function (event) {
                 // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
@@ -849,15 +848,20 @@ define(function (require, exports, module) {
                 }
             });
             
-            // make sure edit box is visible within the jstree, only scroll when necessary
-            if ((renameInputOffset.top >= (scrollTop + _projectTree.height()))
-                    || (renameInputOffset.left < scrollLeft)
-                    || (renameInputOffset.left > scrollLeft + _projectTree.width())) {
-                // below or horizontally outside viewport
+            // make sure edit box is visible within the jstree, only scroll vertically when necessary
+            if (renameInputOffset.top >= (projectTreeOffset.top + _projectTree.height())) {
+                // below viewport
                 renameInput.scrollIntoView(false);
-            } else if (renameInputOffset.top <= scrollTop) {
+            } else if (renameInputOffset.top <= projectTreeOffset.top) {
                 // above viewport
                 renameInput.scrollIntoView(true);
+            }
+            
+            // left-align renameInput
+            if (renameInputOffset.left < 0) {
+                _projectTree.scrollLeft(_projectTree.scrollLeft() + renameInputOffset.left);
+            } else if (renameInputOffset.left >= projectTreeOffset.left + _projectTree.width()) {
+                _projectTree.scrollLeft(renameInputOffset.left - projectTreeOffset.left);
             }
         }
         
