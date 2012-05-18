@@ -177,7 +177,7 @@ define(function (require, exports, module) {
             Strings.ERROR_OPENING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_OPENING_FILE,
-                path,
+                StringUtils.htmlEscape(path),
                 getFileErrorString(code)
             )
         );
