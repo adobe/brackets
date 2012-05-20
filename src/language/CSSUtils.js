@@ -71,7 +71,7 @@ define(function (require, exports, module) {
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var declListStartLine = -1, declListStartChar = -1;
 
-        // implement _getFirstToken()/_getNextToken() methods to
+        // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
         
         function _hasStream() {
@@ -90,7 +90,7 @@ define(function (require, exports, module) {
             return true;
         }
         
-        function _getFirstToken() {
+        function _firstToken() {
             state = CodeMirror.startState(mode);
             lines = CodeMirror.splitLines(text);
             lineCount = lines.length;
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
             return true;
         }
         
-        function _getNextToken() {
+        function _nextToken() {
             // advance the stream past this token
             stream.start = stream.pos;
             if (!_hasStream()) {
@@ -118,24 +118,24 @@ define(function (require, exports, module) {
             return true;
         }
         
-        function _getFirstTokenSkippingWhitespace() {
-            if (!_getFirstToken()) {
+        function _firstTokenSkippingWhitespace() {
+            if (!_firstToken()) {
                 return false;
             }
             while (!token.match(/\S/)) {
-                if (!_getNextToken()) {
+                if (!_nextToken()) {
                     return false;
                 }
             }
             return true;
         }
         
-        function _getNextTokenSkippingWhitespace() {
-            if (!_getNextToken()) {
+        function _nextTokenSkippingWhitespace() {
+            if (!_nextToken()) {
                 return false;
             }
             while (!token.match(/\S/)) {
-                if (!_getNextToken()) {
+                if (!_nextToken()) {
                     return false;
                 }
             }
@@ -148,19 +148,19 @@ define(function (require, exports, module) {
         
         function _parseComment() {
             while (!token.match(/\*\/$/)) {
-                if (!_getNextToken()) {
+                if (!_nextToken()) {
                     break;
                 }
             }
         }
 
-        function _getNextTokenSkippingComments() {
-            if (!_getNextToken()) {
+        function _nextTokenSkippingComments() {
+            if (!_nextToken()) {
                 return false;
             }
             while (_isStartComment()) {
                 _parseComment();
-                if (!_getNextToken()) {
+                if (!_nextToken()) {
                     return false;
                 }
             }
@@ -173,10 +173,10 @@ define(function (require, exports, module) {
             selectorStartChar = stream.start;
             selectorStartLine = line;
             
-            // Skip everything until the next ',' or '{'
+            // Everything until the next ',' or '{' is part of the current selector
             while (token !== "," && token !== "{") {
                 currentSelector += token;
-                if (!_getNextTokenSkippingComments()) {
+                if (!_nextTokenSkippingComments()) {
                     break;
                 }
             }
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
 
             _parseSelector();
             while (token === ",") {
-                if (!_getNextTokenSkippingComments()) {
+                if (!_nextTokenSkippingComments()) {
                     break;
                 }
                 _parseSelector();
@@ -219,7 +219,7 @@ define(function (require, exports, module) {
             declListStartLine = line;
             declListStartChar = stream.start;
 
-            // Since we're now in a declartion list, that means we also finished
+            // Since we're now in a declaration list, that means we also finished
             // parsing the whole selector group. Therefore, reset selectorGroupStartLine
             // so that next time we parse a selector we know it's a new group
             selectorGroupStartLine = -1;
@@ -229,7 +229,7 @@ define(function (require, exports, module) {
 
             // Skip everything until the next '}'
             while (token !== "}") {
-                if (!_getNextTokenSkippingComments()) {
+                if (!_nextTokenSkippingComments()) {
                     break;
                 }
             }
@@ -282,11 +282,11 @@ define(function (require, exports, module) {
                 
                 // Skip everything until the opening '{'
                 while (token !== "{") {
-                    if (!_getNextTokenSkippingComments()) {
+                    if (!_nextTokenSkippingComments()) {
                         break;
                     }
                 }
-                _getNextToken();    // skip the '{'
+                _nextToken();    // skip the '{'
 
                 // Parse rules until we see '}'
                 
@@ -313,7 +313,7 @@ define(function (require, exports, module) {
                         _parseRule();
                     }
                     
-                    if (!_getNextTokenSkippingWhitespace()) {
+                    if (!_nextTokenSkippingWhitespace()) {
                         break;
                     }
                 }
@@ -324,7 +324,7 @@ define(function (require, exports, module) {
                 //   @rule ... ;
                 // Skip everything until the next ';'
                 while (token !== ";") {
-                    if (!_getNextTokenSkippingComments()) {
+                    if (!_nextTokenSkippingComments()) {
                         break;
                     }
                 }
@@ -335,7 +335,7 @@ define(function (require, exports, module) {
                 // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
                 // Skip everything until the next '}'
                 while (token !== "}") {
-                    if (!_getNextTokenSkippingComments()) {
+                    if (!_nextTokenSkippingComments()) {
                         break;
                     }
                 }
@@ -344,7 +344,7 @@ define(function (require, exports, module) {
         
         // Start parsing
 
-        if (!_getFirstTokenSkippingWhitespace()) {
+        if (!_firstTokenSkippingWhitespace()) {
             return selectors;
         }
 
@@ -372,7 +372,7 @@ define(function (require, exports, module) {
                 _parseRule();
             }
 
-        } while (_getNextTokenSkippingWhitespace());
+        } while (_nextTokenSkippingWhitespace());
 
         return selectors;
     }
