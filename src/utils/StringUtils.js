@@ -37,5 +37,10 @@ define(function (require, exports, module) {
             .replace(/>/g, '&gt;');
     }
 
+    function regexEscape(str) {
+        return (str+'').replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
+    }
+
     exports.htmlEscape = htmlEscape;
+    exports.regexEscape = regexEscape;
 });
