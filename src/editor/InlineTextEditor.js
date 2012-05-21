@@ -32,6 +32,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
         InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
@@ -202,28 +204,41 @@ define(function (require, exports, module) {
             self.close();
         }
         
-        // create the filename div
-        var wrapperDiv = window.document.createElement("div");
-        var $wrapperDiv = $(wrapperDiv);
+        // root container holding header & editor
+        var $wrapperDiv = $("<div/>");
+        var wrapperDiv = $wrapperDiv[0];
         
-        // dirty indicator followed by filename
-        var $filenameDiv = $(window.document.createElement("div")).addClass("filename");
+        // header containing filename, dirty indicator, line number
+        var $header = $("<div/>").addClass("inline-editor-header");
+        var $filenameInfo = $("<a/>").addClass("filename");
         
-        // save file path data to dirty-indicator
-        var $dirtyIndicatorDiv = $(window.document.createElement("div"))
+        // dirty indicator, with file path stored on it
+        var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
             .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        var $nameWithTooltip = $("<span></span>").text(doc.file.name).attr("title", doc.file.fullPath);
         var $lineNumber = $("<span class='line-number'>" + (startLine + 1) + "</span>");
 
-        $filenameDiv.append($dirtyIndicatorDiv)
-            .append($nameWithTooltip)
-            .append(" : ")
-            .append($lineNumber);
-        $wrapperDiv.append($filenameDiv);
+        // wrap filename & line number in clickable link with tooltip
+        $filenameInfo.append($dirtyIndicatorDiv)
+            .append(doc.file.name + " : ")
+            .append($lineNumber)
+            .attr("title", doc.file.fullPath);
+        
+        // clicking filename jumps to full editor view
+        $filenameInfo.click(function () {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
+                .done(function () {
+                    EditorManager.getCurrentFullEditor().setCursorPos(startLine);
+                });
+        });
 
+        $header.append($filenameInfo);
+        $wrapperDiv.append($header);
+        
+        
+        // Create actual Editor instance
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);

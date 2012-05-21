@@ -63,7 +63,9 @@ define(function (require, exports, module) {
     exports.EDIT_BLOCK_COMMENT  = "edit.blockComment";
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR   = "view.hideSidebar";
+    exports.VIEW_HIDE_SIDEBAR       = "view.hideSidebar";
+    exports.VIEW_INCREASE_FONT_SIZE = "view.increaseFontSize";
+    exports.VIEW_DECREASE_FONT_SIZE = "view.decreaseFontSize";
     
     // Navigate
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";

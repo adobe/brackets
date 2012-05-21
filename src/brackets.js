@@ -216,6 +216,8 @@ define(function (require, exports, module) {
 
                     // VIEW
                     {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
+                    {"Ctrl-=": Commands.VIEW_INCREASE_FONT_SIZE},
+                    {"Ctrl--": Commands.VIEW_DECREASE_FONT_SIZE},
                     
                     // Navigate
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
