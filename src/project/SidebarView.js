@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $  */
+/*global define, $, document  */
 
 define(function (require, exports, module) {
     'use strict';
@@ -128,6 +128,7 @@ define(function (require, exports, module) {
      */
     function _initSidebarResizer() {
         var $mainView               = $(".main-view"),
+            $body                   = $(document.body),
             prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
             sidebarWidth            = prefs.getValue("sidebarWidth"),
             startingSidebarPosition = sidebarWidth;
@@ -150,7 +151,7 @@ define(function (require, exports, module) {
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
             var startX = e.clientX;
-            
+            $body.toggleClass("resizing");
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
@@ -166,6 +167,7 @@ define(function (require, exports, module) {
                 if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
                     $mainView.off("mousemove.sidebar");
+                    $body.toggleClass("resizing");
                     doResize = false;
                 } else if (startX < 10) {
                     // reset startX if we're going from a snapped closed position to open
@@ -186,6 +188,7 @@ define(function (require, exports, module) {
                 
                 if (newWidth === 0) {
                     $mainView.off("mousemove.sidebar");
+                    $("body").toggleClass("resizing");
                 }
                     
                 e.preventDefault();
@@ -193,6 +196,7 @@ define(function (require, exports, module) {
                 
             $mainView.one("mouseup.sidebar", function (e) {
                 $mainView.off("mousemove.sidebar");
+                $body.toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
             });
             

@@ -64,7 +64,11 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
+    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
+        cursor: col-resize;   
+    }
 }
+
 
 a, img {
     -webkit-user-drag: none;
@@ -199,7 +203,7 @@ a, img {
     z-index: @z-index-brackets-sidebar-resizer;
     opacity: 0;
     cursor: col-resize;
-}
+} 
 
 #file-section {
     .vbox;
@@ -250,6 +254,7 @@ a, img {
                 padding-right: @triangle-size * 2;
                 cursor: default;
             }
+            
             .extension a {
                 color: #8e9a9d;
             }
