@@ -14,7 +14,7 @@ a { color: red; }/*END*/a { color: blue; }/*END*/
  * examples are technically malformed, but parsing is the same
  */
 @charset "UTF-8";
-/* comment after @rule should be included */
+/* comment after @rule should be included, even if it contains @import (Issue #861) */
 a {
 	color: lime;
 }
