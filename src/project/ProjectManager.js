@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
+        StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
@@ -519,7 +520,9 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
-                    Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, dirEntry.fullPath, error.code)
+                    Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                        StringUtils.htmlEscape(dirEntry.fullPath),
+                        error.code)
                 );
             }
         );
@@ -616,7 +619,7 @@ define(function (require, exports, module) {
                         Strings.ERROR_LOADING_PROJECT,
                         Strings.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                            rootPath,
+                            StringUtils.htmlEscape(rootPath),
                             error.code,
                             function () {
                                 result.reject();
@@ -789,13 +792,17 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.INVALID_FILENAME_TITLE,
-                                Strings.format(Strings.FILE_ALREADY_EXISTS, data.rslt.name)
+                                Strings.format(Strings.FILE_ALREADY_EXISTS,
+                                    StringUtils.htmlEscape(data.rslt.name))
                             );
                         } else {
                             var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
                                              Strings.NO_MODIFICATION_ALLOWED_ERR :
                                              Strings.format(String.GENERIC_ERROR, error.code);
-                            var errMsg = Strings.format(Strings.ERROR_CREATING_FILE, data.rslt.name, errString);
+
+                            var errMsg = Strings.format(Strings.ERROR_CREATING_FILE,
+                                            StringUtils.htmlEscape(data.rslt.name),
+                                            errString);
                           
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
@@ -823,19 +830,24 @@ define(function (require, exports, module) {
         // Create the node and open the editor
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
-        var renameInput = _projectTree.find(".jstree-rename-input");
-
-        renameInput.on("keydown", function (event) {
-            // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-            if (event.keyCode === 27) {
-                escapeKeyPressed = true;
-            }
-        });
-
-        // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
-        renameInput.css({ left: "17px", height: "24px"})
-            .parent().css({ height: "26px"});
-
+        if (!skipRename) {
+            var renameInput = _projectTree.find(".jstree-rename-input");
+    
+            renameInput.on("keydown", function (event) {
+                // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+                if (event.keyCode === 27) {
+                    escapeKeyPressed = true;
+                }
+            });
+    
+            // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
+            renameInput.css({ left: "17px", height: "24px"})
+                .parent().css({ height: "26px"});
+            
+            // make sure edit box is within the sidebar's view
+            renameInput.get(0).scrollIntoView();
+        }
+        
         return result.promise();
     }
 
