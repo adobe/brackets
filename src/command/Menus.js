@@ -115,13 +115,13 @@ define(function (require, exports, module) {
      * @param TODO
      * @param {string} commandStr
      */
-    Menu.prototype.createMenuItem = function (name, keyCmds, commandStr, relativeMenuItemID) {
+    Menu.prototype.createMenuItem = function (name, id, commandStr, keyCmds) {
         var newItem;
 
         if (name === "---") {
             newItem = $("<li><hr class='divider'></li>");
         } else {
-            newItem = $("<li><a href='#' id='" + name.toLowerCase() + "-menu-item'>" + name + "</a></li>")
+            newItem = $("<li><a href='#' id='" + id + "-menu-item'>" + name + "</a></li>")
                 .click(createExecMenuFunc(commandStr));
 
             if (keyCmds) {
@@ -149,67 +149,75 @@ define(function (require, exports, module) {
     };
 
     createMenu("File")
-        .createMenuItem("New",                      "Ctrl-N",       Commands.FILE_NEW)
-        .createMenuItem("Open",                     "Ctrl-O",       Commands.FILE_OPEN)
-        .createMenuItem("Open Folder",              null,           Commands.FILE_OPEN_FOLDER)
-        .createMenuItem("Close",                    "Ctrl-W",       Commands.FILE_CLOSE)
+        .createMenuItem("New",                  "file-new",             Commands.FILE_NEW,         "Ctrl-N")
+        .createMenuItem("Open",                 "file-open",            Commands.FILE_OPEN,        "Ctrl-O")
+        .createMenuItem("Open Folder",                                  Commands.FILE_OPEN_FOLDER)
+        .createMenuItem("Close",                "file-close",           Commands.FILE_CLOSE,        "Ctrl-W")
         .createMenuDivider()
-        .createMenuItem("Save",                     "Ctrl-S",       Commands.FILE_SAVE)
+        .createMenuItem("Save",                 "file-save",            Commands.FILE_SAVE,         "Ctrl-S")
         .createMenuDivider()
-        .createMenuItem("Live File Preview",        "Ctrl-Alt-P",   Commands.FILE_LIVE_FILE_PREVIEW)
+        .createMenuItem("Live File Preview",    "file-live-preview",    Commands.FILE_LIVE_FILE_PREVIEW,
+                                                                                                    "Ctrl-Alt-P")
         .createMenuDivider()
-        .createMenuItem("Quit",                     "Ctrl-Q",       Commands.FILE_QUIT);
+        .createMenuItem("Quit",                 "file-quit",            Commands.FILE_QUIT,         "Ctrl-Q");
 
     createMenu("Edit")
-        .createMenuItem("Select All",               "Ctrl-A",       Commands.EDIT_SELECT_ALL)
+        .createMenuItem("Select All",           "edit-select-all",      Commands.EDIT_SELECT_ALL,   "Ctrl-A")
         .createMenuDivider()
-        .createMenuItem("Find",                     "Ctrl-F",       Commands.EDIT_FIND)
-        .createMenuItem("Find in Files",            "Ctrl-Shift-F", Commands.EDIT_FIND_IN_FILES)
-        .createMenuItem("Find Next",                [{key: "F3",    platform: "win"},
-                                                    {key: "Ctrl-G", platform: "mac"}],
-                                                                    Commands.EDIT_FIND_NEXT)
+        .createMenuItem("Find",                 "edit-find",            Commands.EDIT_FIND,         "Ctrl-F")
+        .createMenuItem("Find in Files",        "edit-find-in-files",   Commands.EDIT_FIND_IN_FILES,
+                                                                                                    "Ctrl-Shift-F")
+        .createMenuItem("Find Next",            "edit-find-next",       Commands.EDIT_FIND_NEXT,
+                                                                        [{key: "F3",     platform: "win"},
+                                                                         {key: "Ctrl-G", platform: "mac"}])
 
-        .createMenuItem("Find Previous",            [{key: "Shift-F3",     platform: "win"},
-                                                    {key:  "Ctrl-Shift-G", platform: "mac"}],
-                                                                    Commands.EDIT_FIND_PREVIOUS)
+        .createMenuItem("Find Previous",        "edit-find-previous",   Commands.EDIT_FIND_PREVIOUS,
+                                                                        [{key: "Shift-F3",      platform: "win"},
+                                                                         {key:  "Ctrl-Shift-G", platform: "mac"}])
 
         .createMenuDivider()
-        .createMenuItem("Replace",                  [{key: "Ctrl-H",    platform: "win"},
-                                                    {key: "Ctrl-Alt-F", platform: "mac"}],
-                                                                    Commands.EDIT_REPLACE)
+        .createMenuItem("Replace",              "edit-repace",          Commands.EDIT_REPLACE,
+                                                                        [{key: "Ctrl-H",     platform: "win"},
+                                                                         {key: "Ctrl-Alt-F", platform: "mac"}])
         .createMenuDivider()
-        .createMenuItem("Duplicate",                null,           Commands.EDIT_DUPLICATE)
-        .createMenuItem("Comment/Uncomment Lines",  "Ctrl-/",       Commands.EDIT_LINE_COMMENT);
+        .createMenuItem("Duplicate",            "edit-duplicate",       Commands.EDIT_DUPLICATE)
+        .createMenuItem("Comment/Uncomment Lines",
+                                                "edit-comment",         Commands.EDIT_LINE_COMMENT, "Ctrl-/");
 
     createMenu("View")
-        .createMenuItem("Show Sidebar",             "Ctrl-Shift-H", Commands.VIEW_HIDE_SIDEBAR);
+        .createMenuItem("Show Sidebar",         "view-sidebar",         Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
 
     createMenu("Navigate")
-        .createMenuItem("Quick Open",               "Ctrl-Shift-O", Commands.NAVIGATE_QUICK_OPEN)
-        .createMenuItem("Go to Line",               [{key: "Ctrl-G", platform: "win"},
-                                                    {key: "Ctrl-L", platform: "mac"}],
-                                                            Commands.NAVIGATE_GOTO_LINE)
+        .createMenuItem("Quick Open",           "navigate-quick-open",  Commands.NAVIGATE_QUICK_OPEN,
+                                                                                                    "Ctrl-Shift-O")
+        .createMenuItem("Go to Line",           "navigate-goto-line",   Commands.NAVIGATE_GOTO_LINE,
+                                                                        [{key: "Ctrl-G", platform: "win"},
+                                                                         {key: "Ctrl-L", platform: "mac"}])
 
-        .createMenuItem("Go to Symbol",             "Ctrl-T",       Commands.NAVIGATE_GOTO_DEFINITION)
+        .createMenuItem("Go to Symbol",         "navigate-goto-symbol", Commands.NAVIGATE_GOTO_DEFINITION,
+                                                                                                    "Ctrl-T")
         .createMenuDivider()
-        .createMenuItem("Quick Edit",               "Ctrl-E",       Commands.SHOW_INLINE_EDITOR)
-        .createMenuItem("Previous Match",           "Alt-Up",       Commands.QUICK_EDIT_PREV_MATCH)
-        .createMenuItem("Next Match",               "Alt-Down",     Commands.QUICK_EDIT_NEXT_MATCH);
+        .createMenuItem("Quick Edit",           "navigate-quick-edit",  Commands.SHOW_INLINE_EDITOR,
+                                                                                                    "Ctrl-E")
+        .createMenuItem("Previous Match",       "navigate-prev-match",  Commands.QUICK_EDIT_PREV_MATCH,
+                                                                                                    "Alt-Up")
+        .createMenuItem("Next Match",           "navigate-next-match",  Commands.QUICK_EDIT_NEXT_MATCH,
+                                                                                                    "Alt-Down");
 
     createMenu("Debug")
-        .createMenuItem("Reload Window",            [{key: "F5",    platform: "win"},
-                                                    {key: "Ctrl-R", platform:  "mac"}],
-                                                                    Commands.DEBUG_REFRESH_WINDOW)
+        .createMenuItem("Reload Window",        "deubg-reload-wn",      Commands.DEBUG_REFRESH_WINDOW,
+                                                                        [{key: "F5",     platform: "win"},
+                                                                         {key: "Ctrl-R", platform:  "mac"}])
 
-        .createMenuItem("Show Developer Tools",     null,           Commands.DEBUG_SHOW_DEVELOPER_TOOLS)
-        .createMenuItem("Run Tests",                null,           Commands.DEBUG_RUN_UNIT_TESTS)
-        .createMenuItem("Enable JSLint",            null,           Commands.DEBUG_JSLINT)
-        .createMenuItem("Show Perf Data",           null,           Commands.DEBUG_SHOW_PERF_DATA)
+        .createMenuItem("Show Developer Tools", "debug-dev-tools",      Commands.DEBUG_SHOW_DEVELOPER_TOOLS)
+        .createMenuItem("Run Tests",            "debug-run-tests",      Commands.DEBUG_RUN_UNIT_TESTS)
+        .createMenuItem("Enable JSLint",        "debug-enable-jslint",  Commands.DEBUG_JSLINT)
+        .createMenuItem("Show Perf Data",       "debug-perf-data",      Commands.DEBUG_SHOW_PERF_DATA)
         .createMenuDivider()
-        .createMenuItem("Expirimental",             null)
-        .createMenuItem("New Window",               null,           Commands.DEBUG_NEW_BRACKETS_WINDOW)
-        .createMenuItem("Close Browsers",           null,           Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS)
-        .createMenuItem("Use Tab Characters",       null,           Commands.DEBUG_USE_TAB_CHARS);
+        .createMenuItem("Expirimental",         "debug-experiemental")
+        .createMenuItem("New Window",           "debug-new-window",     Commands.DEBUG_NEW_BRACKETS_WINDOW)
+        .createMenuItem("Close Browsers",       "debug-close-browser",  Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS)
+        .createMenuItem("Use Tab Characters",   "debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
 
     
     
