@@ -23,7 +23,10 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $, CodeMirror, _parseRuleList: true */
+
+// JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
+// It was added to this list to prevent JSLint warning about being used before being defined.
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -248,15 +251,6 @@ define(function (require, exports, module) {
             }
         }
         
-        function _parseRule() {
-            _parseSelectorList();
-            _parseDeclarationList();
-        }
-        
-        function _isStartAtRule() {
-            return (token.match(/^@/));
-        }
-        
         function includeCommentInNextRule() {
             if (ruleStartChar !== -1) {
                 return false;       // already included
@@ -265,6 +259,10 @@ define(function (require, exports, module) {
                 return false;       // on same line as '}', so it's for previous rule
             }
             return true;
+        }
+        
+        function _isStartAtRule() {
+            return (token.match(/^@/));
         }
         
         function _parseAtRule() {
@@ -286,38 +284,11 @@ define(function (require, exports, module) {
                         break;
                     }
                 }
-                _nextToken();    // skip the '{'
+                _nextTokenSkippingWhitespace();    // skip past '{', to next non-ws token
 
                 // Parse rules until we see '}'
-                
-                while (token !== "}") {
+                _parseRuleList("}");
 
-                    if (_isStartAtRule()) {
-                        // @rule
-                        _parseAtRule();
-        
-                    } else if (_isStartComment()) {
-                        // comment - make this part of style rule
-                        if (includeCommentInNextRule()) {
-                            ruleStartChar = stream.start;
-                            ruleStartLine = line;
-                        }
-                        _parseComment();
-        
-                    } else {
-                        // Otherwise, it's style rule
-                        if (ruleStartChar === -1) {
-                            ruleStartChar = stream.start;
-                            ruleStartLine = line;
-                        }
-                        _parseRule();
-                    }
-                    
-                    if (!_nextTokenSkippingWhitespace()) {
-                        break;
-                    }
-                }
-                
             } else if (token.match(/@(charset|import|namespace)/i)) {
                 
                 // This code handles @rules in this format:
@@ -341,38 +312,50 @@ define(function (require, exports, module) {
                 }
             }
         }
-        
-        // Start parsing
 
-        if (!_firstTokenSkippingWhitespace()) {
-            return selectors;
+        // parse a style rule
+        function _parseRule() {
+            _parseSelectorList();
+            _parseDeclarationList();
         }
-
-        // Process rule list
         
-        do {
-            if (_isStartAtRule()) {
-                // @rule
-                _parseAtRule();
-
-            } else if (_isStartComment()) {
-                // comment - make this part of style rule
-                if (includeCommentInNextRule()) {
-                    ruleStartChar = stream.start;
-                    ruleStartLine = line;
+        function _parseRuleList(escapeToken) {
+            
+            while ((!escapeToken) || token !== escapeToken) {
+                if (_isStartAtRule()) {
+                    // @rule
+                    _parseAtRule();
+    
+                } else if (_isStartComment()) {
+                    // comment - make this part of style rule
+                    if (includeCommentInNextRule()) {
+                        ruleStartChar = stream.start;
+                        ruleStartLine = line;
+                    }
+                    _parseComment();
+    
+                } else {
+                    // Otherwise, it's style rule
+                    if (ruleStartChar === -1) {
+                        ruleStartChar = stream.start;
+                        ruleStartLine = line;
+                    }
+                    _parseRule();
                 }
-                _parseComment();
-
-            } else {
-                // Otherwise, it's style rule
-                if (ruleStartChar === -1) {
-                    ruleStartChar = stream.start;
-                    ruleStartLine = line;
+                
+                if (!_nextTokenSkippingWhitespace()) {
+                    break;
                 }
-                _parseRule();
             }
+        }
+        
+        // Do parsing
 
-        } while (_nextTokenSkippingWhitespace());
+        if (_firstTokenSkippingWhitespace()) {
+
+            // Style sheet is a rule list
+            _parseRuleList();
+        }
 
         return selectors;
     }
