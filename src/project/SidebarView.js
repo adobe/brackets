@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document  */
+/*global define, $  */
 
 define(function (require, exports, module) {
     'use strict';
@@ -108,20 +108,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Remove event listeners and clean up the sidebar
-     * Decided this belonged in a separate function in case there are other
-     * things that need to be cleaned up. But it might be better to move
-     * the element references (mainView, resizingDiv) up in the scope chain.
-     * @param {mainView} the mainView object
-     * @param {resizingDiv} the resizingDiv object
-     */
-    function _cleanupSidebar($mainView, $resizingDiv) {
-        $mainView.off("mousemove.sidebar");
-        $resizingDiv.remove();
-    }
-    
-    /**
-     * @private
      * Install sidebar resize handling.
      */
     function _initSidebarResizer() {
@@ -141,7 +127,7 @@ define(function (require, exports, module) {
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
             var startX = e.clientX;
-            $(document.body).toggleClass("resizing");
+            $("body").toggleClass("resizing");
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
@@ -157,7 +143,7 @@ define(function (require, exports, module) {
                 if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
                     $mainView.off("mousemove.sidebar");
-                    $(document.body).toggleClass("resizing");
+                    $("body").toggleClass("resizing");
                     doResize = false;
                 } else if (startX < 10) {
                     // reset startX if we're going from a snapped closed position to open
@@ -178,7 +164,7 @@ define(function (require, exports, module) {
                 
                 if (newWidth === 0) {
                     $mainView.off("mousemove.sidebar");
-                    $(document.body).toggleClass("resizing");
+                    $("body").toggleClass("resizing");
                 }
                     
                 e.preventDefault();
@@ -186,7 +172,7 @@ define(function (require, exports, module) {
                 
             $mainView.one("mouseup.sidebar", function (e) {
                 $mainView.off("mousemove.sidebar");
-                $(document.body).toggleClass("resizing");
+                $("body").toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
             });
                 
