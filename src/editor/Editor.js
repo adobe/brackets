@@ -955,6 +955,7 @@ define(function (require, exports, module) {
     
     /**
      * Returns the text of the given line.
+     * TODO: move to Document; it's a pretty close sibling to getRange()...
      * @param {number} The zero-based number of the line to retrieve.
      * @return {string} The contents of the line.
      */

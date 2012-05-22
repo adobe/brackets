@@ -75,14 +75,13 @@ define(function (require, exports, module) {
         }
         
         // Make the edit
-        // TODO (#803): should go through Document, not editor._codeMirror
-        var cm = editor._codeMirror;
-        cm.operation(function () {
+        var doc = editor.document;
+        doc.batchOperation(function () {
             
             if (containsUncommented) {
                 // Comment out - prepend "//" to each line
                 for (i = startLine; i <= endLine; i++) {
-                    cm.replaceRange("//", {line: i, ch: 0});
+                    doc.replaceRange("//", {line: i, ch: 0});
                 }
                 
                 // Make sure selection includes "//" that was added at start of range
@@ -97,7 +96,7 @@ define(function (require, exports, module) {
                     line = editor.getLineText(i);
                     var commentI = line.indexOf("//");
                     if (commentI !== -1) {
-                        cm.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});
+                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});
                     }
                 }
             }
@@ -145,11 +144,10 @@ define(function (require, exports, module) {
         }
         
         // Make the edit
-        // TODO (#803): should go through Document, not Editor._codeMirror
-        var cm = editor._codeMirror;
+        var doc = editor.document;
         
-        var selectedText = cm.getRange(sel.start, sel.end);
-        cm.replaceRange(selectedText, sel.start);
+        var selectedText = doc.getRange(sel.start, sel.end);
+        doc.replaceRange(selectedText, sel.start);
     }
     
     

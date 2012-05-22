@@ -69,6 +69,7 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
+        EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
@@ -449,6 +450,7 @@ define(function (require, exports, module) {
      * Attach a backing Editor to the Document, enabling setText() to be called. Assumes Editor has
      * already been initialized with the value of getText(). ONLY Editor should call this (and only
      * when EditorManager has told it to act as the master editor).
+     * @param {!Editor} masterEditor
      */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
@@ -475,8 +477,19 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Guarantees that _masterEditor is non-null. If needed, asks EditorManager to create a new master
+     * editor bound to this Document (which in turn causes Document._makeEditable() to be called).
+     */
+    Document.prototype._ensureMasterEditor = function () {
+        if (!this._masterEditor) {
+            EditorManager._createFullEditorForDocument(this);
+        }
+    };
+    
+    /**
      * @return {string} The document's current contents; may not be saved to disk yet. Whenever this
-     * value changes, the Document dispatches a "change" event.
+     * value changes, the Document dispatches a "change" event. Line endings in the string depend on
+     * the Document's line endings setting.
      */
     Document.prototype.getText = function () {
         if (this._masterEditor) {
@@ -495,15 +508,11 @@ define(function (require, exports, module) {
     
     /**
      * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
-     * match the document's current line-ending style. CANNOT be called unless the Document has a
-     * backing editor. Only Editor can ensure that is true; from anywhere else, it's unsafe to call
-     * setText() unless this is the currentDocument.
+     * match the document's current line-ending style.
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function (text) {
-        if (!this._masterEditor) {
-            throw new Error("Cannot mutate a Document before it has been assigned a master Editor");
-        }
+        this._ensureMasterEditor();
         this._masterEditor._setText(text);
         // _handleEditorChange() triggers "change" event
     };
@@ -540,6 +549,43 @@ define(function (require, exports, module) {
         }
 
         PerfUtils.addMeasurement(perfTimerName);
+    };
+    
+    /**
+     * Adds, replaces, or removes text. If a range is given, the text at that range (inclusive) is replaced
+     * with the given new text; if text == "", then the entire range is effectively deleted. If 'end' is
+     * omitted, then the new text is inserted at that point and all existing text is preserved. Any style of
+     * line ending can be provided as input.
+     * @param {!string} text  Text to insert or replace the range with
+     * @param {!{line:number, ch:number}} start  Start of range (if 'to' specified) or insertion point (if not)
+     * @param {?{line:number, ch:number}} end  End of range; optional
+     */
+    Document.prototype.replaceRange = function (text, start, end) {
+        this._ensureMasterEditor();
+        this._masterEditor._codeMirror.replaceRange(text, start, end);
+        // _handleEditorChange() triggers "change" event
+    };
+    
+    /**
+     * Returns the characters in the given range (inclusive). Line endings will always be '\n', regardless
+     * of the Document's line endings setting.
+     * @param {!{line:number, ch:number}} start
+     * @param {!{line:number, ch:number}} end
+     * @return {!string}
+     */
+    Document.prototype.getRange = function (start, end) {
+        this._ensureMasterEditor();
+        return this._masterEditor._codeMirror.getRange(start, end);
+    };
+    
+    /**
+     * Batches a series of related Document changes. Repeated calls to replaceRange() should be wrapped in a
+     * batch for efficiency. Begins the batch, calls doOperation(), ends the batch, and then returns.
+     * @param {function()} doOperation
+     */
+    Document.prototype.batchOperation = function (doOperation) {
+        this._ensureMasterEditor();
+        this._masterEditor._codeMirror.operation(doOperation);
     };
     
     /**
