@@ -849,7 +849,7 @@ define(function (require, exports, module) {
             });
             
             // make sure edit box is visible within the jstree, only scroll vertically when necessary
-            if (renameInputOffset.top >= (projectTreeOffset.top + _projectTree.height())) {
+            if (renameInputOffset.top + $renameInput.height() >= (projectTreeOffset.top + _projectTree.height())) {
                 // below viewport
                 renameInput.scrollIntoView(false);
             } else if (renameInputOffset.top <= projectTreeOffset.top) {
@@ -860,7 +860,7 @@ define(function (require, exports, module) {
             // left-align renameInput
             if (renameInputOffset.left < 0) {
                 _projectTree.scrollLeft(_projectTree.scrollLeft() + renameInputOffset.left);
-            } else if (renameInputOffset.left >= projectTreeOffset.left + _projectTree.width()) {
+            } else if (renameInputOffset.left + $renameInput.width() >= projectTreeOffset.left + _projectTree.width()) {
                 _projectTree.scrollLeft(renameInputOffset.left - projectTreeOffset.left);
             }
         }
