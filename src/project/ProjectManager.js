@@ -536,7 +536,7 @@ define(function (require, exports, module) {
      * @return {!string} fullPath reference
      */
     function _getDefaultProjectPath() {
-        var loadedPath = window.location.pathname;
+        var loadedPath = decodeURI(window.location.pathname);
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
         bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
