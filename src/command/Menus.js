@@ -33,111 +33,189 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("command/KeyBindingManager"),
         EditorManager           = require("editor/EditorManager"),
         CommandManager          = require("command/CommandManager");
-    
+
+    function createExecMenuFunc(commandStr) {
+        return function () {
+            // TODO TY: should flash menu here on Mac
+            //console.log(commandStr);
+            CommandManager.execute(commandStr);
+        };
+    }
+
+
+    function Menu(id) {
+        this.id = id;
+    }
+
+    function MenuItem(id) {
+        this.id = id;
+    }
+
+    function getMenuByName(name) {
+        // TODO
+    }
+
+    function getMenuByID(id) {
+        return $("#main-toolbar .nav").find("#" + id).get(0);
+    }
+
     /**
-     * Maps the dom id's of menus to command strings in Commands.js 
-     * @type {Object.<string, string>}
+     * @param {string} name
+     * @param {string }relativeMenu
+     * @returns {Menu}
      */
-    var menuMap = {
-        // File
-        "menu-file-new": Commands.FILE_NEW,
-        "menu-file-open": Commands.FILE_OPEN,
-        "menu-file-open-folder": Commands.FILE_OPEN_FOLDER,
-        "menu-file-close": Commands.FILE_CLOSE,
-        "menu-file-save": Commands.FILE_SAVE,
-        "menu-file-live-file-preview": Commands.FILE_LIVE_FILE_PREVIEW,
-        "menu-file-quit": Commands.FILE_QUIT,
-
-        // Edit
-        "menu-edit-undo": Commands.EDIT_UNDO,
-        "menu-edit-redo": Commands.EDIT_REDO,
-        "menu-edit-cut": Commands.EDIT_CUT,
-        "menu-edit-copy": Commands.EDIT_COPY,
-        "menu-edit-paste": Commands.EDIT_PASTE,
-
-        "menu-edit-select-all": Commands.EDIT_SELECT_ALL,
-        "menu-edit-find": Commands.EDIT_FIND,
-        "menu-edit-find-in-files": Commands.EDIT_FIND_IN_FILES,
-        "menu-edit-find-next": Commands.EDIT_FIND_NEXT,
-        "menu-edit-find-previous": Commands.EDIT_FIND_PREVIOUS,
-        "menu-edit-replace": Commands.EDIT_REPLACE,
+    function createMenu(name, relativeMenuID) {
+        var $menubar = $("#main-toolbar .nav");
+        var newMenuID = name.toLowerCase() + "-menu";
         
-        "menu-edit-line-comment": Commands.EDIT_LINE_COMMENT,
+        // Guard against duplicate menu ids
+        if (getMenuByID(newMenuID)) {
+            throw new Error("Menu added with same name and id of existing menu: " + newMenuID);
+        }
 
-        // View
-        "menu-view-hide-sidebar": Commands.VIEW_HIDE_SIDEBAR,
+        var $newMenu = $("<li class='dropdown' id='" + newMenuID + "'></li>")
+            .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
+            .append("<ul class='dropdown-menu'></ul>");
 
-        // Navigate
-        "menu-navigate-quick-open": Commands.NAVIGATE_QUICK_OPEN,
-        "menu-navigate-goto-line": Commands.NAVIGATE_GOTO_LINE,
-        "menu-navigate-goto-definition": Commands.NAVIGATE_GOTO_DEFINITION,
-        "menu-navigate-quick-edit": Commands.SHOW_INLINE_EDITOR,
-        "menu-navigate-next-match": Commands.QUICK_EDIT_NEXT_MATCH,
-        "menu-navigate-previous-match": Commands.QUICK_EDIT_PREV_MATCH,
+        if (relativeMenuID) {
+            var relative = getMenuByID(relativeMenuID);
+            // TODO: handle not found
+            relative.after($newMenu);
+        } else {
+            $menubar.append($newMenu);
+        }
 
-        // Debug
-        "menu-debug-refresh-window": Commands.DEBUG_REFRESH_WINDOW,
-        "menu-debug-show-developer-tools": Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
-        "menu-debug-jslint": Commands.DEBUG_JSLINT,
-        "menu-debug-runtests": Commands.DEBUG_RUN_UNIT_TESTS,
-        "menu-debug-show-perf": Commands.DEBUG_SHOW_PERF_DATA,
+        // todo error handling
 
+        return new Menu(newMenuID);
+    }
 
-        // Experimental
-        "menu-experimental-new-brackets-window": Commands.DEBUG_NEW_BRACKETS_WINDOW,
-        "menu-experimental-close-all-live-browsers": Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS,
-        "menu-experimental-usetab": Commands.DEBUG_USE_TAB_CHARS
+    Menu.prototype.createMenuDivider = function (relativeMenuItemID) {
+        return this.createMenuItem("---", null, null, relativeMenuItemID);
     };
+
+    // Convert normalized key representation to display appropriate for platform
+    function formatKeyCommand(keyCmd) {
+        var displayStr;
+        if (brackets.platform === "mac") {
+            displayStr = keyCmd.replace(/-/g, "");        // remove dashes
+            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
+            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
+        } else {
+            displayStr = keyCmd.replace(/-/g, "+");
+        }
+
+        return displayStr;
+    }
+
+    /**
+     * @param {string} name
+     * @param {position}
+     * @param TODO
+     * @param {string} commandStr
+     */
+    Menu.prototype.createMenuItem = function (name, keyCmds, commandStr, relativeMenuItemID) {
+        var newItem;
+
+        if (name === "---") {
+            newItem = $("<li><hr class='divider'></li>");
+        } else {
+            newItem = $("<li><a href='#' id='" + name.toLowerCase() + "-menu-item'>" + name + "</a></li>")
+                .click(createExecMenuFunc(commandStr));
+
+            if (keyCmds) {
+                if (!$.isArray(keyCmds)) {
+                    keyCmds = [{key: keyCmds}];
+                }
+
+                var key, i;
+                for (i = 0; i < keyCmds.length; i++) {
+                    key = keyCmds[i].key;
+
+                    if (newItem.find(".menu-shortcut").length === 0) {
+                        newItem.find("a").append("<span class='menu-shortcut'>" + formatKeyCommand(key) + "</span>");
+                    }
+
+                    // Todo: Ray
+                    //KeyBindingManager.addKey(keyStr, commandStr);
+                }
+            }
+            
+        }
+        $("#main-toolbar #" + this.id + " .dropdown-menu").append(newItem);
+
+        return this;
+    };
+
+    createMenu("File")
+        .createMenuItem("New",                      "Ctrl-N",       Commands.FILE_NEW)
+        .createMenuItem("Open",                     "Ctrl-O",       Commands.FILE_OPEN)
+        .createMenuItem("Open Folder",              null,           Commands.FILE_OPEN_FOLDER)
+        .createMenuItem("Close",                    "Ctrl-W",       Commands.FILE_CLOSE)
+        .createMenuDivider()
+        .createMenuItem("Save",                     "Ctrl-S",       Commands.FILE_SAVE)
+        .createMenuDivider()
+        .createMenuItem("Live File Preview",        "Ctrl-Alt-P",   Commands.FILE_LIVE_FILE_PREVIEW)
+        .createMenuDivider()
+        .createMenuItem("Quit",                     "Ctrl-Q",       Commands.FILE_QUIT);
+
+    createMenu("Edit")
+        .createMenuItem("Select All",               "Ctrl-A",       Commands.EDIT_SELECT_ALL)
+        .createMenuDivider()
+        .createMenuItem("Find",                     "Ctrl-F",       Commands.EDIT_FIND)
+        .createMenuItem("Find in Files",            "Ctrl-Shift-F", Commands.EDIT_FIND_IN_FILES)
+        .createMenuItem("Find Next",                [{key: "F3",    platform: "win"},
+                                                    {key: "Ctrl-G", platform: "mac"}],
+                                                                    Commands.EDIT_FIND_NEXT)
+
+        .createMenuItem("Find Previous",            [{key: "Shift-F3",     platform: "win"},
+                                                    {key:  "Ctrl-Shift-G", platform: "mac"}],
+                                                                    Commands.EDIT_FIND_PREVIOUS)
+
+        .createMenuDivider()
+        .createMenuItem("Replace",                  [{key: "Ctrl-H",    platform: "win"},
+                                                    {key: "Ctrl-Alt-F", platform: "mac"}],
+                                                                    Commands.EDIT_REPLACE)
+        .createMenuDivider()
+        .createMenuItem("Duplicate",                null,           Commands.EDIT_DUPLICATE)
+        .createMenuItem("Comment/Uncomment Lines",  "Ctrl-/",       Commands.EDIT_LINE_COMMENT);
+
+    createMenu("View")
+        .createMenuItem("Show Sidebar",             "Ctrl-Shift-H", Commands.VIEW_HIDE_SIDEBAR);
+
+    createMenu("Navigate")
+        .createMenuItem("Quick Open",               "Ctrl-Shift-O", Commands.NAVIGATE_QUICK_OPEN)
+        .createMenuItem("Go to Line",               [{key: "Ctrl-G", platform: "win"},
+                                                    {key: "Ctrl-L", platform: "mac"}],
+                                                            Commands.NAVIGATE_GOTO_LINE)
+
+        .createMenuItem("Go to Symbol",             "Ctrl-T",       Commands.NAVIGATE_GOTO_DEFINITION)
+        .createMenuDivider()
+        .createMenuItem("Quick Edit",               "Ctrl-E",       Commands.SHOW_INLINE_EDITOR)
+        .createMenuItem("Previous Match",           "Alt-Up",       Commands.QUICK_EDIT_PREV_MATCH)
+        .createMenuItem("Next Match",               "Alt-Down",     Commands.QUICK_EDIT_NEXT_MATCH);
+
+    createMenu("Debug")
+        .createMenuItem("Reload Window",            [{key: "F5",    platform: "win"},
+                                                    {key: "Ctrl-R", platform:  "mac"}],
+                                                                    Commands.DEBUG_REFRESH_WINDOW)
+
+        .createMenuItem("Show Developer Tools",     null,           Commands.DEBUG_SHOW_DEVELOPER_TOOLS)
+        .createMenuItem("Run Tests",                null,           Commands.DEBUG_RUN_UNIT_TESTS)
+        .createMenuItem("Enable JSLint",            null,           Commands.DEBUG_JSLINT)
+        .createMenuItem("Show Perf Data",           null,           Commands.DEBUG_SHOW_PERF_DATA)
+        .createMenuDivider()
+        .createMenuItem("Expirimental",             null)
+        .createMenuItem("New Window",               null,           Commands.DEBUG_NEW_BRACKETS_WINDOW)
+        .createMenuItem("Close Browsers",           null,           Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS)
+        .createMenuItem("Use Tab Characters",       null,           Commands.DEBUG_USE_TAB_CHARS);
+
+    
+    
 
 
     function init() {
-        var cmdToIdMap = {}; // used to swap the values and keys for fast look up
-
-        function createExecFunc(commandStr) {
-            return function () {
-                // TODO TY: should flash menu here on Mac
-                //console.log(commandStr);
-                CommandManager.execute(commandStr);
-            };
-        }
-
-        // create click handlers and populate cmdToIdMap
-        var menuID;
-        var commandStr;
-        for (menuID in menuMap) {
-            if (menuMap.hasOwnProperty(menuID)) {
-                commandStr = menuMap[menuID];
-                $("#" + menuID).click(createExecFunc(commandStr));
-                cmdToIdMap[commandStr] = menuID;
-            }
-        }
-
-        // Add shortcut key text to menu items in UI
-        var menuBindings = KeyBindingManager.getKeymap();
-        var keyCmd, shortcut;
-        for (keyCmd in menuBindings) {
-            if (menuBindings.hasOwnProperty(keyCmd)) {
-                commandStr = menuBindings[keyCmd];
-                menuID = cmdToIdMap[commandStr];
-                if (menuID) {
-                    // Convert normalized key representation to display appropriate for platform
-                    if (brackets.platform === "mac") {
-                        shortcut = keyCmd.replace(/-/g, "");        // remove dashes
-                        shortcut = shortcut.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-                        shortcut = shortcut.replace("Shift", "&#8679"); // Shift > shift symbol
-                        shortcut = shortcut.replace("Alt", "&#8997");   // Alt > option symbol
-                    } else {
-                        shortcut = keyCmd.replace(/-/g, "+");
-                    }
-
-                    var $menu = $("#" + menuID);
-                    // Some commands have multiple key commands. Only add the first one.
-                    if ($menu.find(".menu-shortcut").length === 0) {
-                        $menu.append("<span class='menu-shortcut'>" + shortcut + "</span>");
-                    }
-                }
-            }
-        }
 
         $("#main-toolbar .dropdown")
             // Prevent clicks on the top-level menu bar from taking focus
