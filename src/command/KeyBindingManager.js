@@ -23,26 +23,70 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, brackets */
 
 /**
  * Manages the mapping of keyboard inputs to commands.
  */
 define(function (require, exports, module) {
     'use strict';
-    
-    var CommandManager = require("command/CommandManager");
-    
+
+    var CommandManager = require("command/CommandManager"),
+        KeyMap = require("command/KeyMap");
+
     /**
-     * The currently installed keymap.
-     */
+    * The currently installed keymap.
+    */
     var _keymap = null;
-    
+
     /**
-     * Allow clients to toggle key binding
-     */
+    * Allow clients to toggle key binding
+    */
     var _enabled = true;
 
+    /**
+     * @private
+     * Initialize an empty keymap as the current keymap. It overwrites the current keymap if there is one.
+     */
+    function _initializeKeymap() {
+        _keymap = KeyMap.create({ "bindings": [], "platform": brackets.platform });
+    }
+
+    /**
+     * @private
+     * @param {string} A normalized key-description string.
+     * @return {boolean} true if the key is already assigned, false otherwise.
+     */
+    function _isKeyAssigned(key) {
+        return (_keymap && _keymap.map.hasOwnProperty(key));
+    }
+
+    /**
+     * @private
+     *
+     *
+     * @param {string} commandStr
+     * @param {string} key - a single shortcut.
+     * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     */
+    function _addBinding(commandStr, key, platform) {
+        if (!commandStr || commandStr === undefined || !key || key === undefined ||
+                (platform !== undefined && platform !== brackets.platform)) {
+            return;
+        }
+
+        var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
+        if (!normalizedKey) {
+            console.log("Fail to nomalize " + key);
+        } else if (_isKeyAssigned(normalizedKey)) {
+            console.log("Cannot assign " + normalizedKey + " to " + commandStr +
+                        ". It is already assigned to " + _keymap.map[normalizedKey]);
+        } else {
+            _keymap.map[normalizedKey] = commandStr;
+        }
+    }
+
+       
     /**
      * Install the specified keymap as the current keymap, overwriting the existing keymap.
      *
@@ -73,7 +117,7 @@ define(function (require, exports, module) {
         }
         return false;
     }
-    
+
 
     // TODO (issue #414): Replace this temporary fix with a more robust solution to handle focus and modality
     /**
@@ -87,10 +131,58 @@ define(function (require, exports, module) {
         _enabled = value;
     }
 
-    
+    /**
+     * Add some key bindings to _keymap.
+     *
+     * @param {string} commandStr
+     * @param {string} keyCmds - a single shortcut or an array of shortcuts.
+     * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     */
+    function addBinding(commandStr, keyCmds, platform) {
+        if (!_keymap) { _initializeKeymap(); }
+
+        if ($.isArray(keyCmds)) {
+            var i, key, targePlatform;
+            for (i = 0; i < keyCmds.length; i++) {
+                if (keyCmds[i].key !== undefined) {
+                    key = keyCmds[i].key;
+                    targePlatform = keyCmds[i].platform;
+                } else {
+                    key = keyCmds[i];
+                }
+                
+                _addBinding(commandStr, key, targePlatform);
+            }
+        } else {
+            _addBinding(commandStr, keyCmds, platform);
+        }
+    }
+
+    /**
+     * Remove a key binding from _keymap if it exists.
+     *
+     * @param {string} key - a key-description string that may or may not be normalized.
+     * @param {string} platform - the intended OS of the key.
+     */
+    function removeBinding(key, platform) {
+        if (!key || key === undefined || !_keymap ||
+                (platform !== undefined && platform !== brackets.platform)) {
+            return;
+        }
+
+        var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
+        if (!normalizedKey) {
+            console.log("Fail to nomalize " + key);
+        } else if (_isKeyAssigned(normalizedKey)) {
+            delete _keymap.map[normalizedKey];
+        }
+    }
+
     // Define public API
     exports.installKeymap = installKeymap;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
+    exports.addBinding = addBinding;
+    exports.removeBinding = removeBinding;
 });
