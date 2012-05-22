@@ -35,6 +35,58 @@ define(function (require, exports, module) {
     var _commands = {};
 
     /**
+     * TODO
+     *
+     * Events:
+     *      commandEnabledStateChanged
+     */
+    function Command(id, command, enabledCallback) {
+        this._id = id;
+        this._command = command;
+        this._checked = undefined;
+        this._enabled = true;
+        this._enabledCallback = enabledCallback;
+
+    }
+
+    Command.prototype.execute = function () {
+        if (this._command) {
+            if (this._command._enabledCallback && !this._command._enabledCallback()) {
+                return (new $.Deferred()).reject().promise();
+            }
+
+            var result = this._command.apply(this, arguments);
+            if (!result) {
+                return (new $.Deferred()).resolve().promise();
+            } else {
+                return result;
+            }
+        } else {
+            return (new $.Deferred()).reject().promise();
+        }
+    }
+
+    Command.prototype.getEnabled = function () {
+        return this._enabled;
+    }
+
+    Command.prototype.setEnabled = function (enabled) {
+        this._enabled = enabled;
+
+        $(this).triggerHandler("commandEnabledStateChanged");
+    }
+
+    Command.prototype.getChecked = function () {
+        return this._checked;
+    }
+
+    Command.prototype.setChecked = function (checked) {
+        this._checked = checked;
+
+        $(this).triggerHandler("commandCheckedStateChanged");
+    }
+
+    /**
      * Registers a global command.
      *
      * @param {string} id The ID of the command.
@@ -42,6 +94,7 @@ define(function (require, exports, module) {
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
      *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
      *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
+     * @return {Command}
      */
     function register(id, command) {
         if (_commands[id]) {
@@ -50,7 +103,17 @@ define(function (require, exports, module) {
         if (!id || !command) {
             throw new Error("Attempting to register a command with a bad id or function");
         }
-        _commands[id] = command;
+
+        return _commands[id] = new Command(id, command);
+    }
+
+    /**
+     * Retrieves a Command object by id
+     * @param {string} id
+     * @return {Command}
+     */
+    function get(id) {
+        return _commands[id];
     }
 
     /**
@@ -62,12 +125,7 @@ define(function (require, exports, module) {
     function execute(id) {
         var command = _commands[id];
         if (command) {
-            var result = command.apply(null, Array.prototype.slice.call(arguments, 1));
-            if (!result) {
-                return (new $.Deferred()).resolve().promise();
-            } else {
-                return result;
-            }
+            return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
         } else {
             return (new $.Deferred()).reject().promise();
         }
@@ -76,4 +134,5 @@ define(function (require, exports, module) {
     // Define public API
     exports.register = register;
     exports.execute = execute;
+    exports.get = get;
 });

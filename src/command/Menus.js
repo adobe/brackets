@@ -34,51 +34,151 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         CommandManager          = require("command/CommandManager");
 
-    function createExecMenuFunc(commandStr) {
+    /**
+     * Brackets Application Menu Constants
+     * @enum {string}
+     */
+    var applicationMenu = {
+        FILE_MENU:     "brackets-file-menu",
+        EDIT_MENU:     "brackets-edit-menu",
+        VIEW_MENU :    "brackets-view-menu",
+        NAVIGATE_MENU: "brackets-navigate-menu",
+        DEBUG_MENU:    "brackets-debug-menu"
+    };
+
+
+    /**
+     * Brackets Application MenuItem Groups
+     * TODO
+     */
+
+    
+    /**
+      * Insertion position constants. Used by addMenu(), addMenuItem(), and addSubMenu() to
+      * specify the relative position of a newly created menu object
+      * @enum {string}
+      */
+    var insert = {
+        BEFORE:  "before",
+        AFTER:   "after",
+        FIRST:   "first",
+        LAST:    "last"
+    };
+
+
+    /**
+     * @param {Command}
+     */
+    function createExecMenuFunc(command) {
         return function () {
-            // TODO TY: should flash menu here on Mac
-            //console.log(commandStr);
-            CommandManager.execute(commandStr);
+            command.execute();
         };
     }
 
+    /**
+     * TODO
+     */
+    var menuMap = {};
+    /**
+     * TODO
+     */
+    var menuItemMap = {};
 
+
+    /**
+     * @constructor
+     * @private
+     *
+     * Menu represents a top-level menu in the menu bar. A Menu may correspond to an HTML-based
+     * menu or a native menu if Brackets is running in a native application shell. 
+     * 
+     * Since menus may have a native implementation clients should create Menus through 
+     * addMenu() and should NOT construct a Menu object directly. 
+     * Clients should also not access HTML content of a menu directly and instead use
+     * the Menu API to query and modify menus.
+     *
+     * Menu dispatches the following events:
+     *  open
+     *  close
+     * 
+     * The "open" event should be used to update the state of menuItems (name, checked, disabled)
+     *
+     */
     function Menu(id) {
         this.id = id;
     }
 
+    /**
+     * @constructor
+     * @private
+     *
+     * MenuItem represents a menu, sub-menu, or divider. A Menu may correspond to an HTML-based
+     * menu item or a native menu item if Brackets is running in a native application shell
+     *
+     * Since menu items may have a native implementation clients should create MenuItems through 
+     * addMenuItem() and should NOT construct a MenuItem object directly. 
+     * Clients should also not access HTML content of a menu directly and instead use
+     * the MenuItem API to query and modify menus items.
+     *
+     * MenuItem dispatches the following events:
+     *  click
+     */
     function MenuItem(id) {
         this.id = id;
     }
 
-    function getMenuByName(name) {
-        // TODO
-    }
-
-    function getMenuByID(id) {
-        return $("#main-toolbar .nav").find("#" + id).get(0);
+    /**
+     * Retrieves the Menu object for the corresponding id. 
+     * @param {string} id
+     * @return {Menu}
+     */
+    function getMenu(id) {
+        return menuMap[id];
     }
 
     /**
-     * @param {string} name
-     * @param {string }relativeMenu
-     * @returns {Menu}
+     * Retrieves the MenuItem object for the corresponding id. 
+     * @param {string} id
+     * @return {MenuItem}
      */
-    function createMenu(name, relativeMenuID) {
-        var $menubar = $("#main-toolbar .nav");
-        var newMenuID = name.toLowerCase() + "-menu";
+    function  getMenuItem(id) {
+        return menuItemMap[id];
+    }
+
+
+    function _getHTMLMenu(id) {
+        return $("#main-toolbar .nav").find("#" + id).get(0);
+    }
+
+    function _getHTMLMenuItem(id) {
+        return $("#main-toolbar .nav").find("#" + id).get(0);
+    }
+
+
+    function addMenu(name, id, relativeMenuID) {
+        var $menubar = $("#main-toolbar .nav")
+            menu;
+
+        if (!name || !id) {
+            throw new Error("call to addMenu() is missing required parameters");
+        }
         
         // Guard against duplicate menu ids
-        if (getMenuByID(newMenuID)) {
-            throw new Error("Menu added with same name and id of existing menu: " + newMenuID);
+        if (menuMap[id]) {
+            throw new Error("Menu added with same name and id of existing Menu: " + id);
         }
 
-        var $newMenu = $("<li class='dropdown' id='" + newMenuID + "'></li>")
+        menu = new Menu(id);
+        menuMap[id] = menu;
+
+        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>")
             .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
             .append("<ul class='dropdown-menu'></ul>");
 
+
+        // TODO: relative logic
         if (relativeMenuID) {
-            var relative = getMenuByID(relativeMenuID);
+            var relative = _getHTMLMenu(relativeMenuID);
             // TODO: handle not found
             relative.after($newMenu);
         } else {
@@ -87,11 +187,22 @@ define(function (require, exports, module) {
 
         // todo error handling
 
-        return new Menu(newMenuID);
+        return menu;
     }
 
-    Menu.prototype.createMenuDivider = function (relativeMenuItemID) {
-        return this.createMenuItem("---", null, null, relativeMenuItemID);
+    /**
+     * Inserts divider item in menu
+     * @param {!string} id
+     * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
+     *      will be positioned relative to.
+     * @param {?string} position - constant defining the position of new the MenuItem relative
+     *      to the item specified by relativeID (see Insertion position constants).
+     *      Default is insert.LAST
+     * 
+     * @return {MenuItem} the newly created divider
+     */
+    Menu.prototype.createMenuDivider = function (id, relativeMenuItemID) {
+        return this.addMenuItem("---", id, null, relativeMenuItemID);
     };
 
     // Convert normalized key representation to display appropriate for platform
@@ -110,114 +221,232 @@ define(function (require, exports, module) {
     }
 
     /**
-     * @param {string} name
-     * @param {position}
-     * @param TODO
-     * @param {string} commandStr
+     * Adds a new menu item with the specified id and display text. The insertion position is
+     * specified via the relativeID and position arguments which describe a position 
+     * relative to another MenuItem or MenuGroup. 
+     *
+     * Note, keyBindings are bound to Command objects not MenuItems. The provided keyBindings
+     *      will be bound to the supplied Command object rather than the MenuItem.
+     * 
+     * @param {!string} name - display text for menu item. "---" creates a menu divider
+     * @param {!string} id
+     * @param {?(string | Command)} command - the command the menu will execute.
+     * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - register one
+     *      one or more key bindings to associate with the supplied command.
+     * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
+     *      will be positioned relative to.
+     * @param {?string} position - constant defining the position of new the MenuItem relative
+     *      to the item specified by relativeID (see Insertion position constants). 
+    *      Default is insert.LAST
+     *
+     * @return {MenuItem} the newly created MenuItem
      */
-    Menu.prototype.createMenuItem = function (name, id, commandStr, keyCmds) {
-        var newItem;
+    Menu.prototype.addMenuItem = function (name, id, command, keyBindings, relativeID, position) {
+        var $menuItem;
 
+        if (!name || !id) {
+            throw new Error("addMenItem(): missing required parameters");
+        }
+
+        // Guard against duplicate menu ids
+        if (menuItemMap[id]) {
+            throw new Error("MenuItem added with same name and id of existing MenuItem: " + id);
+        }
+
+        if (keyBindings && !command) {
+             throw new Error("addMenItem(): keyBindings specified but missing command parameter");
+        };
+
+        menuItemMap[id] = new MenuItem(id);
+
+        if (typeof(command) ==="string") {
+            command = CommandManager.get(command);
+        }
+        
         if (name === "---") {
-            newItem = $("<li><hr class='divider'></li>");
+            $menuItem = $("<li><hr class='divider'></li>");
         } else {
-            newItem = $("<li><a href='#' id='" + id + "-menu-item'>" + name + "</a></li>")
-                .click(createExecMenuFunc(commandStr));
+            $menuItem = $("<li><a href='#' id='" + id + "-menu-item'> <span class='menu-name'>" + name + "</span></a></li>");
 
-            if (keyCmds) {
-                if (!$.isArray(keyCmds)) {
-                    keyCmds = [{key: keyCmds}];
+            if (command) {
+                $menuItem.click(createExecMenuFunc(command));
+                $(command).on("commandEnabledStateChanged", this.handleEnabledChanged);
+                $(command).on("commandCheckedStateChanged", this.handleCheckedChanged);
+            }
+
+            if (keyBindings) {
+                if (!$.isArray(keyBindings)) {
+                    keyBindings = [{key: keyBindings}];
                 }
 
                 var key, i;
-                for (i = 0; i < keyCmds.length; i++) {
-                    key = keyCmds[i].key;
+                for (i = 0; i < keyBindings.length; i++) {
+                    key = keyBindings[i].key;
 
-                    if (newItem.find(".menu-shortcut").length === 0) {
-                        newItem.find("a").append("<span class='menu-shortcut'>" + formatKeyCommand(key) + "</span>");
+                    if ($menuItem.find(".menu-shortcut").length === 0) {
+                        $menuItem.find("a").append("<span class='menu-shortcut'>" + formatKeyCommand(key) + "</span>");
                     }
 
                     // Todo: Ray
-                    //KeyBindingManager.addKey(keyStr, commandStr);
+                    //KeyBindingManager.addKey(keyStr, command);
                 }
             }
             
         }
-        $("#main-toolbar #" + this.id + " .dropdown-menu").append(newItem);
+        $("#main-toolbar #" + this.id + " .dropdown-menu").append($menuItem);
 
         return this;
     };
 
-    createMenu("File")
-        .createMenuItem("New",                  "file-new",             Commands.FILE_NEW,         "Ctrl-N")
-        .createMenuItem("Open",                 "file-open",            Commands.FILE_OPEN,        "Ctrl-O")
-        .createMenuItem("Open Folder",                                  Commands.FILE_OPEN_FOLDER)
-        .createMenuItem("Close",                "file-close",           Commands.FILE_CLOSE,        "Ctrl-W")
-        .createMenuDivider()
-        .createMenuItem("Save",                 "file-save",            Commands.FILE_SAVE,         "Ctrl-S")
-        .createMenuDivider()
-        .createMenuItem("Live File Preview",    "file-live-preview",    Commands.FILE_LIVE_FILE_PREVIEW,
-                                                                                                    "Ctrl-Alt-P")
-        .createMenuDivider()
-        .createMenuItem("Quit",                 "file-quit",            Commands.FILE_QUIT,         "Ctrl-Q");
+    /**
+     * Alternative JSON based API to addMenuItem()
+     * 
+     * All properties are required unless noted as optional.
+     *
+     * @param { Object.<
+                    name:       string,
+     *              id:         string,
+     *              command:    string | Command (optional),
+     *              bindings:   string | Array.<{key: string, platform: string}>) } (optional),
+     *          >} jsonStr
+     *
+     *        }
+     *
+     * @return {MenuItem} the newly created MenuItem
+     */
+    Menu.prototype.createMenuItemFromJSON = function (jsonStr) {
+        throw new Error("createMenuItemFromJSON() not implemented yet");
+    }
 
-    createMenu("Edit")
-        .createMenuItem("Select All",           "edit-select-all",      Commands.EDIT_SELECT_ALL,   "Ctrl-A")
-        .createMenuDivider()
-        .createMenuItem("Find",                 "edit-find",            Commands.EDIT_FIND,         "Ctrl-F")
-        .createMenuItem("Find in Files",        "edit-find-in-files",   Commands.EDIT_FIND_IN_FILES,
-                                                                                                    "Ctrl-Shift-F")
-        .createMenuItem("Find Next",            "edit-find-next",       Commands.EDIT_FIND_NEXT,
+    /**
+     * @param {!string} text displayed in menu item
+     * @param {!string} id
+     * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
+     *      will be positioned relative to.
+     * @param {?string} position - constant defining the position of new the MenuItem relative
+     *      to the item specified by relativeID (see Insertion position constants).
+     *      Default is insert.LAST
+     * 
+     * @return {MenuItem} newly created menuItem for sub-menu
+     */
+    MenuItem.prototype.createSubMenu = function(text, id, relativeMenuID) {
+        throw new Error("createSubMenu() not implemented yet");
+    }
+
+    var _menuDividerIDCount = 1;
+    function _getNextMenuItemDividerID() {
+        return "brackets-menuDivider-" + _menuDividerIDCount++;
+    }
+
+    /**
+     * TODO docs
+     *
+     */
+    MenuItem.prototype = function name(name) {
+        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
+        if (name) {
+            $menuItem.text(name);
+            return name;
+        } else {
+            return $menuItem.text();
+        }
+    }
+    
+
+    MenuItem.prototype = function handleCheckedChanged() {
+        // TODO
+    }
+
+    MenuItem.prototype = function handleEnabledChanged() {
+        // TODO
+    }
+
+
+
+    /*
+     * File menu
+     */
+    var menu;
+    menu = addMenu("File", applicationMenu.FILE_MENU);
+    menu.addMenuItem("New",                  "file-new",             Commands.FILE_NEW,         "Ctrl-N");
+    menu.addMenuItem("Open",                 "file-open",            Commands.FILE_OPEN,        "Ctrl-O");
+    menu.addMenuItem("Open Folder",                                  Commands.FILE_OPEN_FOLDER);
+    menu.addMenuItem("Close",                "file-close",           Commands.FILE_CLOSE,       "Ctrl-W");
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Save",                 "file-save",            Commands.FILE_SAVE,        "Ctrl-S");
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Live File Preview",    "file-live-preview",    Commands.FILE_LIVE_FILE_PREVIEW,
+                                                                                                "Ctrl-Alt-P");
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Quit",                 "file-quit",            Commands.FILE_QUIT,        "Ctrl-Q");
+
+    /*
+     * Edit  menu
+     */
+    menu = addMenu("Edit", applicationMenu.EDIT_MENU);
+    menu.addMenuItem("Select All",           "edit-select-all",      Commands.EDIT_SELECT_ALL,   "Ctrl-A");
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Find",                 "edit-find",            Commands.EDIT_FIND,         "Ctrl-F");
+    menu.addMenuItem("Find in Files",        "edit-find-in-files",   Commands.EDIT_FIND_IN_FILES,
+                                                                                                    "Ctrl-Shift-F");
+    menu.addMenuItem("Find Next",            "edit-find-next",       Commands.EDIT_FIND_NEXT,
                                                                         [{key: "F3",     platform: "win"},
-                                                                         {key: "Ctrl-G", platform: "mac"}])
+                                                                         {key: "Ctrl-G", platform: "mac"}]);
 
-        .createMenuItem("Find Previous",        "edit-find-previous",   Commands.EDIT_FIND_PREVIOUS,
+    menu.addMenuItem("Find Previous",        "edit-find-previous",   Commands.EDIT_FIND_PREVIOUS,
                                                                         [{key: "Shift-F3",      platform: "win"},
-                                                                         {key:  "Ctrl-Shift-G", platform: "mac"}])
+                                                                         {key:  "Ctrl-Shift-G", platform: "mac"}]);
 
-        .createMenuDivider()
-        .createMenuItem("Replace",              "edit-repace",          Commands.EDIT_REPLACE,
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Replace",              "edit-repace",          Commands.EDIT_REPLACE,
                                                                         [{key: "Ctrl-H",     platform: "win"},
-                                                                         {key: "Ctrl-Alt-F", platform: "mac"}])
-        .createMenuDivider()
-        .createMenuItem("Duplicate",            "edit-duplicate",       Commands.EDIT_DUPLICATE)
-        .createMenuItem("Comment/Uncomment Lines",
+                                                                         {key: "Ctrl-Alt-F", platform: "mac"}]);
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Duplicate",            "edit-duplicate",       Commands.EDIT_DUPLICATE);
+    menu.addMenuItem("Comment/Uncomment Lines",
                                                 "edit-comment",         Commands.EDIT_LINE_COMMENT, "Ctrl-/");
+    /*
+     * View menu
+     */
+    menu = addMenu("View", applicationMenu.VIEW_MENU);
+    menu.addMenuItem("Show Sidebar",         "view-sidebar",         Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
 
-    createMenu("View")
-        .createMenuItem("Show Sidebar",         "view-sidebar",         Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
-
-    createMenu("Navigate")
-        .createMenuItem("Quick Open",           "navigate-quick-open",  Commands.NAVIGATE_QUICK_OPEN,
-                                                                                                    "Ctrl-Shift-O")
-        .createMenuItem("Go to Line",           "navigate-goto-line",   Commands.NAVIGATE_GOTO_LINE,
+    /*
+     * Navigate menu
+     */
+    menu = addMenu("Navigate", applicationMenu.NAVIGATE_MENU);
+    menu.addMenuItem("Quick Open",           "navigate-quick-open",  Commands.NAVIGATE_QUICK_OPEN,
+                                                                                                    "Ctrl-Shift-O");
+    menu.addMenuItem("Go to Line",           "navigate-goto-line",   Commands.NAVIGATE_GOTO_LINE,
                                                                         [{key: "Ctrl-G", platform: "win"},
-                                                                         {key: "Ctrl-L", platform: "mac"}])
+                                                                         {key: "Ctrl-L", platform: "mac"}]);
 
-        .createMenuItem("Go to Symbol",         "navigate-goto-symbol", Commands.NAVIGATE_GOTO_DEFINITION,
-                                                                                                    "Ctrl-T")
-        .createMenuDivider()
-        .createMenuItem("Quick Edit",           "navigate-quick-edit",  Commands.SHOW_INLINE_EDITOR,
-                                                                                                    "Ctrl-E")
-        .createMenuItem("Previous Match",       "navigate-prev-match",  Commands.QUICK_EDIT_PREV_MATCH,
-                                                                                                    "Alt-Up")
-        .createMenuItem("Next Match",           "navigate-next-match",  Commands.QUICK_EDIT_NEXT_MATCH,
+    menu.addMenuItem("Go to Symbol",         "navigate-goto-symbol", Commands.NAVIGATE_GOTO_DEFINITION,
+                                                                                                    "Ctrl-T");
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Quick Edit",           "navigate-quick-edit",  Commands.SHOW_INLINE_EDITOR,
+                                                                                                    "Ctrl-E");
+    menu.addMenuItem("Previous Match",       "navigate-prev-match",  Commands.QUICK_EDIT_PREV_MATCH,
+                                                                                                    "Alt-Up");
+    menu.addMenuItem("Next Match",           "navigate-next-match",  Commands.QUICK_EDIT_NEXT_MATCH,
                                                                                                     "Alt-Down");
-
-    createMenu("Debug")
-        .createMenuItem("Reload Window",        "deubg-reload-wn",      Commands.DEBUG_REFRESH_WINDOW,
+    /*
+     * Debug menu
+     */
+    menu = addMenu("Debug", applicationMenu.DEBUG_MENU);
+    menu.addMenuItem("Reload Window",        "deubg-reload-wn",      Commands.DEBUG_REFRESH_WINDOW,
                                                                         [{key: "F5",     platform: "win"},
-                                                                         {key: "Ctrl-R", platform:  "mac"}])
+                                                                         {key: "Ctrl-R", platform:  "mac"}]);
 
-        .createMenuItem("Show Developer Tools", "debug-dev-tools",      Commands.DEBUG_SHOW_DEVELOPER_TOOLS)
-        .createMenuItem("Run Tests",            "debug-run-tests",      Commands.DEBUG_RUN_UNIT_TESTS)
-        .createMenuItem("Enable JSLint",        "debug-enable-jslint",  Commands.DEBUG_JSLINT)
-        .createMenuItem("Show Perf Data",       "debug-perf-data",      Commands.DEBUG_SHOW_PERF_DATA)
-        .createMenuDivider()
-        .createMenuItem("Expirimental",         "debug-experiemental")
-        .createMenuItem("New Window",           "debug-new-window",     Commands.DEBUG_NEW_BRACKETS_WINDOW)
-        .createMenuItem("Close Browsers",       "debug-close-browser",  Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS)
-        .createMenuItem("Use Tab Characters",   "debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
+    menu.addMenuItem("Show Developer Tools", "debug-dev-tools",      Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
+    menu.addMenuItem("Run Tests",            "debug-run-tests",      Commands.DEBUG_RUN_UNIT_TESTS);
+    menu.addMenuItem("Enable JSLint",        "debug-enable-jslint",  Commands.DEBUG_JSLINT);
+    menu.addMenuItem("Show Perf Data",       "debug-perf-data",      Commands.DEBUG_SHOW_PERF_DATA);
+    menu.createMenuDivider(_getNextMenuItemDividerID());
+    menu.addMenuItem("Expirimental",         "debug-experiemental");
+    menu.addMenuItem("New Window",           "debug-new-window",     Commands.DEBUG_NEW_BRACKETS_WINDOW);
+    menu.addMenuItem("Close Browsers",       "debug-close-browser",  Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
+    menu.addMenuItem("Use Tab Characters",   "debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
 
     
     
