@@ -244,7 +244,28 @@ Out Of Scope
     MenuItem.prototype = function attributes(attributes)
 
 
+ /***********************************************************************
+ *
+ * Shortcut API PROPOSAL
+ *
+ ***********************************************************************/
+        
+   /**
+     * Add some key bindings to key map.
+     *
+     * @param {string} commandStr
+     * @param {string} keyCmds - a single shortcut or an array of shortcuts.
+     * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     */
+    function addBinding(commandStr, keyCmds, platform)
 
+    /**
+     * Remove a key binding from key map if it exists.
+     *
+     * @param {string} key - a key-description string that may or may not be normalized.
+     * @param {string} platform - the intended OS of the key.
+     */
+    function removeBinding(key, platform) {
 
 
 /***********************************************************************
@@ -352,6 +373,9 @@ Out Of Scope
     KeyBindingManager.addBinding( myplugin.MY_COMMAND,
                                     [{key: "F5",     platform: "win"},
                                     {key: "Cmd-R",   platform: "mac"}]));
+
+    // Removing a key binding
+    KeyBindingManager.removeBinding("Cmd-[", "win");
 
     // Get all key bindings
     var keyMap = KeyBindingManager.getKeymap();
