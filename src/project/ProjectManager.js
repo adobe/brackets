@@ -323,7 +323,11 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
+                        // show selection marker on folders
                         _redraw(true);
+                        
+                        // toggle folder open/closed
+                        _projectTree.jstree("toggle_node", data.rslt.obj);
                     }
                 }
             )
@@ -831,21 +835,34 @@ define(function (require, exports, module) {
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
         if (!skipRename) {
-            var renameInput = _projectTree.find(".jstree-rename-input");
-    
-            renameInput.on("keydown", function (event) {
+            var $renameInput = _projectTree.find(".jstree-rename-input"),
+                projectTreeOffset = _projectTree.offset(),
+                projectTreeScroller = _projectTree.get(0),
+                renameInput = $renameInput.get(0),
+                renameInputOffset = $renameInput.offset();
+
+            $renameInput.on("keydown", function (event) {
                 // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
                 if (event.keyCode === 27) {
                     escapeKeyPressed = true;
                 }
             });
-    
-            // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
-            renameInput.css({ left: "17px", height: "24px"})
-                .parent().css({ height: "26px"});
             
-            // make sure edit box is within the sidebar's view
-            renameInput.get(0).scrollIntoView();
+            // make sure edit box is visible within the jstree, only scroll vertically when necessary
+            if (renameInputOffset.top + $renameInput.height() >= (projectTreeOffset.top + _projectTree.height())) {
+                // below viewport
+                renameInput.scrollIntoView(false);
+            } else if (renameInputOffset.top <= projectTreeOffset.top) {
+                // above viewport
+                renameInput.scrollIntoView(true);
+            }
+            
+            // left-align renameInput
+            if (renameInputOffset.left < 0) {
+                _projectTree.scrollLeft(_projectTree.scrollLeft() + renameInputOffset.left);
+            } else if (renameInputOffset.left + $renameInput.width() >= projectTreeOffset.left + _projectTree.width()) {
+                _projectTree.scrollLeft(renameInputOffset.left - projectTreeOffset.left);
+            }
         }
         
         return result.promise();
