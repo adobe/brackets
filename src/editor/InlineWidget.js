@@ -44,10 +44,15 @@ define(function (require, exports, module) {
     }
     InlineWidget.prototype.htmlContent = null;
     InlineWidget.prototype.$htmlContent = null;
-    InlineWidget.prototype.height = 0;
     InlineWidget.prototype.id = null;
     InlineWidget.prototype.hostEditor = null;
 
+    /**
+     * Initial height of inline widget in pixels. Can be changed later via hostEditor.setInlineWidgetHeight()
+     * @type {number}
+     */
+    InlineWidget.prototype.height = 0;
+    
     /**
      * Called any time inline is closed, whether manually or automatically
      */
@@ -56,7 +61,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Some tasks have to wait until we've been parented into the outer editor
+     * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
+     * focus or measuring content, which require htmlContent to be in the DOM tree.
      */
     InlineWidget.prototype.onAdded = function () {
         // do nothing - base implementation
