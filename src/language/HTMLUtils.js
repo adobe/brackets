@@ -1,9 +1,29 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 define(function (require, exports, module) {
     'use strict';
@@ -268,27 +288,41 @@ define(function (require, exports, module) {
             tokenType;
         
         //check and see where we are in the tag
-        //first check, if we're in an all whitespace token and move back
-        //and see what's before us
         if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
-            if (!_movePrevToken(ctx)) {
-                return createTagInfo();
-            }
-            
-            if (ctx.token.className !== "tag") {
-                //if wasn't the tag name, assume it was an attr value
-                tagInfo = _getTagInfoStartingFromAttrValue(ctx);
-                //We don't want to give context for the previous attr
-                //and we want it to look like the user is going to add a new attr
-                if (tagInfo.tagName) {
-                    return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+
+            // token at (i.e. before) pos is whitespace, so test token at next pos
+            //
+            // note: getTokenAt() does range checking for ch. If it detects that ch is past
+            // EOL, it uses EOL, same token is returned, and the following condition fails,
+            // so we don't need to worry about testPos being valid.
+            var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                testToken = editor._codeMirror.getTokenAt(testPos);
+
+            if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
+                // pos has whitespace before it and non-whitespace after it, so use token after
+                ctx.pos = testPos;
+                ctx.token = testToken;
+            } else {
+                // next, see what's before pos
+                if (!_movePrevToken(ctx)) {
+                    return createTagInfo();
                 }
-                return createTagInfo();
-            }
             
-            //we know the tag was here, so they user is adding an attr name
-            tokenType = ATTR_NAME;
-            offset = 0;
+                if (ctx.token.className !== "tag") {
+                    //if wasn't the tag name, assume it was an attr value
+                    tagInfo = _getTagInfoStartingFromAttrValue(ctx);
+                    //We don't want to give context for the previous attr
+                    //and we want it to look like the user is going to add a new attr
+                    if (tagInfo.tagName) {
+                        return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+                    }
+                    return createTagInfo();
+                }
+                
+                //we know the tag was here, so they user is adding an attr name
+                tokenType = ATTR_NAME;
+                offset = 0;
+            }
         }
         
         if (ctx.token.className === "tag") {

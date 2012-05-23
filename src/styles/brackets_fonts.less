@@ -1,33 +1,46 @@
+
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+//  
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// DEALINGS IN THE SOFTWARE.
+
+
 /* Brackets Fonts */
+
+/* Alternative weights */
+
+@font-weight-semibold: 500;
+@font-weight-light: 200;
+
 
 /* SourceSansRegular */
 @font-face {
     font-family: 'SourceSans';
-    src: url('styles/fonts/source-sans/sourcesans-regular-webfont.eot');
-    src: url('styles/fonts/source-sans/sourcesans-regular-webfont.eot?#iefix') format('embedded-opentype'),
-         url('styles/fonts/source-sans/sourcesans-regular-webfont.woff') format('woff'),
-         url('styles/fonts/source-sans/sourcesans-regular-webfont.ttf') format('truetype'),
-         url('styles/fonts/source-sans/sourcesans-regular-webfont.svg#SourceSansRegular') format('svg');
+    src: url('styles/fonts/SourceSans/SourceSans-Regular.ttf');
     font-weight: normal;
     font-style: normal;
 }
 
 
-/* Alternative weights */
-
-@font-weight-semibold: 500;
-
-@font-weight-light: 200;
-
-
 /* SourceSansLight */
 @font-face {
     font-family: 'SourceSans';
-    src: url('styles/fonts/source-sans/sourcesans-light-webfont.eot');
-    src: url('styles/fonts/source-sans/sourcesans-light-webfont.eot?#iefix') format('embedded-opentype'),
-         url('styles/fonts/source-sans/sourcesans-light-webfont.woff') format('woff'),
-         url('styles/fonts/source-sans/sourcesans-light-webfont.ttf') format('truetype'),
-         url('styles/fonts/source-sans/sourcesans-light-webfont.svg#SourceSansRegular') format('svg');
+    src: url('styles/fonts/SourceSans/SourceSans-Light.ttf');
     font-weight: @font-weight-light;
     font-style: normal;
 }
@@ -36,11 +49,20 @@
 /* SourceSansSemibold */
 @font-face {
     font-family: 'SourceSans';
-    src: url('styles/fonts/source-sans/sourcesans-semibold-webfont.eot');
-    src: url('styles/fonts/source-sans/sourcesans-semibold-webfont.eot?#iefix') format('embedded-opentype'),
-         url('styles/fonts/source-sans/sourcesans-semibold-webfont.woff') format('woff'),
-         url('styles/fonts/source-sans/sourcesans-semibold-webfont.ttf') format('truetype'),
-         url('styles/fonts/source-sans/sourcesans-semibold-webfont.svg#SourceSansSemibold') format('svg');
+    src: url('styles/fonts/SourceSans/SourceSans-Semibold.ttf');
     font-weight: @font-weight-semibold;
     font-style: normal;
 }
+
+/* SourceSansItalic */
+@font-face {
+    font-family: 'SourceSans';
+    src: url('styles/fonts/SourceSans/sourcesans-it-webfont.ttf');
+    font-weight: normal;
+    font-style: italic;
+}
+
+
+/* Font Stacks */
+
+@fontstack-sans-serif: 'SourceSans', Helvetica, Arial, sans-serif;

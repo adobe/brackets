@@ -1,9 +1,29 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -53,6 +73,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
+        PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands");
     
     /**
@@ -65,6 +86,12 @@ define(function (require, exports, module) {
      * @see DocumentManager.getCurrentDocument()
      */
     var _currentDocument = null;
+    
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = {};
     
     /**
      * Returns the Document that is currently open in the editor UI. May be null.
@@ -222,6 +249,8 @@ define(function (require, exports, module) {
         if (_currentDocument === document) {
             return;
         }
+
+        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + (!document || document.file.fullPath));
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
@@ -238,6 +267,8 @@ define(function (require, exports, module) {
         _currentDocument = document;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
@@ -519,6 +550,8 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
+        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
+
         if (this._masterEditor) {
             this._masterEditor._resetText(text);
             // _handleEditorChange() triggers "change" event for us
@@ -539,6 +572,8 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+
+        PerfUtils.addMeasurement(perfTimerName);
     };
     
     /**
@@ -550,10 +585,10 @@ define(function (require, exports, module) {
         // On any change, mark the file dirty. In the future, we should make it so that if you
         // undo back to the last saved state, we mark the file clean.
         var wasDirty = this.isDirty;
-        this.isDirty = true;
-
+        this.isDirty = editor._codeMirror.isDirty();
+        
         // If file just became dirty, notify listeners, and add it to working set (if not already there)
-        if (!wasDirty) {
+        if (wasDirty !== this.isDirty) {
             $(exports).triggerHandler("dirtyFlagChange", [this]);
             addToWorkingSet(this.file);
         }
@@ -570,6 +605,9 @@ define(function (require, exports, module) {
      */
     Document.prototype._markClean = function () {
         this.isDirty = false;
+        if (this._masterEditor) {
+            this._masterEditor._codeMirror.markClean();
+        }
         $(exports).triggerHandler("dirtyFlagChange", this);
     };
     
@@ -617,11 +655,17 @@ define(function (require, exports, module) {
      * refs and listeners for that Editor UI).
      *
      * @param {!string} fullPath
-     * @return {Deferred} A Deferred object that will be resolved with the Document, or rejected
+     * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
         var result = new $.Deferred();
+
+        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+        result.always(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        });
+
         var doc = _openDocuments[fullPath];
         if (doc) {
             result.resolve(doc);
@@ -636,7 +680,7 @@ define(function (require, exports, module) {
                     result.reject(fileError);
                 });
         }
-        return result;
+        return result.promise();
     }
     
     /**
@@ -743,7 +787,7 @@ define(function (require, exports, module) {
      * @private
      * Preferences callback. Saves the document file paths for the working set.
      */
-    function _savePreferences(storage) {
+    function _savePreferences() {
         // save the working set file paths
         var files       = [],
             isActive    = false,
@@ -752,7 +796,7 @@ define(function (require, exports, module) {
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
-            isActive = (file.fullPath === currentDoc.file.fullPath);
+            isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
 
             files.push({
                 file: file.fullPath,
@@ -760,7 +804,7 @@ define(function (require, exports, module) {
             });
         });
 
-        storage.files = files;
+        _prefs.setValue("files", files);
     }
 
     /**
@@ -768,7 +812,7 @@ define(function (require, exports, module) {
      * Initializes the working set.
      */
     function _init() {
-        var prefs       = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID);
+        var prefs = _prefs.getAllValues();
 
         if (!prefs.files) {
             return;
@@ -799,7 +843,7 @@ define(function (require, exports, module) {
                     oneFileResult.resolve();
                 });
             
-            return oneFileResult;
+            return oneFileResult.promise();
         }
 
         var result = Async.doInParallel(prefs.files, checkOneFile, false);
@@ -845,8 +889,9 @@ define(function (require, exports, module) {
     // Listen for ending of Ctrl+Tab sequence (used by above commands)
     $(document.body).keyup(_detectCtrlTabEnd);
 
-    // Register preferences callback
-    PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this);
+    // Setup preferences
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
 
     // Initialize after ProjectManager is loaded
     $(ProjectManager).on("initializeComplete", function (event, projectRoot) {

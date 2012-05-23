@@ -1,9 +1,28 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets: false, FileError: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, FileError, window */
 
 /**
  * ProjectManager is the model for the set of currently open project. It is responsible for
@@ -31,11 +50,19 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
+        StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         FileUtils           = require("file/FileUtils");
+    
+    /**
+     * @private
+     * Reference to the tree control container div
+     * @type {jQueryObject}
+     */
+    var $projectTreeContainer = $("#project-files-container");
     
     /**
      * @private
@@ -46,9 +73,42 @@ define(function (require, exports, module) {
     
     /**
      * @private
+     * Reference to previous selected jstree leaf node when ProjectManager had
+     * selection focus from FileViewController.
+     * @type {DOMElement}
+     */
+    var _lastSelected = null;
+    
+    /**
+     * @private
+     * Internal flag to suppress firing of selectionChanged event.
+     * @type {boolean}
+     */
+    var _suppressSelectionChange = false;
+    
+    /**
+     * @private
+     * Reference to the tree control UL element
+     * @type {DOMElement}
+     */
+    var $projectTreeList;
+    
+    /**
+     * @private
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+
+    /**
+     * Unique PreferencesManager clientID
+     */
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
+    
+    /**
+     * @private
+     * @type {PreferenceStorage}
+     */
+    var _prefs = null;
 
     /**
      * @private
@@ -60,10 +120,39 @@ define(function (require, exports, module) {
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
     
+    /**
+     * @private
+     */
+    function _hasFileSelectionFocus() {
+        return FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER;
+    }
+    
+    /**
+     * @private
+     */
+    function _redraw(selectionChanged, reveal) {
+        reveal = (reveal === undefined) ? true : reveal;
+        
+        // redraw selection
+        if ($projectTreeList) {
+            if (selectionChanged && !_suppressSelectionChange) {
+                $projectTreeList.triggerHandler("selectionChanged", reveal);
+            }
+            
+            // reposition the selection triangle
+            $projectTreeContainer.triggerHandler("scroll");
+            
+            // in-lieu of resize events, manually trigger contentChanged for every
+            // FileViewController focus change. This event triggers scroll shadows
+            // on the jstree to update. documentSelectionFocusChange fires when
+            // a new file is added and removed (causing a new selection) from the working set
+            _projectTree.triggerHandler("contentChanged");
+        }
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
-        if (curDoc
-                && (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW)) {
+        if (curDoc && _hasFileSelectionFocus()) {
             $("#project-files-container li").is(function (index) {
                 var entry = $(this).data("entry");
                 
@@ -78,15 +167,11 @@ define(function (require, exports, module) {
             });
         } else if (_projectTree !== null) {
             _projectTree.jstree("deselect_all");
+            _lastSelected = null;
         }
+        
+        _redraw(true);
     };
-
-    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-
-    /**
-     * Unique PreferencesManager clientID
-     */
-    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.ProjectManager";
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
@@ -118,9 +203,11 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     * Preferences callback. Saves current project path.
+     * Save ProjectManager project path and tree state.
      */
-    function _savePreferences(storage) {
+    function _savePreferences() {
+        var storage = {};
+        
         // save the current project
         storage.projectPath = _projectRoot.fullPath;
 
@@ -157,6 +244,27 @@ define(function (require, exports, module) {
 
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
+        
+        _prefs.setAllValues(storage);
+    }
+    
+    /**
+     * @private
+     */
+    function _forceSelection(current, target) {
+        // select_node will force the target to be revealed. Instead,
+        // keep the scroller position stable.
+        var savedScrollTop = $projectTreeContainer.get(0).scrollTop;
+        
+        // suppress selectionChanged event from firing by jstree select_node
+        _suppressSelectionChange = true;
+        _projectTree.jstree("deselect_node", current);
+        _projectTree.jstree("select_node", target, false);
+        _suppressSelectionChange = false;
+        
+        $projectTreeContainer.get(0).scrollTop = savedScrollTop;
+        
+        _redraw(true, false);
     }
 
     /**
@@ -167,11 +275,11 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var $projectTreeContainer = $("#project-files-container"),
-            result = new $.Deferred();
+        var result = new $.Deferred();
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
+        $projectTreeContainer.hide();
         _projectTree = $projectTreeContainer
             .jstree(
                 {
@@ -199,7 +307,27 @@ define(function (require, exports, module) {
                 function (event, data) {
                     var entry = data.rslt.obj.data("entry");
                     if (entry.isFile) {
-                        FileViewController.openAndSelectDocument(entry.fullPath, "ProjectManager");
+                        var openResult = FileViewController.openAndSelectDocument(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                    
+                        openResult.done(function () {
+                            // update when tree display state changes
+                            _redraw(true);
+                            _lastSelected = data.rslt.obj;
+                        }).fail(function () {
+                            if (_lastSelected) {
+                                // revert this new selection and restore previous selection
+                                _forceSelection(data.rslt.obj, _lastSelected);
+                            } else {
+                                _projectTree.jstree("deselect_all");
+                                _lastSelected = null;
+                            }
+                        });
+                    } else {
+                        // show selection marker on folders
+                        _redraw(true);
+                        
+                        // toggle folder open/closed
+                        _projectTree.jstree("toggle_node", data.rslt.obj);
                     }
                 }
             )
@@ -237,7 +365,28 @@ define(function (require, exports, module) {
             .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
-                    ViewUtils.updateChildrenToParentScrollwidth($("#project-files-container"));
+                    
+                    if (event.type === "open_node") {
+                        // select the current document if it becomes visible when this folder is opened
+                        var curDoc = DocumentManager.getCurrentDocument();
+                        
+                        if (_hasFileSelectionFocus() && curDoc) {
+                            var entry = data.rslt.obj.data("entry");
+                            
+                            if (curDoc.file.fullPath.indexOf(entry.fullPath) === 0) {
+                                _forceSelection(data.rslt.obj, _lastSelected);
+                            } else {
+                                _redraw(true, false);
+                            }
+                        }
+                    } else if (event.type === "close_node") {
+                        // always update selection marker position when collapsing a node
+                        _redraw(true, false);
+                    } else {
+                        _redraw(false);
+                    }
+                    
+                    _savePreferences();
                 }
             );
 
@@ -249,7 +398,7 @@ define(function (require, exports, module) {
         // Filed this bug against jstree at https://github.com/vakata/jstree/issues/163
         _projectTree.bind("init.jstree", function () {
             // install scroller shadows
-            ViewUtils.installScrollShadow(_projectTree[0]);
+            ViewUtils.addScrollerShadow(_projectTree.get(0));
             
             _projectTree
                 .unbind("dblclick.jstree")
@@ -259,9 +408,14 @@ define(function (require, exports, module) {
                         FileViewController.addToWorkingSetAndSelect(entry.fullPath);
                     }
                 });
+
+            // fire selection changed events for sidebar-selection
+            $projectTreeList = $projectTreeContainer.find("ul");
+            ViewUtils.sidebarList($projectTreeContainer, "jstree-clicked", "jstree-leaf");
+            $projectTreeContainer.show();
         });
 
-        return result;
+        return result.promise();
     }
     
     /** @param {Entry} entry File or directory to filter */
@@ -370,7 +524,9 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
-                    Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, dirEntry.fullPath, error.code)
+                    Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                        StringUtils.htmlEscape(dirEntry.fullPath),
+                        error.code)
                 );
             }
         );
@@ -384,7 +540,7 @@ define(function (require, exports, module) {
      * @return {!string} fullPath reference
      */
     function _getDefaultProjectPath() {
-        var loadedPath = window.location.pathname;
+        var loadedPath = decodeURI(window.location.pathname);
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
         bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
@@ -398,7 +554,7 @@ define(function (require, exports, module) {
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
-     * @return {Deferred} A $.Deferred() object that will be resolved when the
+     * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
@@ -406,7 +562,7 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = PreferencesManager.getPreferences(PREFERENCES_CLIENT_ID),
+        var prefs = _prefs.getAllValues(),
             result = new $.Deferred(),
             resultRenderTree,
             isFirstProjectOpen = false;
@@ -425,7 +581,7 @@ define(function (require, exports, module) {
             }
         }
         
-        PerfUtils.markStart("Load Project: " + rootPath);
+        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
@@ -437,9 +593,6 @@ define(function (require, exports, module) {
 
                     // Success!
                     _projectRoot = rootEntry;
-
-                    // Set title
-                    $("#project-title").html(_projectRoot.name);
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -461,7 +614,7 @@ define(function (require, exports, module) {
                         result.reject();
                     });
                     resultRenderTree.always(function () {
-                        PerfUtils.addMeasurement("Load Project: " + rootPath);
+                        PerfUtils.addMeasurement(perfTimerName);
                     });
                 },
                 function (error) {
@@ -470,7 +623,7 @@ define(function (require, exports, module) {
                         Strings.ERROR_LOADING_PROJECT,
                         Strings.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
-                            rootPath,
+                            StringUtils.htmlEscape(rootPath),
                             error.code,
                             function () {
                                 result.reject();
@@ -487,7 +640,7 @@ define(function (require, exports, module) {
                 );
         }
 
-        return result;
+        return result.promise();
     }
 
     /**
@@ -544,7 +697,7 @@ define(function (require, exports, module) {
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
-     * @return {Deferred} A $.Deferred() object that will be resolved with the FileEntry
+     * @return {$.Promise} A promise object that will be resolved with the FileEntry
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
@@ -643,13 +796,17 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.INVALID_FILENAME_TITLE,
-                                Strings.format(Strings.FILE_ALREADY_EXISTS, data.rslt.name)
+                                Strings.format(Strings.FILE_ALREADY_EXISTS,
+                                    StringUtils.htmlEscape(data.rslt.name))
                             );
                         } else {
                             var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
                                              Strings.NO_MODIFICATION_ALLOWED_ERR :
                                              Strings.format(String.GENERIC_ERROR, error.code);
-                            var errMsg = Strings.format(Strings.ERROR_CREATING_FILE, data.rslt.name, errString);
+
+                            var errMsg = Strings.format(Strings.ERROR_CREATING_FILE,
+                                            StringUtils.htmlEscape(data.rslt.name),
+                                            errString);
                           
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
@@ -677,20 +834,46 @@ define(function (require, exports, module) {
         // Create the node and open the editor
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
-        var renameInput = _projectTree.find(".jstree-rename-input");
+        if (!skipRename) {
+            var $renameInput = _projectTree.find(".jstree-rename-input"),
+                projectTreeOffset = _projectTree.offset(),
+                projectTreeScroller = _projectTree.get(0),
+                renameInput = $renameInput.get(0),
+                renameInputOffset = $renameInput.offset();
 
-        renameInput.on("keydown", function (event) {
-            // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-            if (event.keyCode === 27) {
-                escapeKeyPressed = true;
+            $renameInput.on("keydown", function (event) {
+                // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
+                if (event.keyCode === 27) {
+                    escapeKeyPressed = true;
+                }
+            });
+            
+            // make sure edit box is visible within the jstree, only scroll vertically when necessary
+            if (renameInputOffset.top + $renameInput.height() >= (projectTreeOffset.top + _projectTree.height())) {
+                // below viewport
+                renameInput.scrollIntoView(false);
+            } else if (renameInputOffset.top <= projectTreeOffset.top) {
+                // above viewport
+                renameInput.scrollIntoView(true);
             }
-        });
+            
+            // left-align renameInput
+            if (renameInputOffset.left < 0) {
+                _projectTree.scrollLeft(_projectTree.scrollLeft() + renameInputOffset.left);
+            } else if (renameInputOffset.left + $renameInput.width() >= projectTreeOffset.left + _projectTree.width()) {
+                _projectTree.scrollLeft(renameInputOffset.left - projectTreeOffset.left);
+            }
+        }
+        
+        return result.promise();
+    }
 
-        // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
-        renameInput.css({ left: "17px", height: "24px"})
-            .parent().css({ height: "26px"});
-
-        return result;
+    /**
+     * Forces createNewItem() to complete by removing focus from the rename field which causes
+     * the new file to be written to disk
+     */
+    function forceFinishRename() {
+        $(".jstree-rename-input").blur();
     }
 
     // Define public API
@@ -701,6 +884,7 @@ define(function (require, exports, module) {
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;
     exports.createNewItem   = createNewItem;
+    exports.forceFinishRename = forceFinishRename;
 
     // Initialize now
     (function () {
@@ -708,7 +892,15 @@ define(function (require, exports, module) {
             projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
             projectTreeState: ""
         };
-        PreferencesManager.addPreferencesClient(PREFERENCES_CLIENT_ID, _savePreferences, this, defaults);
+        
+        // Init PreferenceStorage
+        _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+        // Event Handlers
+        $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+        $("#open-files-container").on("contentChanged", function () {
+            _redraw(false); // redraw jstree when working set size changes
+        });
 
         CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
     }());

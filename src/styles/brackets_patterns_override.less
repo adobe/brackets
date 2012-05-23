@@ -1,4 +1,26 @@
-/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns) 
+
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+//  
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// DEALINGS IN THE SOFTWARE.
+
+
+/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns)
  *
  * This file should contain all _reusable_ UI elements / LESS definitions
  * That is, things that will either a.) be used for more than one element or
@@ -26,7 +48,6 @@
 
     padding: 0;
     margin: 0;
-    border-right: 1px solid #4e5153;
 
     .project-panel-background;
     color: #bbb;
@@ -40,7 +61,7 @@
 /* Simple toolbar layout (project panel, find in files, etc.)
    We don't set this directly on .toolbar because it'd be a pain to override all the pieces
    if other code (e.g. #main-toolbar) wants to do a different layout */
-.simpleToolbarLayout.toolbar {
+.simple-toolbar-layout.toolbar {
     .hbox;
     .box-align(center);
     .title-wrapper {
@@ -90,6 +111,9 @@
 }
 
 /* Toolbar appearance - shared by all toolbars, independent of layout */
+
+@toolbar-top-gap-px: 5px;
+    
 .toolbar {
     font-size: @label-font-size;
     padding: 4px 8px;
@@ -98,41 +122,6 @@
     
     position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
     .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
-    
-    @toolbar-top-gap-px: 5px;
-    
-    .nav {
-        @menubar-item-h-padding: 10px;
-        
-        margin: @toolbar-top-gap-px 0 0 (-@menubar-item-h-padding + 4);
-        
-        // Menubar item appearance
-        .dropdown-toggle {
-            color: fadeout(@bc-black, 25%);
-        }
-        .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
-            /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
-               color rules we need to override (and Bootstrap has several selectors because the colors really differ
-               in their defaults). */
-            color: @bc-black;
-        }
-        
-        .dropdown-toggle {
-            font-weight: @font-weight-light;
-            padding: 0 @menubar-item-h-padding;  // no vertical padding; taken care of on the overall menubar (.nav)
-        }
-
-        // no triangle icon after menu items
-        .dropdown-toggle:after {
-            border: 0;
-            margin: 0;
-        }
-        
-        // Bootstrap's default menu positioning is calibrated for a much taller menu bar
-        .dropdown-menu {
-            top: 25px;
-        }
-    }
     
     .title-wrapper {
         // Title is taller than menu text, so reduce top padding to keep its baseline aligned
@@ -143,6 +132,11 @@
         line-height: normal;
         font-weight: @font-weight-light;
 
+        // On Win, the size+weight combo used above does not look good for the bullet character
+        .dirty-dot {
+            font-weight: normal;
+        }
+        
         white-space: nowrap;
         overflow: hidden;
         -ms-text-overflow: ellipsis;
@@ -152,9 +146,109 @@
     
     .buttons {
         margin: @toolbar-top-gap-px 0 0 4px;
+        
+        .experimental-label {
+            color: #a0a0a0;
+            font-size: 15px;
+            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
+            font-weight: normal;
+            font-style: italic;
+            padding-right: 22px;
+        }
     }
 }
 
+
+/* Menu-related styles */
+.toolbar .nav {
+    @menubar-top-padding: 8px;
+    @menubar-bottom-padding: 6px;
+    @menubar-h-padding: 9px;
+    @item-highlight-color: #e0f0fa;
+    
+    // The 1px adjustments here are to account for the border around the top-level menu items.
+    margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
+    
+    // General item appearance
+    a {
+        color: @bc-black;
+        text-shadow: none;
+    }
+
+    // Menubar item appearance
+    .dropdown-toggle {
+        padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
+        border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
+        color: fadeout(@bc-black, 25%);
+        font-weight: @font-weight-light;
+    }
+    .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
+        /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+           color rules we need to override (and Bootstrap has several selectors because the colors really differ
+           in their defaults). */
+        color: @bc-black;
+        background: @item-highlight-color;
+        border-color: #dbeaf4;
+    }
+
+    // no triangle icon after menu items
+    .dropdown-toggle:after {
+        border: 0;
+        margin: 0;
+    }
+    
+    // Menu dropdown appearance
+    .dropdown-menu {
+        top: 34px; // Offset from top of menubar item
+                
+        background-color: @bc-white;
+        border: 1px solid #c8c8c8;
+        .border-radius(0 0 3px 3px);
+        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        
+        // Menu items
+        li {
+            a {
+                font-size: @menu-item-font-size;
+                line-height: 18px;
+                
+                // Slightly less padding on left to account for checkmark.
+                // More padding on top than bottom to center font within its bg highlight better.
+                padding: 2px 10px 0px 6px;
+                
+                color: @bc-black;
+                text-shadow: none;
+                white-space: nowrap;
+                .box-shadow(none);
+
+                &:hover {
+                    color: @bc-black;
+                    background: @item-highlight-color;
+                }
+
+                /* hidden checkmark for all list item content ensures consistent left spacing */
+                &::before {
+                    content: "✓\00a0"; /* non-breaking space */
+                    visibility: hidden;
+                }
+                /* toggle checkmark visibility */
+                &.selected::before {
+                    visibility: visible;
+                }
+            }
+        }
+        
+        .divider {
+            background-color: #eaeaea;
+            border: 0;
+        }
+    }
+    
+    // Ensure a minimum amount of space to the left of the shortcut
+    .menu-shortcut {
+        margin-left: 15px;
+    }
+}
 
 /* Dialog-related styles */
 
@@ -168,19 +262,83 @@
     margin-bottom: 0;
 }
 
-/* dropdown menu related styles */
-.dropdown-menu li {
-    a {
-        padding: 4px 15px 4px 10px; /* make room for checkmark */
-        white-space: nowrap;
+.dialog-title {
+    margin-bottom: 0;
+    font-size: 26px;
+    line-height: 40px; 
+    font-weight: @font-weight-light;
+}
+
+.dialog-message {
+    font-size: 16px;
+    line-height: 26px;
+    margin-bottom: 20px;
+    font-weight: @font-weight-light;
+}
+
+/* bootstrap's base color for generic li is gray */
+.dialog-message li {
+    line-height: 26px;
+    color: @grayDark;
+}
+
+.dialog-filename {
+    font-weight: @font-weight-semibold;
+    white-space: nowrap;
+}
+
+.btn {
+    font-size: 16px;
+    font-weight: @font-weight-semibold;
+    color: #454545;
+    
+    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
+    // too so we don't see the color cross-fading during the gradient slide animation
+    background-color: #fff;
+    &:hover {
+        background-position: 0 15px;
     }
-    /* hidden checkmark for all list item content ensures consistent left spacing */
-    :before {
-        content: "✓\00a0"; /* non-breaking space */
-        visibility: hidden;
+
+    &.primary {
+        background-color: @blue;
     }
-    /* toggle checkmark visibility */
-    .selected:before {
-        visibility: visible;
+}
+
+/* About dialog */
+.about-dialog .modal-body {
+    // Simple two-column layout: image on left, text taking up remaining space on right
+    position: relative;
+    .about-icon {
+        position: absolute;
+        left: 10px;  // relative to border of modal-body (bounds outside padding)
+        top:  11px;
+    }
+    .about-text {
+        // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
+        margin: 0 10px 0 123px;
+        
+        #about-build-number {
+            color: #b0b0b0;
+        }
+    }
+    
+    h2 {
+        font-weight: normal;
+        font-size: 25px;
+        margin-bottom: -8px;
+        margin-top: 3px;
+    }
+    .dialog-message {
+        font-size: 14px;
+        line-height: 17px;
+        
+        // Enable text selection, since URLs aren't clickable
+        cursor: auto;
+        -webkit-user-select: text;
+        -khtml-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        -o-user-select: text;
+        user-select: text;
     }
 }

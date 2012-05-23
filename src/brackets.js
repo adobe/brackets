@@ -1,9 +1,29 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, brackets: true, $: false, PathUtils: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, brackets: true, $, PathUtils, window, navigator */
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
@@ -40,17 +60,22 @@ define(function (require, exports, module) {
         KeyMap                  = require("command/KeyMap"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
+        BuildInfoUtils          = require("utils/BuildInfoUtils"),
         CodeHintManager         = require("editor/CodeHintManager"),
+        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         FileIndexManager        = require("project/FileIndexManager"),
-        QuickFileOpen           = require("search/QuickFileOpen"),
+        QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
-        ExtensionLoader         = require("utils/ExtensionLoader");
+        Strings                 = require("strings"),
+        Dialogs                 = require("widgets/Dialogs"),
+        ExtensionLoader         = require("utils/ExtensionLoader"),
+        SidebarView             = require("project/SidebarView");
         
-    //Load modules the self-register and just need to get included in the main project
-    require("language/JSLintUtils");
+    //Load modules that self-register and just need to get included in the main project
     require("editor/CodeHintManager");
+    require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
@@ -83,6 +108,8 @@ define(function (require, exports, module) {
         EditorManager           : EditorManager,
         Commands                : Commands,
         WorkingSetView          : WorkingSetView,
+        JSLintUtils             : JSLintUtils,
+        PerfUtils               : PerfUtils,
         CommandManager          : require("command/CommandManager"),
         FileSyncManager         : FileSyncManager,
         FileIndexManager        : FileIndexManager,
@@ -106,13 +133,13 @@ define(function (require, exports, module) {
     brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
     // Main Brackets initialization
-    $(document).ready(function () {
+    $(window.document).ready(function () {
         
         function initListeners() {
             // Prevent unhandled drag and drop of files into the browser from replacing 
             // the entire Brackets app. This doesn't prevent children from choosing to
             // handle drops.
-            $(document.body)
+            $(window.document.body)
                 .on("dragover", function (event) {
                     if (event.originalEvent.dataTransfer.files) {
                         event.stopPropagation();
@@ -128,18 +155,28 @@ define(function (require, exports, module) {
                 });
         }
         
-        function initProject() {
-            ProjectManager.loadProject();
-
-            // Open project button
-            $("#btn-open-project").click(function () {
-                CommandManager.execute(Commands.FILE_OPEN_FOLDER);
-            });
-        }
-        
-        
         function initCommandHandlers() {
+            // Most command handlers are automatically registered when their module is loaded (see "modules
+            // that self-register" above for some). A few commands need an extra kick here though:
+            
             DocumentCommandHandlers.init($("#main-toolbar"));
+            
+            // About dialog
+            CommandManager.register(Commands.HELP_ABOUT, function () {
+                // If we've successfully determined a "build number" via .git metadata, add it to dialog
+                var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
+                    bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
+                    versionLabel = "";
+                if (bracketsSHA) {
+                    versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
+                }
+                if (bracketsAppSHA) {
+                    versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
+                }
+                $("#about-build-number").text(versionLabel);
+                
+                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+            });
         }
 
         function initKeyBindings() {
@@ -172,15 +209,24 @@ define(function (require, exports, module) {
                     {"Shift-F3": Commands.EDIT_FIND_PREVIOUS, "platform": "win"},
                     {"Ctrl-Alt-F": Commands.EDIT_REPLACE, "platform": "mac"},
                     {"Ctrl-H": Commands.EDIT_REPLACE, "platform": "win"},
+                    {"Ctrl-D": Commands.EDIT_DUPLICATE},
+                    {"Ctrl-/": Commands.EDIT_LINE_COMMENT},
 
                     // VIEW
                     {"Ctrl-Shift-H": Commands.VIEW_HIDE_SIDEBAR},
+                    {"Ctrl-=": Commands.VIEW_INCREASE_FONT_SIZE},
+                    {"Ctrl--": Commands.VIEW_DECREASE_FONT_SIZE},
                     
                     // Navigate
-                    {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
-                    //{"Ctrl-E", Commands.TODO}
                     {"Ctrl-Tab": Commands.NAVIGATE_NEXT_DOC},       // note: DocumentManager requires modifier to be Ctrl/Cmd
                     {"Ctrl-Shift-Tab": Commands.NAVIGATE_PREV_DOC},
+                    {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
+                    {"Ctrl-T": Commands.NAVIGATE_GOTO_DEFINITION},
+                    {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE, "platform": "mac"},
+                    {"Ctrl-G": Commands.NAVIGATE_GOTO_LINE, "platform": "win"},
+                    {"Ctrl-E": Commands.SHOW_INLINE_EDITOR},
+                    {"Alt-Up": Commands.QUICK_EDIT_PREV_MATCH},
+                    {"Alt-Down": Commands.QUICK_EDIT_NEXT_MATCH},
 
                     // DEBUG
                     {"F5": Commands.DEBUG_REFRESH_WINDOW, "platform": "win"},
@@ -192,11 +238,15 @@ define(function (require, exports, module) {
             });
             KeyBindingManager.installKeymap(_globalKeymap);
 
-            $(document.body).keydown(function (event) {
-                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                    event.preventDefault();
-                }
-            });
+            window.document.body.addEventListener(
+                "keydown",
+                function (event) {
+                    if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
+                        event.stopPropagation();
+                    }
+                },
+                true
+            );
         }
         
         function initWindowListeners() {
@@ -204,10 +254,6 @@ define(function (require, exports, module) {
             $(window).focus(function () {
                 FileSyncManager.syncOpenDocuments();
                 FileIndexManager.markDirty();
-            });
-            
-            $(window).unload(function () {
-                CommandManager.execute(Commands.FILE_CLOSE_WINDOW);
             });
             
             $(window).contextmenu(function (e) {
@@ -219,14 +265,26 @@ define(function (require, exports, module) {
         $("body").addClass("platform-" + brackets.platform);
 
 
-        EditorManager.setEditorHolder($('#editorHolder'));
+        EditorManager.setEditorHolder($('#editor-holder'));
+
+        // Let the user know Brackets doesn't run in a web browser yet
+        if (brackets.inBrowser) {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
+                Strings.ERROR_BRACKETS_IN_BROWSER
+            );
+        }
     
         initListeners();
-        initProject();
         initCommandHandlers();
         initKeyBindings();
         Menus.init(); // key bindings should be initialized first
         initWindowListeners();
+        
+        // Read "build number" SHAs off disk at the time the matching Brackets JS code is being loaded, instead
+        // of later, when they may have been updated to a different version
+        BuildInfoUtils.init();
 
         // Load extensions
 
@@ -250,8 +308,25 @@ define(function (require, exports, module) {
             FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
             "extensions/user"
         );
-
+        
+        // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
+        // use native scroll bars when the mouse is not plugged in or when
+        // using the "Always" scroll bar setting. 
+        var osxMatch = /Mac OS X 10\D([\d+])\D/.exec(navigator.userAgent);
+        if (osxMatch && osxMatch[1] && Number(osxMatch[1]) >= 7) {
+            // test a scrolling div for scrollbars
+            var $testDiv = $("<div style='position:fixed;left:-50px;width:50px;height:50px;overflow:auto;'><div style='width:100px;height:100px;'/></div>").appendTo(window.document.body);
+            
+            if ($testDiv.outerWidth() === $testDiv.get(0).clientWidth) {
+                $(".sidebar").removeClass("quiet-scrollbars");
+            }
+            
+            $testDiv.remove();
+        }
+        
         PerfUtils.addMeasurement("Application Startup");
+        
+        ProjectManager.loadProject();
     });
     
 });

@@ -1,9 +1,29 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define */
 
 define(function (require, exports, module) {
     'use strict';
@@ -38,24 +58,33 @@ define(function (require, exports, module) {
     exports.EDIT_REPLACE        = "edit.replace";
     exports.EDIT_INDENT         = "edit.indent";
     exports.EDIT_UNINDENT       = "edit.unindent";
+    exports.EDIT_DUPLICATE      = "edit.duplicate";
+    exports.EDIT_LINE_COMMENT   = "edit.lineComment";
 
     // VIEW
-    exports.VIEW_HIDE_SIDEBAR  = "view.hideSidebar";
+    exports.VIEW_HIDE_SIDEBAR       = "view.hideSidebar";
+    exports.VIEW_INCREASE_FONT_SIZE = "view.increaseFontSize";
+    exports.VIEW_DECREASE_FONT_SIZE = "view.decreaseFontSize";
     
     // Navigate
-    exports.NAVIGATE_QUICK_OPEN = "navigate.quickOpen";
-    exports.NAVIGATE_NEXT_DOC = "navigate.nextDoc";
-    exports.NAVIGATE_PREV_DOC = "navigate.prevDoc";
+    exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
+    exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
+    exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
+    exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
+    exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
+    exports.SHOW_INLINE_EDITOR          = "navigate.showInlineEditor";
+    exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
+    exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 
-    exports.DEBUG_REFRESH_WINDOW = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
-    exports.DEBUG_SHOW_DEVELOPER_TOOLS = "debug.showDeveloperTools";
-    exports.DEBUG_RUN_UNIT_TESTS = "debug.runUnitTests";
-    exports.DEBUG_JSLINT        = "debug.jslint";
-    exports.DEBUG_SHOW_PERF_DATA = "debug.showPerfData";
-    exports.DEBUG_NEW_BRACKETS_WINDOW = "debug.newBracketsWindow";
-    exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS = "debug.closeAllLiveBrowsers";
-    exports.DEBUG_USE_TAB_CHARS = "debug.useTabChars";
+    exports.DEBUG_REFRESH_WINDOW            = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
+    exports.DEBUG_SHOW_DEVELOPER_TOOLS      = "debug.showDeveloperTools";
+    exports.DEBUG_RUN_UNIT_TESTS            = "debug.runUnitTests";
+    exports.DEBUG_JSLINT                    = "debug.jslint";
+    exports.DEBUG_SHOW_PERF_DATA            = "debug.showPerfData";
+    exports.DEBUG_NEW_BRACKETS_WINDOW       = "debug.newBracketsWindow";
+    exports.DEBUG_CLOSE_ALL_LIVE_BROWSERS   = "debug.closeAllLiveBrowsers";
+    exports.DEBUG_USE_TAB_CHARS             = "debug.useTabChars";
 
-
+    exports.HELP_ABOUT = "help.about";
 });
 

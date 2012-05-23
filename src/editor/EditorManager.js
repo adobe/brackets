@@ -1,9 +1,29 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 /**
  * EditorManager owns the UI for the editor area. This essentially mirrors the 'current document'
@@ -14,17 +34,22 @@
  * not a pure headless model. Each Document encapsulates an editor instance, and thus EditorManager
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
- * This module does not dispatch any events.
+ * This module dispatches the following events:
+ *    - focusedEditorChange -- When the focused editor (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
     var FileUtils           = require("file/FileUtils"),
+        Commands            = require("command/Commands"),
+        CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
+        PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
+        ViewUtils           = require("utils/ViewUtils"),
         Strings             = require("strings");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
@@ -86,13 +111,6 @@ define(function (require, exports, module) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
-            // TODO (jasonsj): global command?
-            "Ctrl-E" : function (editor) {
-                onInlineGesture(editor);
-            },
-            "Cmd-E" : function (editor) {
-                onInlineGesture(editor);
-            },
             "Shift-Ctrl-F" : function () {
                 // No-op, handled in FindInFiles.js
             },
@@ -239,6 +257,8 @@ define(function (require, exports, module) {
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range, additionalKeys);
         
+        $(exports).triggerHandler("focusedEditorChange", inlineEditor);
+        
         return { content: inlineContent, editor: inlineEditor };
     }
     
@@ -323,6 +343,8 @@ define(function (require, exports, module) {
         
         // Window may have been resized since last time editor was visible, so kick it now
         resizeEditor();
+        
+        $(exports).triggerHandler("focusedEditorChange", _currentEditor);
     }
 
     /**
@@ -333,7 +355,7 @@ define(function (require, exports, module) {
     function _showEditor(document) {
         // Hide whatever was visible before
         if (!_currentEditor) {
-            $("#notEditor").css("display", "none");
+            $("#not-editor").css("display", "none");
         } else {
             _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
@@ -358,21 +380,35 @@ define(function (require, exports, module) {
             _currentEditorsDocument = null;
             _currentEditor = null;
             
-            $("#notEditor").css("display", "");
+            $("#not-editor").css("display", "");
+        
+            $(exports).triggerHandler("focusedEditorChange", _currentEditor);
         }
     }
 
     /** Handles changes to DocumentManager.getCurrentDocument() */
     function _onCurrentDocumentChange() {
-        var doc = DocumentManager.getCurrentDocument();
+        var doc = DocumentManager.getCurrentDocument(),
+            container = _editorHolder.get(0);
+        
+        var perfTimerName = PerfUtils.markStart("EditorManager._onCurrentDocumentChange():\t" + (!doc || doc.file.fullPath));
+
+        // Remove scroller-shadow from the current editor
+        if (_currentEditor) {
+            ViewUtils.removeScrollerShadow(container, _currentEditor);
+        }
         
         // Update the UI to show the right editor (or nothing), and also dispose old editor if no
         // longer needed.
         if (doc) {
             _showEditor(doc);
+            ViewUtils.addScrollerShadow(container, _currentEditor);
         } else {
             _showNoEditor();
         }
+
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     /** Handles removals from DocumentManager's working set list */
@@ -414,28 +450,41 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the currently focused inline widget.
+     * @returns {?{widget:!InlineTextEditor, editor:!Editor}}
+     */
+    function getFocusedInlineWidget() {
+        var result = null;
+        
+        if (_currentEditor) {
+            _currentEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget instanceof InlineTextEditor) {
+                    widget.editors.forEach(function (editor) {
+                        if (editor.hasFocus()) {
+                            result = { widget: widget, editor: editor };
+                        }
+                    });
+                }
+            });
+        }
+        
+        return result;
+    }
+    
+    /**
      * Returns the currently focused editor instance (full-sized OR inline editor).
      * @returns {Editor}
      */
     function getFocusedEditor() {
         if (_currentEditor) {
-            var focusedInline;
             
             // See if any inlines have focus
-            _currentEditor.getInlineWidgets().forEach(function (widget) {
-                if (widget instanceof InlineTextEditor) {
-                    widget.editors.forEach(function (editor) {
-                        if (editor.hasFocus()) {
-                            focusedInline = editor;
-                        }
-                    });
-                }
-            });
-            
+            var focusedInline = getFocusedInlineWidget();
             if (focusedInline) {
-                return focusedInline;
+                return focusedInline.editor;
             }
-            
+
+            // otherwise, see if full-sized editor has focus
             if (_currentEditor.hasFocus()) {
                 return _currentEditor;
             }
@@ -443,7 +492,30 @@ define(function (require, exports, module) {
         
         return null;
     }
-    
+ 
+    /**
+     * Show Inline Editor command handler
+     */
+    function _showInlineEditor() {
+        if (_currentEditor) {
+            var inlineWidget = null,
+                result = getFocusedInlineWidget();
+            
+            if (result) {
+                inlineWidget = result.widget;
+            }
+            
+            if (inlineWidget) {
+                // an inline widget's editor has focus, so close it
+                inlineWidget.close();
+            } else {
+                // main editor has focus, so create an inline editor
+                _openInlineWidget(_currentEditor);
+            }
+        }
+    }
+
+    CommandManager.register(Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
@@ -462,6 +534,7 @@ define(function (require, exports, module) {
     exports._createFullEditorForDocument = _createFullEditorForDocument;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
+    exports.getFocusedInlineWidget = getFocusedInlineWidget;
     exports.resizeEditor = resizeEditor;
     exports.registerInlineEditProvider = registerInlineEditProvider;
     exports.getInlineEditors = getInlineEditors;

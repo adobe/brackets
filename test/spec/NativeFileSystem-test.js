@@ -1,6 +1,26 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
+
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global brackets: true, define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, FileError: false, waitsFor: false, runs: false */
@@ -11,6 +31,9 @@ define(function (require, exports, module) {
     // Load dependent modules
     var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+    
+    var Encodings               = NativeFileSystem.Encodings;
+    var _FSEncodings            = NativeFileSystem._FSEncodings;
 
     describe("NativeFileSystem", function () {
         
@@ -235,31 +258,38 @@ define(function (require, exports, module) {
         });
 
         describe("Reading a file", function () {
-            it("should read a file from disk", function () {
-                var gotFile = false, readFile = false, gotError = false, content;
-                var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
-                fileEntry.file(function (file) {
-                    gotFile = true;
-                    var reader = new NativeFileSystem.FileReader();
-                    reader.onload = function (event) {
-                        readFile = true;
-                        content = event.target.result;
-                    };
-                    reader.onerror = function (event) {
-                        gotError = true;
-                    };
-                    reader.readAsText(file, "utf8");
-                });
-
-                waitsFor(function () { return gotFile && readFile; }, 1000);
-
-                runs(function () {
-                    expect(gotFile).toBe(true);
-                    expect(readFile).toBe(true);
-                    expect(gotError).toBe(false);
-                    expect(content).toBe(this.file1content);
-                });
-            });
+            
+            var readFile = function (encoding) {
+                return function () {
+                    var gotFile = false, readFile = false, gotError = false, content;
+                    var fileEntry = new NativeFileSystem.FileEntry(this.path + "/file1");
+                    fileEntry.file(function (file) {
+                        gotFile = true;
+                        var reader = new NativeFileSystem.FileReader();
+                        reader.onload = function (event) {
+                            readFile = true;
+                            content = event.target.result;
+                        };
+                        reader.onerror = function (event) {
+                            gotError = true;
+                        };
+                        reader.readAsText(file, encoding);
+                    });
+    
+                    waitsFor(function () { return gotFile && readFile; }, 1000);
+    
+                    runs(function () {
+                        expect(gotFile).toBe(true);
+                        expect(readFile).toBe(true);
+                        expect(gotError).toBe(false);
+                        expect(content).toBe(this.file1content);
+                    });
+                };
+            };
+            
+            it("should read a file from disk", readFile(Encodings.UTF8));
+            it("should read a file from disk with lower case encoding", readFile(Encodings.UTF8.toLowerCase()));
+            it("should read a file from disk with upper case encoding", readFile(Encodings.UTF8.toUpperCase()));
 
             it("should return an error if the file is not found", function () {
                 var gotFile = false, readFile = false, errorCode;
@@ -273,7 +303,7 @@ define(function (require, exports, module) {
                     reader.onerror = function (event) {
                         errorCode = event.target.error.code;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotFile && errorCode; }, 1000);
@@ -284,7 +314,7 @@ define(function (require, exports, module) {
                     expect(errorCode).toBe(FileError.NOT_FOUND_ERR);
                 });
             });
-
+            
             it("should fire appropriate events when the file is done loading", function () {
                 var gotFile = false, gotLoad = false, gotLoadStart = false, gotLoadEnd = false,
                     gotProgress = false, gotError = false, gotAbort = false;
@@ -310,7 +340,7 @@ define(function (require, exports, module) {
                     reader.onabort = function (event) {
                         gotAbort = true;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotLoad && gotLoadEnd && gotProgress; }, 1000);
@@ -338,7 +368,7 @@ define(function (require, exports, module) {
                     reader.onerror = function (event) {
                         gotError = true;
                     };
-                    reader.readAsText(file, "utf8");
+                    reader.readAsText(file, Encodings.UTF8);
                 });
 
                 waitsFor(function () { return gotError; }, 1000);
@@ -424,7 +454,7 @@ define(function (require, exports, module) {
 
                 // read the new file
                 runs(function () {
-                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
                         actualContents = contents;
                     });
                 });
@@ -573,7 +603,7 @@ define(function (require, exports, module) {
                 var actualContents = null;
 
                 runs(function () {
-                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
                         actualContents = contents;
                     });
                 });
@@ -587,7 +617,7 @@ define(function (require, exports, module) {
 
                     // reset file1 content
                     // reset file1 content
-                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8", function () {
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, _FSEncodings.UTF8, function () {
                         rewriteComplete = true;
                     });
                 });
@@ -630,7 +660,7 @@ define(function (require, exports, module) {
                 var actualContents = null;
 
                 runs(function () {
-                    brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+                    brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
                         actualContents = contents;
                     });
                 });
@@ -643,7 +673,7 @@ define(function (require, exports, module) {
                     expect(actualContents).toEqual("");
 
                     // reset file1 content
-                    brackets.fs.writeFile(this.path + "/file1", this.file1content, "utf8", function () {
+                    brackets.fs.writeFile(this.path + "/file1", this.file1content, _FSEncodings.UTF8, function () {
                         rewriteComplete = true;
                     });
                 });

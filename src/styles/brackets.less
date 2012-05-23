@@ -1,8 +1,27 @@
-/*!
- * Brackets
- *
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
- *
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+/*
  * This file first imports all of the shared LESS/CSS, and then defines 
  * version-specific layout (e.g. layout for the App shell, or layout for
  * the In-Browser version on Firefox).
@@ -45,7 +64,11 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
+    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
+        cursor: col-resize;   
+    }
 }
+
 
 a, img {
     -webkit-user-drag: none;
@@ -57,7 +80,7 @@ a, img {
 
     .sidebar {
         .vbox;
-        width: 200px;
+        width: @sidebar-width;
     }
 
     .content {
@@ -68,22 +91,23 @@ a, img {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 20;
+    z-index: @z-index-brackets-toolbar;
 }
 
-#editorHolder {
+#editor-holder {
     .vbox;
     .box-flex(1);
+    position: relative;
     
     /* Placeholder shown when there is no editor open */
-    #notEditor {
+    #not-editor {
         .box-flex(1);
         .vbox;
         .box-pack(center);
         .box-align(center);
         background-color: @background-color-2;
         
-        #notEditorContent {
+        #not-editor-content {
             color: @background-color-1;
             font-size: 350px;
             line-height: normal;
@@ -92,17 +116,9 @@ a, img {
             opacity: 0.30;
         }
     }
-    
-    /* Scroll shadow */
-    #editor-scroll-shadow {
-        position: fixed;
-        height: 4px;
-        width: 100%;
-        z-index: 12;
-    }
 }
     
-#jslint-results, #search-results {
+.bottom-panel {
     display: none;
     height: 200px;
     border-top-style: solid;
@@ -113,7 +129,7 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        z-index: 19;
+        z-index: @z-index-brackets-results-panel;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
         .title {
             font-size: @label-font-size;
@@ -155,20 +171,20 @@ a, img {
     
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
     &:hover {
-        .spriteSwap(0,11px);
+        .sprite-swap(0,11px);
     }
     // 'Connected' state
     &.success {
-        .spriteSwap(0,22px);
+        .sprite-swap(0,22px);
     }
     &.success:hover {
-        .spriteSwap(0,33px);
+        .sprite-swap(0,33px);
     }
     // 'Connection in progress' state
     &.info {
-        .spriteSwap(0,44px);
+        .sprite-swap(0,44px);
     }
 }
 
@@ -180,14 +196,24 @@ a, img {
     height: 29px;
 }
 
+#sidebar-resizer {
+    position: absolute;
+    width: 6px;
+    height: 100%;
+    z-index: @z-index-brackets-sidebar-resizer;
+    opacity: 0;
+    cursor: col-resize;
+} 
+
 #file-section {
     .vbox;
     .box-flex(1);
     margin: 5px 0px 0px 0px;
+    position: relative;
     
     .project-file-header-area {
         padding: 6px 6px 2px 10px;
-        font-size: 14px;
+        font-size: 13px;
         color: #929292;
     }
 
@@ -195,60 +221,79 @@ a, img {
         border-bottom: 1px solid #9a9a9a;  
         box-shadow: 0px 1px #eeeeee;
     }
-    
-    
 }
 
 #open-files-container {
     .box-flex(0);
     margin: 0 0 22px 0;
     padding: 0px;
-    overflow: auto;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
     
     ul {
         list-style-type: none;
         margin: 0;
-        
-        a {
-            color: black;
-            text-decoration: none;
-            margin-left: 26px;
-        }
-        
-        li {
-            white-space: nowrap;
-            position: relative; // so that children can be positioned absolute
-            line-height: 24px;
-            padding: 0 0 0 8px;
-            height: 25px;
-            vertical-align: baseline;
-            a {
-                color: #BBB;
-                font-size: 14px;
-                margin-left: 18px;
-                cursor: default;
-            }
-            .extension a {
-                color: #8e9a9d;
-            }
-            &:hover {
-                background: transparent;
-            }
-            &:active {
-                background-position: 0 1px;
-            }
-            &.selected {
-                height: 25px;
-                background: url("styles/images/active_back.png") no-repeat top right;
-                a {
-                    font-weight: @font-weight-semibold;
-                    color: #fff;
-                }
-            }
-        }
     }
+        
+    li {
+        white-space: nowrap;
+        position: relative; // so that children can be positioned absolute
+        line-height: 18px;
+        padding: 0 0 0 8px;
+        min-height: 18px;
+        vertical-align: baseline;
+    }
+            
+    a {
+        color: #BBB;
+        
+        font-size: 13px;
+        text-decoration: none;
+        
+        display: block;
+        height: 16px;
+        line-height: 16px;
+        margin-left: 18px;
+        padding: 3px (@triangle-size * 2) 3px 0;
+        
+        cursor: default;
+    }
+    
+    .selected a {
+        color: #fff;
+    }
+}
+
+.sidebar-selection {
+    background: url("styles/images/active_back.png") no-repeat top right;
+    height: 22px;
+    position: absolute;
+}
+
+.sidebar-selection-triangle {
+    background: url("styles/images/active_back.png");
+    width: 10px;
+    height: 22px;
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+}
+
+.sidebar-selection-triangle.triangle-visible:before {
+    content: "";
+    
+    border-top: @triangle-size solid transparent;
+    border-bottom: @triangle-size solid transparent; 
+    border-right: @triangle-size solid @background-color-3;
+    
+    display: block;
+    position: absolute;
+    top: 2px;
+    right: 0;
+    width: 0;
+    height: 0;
+    
+    .scale-x(0.9, right, top);
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -258,54 +303,71 @@ a, img {
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px;
-    padding-left: 8px;
-    margin: 0;
-    overflow: auto;
     
-    ul { margin-top: 0; }
+    .jstree-brackets li > a {
+        padding-right: @triangle-size * 2;
+    }
+    
+    ul {
+        padding-left: 8px;
+    }
 }
 
-.scrollerShadow {
-    /* top shadow */
-    #gradient.vertical(rgba(0,0,0,0.10), rgba(0, 0, 0, 0));
-    
-    /* hide the shadow on init */
-    background-position: 0px -9999px;
-    
-    background-size: 100% 4px;
+#editor-holder .scroller-shadow {
+    width: 100%;
+}
+
+.scroller-shadow {
+    background-size: 100% 5px;
     background-repeat: no-repeat;
+    height: 5px;
+    position: fixed;
+    z-index: @z-index-brackets-scroller-shadow;
+    
+    &.top {
+        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        background-position: 0 -5px;
+    }
+    
+    &.bottom {
+        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        background-position: 0 5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
+    }
 }
 
-@spriteSize18: 18px;
+
+@sprite-size-18: 4px;
 
 /** Classes for icons from jsTreeSprites.png 
 */
-.jsTreeSprite {
+.jstree-sprite {
     background-image: url("styles/images/jsTreeSprites.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: @sprite-size-18;
+    height: @sprite-size-18;
 }
 
 .disclosure-arrow-opened {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
-    background-position: -@spriteSize18 0px;
+    background-position: -@sprite-size-18 0px;
 }
 
 .disclosure-arrow-closed {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
     background-position: 0px 0px;
 }
-
+ins.jstree-icon {
+    left: -12px !important;
+}
 /** Classes for icons from bracketSprites.png 
 */
 
-.bracketSprite {
+.bracket-sprite {
     background-image: url("styles/images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
@@ -317,7 +379,7 @@ a, img {
 
 .file-status-icon {
     margin: 3px 0 0 8px;
-    .bracketSprite;
+    .bracket-sprite;
     display: inline-block;
     position: absolute;
     left: 0px;
@@ -327,38 +389,45 @@ a, img {
         background-position: -30px 0;
     }
     
-    &.canClose {
+    &.can-close {
         background-position: 0 0;
     }
   
-    &.canClose:hover {
+    &.can-close:hover {
         background-position: -15px 0;
     }
     
-    &.canClose:active {
+    &.can-close:active {
         background-position: -15px 1px;
     }
 }
 
 /* Styles for inline editors */
-.InlineWidget {
+.inline-widget {
     background-color:   @inline-background-color-1;
     
-    .filename {
-        font-family: @fontStackSansSerif;
-        font-size: 1.1em;
-        color: @inline-color-1;
+    .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
-        .dirty-indicator {
-            .bracketSprite;
-            display: inline-block;
-            background-position: -32px 0;
-            padding-top: 3px;
-        }
-        
-        .lineNumber {
-            color: @inline-color-2;
+        .filename {
+            font-family: @fontstack-sans-serif;
+            font-size: 1.1em;
+            color: @inline-color-1;
+            
+            // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
+            // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
+            cursor: pointer;
+            
+            .dirty-indicator {
+                .bracket-sprite;
+                display: inline-block;
+                background-position: -32px 0;
+                padding-top: 3px;
+            }
+            
+            .line-number {
+                color: @inline-color-2;
+            }
         }
     }
     
@@ -369,7 +438,7 @@ a, img {
         position: absolute;
         content: " ";
         left: 0;
-        z-index: 10;
+        z-index: @z-index-brackets-inline-editor-shadow;
     }
     
     .shadow.top {
@@ -390,11 +459,11 @@ a, img {
 }
 
 /* CSSInlineEditor rule list */
-.relatedContainer {
+.related-container {
     @top-margin: 12px;
     
     /*width: 0;*/
-    font-family: @fontStackSansSerif;
+    font-family: @fontstack-sans-serif;
     position: fixed;
     width: 250px;
     overflow: hidden;
@@ -418,7 +487,6 @@ a, img {
      * (b) Use transform scaleX and origin to adjust width.
      */
     .selection:before {
-        @triangle-size: 10px;
         content: " ";
         position: absolute;
         width: 0;
@@ -428,7 +496,7 @@ a, img {
         border-left: @triangle-size solid @inline-background-color-1;
         margin-top: -@triangle-size;
         top: 50%;
-        .scaleX(0.9);
+        .scale-x(0.9, left, top);
     }
     
     .related {
@@ -464,11 +532,11 @@ a, img {
 
 .CodeMirror-dialog {
   position: relative;
-  z-index: 11;
+  z-index: @z-index-cm-dialog-override;
 }
 
 .CodeMirror-dialog > div {
-  font-family: @fontStackSansSerif;
+  font-family: @fontstack-sans-serif;
   position: absolute;
   top: 0; left: 0; right: 0;
   background: @background-color-2;
@@ -481,7 +549,7 @@ a, img {
 }
 
 .CodeMirror-dialog input {
-  font-family: @fontStackSansSerif;
+  font-family: @fontstack-sans-serif;
   border: 1px solid @content-color-weaker;
   outline: none;
   background: @background-color-3;
@@ -504,7 +572,7 @@ a, img {
     padding: 0px 8px 0px 0px;
     margin: 9px 0px 0px 0px;
 
-    .quickOpenPath {
+    .quick-open-path {
         font-size: 11px;
         color: gray;
     }

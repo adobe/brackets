@@ -1,9 +1,30 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+
+// FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -11,6 +32,8 @@ define(function (require, exports, module) {
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
         InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
@@ -18,7 +41,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _editorHolderWidth() {
-        return $("#editorHolder").width();
+        return $("#editor-holder").width();
     }
 
     /**
@@ -77,9 +100,9 @@ define(function (require, exports, module) {
         
         var maxWidth = 0;
         allHostedEditors.forEach(function (editor) {
-            var gutter = $(editor._codeMirror.getGutterElement());
-            gutter.css("min-width", "");
-            var curWidth = gutter.width();
+            var $gutter = $(editor._codeMirror.getGutterElement());
+            $gutter.css("min-width", "");
+            var curWidth = $gutter.width();
             if (curWidth > maxWidth) {
                 maxWidth = curWidth;
             }
@@ -181,26 +204,41 @@ define(function (require, exports, module) {
             self.close();
         }
         
-        // create the filename div
-        var wrapperDiv = document.createElement("div");
-        var $wrapperDiv = $(wrapperDiv);
+        // root container holding header & editor
+        var $wrapperDiv = $("<div/>");
+        var wrapperDiv = $wrapperDiv[0];
         
-        // dirty indicator followed by filename
-        var $filenameDiv = $(document.createElement("div")).addClass("filename");
+        // header containing filename, dirty indicator, line number
+        var $header = $("<div/>").addClass("inline-editor-header");
+        var $filenameInfo = $("<a/>").addClass("filename");
         
-        // save file path data to dirty-indicator
-        var $dirtyIndicatorDiv = $(document.createElement("div"))
+        // dirty indicator, with file path stored on it
+        var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
-            .width(4); // initialize indicator as hidden
+            .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        var $lineNumber = $("<span class='lineNumber'>" + (startLine + 1) + "</span>");
+        var $lineNumber = $("<span class='line-number'>" + (startLine + 1) + "</span>");
+
+        // wrap filename & line number in clickable link with tooltip
+        $filenameInfo.append($dirtyIndicatorDiv)
+            .append(doc.file.name + " : ")
+            .append($lineNumber)
+            .attr("title", doc.file.fullPath);
         
-        $filenameDiv.append($dirtyIndicatorDiv)
-                    .append(doc.file.name + " : ")
-                    .append($lineNumber);
-        $wrapperDiv.append($filenameDiv);
+        // clicking filename jumps to full editor view
+        $filenameInfo.click(function () {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
+                .done(function () {
+                    EditorManager.getCurrentFullEditor().setCursorPos(startLine);
+                });
+        });
+
+        $header.append($filenameInfo);
+        $wrapperDiv.append($header);
         
+        
+        // Create actual Editor instance
         var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline, additionalKeys);
         this.editors.push(inlineInfo.editor);
         container.appendChild(wrapperDiv);
@@ -222,10 +260,7 @@ define(function (require, exports, module) {
         });
         
         // set dirty indicator state
-        // use setTimeout to allow filenameDiv to render first
-        setTimeout(function () {
-            _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
-        }, 0);
+        _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
     };
 
     /**
