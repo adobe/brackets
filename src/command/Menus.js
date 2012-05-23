@@ -54,7 +54,8 @@ define(function (require, exports, module) {
 
     
     /**
-      * Insertion position constants. Used by addMenu(), addMenuItem(), and addSubMenu() to
+      * Insertion position constants
+      * Used by addMenu(), addMenuItem(), and addSubMenu() to
       * specify the relative position of a newly created menu object
       * @enum {string}
       */
@@ -98,8 +99,8 @@ define(function (require, exports, module) {
      * the Menu API to query and modify menus.
      *
      * Menu dispatches the following events:
-     *  open
-     *  close
+     *  open - TODO need to implement dispatch
+     *  close - TODO need to implement dispatch
      *
      */
     function Menu(id) {
@@ -267,8 +268,8 @@ define(function (require, exports, module) {
 
             if (command) {
                 $menuItem.click(createExecMenuFunc(command));
-                $(command).on("commandEnabledStateChanged", this.handleEnabledChanged);
-                $(command).on("commandCheckedStateChanged", this.handleCheckedChanged);
+                $(command).on("enabledStateChanged", this.handleEnabledChanged);
+                $(command).on("checkedStateChanged", this.handleCheckedChanged);
             }
 
             if (keyBindings) {
