@@ -195,8 +195,14 @@ define(function (require, exports, module) {
             return "/";
         case 192:
             return "`";
+        case 219:
+            return "[";
         case 220:
             return "\\";
+        case 221:
+            return "]";
+        case 222:
+            return "'";
         default:
             return key;
         }
