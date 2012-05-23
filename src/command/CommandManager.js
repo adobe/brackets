@@ -49,6 +49,10 @@ define(function (require, exports, module) {
 
     }
 
+    Command.prototype.getID = function () {
+        return this._id;
+    };
+
     Command.prototype.execute = function () {
         if (this._command) {
             if (this._command._enabledCallback && !this._command._enabledCallback()) {
@@ -64,27 +68,27 @@ define(function (require, exports, module) {
         } else {
             return (new $.Deferred()).reject().promise();
         }
-    }
+    };
 
     Command.prototype.getEnabled = function () {
         return this._enabled;
-    }
+    };
 
     Command.prototype.setEnabled = function (enabled) {
         this._enabled = enabled;
 
         $(this).triggerHandler("commandEnabledStateChanged");
-    }
+    };
 
     Command.prototype.getChecked = function () {
         return this._checked;
-    }
+    };
 
     Command.prototype.setChecked = function (checked) {
         this._checked = checked;
 
         $(this).triggerHandler("commandCheckedStateChanged");
-    }
+    };
 
     /**
      * Registers a global command.
@@ -104,7 +108,9 @@ define(function (require, exports, module) {
             throw new Error("Attempting to register a command with a bad id or function");
         }
 
-        return _commands[id] = new Command(id, command);
+        var commandObj = new Command(id, command);
+        _commands[id] = commandObj;
+        return commandObj;
     }
 
     /**
@@ -135,4 +141,5 @@ define(function (require, exports, module) {
     exports.register = register;
     exports.execute = execute;
     exports.get = get;
+    exports.Command = Command;
 });
