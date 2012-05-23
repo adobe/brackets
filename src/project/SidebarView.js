@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document  */
+/*global define, $, document, window  */
 
 define(function (require, exports, module) {
     'use strict';
@@ -88,8 +88,8 @@ define(function (require, exports, module) {
             // event that we can just call from anywhere instead of hard-coding it.
             // waiting on a ProjectManager refactor to add that. 
             $sidebar.find(".sidebar-selection").width(width);
-            $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
+            //$projectFilesContainer.triggerHandler("scroll");
+            //$openFilesContainer.triggerHandler("scroll");
             
             if (width > 10) {
                 prefs.setValue("sidebarWidth", width);
@@ -100,8 +100,6 @@ define(function (require, exports, module) {
             var text = (isSidebarClosed) ? "Show Sidebar" : "Hide Sidebar";
             $sidebarMenuText.first().text(text);
         }
-        
-        EditorManager.resizeEditor();
     }
     
     /**
@@ -131,7 +129,9 @@ define(function (require, exports, module) {
             $body                   = $(document.body),
             prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
             sidebarWidth            = prefs.getValue("sidebarWidth"),
-            startingSidebarPosition = sidebarWidth;
+            startingSidebarPosition = sidebarWidth,
+            animationRequest        = null,
+            isMouseDown             = false;
         
         $sidebarResizer.css("left", sidebarWidth - 1);
         
@@ -150,51 +150,62 @@ define(function (require, exports, module) {
             }
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
-            var startX = e.clientX;
+            var startX = e.clientX,
+                newWidth = Math.max(startX, 0),
+                doResize = true;
+            
+            isMouseDown = true;
+            
             $body.toggleClass("resizing");
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
             }
             
-            $mainView.on("mousemove.sidebar", function (e) {
-                var doResize = true,
-                    newWidth = Math.max(e.clientX, 0);
-                
-                // if we've gone below 10 pixels on a mouse move, and the
-                // sidebar is shrinking, hide the sidebar automatically an
-                // unbind the mouse event. 
-                if ((startX > 10) && (newWidth < 10)) {
-                    toggleSidebar(startingSidebarPosition);
-                    $mainView.off("mousemove.sidebar");
-                    $body.toggleClass("resizing");
-                    doResize = false;
-                } else if (startX < 10) {
-                    // reset startX if we're going from a snapped closed position to open
-                    startX = startingSidebarPosition;
-                }
-                
-                if (doResize) {
-                    // if we've moving past 10 pixels, make the triangle visible again
-                    // and register that the sidebar is no longer snapped closed. 
-                    var forceTriangle = null;
-                    
-                    if (newWidth > 10) {
-                        forceTriangle = true;
+            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+                if (isMouseDown) {
+                    // if we've gone below 10 pixels on a mouse move, and the
+                    // sidebar is shrinking, hide the sidebar automatically an
+                    // unbind the mouse event. 
+                    if ((startX > 10) && (newWidth < 10)) {
+                        toggleSidebar(startingSidebarPosition);
+                        $mainView.off("mousemove.sidebar");
+                        $body.toggleClass("resizing");
+                        doResize = false;
+                    } else if (startX < 10) {
+                        // reset startX if we're going from a snapped closed position to open
+                        startX = startingSidebarPosition;
                     }
-                    
-                    _setWidth(newWidth, false, forceTriangle);
-                }
                 
-                if (newWidth === 0) {
-                    $mainView.off("mousemove.sidebar");
-                    $("body").toggleClass("resizing");
+                    if (doResize) {
+                        // if we've moving past 10 pixels, make the triangle visible again
+                        // and register that the sidebar is no longer snapped closed. 
+                        var forceTriangle = null;
+                    
+                        if (newWidth > 10) {
+                            forceTriangle = true;
+                        }
+                    
+                        _setWidth(newWidth, false, true);
+                    }
+                
+                    if (newWidth === 0) {
+                        $mainView.off("mousemove.sidebar");
+                        $("body").toggleClass("resizing");
+                    }
+                    animationRequest = window.webkitRequestAnimationFrame(doRedraw);
                 }
+            });
+            
+            $mainView.on("mousemove.sidebar", function (e) {
+                newWidth = Math.max(e.clientX, 0);
                     
                 e.preventDefault();
             });
                 
             $mainView.one("mouseup.sidebar", function (e) {
+                isMouseDown = false;
+                EditorManager.resizeEditor();
                 $mainView.off("mousemove.sidebar");
                 $body.toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
