@@ -220,6 +220,7 @@ define(function (require, exports, module) {
         return this.addMenuItem("---", id, null, relativeMenuItemID);
     };
 
+    // TODO: should this live in Commands?
     // Convert normalized key representation to display appropriate for platform
     function formatKeyCommand(keyCmd) {
         var displayStr;
@@ -264,7 +265,6 @@ define(function (require, exports, module) {
             throw new Error("addMenItem(): missing required parameters");
         }
 
-        // Guard against duplicate menu ids
         if (menuItemMap[id]) {
             throw new Error("MenuItem added with same name and id of existing MenuItem: " + id);
         }
@@ -437,7 +437,7 @@ define(function (require, exports, module) {
         menu.createMenuDivider(_getNextMenuItemDividerID());
         menu.addMenuItem("Find",                 "edit-find",            Commands.EDIT_FIND,         "Ctrl-F");
         menu.addMenuItem("Find in Files",        "edit-find-in-files",   Commands.EDIT_FIND_IN_FILES,
-                                                                                                        "Ctrl-Shift-F");
+                                                                                                     "Ctrl-Shift-F");
         menu.addMenuItem("Find Next",            "edit-find-next",       Commands.EDIT_FIND_NEXT,
                                                                             [{key: "F3",     platform: "win"},
                                                                              {key: "Ctrl-G", platform: "mac"}]);
@@ -496,9 +496,6 @@ define(function (require, exports, module) {
         menu.addMenuItem("New Window",           "debug-new-window",     Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuItem("Close Browsers",       "debug-close-browser",  Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
         menu.addMenuItem("Use Tab Characters",   "debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
-
-        // TEST
-        getMenuItem("navigate-prev-match").name("Meow");
 
         $("#main-toolbar .dropdown")
             // Prevent clicks on the top-level menu bar from taking focus
