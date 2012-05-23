@@ -35,26 +35,10 @@ define(function (require, exports, module) {
     var Commands           = require("command/Commands"),
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager");
-    
 
     /**
-     * @return html, javascript, css, or less
+     * Gets the selection from the editor and does a little clean up on it.
      */
-    function _getActualMode(editor) {
-        var mode = editor._codeMirror.getOption("mode"),
-            endMode;
-        if (mode === "htmlmixed") {
-            var sel = editor.getSelection();
-            mode = editor._codeMirror.getLineHandle(sel.start.line).stateAfter.mode;
-            // Check to see if there are mixed modes. That's not allowed.
-            endMode = editor._codeMirror.getLineHandle(sel.end.line).stateAfter.mode;
-            if (mode !== endMode) {
-                return null;
-            }
-        }
-        return mode;
-    }
-    
     function _getSelectionInfo(editor) {
         var sel = editor.getSelection();
         var startLine = sel.start.line;
@@ -66,7 +50,7 @@ define(function (require, exports, module) {
             --endLine;
         }
         
-        // Ignore leading and trailing empty lines.
+        // Ignore leading empty lines.
         for (i = startLine; i <= endLine; i++) {
             line = editor.getLineText(i);
             if (line.match(/\S/)) {
@@ -75,6 +59,7 @@ define(function (require, exports, module) {
             }
         }
 
+        // Ignore trailing empty lines.
         for (i = endLine; i >= startLine; i--) {
             line = editor.getLineText(i);
             if (line.match(/\S/)) {
@@ -86,6 +71,9 @@ define(function (require, exports, module) {
         return {"startLine": startLine, "endLine": endLine, startCh: sel.start.ch, endCh: sel.end.ch};
     }
 
+    /**
+     * Turns a comment into a regular expression with optional leading or trailing spaces.
+     */
     function _commentToRegExp(comment, includeLeadingWhitespace, includeTrailingWhitespace) {
         var commentStr = "";
         var i;
@@ -102,6 +90,9 @@ define(function (require, exports, module) {
         return new RegExp(commentStr);
     }
     
+    /**
+     * Adds or removes block or line comments.
+     */
     function _toggleComments(editor, type, startComment, endComment) {
         var selectionInfo = _getSelectionInfo(editor),
             origSel = editor.getSelection();
@@ -170,11 +161,14 @@ define(function (require, exports, module) {
                 leftmostColumn = firstLine.search(/\S/);
                 for (i = selectionInfo.startLine; i <= selectionInfo.endLine; i++) {
                     line = editor.getLineText(i);
+                    if (!line.match(/\S/)) { // Blank line.
+                        continue;
+                    }
                     leftmostColumn = Math.min(leftmostColumn, line.search(/\S/));
                 }
             }
             
-            // Start actually adding or removing comments.
+            // Start actually adding or removing line comments.
             for (i = selectionInfo.startLine; i <= selectionInfo.endLine; i++) {
                 line = editor.getLineText(i);
                 if (!line.match(/\S/)) { // Blank line.
@@ -192,8 +186,12 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Figures out if line or block comments should be used and defines the open and close comment
+     * strings. If block comments are requested but not supported, it falls back on line.
+     */
     function _defineCommentData(editor, type) {
-        var mode = _getActualMode(editor);
+        var mode = editor.getModeForSelection();
         if (mode === null) {
             return;
         }
