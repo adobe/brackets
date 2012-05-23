@@ -79,35 +79,50 @@ define(function (require, exports, module) {
 
         describe("Line comment/uncomment", function () {
 
-            it("should comment/uncomment a single line, cursor at start", function () {
+            it("should comment/uncomment a single line, cursor position maintained", function () {
+                // If the comment is inserted after the cursor, the cursor position shouldn't change.
                 myEditor.setCursorPos(3, 0);
-                
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
-                
+
                 var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
+                lines[3] = "        // a();";
                 var expectedText = lines.join("\n");
-                
+
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 3, ch: 2});
+                expectCursorAt({line: 3, ch: 0});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 expect(myDocument.getText()).toEqual(defaultContent);
                 expectCursorAt({line: 3, ch: 0});
+
+                // If the comment is inserted before the cursor position, the cursor position should be
+                // three characters "// " to the right.
+                
+                myEditor.setCursorPos(3, 8);
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 3, ch: 11});
+                
+                CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectCursorAt({line: 3, ch: 8});
+
             });
             
             it("should comment/uncomment a single line, cursor at end", function () {
                 myEditor.setCursorPos(3, 12);
-                
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
+                lines[3] = "        // a();";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 3, ch: 14});
+                expectCursorAt({line: 3, ch: 15});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -121,11 +136,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[0] = "//function foo() {";
+                lines[0] = "// function foo() {";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: 0, ch: 2});
+                expectCursorAt({line: 0, ch: 3});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -140,11 +155,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
+                lines[1] = "    // function bar() {";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 6}, end: {line: 1, ch: 14}});
+                expectSelection({start: {line: 1, ch: 7}, end: {line: 1, ch: 15}});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -159,11 +174,11 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
+                lines[1] = "    // function bar() {";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 1, ch: 22}});
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 1, ch: 23}});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -178,7 +193,7 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
+                lines[1] = "    // function bar() {";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -197,13 +212,13 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
-                lines[4] = "//        ";
-                lines[5] = "//    }";
+                lines[1] = "    // function bar() {";
+                lines[2] = "        ";
+                lines[3] = "    //     a();";
+                lines[4] = "        ";
+                lines[5] = "    // }";
                 var expectedText = lines.join("\n");
-                
+                                
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
                 
@@ -219,15 +234,15 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
+                lines[1] = "    // function bar() {";
+                lines[2] = "        ";
+                lines[3] = "    //     a();";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 8}, end: {line: 3, ch: 11}});
+                expectSelection({start: {line: 1, ch: 9}, end: {line: 3, ch: 12}});
                 
-                expect(myEditor.getSelectedText()).toEqual("nction bar() {\n//        \n//        a");
+                expect(myEditor.getSelectedText()).toEqual("nction bar() {\n        \n    //     a");
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -240,16 +255,16 @@ define(function (require, exports, module) {
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
-                var expectedText = "//function foo() {\n" +
-                                   "//    function bar() {\n" +
-                                   "//        \n" +
-                                   "//        a();\n" +
-                                   "//        \n" +
-                                   "//    }\n" +
-                                   "//\n" +
-                                   "//}";
+                var expectedText = "// function foo() {\n" +
+                                   "//     function bar() {\n" +
+                                   "        \n" +
+                                   "//         a();\n" +
+                                   "        \n" +
+                                   "//     }\n" +
+                                   "\n" +
+                                   "// }";
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 3}});
+                expectSelection({start: {line: 0, ch: 3}, end: {line: 7, ch: 4}});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -270,13 +285,13 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "////        a();";
+                lines[1] = "//     function bar() {";
+                lines[2] = "        ";
+                lines[3] = "// //        a();";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
+                expectSelection({start: {line: 1, ch: 3}, end: {line: 4, ch: 0}});
                 
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
@@ -297,9 +312,9 @@ define(function (require, exports, module) {
                 CommandManager.execute(Commands.EDIT_LINE_COMMENT, myEditor);
                 
                 lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        //a();";
+                lines[1] = "    // function bar() {";
+                lines[2] = "        ";
+                lines[3] = "    //     //a();";
                 var expectedText = lines.join("\n");
                 
                 expect(myDocument.getText()).toEqual(expectedText);
@@ -311,14 +326,15 @@ define(function (require, exports, module) {
                 expectSelection({start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
             });
             
+            // TODO
             it("should uncomment indented, aligned comments", function () {
                 // Start with lines 1-5 commented out, with "//" all aligned at column 4
                 var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "    //    ";
-                lines[3] = "    //    a();";
-                lines[4] = "    //    ";
-                lines[5] = "    //}";
+                lines[1] = "    // function bar() {";
+                lines[2] = "        ";
+                lines[3] = "    //     a();";
+                lines[4] = "        ";
+                lines[5] = "    // }";
                 var startingContent = lines.join("\n");
                 myDocument.setText(startingContent);
                 
