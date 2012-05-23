@@ -32,14 +32,25 @@
 define(function (require, exports, module) {
     'use strict';
     
+    /**
+     * Map of all registered global commands
+     * @type Object.<string, Command>
+     */
     var _commands = {};
 
     /**
-     * TODO
+     * @constructor
+     * @private
+     *
+     * @param {string} id - unique identifier for command. Plugins should use the 
+     *      following format"author-myplugin-mycommandname".
+     * @param {function} command - the function that is called when the command is executed.
+     * @param {?function} isEnabled - callback function that returns true when 
+     *      the command is enabled.
      *
      * Events:
-     *      commandEnabledStateChanged
-     *      commandCheckedStateChanged
+     *      enabledStateChanged
+     *      checkedStateChanged
      */
     function Command(id, command, isEnabled) {
         this._id = id;
@@ -50,10 +61,16 @@ define(function (require, exports, module) {
 
     }
 
+    /** @return {Command} */
     Command.prototype.getID = function () {
         return this._id;
     };
 
+    /**
+     * Executes the command. Additional arguments are passed to the executing function
+     *
+     * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
+     */
     Command.prototype.execute = function () {
         if (this._command) {
             if (this._command._isEnabled && !this._command._isEnabled()) {
@@ -71,24 +88,42 @@ define(function (require, exports, module) {
         }
     };
 
+    /** @return {bollean} */
     Command.prototype.getEnabled = function () {
         return this._enabled;
     };
 
+    /** 
+     * Sets enabled state of Command and dispatches "enabledStateChanged"
+     * when the enabled state changes.
+     * @param {boolean} enabled
+     */
     Command.prototype.setEnabled = function (enabled) {
+        var changed = this._enabled !== enabled;
         this._enabled = enabled;
 
-        $(this).triggerHandler("commandEnabledStateChanged");
+        if (changed) {
+            $(this).triggerHandler("enabledStateChanged");
+        }
     };
 
+    /** @return {boolean} */
     Command.prototype.getChecked = function () {
         return this._checked;
     };
 
+    /** 
+     * Sets enabled state of Command and dispatches "checkedStateChanged"
+     * when the enabled state changes.
+     * @param {boolean} checked
+     */
     Command.prototype.setChecked = function (checked) {
+        var changed = this._checked !== checked;
         this._checked = checked;
 
-        $(this).triggerHandler("commandCheckedStateChanged");
+        if (changed) {
+            $(this).triggerHandler("checkedStateChanged");
+        }
     };
 
     /**
@@ -124,7 +159,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Runs a global command. Additional arguments are passed to the command.
+     * Looks up and runs a global command. Additional arguments are passed to the command.
      *
      * @param {string} id The ID of the command to run.
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
