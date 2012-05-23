@@ -42,8 +42,7 @@ define(function (require, exports, module) {
      * @constructor
      * @private
      *
-     * @param {string} id - unique identifier for command. Plugins should use the 
-     *      following format"author-myplugin-mycommandname".
+     * @param {string} id
      * @param {function} commandFn - the function that is called when the command is executed.
      * @param {?function} isEnabledFn - callback function that returns true when 
      *      the command is enabled.
@@ -129,7 +128,8 @@ define(function (require, exports, module) {
     /**
      * Registers a global command.
      *
-     * @param {string} id - the ID of the command.
+     * @param {string} id - unique identifier for command. Plugins should use the 
+     *      following format"author-myplugin-mycommandname".
      * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
      *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
@@ -177,5 +177,4 @@ define(function (require, exports, module) {
     exports.register = register;
     exports.execute = execute;
     exports.get = get;
-    exports.Command = Command;
 });
