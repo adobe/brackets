@@ -1,0 +1,540 @@
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+
+/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+
+define(function (require, exports, module) {
+    'use strict';
+
+    // TODO - verify these are all still required
+
+    var CommandManager      = brackets.getModule("command/CommandManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        FileIndexManager    = brackets.getModule("project/FileIndexManager"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
+        FileViewController  = brackets.getModule("project/FileViewController"),
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
+        SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils.js");
+
+    // Local modules
+    var JSUtils             = require("JSUtils");
+
+    // TODO: This returns path to test folder, so convert to src
+    var extensionPath = SpecRunnerUtils.getTestPath("");
+    extensionPath = extensionPath.replace("brackets/test", "brackets/src");
+
+    // TODO: Hard-coded for now. Need a method to determine folder where an extension is located
+    extensionPath += "/extensions/user/JavaScriptInlineEditor";
+
+    describe("JSQuickEdit", function () {
+
+        var testPath = extensionPath + "/unittest-files",
+            testWindow,
+            initInlineTest;
+        
+        function toRange(startLine, endLine) {
+            return {startLine: startLine, endLine: endLine};
+        }
+        
+        function rewriteProject(spec) {
+            var result = new $.Deferred();
+        
+            FileIndexManager.getFileInfoList("all").done(function (allFiles) {
+                // convert fileInfos to fullPaths
+                allFiles = allFiles.map(function (fileInfo) {
+                    return fileInfo.fullPath;
+                });
+                
+                // parse offsets and save
+                SpecRunnerUtils.saveFilesWithoutOffsets(allFiles).done(function (offsetInfos) {
+                    spec.infos = offsetInfos;
+            
+                    // install after function to restore file content
+                    spec.after(function () {
+                        var done = false;
+                        
+                        runs(function () {
+                            SpecRunnerUtils.saveFilesWithOffsets(spec.infos).done(function () {
+                                done = true;
+                            });
+                        });
+                        
+                        waitsFor(function () { return done; }, "saveFilesWithOffsets timeout", 1000);
+                    });
+                    
+                    result.resolve();
+                }).fail(function () {
+                    result.reject();
+                });
+            });
+            
+            return result.promise();
+        }
+        
+        /**
+         * Performs setup for an inline editor test. Parses offsets (saved to Spec.offsets) for all files in
+         * the test project (testPath) and saves files back to disk without offset markup.
+         * When finished, open an editor for the specified project relative file path
+         * then attempts opens an inline editor at the given offset. Installs an after()
+         * function restore all file content back to original state with offset markup.
+         * 
+         * @param {!string} openFile Project relative file path to open in a main editor.
+         * @param {!number} openOffset The offset index location within openFile to open an inline editor.
+         * @param {?boolean} expectInline Use false to verify that an inline editor should not be opened. Omit otherwise.
+         */
+        var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
+            var allFiles,
+                hostOpened = false,
+                err = false,
+                inlineOpened = null,
+                spec = this,
+                rewriteDone = false,
+                rewriteErr = false;
+            
+            workingSet = workingSet || [];
+            
+            expectInline = (expectInline !== undefined) ? expectInline : true;
+            
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+            
+            runs(function () {
+                rewriteProject(spec)
+                    .done(function () { rewriteDone = true; })
+                    .fail(function () { rewriteErr = true; });
+            });
+            
+            waitsFor(function () { return rewriteDone && !rewriteErr; }, "rewriteProject timeout", 1000);
+            
+            runs(function () {
+                workingSet.push(openFile);
+                SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
+                    hostOpened = true;
+                }).fail(function () {
+                    err = true;
+                });
+            });
+            
+            waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
+            
+            runs(function () {
+                var editor = EditorManager.getCurrentFullEditor();
+                
+                // open inline editor at specified offset index
+                var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
+                    editor,
+                    spec.infos[openFile].offsets[openOffset]
+                );
+                
+                inlineEditorResult.done(function () {
+                    inlineOpened = true;
+                }).fail(function () {
+                    inlineOpened = false;
+                });
+            });
+            
+            waitsFor(function () {
+                return (inlineOpened !== null) && (inlineOpened === expectInline);
+            }, "inline editor timeout", 1000);
+        };
+
+        /*
+         * 
+         */
+        describe("javaScriptFunctionProvider", function () {
+
+            beforeEach(function () {
+                initInlineTest = _initInlineTest.bind(this);
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow          = w;
+                    testWindow.brackets.test.EditorManager      = EditorManager;
+                    testWindow.brackets.test.CommandManager     = CommandManager;
+                    testWindow.brackets.test.DocumentManager    = DocumentManager;
+                    testWindow.brackets.test.FileViewController = FileViewController;
+                    testWindow.brackets.test.ProjectManager     = ProjectManager;
+                });
+                
+                this.addMatchers({
+                        
+                    toHaveInlineEditorRange: function (range) {
+                        var i = 0,
+                            editor = this.actual,
+                            hidden,
+                            lineCount = editor.lineCount(),
+                            shouldHide = [],
+                            shouldShow = [],
+                            startLine = range.startLine,
+                            endLine = range.endLine,
+                            visibleRangeCheck;
+                        
+                        for (i = 0; i < lineCount; i++) {
+                            hidden = editor._codeMirror.getLineHandle(i).hidden || false;
+                            
+                            if (i < startLine) {
+                                if (!hidden) {
+                                    shouldHide.push(i); // lines above start line should be hidden
+                                }
+                            } else if ((i >= startLine) && (i <= endLine)) {
+                                if (hidden) {
+                                    shouldShow.push(i); // lines in the range should be visible
+                                }
+                            } else if (i > endLine) {
+                                if (!hidden) {
+                                    shouldHide.push(i); // lines below end line should be hidden
+                                }
+                            }
+                        }
+                        
+                        visibleRangeCheck = (editor._visibleRange.startLine === startLine)
+                            && (editor._visibleRange.endLine === endLine);
+                        
+                        this.message = function () {
+                            var msg = "";
+                            
+                            if (shouldHide.length > 0) {
+                                msg += "Expected inline editor to hide [" + shouldHide.toString() + "].\n";
+                            }
+                            
+                            if (shouldShow.length > 0) {
+                                msg += "Expected inline editor to show [" + shouldShow.toString() + "].\n";
+                            }
+                            
+                            if (!visibleRangeCheck) {
+                                msg += "Editor._visibleRange ["
+                                    + editor._visibleRange.startLine + ","
+                                    + editor._visibleRange.endLine + "] should be ["
+                                    + startLine + "," + endLine + "].";
+                            }
+                            
+                            return msg;
+                        };
+                        
+                        return (shouldHide.length === 0)
+                            && (shouldShow.length === 0)
+                            && visibleRangeCheck;
+                    }
+                });
+            });
+    
+            afterEach(function () {
+                //debug visual confirmation of inline editor
+                //waits(1000);
+                
+                // revert files to original content with offset markup
+                SpecRunnerUtils.closeTestWindow();
+            });
+
+            it("should open a function with  form: function functionName()", function () {
+                initInlineTest("test1main.js", 0);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[0]);
+                });
+            });
+
+            it("should open a function with  form: functionName = function()", function () {
+                initInlineTest("test1main.js", 1);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[1]);
+                });
+            });
+            
+            it("should open a function with  form: functionName: function()", function () {
+                initInlineTest("test1main.js", 2);
+                
+                runs(function () {
+                    var inlineWidget = EditorManager.getCurrentFullEditor().getInlineWidgets()[0];
+                    var inlinePos = inlineWidget.editors[0].getCursorPos();
+                    
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(this.infos["test1inline.js"].offsets[2]);
+                });
+            });
+        });
+        
+        // Verifies whether one of the results returned by JSUtils._findAllMatchingFunctionsInText()
+        // came from the expected function name or not.
+ 
+        var toMatchFunctionName = function (expected) {
+            return this.actual.functionName.trim() === expected;
+        };
+        
+        function init(spec, fileEntry) {
+            spec.fileJsContent = null;
+            
+            if (fileEntry) {
+                spec.addMatchers({toMatchFunctionName: toMatchFunctionName});
+                
+                var doneLoading = false;
+                
+                runs(function () {
+                    FileUtils.readAsText(fileEntry)
+                        .done(function (text) {
+                            spec.fileJsContent = text;
+                        });
+                });
+                
+                waitsFor(function () { return (spec.fileJsContent !== null); }, 1000);
+            }
+        }
+
+        describe("JSUtils", function () {
+            
+            beforeEach(function () {
+                init(this);
+            });
+            
+            describe("basics", function () {
+                
+                it("should parse an empty string", function () {
+                    runs(function () {
+                        var result = JSUtils._findAllMatchingFunctionsInText("", "myFunc");
+                        expect(result.length).toEqual(0);
+                    });
+                });
+            });
+            
+/***
+
+// TODO: I've done some global find/replace to these css tests, but they still need lot os work
+
+            describe("line offsets", function () {
+                
+                // Checks the lines ranges of the results returned by JSUtils. Expects the numbers of
+                // results to equal the length of 'ranges'; each entry in range gives the {start, end}
+                // of the expected line range for that Nth result.
+    
+                function expectFunctionRanges(spec, jsCode, selector, ranges) {
+                    var result = JSUtils._findAllMatchingFunctionsInText(jsCode, funcName);
+                    spec.expect(result.length).toEqual(ranges.length);
+                    ranges.forEach(function (range, i) {
+                        spec.expect(result[i].ruleStartLine).toEqual(range.start);
+                        spec.expect(result[i].declListEndLine).toEqual(range.end);
+                    });
+                }
+                
+                it("should return correct start and end line numbers for simple rules", function () {
+                    runs(function () {
+                        init(this, simpleCssFileEntry);
+                    });
+                    
+                    runs(function () {
+                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
+                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
+                            [ {start: 16, end: 18} ]);
+                    });
+                });
+            });
+            
+            describe("with real-world jQuery JS code", function () {
+                
+                beforeEach(function () {
+                    init(this, bootstrapCssFileEntry);
+                });
+                
+                it("should find the first instance of the h2 selector", function () {
+                    var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "h2");
+                    expect(funcNames).not.toBe(null);
+                    expect(funcNames.length).toBeGreaterThan(0);
+                    
+                    expect(funcNames[0]).not.toBe(null);
+                    expect(funcNames[0].selectorStartLine).toBe(292);
+                    expect(funcNames[0].declListEndLine).toBe(301);
+                });
+                
+                it("should find all instances of the h2 selector", function () {
+                    var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "h2");
+                    expect(funcNames.length).toBe(2);
+                    
+                    expect(funcNames[0].selectorStartLine).toBe(292);
+                    expect(funcNames[0].declListEndLine).toBe(301);
+                    expect(funcNames[1].selectorStartLine).toBe(318);
+                    expect(funcNames[1].declListEndLine).toBe(321);
+                });
+                
+                it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
+                    var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "NO-SUCH-SELECTOR");
+                    expect(funcNames.length).toBe(0);
+                });
+            });
+***/
+        }); // describe("JSUtils")
+    
+/***        
+        describe("CSS Parsing: ", function () {
+            
+            var lastCssCode,
+                match,
+                expectParseError;
+            
+            // Test helper function; tagInfo object contains one of: tag, id, clazz. Tests against only
+            // the given jsCode string in isolation (no CSS files are loaded). If tagInfo not specified,
+            // returns no results; only tests that parsing plus a simple search won't crash.
+    
+            var _match = function (jsCode, tagInfo) {
+                lastCssCode = jsCode;
+                try {
+                    return JSUtils._findAllMatchingFunctionsInText(jsCode, tagInfo);
+                } catch (e) {
+                    this.fail(e.message + ": " + jsCode);
+                    return [];
+                }
+            };
+            
+            // Tests against the same CSS text as the last call to match()
+            function matchAgain(tagInfo) {
+                return match(lastCssCode, tagInfo);
+            }
+            
+            
+            // Test helper function: expects CSS parsing to fail at the given 0-based offset within the
+            // jsCode string, with the given error message.
+    
+            var _expectParseError = function (jsCode, expectedCodeOffset, expectedErrorMessage) {
+                try {
+                    JSUtils._findAllMatchingFunctionsInText(jsCode, null);
+                    
+                    // shouldn't get here since JSUtils._findAllMatchingFunctionsInText() is expected to throw
+                    this.fail("Expected parse error: " + jsCode);
+                    
+                } catch (error) {
+                    expect(error.index).toBe(expectedCodeOffset);
+                    expect(error.message).toBe(expectedErrorMessage);
+                }
+            };
+    
+            // To call fail(), these helpers need access to the value of 'this' inside each it()
+            beforeEach(function () {
+                match = _match.bind(this);
+                expectParseError = _expectParseError.bind(this);
+            });
+    
+            describe("Working with unsaved changes", function () {
+                var testPath = extensionPath + "/unittest-files",
+                    JSUtils,
+                    DocumentManager,
+                    FileViewController,
+                    ProjectManager,
+                    brackets;
+        
+                beforeEach(function () {
+                    SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
+                        // Load module instances from brackets.test
+                        brackets            = testWindow.brackets;
+                        JSUtils            = testWindow.brackets.test.JSUtils;
+                        DocumentManager     = testWindow.brackets.test.DocumentManager;
+                        FileViewController  = testWindow.brackets.test.FileViewController;
+                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+    
+                        SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                    });
+                });
+    
+                afterEach(function () {
+                    SpecRunnerUtils.closeTestWindow();
+                });
+                
+                it("should return the correct offsets if the file has changed", function () {
+                    var didOpen = false,
+                        gotError = false;
+                    
+                    runs(function () {
+                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                            .done(function () { didOpen = true; })
+                            .fail(function () { gotError = true; });
+                    });
+                    
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    
+                    var rules = null;
+                    
+                    runs(function () {
+                        var doc = DocumentManager.getCurrentDocument();
+                        
+                        // Add several blank lines at the beginning of the text
+                        doc.setText("\n\n\n\n" + doc.getText());
+                        
+                        // Look for ".FIRSTGRADE"
+                        JSUtils.findMatchingFunctions(".FIRSTGRADE")
+                            .done(function (result) { rules = result; });
+                    });
+                    
+                    waitsFor(function () { return rules !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(16);
+                        expect(rules[0].lineEnd).toBe(18);
+                    });
+                });
+                
+                it("should return a newly created rule in an unsaved file", function () {
+                    var didOpen = false,
+                        gotError = false;
+                    
+                    runs(function () {
+                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                            .done(function () { didOpen = true; })
+                            .fail(function () { gotError = true; });
+                    });
+                    
+                    waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
+                    
+                    var rules = null;
+                    
+                    runs(function () {
+                        var doc = DocumentManager.getCurrentDocument();
+                        
+                        // Add a new selector to the file
+                        doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                        
+                        // Look for the selector we just created
+                        JSUtils.findMatchingFunctions(".TESTSELECTOR")
+                            .done(function (result) { rules = result; });
+                    });
+                    
+                    waitsFor(function () { return rules !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(rules.length).toBe(1);
+                        expect(rules[0].lineStart).toBe(24);
+                        expect(rules[0].lineEnd).toBe(26);
+                    });
+                });
+            });
+        }); //describe("CSS Parsing")
+***/
+    });
+});

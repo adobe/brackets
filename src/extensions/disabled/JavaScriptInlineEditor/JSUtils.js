@@ -266,6 +266,29 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
-    
+
+    /**
+     * Finds all instances of the specified functionName in "text".
+     * Returns an Array of Objects with start and end properties.
+     *
+     * @param text {!String} JS text to search
+     * @param functionName {!String} function name to search for
+     * @return {Array.<{offset:number, functionName:string}>}
+     *      Array of objects containing the start offset for each matched function name.
+     */
+    function _findAllMatchingFunctionsInText(text, functionName) {
+        var allFunctions = _findAllFunctionsInText(text);
+        var result = [];
+        
+        allFunctions.forEach(function (entry) {
+            if (entry.name === functionName) {
+                result.push(entry);
+            }
+        });
+        
+        return result;
+    }
+
+    exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
 });

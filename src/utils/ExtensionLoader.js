@@ -32,7 +32,8 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem;
+    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils           = require("file/FileUtils");
     
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
@@ -42,7 +43,7 @@ define(function (require, exports, module) {
      * @param {!string} entryPoint, name of the main js file to load
      */
     function loadExtension(name, baseUrl, entryPoint) {
-        var i;
+
         var extensionRequire = brackets.libRequire.config({
             context: name,
             baseUrl: baseUrl
@@ -53,6 +54,48 @@ define(function (require, exports, module) {
         extensionRequire([entryPoint], function () { console.log("[Extension] finished loading " + baseUrl); });
     }
 
+    /**
+     * Runs unit tests for the extension that lives at baseUrl into its own Require.js context
+     *
+     * @param {!string} name, used to identify the extension
+     * @param {!string} baseUrl, URL path relative to index.html, where the main JS file can be found
+     * @param {!string} entryPoint, name of the main js file to load
+     */
+    function testExtension(name, baseUrl, entryPoint) {
+
+        var extensionPath = FileUtils.getNativeBracketsDirectoryPath();
+        extensionPath = extensionPath.replace("brackets/test", "brackets/src"); // convert from "test" to "src"
+        extensionPath += "/" + baseUrl + "/" + entryPoint + ".js";
+
+        var fileExists = false, statComplete = false;
+        brackets.fs.stat(extensionPath, function (err, stat) {
+            statComplete = true;
+            if (err === brackets.fs.NO_ERROR && stat.isFile()) {
+                fileExists = true;
+            }
+        });
+
+        // HACK: synchronously wait (up to 1 sec) to see if file exists
+        // should probably convert testAllExtensionsInNativeDirectory() to use Async.doSequentially()
+        // which also needs to be done for loadAllExtensionsInNativeDirectory() to enforce order or execution
+        var startDate = new Date();
+        var curDate = null;
+        while (!statComplete  && (curDate - startDate) < 1000) {
+            curDate = new Date();
+        }
+
+        if (fileExists) {
+            // unit test file exists
+            var extensionRequire = brackets.libRequire.config({
+                context: name,
+                baseUrl: "../src/" + baseUrl
+            });
+
+            console.log("[Extension] starting unit test " + baseUrl);
+            extensionRequire([entryPoint], function () { console.log("[Extension] finished unit tests " + baseUrl); });
+        }
+    }
+    
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
      *
@@ -84,6 +127,39 @@ define(function (require, exports, module) {
             });
     }
     
+    /**
+     * Runs unit test for the extension that lives at baseUrl into its own Require.js context
+     *
+     * @param {!string} directory, an absolute native path that contains a directory of extensions.
+                        each subdirectory is interpreted as an independent extension
+     * @param {!string} baseUrl, URL path relative to index.html that maps to the same place as directory
+     */
+    function testAllExtensionsInNativeDirectory(directory, baseUrl) {
+        NativeFileSystem.requestNativeFileSystem(directory,
+            function (rootEntry) {
+                rootEntry.createReader().readEntries(
+                    function (entries) {
+                        var i;
+                        for (i = 0; i < entries.length; i++) {
+                            if (entries[i].isDirectory) {
+                                // FUTURE (JRB): read package.json instead of hardcoding the entrypoint.
+                                // Also, load sub-extensions defined in package.json.
+                                testExtension(entries[i].name, baseUrl + "/" + entries[i].name, "unittests");
+                            }
+                        }
+                    },
+                    function (error) {
+                        console.log("[Extension] Error -- could not read native directory: " + directory);
+                    }
+                );
+            },
+            function (error) {
+                console.log("[Extension] Error -- could not open native directory: " + directory);
+            });
+    }
+    
     exports.loadExtension = loadExtension;
+    exports.testExtension = testExtension;
     exports.loadAllExtensionsInNativeDirectory = loadAllExtensionsInNativeDirectory;
+    exports.testAllExtensionsInNativeDirectory = testAllExtensionsInNativeDirectory;
 });
