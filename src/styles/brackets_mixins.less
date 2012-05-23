@@ -66,7 +66,7 @@
 /* Sets the background to the given offset in the spritesheet. Typically, the element you set this on requires
    a fixed size so that other parts of the spritesheet don't show. */
 .sprite(@x-offset, @y-offset, @sprite-sheet) {
-    background: url(@sprite-sheet) -@x-offset -@y-offset no-repeat;
+    background: url("@{sprite-sheet}") -@x-offset -@y-offset no-repeat;
 }
 
 /* Turns the given element into an icon showing the given rectangle in the spritesheet. Can be used on empty elements
