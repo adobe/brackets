@@ -39,13 +39,14 @@ define(function (require, exports, module) {
      *
      * Events:
      *      commandEnabledStateChanged
+     *      commandCheckedStateChanged
      */
-    function Command(id, command, enabledCallback) {
+    function Command(id, command, isEnabled) {
         this._id = id;
         this._command = command;
         this._checked = undefined;
         this._enabled = true;
-        this._enabledCallback = enabledCallback;
+        this._isEnabled = isEnabled;
 
     }
 
@@ -55,7 +56,7 @@ define(function (require, exports, module) {
 
     Command.prototype.execute = function () {
         if (this._command) {
-            if (this._command._enabledCallback && !this._command._enabledCallback()) {
+            if (this._command._isEnabled && !this._command._isEnabled()) {
                 return (new $.Deferred()).reject().promise();
             }
 

@@ -342,7 +342,7 @@ define(function (require, exports, module) {
      * @param {string} newName 
      * @param {string} current name
      */
-    MenuItem.prototype = function name(newName) {
+    MenuItem.prototype.name = function (newName) {
         var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
         if (newName) {
             $menuItem.text(newName);
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype.getParentMenu = function () {
         var parent = $(_getHTMLMenuItem(this.id)).parents(".dropdown").get(0);
-        if(!parent) {
+        if (!parent) {
             return null;
         }
 
@@ -471,7 +471,7 @@ define(function (require, exports, module) {
         menu.addMenuItem("Use Tab Characters",   "debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
 
         // TEST
-        getMenuItem("navigate-prev-match").getParentMenu();
+        getMenuItem("navigate-prev-match").name("Meow");
 
         $("#main-toolbar .dropdown")
             // Prevent clicks on the top-level menu bar from taking focus
