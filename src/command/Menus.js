@@ -59,12 +59,10 @@ define(function (require, exports, module) {
       * specify the relative position of a newly created menu object
       * @enum {string}
       */
-    var insert = {
-        BEFORE:  "before",
-        AFTER:   "after",
-        FIRST:   "first",
-        LAST:    "last"
-    };
+    var BEFORE =  "before";
+    var AFTER =   "after";
+    var FIRST =   "first";
+    var LAST =    "last";
 
 
     /**
@@ -153,8 +151,19 @@ define(function (require, exports, module) {
         return $("#main-toolbar .nav").find("#" + id).get(0);
     }
 
-
-    function addMenu(name, id, relativeMenuID) {
+    /**
+     * Adds a top-level menu to the application menu bar which may be native or HTML-based.
+     *
+     * @param {!string} name - display text for menu 
+     * @param {!string} id
+     * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to
+     * @param {?string} position - constant defining the position of new the Menu relative
+     *      to the item specified by relativeID (see Insertion position constants).
+     *      Default is LAST
+     * 
+     * @return {Menu} the newly created Menu
+     */
+    function addMenu(name, id, relativeID, position) {
         var $menubar = $("#main-toolbar .nav"),
             menu;
 
@@ -176,8 +185,8 @@ define(function (require, exports, module) {
 
 
         // TODO: relative logic
-        if (relativeMenuID) {
-            var relative = _getHTMLMenu(relativeMenuID);
+        if (relativeID) {
+            var relative = _getHTMLMenu(relativeID);
             // TODO: handle not found
             relative.after($newMenu);
         } else {
@@ -190,13 +199,20 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Removes Menu
+     */
+    function removeMenu(id) {
+        // TODO
+    }
+
+    /**
      * Inserts divider item in menu
      * @param {!string} id
      * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
      *      will be positioned relative to.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to the item specified by relativeID (see Insertion position constants).
-     *      Default is insert.LAST
+     *      Default is LAST
      * 
      * @return {MenuItem} the newly created divider
      */
@@ -236,7 +252,7 @@ define(function (require, exports, module) {
      *      will be positioned relative to.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to the item specified by relativeID (see Insertion position constants). 
-    *      Default is insert.LAST
+    *      Default is LAST
      *
      * @return {MenuItem} the newly created MenuItem
      */
@@ -268,8 +284,8 @@ define(function (require, exports, module) {
 
             if (command) {
                 $menuItem.click(createExecMenuFunc(command));
-                $(command).on("enabledStateChanged", this.handleEnabledChanged);
-                $(command).on("checkedStateChanged", this.handleCheckedChanged);
+                $(command).on("enabledStateChange", this.handleEnabledChanged);
+                $(command).on("checkedStateChange", this.handleCheckedChanged);
             }
 
             if (keyBindings) {
@@ -299,6 +315,16 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Removes MenuItem
+     * 
+     * TODO Question: for convenience should API provide a way to remove related
+     * keybindings and Command object?
+     */
+    function removeMenuItem(id) {
+        // TODO
+    }
+
+    /**
      * Alternative JSON based API to addMenuItem()
      * 
      * All properties are required unless noted as optional.
@@ -325,7 +351,7 @@ define(function (require, exports, module) {
      *      will be positioned relative to.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to the item specified by relativeID (see Insertion position constants).
-     *      Default is insert.LAST
+     *      Default is LAST
      * 
      * @return {MenuItem} newly created menuItem for sub-menu
      */

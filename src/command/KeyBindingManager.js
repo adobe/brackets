@@ -65,12 +65,12 @@ define(function (require, exports, module) {
      * @private
      *
      *
-     * @param {string} commandStr
+     * @param {string} commandID
      * @param {string} key - a single shortcut.
      * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
      */
-    function _addBinding(commandStr, key, platform) {
-        if (!commandStr || commandStr === undefined || !key || key === undefined ||
+    function _addBinding(commandID, key, platform) {
+        if (!commandID || commandID === undefined || !key || key === undefined ||
                 (platform !== undefined && platform !== brackets.platform)) {
             return;
         }
@@ -79,10 +79,10 @@ define(function (require, exports, module) {
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
-            console.log("Cannot assign " + normalizedKey + " to " + commandStr +
+            console.log("Cannot assign " + normalizedKey + " to " + commandID +
                         ". It is already assigned to " + _keymap.map[normalizedKey]);
         } else {
-            _keymap.map[normalizedKey] = commandStr;
+            _keymap.map[normalizedKey] = commandID;
         }
     }
 
@@ -134,11 +134,11 @@ define(function (require, exports, module) {
     /**
      * Add some key bindings to _keymap.
      *
-     * @param {string} commandStr
+     * @param {string} commandID
      * @param {string} keyCmds - a single shortcut or an array of shortcuts.
      * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
      */
-    function addBinding(commandStr, keyCmds, platform) {
+    function addBinding(commandID, keyCmds, platform) {
         if (!_keymap) { _initializeKeymap(); }
 
         if ($.isArray(keyCmds)) {
@@ -151,10 +151,10 @@ define(function (require, exports, module) {
                     key = keyCmds[i];
                 }
                 
-                _addBinding(commandStr, key, targePlatform);
+                _addBinding(commandID, key, targePlatform);
             }
         } else {
-            _addBinding(commandStr, keyCmds, platform);
+            _addBinding(commandID, keyCmds, platform);
         }
     }
 

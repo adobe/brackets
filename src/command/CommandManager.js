@@ -44,20 +44,20 @@ define(function (require, exports, module) {
      *
      * @param {string} id - unique identifier for command. Plugins should use the 
      *      following format"author-myplugin-mycommandname".
-     * @param {function} command - the function that is called when the command is executed.
-     * @param {?function} isEnabled - callback function that returns true when 
+     * @param {function} commandFn - the function that is called when the command is executed.
+     * @param {?function} isEnabledFn - callback function that returns true when 
      *      the command is enabled.
      *
      * Events:
-     *      enabledStateChanged
-     *      checkedStateChanged
+     *      enabledStateChange
+     *      checkedStateChange
      */
-    function Command(id, command, isEnabled) {
+    function Command(id, commandFn, isEnabledFn) {
         this._id = id;
-        this._command = command;
+        this._commandFn = commandFn;
         this._checked = undefined;
         this._enabled = true;
-        this._isEnabled = isEnabled;
+        this._isEnabledFn = isEnabledFn;
 
     }
 
@@ -72,12 +72,12 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     Command.prototype.execute = function () {
-        if (this._command) {
-            if (this._command._isEnabled && !this._command._isEnabled()) {
+        if (this._commandFn) {
+            if (this._isEnabledFn && !this._isEnabledFn()) {
                 return (new $.Deferred()).reject().promise();
             }
 
-            var result = this._command.apply(this, arguments);
+            var result = this._commandFn.apply(this, arguments);
             if (!result) {
                 return (new $.Deferred()).resolve().promise();
             } else {
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * Sets enabled state of Command and dispatches "enabledStateChanged"
+     * Sets enabled state of Command and dispatches "enabledStateChange"
      * when the enabled state changes.
      * @param {boolean} enabled
      */
@@ -103,7 +103,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(this).triggerHandler("enabledStateChanged");
+            $(this).triggerHandler("enabledStateChange");
         }
     };
 
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
     };
 
     /** 
-     * Sets enabled state of Command and dispatches "checkedStateChanged"
+     * Sets enabled state of Command and dispatches "checkedStateChange"
      * when the enabled state changes.
      * @param {boolean} checked
      */
@@ -122,31 +122,31 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(this).triggerHandler("checkedStateChanged");
+            $(this).triggerHandler("checkedStateChange");
         }
     };
 
     /**
      * Registers a global command.
      *
-     * @param {string} id The ID of the command.
-     * @param {function(...)} command The function to call when the command is executed. Any arguments passed to
+     * @param {string} id - the ID of the command.
+     * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
      *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
      *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
      * @return {Command}
      */
-    function register(id, command) {
+    function register(id, commandFn) {
         if (_commands[id]) {
             throw new Error("Attempting to register an already-registered command: " + id);
         }
-        if (!id || !command) {
-            throw new Error("Attempting to register a command with a bad id or function");
+        if (!id || !commandFn) {
+            throw new Error("Attempting to register a command function with a bad id or function");
         }
 
-        var commandObj = new Command(id, command);
-        _commands[id] = commandObj;
-        return commandObj;
+        var command = new Command(id, commandFn);
+        _commands[id] = command;
+        return command;
     }
 
     /**
