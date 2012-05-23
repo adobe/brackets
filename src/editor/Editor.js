@@ -702,7 +702,26 @@ define(function (require, exports, module) {
         this._codeMirror.setSelection(start, end);
     };
 
-
+    /**
+     * Gets the mode for the current selection. This function can determine the mode for the current
+     * selection or, if nothing is selected, the current cursor position. It's useful when working with
+     * documents with mixed (multiple) modes like htmlmixed.
+     * @return {!string} html, css, javascript, less, or null (if multiple modes are selected).
+     */
+    Editor.prototype.getModeForSelection = function () {
+        var mode = this._codeMirror.getOption("mode");
+        if (mode === "htmlmixed") {
+            var sel = this.getSelection();
+            mode = this._codeMirror.getTokenAt(sel.start).state.mode;
+            
+            // Check to see if there are mixed modes. That's not allowed.
+            if (mode !== this._codeMirror.getTokenAt(sel.end).state.mode) {
+                return null;
+            }
+        }
+        return mode;
+    };
+        
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
      * @returns {!number}
