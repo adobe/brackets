@@ -28,15 +28,13 @@
 define(function (require, exports, module) {
     'use strict';
 
-    // TODO - verify these are all still required
-
-    var CommandManager      = brackets.getModule("command/CommandManager"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        FileIndexManager    = brackets.getModule("project/FileIndexManager"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        FileViewController  = brackets.getModule("project/FileViewController"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
+    var CommandManager,         // loaded from brackets.test
+        DocumentManager,        // loaded from brackets.test
+        EditorManager,          // loaded from brackets.test
+        FileIndexManager,       // loaded from brackets.test
+        FileUtils,              // loaded from brackets.test
+        FileViewController,     // loaded from brackets.test
+        ProjectManager,         // loaded from brackets.test
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils.js");
 
     // Local modules
@@ -169,11 +167,13 @@ define(function (require, exports, module) {
                 initInlineTest = _initInlineTest.bind(this);
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow          = w;
-                    testWindow.brackets.test.EditorManager      = EditorManager;
-                    testWindow.brackets.test.CommandManager     = CommandManager;
-                    testWindow.brackets.test.DocumentManager    = DocumentManager;
-                    testWindow.brackets.test.FileViewController = FileViewController;
-                    testWindow.brackets.test.ProjectManager     = ProjectManager;
+                    EditorManager       = testWindow.brackets.test.EditorManager;
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    FileIndexManager    = testWindow.brackets.test.FileIndexManager;
+                    FileUtils           = testWindow.brackets.test.FileUtils;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                    ProjectManager      = testWindow.brackets.test.ProjectManager;
                 });
                 
                 this.addMatchers({
