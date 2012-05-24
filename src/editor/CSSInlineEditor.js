@@ -90,11 +90,7 @@ define(function (require, exports, module) {
      */
     function htmlToCSSProvider(hostEditor, pos) {
         // Only provide a CSS editor when cursor is in HTML content
-        if (hostEditor._codeMirror.getOption("mode") !== "htmlmixed") {
-            return null;
-        }
-        var htmlmixedState = hostEditor._codeMirror.getTokenAt(pos).state;
-        if (htmlmixedState.mode !== "html") {
+        if (hostEditor.getModeForSelection() !== "html") {
             return null;
         }
         
