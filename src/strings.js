@@ -136,7 +136,7 @@ define(function (require, exports, module) {
     exports.CMD_QUIT                            =  "Quit";
 
     // Edit menu ccmmands
-    exports.CMD_EDIT_MENU                       = "Edit";
+    exports.EDIT_MENU                           = "Edit";
     exports.CMD_SELECT_ALL                      = "Select All";
     exports.CMD_FIND                            = "Find";
     exports.CMD_FIND_IN_FILES                   = "Find in Files";
@@ -147,11 +147,11 @@ define(function (require, exports, module) {
     exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
      
     // View menu commands
-    exports.CMD_VIEW_MENU                       = "View";                  
+    exports.VIEW_MENU                           = "View";                  
     exports.CMD_HIDE_SIDEBAR                    = "Show Sidebar";
 
     // Naviate menu Commands
-    exports.CMD_NAVIGATE_MENU                   = "Naviate";                  
+    exports.NAVIGATE_MENU                       = "Navigate";                  
     exports.CMD_QUICK_OPEN                      = "Quick Open";       
     exports.CMD_GOTO_LINE                       = "Go to Line";
     exports.CMD_GOTO_DEFINITION                 = "Go to Definition";              
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
     exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";               
     
     // Debug menu commands
-    exports.CMD_DEBUG_MENU                      = "Debug";               
+    exports.DEBUG_MENU                          = "Debug";               
     exports.CMD_REFRESH_WINDOW                  = "Reload Window";   
     exports.CMD_CLOSE_WINDOW                    = "Close Window";        
     exports.CMD_SHOW_DEV_TOOLS                  = "Show Developer Tools";   

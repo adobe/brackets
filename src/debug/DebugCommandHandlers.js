@@ -133,6 +133,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint);
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS, Commands.DEBUG_RUN_UNIT_TESTS,      _handleRunUnitTests);
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
+    CommandManager.register(Strings.CMD_EXPERIMENTAL,   Commands.NO_OP,                     function () {});
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
                                                         Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
     CommandManager.register(Strings.CMD_CLOSE_ALL_LIVE_BROWSERS, 
