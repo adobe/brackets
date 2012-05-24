@@ -99,7 +99,7 @@ define(function (require, exports, module) {
         var addComments = true;
         var cm = editor._codeMirror;
         var i;
-        var commentIndex,
+        var startCommentIndex,
             endCommentIndex,
             leftmostColumn;
         var line,
@@ -123,36 +123,48 @@ define(function (require, exports, module) {
             if (addComments) {
                 cm.operation(function () {
                     if (selectionInfo.endCh === 0 || selectionInfo.endCh === selectionInfo.startCh) {
-                        commentIndex = lastLine.length;
+                        endCommentIndex = lastLine.length;
                     } else {
-                        commentIndex = selectionInfo.endCh;
+                        endCommentIndex = selectionInfo.endCh;
                     }
-                    cm.replaceRange(endComment, {line: selectionInfo.endLine, ch: commentIndex});
+                    cm.replaceRange(endComment, {line: selectionInfo.endLine, ch: endCommentIndex});
                     if (selectionInfo.startCh === 0 || selectionInfo.endCh === selectionInfo.startCh) {
-                        commentIndex = firstLine.search(/\S/);
+                        startCommentIndex = firstLine.search(/\S/);
                     } else {
-                        commentIndex = selectionInfo.startCh;
+                        startCommentIndex = selectionInfo.startCh;
                     }
-                    cm.replaceRange(startComment, {line: selectionInfo.startLine, ch: commentIndex});
+                    cm.replaceRange(startComment, {line: selectionInfo.startLine, ch: startCommentIndex});
                 });
+                
 
-                if (origSel.start.line === origSel.end.line) {
-                    origSel.start.ch += startComment.length;
-                    origSel.end.ch += (startComment.length);
-                } else {
-                    if (selectionInfo.startCh !== 0) {
+                // Position the cursor or move the selection.
+                // If text is selected...
+                if (origSel.start.ch !== origSel.end.ch || origSel.start.line !== origSel.end.line) {
+                    if (startCommentIndex === origSel.start.ch) {
                         origSel.start.ch += startComment.length;
                     }
+                    if (origSel.start.line === origSel.end.line) {
+                        origSel.end.ch += startComment.length;
+                    }
+                } else { // If text is not selected...
+                    if (origSel.start.ch > endCommentIndex) {
+                        origSel.start.ch += (startComment.length + endComment.length);
+                        origSel.end.ch += (startComment.length + endComment.length);
+                    } else if (origSel.start.ch >= startCommentIndex) {
+                        origSel.start.ch += startComment.length;
+                        origSel.end.ch += startComment.length;
+                    }
                 }
+                
                 editor.setSelection(origSel.start, origSel.end);
             } else { // Removing block comments.
                 cm.operation(function () {
-                    commentIndex = lastLine.search(endCommentRE);
-                    cm.replaceRange("", {line: selectionInfo.endLine, ch: commentIndex},
-                                        {line: selectionInfo.endLine, ch: (commentIndex + endComment.length)});
-                    commentIndex = firstLine.search(startCommentRE);
-                    cm.replaceRange("", {line: selectionInfo.startLine, ch: commentIndex},
-                                        {line: selectionInfo.startLine, ch: (commentIndex + startComment.length)});
+                    endCommentIndex = lastLine.search(endCommentRE);
+                    cm.replaceRange("", {line: selectionInfo.endLine, ch: endCommentIndex},
+                                        {line: selectionInfo.endLine, ch: (endCommentIndex + endComment.length)});
+                    startCommentIndex = firstLine.search(startCommentRE);
+                    cm.replaceRange("", {line: selectionInfo.startLine, ch: startCommentIndex},
+                                        {line: selectionInfo.startLine, ch: (startCommentIndex + startComment.length)});
                 });
             }
         } else { // type === "line"
@@ -177,9 +189,9 @@ define(function (require, exports, module) {
                 if (addComments) {
                     cm.replaceRange(startComment + " ", {line: i, ch: leftmostColumn});
                 } else { // Removing line comments.
-                    commentIndex = line.search(startCommentRE);
-                    endCommentIndex = commentIndex + line.match(_commentToRegExp(startComment, false, true))[0].length;
-                    cm.replaceRange("", {line: i, ch: commentIndex},
+                    startCommentIndex = line.search(startCommentRE);
+                    endCommentIndex = startCommentIndex + line.match(_commentToRegExp(startComment, false, true))[0].length;
+                    cm.replaceRange("", {line: i, ch: startCommentIndex},
                                         {line: i, ch: endCommentIndex});
                 }
             }
