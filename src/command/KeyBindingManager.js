@@ -63,7 +63,7 @@ define(function (require, exports, module) {
 
     /**
      * @private
-     *
+     * Add a key binding to _keymap.
      *
      * @param {string} commandID
      * @param {string} key - a single shortcut.
@@ -86,6 +86,26 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * @private
+     * Remove a key binding from _keymap if it exists.
+     *
+     * @param {string} key - a key-description string that may or may not be normalized.
+     * @param {string} platform - the intended OS of the key.
+     */
+    function _removeBinding(key, platform) {
+        if (!key || key === undefined || !_keymap ||
+                (platform !== undefined && platform !== brackets.platform)) {
+            return;
+        }
+
+        var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
+        if (!normalizedKey) {
+            console.log("Fail to nomalize " + key);
+        } else if (_isKeyAssigned(normalizedKey)) {
+            delete _keymap.map[normalizedKey];
+        }
+    }
        
     /**
      * Install the specified keymap as the current keymap, overwriting the existing keymap.
@@ -135,8 +155,11 @@ define(function (require, exports, module) {
      * Add some key bindings to _keymap.
      *
      * @param {string} commandID
-     * @param {string} keyCmds - a single shortcut or an array of shortcuts.
+     * @param {string} keyCmds - a single shortcut or an array of shortcuts as in 
+     *                           ["Cmd-[", "Cmd-LeftArrow"] or [{key: "F5", platform: "win"}, {key: "Cmd-R", platform: "mac"}]
      * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     *                           If keyCmds is an array of shortcuts that have individually associated platforms, 
+     *                           then this parameter is not used.
      */
     function addBinding(commandID, keyCmds, platform) {
         if (!_keymap) { _initializeKeymap(); }
@@ -159,22 +182,31 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Remove a key binding from _keymap if it exists.
+     * Remove some key bindings from _keymap.
      *
-     * @param {string} key - a key-description string that may or may not be normalized.
-     * @param {string} platform - the intended OS of the key.
+     * @param {string} keyCmds - a single shortcut or an array of shortcuts as in 
+     *                           ["Cmd-[", "Cmd-LeftArrow"] or [{key: "F5", platform: "win"}, {key: "Cmd-R", platform: "mac"}]
+     * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     *                           If keyCmds is an array of shortcuts that have individually associated platforms, 
+     *                           then this parameter is not used.
      */
-    function removeBinding(key, platform) {
-        if (!key || key === undefined || !_keymap ||
-                (platform !== undefined && platform !== brackets.platform)) {
-            return;
-        }
+    function removeBinding(keyCmds, platform) {
+        if (!_keymap) { return; }
 
-        var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
-        if (!normalizedKey) {
-            console.log("Fail to nomalize " + key);
-        } else if (_isKeyAssigned(normalizedKey)) {
-            delete _keymap.map[normalizedKey];
+        if ($.isArray(keyCmds)) {
+            var i, key, targePlatform;
+            for (i = 0; i < keyCmds.length; i++) {
+                if (keyCmds[i].key !== undefined) {
+                    key = keyCmds[i].key;
+                    targePlatform = keyCmds[i].platform;
+                } else {
+                    key = keyCmds[i];
+                }
+                
+                _removeBinding(key, targePlatform);
+            }
+        } else {
+            _removeBinding(keyCmds, platform);
         }
     }
 
