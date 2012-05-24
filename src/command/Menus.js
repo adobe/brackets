@@ -101,6 +101,7 @@ define(function (require, exports, module) {
      */
     var menuItemMap = {};
 
+    var cmdToMenuMap = {};
 
     /**
      * @constructor
@@ -311,13 +312,14 @@ define(function (require, exports, module) {
         if (name === "---") {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span></a></li>");
+            cmdToMenuMap[command.getID()] = id;
 
-            if (command) {
-                $menuItem.click(createExecMenuFunc(command));
-                $(command).on("enabledStateChange", this.handleEnabledChanged);
-                $(command).on("checkedStateChange", this.handleCheckedChanged);
-            }
+            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span></a></li>");
+            $menuItem.click(createExecMenuFunc(command));
+            $(command).on("enabledStateChange", this.handleEnabledChanged)
+                .on("checkedStateChange", this.handleCheckedChanged)
+                .data("command", command);
+
 
             if (keyBindings) {
                 if (!$.isArray(keyBindings)) {
@@ -399,21 +401,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Gets/sets menuItem name property
-     * @param {string} newName 
-     * @param {string} current name
-     */
-    MenuItem.prototype.name = function (newName) {
-        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
-        if (newName) {
-            $menuItem.text(newName);
-            return newName;
-        } else {
-            return $menuItem.text();
-        }
-    };
-
-    /**
      * Sets the Command that will be execited when the MenuItem is clicked
      * @param {Command}
      */
@@ -459,6 +446,21 @@ define(function (require, exports, module) {
         // TODO
     };
 
+
+    $(CommandManager).on("nameChange", function (e, command) {
+        var id = cmdToMenuMap[command.getID()];
+        var $menuItem = $(_getHTMLMenuItem(id)).find(".menu-name").text(command.getName());
+    });
+
+    $(CommandManager).on("enabledStateChange", function (e, command) {
+        var id = cmdToMenuMap[command.getID()];
+        // TODO IMPL
+    });
+
+    $(CommandManager).on("checkedStateChange", function (e, command) {
+        var id = cmdToMenuMap[command.getID()];
+        // TODO IMPL
+    });
 
     function init() {
 

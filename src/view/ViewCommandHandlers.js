@@ -60,14 +60,14 @@ define(function (require, exports, module) {
             $("#open-files-container").trigger("scroll");
 
             // reset the menu text
-            $("#menu-view-hide-sidebar span").first().text("Hide Sidebar");
+            CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_HIDE_SIDEBAR);
         } else {
             $sidebarResizer.css("left", 0);
             ProjectManager.setSidebarState(ProjectManager.SIDEBAR_CLOSED);
             $sidebar.hide();
             
             // reset the menu text
-            $("#menu-view-hide-sidebar span").first().text("Show Sidebar");
+            CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(Strings.CMD_SHOW_SIDEBAR);
         }
         
     }

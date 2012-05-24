@@ -125,8 +125,8 @@ define(function (require, exports, module) {
 
     // File menu commands
     exports.FILE_MENU                           = "File";
-    exports.CMD_FILE_NEW                        = "New";              
-    exports.CMD_FILE_OPEN                       = "Open";               
+    exports.CMD_FILE_NEW                        = "New";
+    exports.CMD_FILE_OPEN                       = "Open";
     exports.CMD_ADD_TO_WORKING_SET              = "Add To Working Set";
     exports.CMD_OPEN_FOLDER                     = "Open Folder";
     exports.CMD_FILE_CLOSE                      = "Close";
@@ -147,30 +147,31 @@ define(function (require, exports, module) {
     exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
      
     // View menu commands
-    exports.VIEW_MENU                           = "View";                  
-    exports.CMD_HIDE_SIDEBAR                    = "Show Sidebar";
+    exports.VIEW_MENU                           = "View";
+    exports.CMD_HIDE_SIDEBAR                    = "Hide Sidebar";
+    exports.CMD_SHOW_SIDEBAR                    = "Show Sidebar";
 
     // Naviate menu Commands
-    exports.NAVIGATE_MENU                       = "Navigate";                  
-    exports.CMD_QUICK_OPEN                      = "Quick Open";       
+    exports.NAVIGATE_MENU                       = "Navigate";
+    exports.CMD_QUICK_OPEN                      = "Quick Open";
     exports.CMD_GOTO_LINE                       = "Go to Line";
-    exports.CMD_GOTO_DEFINITION                 = "Go to Definition";              
-    exports.CMD_SHOW_INLINE_EDITOR              = "Quick Edit";            
-    exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";               
-    exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";               
+    exports.CMD_GOTO_DEFINITION                 = "Go to Definition";
+    exports.CMD_SHOW_INLINE_EDITOR              = "Quick Edit";
+    exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";
+    exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";
     
     // Debug menu commands
-    exports.DEBUG_MENU                          = "Debug";               
-    exports.CMD_REFRESH_WINDOW                  = "Reload Window";   
-    exports.CMD_CLOSE_WINDOW                    = "Close Window";        
-    exports.CMD_SHOW_DEV_TOOLS                  = "Show Developer Tools";   
-    exports.CMD_RUN_UNIT_TESTS                  = "Run Tests";   
-    exports.CMD_JSLINT                          = "Enable JSLint";   
-    exports.CMD_SHOW_PERF_DATA                  = "Show Perf Data";   
-    exports.CMD_EXPERIMENTAL                    = "Experiment";          
-    exports.CMD_NEW_BRACKETS_WINDOW             = "New Window";   
-    exports.CMD_CLOSE_ALL_LIVE_BROWSERS         = "Close Browsers";   
-    exports.CMD_USE_TAB_CHARS                   = "Use Tab Characters";   
+    exports.DEBUG_MENU                          = "Debug";
+    exports.CMD_REFRESH_WINDOW                  = "Reload Window";
+    exports.CMD_CLOSE_WINDOW                    = "Close Window";
+    exports.CMD_SHOW_DEV_TOOLS                  = "Show Developer Tools";
+    exports.CMD_RUN_UNIT_TESTS                  = "Run Tests";
+    exports.CMD_JSLINT                          = "Enable JSLint";
+    exports.CMD_SHOW_PERF_DATA                  = "Show Perf Data";
+    exports.CMD_EXPERIMENTAL                    = "Experiment";
+    exports.CMD_NEW_BRACKETS_WINDOW             = "New Window";
+    exports.CMD_CLOSE_ALL_LIVE_BROWSERS         = "Close Browsers";
+    exports.CMD_USE_TAB_CHARS                   = "Use Tab Characters";
 
     // Help menu commands
     exports.CMD_ABOUT                           = "About...";

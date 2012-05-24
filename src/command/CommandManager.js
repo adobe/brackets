@@ -48,6 +48,7 @@ define(function (require, exports, module) {
      * @param {?function} isEnabledFn - callback function that returns true when 
      *      the command is enabled.
      *
+     * TODO: where should this be triggered, The Command or Exports?
      * Events:
      *      enabledStateChange
      *      checkedStateChange
@@ -104,7 +105,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(this).triggerHandler("enabledStateChange");
+            $(exports).triggerHandler("enabledStateChange", this);
         }
     };
 
@@ -119,18 +120,18 @@ define(function (require, exports, module) {
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
-        var changed = this._enabled !== enabled;
+        var changed = this._name !== name;
         this._name = name;
 
         if (changed) {
-            $(this).triggerHandler("nameChange");
+            $(exports).triggerHandler("nameChange", this);
         }
-    }
+    };
 
     /** @return {string} */
     Command.prototype.getName = function () {
         return this._name;
-    }
+    };
 
     /** 
      * Sets enabled state of Command and dispatches "checkedStateChange"
@@ -142,7 +143,7 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(this).triggerHandler("checkedStateChange");
+            $(exports).triggerHandler("checkedStateChange");
         }
     };
 
@@ -157,7 +158,7 @@ define(function (require, exports, module) {
      *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
      * @return {Command}
      */
-    function register( name, id, commandFn) {
+    function register(name, id, commandFn) {
         if (_commands[id]) {
             throw new Error("Attempting to register an already-registered command: " + id);
         }
