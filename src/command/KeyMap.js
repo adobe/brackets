@@ -22,7 +22,7 @@
  */
 
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50, regexp:true */
 /*global define, brackets */
 
 define(function (require, exports, module) {
@@ -109,6 +109,11 @@ define(function (require, exports, module) {
                 key = ele;
             }
         });
+
+        // Check to see if the binding is for "-".
+        if (key === "" && origDescriptor.search(/^.+--$/) !== -1) {
+            key = "-";
+        }
         
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
@@ -163,6 +168,43 @@ define(function (require, exports, module) {
             map[key] = ele[key];
         });
         return map;
+    }
+    
+    
+    /**
+     * @private
+     * Looks for keycodes that have os-inconsistent keys and fixes them.
+     * @param {number} The keycode from the keyboard event.
+     * @param {string} The current best guess at what the key is.
+     * @return {string} If the key is OS-inconsistent, the correct key; otherwise, the original key.
+     **/
+    function _mapKeycodeToKey(keycode, key) {
+        switch (keycode) {
+        case 186:
+            return ";";
+        case 187:
+            return "=";
+        case 188:
+            return ",";
+        case 189:
+            return "-";
+        case 190:
+            return ".";
+        case 191:
+            return "/";
+        case 192:
+            return "`";
+        case 219:
+            return "[";
+        case 220:
+            return "\\";
+        case 221:
+            return "]";
+        case 222:
+            return "'";
+        default:
+            return key;
+        }
     }
     
     /** class Keymap
@@ -222,7 +264,7 @@ define(function (require, exports, module) {
         
         // Translate some keys to their common names
         if (key === "\t") { key = "Tab"; }
-        if (event.keyCode === 191) { key = "/"; }
+        key = _mapKeycodeToKey(event.keyCode, key);
 
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }

@@ -37,6 +37,16 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/css/css");
     require("thirdparty/CodeMirror2/mode/less/less");
     require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
+    require("thirdparty/CodeMirror2/mode/xml/xml");
+    require("thirdparty/CodeMirror2/mode/clike/clike");
+    require("thirdparty/CodeMirror2/mode/php/php");
+    require("thirdparty/CodeMirror2/mode/coffeescript/coffeescript");
+    require("thirdparty/CodeMirror2/mode/clojure/clojure");
+    require("thirdparty/CodeMirror2/mode/perl/perl");
+    require("thirdparty/CodeMirror2/mode/ruby/ruby");
+    require("thirdparty/CodeMirror2/mode/mysql/mysql");
+    require("thirdparty/CodeMirror2/mode/diff/diff");
+    require("thirdparty/CodeMirror2/mode/markdown/markdown");
 
     /**
      * @private
@@ -70,7 +80,64 @@ define(function (require, exports, module) {
 
         case "html":
         case "htm":
+        case "xhtml":
             return "htmlmixed";
+
+        case "xml":
+            return "xml";
+
+        case "php":
+        case "php3":
+        case "php4":
+        case "php5":
+        case "phtm":
+        case "phtml":
+            return "php";
+
+        case "cc":
+        case "cp":
+        case "cpp":
+        case "c++":
+        case "cxx":
+        case "hh":
+        case "hpp":
+        case "hxx":
+        case "h++":
+        case "ii":
+            return "text/x-c++src";
+
+        case "c":
+        case "h":
+        case "i":
+            return "text/x-csrc";
+
+        case "cs":
+            return "text/x-csharp";
+
+        case "java":
+            return "text/x-java";
+
+        case "coffee":
+            return "coffeescript";
+
+        case "clj":
+            return "clojure";
+
+        case "pl":
+            return "perl";
+
+        case "rb":
+            return "ruby";
+
+        case "sql":
+            return "mysql";
+
+        case "diff":
+        case "patch":
+            return "diff";
+
+        case "md":
+            return "markdown";
 
         default:
             console.log("Called EditorUtils.js _getModeFromFileExtensions with an unhandled file extension: " + ext);

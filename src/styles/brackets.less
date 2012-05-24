@@ -64,7 +64,11 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
+    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
+        cursor: col-resize;   
+    }
 }
+
 
 a, img {
     -webkit-user-drag: none;
@@ -90,20 +94,20 @@ a, img {
     z-index: @z-index-brackets-toolbar;
 }
 
-#editorHolder {
+#editor-holder {
     .vbox;
     .box-flex(1);
     position: relative;
     
     /* Placeholder shown when there is no editor open */
-    #notEditor {
+    #not-editor {
         .box-flex(1);
         .vbox;
         .box-pack(center);
         .box-align(center);
         background-color: @background-color-2;
         
-        #notEditorContent {
+        #not-editor-content {
             color: @background-color-1;
             font-size: 350px;
             line-height: normal;
@@ -167,20 +171,20 @@ a, img {
     
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .spriteIcon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,11px, "images/live_development_sprites.svg");
     &:hover {
-        .spriteSwap(0,11px);
+        .sprite-swap(0,11px);
     }
     // 'Connected' state
     &.success {
-        .spriteSwap(0,22px);
+        .sprite-swap(0,22px);
     }
     &.success:hover {
-        .spriteSwap(0,33px);
+        .sprite-swap(0,33px);
     }
     // 'Connection in progress' state
     &.info {
-        .spriteSwap(0,44px);
+        .sprite-swap(0,44px);
     }
 }
 
@@ -194,12 +198,12 @@ a, img {
 
 #sidebar-resizer {
     position: absolute;
-    width: 3px;
+    width: 6px;
     height: 100%;
     z-index: @z-index-brackets-sidebar-resizer;
     opacity: 0;
     cursor: col-resize;
-}
+} 
 
 #file-section {
     .vbox;
@@ -209,7 +213,7 @@ a, img {
     
     .project-file-header-area {
         padding: 6px 6px 2px 10px;
-        font-size: 14px;
+        font-size: 13px;
         color: #929292;
     }
 
@@ -229,62 +233,53 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
+    }
         
-        a {
-            color: black;
-            text-decoration: none;
-            margin-left: 26px;
-        }
+    li {
+        white-space: nowrap;
+        position: relative; // so that children can be positioned absolute
+        line-height: 18px;
+        padding: 0 0 0 8px;
+        min-height: 18px;
+        vertical-align: baseline;
+    }
+            
+    a {
+        color: #BBB;
         
-        li {
-            white-space: nowrap;
-            position: relative; // so that children can be positioned absolute
-            line-height: 24px;
-            padding: 0 0 0 8px;
-            height: 25px;
-            vertical-align: baseline;
-            a {
-                color: #BBB;
-                font-size: 14px;
-                margin-left: 18px;
-                padding-right: @triangle-size * 2;
-                cursor: default;
-            }
-            .extension a {
-                color: #8e9a9d;
-            }
-            &:hover {
-                background: transparent;
-            }
-            &:active {
-                background-position: 0 1px;
-            }
-            &.selected {
-                a {
-                    font-weight: @font-weight-semibold;
-                    color: #fff;
-                }
-            }
-        }
+        font-size: 13px;
+        text-decoration: none;
+        
+        display: block;
+        height: 16px;
+        line-height: 16px;
+        margin-left: 18px;
+        padding: 3px (@triangle-size * 2) 3px 0;
+        
+        cursor: default;
+    }
+    
+    .selected a {
+        color: #fff;
     }
 }
 
-.sidebarSelection {
-    background: url("styles/images/active_back.png") no-repeat top right;
-    height: 25px;
+.sidebar-selection {
+    background: url("images/active_back.png") no-repeat top right;
+    height: 22px;
     position: absolute;
 }
 
-.sidebarSelectionTriangle {
-    background: url("styles/images/active_back.png");
+.sidebar-selection-triangle {
+    background: url("images/active_back.png");
     width: 10px;
-    height: 25px;
+    height: 22px;
     position: fixed;
 
-    z-index: @z-index-brackets-selection-triangle; /* scrollerShadow appears above this triangle */
+    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
 }
 
-.sidebarSelectionTriangle.triangleVisible:before {
+.sidebar-selection-triangle.triangle-visible:before {
     content: "";
     
     border-top: @triangle-size solid transparent;
@@ -298,7 +293,7 @@ a, img {
     width: 0;
     height: 0;
     
-    .scaleX(0.9, right, top);
+    .scale-x(0.9, right, top);
 }
 
 //Initially start with the open files hidden, they will get show as files are added
@@ -318,11 +313,11 @@ a, img {
     }
 }
 
-#editorHolder .scrollerShadow {
+#editor-holder .scroller-shadow {
     width: 100%;
 }
 
-.scrollerShadow {
+.scroller-shadow {
     background-size: 100% 5px;
     background-repeat: no-repeat;
     height: 5px;
@@ -341,36 +336,39 @@ a, img {
     }
 }
 
-@spriteSize18: 18px;
+
+@sprite-size-18: 4px;
 
 /** Classes for icons from jsTreeSprites.png 
 */
-.jsTreeSprite {
-    background-image: url("styles/images/jsTreeSprites.png");
+.jstree-sprite {
+    background-image: url("images/jsTreeSprites.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: @sprite-size-18;
+    height: @sprite-size-18;
 }
 
 .disclosure-arrow-opened {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
-    background-position: -@spriteSize18 0px;
+    background-position: -@sprite-size-18 0px;
 }
 
 .disclosure-arrow-closed {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
     background-position: 0px 0px;
 }
-
+ins.jstree-icon {
+    left: -12px !important;
+}
 /** Classes for icons from bracketSprites.png 
 */
 
-.bracketSprite {
-    background-image: url("styles/images/close_btn.png");
+.bracket-sprite {
+    background-image: url("images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
@@ -381,7 +379,7 @@ a, img {
 
 .file-status-icon {
     margin: 3px 0 0 8px;
-    .bracketSprite;
+    .bracket-sprite;
     display: inline-block;
     position: absolute;
     left: 0px;
@@ -391,38 +389,45 @@ a, img {
         background-position: -30px 0;
     }
     
-    &.canClose {
+    &.can-close {
         background-position: 0 0;
     }
   
-    &.canClose:hover {
+    &.can-close:hover {
         background-position: -15px 0;
     }
     
-    &.canClose:active {
+    &.can-close:active {
         background-position: -15px 1px;
     }
 }
 
 /* Styles for inline editors */
-.InlineWidget {
+.inline-widget {
     background-color:   @inline-background-color-1;
     
-    .filename {
-        font-family: @fontStackSansSerif;
-        font-size: 1.1em;
-        color: @inline-color-1;
+    .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
-        .dirty-indicator {
-            .bracketSprite;
-            display: inline-block;
-            background-position: -32px 0;
-            padding-top: 3px;
-        }
-        
-        .lineNumber {
-            color: @inline-color-2;
+        .filename {
+            font-family: @fontstack-sans-serif;
+            font-size: 1.1em;
+            color: @inline-color-1;
+            
+            // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
+            // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
+            cursor: pointer;
+            
+            .dirty-indicator {
+                .bracket-sprite;
+                display: inline-block;
+                background-position: -32px 0;
+                padding-top: 3px;
+            }
+            
+            .line-number {
+                color: @inline-color-2;
+            }
         }
     }
     
@@ -454,11 +459,11 @@ a, img {
 }
 
 /* CSSInlineEditor rule list */
-.relatedContainer {
+.related-container {
     @top-margin: 12px;
     
     /*width: 0;*/
-    font-family: @fontStackSansSerif;
+    font-family: @fontstack-sans-serif;
     position: fixed;
     width: 250px;
     overflow: hidden;
@@ -491,7 +496,7 @@ a, img {
         border-left: @triangle-size solid @inline-background-color-1;
         margin-top: -@triangle-size;
         top: 50%;
-        .scaleX(0.9, left, top);
+        .scale-x(0.9, left, top);
     }
     
     .related {
@@ -531,7 +536,7 @@ a, img {
 }
 
 .CodeMirror-dialog > div {
-  font-family: @fontStackSansSerif;
+  font-family: @fontstack-sans-serif;
   position: absolute;
   top: 0; left: 0; right: 0;
   background: @background-color-2;
@@ -544,7 +549,7 @@ a, img {
 }
 
 .CodeMirror-dialog input {
-  font-family: @fontStackSansSerif;
+  font-family: @fontstack-sans-serif;
   border: 1px solid @content-color-weaker;
   outline: none;
   background: @background-color-3;
@@ -567,7 +572,7 @@ a, img {
     padding: 0px 8px 0px 0px;
     margin: 9px 0px 0px 0px;
 
-    .quickOpenPath {
+    .quick-open-path {
         font-size: 11px;
         color: gray;
     }

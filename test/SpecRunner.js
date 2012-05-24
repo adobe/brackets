@@ -53,6 +53,11 @@ define(function (require, exports, module) {
     require("spec/MultiRangeInlineEditor-test.js");
     require("spec/LiveDevelopment-test.js");
     require("spec/ViewUtils-test.js");
+
+    // AUTOMATED PERFORMANCE
+    // Disabled in repo. Uncomment to run performance tests
+    // TODO: set up separate performance tests suite that can be run from the debug menu
+    //require("spec/Performance-test.js");
     
     beforeEach(function () {
         // Unique key for unit testing

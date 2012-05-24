@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, window */
 
 /*
 * Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
@@ -147,7 +147,7 @@ define(function (require, exports, module) {
      * Creates a dialog div floating on top of the current code mirror editor
      */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        var $wrap = $("#editorHolder")[0];
+        var $wrap = $("#editor-holder")[0];
         this.dialog = $wrap.insertBefore(window.document.createElement("div"), $wrap.firstChild);
         this.dialog.className = "CodeMirror-dialog";
         this.dialog.innerHTML = '<div align="right">' + template + '</div>';
@@ -305,7 +305,7 @@ define(function (require, exports, module) {
         var ESCKey = 27, EnterKey = 13;
 
         // clear the query on ESC key and restore document and cursor position
-        if (event.keyCode === EnterKey || e.keyCode === ESCKey) {
+        if (e.keyCode === EnterKey || e.keyCode === ESCKey) {
             e.stopPropagation();
             e.preventDefault();
 
@@ -359,7 +359,7 @@ define(function (require, exports, module) {
         this.dialog.parentNode.removeChild(this.dialog);
         $(".smart_autocomplete_container").remove();
 
-        $(document).off("mousedown", this.handleDocumentClick);
+        $(window.document).off("mousedown", this.handleDocumentClick);
     };
     
     function filterFileList(query) {
@@ -428,9 +428,12 @@ define(function (require, exports, module) {
         item = StringUtils.htmlEscape(item);
 
         var displayName;
-        if(query.length > 0 ) {
+        if (query.length > 0) {
             // make the users query bold within the item's text
-            displayName = item.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
+            displayName = item.replace(
+                new RegExp(StringUtils.regexEscape(query), "gi"),
+                "<strong>$&</strong>"
+            );
         } else {
             displayName = item;
         }
@@ -454,15 +457,18 @@ define(function (require, exports, module) {
             var rPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
 
             var displayName;
-            if(query.length > 0 ) {
+            if (query.length > 0) {
                 // make the users query bold within the item's text
-                displayName = filename.replace(new RegExp(query, "gi"), "<strong>$&</strong>");
+                displayName = filename.replace(
+                    new RegExp(StringUtils.regexEscape(query), "gi"),
+                    "<strong>$&</strong>"
+                );
             } else {
                 displayName = filename;
             }
 
             return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + displayName +
-                "<br><span class='quickOpenPath'>" + rPath + "</span></li>";
+                "<br><span class='quick-open-path'>" + rPath + "</span></li>";
         }
     }
 
@@ -502,7 +508,7 @@ define(function (require, exports, module) {
         dialogOpen = true;
 
         this.handleDocumentClick = this.handleDocumentClick.bind(this);
-        $(document).on("mousedown", this.handleDocumentClick);
+        $(window.document).on("mousedown", this.handleDocumentClick);
 
 
         // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus

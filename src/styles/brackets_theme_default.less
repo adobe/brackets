@@ -65,7 +65,7 @@
 @accent-atom: #f18900;
 @accent-number: #738d00;
 @accent-def: #8757ad;
-@accent-variable: #446fbd;
+@accent-variable: #535353;
 @accent-variable-2: #535353;
 @accent-variable-3: #535353;
 @accent-property: #8757ad;
@@ -84,6 +84,9 @@
 @accent-quote: #446fbd;
 @accent-hr: #f18900;
 @accent-link: #8757ad;
+@accent-rangeinfo: #6c71c4;
+@accent-minus: #dc322f;
+@accent-plus: #859900;
 
 /* inline editor colors */
 @inline-background-color-1: #eaeaea;
@@ -102,9 +105,9 @@
  */
 .code-font() {
     color: @content-color;
-    pre {
-        line-height: 15px;
-    }
+    // line-height must be specified in px not em because the code font and line number font sizes are different.
+    // Sizing via em will cause the code and line numbers to misalign
+    line-height: 15px;
 }
 
 .code-font-win() {

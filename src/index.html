@@ -38,7 +38,7 @@
 
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="styles/brackets.less">
-    <script src="thirdparty/less-1.1.5.min.js"></script>
+    <script src="thirdparty/less-1.3.0.min.js"></script>
     <!-- <link rel="stylesheet" href="brackets.min.css"> -->
 
     <!-- JavaScript -->
@@ -60,7 +60,7 @@
     <!-- Main UI -->
     <div class="main-view">
         <div id="sidebar-resizer"></div>
-        <div class="sidebar quiet-scrollbars">
+        <div id="sidebar" class="sidebar quiet-scrollbars">
             <!-- Left-hand 'Project panel' -->
             <div id="projects" class="panel">
                 <div id="project-header"></div>
@@ -106,20 +106,20 @@
                 </div>
             </div>
             
-            <div id="editorHolder">
-                <div id="notEditor">
-                    <div id="notEditorContent">[&nbsp;&nbsp;]</div>
+            <div id="editor-holder">
+                <div id="not-editor">
+                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>
                 </div>
             </div>
             
             <div id="jslint-results" class="bottom-panel">
-                <div class="toolbar simpleToolbarLayout">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">JSLint errors</div>
                 </div>
                 <div class="table-container"></div>
             </div>
             <div id="search-results" class="bottom-panel">
-                <div class="toolbar simpleToolbarLayout">
+                <div class="toolbar simple-toolbar-layout">
                     <div class="title">Search Results</div>
                     <div class="title" id="search-result-summary"></div>
                     <a href="#" class="close">&times;</a>
@@ -200,7 +200,7 @@
             <img class="about-icon" src="styles/images/brackets_icon.png">
             <div class="about-text">
                 <h2>Brackets</h2>
-                <p class="dialog-message">sprint 8 experimental build</p>
+                <p class="dialog-message">sprint 9 experimental build <span id="about-build-number"><!-- populated programmatically --></span></p>
                 <p class="dialog-message">Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
                 <p class="dialog-message">Notices, terms and conditions pertaining to third party software are located at <span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.</p>
                 <p class="dialog-message">Documentation and source at <span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>

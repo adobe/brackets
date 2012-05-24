@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileUtils           = require("file/FileUtils"),
+        StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
@@ -93,6 +94,7 @@ define(function (require, exports, module) {
     
     function handleCurrentDocumentChange() {
         var newDocument = DocumentManager.getCurrentDocument();
+        var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
@@ -107,6 +109,8 @@ define(function (require, exports, module) {
         
         // Update title text & "dirty dot" display
         updateTitle();
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     function handleDirtyChange(event, changedDoc) {
@@ -133,9 +137,9 @@ define(function (require, exports, module) {
             return promise;
         }
         
-        PerfUtils.markStart("Open File: " + fullPath);
+        var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
         result.always(function () {
-            PerfUtils.addMeasurement("Open File: " + fullPath);
+            PerfUtils.addMeasurement(perfTimerName);
         });
         
         // Load the file if it was never open before, and then switch to it in the UI
@@ -171,32 +175,43 @@ define(function (require, exports, module) {
     function _doOpenWithOptionalPath(fullPath) {
         var result;
         if (!fullPath) {
+            // Create placeholder deferred
+            result = new $.Deferred();
+            
             //first time through, default to the current project path
             if (!_defaultOpenDialogFullPath) {
                 _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
             }
             // Prompt the user with a dialog
-            // TODO (issue #117): we're relying on this to not be asynchronous ('result' not set until
-            // dialog is dismissed); won't work in a browser-based version
-            NativeFileSystem.showOpenDialog(false, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
-                null, function (files) {
-                    if (files.length > 0) {
-                        result = doOpen(files[0])
-                            .always(function updateDefualtOpenDialogFullPath(doc) {
+            NativeFileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath,
+                null, function (paths) {
+                    var i;
+                    
+                    if (paths.length > 0) {
+                        for (i = 0; i < paths.length - 1; i++) {
+                            DocumentManager.addToWorkingSet(new NativeFileSystem.FileEntry(paths[i]));
+                        }
+                        
+                        doOpen(paths[paths.length - 1])
+                            .done(function (doc) {
                                 var url = PathUtils.parseUrl(doc.file.fullPath);
                                 //reconstruct the url but use the directory and stop there
                                 _defaultOpenDialogFullPath = url.protocol + url.doubleSlash + url.authority + url.directory;
-                            });
-                        return;
+                                
+                                DocumentManager.addToWorkingSet(doc.file);
+                            })
+                            // Send the resulting document that was opened
+                            .pipe(result.resolve, result.reject);
+                    } else {
+                        // Reject if the user canceled the dialog
+                        result.reject();
                     }
                 });
         } else {
             result = doOpen(fullPath);
         }
-        if (!result) {
-            result = (new $.Deferred()).reject().promise();
-        }
-        return result;
+        
+        return result.promise();
     }
 
     function handleFileOpen(commandData) {
@@ -306,7 +321,7 @@ define(function (require, exports, module) {
             Strings.ERROR_SAVING_FILE_TITLE,
             Strings.format(
                 Strings.ERROR_SAVING_FILE,
-                path,
+                StringUtils.htmlEscape(path),
                 FileUtils.getFileErrorString(code)
             )
         );
@@ -486,7 +501,7 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                Strings.format(Strings.SAVE_CLOSE_MESSAGE, filename)
+                Strings.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -568,7 +583,9 @@ define(function (require, exports, module) {
             
             message += "<ul>";
             unsavedDocs.forEach(function (doc) {
-                message += "<li><span class='dialog-filename'>" + ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath) + "</span></li>";
+                message += "<li><span class='dialog-filename'>"
+                    + StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
+                    + "</span></li>";
             });
             message += "</ul>";
             
