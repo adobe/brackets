@@ -35,13 +35,14 @@ define(function (require, exports, module) {
         KeyMap = require("command/KeyMap");
 
     /**
-    * The currently installed keymap.
-    */
+     * The currently installed keymap.
+     * @type {KeyMap}
+     */
     var _keymap = null;
 
     /**
-    * Allow clients to toggle key binding
-    */
+     * Allow clients to toggle key binding
+     */
     var _enabled = true;
 
     /**
@@ -64,14 +65,12 @@ define(function (require, exports, module) {
     /**
      * @private
      *
-     *
      * @param {string} commandID
      * @param {string} key - a single shortcut.
-     * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     * @param {?string} platform - undefined indicates all platofmrs
      */
     function _addBinding(commandID, key, platform) {
-        if (!commandID || commandID === undefined || !key || key === undefined ||
-                (platform !== undefined && platform !== brackets.platform)) {
+        if (!commandID || !key || platform !== brackets.platform) {
             return;
         }
 
@@ -132,41 +131,44 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Add some key bindings to _keymap.
+     * Add one or more key bindings to a particular Command.
+     * 
      *
      * @param {string} commandID
-     * @param {string} keyCmds - a single shortcut or an array of shortcuts.
-     * @param {string} platform - the intended OS of the keyCmds. If undefined, it is for any OS.
+     * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - a single key binding
+     *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
+     *      mapped to each other.
+     * @param {?string} platform - the target OS of the keyBindings. If undefined, all platforms will use
+     *      the key binding.
      */
-    function addBinding(commandID, keyCmds, platform) {
+    function addBinding(commandID, keyBindings, platform) {
         if (!_keymap) { _initializeKeymap(); }
 
-        if ($.isArray(keyCmds)) {
-            var i, key, targePlatform;
-            for (i = 0; i < keyCmds.length; i++) {
-                if (keyCmds[i].key !== undefined) {
-                    key = keyCmds[i].key;
-                    targePlatform = keyCmds[i].platform;
+        if ($.isArray(keyBindings)) {
+            var i, key, targetPlatform;
+            for (i = 0; i < keyBindings.length; i++) {
+                if (keyBindings[i].key !== undefined) {
+                    key = keyBindings[i].key;
+                    targetPlatform = keyBindings[i].platform;
                 } else {
-                    key = keyCmds[i];
+                    key = keyBindings[i];
                 }
                 
-                _addBinding(commandID, key, targePlatform);
+                _addBinding(commandID, key, targetPlatform);
             }
         } else {
-            _addBinding(commandID, keyCmds, platform);
+            _addBinding(commandID, keyBindings, platform);
         }
     }
 
     /**
-     * Remove a key binding from _keymap if it exists.
+     * Remove a key binding from _keymap
      *
      * @param {string} key - a key-description string that may or may not be normalized.
      * @param {string} platform - the intended OS of the key.
      */
     function removeBinding(key, platform) {
-        if (!key || key === undefined || !_keymap ||
-                (platform !== undefined && platform !== brackets.platform)) {
+        if (!key || !_keymap || platform !== brackets.platform) {
             return;
         }
 

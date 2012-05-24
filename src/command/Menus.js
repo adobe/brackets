@@ -54,7 +54,7 @@ define(function (require, exports, module) {
      * in terms of a menu section rather than a specific MenuItem. This provides
      * looser coupling to Bracket's internal MenuItems and makes menu organization
      * more semantic. 
-     * Use these constas as the "relativeID" parameter when calling AddMenuItem() and
+     * Use these constants as the "relativeID" parameter when calling AddMenuItem() and
      * specify a position of FIRST or LAST.
      */
     var FILE_OPEN_CLOSE_MENU_SECTION         = "brackets-file-open-close-menu-group";
@@ -84,12 +84,14 @@ define(function (require, exports, module) {
 
 
     /**
-     * @type {Object.<menuID, Menu>}
+     * Maps menuID's to Menu objects
+     * @type {Object.<strig, Menu>}
      */
     var menuMap = {};
 
     /**
-     * @type {Object.<menuItemID, MenuItem>}
+     * Maps menuItemID's to MenuItem objects
+     * @type {Object.<string, MenuItem>}
      */
     var menuItemMap = {};
 
@@ -151,11 +153,11 @@ define(function (require, exports, module) {
 
 
     function _getHTMLMenu(id) {
-        return $("#main-toolbar .nav").find("#" + id).get(0);
+        return $("#" + id).get(0);
     }
 
     function _getHTMLMenuItem(id) {
-        return $("#main-toolbar .nav").find("#" + id).get(0);
+        return $("#" + id).get(0);
     }
 
     /**
@@ -163,14 +165,15 @@ define(function (require, exports, module) {
      *
      * @param {!string} name - display text for menu 
      * @param {!string} id
-     * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to
      * @param {?string} position - constant defining the position of new the Menu relative
-     *      to the item specified by relativeID (see Insertion position constants).
-     *      Default is LAST
+     *  to other Menus. Default is LAST (see Insertion position constants).
+     *      
+     * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to. Required
+     *      when position is AFTER or BEFORE, ignored when position is FIRST or LAST
      * 
      * @return {Menu} the newly created Menu
      */
-    function addMenu(name, id, relativeID, position) {
+    function addMenu(name, id, position, relativeID) {
         var $menubar = $("#main-toolbar .nav"),
             menu;
 
@@ -227,7 +230,6 @@ define(function (require, exports, module) {
         return this.addMenuItem(id, "---", relativeMenuItemID);
     };
 
-    // TODO: should this live in Commands?
     // Convert normalized key representation to display appropriate for platform
     function formatKeyCommand(keyCmd) {
         var displayStr;
@@ -260,20 +262,20 @@ define(function (require, exports, module) {
      * @param {(string | Command)} command - the command the menu will execute. Use "---" for a menu divider
      * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
-     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
-     *      menuItem will be positioned relative to.
      * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to the item specified by relativeID (see Insertion position constants). 
-    *      Default is LAST
+     *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
+     *      menuItem will be positioned relative to. Required when position is 
+     *      AFTER or BEFORE, ignored when position is FIRST or LAST
      *
      * @return {MenuItem} the newly created MenuItem
      */
-    Menu.prototype.addMenuItem = function (id, command, keyBindings, relativeID, position) {
+    Menu.prototype.addMenuItem = function (id, command, keyBindings, position, relativeID) {
         var $menuItem,
             menuItem;
 
         if (!id || !command) {
-            throw new Error("addMenItem(): missing required parameters");
+            throw new Error("addMenuItem(): missing required parameters");
         }
 
         if (menuItemMap[id]) {
@@ -281,7 +283,7 @@ define(function (require, exports, module) {
         }
 
         if (keyBindings && !command) {
-            throw new Error("addMenItem(): keyBindings specified but missing command parameter");
+            throw new Error("addMenuItem(): keyBindings specified but missing command parameter");
         }
 
         var name;
@@ -291,7 +293,7 @@ define(function (require, exports, module) {
             } else {
                 command = CommandManager.get(command);
                 if (!command) {
-                    throw new Error("addMenItem(): commandID not found");
+                    throw new Error("addMenuItem(): commandID not found");
                 }
                 name = command.getName();
             }
@@ -374,15 +376,15 @@ define(function (require, exports, module) {
     /**
      * @param {!string} text displayed in menu item
      * @param {!string} id
-     * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
-     *      will be positioned relative to.
      * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to the item specified by relativeID (see Insertion position constants).
-     *      Default is LAST
+     *      to other MenuItems. Default is LAST.  (see Insertion position constants) 
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
+     *      menuItem will be positioned relative to. Required when position is 
+     *      AFTER or BEFORE, ignored when position is FIRST or LAST
      * 
      * @return {MenuItem} newly created menuItem for sub-menu
      */
-    MenuItem.prototype.createSubMenu = function (text, id, relativeMenuID) {
+    MenuItem.prototype.createSubMenu = function (text, id, position, relativeID) {
         throw new Error("createSubMenu() not implemented yet");
     };
 

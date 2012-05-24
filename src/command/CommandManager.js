@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     
     /**
      * Map of all registered global commands
-     * @type Object.<string, Command>
+     * @type Object.<commandID: string, Command>
      */
     var _commands = {};
 
@@ -74,19 +74,15 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     Command.prototype.execute = function () {
-        if (this._commandFn) {
-            if (this._isEnabledFn && !this._isEnabledFn()) {
-                return (new $.Deferred()).reject().promise();
-            }
-
-            var result = this._commandFn.apply(this, arguments);
-            if (!result) {
-                return (new $.Deferred()).resolve().promise();
-            } else {
-                return result;
-            }
-        } else {
+        if (this._isEnabledFn && !this._isEnabledFn()) {
             return (new $.Deferred()).reject().promise();
+        }
+
+        var result = this._commandFn.apply(this, arguments);
+        if (!result) {
+            return (new $.Deferred()).resolve().promise();
+        } else {
+            return result;
         }
     };
 
@@ -106,6 +102,20 @@ define(function (require, exports, module) {
 
         if (changed) {
             $(this).triggerHandler("enabledStateChange", this);
+        }
+    };
+
+    /** 
+     * Sets enabled state of Command and dispatches "checkedStateChange"
+     * when the enabled state changes.
+     * @param {boolean} checked
+     */
+    Command.prototype.setChecked = function (checked) {
+        var changed = this._checked !== checked;
+        this._checked = checked;
+
+        if (changed) {
+            $(this).triggerHandler("checkedStateChange", this);
         }
     };
 
@@ -133,25 +143,15 @@ define(function (require, exports, module) {
         return this._name;
     };
 
-    /** 
-     * Sets enabled state of Command and dispatches "checkedStateChange"
-     * when the enabled state changes.
-     * @param {boolean} checked
-     */
-    Command.prototype.setChecked = function (checked) {
-        var changed = this._checked !== checked;
-        this._checked = checked;
 
-        if (changed) {
-            $(this).triggerHandler("checkedStateChange", this);
-        }
-    };
 
     /**
      * Registers a global command.
      * @param {string} name - text that will be displayed in the UI to represent command
-     * @param {string} id - unique identifier for command. Plugins should use the 
-     *      following format"author-myplugin-mycommandname".
+     * @param {string} id - unique identifier for command.
+     *      Core commands in Brackets use a simple command title as an id, for example "open.file".
+     *      Plugins should use the following format: "author.myplugin.mycommandname". 
+     *      For example, "lschmitt-csswizard-formatt-css".
      * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
      *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
