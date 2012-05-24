@@ -115,10 +115,6 @@ define(function (require, exports, module) {
      * Clients should also not access HTML content of a menu directly and instead use
      * the Menu API to query and modify menus.
      *
-     * Menu dispatches the following events:
-     *  open - TODO need to implement dispatch
-     *  close - TODO need to implement dispatch
-     *
      */
     function Menu(id) {
         this.id = id;
