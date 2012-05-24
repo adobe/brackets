@@ -184,6 +184,12 @@ define(function (require, exports, module) {
                 // Mode for range - mix of modes
                 myEditor.setSelection({line: 2, ch: 4}, {line: 3, ch: 7});
                 expect(myEditor.getModeForSelection()).toBeNull();
+                
+                // Mode for range - mix of modes where start & endpoints are same mode
+                // Known limitation of getModeForSelection() that it does not spot where the mode
+                // differs in mid-selection
+                myEditor.setSelection({line: 0, ch: 0}, {line: 6, ch: 14});  // select all
+                expect(myEditor.getModeForSelection()).toBe("html");
             });
             
         });
