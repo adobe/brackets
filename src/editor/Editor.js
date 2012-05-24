@@ -61,12 +61,13 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var EditorManager    = require("editor/EditorManager"),
-        Commands         = require("command/Commands"),
+    var EditorManager   = require("editor/EditorManager"),
+        Commands        = require("command/Commands"),
+        CommandManager  = require("command/CommandManager"),
+        PerfUtils       = require("utils/PerfUtils"),
         Strings          = require("strings"),
-        CommandManager   = require("command/CommandManager"),
-        TextRange        = require("document/TextRange").TextRange,
-        ViewUtils        = require("utils/ViewUtils");
+        TextRange       = require("document/TextRange").TextRange,
+        ViewUtils       = require("utils/ViewUtils");
     
 
     /**
@@ -189,18 +190,19 @@ define(function (require, exports, module) {
         var instance = editor._codeMirror;
         if (event.type === "keypress") {
             var keyStr = String.fromCharCode(event.which || event.keyCode);
-            if (/[\]\}\)]/.test(keyStr)) {
-                // If the whole line is whitespace, auto-indent it
-                var lineNum = instance.getCursor().line;
-                var lineStr = instance.getLine(lineNum);
+            if (/[\]\{\}\)]/.test(keyStr)) {
+                // If all text before the cursor is whitespace, auto-indent it
+                var cursor = instance.getCursor();
+                var lineStr = instance.getLine(cursor.line);
+                var nonWS = lineStr.search(/\S/);
                 
-                if (!/\S/.test(lineStr)) {
+                if (nonWS === -1 || nonWS >= cursor.ch) {
                     // Need to do the auto-indent on a timeout to ensure
                     // the keypress is handled before auto-indenting.
                     // This is the same timeout value used by the
                     // electricChars feature in CodeMirror.
                     window.setTimeout(function () {
-                        instance.indentLine(lineNum);
+                        instance.indentLine(cursor.line);
                     }, 75);
                 }
             }
@@ -634,6 +636,8 @@ define(function (require, exports, module) {
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
+        var perfTimerName = PerfUtils.markStart("Edtitor._resetText()\t" + (!this.document || this.document.file.fullPath));
+
         var cursorPos = this.getCursorPos(),
             scrollPos = this.getScrollPos();
         
@@ -646,6 +650,8 @@ define(function (require, exports, module) {
         // restore cursor and scroll positions
         this.setCursorPos(cursorPos);
         this.setScrollPos(scrollPos.x, scrollPos.y);
+
+        PerfUtils.addMeasurement(perfTimerName);
     };
     
     
@@ -661,7 +667,7 @@ define(function (require, exports, module) {
     /**
      * Sets the cursor position within the editor. Removes any selection.
      * @param {number} line The 0 based line number.
-     * @param {number} ch   The 0 based character position.
+     * @param {number=} ch  The 0 based character position; treated as 0 if unspecified.
      */
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
@@ -912,6 +918,20 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Re-renders the editor, and all children inline editors.
+     */
+    Editor.prototype.refreshAll = function () {
+        this.refresh();
+        this.getInlineWidgets().forEach(function (multilineEditor, i, arr) {
+            multilineEditor.sizeInlineWidgetToContents(true);
+            multilineEditor._updateRelatedContainer();
+            multilineEditor.editors.forEach(function (editor, j, arr) {
+                editor.refresh();
+            });
+        });
+    };
+    
+    /**
      * Shows or hides the editor within its parent. Does not force its ancestors to
      * become visible.
      * @param {boolean} show true to show the editor, false to hide it
@@ -941,6 +961,41 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getLineText = function (num) {
         return this._codeMirror.getLine(num);
+    };
+    
+    /**
+     * Gets the syntax-highlighting mode for the current selection or cursor position. (The mode may
+     * vary within one file due to embedded languages, e.g. JS embedded in an HTML script block).
+     *
+     * Returns null if the mode at the start of the selection differs from the mode at the end -
+     * an *approximation* of whether the mode is consistent across the whole range (a pattern like
+     * A-B-A would return A as the mode, not null).
+     *
+     * @return {?string} Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     */
+    Editor.prototype.getModeForSelection = function () {
+        var sel = this.getSelection();
+        
+        // Check for mixed mode info (meaning mode varies depending on position)
+        // TODO (#921): this only works for certain mixed modes; some do not expose this info
+        var startState = this._codeMirror.getTokenAt(sel.start).state;
+        if (startState.mode) {
+            var startMode = startState.mode;
+            
+            // If mixed mode, check that mode is the same at start & end of selection
+            if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
+                var endState = this._codeMirror.getTokenAt(sel.end).state;
+                var endMode = endState.mode;
+                if (startMode !== endMode) {
+                    return null;
+                }
+            }
+            return startMode;
+            
+        } else {
+            // Mode does not vary: just use the editor-wide mode
+            return this._codeMirror.getOption("mode");
+        }
     };
     
     /**

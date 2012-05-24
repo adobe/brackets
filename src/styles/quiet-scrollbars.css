@@ -36,7 +36,7 @@
 
 .quiet-scrollbars ::-webkit-scrollbar-thumb {
     background-color: rgba(0,0,0,0);
-}​​​
+}
 
 /* This looks like a dupe, but without it the thumb doesn't fade in
  * properly, probably due to flakiness in how these styles are handled

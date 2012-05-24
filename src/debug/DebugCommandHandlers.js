@@ -38,10 +38,7 @@ define(function (require, exports, module) {
     
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
-        JSLintUtils.run();
-        $("#menu-debug-jslint").toggleClass("selected", JSLintUtils.getEnabled());
     }
-    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
@@ -63,11 +60,12 @@ define(function (require, exports, module) {
     function _handleShowPerfData() {
         var $perfHeader = $("<div class='modal-header' />")
             .append("<a href='#' class='close'>&times;</a>")
-            .append("<h1 class='dialog-title'>Performance Data</h1>");
+            .append("<h1 class='dialog-title'>Performance Data</h1>")
+            .append("<div align=right>Raw data (copy paste out): <textarea rows=1 style='width:30px; height:8px; overflow: hidden; resize: none' id='brackets-perf-raw-data'>" + PerfUtils.getDelimitedPerfData() + "</textarea></div>");
         
-        var $perfBody = $("<div class='modal-body' style='padding: 0' />");
+        var $perfBody = $("<div class='modal-body' style='padding: 0; max-height: 500px; overflow: auto;' />");
 
-        var $data = $("<table class='zebra-striped condensed-table' style='max-height: 600px; overflow: auto;'>")
+        var $data = $("<table class='zebra-striped condensed-table'>")
             .append("<thead><th>Operation</th><th>Time (ms)</th></thead>")
             .append("<tbody />")
             .appendTo($perfBody);
@@ -78,14 +76,18 @@ define(function (require, exports, module) {
         
         var getValue = function (entry) {
             // entry is either an Array or a number
-            // If it is an Array, return the average value
             if (Array.isArray(entry)) {
-                var i, sum = 0;
+                // For Array of values, return: minimum/average/maximum/last
+                var i, e, avg, sum = 0, min = Number.MAX_VALUE, max = 0;
                 
                 for (i = 0; i < entry.length; i++) {
-                    sum += entry[i];
+                    e = entry[i];
+                    min = Math.min(min, e);
+                    sum += e;
+                    max = Math.max(max, e);
                 }
-                return String(Math.floor(sum / entry.length)) + " (avg)";
+                avg = Math.round(sum / entry.length);
+                return String(min) + "/" + String(avg) + "/" + String(max) + "/" + String(e);
             } else {
                 return entry;
             }
@@ -111,6 +113,12 @@ define(function (require, exports, module) {
                 backdrop: "static",
                 show: true
             });
+
+        // Select the raw perf data field on click since select all doesn't 
+        // work outside of the editor
+        $("#brackets-perf-raw-data").click(function () {
+            $(this).focus().select();
+        });
     }
     
     function _handleNewBracketsWindow() {
@@ -128,6 +136,17 @@ define(function (require, exports, module) {
         $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
     }
     
+    function _updateJSLintMenuItem(enabled) {
+        $("#menu-debug-jslint").toggleClass("selected", enabled);
+    }
+    
+    // update menu item when enabled state changes
+    $(JSLintUtils).on("enabledChanged", function (event, enabled) {
+        _updateJSLintMenuItem(enabled);
+    });
+    
+    // initialize menu immediately
+    _updateJSLintMenuItem(JSLintUtils.getEnabled());
     
     // Register all the command handlers
     CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint);

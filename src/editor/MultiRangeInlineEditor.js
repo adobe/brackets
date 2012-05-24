@@ -120,13 +120,14 @@ define(function (require, exports, module) {
         // Bind event handlers
         this._updateRelatedContainer = this._updateRelatedContainer.bind(this);
         this._ensureCursorVisible = this._ensureCursorVisible.bind(this);
+        this._handleChange = this._handleChange.bind(this);
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
         this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
         
         // Outer container for border-left and scrolling
-        this.$relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
+        this.$relatedContainer = $(document.createElement("div")).addClass("related-container");
         this._relatedContainerInserted = false;
         this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
         
@@ -172,7 +173,7 @@ define(function (require, exports, module) {
         // attach to main container
         this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
         
-        // initialize position based on the main #editorHolder
+        // initialize position based on the main #editor-holder
         setTimeout(this._updateRelatedContainer, 0);
         
         // Changes to the host editor should update the relatedContainer
@@ -235,7 +236,7 @@ define(function (require, exports, module) {
         // Note: normally it's not kosher to listen to changes on a specific editor,
         // but in this case we're specifically concerned with changes in the given
         // editor, not general document changes.
-        $(this.editors[0]).on("change", this._updateRelatedContainer);
+        $(this.editors[0]).on("change", this._handleChange);
         
         // Cursor activity in the inline editor may cause us to horizontally scroll.
         $(this.editors[0]).on("cursorActivity", this._ensureCursorVisible);
@@ -282,7 +283,7 @@ define(function (require, exports, module) {
         
         // remove resize handlers for relatedContainer
         $(this.hostEditor).off("change", this._updateRelatedContainer);
-        $(this.editors[0]).off("change", this._updateRelatedContainer);
+        $(this.editors[0]).off("change", this._handleChange);
         $(this.editors[0]).off("cursorActivity", this._ensureCursorVisible);
         $(this).off("offsetTopChanged", this._updateRelatedContainer);
         $(window).off("resize", this._updateRelatedContainer);
@@ -311,10 +312,16 @@ define(function (require, exports, module) {
         var childEditor = this.editors[0],
             editorRoot = childEditor.getRootElement(),
             editorPos = $(editorRoot).offset();
-        if ($(editorRoot).find(event.target).length === 0) {
+        
+        function containsClick($parent) {
+            return $parent.find(event.target) > 0 || $parent[0] === event.target;
+        }
+        
+        // Ignore clicks in editor and clicks on filename link
+        if (!containsClick($(editorRoot)) && !containsClick($(".filename", this.$editorsDiv))) {
             childEditor.focus();
             // Only set the cursor if the click isn't in the range list.
-            if (this.$relatedContainer.find(event.target).length === 0) {
+            if (!containsClick(this.$relatedContainer)) {
                 if (event.pageY < editorPos.top) {
                     childEditor.setCursorPos(0, 0);
                 } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
@@ -326,8 +333,7 @@ define(function (require, exports, module) {
     };
     
     /**
-     *
-     *
+     * Set the size, position, and clip rect of the range list.
      */
     MultiRangeInlineEditor.prototype._updateRelatedContainer = function () {
         var borderThickness = (this.$htmlContent.outerHeight() - this.$htmlContent.innerHeight()) / 2;
@@ -410,6 +416,15 @@ define(function (require, exports, module) {
                                                        cursorCoords.x - lineSpaceOffset.left,
                                                        cursorCoords.yBot - scrollerTop);
         }
+    };
+    
+    /**
+     * Handle a change event from the editor. Update the related container and make sure the
+     * cursor is visible.
+     */
+    MultiRangeInlineEditor.prototype._handleChange = function () {
+        this._updateRelatedContainer();
+        this._ensureCursorVisible();
     };
 
     /**

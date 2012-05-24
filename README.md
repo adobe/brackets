@@ -24,7 +24,7 @@ incomplete or not as useful as you'd want. But if you like the direction
 it's going, please contribute!
 
 The text editor inside Brackets is based on 
-[CodeMirror](http://github.com/marijnh/CodeMirror2)--thanks to Marijn for
+[CodeMirror](http://github.com/marijnh/CodeMirror2)&mdash;thanks to Marijn for
 taking our pull requests :) See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on upcoming things we're planning to contribute to CodeMirror.
@@ -43,6 +43,10 @@ application in a thin native shell, so that it can access your local files.
 The native shell for Brackets lives in a separate repo, 
 [adobe/brackets-app](https://github.com/adobe/brackets-app/), which includes 
 this repo as a submodule.
+
+The Brackets native shell currently runs on Mac and Windows. Since it's based on 
+CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
+been done yet. Stay tuned.
 
 You can download "stable" builds of Brackets from the
 [downloads page](http://github.com/adobe/brackets/downloads).

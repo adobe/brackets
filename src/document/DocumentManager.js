@@ -73,6 +73,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
         Async               = require("utils/Async"),
+        PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands");
     
     /**
@@ -219,6 +220,8 @@ define(function (require, exports, module) {
         if (_currentDocument === document) {
             return;
         }
+
+        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + (!document || document.file.fullPath));
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
@@ -230,6 +233,8 @@ define(function (require, exports, module) {
         _currentDocument = document;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
+
+        PerfUtils.addMeasurement(perfTimerName);
     }
     
     /** Changes currentDocument to null, causing no full Editor to be shown in the UI */
@@ -511,6 +516,8 @@ define(function (require, exports, module) {
      * @param {!Date} newTimestamp Timestamp of file at the time we read its new contents from disk.
      */
     Document.prototype.refreshText = function (text, newTimestamp) {
+        var perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
+
         if (this._masterEditor) {
             this._masterEditor._resetText(text);
             // _handleEditorChange() triggers "change" event for us
@@ -531,6 +538,8 @@ define(function (require, exports, module) {
         if (!this._lineEndings) {
             this._lineEndings = FileUtils.getPlatformLineEndings();
         }
+
+        PerfUtils.addMeasurement(perfTimerName);
     };
     
     /**
@@ -617,6 +626,12 @@ define(function (require, exports, module) {
      */
     function getDocumentForPath(fullPath) {
         var result = new $.Deferred();
+
+        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+        result.always(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        });
+
         var doc = _openDocuments[fullPath];
         if (doc) {
             result.resolve(doc);
