@@ -64,7 +64,11 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
+    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
+        cursor: col-resize;   
+    }
 }
+
 
 a, img {
     -webkit-user-drag: none;
@@ -167,7 +171,7 @@ a, img {
     
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .sprite-icon(0,0, 22px,11px, "styles/images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,11px, "images/live_development_sprites.svg");
     &:hover {
         .sprite-swap(0,11px);
     }
@@ -199,7 +203,7 @@ a, img {
     z-index: @z-index-brackets-sidebar-resizer;
     opacity: 0;
     cursor: col-resize;
-}
+} 
 
 #file-section {
     .vbox;
@@ -229,53 +233,45 @@ a, img {
     ul {
         list-style-type: none;
         margin: 0;
+    }
         
-        a {
-            color: black;
-            text-decoration: none;
-            margin-left: 26px;
-        }
+    li {
+        white-space: nowrap;
+        position: relative; // so that children can be positioned absolute
+        line-height: 18px;
+        padding: 0 0 0 8px;
+        min-height: 18px;
+        vertical-align: baseline;
+    }
+            
+    a {
+        color: #BBB;
         
-        li {
-            white-space: nowrap;
-            position: relative; // so that children can be positioned absolute
-            line-height: 24px;
-            padding: 0 0 0 8px;
-            height: 22px;
-            vertical-align: baseline;
-            a {
-                color: #BBB;
-                font-size: 13px;
-                margin-left: 18px;
-                padding-right: @triangle-size * 2;
-                cursor: default;
-            }
-            .extension a {
-                color: #8e9a9d;
-            }
-            &:hover {
-                background: transparent;
-            }
-            &:active {
-                background-position: 0 1px;
-            }
-            &.selected {
-                a {
-                    color: #fff;
-                }
-            }
-        }
+        font-size: 13px;
+        text-decoration: none;
+        
+        display: block;
+        height: 16px;
+        line-height: 16px;
+        margin-left: 18px;
+        padding: 3px (@triangle-size * 2) 3px 0;
+        
+        cursor: default;
+    }
+    
+    .selected a {
+        color: #fff;
     }
 }
 
 .sidebar-selection {
-    background: url("styles/images/active_back.png") no-repeat top right;
+    background: url("images/active_back.png") no-repeat top right;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
-    background: url("styles/images/active_back.png");
+    background: url("images/active_back.png");
     width: 10px;
     height: 22px;
     position: fixed;
@@ -346,7 +342,7 @@ a, img {
 /** Classes for icons from jsTreeSprites.png 
 */
 .jstree-sprite {
-    background-image: url("styles/images/jsTreeSprites.png");
+    background-image: url("images/jsTreeSprites.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
@@ -372,7 +368,7 @@ ins.jstree-icon {
 */
 
 .bracket-sprite {
-    background-image: url("styles/images/close_btn.png");
+    background-image: url("images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;

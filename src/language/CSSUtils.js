@@ -23,7 +23,10 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror */
+/*global define, $, CodeMirror, _parseRuleList: true */
+
+// JSLint Note: _parseRuleList() is cyclical dependency, not a global function.
+// It was added to this list to prevent JSLint warning about being used before being defined.
 
 /**
  * Set of utilities for simple parsing of CSS text.
@@ -63,135 +66,295 @@ define(function (require, exports, module) {
     function extractAllSelectors(text) {
         var selectors = [];
         var mode = CodeMirror.getMode({indentUnit: 2}, "css");
-        var state = CodeMirror.startState(mode);
-
-        var lines = CodeMirror.splitLines(text);
-        var lineCount = lines.length;
-        
+        var state, lines, lineCount;
+        var token, style, stream, line;
         var currentSelector = "";
         var ruleStartChar = -1, ruleStartLine = -1;
         var selectorStartChar = -1, selectorStartLine = -1;
-        var token, style, stream, i, j;
-
-        var inDeclList = false, inAtRule = false;
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var declListStartLine = -1, declListStartChar = -1;
 
-        for (i = 0; i < lineCount; ++i) {
-            if (currentSelector.trim() !== "") {
-                // If we are in a current selector and starting a newline, make sure there is whitespace in the selector
-                currentSelector += " ";
+        // implement _firstToken()/_nextToken() methods to
+        // provide a single stream of tokens
+        
+        function _hasStream() {
+            while (stream.eol()) {
+                line++;
+                if (line >= lineCount) {
+                    return false;
+                }
+                if (currentSelector.match(/\S/)) {
+                    // If we are in a current selector and starting a newline,
+                    // make sure there is whitespace in the selector
+                    currentSelector += " ";
+                }
+                stream = new CodeMirror.StringStream(lines[line]);
+            }
+            return true;
+        }
+        
+        function _firstToken() {
+            state = CodeMirror.startState(mode);
+            lines = CodeMirror.splitLines(text);
+            lineCount = lines.length;
+            if (lineCount === 0) {
+                return false;
+            }
+            line = 0;
+            stream = new CodeMirror.StringStream(lines[line]);
+            if (!_hasStream()) {
+                return false;
+            }
+            style = mode.token(stream, state);
+            token = stream.current();
+            return true;
+        }
+        
+        function _nextToken() {
+            // advance the stream past this token
+            stream.start = stream.pos;
+            if (!_hasStream()) {
+                return false;
+            }
+            style = mode.token(stream, state);
+            token = stream.current();
+            return true;
+        }
+        
+        function _firstTokenSkippingWhitespace() {
+            if (!_firstToken()) {
+                return false;
+            }
+            while (!token.match(/\S/)) {
+                if (!_nextToken()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function _nextTokenSkippingWhitespace() {
+            if (!_nextToken()) {
+                return false;
+            }
+            while (!token.match(/\S/)) {
+                if (!_nextToken()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function _isStartComment() {
+            return (token.match(/^\/\*/));
+        }
+        
+        function _parseComment() {
+            while (!token.match(/\*\/$/)) {
+                if (!_nextToken()) {
+                    break;
+                }
+            }
+        }
+
+        function _nextTokenSkippingComments() {
+            if (!_nextToken()) {
+                return false;
+            }
+            while (_isStartComment()) {
+                _parseComment();
+                if (!_nextToken()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function _parseSelector() {
+            
+            currentSelector = "";
+            selectorStartChar = stream.start;
+            selectorStartLine = line;
+            
+            // Everything until the next ',' or '{' is part of the current selector
+            while (token !== "," && token !== "{") {
+                currentSelector += token;
+                if (!_nextTokenSkippingComments()) {
+                    break;
+                }
+            }
+
+            currentSelector = currentSelector.trim();
+            if (currentSelector !== "") {
+                selectors.push({selector: currentSelector,
+                                ruleStartLine: ruleStartLine,
+                                ruleStartChar: ruleStartChar,
+                                selectorStartLine: selectorStartLine,
+                                selectorStartChar: selectorStartChar,
+                                declListEndLine: -1,
+                                selectorEndLine: line,
+                                selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
+                                selectorGroupStartLine: selectorGroupStartLine,
+                                selectorGroupStartChar: selectorGroupStartChar
+                               });
+                currentSelector = "";
+            }
+            selectorStartChar = -1;
+        }
+        
+        function _parseSelectorList() {
+
+            selectorGroupStartLine = line;
+            selectorGroupStartChar = stream.start;
+
+            _parseSelector();
+            while (token === ",") {
+                if (!_nextTokenSkippingComments()) {
+                    break;
+                }
+                _parseSelector();
+            }
+        }
+
+        function _parseDeclarationList() {
+
+            var j;
+            declListStartLine = line;
+            declListStartChar = stream.start;
+
+            // Since we're now in a declaration list, that means we also finished
+            // parsing the whole selector group. Therefore, reset selectorGroupStartLine
+            // so that next time we parse a selector we know it's a new group
+            selectorGroupStartLine = -1;
+            selectorGroupStartChar = -1;
+            ruleStartLine = -1;
+            ruleStartChar = -1;
+
+            // Skip everything until the next '}'
+            while (token !== "}") {
+                if (!_nextTokenSkippingComments()) {
+                    break;
+                }
             }
             
-            stream = new CodeMirror.StringStream(lines[i]);
-            while (!stream.eol()) {
-                style = mode.token(stream, state);
-                token = stream.current();
+            // assign this declaration list position to every selector on the stack
+            // that doesn't have a declaration list start and end line
+            for (j = selectors.length - 1; j >= 0; j--) {
+                if (selectors[j].declListEndLine !== -1) {
+                    break;
+                } else {
+                    selectors[j].declListStartLine = declListStartLine;
+                    selectors[j].declListStartChar = declListStartChar;
+                    selectors[j].declListEndLine = line;
+                    selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
+                }
+            }
+        }
+        
+        function includeCommentInNextRule() {
+            if (ruleStartChar !== -1) {
+                return false;       // already included
+            }
+            if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf('}') !== -1) {
+                return false;       // on same line as '}', so it's for previous rule
+            }
+            return true;
+        }
+        
+        function _isStartAtRule() {
+            return (token.match(/^@/));
+        }
+        
+        function _parseAtRule() {
 
-                // DEBUG STATEMENT -- printer(token, style, i, stream.start, state.stack);
-
-                if (state.stack.indexOf("{") === -1 && // not in a declaration list
-                        (state.stack.length === 0 || state.stack[state.stack.length - 1] !== "@media") && // not parsing a media query
-                        ((style === null && token !== "{" && token !== "}" && token !== ",") || (style !== null))) { // not at a non-selector token
-
-                    // check for these special cases:
-                    if (inAtRule) {
-                        // once we're in at @rule, consume tokens until next semi-colon
-                        if (token === ";") {
-                            inAtRule = false;
-                        }
-                    } else if (token.match(/@(charset|import|namespace)/i)) {
-                        // This code only handles @rules in this format:
-                        //   @rule ... ;
-                        //
-                        // This code does not handle @rules that use this format:
-                        //    @rule ... { ... }
-                        // such as @media (which is handled elsewhere) @page,
-                        // @keyframes (also -webkit-keyframes, etc.), and @font-face.
-                        inAtRule = true;
-                        ruleStartLine = -1;  // reset so we don't get @rules following comments
-                        selectorStartChar = -1;
-                        selectorGroupStartLine = -1;
-                    } else {
-                        // detect non-crlf whitespace, comments on same line as '}'
-                        if (ruleStartLine < 0 && (token.trim() !== "") &&
-                                !(style === "comment" && stream.start > 0 && lines[i].substr(0, stream.start).indexOf('}') !== -1)) {
-                             
-                            // start of a new selector, or comment above selector
-                            ruleStartChar = stream.start;
-                            ruleStartLine = i;
-                        }
-
-                        if (selectorStartChar < 0 && (token.trim() !== "") && style !== "comment") {
-                             
-                            // start of a new selector, or comment above selector
-                            currentSelector = "";
-                            selectorStartChar = stream.start;
-                            selectorStartLine = i;
-                            if (selectorGroupStartLine < 0) {
-                                // this is the start of a new comma-separated selector group
-                                // (whenever we start parsing a declaration list, we set selectorGroupStartLine to -1)
-                                selectorGroupStartLine = selectorStartLine;
-                                selectorGroupStartChar = selectorStartChar;
-                            }
-                        }
-                        if (selectorStartChar !== -1) {
-                            currentSelector += token;
-                        }
-                    }
-                } else { // we aren't parsing a selector
-                    if (currentSelector.trim() !== "") { // we have a selector, and we parsed something that is not part of a selector, so we just finished parsing a selector
-                        selectors.push({selector: currentSelector.trim(),
-                                        ruleStartLine: ruleStartLine,
-                                        ruleStartChar: ruleStartChar,
-                                        selectorStartLine: selectorStartLine,
-                                        selectorStartChar: selectorStartChar,
-                                        declListEndLine: -1,
-                                        selectorEndLine: i,
-                                        selectorEndChar: stream.start - 1, // stream.start points to the first char of the non-selector token
-                                        selectorGroupStartLine: selectorGroupStartLine,
-                                        selectorGroupStartChar: selectorGroupStartChar
-                                       });
-                    }
-                    currentSelector = "";
-                    selectorStartChar = -1;
-
-                    if (!inDeclList) {
-                        if (state.stack.indexOf("{") > -1) { // just started parsing a declaration list
-                            inDeclList = true;
-                            declListStartLine = i;
-                            declListStartChar = stream.start;
-    
-                            // Since we're now in a declartion list, that means we also finished parsing the whole selector group.
-                            // Therefore, reset selectorGroupStartLine so that next time we parse a selector we know it's a new group
-                            selectorGroupStartLine = -1;
-                            selectorGroupStartChar = -1;
-                            ruleStartLine = -1;
-                            ruleStartChar = -1;
-                        } else if (token === "@media") {
-                            // ignore comments preceding @rules
-                            ruleStartLine = -1;
-                            ruleStartChar = -1;
-                        }
-                    } else if (inDeclList && state.stack.indexOf("{") === -1) {  // just finished parsing a declaration list
-                        inDeclList = false;
-                        // assign this declaration list position to every selector on the stack that doesn't have a declaration list start and end line
-                        for (j = selectors.length - 1; j >= 0; j--) {
-                            if (selectors[j].declListEndLine !== -1) {
-                                break;
-                            } else {
-                                selectors[j].declListStartLine = declListStartLine;
-                                selectors[j].declListStartChar = declListStartChar;
-                                selectors[j].declListEndLine = i;
-                                selectors[j].declListEndChar = stream.pos - 1; // stream.pos actually points to the char after the }
-                            }
-                        }
+            // reset these fields to ignore comments preceding @rules
+            ruleStartLine = -1;
+            ruleStartChar = -1;
+            selectorStartLine = -1;
+            selectorStartChar = -1;
+            selectorGroupStartLine = -1;
+            selectorGroupStartChar = -1;
+            
+            if (token.match(/@media/i)) {
+                // @media rule holds a rule list
+                
+                // Skip everything until the opening '{'
+                while (token !== "{") {
+                    if (!_nextTokenSkippingComments()) {
+                        break;
                     }
                 }
+                _nextTokenSkippingWhitespace();    // skip past '{', to next non-ws token
 
-                // advance the stream past this token
-                stream.start = stream.pos;
+                // Parse rules until we see '}'
+                _parseRuleList("}");
+
+            } else if (token.match(/@(charset|import|namespace)/i)) {
+                
+                // This code handles @rules in this format:
+                //   @rule ... ;
+                // Skip everything until the next ';'
+                while (token !== ";") {
+                    if (!_nextTokenSkippingComments()) {
+                        break;
+                    }
+                }
+                
+            } else {
+                // This code handle @rules that use this format:
+                //    @rule ... { ... }
+                // such as @page, @keyframes (also -webkit-keyframes, etc.), and @font-face.
+                // Skip everything until the next '}'
+                while (token !== "}") {
+                    if (!_nextTokenSkippingComments()) {
+                        break;
+                    }
+                }
             }
+        }
+
+        // parse a style rule
+        function _parseRule() {
+            _parseSelectorList();
+            _parseDeclarationList();
+        }
+        
+        function _parseRuleList(escapeToken) {
+            
+            while ((!escapeToken) || token !== escapeToken) {
+                if (_isStartAtRule()) {
+                    // @rule
+                    _parseAtRule();
+    
+                } else if (_isStartComment()) {
+                    // comment - make this part of style rule
+                    if (includeCommentInNextRule()) {
+                        ruleStartChar = stream.start;
+                        ruleStartLine = line;
+                    }
+                    _parseComment();
+    
+                } else {
+                    // Otherwise, it's style rule
+                    if (ruleStartChar === -1) {
+                        ruleStartChar = stream.start;
+                        ruleStartLine = line;
+                    }
+                    _parseRule();
+                }
+                
+                if (!_nextTokenSkippingWhitespace()) {
+                    break;
+                }
+            }
+        }
+        
+        // Do parsing
+
+        if (_firstTokenSkippingWhitespace()) {
+
+            // Style sheet is a rule list
+            _parseRuleList();
         }
 
         return selectors;
