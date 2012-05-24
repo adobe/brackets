@@ -63,6 +63,7 @@ define(function (require, exports, module) {
     
     var EditorManager    = require("editor/EditorManager"),
         Commands         = require("command/Commands"),
+        Strings          = require("strings"),
         CommandManager   = require("command/CommandManager"),
         TextRange        = require("document/TextRange").TextRange,
         ViewUtils        = require("utils/ViewUtils");
@@ -998,11 +999,11 @@ define(function (require, exports, module) {
 
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Commands.EDIT_FIND, _launchFind);
-    CommandManager.register(Commands.EDIT_FIND_NEXT, _findNext);
-    CommandManager.register(Commands.EDIT_REPLACE, _replace);
-    CommandManager.register(Commands.EDIT_FIND_PREVIOUS, _findPrevious);
-    CommandManager.register(Commands.EDIT_SELECT_ALL, _handleSelectAll);
+    CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND, _launchFind);
+    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT, _findNext);
+    CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE, _replace);
+    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
+    CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // Define public API
     exports.Editor = Editor;

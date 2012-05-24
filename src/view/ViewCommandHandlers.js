@@ -28,6 +28,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var Commands                = require("command/Commands"),
+        Strings                 = require("strings"),
         CommandManager          = require("command/CommandManager"),
         ProjectManager          = require("project/ProjectManager");
     
@@ -71,5 +72,5 @@ define(function (require, exports, module) {
         
     }
     
-    CommandManager.register(Commands.VIEW_HIDE_SIDEBAR, _handleHideSidebar);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,   Commands.VIEW_HIDE_SIDEBAR, _handleHideSidebar);
 });

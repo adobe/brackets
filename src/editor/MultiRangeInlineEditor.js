@@ -44,6 +44,7 @@ define(function (require, exports, module) {
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
+        Strings             = require("strings"),
         CommandManager      = require("command/CommandManager");
 
     /**
@@ -495,8 +496,8 @@ define(function (require, exports, module) {
         }
     }
     
-    CommandManager.register(Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
-    CommandManager.register(Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
+    CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH,      Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
+    CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH,      Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
 
     exports.MultiRangeInlineEditor = MultiRangeInlineEditor;
 });

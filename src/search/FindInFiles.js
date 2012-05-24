@@ -46,6 +46,7 @@ define(function (require, exports, module) {
     var Async               = require("utils/Async"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        Strings             = require("strings"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager");
@@ -322,5 +323,5 @@ define(function (require, exports, module) {
             });
     }
 
-    CommandManager.register(Commands.EDIT_FIND_IN_FILES, doFindInFiles);
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });

@@ -853,6 +853,6 @@ define(function (require, exports, module) {
         $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
         $("#open-files-container").on("contentChanged", _fireSelectionChanged); // redraw jstree when working set size changes
 
-        CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
+        CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
     }());
 });

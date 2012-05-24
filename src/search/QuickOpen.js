@@ -45,6 +45,7 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
+        Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
         Commands            = require("command/Commands"),
         ProjectManager      = require("project/ProjectManager");
@@ -587,9 +588,9 @@ define(function (require, exports, module) {
 
 
     // TODO: allow QuickOpenJS to register it's own commands and key bindings
-    CommandManager.register(Commands.NAVIGATE_QUICK_OPEN, doFileSearch);
-    CommandManager.register(Commands.NAVIGATE_GOTO_DEFINITION, doDefinitionSearch);
-    CommandManager.register(Commands.NAVIGATE_GOTO_LINE, doGotoLine);
+    CommandManager.register(Strings.CMD_QUICK_OPEN,         Commands.NAVIGATE_QUICK_OPEN,       doFileSearch);
+    CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
+    CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
     exports.addQuickOpenPlugin = addQuickOpenPlugin;
 });

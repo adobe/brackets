@@ -42,6 +42,7 @@ define(function (require, exports, module) {
      * @constructor
      * @private
      *
+     * @param {string} name - text that will be displayed in the UI to represent command
      * @param {string} id
      * @param {function} commandFn - the function that is called when the command is executed.
      * @param {?function} isEnabledFn - callback function that returns true when 
@@ -51,7 +52,8 @@ define(function (require, exports, module) {
      *      enabledStateChange
      *      checkedStateChange
      */
-    function Command(id, commandFn, isEnabledFn) {
+    function Command(name, id, commandFn, isEnabledFn) {
+        this._name = name;
         this._id = id;
         this._commandFn = commandFn;
         this._checked = undefined;
@@ -111,6 +113,25 @@ define(function (require, exports, module) {
         return this._checked;
     };
 
+    /**
+     * Sets the name of the Command and dispatches "nameChange" so that
+     * UI that reflects the command name can update.
+     * @param {string} name
+     */
+    Command.prototype.setName = function (name) {
+        var changed = this._enabled !== enabled;
+        this._name = name;
+
+        if (changed) {
+            $(this).triggerHandler("nameChange");
+        }
+    }
+
+    /** @return {string} */
+    Command.prototype.getName = function () {
+        return this._name;
+    }
+
     /** 
      * Sets enabled state of Command and dispatches "checkedStateChange"
      * when the enabled state changes.
@@ -127,7 +148,7 @@ define(function (require, exports, module) {
 
     /**
      * Registers a global command.
-     *
+     * @param {string} name - text that will be displayed in the UI to represent command
      * @param {string} id - unique identifier for command. Plugins should use the 
      *      following format"author-myplugin-mycommandname".
      * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
@@ -136,15 +157,15 @@ define(function (require, exports, module) {
      *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
      * @return {Command}
      */
-    function register(id, commandFn) {
+    function register( name, id, commandFn) {
         if (_commands[id]) {
             throw new Error("Attempting to register an already-registered command: " + id);
         }
-        if (!id || !commandFn) {
-            throw new Error("Attempting to register a command function with a bad id or function");
+        if (!name || !id || !commandFn) {
+            throw new Error("Attempting to register a command with a missing name, id, or command function");
         }
 
-        var command = new Command(id, commandFn);
+        var command = new Command(name, id, commandFn);
         _commands[id] = command;
         return command;
     }

@@ -167,7 +167,7 @@ define(function (require, exports, module) {
             
             DocumentCommandHandlers.init($("#main-toolbar"));
             
-            CommandManager.register(Commands.HELP_ABOUT, function () {
+            CommandManager.register(Strings.CMD_ABOUT, Commands.HELP_ABOUT, function () {
                 Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
             });
         }

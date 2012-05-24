@@ -666,19 +666,19 @@ define(function (require, exports, module) {
         _$title = $(".title", _$titleWrapper);
 
         // Register global commands
-        CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
-        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+        CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
+        CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
         // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
-        CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
-        CommandManager.register(Commands.FILE_SAVE, handleFileSave);
-        CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
-        CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-        CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
-        CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
-        CommandManager.register(Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        CommandManager.register(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
+        CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+        CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+        CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
+        CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
+        CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
+        CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,   Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
         
         
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
