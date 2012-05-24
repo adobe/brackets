@@ -48,10 +48,27 @@ define(function (require, exports, module) {
 
 
     /**
-     * Brackets Application MenuItem Groups
-     * TODO
+     * Brackets Application Menu Section Constants
+     * It is preferred that plug-ins specify the location of new MenuItems
+     * in terms of a menu section rather than a specific MenuItem. This provides
+     * looser coupling to Bracket's internal MenuItems and makes menu organization
+     * more semantic. 
+     * Use these constas as the "relativeID" parameter when calling AddMenuItem() and
+     * specify a position of FIRST or LAST.
      */
+    var FILE_OPEN_CLOSE_MENU_SECTION         = "brackets-file-open-close-menu-group";
+    var FILE_SAVE_MENU_SECTION               = "brackets-file-save-menu-group";
+    var FILE_LIVE_MENU_SECTION               = "brackets-file-live-menu-group";
 
+    var EDIT_MODIFY_SELECTION_MENU_SECTION   = "brackets-edit-modify-selection-menu-group";
+    var EDIT_FIND_MENU_SECTION               = "brackets-find-menu-group";
+    var EDIT_REPLACE_MENU_SECTION            = "brackets-replace-menu-group";
+    var EDIT_SELECTED_TEXT_COMMANDS          = "brackets-selected-text-commands";
+
+    // View menu edit group placeholder
+
+    var NAVIGATE_GOTO_MENU_SECTION           = "brackets-goto-menu-group";
+    var NAVIGATE_QUICK_EDIT_MENU_SECTION     = "brackets-quick-edit-menu-group";
     
     /**
       * Insertion position constants
@@ -239,18 +256,23 @@ define(function (require, exports, module) {
     /**
      * Adds a new menu item with the specified id and display text. The insertion position is
      * specified via the relativeID and position arguments which describe a position 
-     * relative to another MenuItem or MenuGroup. 
+     * relative to another MenuItem or MenuGroup. It is preferred that plug-ins 
+     * insert new  MenuItems relative to a menu section rather than a specific 
+     * MenuItem (see Menu Section Constants).
+     *
+     * TODO: Sub-menus are not yet supported, but when they are implemented this API will
+     * allow adding new MenuItems to sub-menus as well.
      *
      * Note, keyBindings are bound to Command objects not MenuItems. The provided keyBindings
      *      will be bound to the supplied Command object rather than the MenuItem.
      * 
      * @param {!string} name - display text for menu item. "---" creates a menu divider
      * @param {!string} id
-     * @param {?(string | Command)} command - the command the menu will execute.
+     * @param {? (string | Command)} command - the command the menu will execute.
      * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
-     * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
-     *      will be positioned relative to.
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
+     *      menuItem will be positioned relative to.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to the item specified by relativeID (see Insertion position constants). 
     *      Default is LAST
@@ -275,6 +297,9 @@ define(function (require, exports, module) {
 
         if (typeof (command) === "string") {
             command = CommandManager.get(command);
+            if (!command) {
+                throw new Error("addMenItem(): commandID not found");
+            }
         }
         
         if (name === "---") {
@@ -297,6 +322,9 @@ define(function (require, exports, module) {
                 for (i = 0; i < keyBindings.length; i++) {
                     key = keyBindings[i].key;
                     platform = keyBindings[i].platform;
+
+                    // TODO: handle insertion position as specified by relativeID, position
+                    // also support inserting into Menu Sections
 
                     if ($menuItem.find(".menu-shortcut").length === 0) {
                         $menuItem.find("a").append("<span class='menu-shortcut'>" + formatKeyCommand(key) + "</span>");
@@ -380,6 +408,22 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Sets the Command that will be execited when the MenuItem is clicked
+     * @param {Command}
+     */
+    MenuItem.prototype.setCommand = function (command) {
+        $(_getHTMLMenuItem(this.id)).click(createExecMenuFunc(command));
+    };
+
+    /**
+     * Returns true if this menuItem is a menu divider
+     * @return {boolean}
+     */
+    MenuItem.prototype.isDivider = function () {
+        return this.name === "---";
+    };
+
+    /**
      * Returns the parent MenuItem if the menu item is a sub-menu, returns null otherwise.
      * @return {MenuItem}
      */
@@ -419,7 +463,7 @@ define(function (require, exports, module) {
         menu = addMenu("File", appMenuBar.FILE_MENU);
         menu.addMenuItem("New",                  "file-new",             Commands.FILE_NEW,         "Ctrl-N");
         menu.addMenuItem("Open",                 "file-open",            Commands.FILE_OPEN,        "Ctrl-O");
-        menu.addMenuItem("Open Folder",                                  Commands.FILE_OPEN_FOLDER);
+        menu.addMenuItem("Open Folder",          "file-open-folder",      Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem("Close",                "file-close",           Commands.FILE_CLOSE,       "Ctrl-W");
         menu.createMenuDivider(_getNextMenuItemDividerID());
         menu.addMenuItem("Save",                 "file-save",            Commands.FILE_SAVE,        "Ctrl-S");
