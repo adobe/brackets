@@ -84,24 +84,14 @@ define(function (require, exports, module) {
 
 
     /**
-     * @param {Command}
-     */
-    function createExecMenuFunc(command) {
-        return function () {
-            command.execute();
-        };
-    }
-
-    /**
-     * TODO docs
+     * @type {Object.<menuID, Menu>}
      */
     var menuMap = {};
+
     /**
-     * TODO docs
+     * @type {Object.<menuItemID, MenuItem>}
      */
     var menuItemMap = {};
-
-    var cmdToMenuMap = {};
 
     /**
      * @constructor
@@ -132,11 +122,13 @@ define(function (require, exports, module) {
      * Clients should also not access HTML content of a menu directly and instead use
      * the MenuItem API to query and modify menus items.
      *
-     * MenuItem dispatches the following events:
-     *  click
+     * @param {string} id
+     * @param {Command} command
      */
-    function MenuItem(id) {
+    function MenuItem(id, command) {
         this.id = id;
+        this._command = command;
+        this._clickHandler = undefined;
     }
 
     /**
@@ -308,15 +300,13 @@ define(function (require, exports, module) {
         if (name === "---") {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
-            cmdToMenuMap[command.getID()] = id;
-
+            // Create the HTML Menu
             $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span></a></li>");
-            $menuItem.click(createExecMenuFunc(command));
-            $(command).on("enabledStateChange", this.handleEnabledChanged)
-                .on("checkedStateChange", this.handleCheckedChanged)
-                .data("command", command);
 
 
+            
+            
+            // Add key bindings
             if (keyBindings) {
                 if (!$.isArray(keyBindings)) {
                     keyBindings = [{key: keyBindings}];
@@ -337,12 +327,17 @@ define(function (require, exports, module) {
                     KeyBindingManager.addBinding(command.getID(), key, platform);
                 }
             }
-            
         }
         $("#main-toolbar #" + this.id + " .dropdown-menu").append($menuItem);
 
-        menuItem = new MenuItem(id);
+        menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
+
+        // Connect MenuItem to Ccommand
+        if (!menuItem.isDivider()) {
+            menuItem.setCommand(command);
+        }
+
         return menuItem;
     };
 
@@ -401,7 +396,41 @@ define(function (require, exports, module) {
      * @param {Command}
      */
     MenuItem.prototype.setCommand = function (command) {
-        $(_getHTMLMenuItem(this.id)).click(createExecMenuFunc(command));
+        var menu = _getHTMLMenuItem(this.id);
+        var oldCommand = this._command;
+        this._command = command;
+
+        // Replace click handler
+        var newClickHandler = function () {
+            command.execute();
+        };
+        $(menu).off("click", this._clickHandler);
+        $(menu).on("click", newClickHandler);
+        this._clickHandler = newClickHandler;
+
+        // Bind event handlers
+        this.handleEnabledChanged = this.handleEnabledChanged.bind(this);
+        this.handleCheckedChanged = this.handleCheckedChanged.bind(this);
+        this.nameChanged = this.nameChanged.bind(this);
+
+        // Adjust listeners on command
+        $(oldCommand)
+            .off("enabledStateChange", this.handleEnabledChanged)
+            .off("checkedStateChange", this.handleCheckedChanged)
+            .off("nameChange", this.nameChanged);
+
+        $(command)
+            .on("enabledStateChange", this.handleEnabledChanged)
+            .on("checkedStateChange", this.handleCheckedChanged)
+            .on("nameChange", this.nameChanged);
+    };
+
+    /**
+     * Gets the Command assoicated with a MenuItem
+     * @return {Command}
+     */
+    MenuItem.prototype.getCommand = function () {
+        return this._command;
     };
 
     /**
@@ -434,29 +463,21 @@ define(function (require, exports, module) {
     };
     
 
-    MenuItem.prototype.handleCheckedChanged = function () {
-        // TODO
+    MenuItem.prototype.handleCheckedChanged = function (e, command) {
+        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
+       // TODO IMPL
     };
 
-    MenuItem.prototype.handleEnabledChanged = function () {
-        // TODO
+    MenuItem.prototype.handleEnabledChanged = function (e, command) {
+        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
+        // TODO IMPL
     };
 
+    MenuItem.prototype.nameChanged = function (e, command) {
+        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
+        $menuItem.text(command.getName());
+    };
 
-    $(CommandManager).on("nameChange", function (e, command) {
-        var id = cmdToMenuMap[command.getID()];
-        var $menuItem = $(_getHTMLMenuItem(id)).find(".menu-name").text(command.getName());
-    });
-
-    $(CommandManager).on("enabledStateChange", function (e, command) {
-        var id = cmdToMenuMap[command.getID()];
-        // TODO IMPL
-    });
-
-    $(CommandManager).on("checkedStateChange", function (e, command) {
-        var id = cmdToMenuMap[command.getID()];
-        // TODO IMPL
-    });
 
     function init() {
 

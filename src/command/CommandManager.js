@@ -90,7 +90,7 @@ define(function (require, exports, module) {
         }
     };
 
-    /** @return {bollean} */
+    /** @return {boolean} */
     Command.prototype.getEnabled = function () {
         return this._enabled;
     };
@@ -105,7 +105,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(exports).triggerHandler("enabledStateChange", this);
+            $(this).triggerHandler("enabledStateChange", this);
         }
     };
 
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
         this._name = name;
 
         if (changed) {
-            $(exports).triggerHandler("nameChange", this);
+            $(this).triggerHandler("nameChange", this);
         }
     };
 
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(exports).triggerHandler("checkedStateChange");
+            $(this).triggerHandler("checkedStateChange", this);
         }
     };
 
