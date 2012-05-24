@@ -224,6 +224,10 @@ define(function (require, exports, module) {
             .always(EditorManager.focusEditor);
     }
 
+    /**
+     * Opens the given file, makes it the current document, AND adds it to the working set.
+     * @param {!{fullPath:string}} Params for FILE_OPEN command
+     */
     function handleFileAddToWorkingSet(commandData) {
         handleFileOpen(commandData).done(function (doc) {
             DocumentManager.addToWorkingSet(doc.file);
@@ -666,16 +670,45 @@ define(function (require, exports, module) {
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
-    function handleShowDeveloperTools(commandData) {
-        brackets.app.showDeveloperTools();
-    }
-    
-     /** Does a full reload of the browser window */
+    /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
         return _handleWindowGoingAway(commandData, function () {
             window.location.reload();
         });
     }
+    
+    
+    /** Navigate to the next (MRU) document. Don't update MRU order yet */
+    function handleGoNextDoc() {
+        var file = DocumentManager.getNextPrevFile(+1);
+        if (file) {
+            DocumentManager.beginDocumentNavigation();
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+        }
+    }
+    
+    /** Navigate to the previous (MRU) document. Don't update MRU order yet */
+    function handleGoPrevDoc() {
+        var file = DocumentManager.getNextPrevFile(-1);
+        if (file) {
+            DocumentManager.beginDocumentNavigation();
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+        }
+    }
+    
+    /**
+     * When the Ctrl key is released, if we were in the middle of a next/prev document navigation
+     * sequence, now is the time to end it and update the MRU order. If we allowed the order to update
+     * on every next/prev increment, the 1st & 2nd entries would just switch places forever and we'd
+     * never get further down the list.
+     * @param {jQueryEvent} event Key-up event
+     */
+    function detectDocumentNavEnd(event) {
+        if (event.keyCode === 17) {  // Ctrl key
+            DocumentManager.finalizeDocumentNavigation();
+        }
+    }
+    
 
     function init($titleContainerToolbar) {
         _$titleContainerToolbar = $titleContainerToolbar;
@@ -690,16 +723,22 @@ define(function (require, exports, module) {
         // be called from a "+" button in the project
         CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Commands.FILE_SAVE, handleFileSave);
+        
         CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
         CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
         CommandManager.register(Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        CommandManager.register(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
         
+        CommandManager.register(Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+        CommandManager.register(Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
         
+        // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
+        
+        // Listen for ending of Ctrl+Tab sequence (for NAVIGATE_NEXT_DOC & NAVIGATE_PREV_DOC)
+        $(window.document.body).keyup(detectDocumentNavEnd);
     }
 
     // Define public API
