@@ -501,11 +501,15 @@ define(function (require, exports, module) {
         menu.addMenuDivider(_getNextMenuItemDividerID());
         menu.addMenuItem("edit-duplicate",          Commands.EDIT_DUPLICATE);
         menu.addMenuItem("edit-comment",            Commands.EDIT_LINE_COMMENT, "Ctrl-/");
+
         /*
          * View menu
          */
         menu = addMenu(Strings.VIEW_MENU, appMenuBar.VIEW_MENU);
         menu.addMenuItem("view-sidebar",            Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
+        menu.addMenuDivider(_getNextMenuItemDividerID());
+        menu.addMenuItem("view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, "Ctrl-=");
+        menu.addMenuItem("view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, "Ctrl--");
 
         /*
          * Navigate menu

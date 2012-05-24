@@ -150,6 +150,8 @@ define(function (require, exports, module) {
     exports.VIEW_MENU                           = "View";
     exports.CMD_HIDE_SIDEBAR                    = "Hide Sidebar";
     exports.CMD_SHOW_SIDEBAR                    = "Show Sidebar";
+    exports.CMD_INCREASE_FONT_SIZE              = "Increase Font Size";
+    exports.CMD_DECREASE_FONT_SIZE              = "Decrease Font Size";
 
     // Naviate menu Commands
     exports.NAVIGATE_MENU                       = "Navigate";
