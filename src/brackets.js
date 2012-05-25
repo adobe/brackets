@@ -218,6 +218,8 @@ define(function (require, exports, module) {
                     {"Ctrl--": Commands.VIEW_DECREASE_FONT_SIZE},
                     
                     // Navigate
+                    {"Ctrl-Tab": Commands.NAVIGATE_NEXT_DOC},   // note: DocumentCommandHandlers requires modifier to be Ctrl
+                    {"Ctrl-Shift-Tab": Commands.NAVIGATE_PREV_DOC},
                     {"Ctrl-Shift-O": Commands.NAVIGATE_QUICK_OPEN},
                     {"Ctrl-T": Commands.NAVIGATE_GOTO_DEFINITION},
                     {"Ctrl-L": Commands.NAVIGATE_GOTO_LINE, "platform": "mac"},
