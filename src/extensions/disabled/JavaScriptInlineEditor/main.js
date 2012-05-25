@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      */
     function javaScriptFunctionProvider(hostEditor, pos) {
         // Only provide a JavaScript editor when cursor is in JavaScript content
-        if (hostEditor._codeMirror.getOption("mode") !== "javascript") {
+        if (hostEditor.getModeForSelection() !== "javascript") {
             return null;
         }
         

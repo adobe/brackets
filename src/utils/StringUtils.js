@@ -21,6 +21,9 @@
  * 
  */
 
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define */
+
 /**
  *	Utilities functions related to string manipulation
  *
@@ -37,5 +40,10 @@ define(function (require, exports, module) {
             .replace(/>/g, '&gt;');
     }
 
+    function regexEscape(str) {
+        return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
+    }
+
     exports.htmlEscape = htmlEscape;
+    exports.regexEscape = regexEscape;
 });
