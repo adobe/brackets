@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         FileIndexManager,       // loaded from brackets.test
         FileUtils,              // loaded from brackets.test
         FileViewController,     // loaded from brackets.test
+        NativeFileSystem,       // loaded from brackets.test
         ProjectManager,         // loaded from brackets.test
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils.js");
 
@@ -52,10 +53,21 @@ define(function (require, exports, module) {
         var testPath = extensionPath + "/unittest-files",
             testWindow,
             initInlineTest;
-        
-        function toRange(startLine, endLine) {
-            return {startLine: startLine, endLine: endLine};
-        }
+
+        NativeFileSystem = brackets.getModule(["file/NativeFileSystem"], function (dependency) {
+            console.log("finished loading NativeFileSystem");
+        }).NativeFileSystem;
+//        var nfsLoaded = false;
+//        runs(function () {
+//            NativeFileSystem = brackets.getModule(["file/NativeFileSystem"], function (dependency) {
+//                nfsLoaded = true;
+//            }).NativeFileSystem;
+//        });
+//        waitsFor(function () { return nfsLoaded; }, "brackets.getModule('file/NativeFileSystem') timeout", 1000);
+//        
+//        function toRange(startLine, endLine) {
+//            return {startLine: startLine, endLine: endLine};
+//        }
         
         function rewriteProject(spec) {
             var result = new $.Deferred();
@@ -290,6 +302,19 @@ define(function (require, exports, module) {
             return this.actual.functionName.trim() === expected;
         };
         
+        console.log("[unittests.js] referencing NativeFileSystem");
+        var simpleJsFileEntry      = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/simple.js");
+        
+//        console.log("[unittests.js] started loading FileUtils");
+        var fuLoaded = false;
+        runs(function () {
+            FileUtils = brackets.getModule(["file/FileUtils"], function (dependency) {
+                //console.log("[unittests.js] finished loading FileUtils");
+                fuLoaded = true;
+            });
+        });
+        waitsFor(function () { return fuLoaded; }, "brackets.getModule('file/FileUtils') timeout", 1000);
+            
         function init(spec, fileEntry) {
             spec.fileJsContent = null;
             
@@ -325,28 +350,37 @@ define(function (require, exports, module) {
                 });
             });
             
-/***
-
-// TODO: I've done some global find/replace to these css tests, but they still need lot os work
-
             describe("line offsets", function () {
                 
                 // Checks the lines ranges of the results returned by JSUtils. Expects the numbers of
                 // results to equal the length of 'ranges'; each entry in range gives the {start, end}
                 // of the expected line range for that Nth result.
     
-                function expectFunctionRanges(spec, jsCode, selector, ranges) {
+                function expectFunctionRanges(spec, jsCode, funcName, ranges) {
                     var result = JSUtils._findAllMatchingFunctionsInText(jsCode, funcName);
                     spec.expect(result.length).toEqual(ranges.length);
                     ranges.forEach(function (range, i) {
-                        spec.expect(result[i].ruleStartLine).toEqual(range.start);
-                        spec.expect(result[i].declListEndLine).toEqual(range.end);
+                        spec.expect(result[i].lineStart).toEqual(range.start);
+                        spec.expect(result[i].lineEnd).toEqual(range.end);
                     });
                 }
                 
-                it("should return correct start and end line numbers for simple rules", function () {
+                it("should return correct start and end line numbers for simple functions", function () {
                     runs(function () {
-                        init(this, simpleCssFileEntry);
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        expectFunctionRanges(this, this.fileJsContent, "simple1", [ {start:  1, end:  3} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "simple2", [ {start:  7, end:  9} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "simple3", [ {start: 11, end: 13} ]);
+                    });
+                });
+                
+/***
+                it("should return correct start and end line numbers for parameterized functions", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
                     });
                     
                     runs(function () {
@@ -356,15 +390,56 @@ define(function (require, exports, module) {
                             [ {start: 16, end: 18} ]);
                     });
                 });
+                
+                it("should return correct start and end line numbers for single line functions", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
+                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
+                            [ {start: 16, end: 18} ]);
+                    });
+                });
+                
+                it("should return correct start and end line numbers for nested functions", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
+                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
+                            [ {start: 16, end: 18} ]);
+                    });
+                });
+                
+                it("should return correct start and end line numbers for functions with keyword 'function' in name", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
+                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
+                            [ {start: 16, end: 18} ]);
+                    });
+                });
+***/
             });
-            
+
+/***
             describe("with real-world jQuery JS code", function () {
                 
                 beforeEach(function () {
                     init(this, bootstrapCssFileEntry);
                 });
                 
-                it("should find the first instance of the h2 selector", function () {
+                it("should find the first instance of the h2 function", function () {
                     var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "h2");
                     expect(funcNames).not.toBe(null);
                     expect(funcNames.length).toBeGreaterThan(0);
@@ -374,7 +449,7 @@ define(function (require, exports, module) {
                     expect(funcNames[0].declListEndLine).toBe(301);
                 });
                 
-                it("should find all instances of the h2 selector", function () {
+                it("should find all instances of the h2 function", function () {
                     var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "h2");
                     expect(funcNames.length).toBe(2);
                     
@@ -453,10 +528,10 @@ define(function (require, exports, module) {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                         // Load module instances from brackets.test
                         brackets            = testWindow.brackets;
-                        JSUtils            = testWindow.brackets.test.JSUtils;
-                        DocumentManager     = testWindow.brackets.test.DocumentManager;
-                        FileViewController  = testWindow.brackets.test.FileViewController;
-                        ProjectManager      = testWindow.brackets.test.ProjectManager;
+                        JSUtils             = brackets.test.JSUtils;
+                        DocumentManager     = brackets.test.DocumentManager;
+                        FileViewController  = brackets.test.FileViewController;
+                        ProjectManager      = brackets.test.ProjectManager;
     
                         SpecRunnerUtils.loadProjectInTestWindow(testPath);
                     });
