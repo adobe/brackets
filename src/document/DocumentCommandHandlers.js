@@ -678,23 +678,8 @@ define(function (require, exports, module) {
     }
     
     
-    /** Navigate to the next (MRU) document. Don't update MRU order yet */
-    function handleGoNextDoc() {
-        var file = DocumentManager.getNextPrevFile(+1);
-        if (file) {
-            DocumentManager.beginDocumentNavigation();
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
-        }
-    }
-    
-    /** Navigate to the previous (MRU) document. Don't update MRU order yet */
-    function handleGoPrevDoc() {
-        var file = DocumentManager.getNextPrevFile(-1);
-        if (file) {
-            DocumentManager.beginDocumentNavigation();
-            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
-        }
-    }
+    /** Are we already listening for a keyup to call detectDocumentNavEnd()? */
+    var _addedNavKeyHandler = false;
     
     /**
      * When the Ctrl key is released, if we were in the middle of a next/prev document navigation
@@ -706,7 +691,32 @@ define(function (require, exports, module) {
     function detectDocumentNavEnd(event) {
         if (event.keyCode === 17) {  // Ctrl key
             DocumentManager.finalizeDocumentNavigation();
+            
+            _addedNavKeyHandler = false;
+            $(window.document.body).off("keyup", detectDocumentNavEnd);
         }
+    }
+    
+    /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
+    function goNextPrevDoc(inc) {
+        var file = DocumentManager.getNextPrevFile(inc);
+        if (file) {
+            DocumentManager.beginDocumentNavigation();
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+            
+            // Listen for ending of Ctrl+Tab sequence
+            if (!_addedNavKeyHandler) {
+                _addedNavKeyHandler = true;
+                $(window.document.body).keyup(detectDocumentNavEnd);
+            }
+        }
+    }
+    
+    function handleGoNextDoc() {
+        goNextPrevDoc(+1);
+    }
+    function handleGoPrevDoc() {
+        goNextPrevDoc(-1);
     }
     
 
@@ -736,9 +746,6 @@ define(function (require, exports, module) {
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
-        
-        // Listen for ending of Ctrl+Tab sequence (for NAVIGATE_NEXT_DOC & NAVIGATE_PREV_DOC)
-        $(window.document.body).keyup(detectDocumentNavEnd);
     }
 
     // Define public API

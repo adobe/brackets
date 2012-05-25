@@ -758,6 +758,10 @@ define(function (require, exports, module) {
      * @return {?FileEntry}  null if working set empty
      */
     function getNextPrevFile(inc) {
+        if (inc !== -1 && inc !== +1) {
+            throw new Error("Illegal argument: inc = " + inc);
+        }
+        
         if (_currentDocument) {
             var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
             if (mruI === -1) {
