@@ -88,8 +88,6 @@ define(function (require, exports, module) {
             // event that we can just call from anywhere instead of hard-coding it.
             // waiting on a ProjectManager refactor to add that. 
             $sidebar.find(".sidebar-selection").width(width);
-            //$projectFilesContainer.triggerHandler("scroll");
-            //$openFilesContainer.triggerHandler("scroll");
             
             if (width > 10) {
                 prefs.setValue("sidebarWidth", width);
@@ -153,8 +151,11 @@ define(function (require, exports, module) {
             var startX = e.clientX,
                 newWidth = Math.max(startX, 0),
                 doResize = true;
-            
+
             isMouseDown = true;
+            
+            // take away the shadows
+            $sidebar.find(".scroller-shadow").css("display", "none");
             
             $body.toggleClass("resizing");
             // check to see if we're currently in hidden mode
@@ -186,7 +187,7 @@ define(function (require, exports, module) {
                             forceTriangle = true;
                         }
                     
-                        _setWidth(newWidth, false, true);
+                        _setWidth(newWidth, false, false);
                     }
                 
                     if (newWidth === 0) {
@@ -205,7 +206,14 @@ define(function (require, exports, module) {
                 
             $mainView.one("mouseup.sidebar", function (e) {
                 isMouseDown = false;
+                
+                // replace shadows and triangle
+                $sidebar.find(".triangle-visible").css("display", "block");
+                $sidebar.find(".scroller-shadow").css("display", "block");
+                
                 EditorManager.resizeEditor();
+                $projectFilesContainer.triggerHandler("scroll");
+                $openFilesContainer.triggerHandler("scroll");
                 $mainView.off("mousemove.sidebar");
                 $body.toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
