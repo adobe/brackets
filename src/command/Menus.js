@@ -224,22 +224,22 @@ define(function (require, exports, module) {
         return menu;
     }
 
-    /**
+    /** NOT IMPLEMENTED
      * Removes Menu
      */
-    function removeMenu(id) {
-        // TODO
-    }
+    // function removeMenu(id) {
+    //     NOT IMPLEMENTED
+    // }
 
-    /**
+    /** NOT IMPLEMENTED
      * Removes MenuItem
      * 
      * TODO Question: for convenience should API provide a way to remove related
      * keybindings and Command object?
      */
-    function removeMenuItem(id) {
-        // TODO
-    }
+    // function removeMenuItem(id) {
+    //    NOT IMPLEMENTED
+    // }
 
     // Convert normalized key representation to display appropriate for platform
     function formatKeyCommand(keyCmd) {
