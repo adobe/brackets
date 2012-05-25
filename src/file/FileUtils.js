@@ -203,6 +203,8 @@ define(function (require, exports, module) {
 
     /**
      * Returns a native absolute path to the 'brackets' source directory.
+     * Note that this only work when run in brackets/src/index.html, so it does
+     * not work for unit tests (which is run from brackets/test/SpecRunner.html)
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
@@ -211,6 +213,40 @@ define(function (require, exports, module) {
         return convertToNativePath(directory);
     }
     
+    /**
+     * Given the module object passed to JS module define function,
+     * convert the path (which is relative to the current window)
+     * to a native absolute path.
+     * Returns a native absolute path to the module folder.
+     * @return {string}
+     */
+    function getNativeModuleDirectoryPath(module) {
+        var path, relPath, index, pathname;
+
+        if (module && module.uri) {
+
+            // Remove window name from base path. Maintain trailing slash.
+            pathname = window.location.pathname;
+            path = convertToNativePath(pathname.substr(0, pathname.lastIndexOf("/") + 1));
+
+            // Remove module name from relative path. Remove trailing slash.
+            pathname = module.uri;
+            relPath = pathname.substr(0, pathname.lastIndexOf("/"));
+
+            // handle leading "../" in relative directory
+            while (relPath.substr(0, 3) === "../") {
+                path = path.substr(0, path.length - 1); // strip trailing slash from base path
+                index = path.lastIndexOf("/");          // find next slash from end
+                if (index !== -1) {
+                    path = path.substr(0, index + 1);   // remove last dir while maintaining slash
+                }
+                relPath = relPath.substr(3);            // remove leading "../" from relative path
+            }
+            path += relPath;
+        }
+        return path;
+    }
+
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
@@ -223,4 +259,5 @@ define(function (require, exports, module) {
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
+    exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
 });

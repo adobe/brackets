@@ -35,20 +35,15 @@ define(function (require, exports, module) {
         FileViewController,     // loaded from brackets.test
         ProjectManager,         // loaded from brackets.test
         
-        FileUtils = brackets.getModule("file/FileUtils"),
+        FileUtils           = brackets.getModule("file/FileUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils.js");
 
     // Local modules
     var JSUtils             = require("JSUtils");
 
-    // TODO: This returns path to test folder, so convert to src
-    var extensionPath = SpecRunnerUtils.getTestPath("");
-    extensionPath = extensionPath.replace("brackets/test", "brackets/src");
-
-    // TODO: Hard-coded for now. Need a method to determine folder where an extension is located
-    extensionPath += "/extensions/user/JavaScriptInlineEditor";
-
+    var extensionPath = FileUtils.getNativeModuleDirectoryPath(module);
+    
     describe("JSQuickEdit", function () {
 
         var testPath = extensionPath + "/unittest-files",
