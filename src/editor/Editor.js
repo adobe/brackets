@@ -917,6 +917,20 @@ define(function (require, exports, module) {
     };
     
     /**
+     * Re-renders the editor, and all children inline editors.
+     */
+    Editor.prototype.refreshAll = function () {
+        this.refresh();
+        this.getInlineWidgets().forEach(function (multilineEditor, i, arr) {
+            multilineEditor.sizeInlineWidgetToContents(true);
+            multilineEditor._updateRelatedContainer();
+            multilineEditor.editors.forEach(function (editor, j, arr) {
+                editor.refresh();
+            });
+        });
+    };
+    
+    /**
      * Shows or hides the editor within its parent. Does not force its ancestors to
      * become visible.
      * @param {boolean} show true to show the editor, false to hide it
@@ -946,6 +960,41 @@ define(function (require, exports, module) {
      */
     Editor.prototype.getLineText = function (num) {
         return this._codeMirror.getLine(num);
+    };
+    
+    /**
+     * Gets the syntax-highlighting mode for the current selection or cursor position. (The mode may
+     * vary within one file due to embedded languages, e.g. JS embedded in an HTML script block).
+     *
+     * Returns null if the mode at the start of the selection differs from the mode at the end -
+     * an *approximation* of whether the mode is consistent across the whole range (a pattern like
+     * A-B-A would return A as the mode, not null).
+     *
+     * @return {?string} Name of syntax-highlighting mode; see {@link EditorUtils#getModeFromFileExtension()}.
+     */
+    Editor.prototype.getModeForSelection = function () {
+        var sel = this.getSelection();
+        
+        // Check for mixed mode info (meaning mode varies depending on position)
+        // TODO (#921): this only works for certain mixed modes; some do not expose this info
+        var startState = this._codeMirror.getTokenAt(sel.start).state;
+        if (startState.mode) {
+            var startMode = startState.mode;
+            
+            // If mixed mode, check that mode is the same at start & end of selection
+            if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
+                var endState = this._codeMirror.getTokenAt(sel.end).state;
+                var endMode = endState.mode;
+                if (startMode !== endMode) {
+                    return null;
+                }
+            }
+            return startMode;
+            
+        } else {
+            // Mode does not vary: just use the editor-wide mode
+            return this._codeMirror.getOption("mode");
+        }
     };
     
     /**
