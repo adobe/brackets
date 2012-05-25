@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -34,6 +34,10 @@ define(function (require, exports, module) {
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         NativeApp               = require("utils/NativeApp");
+    
+    function handleShowDeveloperTools(commandData) {
+        brackets.app.showDeveloperTools();
+    }
     
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
@@ -148,6 +152,7 @@ define(function (require, exports, module) {
     _updateJSLintMenuItem(JSLintUtils.getEnabled());
     
     // Register all the command handlers
+    CommandManager.register(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
     CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
     CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
     CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
