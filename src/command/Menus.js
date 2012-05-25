@@ -40,7 +40,7 @@ define(function (require, exports, module) {
      * Brackets Application Menu Constants
      * @enum {string}
      */
-    var appMenuBar = {
+    var AppMenuBar = {
         FILE_MENU:     "file-menu",
         EDIT_MENU:     "edit-menu",
         VIEW_MENU :    "view-menu",
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
      * Use these constants as the "relativeID" parameter when calling addMenuItem() and
      * specify a position of FIRST or LAST.
      */
-    var menuSection = {
+    var MenuSection = {
         FILE_OPEN_CLOSE_MENU:       "file-open-close-menu-section",
         FILE_SAVE_MENU:             "file-save-menu-section",
         FILE_LIVE_MENU:             "file-live-menu-section",
@@ -95,15 +95,72 @@ define(function (require, exports, module) {
      * @type {Object.<string, MenuItem>}
      */
     var menuItemMap = {};
+    
+    /**
+     * Retrieves the Menu object for the corresponding id. 
+     * @param {string} id
+     * @return {Menu}
+     */
+    function getMenu(id) {
+        return menuMap[id];
+    }
 
-     /**
+    /**
+     * Retrieves the MenuItem object for the corresponding id. 
+     * @param {string} id
+     * @return {MenuItem}
+     */
+    function getMenuItem(id) {
+        return menuItemMap[id];
+    }
+
+    function _getHTMLMenu(id) {
+        return $("#" + id).get(0);
+    }
+
+    function _getHTMLMenuItem(id) {
+        return $("#" + id).get(0);
+    }
+    
+    /** NOT IMPLEMENTED
+     * Removes MenuItem
+     * 
+     * TODO Question: for convenience should API provide a way to remove related
+     * keybindings and Command object?
+     */
+    // function removeMenuItem(id) {
+    //    NOT IMPLEMENTED
+    // }
+
+    // Convert normalized key representation to display appropriate for platform
+    function formatKeyCommand(keyCmd) {
+        var displayStr;
+        if (brackets.platform === "mac") {
+            displayStr = keyCmd.replace(/-/g, "");        // remove dashes
+            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
+            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
+        } else {
+            displayStr = keyCmd.replace(/-/g, "+");
+        }
+
+        return displayStr;
+    }
+
+    var _menuDividerIDCount = 1;
+    function _getNextMenuItemDividerID() {
+        return "brackets-menuDivider-" + _menuDividerIDCount++;
+    }
+
+    /**
      * @constructor
      * @private
      *
-     * MenuItem represents a menu, sub-menu, or divider. A Menu may correspond to an HTML-based
+     * MenuItem represents a single menu item that executes a Command or a menu divider. MenuItems
+     * may have a sub-menu. A MenuItem may correspond to an HTML-based
      * menu item or a native menu item if Brackets is running in a native application shell
      *
-     * Since menu items may have a native implementation clients should create MenuItems through 
+     * Since MenuItems may have a native implementation clients should create MenuItems through 
      * addMenuItem() and should NOT construct a MenuItem object directly. 
      * Clients should also not access HTML content of a menu directly and instead use
      * the MenuItem API to query and modify menus items.
@@ -112,7 +169,7 @@ define(function (require, exports, module) {
      * name, enabled, and checked state of a MenuItem. The MenuItem will update automatically
      *
      * @param {string} id
-     * @param {Command} command - the Command this MenuItem will reflect. Use "---" to specify a menu divider
+     * @param {string|Command} command - the Command this MenuItem will reflect. Use "---" to specify a menu divider
      */
     function MenuItem(id, command) {
         this.id = id;
@@ -147,118 +204,6 @@ define(function (require, exports, module) {
      */
     function Menu(id) {
         this.id = id;
-    }
-
-    /**
-     * Retrieves the Menu object for the corresponding id. 
-     * @param {string} id
-     * @return {Menu}
-     */
-    function getMenu(id) {
-        return menuMap[id];
-    }
-
-    /**
-     * Retrieves the MenuItem object for the corresponding id. 
-     * @param {string} id
-     * @return {MenuItem}
-     */
-    function getMenuItem(id) {
-        return menuItemMap[id];
-    }
-
-    function _getHTMLMenu(id) {
-        return $("#" + id).get(0);
-    }
-
-    function _getHTMLMenuItem(id) {
-        return $("#" + id).get(0);
-    }
-
-    /**
-     * Adds a top-level menu to the application menu bar which may be native or HTML-based.
-     *
-     * @param {!string} name - display text for menu 
-     * @param {!string} id
-     * @param {?string} position - constant defining the position of new the Menu relative
-     *  to other Menus. Default is LAST (see Insertion position constants).
-     *      
-     * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to. Required
-     *      when position is AFTER or BEFORE, ignored when position is FIRST or LAST
-     * 
-     * @return {Menu} the newly created Menu
-     */
-    function addMenu(name, id, position, relativeID) {
-        name = StringUtils.htmlEscape(name);
-        var $menubar = $("#main-toolbar .nav"),
-            menu;
-
-        if (!name || !id) {
-            throw new Error("call to addMenu() is missing required parameters");
-        }
-        
-        // Guard against duplicate menu ids
-        if (menuMap[id]) {
-            throw new Error("Menu added with same name and id of existing Menu: " + id);
-        }
-
-        menu = new Menu(id);
-        menuMap[id] = menu;
-
-        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>")
-            .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
-            .append("<ul class='dropdown-menu'></ul>");
-
-
-        // TODO: relative logic
-        if (relativeID) {
-            var relative = _getHTMLMenu(relativeID);
-            // TODO: handle not found
-            relative.after($newMenu);
-        } else {
-            $menubar.append($newMenu);
-        }
-
-        // todo error handling
-
-        return menu;
-    }
-
-    /** NOT IMPLEMENTED
-     * Removes Menu
-     */
-    // function removeMenu(id) {
-    //     NOT IMPLEMENTED
-    // }
-
-    /** NOT IMPLEMENTED
-     * Removes MenuItem
-     * 
-     * TODO Question: for convenience should API provide a way to remove related
-     * keybindings and Command object?
-     */
-    // function removeMenuItem(id) {
-    //    NOT IMPLEMENTED
-    // }
-
-    // Convert normalized key representation to display appropriate for platform
-    function formatKeyCommand(keyCmd) {
-        var displayStr;
-        if (brackets.platform === "mac") {
-            displayStr = keyCmd.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
-            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
-        } else {
-            displayStr = keyCmd.replace(/-/g, "+");
-        }
-
-        return displayStr;
-    }
-
-    var _menuDividerIDCount = 1;
-    function _getNextMenuItemDividerID() {
-        return "brackets-menuDivider-" + _menuDividerIDCount++;
     }
 
     /**
@@ -356,16 +301,16 @@ define(function (require, exports, module) {
 
     /**
      * Inserts divider item in menu.
-     * @param {?string} relativeID - id of menuItem or menuItemGroup the new menuItem 
-     *      will be positioned relative to.
-     * @param {?string} position - constant defining the position of new the MenuItem relative
-     *      to the item specified by relativeID (see Insertion position constants).
-     *      Default is LAST
+     * @param {?string} position - constant defining the position of new the divider relative
+     *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
+     * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
+     *      divider will be positioned relative to. Required when position is 
+     *      AFTER or BEFORE, ignored when position is FIRST or LAST.
      * 
      * @return {MenuItem} the newly created divider
      */
-    Menu.prototype.addMenuDivider = function (relativeMenuItemID) {
-        return this.addMenuItem(_getNextMenuItemDividerID(), "---", relativeMenuItemID);
+    Menu.prototype.addMenuDivider = function (position, relativeID) {
+        return this.addMenuItem(_getNextMenuItemDividerID(), "---", position, relativeID);
     };
 
     /**
@@ -384,7 +329,7 @@ define(function (require, exports, module) {
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
      * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
      *      menuItem will be positioned relative to. Required when position is 
-     *      AFTER or BEFORE, ignored when position is FIRST or LAST
+     *      AFTER or BEFORE, ignored when position is FIRST or LAST.
      *
      * @return {MenuItem} the newly created MenuItem
      */
@@ -401,7 +346,7 @@ define(function (require, exports, module) {
      *      to other MenuItems. Default is LAST.  (see Insertion position constants) 
      * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
      *      menuItem will be positioned relative to. Required when position is 
-     *      AFTER or BEFORE, ignored when position is FIRST or LAST
+     *      AFTER or BEFORE, ignored when position is FIRST or LAST.
      * 
      * @return {MenuItem} newly created menuItem for sub-menu
      */
@@ -454,6 +399,62 @@ define(function (require, exports, module) {
         var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
         $menuItem.text(command.getName());
     };
+    
+    /**
+     * Adds a top-level menu to the application menu bar which may be native or HTML-based.
+     *
+     * @param {!string} name - display text for menu 
+     * @param {!string} id
+     * @param {?string} position - constant defining the position of new the Menu relative
+     *  to other Menus. Default is LAST (see Insertion position constants).
+     *      
+     * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to. Required
+     *      when position is AFTER or BEFORE, ignored when position is FIRST or LAST
+     * 
+     * @return {Menu} the newly created Menu
+     */
+    function addMenu(name, id, position, relativeID) {
+        name = StringUtils.htmlEscape(name);
+        var $menubar = $("#main-toolbar .nav"),
+            menu;
+
+        if (!name || !id) {
+            throw new Error("call to addMenu() is missing required parameters");
+        }
+        
+        // Guard against duplicate menu ids
+        if (menuMap[id]) {
+            throw new Error("Menu added with same name and id of existing Menu: " + id);
+        }
+
+        menu = new Menu(id);
+        menuMap[id] = menu;
+
+        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>")
+            .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
+            .append("<ul class='dropdown-menu'></ul>");
+
+
+        // TODO: relative logic
+        if (relativeID) {
+            var relative = _getHTMLMenu(relativeID);
+            // TODO: handle not found
+            relative.after($newMenu);
+        } else {
+            $menubar.append($newMenu);
+        }
+
+        // todo error handling
+
+        return menu;
+    }
+
+    /** NOT IMPLEMENTED
+     * Removes Menu
+     */
+    // function removeMenu(id) {
+    //     NOT IMPLEMENTED
+    // }
 
 
     function init() {
@@ -462,7 +463,7 @@ define(function (require, exports, module) {
          * File menu
          */
         var menu;
-        menu = addMenu(Strings.FILE_MENU, appMenuBar.FILE_MENU);
+        menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
         menu.addMenuItem("menu-file-new",                Commands.FILE_NEW,         "Ctrl-N");
         menu.addMenuItem("menu-file-open",               Commands.FILE_OPEN,        "Ctrl-O");
         menu.addMenuItem("menu-file-open-folder",        Commands.FILE_OPEN_FOLDER);
@@ -478,7 +479,7 @@ define(function (require, exports, module) {
         /*
          * Edit  menu
          */
-        menu = addMenu(Strings.EDIT_MENU, appMenuBar.EDIT_MENU);
+        menu = addMenu(Strings.EDIT_MENU, AppMenuBar.EDIT_MENU);
         menu.addMenuItem("menu-edit-select-all",         Commands.EDIT_SELECT_ALL,   "Ctrl-A");
         menu.addMenuDivider();
         menu.addMenuItem("menu-edit-find",               Commands.EDIT_FIND,         "Ctrl-F");
@@ -503,7 +504,7 @@ define(function (require, exports, module) {
         /*
          * View menu
          */
-        menu = addMenu(Strings.VIEW_MENU, appMenuBar.VIEW_MENU);
+        menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
         menu.addMenuItem("menu-view-sidebar",            Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
         menu.addMenuDivider();
         menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, "Ctrl-=");
@@ -512,7 +513,7 @@ define(function (require, exports, module) {
         /*
          * Navigate menu
          */
-        menu = addMenu(Strings.NAVIGATE_MENU, appMenuBar.NAVIGATE_MENU);
+        menu = addMenu(Strings.NAVIGATE_MENU, AppMenuBar.NAVIGATE_MENU);
         menu.addMenuItem("menu-navigate-quick-open",  Commands.NAVIGATE_QUICK_OPEN,
                                                                                                         "Ctrl-Shift-O");
         menu.addMenuItem("menu-navigate-goto-line",   Commands.NAVIGATE_GOTO_LINE,
@@ -531,7 +532,7 @@ define(function (require, exports, module) {
         /*
          * Debug menu
          */
-        menu = addMenu(Strings.DEBUG_MENU, appMenuBar.DEBUG_MENU);
+        menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
         menu.addMenuItem("menu-debug-reload-wn",      Commands.DEBUG_REFRESH_WINDOW,
                                                                             [{key: "F5",     platform: "win"},
                                                                              {key: "Ctrl-R", platform:  "mac"}]);
@@ -566,8 +567,8 @@ define(function (require, exports, module) {
 
     // Define public API
     exports.init = init;
-    exports.appMenuBar = appMenuBar;
-    exports.menuSection = menuSection;
+    exports.AppMenuBar = AppMenuBar;
+    exports.MenuSection = MenuSection;
     exports.BEFORE = BEFORE;
     exports.AFTER = AFTER;
     exports.LAST = LAST;

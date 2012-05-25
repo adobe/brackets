@@ -137,7 +137,7 @@ define(function (require, exports, module) {
      * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other.
-     * @param {?string} platform - the target OS of the keyBindings. If undefined, all platforms will use
+     * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
      *      the key binding.
      *
      * TODO: MenuItems don't yet update the displayed keyboard shortcut if the keybinding is changed
