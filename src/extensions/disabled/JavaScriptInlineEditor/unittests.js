@@ -32,10 +32,11 @@ define(function (require, exports, module) {
         DocumentManager,        // loaded from brackets.test
         EditorManager,          // loaded from brackets.test
         FileIndexManager,       // loaded from brackets.test
-        FileUtils,              // loaded from brackets.test
         FileViewController,     // loaded from brackets.test
-        NativeFileSystem,       // loaded from brackets.test
         ProjectManager,         // loaded from brackets.test
+        
+        FileUtils = brackets.getModule("file/FileUtils"),
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils.js");
 
     // Local modules
@@ -54,21 +55,6 @@ define(function (require, exports, module) {
             testWindow,
             initInlineTest;
 
-        NativeFileSystem = brackets.getModule(["file/NativeFileSystem"], function (dependency) {
-            console.log("finished loading NativeFileSystem");
-        }).NativeFileSystem;
-//        var nfsLoaded = false;
-//        runs(function () {
-//            NativeFileSystem = brackets.getModule(["file/NativeFileSystem"], function (dependency) {
-//                nfsLoaded = true;
-//            }).NativeFileSystem;
-//        });
-//        waitsFor(function () { return nfsLoaded; }, "brackets.getModule('file/NativeFileSystem') timeout", 1000);
-//        
-//        function toRange(startLine, endLine) {
-//            return {startLine: startLine, endLine: endLine};
-//        }
-        
         function rewriteProject(spec) {
             var result = new $.Deferred();
         
@@ -183,7 +169,6 @@ define(function (require, exports, module) {
                     CommandManager      = testWindow.brackets.test.CommandManager;
                     DocumentManager     = testWindow.brackets.test.DocumentManager;
                     FileIndexManager    = testWindow.brackets.test.FileIndexManager;
-                    FileUtils           = testWindow.brackets.test.FileUtils;
                     FileViewController  = testWindow.brackets.test.FileViewController;
                     ProjectManager      = testWindow.brackets.test.ProjectManager;
                 });
@@ -301,20 +286,9 @@ define(function (require, exports, module) {
         var toMatchFunctionName = function (expected) {
             return this.actual.functionName.trim() === expected;
         };
-        
-        console.log("[unittests.js] referencing NativeFileSystem");
-        var simpleJsFileEntry      = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/simple.js");
-        
-//        console.log("[unittests.js] started loading FileUtils");
-        var fuLoaded = false;
-        runs(function () {
-            FileUtils = brackets.getModule(["file/FileUtils"], function (dependency) {
-                //console.log("[unittests.js] finished loading FileUtils");
-                fuLoaded = true;
-            });
-        });
-        waitsFor(function () { return fuLoaded; }, "brackets.getModule('file/FileUtils') timeout", 1000);
-            
+
+        var simpleJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/simple.js");
+
         function init(spec, fileEntry) {
             spec.fileJsContent = null;
             
@@ -335,7 +309,7 @@ define(function (require, exports, module) {
         }
 
         describe("JSUtils", function () {
-            
+
             beforeEach(function () {
                 init(this);
             });
@@ -371,23 +345,21 @@ define(function (require, exports, module) {
                     });
                     
                     runs(function () {
-                        expectFunctionRanges(this, this.fileJsContent, "simple1", [ {start:  1, end:  3} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "simple1", [ {start:  0, end:  2} ]);
                         expectFunctionRanges(this, this.fileJsContent, "simple2", [ {start:  7, end:  9} ]);
                         expectFunctionRanges(this, this.fileJsContent, "simple3", [ {start: 11, end: 13} ]);
                     });
                 });
                 
-/***
                 it("should return correct start and end line numbers for parameterized functions", function () {
                     runs(function () {
                         init(this, simpleJsFileEntry);
                     });
                     
                     runs(function () {
-                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
-                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
-                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
-                            [ {start: 16, end: 18} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "param1", [ {start: 18, end: 19} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "param2", [ {start: 24, end: 26} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "param3", [ {start: 28, end: 32} ]);
                     });
                 });
                 
@@ -397,10 +369,9 @@ define(function (require, exports, module) {
                     });
                     
                     runs(function () {
-                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
-                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
-                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
-                            [ {start: 16, end: 18} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "single1", [ {start: 35, end: 35} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "single2", [ {start: 36, end: 36} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "single3", [ {start: 37, end: 37} ]);
                     });
                 });
                 
@@ -410,10 +381,9 @@ define(function (require, exports, module) {
                     });
                     
                     runs(function () {
-                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
-                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
-                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
-                            [ {start: 16, end: 18} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "nested1", [ {start: 42, end: 50} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "nested2", [ {start: 44, end: 49} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "nested3", [ {start: 47, end: 48} ]);
                     });
                 });
                 
@@ -423,13 +393,11 @@ define(function (require, exports, module) {
                     });
                     
                     runs(function () {
-                        expectFunctionRanges(this, this.fileJsContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
-                        expectFunctionRanges(this, this.fileJsContent, ".firstGrade", [ {start: 8, end: 10} ]);
-                        expectFunctionRanges(this, this.fileJsContent, "#brack3ts",
-                            [ {start: 16, end: 18} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "functionX",   [ {start: 53, end: 55} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "my_function", [ {start: 56, end: 57} ]);
+                        expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
                     });
                 });
-***/
             });
 
 /***
@@ -465,6 +433,7 @@ define(function (require, exports, module) {
                 });
             });
 ***/
+            
         }); // describe("JSUtils")
     
 /***        
