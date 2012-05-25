@@ -133,13 +133,15 @@ define(function (require, exports, module) {
     /**
      * Add one or more key bindings to a particular Command.
      * 
-     *
      * @param {string} commandID
      * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other.
      * @param {?string} platform - the target OS of the keyBindings. If undefined, all platforms will use
      *      the key binding.
+     *
+     * TODO: MenuItems don't yet update the displayed keyboard shortcut if the keybinding is changed
+     * after menu creation
      */
     function addBinding(commandID, keyBindings, platform) {
         if (!_keymap) { _initializeKeymap(); }
@@ -159,6 +161,8 @@ define(function (require, exports, module) {
         } else {
             _addBinding(commandID, keyBindings, platform);
         }
+
+        // TODO: dispatch add event
     }
 
     /**
@@ -178,6 +182,8 @@ define(function (require, exports, module) {
         } else if (_isKeyAssigned(normalizedKey)) {
             delete _keymap.map[normalizedKey];
         }
+
+        // TODO: dispatch remove event
     }
 
     // Define public API

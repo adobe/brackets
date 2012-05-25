@@ -133,7 +133,7 @@ define(function (require, exports, module) {
     exports.CMD_FILE_CLOSE_ALL                  = "Close All";
     exports.CMD_FILE_SAVE                       = "Save";
     exports.CMD_LIVE_FILE_PREVIEW               = "Live File Preview";
-    exports.CMD_QUIT                            =  "Quit";
+    exports.CMD_QUIT                            = "Quit";
 
     // Edit menu ccmmands
     exports.EDIT_MENU                           = "Edit";

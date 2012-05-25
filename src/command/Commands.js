@@ -74,6 +74,8 @@ define(function (require, exports, module) {
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 
+    // Debug
+    exports.DEBUG_EXPERIMENTAL          = "debug.experimental";
     exports.DEBUG_REFRESH_WINDOW        = "debug.refreshWindow"; // string must MATCH string in native code (brackets_extensions)
     exports.DEBUG_SHOW_DEVELOPER_TOOLS  = "debug.showDeveloperTools";
     exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
@@ -84,7 +86,7 @@ define(function (require, exports, module) {
     exports.DEBUG_USE_TAB_CHARS         = "debug.useTabChars";
 
 	// Command that does nothing. Can be used for place holder menuItems
-    exports.NO_OP                       = "noOp";
+    
     exports.HELP_ABOUT                  = "help.about";
 });
 

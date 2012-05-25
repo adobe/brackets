@@ -31,9 +31,6 @@
   */
 define(function (require, exports, module) {
     'use strict';
-
-    // Load dependent modules
-    var StringUtils         = require("utils/StringUtils");
     
     /**
      * Map of all registered global commands
@@ -48,22 +45,18 @@ define(function (require, exports, module) {
      * @param {string} name - text that will be displayed in the UI to represent command
      * @param {string} id
      * @param {function} commandFn - the function that is called when the command is executed.
-     * @param {?function} isEnabledFn - callback function that returns true when 
-     *      the command is enabled.
      *
      * TODO: where should this be triggered, The Command or Exports?
      * Events:
      *      enabledStateChange
      *      checkedStateChange
      */
-    function Command(name, id, commandFn, isEnabledFn) {
+    function Command(name, id, commandFn) {
         this._name = name;
         this._id = id;
         this._commandFn = commandFn;
         this._checked = undefined;
         this._enabled = true;
-        this._isEnabledFn = isEnabledFn;
-
     }
 
     /** @return {Command} */
@@ -133,7 +126,6 @@ define(function (require, exports, module) {
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
-        name = StringUtils.htmlEscape(name);
         var changed = this._name !== name;
         this._name = name;
 
