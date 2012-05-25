@@ -426,6 +426,10 @@ define(function (require, exports, module) {
         // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
         return testWindow.brackets.test.EditorManager._openInlineWidget(editor);
     }
+    
+    function getTestWindow() {
+        return testWindow;
+    }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
@@ -443,4 +447,5 @@ define(function (require, exports, module) {
     exports.saveFilesWithOffsets        = saveFilesWithOffsets;
     exports.saveFilesWithoutOffsets     = saveFilesWithoutOffsets;
     exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
+    exports.getTestWindow               = getTestWindow;
 });

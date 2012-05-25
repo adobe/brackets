@@ -58,6 +58,49 @@ define(function (require, exports, module) {
     var updatableTests = {};
     
     /**
+     * Hash of measurement IDs
+     */
+    var perfMeasurementIds = {};
+    
+    /**
+     * @private
+     * A unique key to log performance data
+     *
+     * @param {!string} id Unique ID for this measurement name
+     * @param {!name} name A short name for this measurement
+     */
+    function PerfMeasurement(id, name) {
+        this.id = id;
+        this.name = name;
+    }
+    
+    /**
+     * Create a new PerfMeasurement key. Adds itself to the module export.
+     * Can be accessed on the module, e.g. PerfUtils.MY_PERF_KEY.
+     *
+     * @param {!string} id Unique ID for this measurement name
+     * @param {!name} name A short name for this measurement
+     */
+    function createPerfMeasurement(id, name) {
+        if (perfMeasurementIds[id]) {
+            throw new Error("Performance measurement " + id + " is already defined");
+        }
+        
+        var pm = new PerfMeasurement(id, name);
+        exports[id] = pm;
+        
+        return pm;
+    }
+    
+    /**
+     * @private
+     * Convert a PerfMeasurement instance to it's id. Otherwise uses the string name for backwards compatibility.
+     */
+    function toMeasurementId(o) {
+        return (o instanceof PerfMeasurement) ? o.id : o;
+    }
+    
+    /**
      * @private
      * Helper function for markStart()
      *
@@ -91,6 +134,7 @@ define(function (require, exports, module) {
         }
 
         var time = brackets.app.getElapsedMilliseconds();
+        name = toMeasurementId(name);
 
         // Array of names can be passed in to have multiple timers with same start time
         if (Array.isArray(name)) {
@@ -122,6 +166,7 @@ define(function (require, exports, module) {
         }
 
         var elapsedTime = brackets.app.getElapsedMilliseconds();
+        name = toMeasurementId(name);
         
         if (activeTests[name]) {
             elapsedTime -= activeTests[name].startTime;
@@ -252,12 +297,39 @@ define(function (require, exports, module) {
 
         return result;
     }
+    
+    /**
+     * Returns the measured value for the given measurement name.
+     * @param {string|PerfMeasurement} name The measurement to retreive.
+     */
+    function getData(name) {
+        if (!name) {
+            return perfData;
+        }
+        
+        return perfData[toMeasurementId(name)];
+    }
+    
+    /**
+     * Clear all logs including metric data and active tests.
+     */
+    function clear() {
+        perfData = {};
+        activeTests = {};
+        updatableTests = {};
+    }
+    
+    // create performance measurement constants
+    createPerfMeasurement("OPEN_INLINE_EDITOR", "Open inline editor");
+    createPerfMeasurement("OPEN_FILE", "Open file");
 
     exports.addMeasurement          = addMeasurement;
     exports.finalizeMeasurement     = finalizeMeasurement;
     exports.isActive                = isActive;
     exports.markStart               = markStart;
-    exports.perfData                = perfData;
+    exports.getData                 = getData;
     exports.updateMeasurement       = updateMeasurement;
     exports.getDelimitedPerfData    = getDelimitedPerfData;
+    exports.createPerfMeasurement   = createPerfMeasurement;
+    exports.clear                   = clear;
 });

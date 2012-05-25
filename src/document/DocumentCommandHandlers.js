@@ -137,9 +137,9 @@ define(function (require, exports, module) {
             return promise;
         }
         
-        var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
+        PerfUtils.markStart(PerfUtils.OPEN_FILE);
         result.always(function () {
-            PerfUtils.addMeasurement(perfTimerName);
+            PerfUtils.addMeasurement(PerfUtils.OPEN_FILE);
         });
         
         // Load the file if it was never open before, and then switch to it in the UI

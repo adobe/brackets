@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         }
 
         if (!_testWindow) {
-            _testWindow = window.open("../test/SpecRunner.html");
+            _testWindow = window.open("../test/SpecRunner.html", "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
             _testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
         }
     }
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         };
             
         var testName;
-        var perfData = PerfUtils.perfData;
+        var perfData = PerfUtils.getData();
         for (testName in perfData) {
             if (perfData.hasOwnProperty(testName)) {
                 // Add row to error table

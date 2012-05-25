@@ -21,43 +21,23 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require: false, define: false, $: false, beforeEach: false, afterEach: false */
+/*global require, define, $, beforeEach, afterEach, jasmine, brackets */
 
 // Set the baseUrl to brackets/src
 require.config({
-    baseUrl: "../src"
+    baseUrl: "../src"/*,
+    urlArgs: "bust=" + (new Date()).getTime() // cache busting */
 });
 
 define(function (require, exports, module) {
     'use strict';
     
     // Utility dependency
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils.js");
-
-    // Load test specs
-    require("spec/LowLevelFileIO-test.js");
-    require("spec/DocumentCommandHandlers-test.js");
-    require("spec/NativeFileSystem-test.js");
-    require("spec/PreferencesManager-test.js");
-    require("spec/Editor-test.js");
-    require("spec/EditorCommandHandlers-test.js");
-    require("spec/ProjectManager-test.js");
-    require("spec/WorkingSetView-test.js");
-    require("spec/KeyMap-test.js");
-    require("spec/FileIndexManager-test.js");
-    require("spec/CodeHintUtils-test.js");
-    require("spec/CSSUtils-test.js");
-    require("spec/InlineEditorProviders-test.js");
-    require("spec/MultiRangeInlineEditor-test.js");
-    require("spec/LiveDevelopment-test.js");
-    require("spec/ViewUtils-test.js");
-
-    // AUTOMATED PERFORMANCE
-    // Disabled in repo. Uncomment to run performance tests
-    // TODO: set up separate performance tests suite that can be run from the debug menu
-    //require("spec/Performance-test.js");
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils.js"),
+        PerformanceReporter = require("perf/PerformanceReporter.js").PerformanceReporter;
+    
+    var suite;
     
     beforeEach(function () {
         // Unique key for unit testing
@@ -68,4 +48,71 @@ define(function (require, exports, module) {
         // Clean up preferencesKey
         localStorage.removeItem("preferencesKey");
     });
+        
+    function getParamMap() {
+        var params = document.location.search.substring(1).split('&'),
+            paramMap = {},
+            i,
+            p;
+    
+        for (i = 0; i < params.length; i++) {
+            p = params[i].split('=');
+            paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+        }
+        
+        return paramMap;
+    }
+    
+    function init() {
+        var jasmineEnv = jasmine.getEnv(),
+            runner = jasmineEnv.currentRunner(),
+            currentWindowOnload = window.onload;
+        
+        jasmineEnv.updateInterval = 1000;
+        
+        window.onload = function () {
+            if (currentWindowOnload) {
+                currentWindowOnload();
+            }
+            
+            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document));
+            
+            $("#show-dev-tools").click(function () {
+                brackets.app.showDeveloperTools();
+            });
+            $("#reload").click(function () {
+                window.location.reload(true);
+            });
+            
+            suite = getParamMap().suite;
+            
+            if (!suite) {
+                suite = localStorage.getItem("SpecRunner.suite");
+                
+                if (!suite) {
+                    suite = "UnitTestSuite";
+                }
+            }
+            
+            // add performance reporting
+            if (suite === "PerformanceTestSuite") {
+                jasmineEnv.addReporter(new PerformanceReporter());
+            }
+            
+            localStorage.setItem("SpecRunner.suite", suite);
+            
+            $("#" + suite).closest("li").toggleClass("active", true);
+            
+            var jsonResult = $.getJSON(suite + ".json");
+            
+            jsonResult.done(function (data) {
+                // load specs and run jasmine
+                require(data.specs, function () {
+                    jasmineEnv.execute();
+                });
+            });
+        };
+    }
+
+    init();
 });
