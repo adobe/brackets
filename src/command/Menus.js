@@ -575,8 +575,6 @@ define(function (require, exports, module) {
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
     exports.addMenu = addMenu;
-    exports.removeMenu = removeMenu;
-    exports.removeMenuItem = removeMenuItem;
     exports.formatKeyCommand = formatKeyCommand;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
