@@ -37,7 +37,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils.js"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         FileIndexManager    = require("project/FileIndexManager"),
-        FileUtils           = require("../src/file/FileUtils"),
+        FileUtils           = require("file/FileUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem;
 
     // Load test specs
