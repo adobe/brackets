@@ -154,7 +154,7 @@ define(function (require, exports, module) {
 
             isMouseDown = true;
             
-            // take away the shadows
+            // take away the shadows (for performance reasons during sidebarmovement)
             $sidebar.find(".scroller-shadow").css("display", "none");
             
             $body.toggleClass("resizing");
@@ -164,6 +164,8 @@ define(function (require, exports, module) {
             }
             
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+                // only run this if the mouse is down so we don't constantly loop even 
+                // after we're done resizing.
                 if (isMouseDown) {
                     // if we've gone below 10 pixels on a mouse move, and the
                     // sidebar is shrinking, hide the sidebar automatically an
@@ -186,7 +188,9 @@ define(function (require, exports, module) {
                         if (newWidth > 10) {
                             forceTriangle = true;
                         }
-                    
+                        // for right now, displayTriangle is always going to be false for _setWidth
+                        // because we want to hide it when we move, and _setWidth only gets called
+                        // on mousemove now.
                         _setWidth(newWidth, false, false);
                     }
                 
