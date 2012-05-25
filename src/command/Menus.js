@@ -86,7 +86,7 @@ define(function (require, exports, module) {
 
     /**
      * Maps menuID's to Menu objects
-     * @type {Object.<strig, Menu>}
+     * @type {Object.<string, Menu>}
      */
     var menuMap = {};
 
@@ -410,7 +410,7 @@ define(function (require, exports, module) {
     // };
 
     /**
-     * Gets the Command assoicated with a MenuItem
+     * Gets the Command associated with a MenuItem
      * @return {Command}
      */
     MenuItem.prototype.getCommand = function () {

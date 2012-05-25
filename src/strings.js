@@ -135,7 +135,7 @@ define(function (require, exports, module) {
     exports.CMD_LIVE_FILE_PREVIEW               = "Live File Preview";
     exports.CMD_QUIT                            = "Quit";
 
-    // Edit menu ccmmands
+    // Edit menu commands
     exports.EDIT_MENU                           = "Edit";
     exports.CMD_SELECT_ALL                      = "Select All";
     exports.CMD_FIND                            = "Find";
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
     exports.CMD_INCREASE_FONT_SIZE              = "Increase Font Size";
     exports.CMD_DECREASE_FONT_SIZE              = "Decrease Font Size";
 
-    // Naviate menu Commands
+    // Navigate menu Commands
     exports.NAVIGATE_MENU                       = "Navigate";
     exports.CMD_QUICK_OPEN                      = "Quick Open";
     exports.CMD_GOTO_LINE                       = "Go to Line";
