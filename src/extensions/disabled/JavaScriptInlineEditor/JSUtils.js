@@ -40,9 +40,9 @@ define(function (require, exports, module) {
     // Return an Array with names and offsets for all functions in the specified text
     function _findAllFunctionsInText(text) {
         var result = [];
-        var regexA = new RegExp(/(function\b)(.+)\b\(.*?\)/gi);  // recognizes the form: function functionName()
-        var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\(.*?\))/gi); // recognizes the form: functionName = function()
-        var regexC = new RegExp(/((\w+)\s*:\s*function\s*\(.*?\))/gi); // recognizes the form: functionName: function()
+        var regexA = new RegExp(/(function\b)([^)]+)\b\([^)]*\)/gi);  // recognizes the form: function functionName()
+        var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\([^)]*\))/gi); // recognizes the form: functionName = function()
+        var regexC = new RegExp(/((\w+)\s*:\s*function\s*\([^)]*\))/gi); // recognizes the form: functionName: function()
         var match;
         
         while ((match = regexA.exec(text)) !== null) {
