@@ -33,6 +33,7 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("command/KeyBindingManager"),
         EditorManager           = require("editor/EditorManager"),
         Strings                 = require("strings"),
+        StringUtils             = require("utils/StringUtils"),
         CommandManager          = require("command/CommandManager");
 
     /**
@@ -54,7 +55,7 @@ define(function (require, exports, module) {
      * in terms of a menu section rather than a specific MenuItem. This provides
      * looser coupling to Bracket's internal MenuItems and makes menu organization
      * more semantic. 
-     * Use these constants as the "relativeID" parameter when calling AddMenuItem() and
+     * Use these constants as the "relativeID" parameter when calling addMenuItem() and
      * specify a position of FIRST or LAST.
      */
     var FILE_OPEN_CLOSE_MENU_SECTION         = "brackets-file-open-close-menu-group";
@@ -65,8 +66,6 @@ define(function (require, exports, module) {
     var EDIT_FIND_MENU_SECTION               = "brackets-find-menu-group";
     var EDIT_REPLACE_MENU_SECTION            = "brackets-replace-menu-group";
     var EDIT_SELECTED_TEXT_COMMANDS          = "brackets-selected-text-commands";
-
-    // View menu edit group placeholder
 
     var NAVIGATE_GOTO_MENU_SECTION           = "brackets-goto-menu-group";
     var NAVIGATE_QUICK_EDIT_MENU_SECTION     = "brackets-quick-edit-menu-group";
@@ -129,7 +128,7 @@ define(function (require, exports, module) {
      */
     function MenuItem(id, command) {
         this.id = id;
-        this._command = command;
+        this.setCommand(command);
         this._clickHandler = undefined;
     }
 
@@ -174,6 +173,7 @@ define(function (require, exports, module) {
      * @return {Menu} the newly created Menu
      */
     function addMenu(name, id, position, relativeID) {
+        name = StringUtils.htmlEscape(name);
         var $menubar = $("#main-toolbar .nav"),
             menu;
 
@@ -259,8 +259,8 @@ define(function (require, exports, module) {
      *      will be bound to the supplied Command object rather than the MenuItem.
      * 
      * @param {!string} id
-     * @param {(string | Command)} command - the command the menu will execute. Use "---" for a menu divider
-     * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - register one
+     * @param {!string | Command} command - the command the menu will execute. Use "---" for a menu divider
+     * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
@@ -275,25 +275,22 @@ define(function (require, exports, module) {
             menuItem;
 
         if (!id || !command) {
-            throw new Error("addMenuItem(): missing required parameters");
+            throw new Error("addMenuItem(): missing required parameters. id: " + id);
         }
 
         if (menuItemMap[id]) {
-            throw new Error("MenuItem added with same name and id of existing MenuItem: " + id);
+            throw new Error("MenuItem added with same id of existing MenuItem: " + id);
         }
 
-        if (keyBindings && !command) {
-            throw new Error("addMenuItem(): keyBindings specified but missing command parameter");
-        }
-
-        var name;
+        var name, commandID;
         if (typeof (command) === "string") {
             if (command === "---") {
                 name = "---";
             } else {
-                command = CommandManager.get(command);
+                commandID = command;
+                command = CommandManager.get(commandID);
                 if (!command) {
-                    throw new Error("addMenuItem(): commandID not found");
+                    throw new Error("addMenuItem(): commandID not found: " + commandID);
                 }
                 name = command.getName();
             }
@@ -303,11 +300,8 @@ define(function (require, exports, module) {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
             // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + name + "</span></a></li>");
+            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + StringUtils.htmlEscape(name) + "</span></a></li>");
 
-
-            
-            
             // Add key bindings
             if (keyBindings) {
                 if (!$.isArray(keyBindings)) {
@@ -334,11 +328,6 @@ define(function (require, exports, module) {
 
         menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
-
-        // Connect MenuItem to Ccommand
-        if (!menuItem.isDivider()) {
-            menuItem.setCommand(command);
-        }
 
         return menuItem;
     };
@@ -398,6 +387,10 @@ define(function (require, exports, module) {
      * @param {Command}
      */
     MenuItem.prototype.setCommand = function (command) {
+        if(this.isDivider()) {
+            return;
+        }
+
         var menu = _getHTMLMenuItem(this.id);
         var oldCommand = this._command;
         this._command = command;
@@ -440,7 +433,7 @@ define(function (require, exports, module) {
      * @return {boolean}
      */
     MenuItem.prototype.isDivider = function () {
-        return this.name === "---";
+        return this.command === "---";
     };
 
     /**

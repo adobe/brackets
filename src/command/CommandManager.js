@@ -31,6 +31,9 @@
   */
 define(function (require, exports, module) {
     'use strict';
+
+    // Load dependent modules
+    var StringUtils         = require("utils/StringUtils");
     
     /**
      * Map of all registered global commands
@@ -130,6 +133,7 @@ define(function (require, exports, module) {
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
+        name = StringUtils.htmlEscape(name);
         var changed = this._name !== name;
         this._name = name;
 
@@ -163,7 +167,7 @@ define(function (require, exports, module) {
             throw new Error("Attempting to register an already-registered command: " + id);
         }
         if (!name || !id || !commandFn) {
-            throw new Error("Attempting to register a command with a missing name, id, or command function");
+            throw new Error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
         }
 
         var command = new Command(name, id, commandFn);

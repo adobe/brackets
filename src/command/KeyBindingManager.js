@@ -70,7 +70,7 @@ define(function (require, exports, module) {
      * @param {?string} platform - undefined indicates all platofmrs
      */
     function _addBinding(commandID, key, platform) {
-        if (!commandID || !key || platform !== brackets.platform) {
+        if (!commandID || !key || (platform && platform !== brackets.platform)) {
             return;
         }
 
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
      * @param {string} platform - the intended OS of the key.
      */
     function removeBinding(key, platform) {
-        if (!key || !_keymap || platform !== brackets.platform) {
+        if (!key || !_keymap || (platform && platform !== brackets.platform)) {
             return;
         }
 
