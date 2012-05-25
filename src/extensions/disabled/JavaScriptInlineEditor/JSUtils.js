@@ -280,9 +280,14 @@ define(function (require, exports, module) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         
-        allFunctions.forEach(function (entry) {
-            if (entry.name === functionName) {
-                result.push(entry);
+        allFunctions.forEach(function (funcEntry) {
+            if (funcEntry.functionName === functionName) {
+                var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
+                result.push({
+                    name: funcEntry.functionName,
+                    lineStart: _offsetToLineNum(text, funcEntry.offset),
+                    lineEnd: _offsetToLineNum(text, endOffset)
+                });
             }
         });
         
