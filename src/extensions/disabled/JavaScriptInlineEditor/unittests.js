@@ -280,6 +280,7 @@ define(function (require, exports, module) {
             });
         });
         
+
         // Verifies whether one of the results returned by JSUtils._findAllMatchingFunctionsInText()
         // came from the expected function name or not.
  
@@ -437,20 +438,21 @@ define(function (require, exports, module) {
             });
             
         }); // describe("JSUtils")
-    
-/***        
-        describe("CSS Parsing: ", function () {
+        
+/*** 
+
+    // SpecRunnerUtils.loadProjectInTestWindow(path) is failing for these...
+
+        describe("JS Parsing: ", function () {
             
-            var lastCssCode,
+            var lastJsCode,
                 match,
                 expectParseError;
             
-            // Test helper function; tagInfo object contains one of: tag, id, clazz. Tests against only
-            // the given jsCode string in isolation (no CSS files are loaded). If tagInfo not specified,
-            // returns no results; only tests that parsing plus a simple search won't crash.
+            // Test helper function; tests that parsing plus a simple search won't crash.
     
             var _match = function (jsCode, tagInfo) {
-                lastCssCode = jsCode;
+                lastJsCode = jsCode;
                 try {
                     return JSUtils._findAllMatchingFunctionsInText(jsCode, tagInfo);
                 } catch (e) {
@@ -458,11 +460,6 @@ define(function (require, exports, module) {
                     return [];
                 }
             };
-            
-            // Tests against the same CSS text as the last call to match()
-            function matchAgain(tagInfo) {
-                return match(lastCssCode, tagInfo);
-            }
             
             
             // Test helper function: expects CSS parsing to fail at the given 0-based offset within the
@@ -489,21 +486,19 @@ define(function (require, exports, module) {
     
             describe("Working with unsaved changes", function () {
                 var testPath = extensionPath + "/unittest-files",
-                    JSUtils,
-                    DocumentManager,
-                    FileViewController,
-                    ProjectManager,
                     brackets;
         
                 beforeEach(function () {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                         // Load module instances from brackets.test
                         brackets            = testWindow.brackets;
-                        JSUtils             = brackets.test.JSUtils;
+                        CommandManager      = brackets.test.CommandManager;
                         DocumentManager     = brackets.test.DocumentManager;
+                        EditorManager       = brackets.test.EditorManager;
+                        FileIndexManager    = brackets.test.FileIndexManager;
                         FileViewController  = brackets.test.FileViewController;
                         ProjectManager      = brackets.test.ProjectManager;
-    
+
                         SpecRunnerUtils.loadProjectInTestWindow(testPath);
                     });
                 });
@@ -517,14 +512,14 @@ define(function (require, exports, module) {
                         gotError = false;
                     
                     runs(function () {
-                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                        FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
                             .done(function () { didOpen = true; })
                             .fail(function () { gotError = true; });
                     });
                     
                     waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                     
-                    var rules = null;
+                    var functions = null;
                     
                     runs(function () {
                         var doc = DocumentManager.getCurrentDocument();
@@ -532,17 +527,17 @@ define(function (require, exports, module) {
                         // Add several blank lines at the beginning of the text
                         doc.setText("\n\n\n\n" + doc.getText());
                         
-                        // Look for ".FIRSTGRADE"
-                        JSUtils.findMatchingFunctions(".FIRSTGRADE")
-                            .done(function (result) { rules = result; });
+                        // Look for "simple2" function
+                        JSUtils.findMatchingFunctions("simple2")
+                            .done(function (result) { functions = result; });
                     });
                     
-                    waitsFor(function () { return rules !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
                     
                     runs(function () {
-                        expect(rules.length).toBe(1);
-                        expect(rules[0].lineStart).toBe(16);
-                        expect(rules[0].lineEnd).toBe(18);
+                        expect(functions.length).toBe(1);
+                        expect(functions[0].lineStart).toBe(11);
+                        expect(functions[0].lineEnd).toBe(13);
                     });
                 });
                 
@@ -551,36 +546,36 @@ define(function (require, exports, module) {
                         gotError = false;
                     
                     runs(function () {
-                        FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                        FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
                             .done(function () { didOpen = true; })
                             .fail(function () { gotError = true; });
                     });
                     
                     waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                     
-                    var rules = null;
+                    var functions = null;
                     
                     runs(function () {
                         var doc = DocumentManager.getCurrentDocument();
                         
-                        // Add a new selector to the file
-                        doc.setText(doc.getText() + "\n\n.TESTSELECTOR {\n    font-size: 12px;\n}\n");
+                        // Add a new function to the file
+                        doc.setText(doc.getText() + "\n\nfunction TESTFUNCTION() {\n    return true;\n}\n");
                         
                         // Look for the selector we just created
-                        JSUtils.findMatchingFunctions(".TESTSELECTOR")
-                            .done(function (result) { rules = result; });
+                        JSUtils.findMatchingFunctions(".TESTFUNCTION")
+                            .done(function (result) { functions = result; });
                     });
                     
-                    waitsFor(function () { return rules !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
                     
                     runs(function () {
-                        expect(rules.length).toBe(1);
-                        expect(rules[0].lineStart).toBe(24);
-                        expect(rules[0].lineEnd).toBe(26);
+                        expect(functions.length).toBe(1);
+                        expect(functions[0].lineStart).toBe(24);
+                        expect(functions[0].lineEnd).toBe(26);
                     });
                 });
             });
-        }); //describe("CSS Parsing")
+        }); //describe("JS Parsing")
 ***/
     });
 });
