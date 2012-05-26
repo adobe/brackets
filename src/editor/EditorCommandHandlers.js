@@ -72,7 +72,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Turns a comment into a regular expression with optional leading or trailing spaces.
+     * Turns a comment into a regular expression with optional leading and trailing spaces.
      */
     function _commentToRegExp(comment, includeLeadingWhitespace, includeTrailingWhitespace) {
         var commentStr = "";
@@ -116,11 +116,11 @@ define(function (require, exports, module) {
         if (firstLine.match(_commentToRegExp(startComment, (type === "line"), false))) {
             addComments = false;
         }
-        
+                
         // TODO (#803): should go through Document, not editor._codeMirror
         
         if (type === "block") {
-            if (addComments) {
+            if (addComments) { // Adding block comments.
                 cm.operation(function () {
                     if (selectionInfo.endCh === 0 || selectionInfo.endCh === selectionInfo.startCh) {
                         endCommentIndex = lastLine.length;
@@ -138,7 +138,8 @@ define(function (require, exports, module) {
                 
 
                 // Position the cursor or move the selection.
-                // If text is selected...
+                
+                // If text is selected.
                 if (origSel.start.ch !== origSel.end.ch || origSel.start.line !== origSel.end.line) {
                     if (startCommentIndex === origSel.start.ch) {
                         origSel.start.ch += startComment.length;
@@ -146,7 +147,7 @@ define(function (require, exports, module) {
                     if (origSel.start.line === origSel.end.line) {
                         origSel.end.ch += startComment.length;
                     }
-                } else { // If text is not selected...
+                } else { // If text is not selected.
                     if (origSel.start.ch > endCommentIndex) {
                         origSel.start.ch += (startComment.length + endComment.length);
                         origSel.end.ch += (startComment.length + endComment.length);
@@ -201,6 +202,8 @@ define(function (require, exports, module) {
     /**
      * Figures out if line or block comments should be used and defines the open and close comment
      * strings. If block comments are requested but not supported, it falls back on line.
+     * 
+     * To support additional languages, just add the mode and comment characters here.
      */
     function _defineCommentData(editor, type) {
         var mode = editor.getModeForSelection();
@@ -221,15 +224,22 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Invokes a language-specific line-comment/uncomment handler.
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor.
+     * Start the process of either line or blok commenting or uncommenting.
      */
-    function lineComment(editor) {
+    function _comment(editor, type) {
         editor = editor || EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
-        _defineCommentData(editor, "line");
+        _defineCommentData(editor, type);
+    }
+    
+    /**
+     * Invokes a language-specific line-comment/uncomment handler.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor.
+     */
+    function lineComment(editor) {
+        _comment(editor, "line");
     }
         
     /**
@@ -237,11 +247,7 @@ define(function (require, exports, module) {
      * @param {?Editor} editor If unspecified, applies to the currently focused editor.
      */
     function blockComment(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-        _defineCommentData(editor, "block");
+        _comment(editor, "block");
     }
 
     /**
