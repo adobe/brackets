@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         EditorManager      = require("editor/EditorManager");
 
     /**
-     * Gets the selection from the editor and does a little clean up on it.
+     * Gets the selection from the editor and does a little clean up on it by removing leading
+     * and trailing empty lines.
      */
     function _getSelectionInfo(editor) {
         var sel = editor.getSelection();
@@ -108,7 +109,7 @@ define(function (require, exports, module) {
         var startCommentRE = _commentToRegExp(startComment, false, false),
             endCommentRE;
         
-        if (endComment) {
+        if (endComment) { // In other words, if the comment type is "block"
             endCommentRE = _commentToRegExp(endComment, false, false);
         }
 
@@ -168,26 +169,26 @@ define(function (require, exports, module) {
                                         {line: selectionInfo.startLine, ch: (startCommentIndex + startComment.length)});
                 });
             }
-        } else { // type === "line"
-            // Comments must begin at the left-most column of the selection.
+        } else { // Handle line comments
+            // Comments must begin at the left-most column of the entire selection.
             if (addComments) {
                 leftmostColumn = firstLine.search(/\S/);
                 for (i = selectionInfo.startLine; i <= selectionInfo.endLine; i++) {
                     line = editor.getLineText(i);
-                    if (!line.match(/\S/)) { // Blank line.
+                    if (!line.match(/\S/)) { // Blank line. SKip.
                         continue;
                     }
                     leftmostColumn = Math.min(leftmostColumn, line.search(/\S/));
                 }
             }
             
-            // Start actually adding or removing line comments.
+            // Start adding or removing line comments.
             for (i = selectionInfo.startLine; i <= selectionInfo.endLine; i++) {
                 line = editor.getLineText(i);
-                if (!line.match(/\S/)) { // Blank line.
+                if (!line.match(/\S/)) { // Blank line. Skip.
                     continue;
                 }
-                if (addComments) {
+                if (addComments) { // Adding line comments.
                     cm.replaceRange(startComment + " ", {line: i, ch: leftmostColumn});
                 } else { // Removing line comments.
                     startCommentIndex = line.search(startCommentRE);
@@ -200,10 +201,11 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Figures out if line or block comments should be used and defines the open and close comment
-     * strings. If block comments are requested but not supported, it falls back on line.
+     * Figures out if line or block comments should be used, and defines the open and close comment
+     * strings. If line comments are requested but not supported, it falls back on block.
      * 
-     * To support additional languages, just add the mode and comment characters here.
+     * To support additional languages, just add the mode and comment strings here. Be sure to take
+     * into consideration whether the language only supports block comments.
      */
     function _defineCommentData(editor, type) {
         var mode = editor.getModeForSelection();
@@ -224,7 +226,7 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Start the process of either line or blok commenting or uncommenting.
+     * Starts the process of either line or block commenting or uncommenting.
      */
     function _comment(editor, type) {
         editor = editor || EditorManager.getFocusedEditor();
