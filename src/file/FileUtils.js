@@ -203,12 +203,12 @@ define(function (require, exports, module) {
 
     /**
      * Returns a native absolute path to the 'brackets' source directory.
-     * Note that this only work when run in brackets/src/index.html, so it does
+     * Note that this only works when run in brackets/src/index.html, so it does
      * not work for unit tests (which is run from brackets/test/SpecRunner.html)
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
-        var pathname = window.location.pathname;
+        var pathname = decodeURI(window.location.pathname);
         var directory = pathname.substr(0, pathname.lastIndexOf("/"));
         return convertToNativePath(directory);
     }
@@ -226,7 +226,7 @@ define(function (require, exports, module) {
         if (module && module.uri) {
 
             // Remove window name from base path. Maintain trailing slash.
-            pathname = window.location.pathname;
+            pathname = decodeURI(window.location.pathname);
             path = convertToNativePath(pathname.substr(0, pathname.lastIndexOf("/") + 1));
 
             // Remove module name from relative path. Remove trailing slash.
