@@ -67,6 +67,8 @@ define(function (require, exports, module) {
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
     
     // Navigate
+    exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
+    exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";

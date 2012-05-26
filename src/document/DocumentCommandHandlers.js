@@ -224,6 +224,10 @@ define(function (require, exports, module) {
             .always(EditorManager.focusEditor);
     }
 
+    /**
+     * Opens the given file, makes it the current document, AND adds it to the working set.
+     * @param {!{fullPath:string}} Params for FILE_OPEN command
+     */
     function handleFileAddToWorkingSet(commandData) {
         handleFileOpen(commandData).done(function (doc) {
             DocumentManager.addToWorkingSet(doc.file);
@@ -666,16 +670,55 @@ define(function (require, exports, module) {
         // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
     }
 
-    function handleShowDeveloperTools(commandData) {
-        brackets.app.showDeveloperTools();
-    }
-    
-     /** Does a full reload of the browser window */
+    /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
         return _handleWindowGoingAway(commandData, function () {
             window.location.reload();
         });
     }
+    
+    
+    /** Are we already listening for a keyup to call detectDocumentNavEnd()? */
+    var _addedNavKeyHandler = false;
+    
+    /**
+     * When the Ctrl key is released, if we were in the middle of a next/prev document navigation
+     * sequence, now is the time to end it and update the MRU order. If we allowed the order to update
+     * on every next/prev increment, the 1st & 2nd entries would just switch places forever and we'd
+     * never get further down the list.
+     * @param {jQueryEvent} event Key-up event
+     */
+    function detectDocumentNavEnd(event) {
+        if (event.keyCode === 17) {  // Ctrl key
+            DocumentManager.finalizeDocumentNavigation();
+            
+            _addedNavKeyHandler = false;
+            $(window.document.body).off("keyup", detectDocumentNavEnd);
+        }
+    }
+    
+    /** Navigate to the next/previous (MRU) document. Don't update MRU order yet */
+    function goNextPrevDoc(inc) {
+        var file = DocumentManager.getNextPrevFile(inc);
+        if (file) {
+            DocumentManager.beginDocumentNavigation();
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: file.fullPath });
+            
+            // Listen for ending of Ctrl+Tab sequence
+            if (!_addedNavKeyHandler) {
+                _addedNavKeyHandler = true;
+                $(window.document.body).keyup(detectDocumentNavEnd);
+            }
+        }
+    }
+    
+    function handleGoNextDoc() {
+        goNextPrevDoc(+1);
+    }
+    function handleGoPrevDoc() {
+        goNextPrevDoc(-1);
+    }
+    
 
     function init($titleContainerToolbar) {
         _$titleContainerToolbar = $titleContainerToolbar;
@@ -690,14 +733,19 @@ define(function (require, exports, module) {
         // be called from a "+" button in the project
         CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+
         CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
         CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
         CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,   Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
+
+        CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,   	Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
         
+        CommandManager.register(Strings.CMD_NEXT_DOC, 			Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+        CommandManager.register(Strings.CMD_PREV_DOC,			Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
         
+        // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
         $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
     }
