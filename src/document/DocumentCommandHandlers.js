@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -739,11 +740,11 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
         CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-
-        CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,   	Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
-        
         CommandManager.register(Strings.CMD_NEXT_DOC, 			Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
         CommandManager.register(Strings.CMD_PREV_DOC,			Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+
+        KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, "Ctrl-Tab");
+        KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, "Ctrl-Shift-Tab");
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
