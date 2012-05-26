@@ -323,7 +323,7 @@ define(function (require, exports, module) {
         
         PerfUtils.addMeasurement("Application Startup");
         
-        // load project before loading extensions
+        // load extensions before loading project
         _initExtensions().done(function () {
             ProjectManager.loadProject().done(function () {
                 _initTest();
