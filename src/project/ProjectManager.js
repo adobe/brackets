@@ -902,6 +902,6 @@ define(function (require, exports, module) {
             _redraw(false); // redraw jstree when working set size changes
         });
 
-        CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
+        CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
     }());
 });
