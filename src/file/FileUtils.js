@@ -230,7 +230,7 @@ define(function (require, exports, module) {
             path = convertToNativePath(pathname.substr(0, pathname.lastIndexOf("/") + 1));
 
             // Remove module name from relative path. Remove trailing slash.
-            pathname = module.uri;
+            pathname = decodeURI(module.uri);
             relPath = pathname.substr(0, pathname.lastIndexOf("/"));
 
             // handle leading "../" in relative directory
