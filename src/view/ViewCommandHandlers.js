@@ -29,14 +29,10 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        SidebarView             = require("project/SidebarView"),
+        Strings                 = require("strings"),
         ProjectManager          = require("project/ProjectManager"),
         EditorManager           = require("editor/EditorManager");
-    
-    function _handleHideSidebar() {
-        SidebarView.toggleSidebar();
-    }
-    
+        
     /**
      * @private
      * Increases or decreases the editor's font size.
@@ -98,7 +94,7 @@ define(function (require, exports, module) {
         _adjustFontSize(-1);
     }
     
-    CommandManager.register(Commands.VIEW_HIDE_SIDEBAR,       _handleHideSidebar);
-    CommandManager.register(Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
-    CommandManager.register(Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
+    
+    CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
+    CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
 });

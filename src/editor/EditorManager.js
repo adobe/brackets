@@ -515,7 +515,7 @@ define(function (require, exports, module) {
         }
     }
 
-    CommandManager.register(Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
+    CommandManager.register(Strings.CMD_SHOW_INLINE_EDITOR,     Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);

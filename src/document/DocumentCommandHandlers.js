@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
+        KeyBindingManager   = require("command/KeyBindingManager"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -726,22 +727,24 @@ define(function (require, exports, module) {
         _$title = $(".title", _$titleWrapper);
 
         // Register global commands
-        CommandManager.register(Commands.FILE_OPEN, handleFileOpen);
-        CommandManager.register(Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
+        CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
+        CommandManager.register(Strings.CMD_ADD_TO_WORKING_SET, Commands.FILE_ADD_TO_WORKING_SET, handleFileAddToWorkingSet);
         // TODO: (issue #274) For now, hook up File > New to the "new in project" handler. Eventually
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
-        CommandManager.register(Commands.FILE_NEW, handleFileNewInProject);
-        CommandManager.register(Commands.FILE_SAVE, handleFileSave);
-        
-        CommandManager.register(Commands.FILE_CLOSE, handleFileClose);
-        CommandManager.register(Commands.FILE_CLOSE_ALL, handleFileCloseAll);
-        CommandManager.register(Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
-        CommandManager.register(Commands.FILE_QUIT, handleFileQuit);
-        CommandManager.register(Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        
-        CommandManager.register(Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-        CommandManager.register(Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+        CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+        CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+
+        CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
+        CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
+        CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
+        CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
+        CommandManager.register(Strings.CMD_NEXT_DOC, 			Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+        CommandManager.register(Strings.CMD_PREV_DOC,			Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+
+        KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, "Ctrl-Tab");
+        KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, "Ctrl-Shift-Tab");
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
