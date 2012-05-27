@@ -92,6 +92,8 @@ define(function (require, exports, module) {
                     console.log("[Extension] loaded unit tests " + baseUrl);
                     result.resolve();
                 });
+            } else {
+                result.reject();
             }
         });
         
@@ -132,7 +134,7 @@ define(function (require, exports, module) {
                         }).done(function () {
                             result.resolve();
                         }).fail(function () {
-                            result.fail();
+                            result.reject();
                         });
                     },
                     function (error) {
