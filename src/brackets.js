@@ -184,7 +184,7 @@ define(function (require, exports, module) {
         DocumentCommandHandlers.init($("#main-toolbar"));
         
         // About dialog
-        CommandManager.register(Commands.HELP_ABOUT, function () {
+        CommandManager.register(Strings.CMD_ABOUT,  Commands.HELP_ABOUT, function () {
             // If we've successfully determined a "build number" via .git metadata, add it to dialog
             var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
                 bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
@@ -197,35 +197,28 @@ define(function (require, exports, module) {
             }
             $("#about-build-number").text(versionLabel);
             
-            // About dialog
-            CommandManager.register(Strings.CMD_ABOUT,	Commands.HELP_ABOUT, function () {
-                // If we've successfully determined a "build number" via .git metadata, add it to dialog
-                var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
-                    bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
-                    versionLabel = "";
-                if (bracketsSHA) {
-                    versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
-                }
-                if (bracketsAppSHA) {
-                    versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
-                }
-                $("#about-build-number").text(versionLabel);
-                
-                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-            });
-        }
+            Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+        });
+    }
 
-        function initKeyHandler() {
-            window.document.body.addEventListener(
-                "keydown",
-                function (event) {
-                    if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                        event.stopPropagation();
-                    }
-                },
-                true
-            );
-        }
+    function initKeyHandler() { 
+        window.document.body.addEventListener(
+            "keydown",
+            function (event) {
+                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
+                    event.stopPropagation();
+                }
+            },
+            true
+        );
+    }
+    
+    function _initWindowListeners() {
+        // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
+        $(window).focus(function () {
+            FileSyncManager.syncOpenDocuments();
+            FileIndexManager.markDirty();
+        });
         
         $(window).contextmenu(function (e) {
             e.preventDefault();
@@ -246,9 +239,9 @@ define(function (require, exports, module) {
                 Strings.ERROR_BRACKETS_IN_BROWSER
             );
         }
-    
-        initListeners();
-        initCommandHandlers();
+
+        _initDragAndDropListeners();
+        _initCommandHandlers();
         initKeyHandler();
         Menus.init(); // key bindings should be initialized first
         _initWindowListeners();
