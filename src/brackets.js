@@ -201,7 +201,7 @@ define(function (require, exports, module) {
         });
     }
 
-    function initKeyHandler() { 
+    function initKeyHandler() {
         window.document.body.addEventListener(
             "keydown",
             function (event) {
