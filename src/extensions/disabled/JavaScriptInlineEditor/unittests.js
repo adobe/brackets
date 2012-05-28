@@ -434,10 +434,6 @@ define(function (require, exports, module) {
             
         }); // describe("JSUtils")
         
-/*** 
-
-    // SpecRunnerUtils.loadProjectInTestWindow(path) is failing for these...
-
         describe("JS Parsing: ", function () {
             
             var lastJsCode,
@@ -487,12 +483,9 @@ define(function (require, exports, module) {
                     SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                         // Load module instances from brackets.test
                         brackets            = testWindow.brackets;
-                        CommandManager      = brackets.test.CommandManager;
                         DocumentManager     = brackets.test.DocumentManager;
-                        EditorManager       = brackets.test.EditorManager;
                         FileIndexManager    = brackets.test.FileIndexManager;
                         FileViewController  = brackets.test.FileViewController;
-                        ProjectManager      = brackets.test.ProjectManager;
 
                         SpecRunnerUtils.loadProjectInTestWindow(testPath);
                     });
@@ -521,10 +514,13 @@ define(function (require, exports, module) {
                         
                         // Add several blank lines at the beginning of the text
                         doc.setText("\n\n\n\n" + doc.getText());
-                        
-                        // Look for "simple2" function
-                        JSUtils.findMatchingFunctions("simple2")
-                            .done(function (result) { functions = result; });
+
+                        var jsFilesResult = FileIndexManager.getFileInfoList("all");
+                        jsFilesResult.done(function (fileInfos) {
+                            // Look for "edit2" function
+                            JSUtils.findMatchingFunctions("edit2", fileInfos)
+                                .done(function (result) { functions = result; });
+                        });
                     });
                     
                     waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
@@ -535,8 +531,9 @@ define(function (require, exports, module) {
                         expect(functions[0].lineEnd).toBe(13);
                     });
                 });
-                
-                it("should return a newly created rule in an unsaved file", function () {
+
+/***
+                it("should return a newly created function in an unsaved file", function () {
                     var didOpen = false,
                         gotError = false;
                     
@@ -557,7 +554,7 @@ define(function (require, exports, module) {
                         doc.setText(doc.getText() + "\n\nfunction TESTFUNCTION() {\n    return true;\n}\n");
                         
                         // Look for the selector we just created
-                        JSUtils.findMatchingFunctions(".TESTFUNCTION")
+                        JSUtils.findMatchingFunctions("TESTFUNCTION", FileIndexManager.getFileInfoList("all"))
                             .done(function (result) { functions = result; });
                     });
                     
@@ -569,8 +566,8 @@ define(function (require, exports, module) {
                         expect(functions[0].lineEnd).toBe(26);
                     });
                 });
+***/
             });
         }); //describe("JS Parsing")
-***/
     });
 });
