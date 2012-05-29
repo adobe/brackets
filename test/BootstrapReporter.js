@@ -27,11 +27,11 @@
         var container = $(
             '<div class="container-fluid">' +
                 '<div class="row-fluid">' +
-                    '<div class="span3">' +
+                    '<div class="span4">' +
                         '<ul id="suite-list" class="nav nav-pills nav-stacked">' +
                         '</ul>' +
                     '</div>' +
-                    '<div id="results-container" class="span9">' +
+                    '<div id="results-container" class="span8">' +
                     '</div>' +
                 '</div>' +
                 '</div>'
