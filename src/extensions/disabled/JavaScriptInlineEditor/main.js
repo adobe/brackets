@@ -86,10 +86,10 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        FileIndexManager.getFileInfoList("all");
+        FileIndexManager.getFileInfoList("all")
             .done(function (fileInfos) {
                 
-                JSUtils.findMatchingFunctions(functionName, FileIndexManager.getFileInfoList("all"))
+                JSUtils.findMatchingFunctions(functionName, fileInfos)
                     .done(function (functions) {
                         if (functions && functions.length > 0) {
                             var jsInlineEditor = new MultiRangeInlineEditor(functions);
