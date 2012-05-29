@@ -80,6 +80,8 @@ define(function (require, exports, module) {
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
+
+    // TODO: Issue 949 - the following code should be shared
     
     function _initGlobalBrackets() {
         // Define core brackets namespace if it isn't already defined
