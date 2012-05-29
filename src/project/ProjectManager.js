@@ -600,8 +600,6 @@ define(function (require, exports, module) {
                     resultRenderTree = _renderTree(_treeDataProvider);
 
                     resultRenderTree.done(function () {
-                        result.resolve();
-
                         if (isFirstProjectOpen) {
                             $(exports).triggerHandler("initializeComplete", _projectRoot);
                         }
@@ -609,6 +607,8 @@ define(function (require, exports, module) {
                         if (projectRootChanged) {
                             $(exports).triggerHandler("projectRootChanged", _projectRoot);
                         }
+                        
+                        result.resolve();
                     });
                     resultRenderTree.fail(function () {
                         result.reject();

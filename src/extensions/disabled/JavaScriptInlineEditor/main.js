@@ -30,6 +30,7 @@ define(function (require, exports, module) {
     
     // Brackets modules
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+        FileIndexManager        = brackets.getModule("project/FileIndexManager"),
         EditorManager           = brackets.getModule("editor/EditorManager");
     
     // Local modules
@@ -85,17 +86,24 @@ define(function (require, exports, module) {
 
         var result = new $.Deferred();
 
-        JSUtils.findMatchingFunctions(functionName)
-            .done(function (functions) {
-                if (functions && functions.length > 0) {
-                    var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                    jsInlineEditor.load(hostEditor);
-                    
-                    result.resolve(jsInlineEditor);
-                } else {
-                    // No matching functions were found
-                    result.reject();
-                }
+        FileIndexManager.getFileInfoList("all")
+            .done(function (fileInfos) {
+                
+                JSUtils.findMatchingFunctions(functionName, fileInfos)
+                    .done(function (functions) {
+                        if (functions && functions.length > 0) {
+                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                            jsInlineEditor.load(hostEditor);
+                            
+                            result.resolve(jsInlineEditor);
+                        } else {
+                            // No matching functions were found
+                            result.reject();
+                        }
+                    })
+                    .fail(function () {
+                        result.reject();
+                    });
             })
             .fail(function () {
                 result.reject();

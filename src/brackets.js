@@ -71,7 +71,8 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
-        SidebarView             = require("project/SidebarView");
+        SidebarView             = require("project/SidebarView"),
+        Async                   = require("utils/Async");
         
     //Load modules that self-register and just need to get included in the main project
     require("editor/CodeHintManager");
@@ -79,134 +80,155 @@ define(function (require, exports, module) {
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
+    
+    function _initGlobalBrackets() {
+        // Define core brackets namespace if it isn't already defined
+        //
+        // We can't simply do 'brackets = {}' to define it in the global namespace because
+        // we're in "use strict" mode. Most likely, 'window' will always point to the global
+        // object when this code is running. However, in case it isn't (e.g. if we're running 
+        // inside Node for CI testing) we use this trick to get the global object.
+        //
+        // Taken from:
+        //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
+        var Fn = Function, global = (new Fn('return this'))();
+        if (!global.brackets) {
+            global.brackets = {};
+        }
+        
+        // Uncomment the following line to force all low level file i/o routines to complete
+        // asynchronously. This should only be done for testing/debugging.
+        // NOTE: Make sure this line is commented out again before committing!
+        //brackets.forceAsyncCallbacks = true;
+    
+        // Load native shell when brackets is run in a native shell rather than the browser
+        // TODO: (issue #266) load conditionally
+        brackets.shellAPI = require("utils/ShellAPI");
+        
+        brackets.inBrowser = !brackets.hasOwnProperty("fs");
+        
+        brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
+        
+        // Loading extensions requires creating new require.js contexts, which requires access to the global 'require' object
+        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets object here so that 
+        // the ExtensionLoader doesn't have to have access to the global object.
+        brackets.libRequire = global.require;
 
-    // Define core brackets namespace if it isn't already defined
-    //
-    // We can't simply do 'brackets = {}' to define it in the global namespace because
-    // we're in "use strict" mode. Most likely, 'window' will always point to the global
-    // object when this code is running. However, in case it isn't (e.g. if we're running 
-    // inside Node for CI testing) we use this trick to get the global object.
-    //
-    // Taken from:
-    //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
-    var Fn = Function, global = (new Fn('return this'))();
-    if (!global.brackets) {
-        global.brackets = {};
+        // Also store our current require.js context (the one that loads brackets core modules) so that extensions can use it
+        // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
+        // modules. The extension will only be able to load modules that have already been loaded once.
+        brackets.getModule = require;
     }
     
-    // TODO: (issue #265) Make sure the "test" object is not included in final builds
-    // All modules that need to be tested from the context of the application
-    // must to be added to this object. The unit tests cannot just pull
-    // in the modules since they would run in context of the unit test window,
-    // and would not have access to the app html/css.
-    brackets.test = {
-        PreferencesManager      : require("preferences/PreferencesManager"),
-        ProjectManager          : ProjectManager,
-        DocumentCommandHandlers : DocumentCommandHandlers,
-        FileViewController      : FileViewController,
-        DocumentManager         : DocumentManager,
-        EditorManager           : EditorManager,
-        Commands                : Commands,
-        WorkingSetView          : WorkingSetView,
-        JSLintUtils             : JSLintUtils,
-        PerfUtils               : PerfUtils,
-        CommandManager          : require("command/CommandManager"),
-        FileSyncManager         : FileSyncManager,
-        FileIndexManager        : FileIndexManager,
-        CSSUtils                : require("language/CSSUtils"),
-        LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
-        Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-        NativeApp               : require("utils/NativeApp")
-    };
-    
-    // Uncomment the following line to force all low level file i/o routines to complete
-    // asynchronously. This should only be done for testing/debugging.
-    // NOTE: Make sure this line is commented out again before committing!
-    //brackets.forceAsyncCallbacks = true;
-
-    // Load native shell when brackets is run in a native shell rather than the browser
-    // TODO: (issue #266) load conditionally
-    brackets.shellAPI = require("utils/ShellAPI");
-    
-    brackets.inBrowser = !brackets.hasOwnProperty("fs");
-    
-    brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
-
-    // Main Brackets initialization
-    $(window.document).ready(function () {
-        
-        function initListeners() {
-            // Prevent unhandled drag and drop of files into the browser from replacing 
-            // the entire Brackets app. This doesn't prevent children from choosing to
-            // handle drops.
-            $(window.document.body)
-                .on("dragover", function (event) {
-                    if (event.originalEvent.dataTransfer.files) {
-                        event.stopPropagation();
-                        event.preventDefault();
-                        event.originalEvent.dataTransfer.dropEffect = "none";
-                    }
-                })
-                .on("drop", function (event) {
-                    if (event.originalEvent.dataTransfer.files) {
-                        event.stopPropagation();
-                        event.preventDefault();
-                    }
-                });
-        }
-        
-        function initCommandHandlers() {
-            // Most command handlers are automatically registered when their module is loaded (see "modules
-            // that self-register" above for some). A few commands need an extra kick here though:
-            
-            DocumentCommandHandlers.init($("#main-toolbar"));
-            
-            // About dialog
-            CommandManager.register(Strings.CMD_ABOUT,	Commands.HELP_ABOUT, function () {
-                // If we've successfully determined a "build number" via .git metadata, add it to dialog
-                var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
-                    bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
-                    versionLabel = "";
-                if (bracketsSHA) {
-                    versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
-                }
-                if (bracketsAppSHA) {
-                    versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
-                }
-                $("#about-build-number").text(versionLabel);
-                
-                Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-            });
-        }
-
-        function initKeyHandler() {
-            window.document.body.addEventListener(
-                "keydown",
-                function (event) {
-                    if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                        event.stopPropagation();
-                    }
-                },
-                true
+    function _initExtensions() {
+        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
+        return Async.doInParallel(["default", "user"], function (item) {
+            return ExtensionLoader.loadAllExtensionsInNativeDirectory(
+                FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
+                "extensions/" + item
             );
-        }
+        });
+    }
+    
+    function _initTest() {
+        // TODO: (issue #265) Make sure the "test" object is not included in final builds
+        // All modules that need to be tested from the context of the application
+        // must to be added to this object. The unit tests cannot just pull
+        // in the modules since they would run in context of the unit test window,
+        // and would not have access to the app html/css.
+        brackets.test = {
+            PreferencesManager      : require("preferences/PreferencesManager"),
+            ProjectManager          : ProjectManager,
+            DocumentCommandHandlers : DocumentCommandHandlers,
+            FileViewController      : FileViewController,
+            DocumentManager         : DocumentManager,
+            EditorManager           : EditorManager,
+            Commands                : Commands,
+            WorkingSetView          : WorkingSetView,
+            JSLintUtils             : JSLintUtils,
+            PerfUtils               : PerfUtils,
+            CommandManager          : require("command/CommandManager"),
+            FileSyncManager         : FileSyncManager,
+            FileIndexManager        : FileIndexManager,
+            CSSUtils                : require("language/CSSUtils"),
+            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+            NativeApp               : require("utils/NativeApp")
+        };
+    }
+    
+    function _initDragAndDropListeners() {
+        // Prevent unhandled drag and drop of files into the browser from replacing 
+        // the entire Brackets app. This doesn't prevent children from choosing to
+        // handle drops.
+        $(window.document.body)
+            .on("dragover", function (event) {
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    event.originalEvent.dataTransfer.dropEffect = "none";
+                }
+            })
+            .on("drop", function (event) {
+                if (event.originalEvent.dataTransfer.files) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+            });
+    }
+    
+    function _initCommandHandlers() {
+        // Most command handlers are automatically registered when their module is loaded (see "modules
+        // that self-register" above for some). A few commands need an extra kick here though:
         
-        function initWindowListeners() {
-            // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
-            $(window).focus(function () {
-                FileSyncManager.syncOpenDocuments();
-                FileIndexManager.markDirty();
-            });
+        DocumentCommandHandlers.init($("#main-toolbar"));
+        
+        // About dialog
+        CommandManager.register(Strings.CMD_ABOUT,  Commands.HELP_ABOUT, function () {
+            // If we've successfully determined a "build number" via .git metadata, add it to dialog
+            var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
+                bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
+                versionLabel = "";
+            if (bracketsSHA) {
+                versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
+            }
+            if (bracketsAppSHA) {
+                versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
+            }
+            $("#about-build-number").text(versionLabel);
             
-            $(window).contextmenu(function (e) {
-                e.preventDefault();
-            });
-        }
+            Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
+        });
+    }
 
+    function initKeyHandler() {
+        window.document.body.addEventListener(
+            "keydown",
+            function (event) {
+                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
+                    event.stopPropagation();
+                }
+            },
+            true
+        );
+    }
+    
+    function _initWindowListeners() {
+        // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
+        $(window).focus(function () {
+            FileSyncManager.syncOpenDocuments();
+            FileIndexManager.markDirty();
+        });
+        
+        $(window).contextmenu(function (e) {
+            e.preventDefault();
+        });
+    }
+            
+    function _onReady() {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
-
-
+        
         EditorManager.setEditorHolder($('#editor-holder'));
 
         // Let the user know Brackets doesn't run in a web browser yet
@@ -217,40 +239,17 @@ define(function (require, exports, module) {
                 Strings.ERROR_BRACKETS_IN_BROWSER
             );
         }
-    
-        initListeners();
-        initCommandHandlers();
+
+        _initDragAndDropListeners();
+        _initCommandHandlers();
         initKeyHandler();
         Menus.init(); // key bindings should be initialized first
-        initWindowListeners();
+        _initWindowListeners();
         
         // Read "build number" SHAs off disk at the time the matching Brackets JS code is being loaded, instead
         // of later, when they may have been updated to a different version
         BuildInfoUtils.init();
 
-        // Load extensions
-
-        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
-
-        // Loading extensions requires creating new require.js contexts, which requires access to the global 'require' object
-        // that always gets hidden by the 'require' in the AMD wrapper. We store this in the brackets object here so that 
-        // the ExtensionLoader doesn't have to have access to the global object.
-        brackets.libRequire = global.require;
-
-        // Also store our current require.js context (the one that loads brackets core modules) so that extensions can use it
-        // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
-        // modules. The extension will only be able to load modules that have already been loaded once.
-        brackets.getModule = require;
-
-        ExtensionLoader.loadAllExtensionsInNativeDirectory(
-            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default",
-            "extensions/default"
-        );
-        ExtensionLoader.loadAllExtensionsInNativeDirectory(
-            FileUtils.getNativeBracketsDirectoryPath() + "/extensions/user",
-            "extensions/user"
-        );
-        
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
         // using the "Always" scroll bar setting. 
@@ -268,7 +267,16 @@ define(function (require, exports, module) {
         
         PerfUtils.addMeasurement("Application Startup");
         
-        ProjectManager.loadProject();
-    });
+        // load extensions before loading project
+        _initExtensions().done(function () {
+            ProjectManager.loadProject().done(function () {
+                _initTest();
+            });
+        });
+    }
+            
+    // Main Brackets initialization
+    _initGlobalBrackets();
+    $(window.document).ready(_onReady);
     
 });
