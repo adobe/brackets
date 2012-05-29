@@ -407,7 +407,7 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem enabled state with underlying Command enabled state
      */
     MenuItem.prototype._enabledChanged = function () {
-         $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
+        $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
     };
 
     /**
