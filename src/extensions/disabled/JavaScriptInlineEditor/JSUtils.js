@@ -34,7 +34,6 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async               = brackets.getModule("utils/Async"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        FileIndexManager    = brackets.getModule("project/FileIndexManager"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
     // Return an Array with names and offsets for all functions in the specified text
@@ -246,26 +245,51 @@ define(function (require, exports, module) {
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
      *      Does not addRef() the documents returned in the array.
      */
-    function findMatchingFunctions(functionName) {
+    function findMatchingFunctions(functionName, fileInfos) {
         var result          = new $.Deferred(),
-            resultFunctions = [],
-            jsFilesResult   = FileIndexManager.getFileInfoList("all");
+            resultFunctions = [];
         
-        // Load index of all CSS files; then process each CSS file in turn (see above)
-        jsFilesResult.done(function (fileInfos) {
-            Async.doInParallel(fileInfos, function (fileInfo, number) {
-                return _getMatchingFunctionsInFile(fileInfo, functionName, resultFunctions);
+        // Process each JS file in turn (see above)
+        Async.doInParallel(fileInfos, function (fileInfo, number) {
+            return _getMatchingFunctionsInFile(fileInfo, functionName, resultFunctions);
+        })
+            .done(function () {
+                result.resolve(resultFunctions);
             })
-                .done(function () {
-                    result.resolve(resultFunctions);
-                })
-                .fail(function (error) {
-                    result.reject(error);
-                });
-        });
+            .fail(function (error) {
+                result.reject(error);
+            });
         
         return result.promise();
     }
-    
+
+    /**
+     * Finds all instances of the specified functionName in "text".
+     * Returns an Array of Objects with start and end properties.
+     *
+     * @param text {!String} JS text to search
+     * @param functionName {!String} function name to search for
+     * @return {Array.<{offset:number, functionName:string}>}
+     *      Array of objects containing the start offset for each matched function name.
+     */
+    function _findAllMatchingFunctionsInText(text, functionName) {
+        var allFunctions = _findAllFunctionsInText(text);
+        var result = [];
+        
+        allFunctions.forEach(function (funcEntry) {
+            if (funcEntry.functionName === functionName) {
+                var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
+                result.push({
+                    name: funcEntry.functionName,
+                    lineStart: _offsetToLineNum(text, funcEntry.offset),
+                    lineEnd: _offsetToLineNum(text, endOffset)
+                });
+            }
+        });
+        
+        return result;
+    }
+
+    exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
 });
