@@ -1,5 +1,11 @@
+body {
+    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
 pre {
     overflow-x: scroll;
     white-space: pre;
     word-wrap: normal;
+}
+.nav .badge {
+    float: right;
 }

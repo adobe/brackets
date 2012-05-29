@@ -84,15 +84,7 @@ define(function (require, exports, module) {
                 window.location.reload(true);
             });
             
-            suite = getParamMap().suite;
-            
-            if (!suite) {
-                suite = localStorage.getItem("SpecRunner.suite");
-                
-                if (!suite) {
-                    suite = "UnitTestSuite";
-                }
-            }
+            suite = getParamMap().suite || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
             
             // add performance reporting
             if (suite === "PerformanceTestSuite") {
