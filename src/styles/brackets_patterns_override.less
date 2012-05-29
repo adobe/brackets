@@ -226,13 +226,17 @@
                     background: @item-highlight-color;
                 }
 
+                &.disabled {
+                    color: @bc-gray;
+                }
+
                 /* hidden checkmark for all list item content ensures consistent left spacing */
                 &::before {
                     content: "✓\00a0"; /* non-breaking space */
                     visibility: hidden;
                 }
                 /* toggle checkmark visibility */
-                &.selected::before {
+                &.checked::before {
                     visibility: visible;
                 }
             }
