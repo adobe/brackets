@@ -65,6 +65,7 @@ define(function (require, exports, module) {
     // TODO: set up separate performance tests suite that can be run from the debug menu
     //require("spec/Performance-test.js");
 
+    // TODO: Issue 949 - the following code should be shared
 
     // Define core brackets namespace if it isn't already defined
     //
