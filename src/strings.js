@@ -172,7 +172,7 @@ define(function (require, exports, module) {
     exports.CMD_RUN_UNIT_TESTS                  = "Run Tests";
     exports.CMD_JSLINT                          = "Enable JSLint";
     exports.CMD_SHOW_PERF_DATA                  = "Show Perf Data";
-    exports.CMD_EXPERIMENTAL                    = "Experiment";
+    exports.CMD_EXPERIMENTAL                    = "Experimental";
     exports.CMD_NEW_BRACKETS_WINDOW             = "New Window";
     exports.CMD_CLOSE_ALL_LIVE_BROWSERS         = "Close Browsers";
     exports.CMD_USE_TAB_CHARS                   = "Use Tab Characters";
