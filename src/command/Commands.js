@@ -60,6 +60,7 @@ define(function (require, exports, module) {
     exports.EDIT_UNINDENT               = "edit.unindent";
     exports.EDIT_DUPLICATE              = "edit.duplicate";
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";
+    exports.EDIT_BLOCK_COMMENT          = "edit.blockComment";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";

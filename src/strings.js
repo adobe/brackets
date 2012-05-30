@@ -144,7 +144,8 @@ define(function (require, exports, module) {
     exports.CMD_FIND_PREVIOUS                   = "Find Previous";
     exports.CMD_REPLACE                         = "Replace";
     exports.CMD_DUPLICATE                       = "Duplicate";
-    exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
+    exports.CMD_LINE_COMMENT                    = "Comment/Uncomment Lines";
+    exports.CMD_BLOCK_COMMENT                   = "Comment/Uncomment Blocks";
      
     // View menu commands
     exports.VIEW_MENU                           = "View";

@@ -499,7 +499,10 @@ define(function (require, exports, module) {
                                                                              {key: "Ctrl-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem("menu-edit-duplicate",          Commands.EDIT_DUPLICATE);
-        menu.addMenuItem("menu-edit-comment",            Commands.EDIT_LINE_COMMENT, "Ctrl-/");
+        menu.addMenuItem("menu-edit-line-comment",       Commands.EDIT_LINE_COMMENT, "Ctrl-/");
+        menu.addMenuItem("menu-edit-block-comment",      Commands.EDIT_BLOCK_COMMENT,
+                                                                            [{key: "Ctrl-Alt-/",   platform: "mac"},
+                                                                             {key: "Ctrl-Shift-/", platform: "win"}]);
 
         /*
          * View menu

@@ -702,8 +702,7 @@ define(function (require, exports, module) {
     Editor.prototype.setSelection = function (start, end) {
         this._codeMirror.setSelection(start, end);
     };
-
-
+        
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
      * @returns {!number}
