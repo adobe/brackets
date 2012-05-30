@@ -53,9 +53,15 @@ define(function (require, exports, module) {
 
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
+    
+    /** The default filename search plugin. See below */
+    //var defaultPlugin; - TODO
 
     /** @type {QuickOpenPlugin} */
     var currentPlugin = null;
+    
+    /** @type {Array.<SearchResult|string>} */
+    var lastFilterResult = null;
 
     /** @type Array.<FileInfo>*/
     var fileList;
@@ -77,6 +83,12 @@ define(function (require, exports, module) {
 
     var dialogOpen = false;
 
+    /** Object representing a search result with associated metadata */
+    function SearchResult(label, extraProps) {
+        this.label = label;
+        $.extend(this, extraProps);
+    }
+    
     /**
      * Defines API for new QuickOpen plug-ins
      */
@@ -96,15 +108,13 @@ define(function (require, exports, module) {
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          fileTypes:Array.<string>} plugin,
+     *          fileTypes:Array.<string>,
      *          done: function(),
-     *          search: function(string):Array.<string>,
+     *          search: function(string):Array.<SearchResult|string>,
      *          match: function(string):boolean,
-     *          itemFocus: functon(HTMLLIElement),
-     *          itemSelect: functon(HTMLLIElement),
-     *          resultsFormatter: ?Functon(string, string):string }
-     *
-     * @returns {QuickOpenPlugin} plugin
+     *          itemFocus: function(SearchResult|string),
+     *          itemSelect: funciton(SearchResult|string),
+     *          resultsFormatter: ?function(SearchResult|string, string):string } pluginDef
      *
      * Parameter Documentation:
      *
@@ -116,9 +126,9 @@ define(function (require, exports, module) {
      * match - takes a query string and returns true if this plug-in wants to provide
      *      results for this query.
      * itemFocus - performs an action when a result has focus. 
-     *      The focused HTMLLIElement is passed as an argument.
+     *      The focused search result item (as returned by search()) is passed as an argument.
      * itemSelect - performs an action when a result is chosen.
-     *      The selected HTMLLIElement is passed as an argument.
+     *      The selected search result item (as returned by search()) is passed as an argument.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
      */
@@ -159,10 +169,13 @@ define(function (require, exports, module) {
             end = path.length;
         } else {
             end = path.lastIndexOf(".");
+            if (end === -1) {
+                end = path.length;
+            }
         }
         return path.slice(path.lastIndexOf("/") + 1, end);
     }
-
+    
     /**
      * Attempts to extract a line number from the query where the line number
      * is followed by a colon. Callers should explicitly test result with isNaN()
@@ -187,30 +200,44 @@ define(function (require, exports, module) {
         return result;
     }
     
+    function domItemToSearchResult(domItem) {
+        if (domItem) {
+            // smart autocomplete uses this assumption internally: index of DOM node in results list container
+            // exactly matches index of search result in list returned by _handleFilter()
+            var index = $(domItem).index();
+            
+            // this is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
+            var lastFilterResult = $('input#quickOpenSearch').data("smart-autocomplete").rawResults;
+            return lastFilterResult[index];
+        }
+        return null;
+    }
+    
     /**
      * Navigates to the appropriate file and file location given the selected item 
      * and closes the dialog.
      *
      * Note, if selectedItem is null quick search should inspect $searchField for text
      * that may have not matched anything in in the list, but may have information
-     * for carrying out an action.
+     * for carrying out an action (e.g. go to line).
      */
-    QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
+    QuickNavigateDialog.prototype._handleItemSelect = function (selectedDOMItem) {
 
         // This is a work-around to select first item when a selection event occurs
         // (usually from pressing the enter key) and no item is selected in the list.
         // This is a work-around since  Smart auto complete doesn't select the first item
-        if (!selectedItem) {
-            selectedItem = $(".smart_autocomplete_container > li:first-child").get(0);
+        if (!selectedDOMItem) {
+            selectedDOMItem = $(".smart_autocomplete_container > li:first-child").get(0);
         }
-
+        
+        var selectedItem = domItemToSearchResult(selectedDOMItem);
 
         // Delegate to current plugin
         if (currentPlugin) {
             currentPlugin.itemSelect(selectedItem);
         } else {
 
-            // extract line number
+            // extract line number, if any
             var cursor,
                 query = this.$searchField.val(),
                 gotoLine = extractLineNumber(query);
@@ -218,13 +245,8 @@ define(function (require, exports, module) {
                 cursor = {line: gotoLine, ch: 0};
             }
 
-            // Extract file path
-            var fullPath;
-            if (selectedItem) {
-                fullPath = decodeURIComponent($(selectedItem).attr("data-fullpath"));
-            }
-
-            // Nagivate to file and line number
+            // Navigate to file and line number
+            var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
@@ -246,7 +268,9 @@ define(function (require, exports, module) {
      * Opens the file specified by selected item if there is no current plug-in, otherwise defers handling
      * to the currentPlugin
      */
-    QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
+    QuickNavigateDialog.prototype._handleItemFocus = function (selectedDOMItem) {
+        var selectedItem = domItemToSearchResult(selectedDOMItem);
+        
         if (currentPlugin) {
             currentPlugin.itemFocus(selectedItem);
         }
@@ -255,7 +279,7 @@ define(function (require, exports, module) {
         // Also, see related code in _handleItemFocus
         /*
         else {
-            var fullPath = $(selectedItem).attr("data-fullpath");
+            var fullPath = selectedItem.fullPath;
             if (fullPath) {
                 fullPath = decodeURIComponent(fullPath);
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
@@ -287,7 +311,7 @@ define(function (require, exports, module) {
         }
 
         if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+            this._handleItemFocus($(".smart_autocomplete_container > li:first-child").get(0));
         }
     };
 
@@ -330,8 +354,7 @@ define(function (require, exports, module) {
             
         }
     };
-
-
+    
     /**
     * Closes the search dialog and notifies all quick open plugins that
     * searching is done. 
@@ -362,36 +385,80 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentClick);
     };
     
+    
     function filterFileList(query) {
+        // First pass: filter based on search string; convert to SearchResults containing extra info
+        // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
             // match query against filename only (not the full path)
             var path = fileInfo.fullPath;
-            var filename = _filenameFromPath(path, true);
-            if (filename.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return path;
+            var filename = fileInfo.name;
+            
+            // is it a match at all?
+            var matchIndex = fileInfo.name.toLowerCase().indexOf(query.toLowerCase());
+            if (matchIndex !== -1) {
+                // Rough hueristics to decide how good the match is: if query very closely matches
+                // filename, rank it highly. Divides the search results into four broad buckets (0-3)
+                var filenameWithoutExtension = _filenameFromPath(filename, false);
+                var matchGoodness;
+                if (matchIndex === 0) {
+                    if (filename.length === query.length) {
+                        matchGoodness = 0;
+                    } else if (filenameWithoutExtension.length === query.length) {
+                        matchGoodness = 1;
+                    } else {
+                        matchGoodness = 2;
+                    }
+                } else {
+                    matchGoodness = 3;
+                }
+                
+                return new SearchResult(filename, {
+                    fullPath: path,
+                    filenameWithoutExtension: filenameWithoutExtension,
+                    matchGoodness: matchGoodness
+                });
             } else {
                 return null;
             }
+            
         }).sort(function (a, b) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-            //first,  sort by filename without extension
-            var filenameA = _filenameFromPath(a, false);
-            var filenameB = _filenameFromPath(b, false);
-            if (filenameA < filenameB) {
+            // Results in better buckets will *always* be listed above lesser buckets
+            if (a.matchGoodness < b.matchGoodness) {
                 return -1;
-            } else if (filenameA > filenameB) {
+            } else if (a.matchGoodness > b.matchGoodness) {
                 return 1;
+                
             } else {
-                // filename is the same, compare including extension
-                filenameA = _filenameFromPath(a, true);
-                filenameB = _filenameFromPath(b, true);
+                // Within a "goodness" bucket, sort alphabetically
+                
+                // First sort by filename without extension (so that "abc.js" comes before "abc-d.js")
+                var filenameA = a.filenameWithoutExtension.toLowerCase();
+                var filenameB = b.filenameWithoutExtension.toLowerCase();
                 if (filenameA < filenameB) {
                     return -1;
                 } else if (filenameA > filenameB) {
                     return 1;
                 } else {
-                    return 0;
+                    // If filenames identical, include extension too
+                    filenameA = a.label.toLowerCase();
+                    filenameB = b.label.toLowerCase();
+                    if (filenameA < filenameB) {
+                        return -1;
+                    } else if (filenameA > filenameB) {
+                        return 1;
+                    } else {
+                        // If full filenames identical, then sort by path
+                        var pathA = a.fullPath.toLowerCase();
+                        var pathB = b.fullPath.toLowerCase();
+                        if (pathA < pathB) {
+                            return -1;
+                        } else if (pathA > pathB) {
+                            return 1;
+                        } else {
+                            return 0;
+                        }
+                    }
                 }
             }
         });
@@ -411,65 +478,66 @@ define(function (require, exports, module) {
                 var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
                 if (extensionMatch &&  plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
-                    return plugin.search(query);
+                    lastFilterResult = plugin.search(query);
+                    return lastFilterResult;
                 }
             }
         }
 
         currentPlugin = null;
-        return filterFileList(query);
+        lastFilterResult = filterFileList(query);
+        return lastFilterResult;
     }
+
 
     function defaultResultsFormatter(item, query) {
         query = query.slice(query.indexOf("@") + 1, query.length);
 
         // Escape both query and item so the replace works properly below
         query = StringUtils.htmlEscape(query);
-        item = StringUtils.htmlEscape(item);
+        var label = item.label || item;
+        var displayName = StringUtils.htmlEscape(label);
 
-        var displayName;
         if (query.length > 0) {
-            // make the users query bold within the item's text
-            displayName = item.replace(
+            // make the user's query bold within the item's text
+            displayName = displayName.replace(
                 new RegExp(StringUtils.regexEscape(query), "gi"),
                 "<strong>$&</strong>"
             );
-        } else {
-            displayName = item;
         }
 
         return "<li>" + displayName + "</li>";
     }
+    
+    function _filenameResultsFormatter(item, query) {
+        // Use the filename formatter
+        query = StringUtils.htmlEscape(query);
+        var displayName = StringUtils.htmlEscape(item.label);
+        var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath));
 
+        if (query.length > 0) {
+            // make the users query bold within the item's text
+            displayName = displayName.replace(
+                new RegExp(StringUtils.regexEscape(query), "gi"),
+                "<strong>$&</strong>"
+            );
+        }
 
+        return "<li>" + displayName + "<br><span class='quick-open-path'>" + displayPath + "</span></li>";
+    }
 
     function _handleResultsFormatter(item) {
         var query = $('input#quickOpenSearch').val();
+        
+        var formatter;
 
         if (currentPlugin) {
             // Plugins use their own formatter or the default formatter
-            var formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
-            return formatter(item, query);
+            formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
         } else {
-            // Use the filename formatter
-            query = StringUtils.htmlEscape(query);
-            var filename = StringUtils.htmlEscape(_filenameFromPath(item, true));
-            var rPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
-
-            var displayName;
-            if (query.length > 0) {
-                // make the users query bold within the item's text
-                displayName = filename.replace(
-                    new RegExp(StringUtils.regexEscape(query), "gi"),
-                    "<strong>$&</strong>"
-                );
-            } else {
-                displayName = filename;
-            }
-
-            return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + displayName +
-                "<br><span class='quick-open-path'>" + rPath + "</span></li>";
+            formatter = _filenameResultsFormatter;
         }
+        return formatter(item, query);
     }
 
 
@@ -599,4 +667,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
     exports.addQuickOpenPlugin = addQuickOpenPlugin;
+    exports.SearchResult = SearchResult;
 });

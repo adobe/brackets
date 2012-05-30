@@ -76,7 +76,7 @@ define(function (require, exports, module) {
             var lines = docText.split("\n");
 
 
-            var regex = new RegExp(/\s*id\s*?=\s*?["'](.*?)["']/gi);
+            var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
@@ -144,10 +144,10 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {HTMLLIElement} selectedItem
+     * @param {string} selectedItem
      */
     function itemFocus(selectedItem) {
-        var fileLocation = getLocationFromID($(selectedItem).text());
+        var fileLocation = getLocationFromID(selectedItem);
         if (fileLocation) {
             var from = {line: fileLocation.line, ch: fileLocation.chFrom};
             var to = {line: fileLocation.line, ch: fileLocation.chTo};
@@ -155,9 +155,6 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
-     */
     function itemSelect(selectedItem) {
         itemFocus(selectedItem);
     }

@@ -124,10 +124,10 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {HTMLLIElement} selectedItem
+     * @param {string} selectedItem
      */
     function itemFocus(selectedItem) {
-        var selectorInfo = getLocationFromSelectorName($(selectedItem).text());
+        var selectorInfo = getLocationFromSelectorName(selectedItem);
         if (selectorInfo) {
             var from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
             var to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
@@ -135,9 +135,6 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
-     */
     function itemSelect(selectedItem) {
         itemFocus(selectedItem);
     }
