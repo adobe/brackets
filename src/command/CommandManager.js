@@ -70,6 +70,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     Command.prototype.execute = function () {
+        if (!this._enabled) {
+            return;
+        }
+        
         var result = this._commandFn.apply(this, arguments);
         if (!result) {
             return (new $.Deferred()).resolve().promise();

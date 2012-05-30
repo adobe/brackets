@@ -398,8 +398,12 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype._checkedChanged = function () {
         var checked = this._command.getChecked();
-        if (checked !== undefined) {
-            $(_getHTMLMenuItem(this.id)).toggleClass("checked", checked);
+        // Note, checked can also be undefined, so we explicitly check
+        // for truthiness and don't use toggleClass().
+        if (checked) {
+            $(_getHTMLMenuItem(this.id)).addClass("checked");
+        } else {
+            $(_getHTMLMenuItem(this.id)).removeClass("checked");
         }
     };
 
@@ -414,7 +418,7 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(StringUtils.htmlEscape(this._command.getName()));
+        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
     };
     
     /**
