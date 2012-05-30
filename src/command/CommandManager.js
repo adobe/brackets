@@ -70,6 +70,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     Command.prototype.execute = function () {
+        if (!this._enabled) {
+            return;
+        }
+        
         var result = this._commandFn.apply(this, arguments);
         if (!result) {
             return (new $.Deferred()).resolve().promise();
@@ -93,7 +97,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(this).triggerHandler("enabledStateChange", this);
+            $(this).triggerHandler("enabledStateChange");
         }
     };
 
@@ -107,7 +111,7 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(this).triggerHandler("checkedStateChange", this);
+            $(this).triggerHandler("checkedStateChange");
         }
     };
 
@@ -126,7 +130,7 @@ define(function (require, exports, module) {
         this._name = name;
 
         if (changed) {
-            $(this).triggerHandler("nameChange", this);
+            $(this).triggerHandler("nameChange");
         }
     };
 
