@@ -28,8 +28,6 @@
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
  *
- * jQuery Events:
- *    - enabledChanged -- When JSLint is enabled or disabled
  */
 define(function (require, exports, module) {
     'use strict';
@@ -173,11 +171,7 @@ define(function (require, exports, module) {
     
     function _setEnabled(enabled) {
         _enabled = enabled;
-        
-        $(exports).triggerHandler("enabledChanged", _enabled);
-        
         _updateListeners();
-        
         _prefs.setValue("enabled", _enabled);
     
         // run immediately
