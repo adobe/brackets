@@ -27,38 +27,41 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Menus,
+    var Commands,
+        Menus,
         SpecRunnerUtils         = require("./SpecRunnerUtils.js"),
         Strings                 = require("strings");
 
     describe("Menus", function () {
 
-        describe("Add Menus", function () {
+        var testWindow;
 
-            var testWindow;
-    
-            beforeEach(function () {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
-    
-                    // Load module instances from brackets.test
-                    Menus      = testWindow.brackets.test.Menus;
-                });
+        beforeEach(function () {
+            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                testWindow = w;
+
+                // Load module instances from brackets.test
+                Commands   = testWindow.brackets.test.Commands;
+                Menus      = testWindow.brackets.test.Menus;
             });
+        });
+    
+        afterEach(function () {
+            SpecRunnerUtils.closeTestWindow();
+        });
         
-            afterEach(function () {
-                SpecRunnerUtils.closeTestWindow();
-            });
+        describe("Add Menus", function () {
 
             it("should add new menu in last position of list", function () {
                 runs(function () {
                     var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
-                    expect($listItems).toBeTruthy();
+                    expect($listItems).toBeTruthy();    // non-null and defined
                     
                     var menuCountOriginal = $listItems.length;
                     var menu = Menus.addMenu("Custom", "menu-custom");
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
+                    expect(menu).toBeTruthy();
                     
+                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
                     expect($listItems.length).toBe(menuCountOriginal + 1);
                     expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-custom");
                 });
@@ -71,8 +74,9 @@ define(function (require, exports, module) {
 //                    
 //                    var menuCountOriginal = $listItems.length;
 //                    var menu = Menus.addMenu("Custom", "menu-custom", Menus.AFTER, Menus.AppMenuBar.FILE_MENU);
-//                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
-//                    
+//                    expect(menu).toBeTruthy();
+//
+//                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
 //                    expect($listItems.length).toBe(menuCountOriginal + 1);
 //                    expect($($listItems[0]).attr("id")).toBe("Strings.FILE_MENU");
 //                    expect($($listItems[1]).attr("id")).toBe("menu-custom");
@@ -87,8 +91,9 @@ define(function (require, exports, module) {
 //                    
 //                    var menuCountOriginal = $listItems.length;
 //                    var menu = Menus.addMenu("Custom", "menu-custom", Menus.AFTER, "NONEXISTANT");
-//                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
-//                    
+//                    expect(menu).toBeTruthy();
+//
+//                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
 //                    expect($listItems.length).toBe(menuCountOriginal + 1);
 //                    expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-custom");
 //                });
@@ -101,7 +106,7 @@ define(function (require, exports, module) {
                     expect($listItems).toBeTruthy();
                     
                     var menuCountOriginal = $listItems.length;
-                    var menu;
+                    var menu = null;
                     
                     try {
                         menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU);
@@ -109,23 +114,124 @@ define(function (require, exports, module) {
                         // catch exception and do nothing
                     }
                     
-                    $listItems = testWindow.$("#main-toolbar > ul.nav").children(); // refresh
+                    $listItems = testWindow.$("#main-toolbar > ul.nav").children();
                     expect($listItems.length).toBe(menuCountOriginal);
+                    expect(menu).toBeNull();
                 });
             });
-
-
         });
+
 
         describe("Add Menu Items", function () {
             
-//            it("should add new menu item to empty menu", function () { });
-//            it("should add new menu item in first position of menu", function () { });
-//            it("should add new menu item in last position of menu", function () { });
+            it("should add new menu item to empty menu", function () {
+                runs(function () {
+                    // Adding menus tested above, so minimal validation from this point on
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+                    expect(menu).toBeTruthy();
+                    
+                    var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    expect($listItems).toBeTruthy();
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem("menuitem-custom-0", Commands.FILE_NEW);
+                    expect(menuItem).toBeTruthy();
+                    
+                    $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    expect($listItems.length).toBe(1);
+                    expect(testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul > li > a#menuitem-custom-0")).toBeTruthy();
+                });
+            });
+
+            it("should add new menu item in first position of menu", function () {
+                runs(function () {
+                    // Add to existing file menu
+                    var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+                    expect(menu).toBeTruthy();
+
+                    var listSelector = "#main-toolbar > ul.nav > li#" + Menus.AppMenuBar.FILE_MENU + " > ul";
+                    var $listItems = testWindow.$(listSelector).children();
+                    expect($listItems).toBeTruthy();
+                    var menuItemCountOriginal = $listItems.length;
+
+                    var menuItem = menu.addMenuItem("menuitem-custom-0", Commands.FILE_NEW, Menus.FIRST);
+                    expect(menuItem).toBeTruthy();
+                    
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(menuItemCountOriginal + 1);
+                    expect(testWindow.$(listSelector + " > li:first-child > a#menuitem-custom-0")).toBeTruthy();
+                });
+            });
+
+            it("should add new menu item in last position of menu", function () {
+                runs(function () {
+                    var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+                    expect(menu).toBeTruthy();
+                    
+                    var listSelector = "#main-toolbar > ul.nav > li#" + Menus.AppMenuBar.FILE_MENU + " > ul";
+                    var $listItems = testWindow.$(listSelector).children();
+                    expect($listItems).toBeTruthy();
+                    var menuItemCountOriginal = $listItems.length;
+
+                    // Use wacky key binding that's hopefully not used
+                    var menuItem = menu.addMenuItem("menuitem-custom-0", Commands.FILE_NEW, "Ctrl-Alt-1", Menus.LAST);
+                    expect(menuItem).toBeTruthy();
+                    
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(menuItemCountOriginal + 1);
+                    expect(testWindow.$(listSelector + " > li:last-child > a#menuitem-custom-0")).toBeTruthy();
+                });
+            });
+
+            it("should add new menu item in position after reference menu item", function () {
+                runs(function () {
+                    // Add to existing file menu
+                    var menu = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+                    expect(menu).toBeTruthy();
+
+                    var listSelector = "#main-toolbar > ul.nav > li#" + Menus.AppMenuBar.FILE_MENU + " > ul";
+                    var $listItems = testWindow.$(listSelector).children();
+                    expect($listItems).toBeTruthy();
+                    var menuItemCountOriginal = $listItems.length;
+
+                    menu.addMenuItem("menuitem-custom-0", Commands.FILE_NEW, "Ctrl-Alt-1", Menus.FIRST);
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(menuItemCountOriginal + 1);
+
+                    // Insert new item after the one we just added in the first position
+                    var menuItem = menu.addMenuItem("menuitem-custom-1", Commands.FILE_NEW, "Ctrl-Alt-1", Menus.AFTER, "menuitem-custom-0");
+                    expect(testWindow.$(listSelector + " > li:nth-child(2) > a#menuitem-custom-0")).toBeTruthy();
+                });
+            });
+
 //            it("should add new menu item in position before reference menu item", function () { });
-//            it("should add new menu item in position after reference menu item", function () { });
 //            it("should add new menu item in last position of menu if reference menu item doesn't exist", function () { });
 //            it("should not add duplicate menu item", function () { });
+            
+            it("should not add menu item with unregistered command", function () {
+                runs(function () {
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+                    expect(menu).toBeTruthy();
+                    
+                    var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    expect($listItems).toBeTruthy();
+                    expect($listItems.length).toBe(0);
+                    
+                    var menuItem = null;
+
+                    try {
+                        menuItem = menu.addMenuItem("menuitem-custom-0", "UNREGISTERED_COMMAND");
+                    } catch (e) {
+                        // catch exception and do nothing
+                    }
+
+                    $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    
+                    expect($listItems.length).toBe(0);
+                    expect(menuItem).toBeNull();
+                });
+            });
 
 //            it("should add new menu divider", function () { });
 //            it("should add duplicate menu divider", function () { });
