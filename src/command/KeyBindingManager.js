@@ -47,6 +47,13 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     */
+    function _reset() {
+        _keymap = null;
+    }
+
+    /**
+     * @private
      * Initialize an empty keymap as the current keymap. It overwrites the current keymap if there is one.
      */
     function _initializeKeymap() {
@@ -69,11 +76,7 @@ define(function (require, exports, module) {
      * @param {string} key - a single shortcut.
      * @param {?string} platform - undefined indicates all platofmrs
      */
-    function _addBinding(commandID, key, platform) {
-        if (!commandID || !key || (platform && platform !== brackets.platform)) {
-            return;
-        }
-
+    function _addBinding(commandID, key) {
         var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
@@ -83,16 +86,6 @@ define(function (require, exports, module) {
         } else {
             _keymap.map[normalizedKey] = commandID;
         }
-    }
-
-       
-    /**
-     * Install the specified keymap as the current keymap, overwriting the existing keymap.
-     *
-     * @param {KeyMap} keymap The keymap to install.
-     */
-    function installKeymap(keymap) {
-        _keymap = keymap;
     }
 
     /**
@@ -129,12 +122,19 @@ define(function (require, exports, module) {
     function setEnabled(value) {
         _enabled = value;
     }
+    
+    /**
+     * @private
+     */
+    function _matchPlatform(platform) {
+        return (platform === undefined) || (platform === brackets.platform);
+    }
 
     /**
      * Add one or more key bindings to a particular Command.
      * 
-     * @param {string} commandID
-     * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - a single key binding
+     * @param {!string} commandID
+     * @param {!(string | Array.<{key: string, platform: string)}>}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other.
      * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
@@ -146,6 +146,10 @@ define(function (require, exports, module) {
     function addBinding(commandID, keyBindings, platform) {
         if (!_keymap) { _initializeKeymap(); }
 
+        if (!commandID || !keyBindings) {
+            return;
+        }
+
         if ($.isArray(keyBindings)) {
             var i, key, targetPlatform;
             for (i = 0; i < keyBindings.length; i++) {
@@ -156,10 +160,12 @@ define(function (require, exports, module) {
                     key = keyBindings[i];
                 }
                 
-                _addBinding(commandID, key, targetPlatform);
+                if (_matchPlatform(targetPlatform)) {
+                    _addBinding(commandID, key);
+                }
             }
-        } else {
-            _addBinding(commandID, keyBindings, platform);
+        } else if (_matchPlatform(platform)) {
+            _addBinding(commandID, keyBindings);
         }
 
         // TODO: dispatch add event
@@ -180,14 +186,17 @@ define(function (require, exports, module) {
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
+            // remove a cross-platform command
             delete _keymap.map[normalizedKey];
         }
 
         // TODO: dispatch remove event
     }
+    
+    // unit test only
+    exports._reset = _reset;
 
     // Define public API
-    exports.installKeymap = installKeymap;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;
