@@ -148,12 +148,13 @@ define(function (require, exports, module) {
                     expect(menu1).not.toBeNull();
 
                     var menu2 = null;
-
+                    var exceptionThrown = false;
                     try {
                         menu2 = Menus.addMenu("Custom", "menu-custom");
                     } catch (e) {
-                        // catch exception and do nothing
+                        exceptionThrown = true;
                     }
+                    expect(exceptionThrown).toBeTruthy();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav").children();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
@@ -300,13 +301,15 @@ define(function (require, exports, module) {
 
                     var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
                     expect($listItems.length).toBe(1);
-                    
+
+                    var exceptionThrown = false;
                     try {
                         menuItem = null;
                         menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command1");
                     } catch (e) {
-                        // catch exception and do nothing
+                        exceptionThrown = true;
                     }
+                    expect(exceptionThrown).toBeTruthy();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
 
@@ -323,12 +326,13 @@ define(function (require, exports, module) {
                     expect($listItems.length).toBe(0);
 
                     var menuItem = null;
-
+                    var exceptionThrown = false;
                     try {
                         menuItem = menu.addMenuItem("menuitem-custom-0", "UNREGISTERED_COMMAND");
                     } catch (e) {
-                        // catch exception and do nothing
+                        exceptionThrown = true;
                     }
+                    expect(exceptionThrown).toBeTruthy();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
 
