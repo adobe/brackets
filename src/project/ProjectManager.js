@@ -275,7 +275,8 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            toggleNodeEvent = false;
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -299,6 +300,14 @@ define(function (require, exports, module) {
                         } else {
                             return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
                         }
+                    }
+                }
+            )
+            .bind(
+                "before.jstree",
+                function (event, data) {
+                    if (data.func === "toggle_node") {
+                        toggleNodeEvent = true;
                     }
                 }
             )
@@ -327,7 +336,12 @@ define(function (require, exports, module) {
                         _redraw(true);
                         
                         // toggle folder open/closed
-                        _projectTree.jstree("toggle_node", data.rslt.obj);
+                        // suppress if this selection was triggered by clicking the disclousre triangle
+                        if (!toggleNodeEvent) {
+                            _projectTree.jstree("toggle_node", data.rslt.obj);
+                        }
+                        
+                        toggleNodeEvent = false;
                     }
                 }
             )
