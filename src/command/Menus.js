@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var Commands                = require("command/Commands"),
         KeyBindingManager       = require("command/KeyBindingManager"),
-        EditorManager           = require("editor/EditorManager"),
+        KeyMap                  = require("command/KeyMap"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         CommandManager          = require("command/CommandManager");
@@ -132,21 +132,6 @@ define(function (require, exports, module) {
     //    NOT IMPLEMENTED
     // }
 
-    // Convert normalized key representation to display appropriate for platform
-    function formatKeyCommand(keyCmd) {
-        var displayStr;
-        if (brackets.platform === "mac") {
-            displayStr = keyCmd.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
-            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
-        } else {
-            displayStr = keyCmd.replace(/-/g, "+");
-        }
-
-        return displayStr;
-    }
-
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
@@ -233,6 +218,7 @@ define(function (require, exports, module) {
      */
     Menu.prototype.addMenuItem = function (id, command, keyBindings, position, relativeID) {
         var $menuItem,
+            $link,
             menuItem;
 
         if (!id || !command) {
@@ -261,7 +247,8 @@ define(function (require, exports, module) {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
             // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
+            $link = $("<a href='#' id='" + id + "'> <span class='menu-name'></span></a>");
+            $menuItem = $("<li/>").append($link);
 
             // Add key bindings
             if (keyBindings) {
@@ -269,22 +256,23 @@ define(function (require, exports, module) {
                     keyBindings = [{key: keyBindings}];
                 }
 
-                var key, i, platform;
-                for (i = 0; i < keyBindings.length; i++) {
-                    key = keyBindings[i].key;
-                    platform = keyBindings[i].platform;
-
-                    // TODO: handle insertion position as specified by relativeID, position
-                    // also support inserting into Menu Sections
-
-                    // TODO: shortcut needs to update dynamically when keybinding changes
-
-                    if ($menuItem.find(".menu-shortcut").length === 0) {
-                        $menuItem.find("a").append("<span class='menu-shortcut'>" + formatKeyCommand(key) + "</span>");
+                var displayKey, keyBindingAssigned;
+                keyBindings.forEach(function (keyBinding) {
+                    keyBindingAssigned = KeyBindingManager.addBinding(command.getID(), keyBinding.key, keyBinding.platform);
+                    
+                    if (keyBindingAssigned) {
+                        displayKey = keyBinding.displayKey || keyBinding.key;
+    
+                        // TODO: handle insertion position as specified by relativeID, position
+                        // also support inserting into Menu Sections
+    
+                        // TODO: shortcut needs to update dynamically when keybinding changes
+    
+                        if ($menuItem.find(".menu-shortcut").length === 0) {
+                            $link.append("<span class='menu-shortcut'>" + KeyMap.formatKeyDescriptor(displayKey) + "</span>");
+                        }
                     }
-
-                    KeyBindingManager.addBinding(command.getID(), key, platform);
-                }
+                });
             }
 
 
@@ -528,8 +516,8 @@ define(function (require, exports, module) {
         menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
         menu.addMenuItem("menu-view-sidebar",            Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
         menu.addMenuDivider();
-        menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, "Ctrl-=");
-        menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, "Ctrl--");
+        menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
+        menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-&#x2212"}]);
 
         /*
          * Navigate menu
@@ -597,7 +585,6 @@ define(function (require, exports, module) {
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
     exports.addMenu = addMenu;
-    exports.formatKeyCommand = formatKeyCommand;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
 });
