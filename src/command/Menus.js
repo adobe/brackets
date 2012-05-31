@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var Commands                = require("command/Commands"),
         KeyBindingManager       = require("command/KeyBindingManager"),
-        EditorManager           = require("editor/EditorManager"),
+        KeyMap                  = require("command/KeyMap"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         CommandManager          = require("command/CommandManager");
@@ -131,22 +131,6 @@ define(function (require, exports, module) {
     // function removeMenuItem(id) {
     //    NOT IMPLEMENTED
     // }
-
-    // Convert normalized key representation to display appropriate for platform
-    function formatKeyCommand(keyCmd) {
-        var displayStr;
-        
-        if (brackets.platform === "mac") {
-            displayStr = keyCmd.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
-            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
-        } else {
-            displayStr = keyCmd.replace(/-/g, "+");
-        }
-
-        return displayStr;
-    }
 
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
@@ -285,7 +269,7 @@ define(function (require, exports, module) {
                         // TODO: shortcut needs to update dynamically when keybinding changes
     
                         if ($menuItem.find(".menu-shortcut").length === 0) {
-                            $link.append("<span class='menu-shortcut'>" + formatKeyCommand(displayKey) + "</span>");
+                            $link.append("<span class='menu-shortcut'>" + KeyMap.formatKeyDescriptor(displayKey) + "</span>");
                         }
                     }
                 });
@@ -601,7 +585,6 @@ define(function (require, exports, module) {
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
     exports.addMenu = addMenu;
-    exports.formatKeyCommand = formatKeyCommand;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
 });

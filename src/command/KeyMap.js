@@ -269,8 +269,29 @@ define(function (require, exports, module) {
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
     
+    /**
+     * Convert normalized key representation to display appropriate for platform.
+     * @param {!string} descriptor Normalized key descriptor.
+     * @return {!string} Display/Operating system appropriate string
+     */
+    function formatKeyDescriptor(descriptor) {
+        var displayStr;
+        
+        if (brackets.platform === "mac") {
+            displayStr = descriptor.replace(/-/g, "");        // remove dashes
+            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
+            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
+            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
+        } else {
+            displayStr = descriptor.replace(/-/g, "+");
+        }
+
+        return displayStr;
+    }
+    
     // Define public API
     exports.create = create;
     exports.translateKeyboardEvent = translateKeyboardEvent;
     exports.normalizeKeyDescriptorString = normalizeKeyDescriptorString;
+    exports.formatKeyDescriptor = formatKeyDescriptor;
 });
