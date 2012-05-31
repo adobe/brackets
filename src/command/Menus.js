@@ -137,9 +137,9 @@ define(function (require, exports, module) {
         var displayStr;
         if (brackets.platform === "mac") {
             displayStr = keyCmd.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
-            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
+            displayStr = displayStr.replace("Ctrl", "&#8984;");  // Ctrl > command symbol
+            displayStr = displayStr.replace("Shift", "&#8679;"); // Shift > shift symbol
+            displayStr = displayStr.replace("Alt", "&#8997;");   // Alt > option symbol
         } else {
             displayStr = keyCmd.replace(/-/g, "+");
         }
@@ -530,6 +530,7 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, "Ctrl-=");
         menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, "Ctrl--");
+        menu.addMenuItem("menu-view-restore-font",       Commands.VIEW_RESTORE_FONT_SIZE,  "Ctrl-0");
 
         /*
          * Navigate menu
