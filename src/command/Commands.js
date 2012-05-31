@@ -65,6 +65,7 @@ define(function (require, exports, module) {
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";
     exports.VIEW_INCREASE_FONT_SIZE     = "view.increaseFontSize";
     exports.VIEW_DECREASE_FONT_SIZE     = "view.decreaseFontSize";
+    exports.VIEW_RESTORE_FONT_SIZE      = "view.restoreFontSize";
     
     // Navigate
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
