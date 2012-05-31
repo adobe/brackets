@@ -58,6 +58,7 @@ define(function (require, exports, module) {
     require("spec/MultiRangeInlineEditor-test.js");
     require("spec/LiveDevelopment-test.js");
     require("spec/ViewUtils-test.js");
+    require("spec/CommandManager-test.js");
 
 
     // AUTOMATED PERFORMANCE
