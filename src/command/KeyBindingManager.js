@@ -67,11 +67,12 @@ define(function (require, exports, module) {
      *
      * @param {string} commandID
      * @param {string} key - a single shortcut.
-     * @param {?string} platform - undefined indicates all platofmrs
+     * @param {?string} platform - undefined indicates all platforms
+     * @return {boolean} Returns true if key binding is valid and does not conflict.
      */
     function _addBinding(commandID, key, platform) {
         if (!commandID || !key || (platform && platform !== brackets.platform)) {
-            return;
+            return false;
         }
 
         var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
@@ -82,7 +83,10 @@ define(function (require, exports, module) {
                         ". It is already assigned to " + _keymap.map[normalizedKey]);
         } else {
             _keymap.map[normalizedKey] = commandID;
+            return true;
         }
+        
+        return false;
     }
 
        
@@ -132,6 +136,9 @@ define(function (require, exports, module) {
 
     /**
      * Add one or more key bindings to a particular Command.
+     *
+     * TODO: MenuItems don't yet update the displayed keyboard shortcut if the keybinding is changed
+     * after menu creation
      * 
      * @param {string} commandID
      * @param {?(string | Array.<{key: string, platform: string)}>}  keyBindings - a single key binding
@@ -139,12 +146,12 @@ define(function (require, exports, module) {
      *      mapped to each other.
      * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
      *      the key binding.
-     *
-     * TODO: MenuItems don't yet update the displayed keyboard shortcut if the keybinding is changed
-     * after menu creation
+     * @return {boolean} Returns true if key binding is valid and does not conflict.
      */
     function addBinding(commandID, keyBindings, platform) {
         if (!_keymap) { _initializeKeymap(); }
+        
+        var assigned = true;
 
         if ($.isArray(keyBindings)) {
             var i, key, targetPlatform;
@@ -156,13 +163,15 @@ define(function (require, exports, module) {
                     key = keyBindings[i];
                 }
                 
-                _addBinding(commandID, key, targetPlatform);
+                assigned = assigned && _addBinding(commandID, key, targetPlatform);
             }
         } else {
-            _addBinding(commandID, keyBindings, platform);
+            assigned = _addBinding(commandID, keyBindings, platform);
         }
 
         // TODO: dispatch add event
+        
+        return assigned;
     }
 
     /**
