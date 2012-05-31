@@ -111,7 +111,6 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 KeyBindingManager.addBinding("test.bar", "Ctrl-A");
                 
-                // only "test1" platform and cross-platform bindings
                 var expected = keymap([
                     {"Ctrl-A": "test.foo"}
                 ]);
@@ -135,6 +134,11 @@ define(function (require, exports, module) {
         });
 
         describe("removeBinding", function () {
+            
+            it("should handle an empty keymap gracefully", function () {
+                KeyBindingManager.removeBinding("Ctrl-A");
+                expect(KeyBindingManager.getKeymap()).toBeNull();
+            });
             
             it("should require a key to remove", function () {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
@@ -165,7 +169,7 @@ define(function (require, exports, module) {
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });
             
-            it("should remove a key from the key map a the specified platform", function () {
+            it("should remove a key from the key map for the specified platform", function () {
                 brackets.platform = "test1";
                 
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A", "test1");
@@ -181,12 +185,11 @@ define(function (require, exports, module) {
                 // all platforms
                 KeyBindingManager.addBinding("test.foo", "Ctrl-B");
                 
-                // TODO (issue #956): should we track includeIn/excludeFrom platforms?
                 var expected = keymap([
                     {"Ctrl-B": "test.foo"}
                 ]);
                 
-                // remove cross-platform Ctrl-B, only for platform "test2"
+                // remove Ctrl-B, only for platform "test2"
                 KeyBindingManager.removeBinding("Ctrl-B", "test2");
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
             });

@@ -92,6 +92,10 @@ define(function (require, exports, module) {
      * @returns {KeyMap}
      */
     function getKeymap() {
+        if (!_keymap) {
+            return null;
+        }
+        
         return $.extend({}, _keymap.map);
     }
 
