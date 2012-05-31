@@ -74,7 +74,6 @@ define(function (require, exports, module) {
      *
      * @param {string} commandID
      * @param {string} key - a single shortcut.
-     * @param {?string} platform - undefined indicates all platofmrs
      */
     function _addBinding(commandID, key) {
         var normalizedKey = KeyMap.normalizeKeyDescriptorString(key);
@@ -186,7 +185,6 @@ define(function (require, exports, module) {
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
-            // remove a cross-platform command
             delete _keymap.map[normalizedKey];
         }
 
