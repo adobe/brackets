@@ -261,7 +261,7 @@ define(function (require, exports, module) {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
             // Create the HTML Menu
-            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'>" + StringUtils.htmlEscape(name) + "</span></a></li>");
+            $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
 
             // Add key bindings
             if (keyBindings) {
@@ -287,6 +287,8 @@ define(function (require, exports, module) {
                 }
             }
 
+
+
             $menuItem.on("click", function () {
                 menuItem._command.execute();
             });
@@ -295,6 +297,13 @@ define(function (require, exports, module) {
 
         menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
+
+        // Initialize MenuItem state
+        if (!menuItem.isDivider) {
+            menuItem._checkedChanged();
+            menuItem._enabledChanged();
+            menuItem._nameChanged();
+        }
 
         return menuItem;
     };
@@ -384,20 +393,32 @@ define(function (require, exports, module) {
         return getMenu(parent.id);
     };
     
-
-    MenuItem.prototype._checkedChanged = function (e, command) {
-        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
-       // TODO IMPL
+    /**
+     * Synchronizes MenuItem checked state with underlying Command checked state
+     */
+    MenuItem.prototype._checkedChanged = function () {
+        var checked = this._command.getChecked();
+        // Note, checked can also be undefined, so we explicitly check
+        // for truthiness and don't use toggleClass().
+        if (checked) {
+            $(_getHTMLMenuItem(this.id)).addClass("checked");
+        } else {
+            $(_getHTMLMenuItem(this.id)).removeClass("checked");
+        }
     };
 
-    MenuItem.prototype._enabledChanged = function (e, command) {
-        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
-        // TODO IMPL
+    /**
+     * Synchronizes MenuItem enabled state with underlying Command enabled state
+     */
+    MenuItem.prototype._enabledChanged = function () {
+        $(_getHTMLMenuItem(this.id)).toggleClass("disabled", !this._command.getEnabled());
     };
 
-    MenuItem.prototype._nameChanged = function (e, command) {
-        var $menuItem = $(_getHTMLMenuItem(this.id)).find(".menu-name");
-        $menuItem.text(command.getName());
+    /**
+     * Synchronizes MenuItem name with underlying Command name
+     */
+    MenuItem.prototype._nameChanged = function () {
+        $(_getHTMLMenuItem(this.id)).find(".menu-name").html(this._command.getName());
     };
     
     /**
@@ -498,7 +519,7 @@ define(function (require, exports, module) {
                                                                             [{key: "Ctrl-H",     platform: "win"},
                                                                              {key: "Ctrl-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem("menu-edit-duplicate",          Commands.EDIT_DUPLICATE);
+        menu.addMenuItem("menu-edit-duplicate",          Commands.EDIT_DUPLICATE, "Ctrl-D");
         menu.addMenuItem("menu-edit-comment",            Commands.EDIT_LINE_COMMENT, "Ctrl-/");
 
         /*

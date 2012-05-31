@@ -41,8 +41,17 @@ define(function (require, exports, module) {
     }
     
     function _handleEnableJSLint() {
-        JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
+        var enabled = !JSLintUtils.getEnabled();
+        JSLintUtils.setEnabled(enabled);
+        CommandManager.get(Commands.DEBUG_JSLINT).setChecked(enabled);
     }
+
+    function _handleUseTabChars() {
+        var useTabs = !Editor.getUseTabChar();
+        Editor.setUseTabChar(useTabs);
+        CommandManager.get(Commands.DEBUG_USE_TAB_CHARS).setChecked(useTabs);
+    }
+    
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
     var _testWindow = null;
@@ -135,32 +144,18 @@ define(function (require, exports, module) {
         });
     }
     
-    function _handleUseTabChars() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
-    }
-    
-    function _updateJSLintMenuItem(enabled) {
-        $("#menu-debug-jslint").toggleClass("selected", enabled);
-    }
-    
-    // update menu item when enabled state changes
-    $(JSLintUtils).on("enabledChanged", function (event, enabled) {
-        _updateJSLintMenuItem(enabled);
-    });
-    
-    // initialize menu immediately
-    _updateJSLintMenuItem(JSLintUtils.getEnabled());
-    
     // Register all the command handlers
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS, Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
-    CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint);
+    CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint)
+        .setChecked(JSLintUtils.getEnabled());
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS, Commands.DEBUG_RUN_UNIT_TESTS,      _handleRunUnitTests);
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
-    CommandManager.register(Strings.CMD_EXPERIMENTAL,   Commands.DEBUG_EXPERIMENTAL,        function () {});
+    CommandManager.register(Strings.CMD_EXPERIMENTAL,   Commands.DEBUG_EXPERIMENTAL,        function () {})
+        .setEnabled(false);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
                                                         Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
     CommandManager.register(Strings.CMD_CLOSE_ALL_LIVE_BROWSERS,
                                                         Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
-    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.DEBUG_USE_TAB_CHARS,       _handleUseTabChars);
+    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.DEBUG_USE_TAB_CHARS,       _handleUseTabChars)
+        .setChecked(Editor.getUseTabChar());
 });
