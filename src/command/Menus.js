@@ -152,6 +152,33 @@ define(function (require, exports, module) {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
     }
 
+    // Help function for inserting elements into a list
+    function _insertInList($list, $element, position, relativeID) {
+        // Determine where to insert. Default is LAST.
+        var inserted = false;
+        if (position) {
+            if (position === FIRST) {
+                $list.prepend($element);
+                inserted = true;
+            } else if (relativeID) {
+                var $relative = $(_getHTMLMenu(relativeID));
+                if ($relative.length > 0) {
+                    inserted = true;
+                    if (position === AFTER) {
+                        $relative.after($element);
+                    } else if (position === BEFORE) {
+                        $relative.before($element);
+                    }
+                }
+            }
+        }
+
+        // Default to LAST
+        if (!inserted) {
+            $list.append($element);
+        }
+    }
+
     /**
      * @constructor
      * @private
@@ -274,8 +301,7 @@ define(function (require, exports, module) {
                     key = keyBindings[i].key;
                     platform = keyBindings[i].platform;
 
-                    // TODO: handle insertion position as specified by relativeID, position
-                    // also support inserting into Menu Sections
+                    // TODO: support inserting into Menu Sections
 
                     // TODO: shortcut needs to update dynamically when keybinding changes
 
@@ -293,7 +319,9 @@ define(function (require, exports, module) {
                 menuItem._command.execute();
             });
         }
-        $("#main-toolbar #" + this.id + " .dropdown-menu").append($menuItem);
+
+        // Insert menu item
+        _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, relativeID);
 
         menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
@@ -455,15 +483,8 @@ define(function (require, exports, module) {
             .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
             .append("<ul class='dropdown-menu'></ul>");
 
-
-        // TODO: relative logic
-        if (relativeID) {
-            var relative = _getHTMLMenu(relativeID);
-            // TODO: handle not found
-            relative.after($newMenu);
-        } else {
-            $menubar.append($newMenu);
-        }
+        // Insert menu
+        _insertInList($menubar, $newMenu, position, relativeID);
 
         // todo error handling
 
