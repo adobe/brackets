@@ -356,7 +356,7 @@ define(function (require, exports, module) {
                     expect(cmd.getChecked()).toBe(isChecked);
 
                     // Verify menu gets synced with command
-                    var $menuItem = testWindow.$(menuSelector);
+                    $menuItem = testWindow.$(menuSelector);
                     if (isChecked) {
                         expect($($menuItem).hasClass("checked")).toBeTruthy();
                     } else {
@@ -369,7 +369,7 @@ define(function (require, exports, module) {
                     expect(cmd.getChecked()).toBe(isChecked);
 
                     // Verify menu gets synced with command
-                    var $menuItem = testWindow.$(menuSelector);
+                    $menuItem = testWindow.$(menuSelector);
                     if (isChecked) {
                         expect($($menuItem).hasClass("checked")).toBeTruthy();
                     } else {
@@ -403,7 +403,7 @@ define(function (require, exports, module) {
                     expect(cmd.getEnabled()).toBe(isEnabled);
 
                     // Verify menu gets synced with command
-                    var $menuItem = testWindow.$(menuSelector);
+                    $menuItem = testWindow.$(menuSelector);
                     if (isEnabled) {
                         expect($($menuItem).hasClass("disabled")).toBeFalsy();
                     } else {
@@ -416,7 +416,7 @@ define(function (require, exports, module) {
                     expect(cmd.getEnabled()).toBe(isEnabled);
 
                     // Verify menu gets synced with command
-                    var $menuItem = testWindow.$(menuSelector);
+                    $menuItem = testWindow.$(menuSelector);
                     if (isEnabled) {
                         expect($($menuItem).hasClass("disabled")).toBeFalsy();
                     } else {
