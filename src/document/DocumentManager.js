@@ -112,6 +112,19 @@ define(function (require, exports, module) {
     var _workingSet = [];
     
     /**
+     * @private
+     * Contains the same set of items as _workinSet, but ordered by how recently they were _currentDocument (0 = most recent).
+     * @type {Array.<FileEntry>}
+     */
+    var _workingSetMRUOrder = [];
+    
+    /**
+     * While true, the MRU order is frozen
+     * @type {boolean}
+     */
+    var _documentNavPending = false;
+    
+    /**
      * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
      * @private
      * @type {Object.<string, Document>}
@@ -119,7 +132,7 @@ define(function (require, exports, module) {
     var _openDocuments = {};
     
     /**
-     * Returns an ordered list of items in the working set. May be 0-length, but never null.
+     * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
      * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
      * When a file is removed from list, DocumentManager dispatches a "workingSetRemove" event.
@@ -136,14 +149,18 @@ define(function (require, exports, module) {
     }
 
     /** 
-      * Returns the index of the file matching fullPath in the working set. 
-      * Returns -1 if not found.
-      * @param {!string} fullPath
-      * @returns {number} index
+     * Returns the index of the file matching fullPath in the working set.
+     * Returns -1 if not found.
+     * @param {!string} fullPath
+     * @param {Array.<FileEntry>=} list Pass this arg to search a different array of files. Internal
+     *          use only.
+     * @returns {number} index
      */
-    function findInWorkingSet(fullPath) {
+    function findInWorkingSet(fullPath, list) {
+        list = list || _workingSet;
+        
         var ret = -1;
-        var found = _workingSet.some(function findByPath(file, i) {
+        var found = list.some(function findByPath(file, i) {
                 ret = i;
                 return file.fullPath === fullPath;
             });
@@ -183,6 +200,13 @@ define(function (require, exports, module) {
         // Add
         _workingSet.push(file);
         
+        // Add to MRU order: either first or last, depending on whether it's already the current doc or not
+        if (_currentDocument && _currentDocument.file.fullPath === file.fullPath) {
+            _workingSetMRUOrder.unshift(file);
+        } else {
+            _workingSetMRUOrder.push(file);
+        }
+        
         // Dispatch event
         $(exports).triggerHandler("workingSetAdd", file);
     }
@@ -201,11 +225,47 @@ define(function (require, exports, module) {
         
         // Remove
         _workingSet.splice(index, 1);
+        _workingSetMRUOrder.splice(findInWorkingSet(file.fullPath, _workingSetMRUOrder), 1);
         
         // Dispatch event
         $(exports).triggerHandler("workingSetRemove", file);
     }
-
+    
+    /**
+     * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
+     * @param {!Document}
+     */
+    function _markMostRecent(document) {
+        var mruI = findInWorkingSet(document.file.fullPath, _workingSetMRUOrder);
+        if (mruI !== -1) {
+            _workingSetMRUOrder.splice(mruI, 1);
+            _workingSetMRUOrder.unshift(document.file);
+        }
+    }
+    
+    
+    /**
+     * Indicate that changes to currentDocument are temporary for now, and should not update the MRU
+     * ordering of the working set. Useful for next/previous keyboard navigation (until Ctrl is released)
+     * or for incremental-search style document preview like Quick Open will eventually have.
+     * Can be called any number of times, and ended by a single finalizeDocumentNavigation() call.
+     */
+    function beginDocumentNavigation() {
+        _documentNavPending = true;
+    }
+    
+    /**
+     * Un-freezes the MRU list after one or more beginDocumentNavigation() calls. Whatever document is
+     * current is bumped to the front of the MRU list.
+     */
+    function finalizeDocumentNavigation() {
+        if (_documentNavPending) {
+            _documentNavPending = false;
+            
+            _markMostRecent(_currentDocument);
+        }
+    }
+    
     
     /**
      * Changes currentDocument to the given Document, firing currentDocumentChange, which in turn
@@ -228,6 +288,11 @@ define(function (require, exports, module) {
         // become dirty)
         if (!ProjectManager.isWithinProject(document.file.fullPath)) {
             addToWorkingSet(document.file);
+        }
+        
+        // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
+        if (!_documentNavPending) {
+            _markMostRecent(document);
         }
         
         // Make it the current document
@@ -734,6 +799,41 @@ define(function (require, exports, module) {
     
     
     /**
+     * Get the next or previous file in the working set, in MRU order (relative to currentDocument).
+     * @param {Number} inc  -1 for previous, +1 for next; no other values allowed
+     * @return {?FileEntry}  null if working set empty
+     */
+    function getNextPrevFile(inc) {
+        if (inc !== -1 && inc !== +1) {
+            throw new Error("Illegal argument: inc = " + inc);
+        }
+        
+        if (_currentDocument) {
+            var mruI = findInWorkingSet(_currentDocument.file.fullPath, _workingSetMRUOrder);
+            if (mruI === -1) {
+                // If doc not in working set, return most recent working set item
+                if (_workingSetMRUOrder.length > 0) {
+                    return _workingSetMRUOrder[0];
+                }
+            } else {
+                // If doc is in working set, return next/prev item with wrap-around
+                var newI = mruI + inc;
+                if (newI >= _workingSetMRUOrder.length) {
+                    newI = 0;
+                } else if (newI < 0) {
+                    newI = _workingSetMRUOrder.length - 1;
+                }
+                
+                return _workingSetMRUOrder[newI];
+            }
+        }
+        
+        // If no doc open or working set empty, there is no "next" file
+        return null;
+    }
+    
+    
+    /**
      * @private
      * Preferences callback. Saves the document file paths for the working set.
      */
@@ -828,6 +928,9 @@ define(function (require, exports, module) {
     exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
+    exports.getNextPrevFile = getNextPrevFile;
+    exports.beginDocumentNavigation = beginDocumentNavigation;
+    exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;

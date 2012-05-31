@@ -323,7 +323,11 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
+                        // show selection marker on folders
                         _redraw(true);
+                        
+                        // toggle folder open/closed
+                        _projectTree.jstree("toggle_node", data.rslt.obj);
                     }
                 }
             )
@@ -536,7 +540,7 @@ define(function (require, exports, module) {
      * @return {!string} fullPath reference
      */
     function _getDefaultProjectPath() {
-        var loadedPath = window.location.pathname;
+        var loadedPath = decodeURI(window.location.pathname);
         var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
         
         bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
@@ -596,8 +600,6 @@ define(function (require, exports, module) {
                     resultRenderTree = _renderTree(_treeDataProvider);
 
                     resultRenderTree.done(function () {
-                        result.resolve();
-
                         if (isFirstProjectOpen) {
                             $(exports).triggerHandler("initializeComplete", _projectRoot);
                         }
@@ -605,6 +607,8 @@ define(function (require, exports, module) {
                         if (projectRootChanged) {
                             $(exports).triggerHandler("projectRootChanged", _projectRoot);
                         }
+                        
+                        result.resolve();
                     });
                     resultRenderTree.fail(function () {
                         result.reject();
@@ -831,21 +835,34 @@ define(function (require, exports, module) {
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
         if (!skipRename) {
-            var renameInput = _projectTree.find(".jstree-rename-input");
-    
-            renameInput.on("keydown", function (event) {
+            var $renameInput = _projectTree.find(".jstree-rename-input"),
+                projectTreeOffset = _projectTree.offset(),
+                projectTreeScroller = _projectTree.get(0),
+                renameInput = $renameInput.get(0),
+                renameInputOffset = $renameInput.offset();
+
+            $renameInput.on("keydown", function (event) {
                 // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
                 if (event.keyCode === 27) {
                     escapeKeyPressed = true;
                 }
             });
-    
-            // TODO (issue #277): Figure out better way to style this input. All styles are inlined by jsTree...
-            renameInput.css({ left: "17px", height: "24px"})
-                .parent().css({ height: "26px"});
             
-            // make sure edit box is within the sidebar's view
-            renameInput.get(0).scrollIntoView();
+            // make sure edit box is visible within the jstree, only scroll vertically when necessary
+            if (renameInputOffset.top + $renameInput.height() >= (projectTreeOffset.top + _projectTree.height())) {
+                // below viewport
+                renameInput.scrollIntoView(false);
+            } else if (renameInputOffset.top <= projectTreeOffset.top) {
+                // above viewport
+                renameInput.scrollIntoView(true);
+            }
+            
+            // left-align renameInput
+            if (renameInputOffset.left < 0) {
+                _projectTree.scrollLeft(_projectTree.scrollLeft() + renameInputOffset.left);
+            } else if (renameInputOffset.left + $renameInput.width() >= projectTreeOffset.left + _projectTree.width()) {
+                _projectTree.scrollLeft(renameInputOffset.left - projectTreeOffset.left);
+            }
         }
         
         return result.promise();
@@ -885,6 +902,6 @@ define(function (require, exports, module) {
             _redraw(false); // redraw jstree when working set size changes
         });
 
-        CommandManager.register(Commands.FILE_OPEN_FOLDER, openProject);
+        CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
     }());
 });

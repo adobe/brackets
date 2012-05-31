@@ -101,9 +101,12 @@ define(function (require, exports, module) {
             
             // TODO: use a shared JS language intelligence module
             // TODO: this doesn't handle functions with params that spread across lines
-            var regexA = new RegExp(/(function\b)(.+)\b\(.*?\)/gi);  // recognizes the form: function functionName()
-            var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\(.*?\))/gi); // recognizes the form: functionName = function()
-            var regexC = new RegExp(/((\w+)\s*:\s*function\s*\(.*?\))/gi); // recognizes the form: functionName: function()
+            //
+            // Note, the global switch on the regex expressions below is NOT used because this code assumes
+            // one function per line.  exec() is not called repeatedly for each line.
+            var regexA = new RegExp(/(function\b)([^)]+)\b\([^)]*\)/i);  // recognizes the form: function functionName()
+            var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\([^)]*\))/i); // recognizes the form: functionName = function()
+            var regexC = new RegExp(/((\w+)\s*:\s*function\s*\([^)]*\))/i); // recognizes the form: functionName: function()
             var infoA, infoB, infoC, i, line;
             var funcName, chFrom, chTo;
 

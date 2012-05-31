@@ -134,6 +134,8 @@ define(function (require, exports, module) {
      *      is created or rejected when no inline editors are available.
      */
     function _openInlineWidget(editor) {
+        PerfUtils.markStart(PerfUtils.OPEN_INLINE_EDITOR);
+        
         // Run through inline-editor providers until one responds
         var pos = editor.getCursorPos(),
             inlinePromise,
@@ -149,6 +151,7 @@ define(function (require, exports, module) {
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
                 editor.addInlineWidget(pos, inlineWidget);
+                PerfUtils.addMeasurement(PerfUtils.OPEN_INLINE_EDITOR);
                 result.resolve();
             }).fail(function () {
                 result.reject();
@@ -515,7 +518,7 @@ define(function (require, exports, module) {
         }
     }
 
-    CommandManager.register(Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
+    CommandManager.register(Strings.CMD_SHOW_INLINE_EDITOR,     Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);

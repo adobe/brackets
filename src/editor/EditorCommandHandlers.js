@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Commands           = require("command/Commands"),
+        Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
         EditorManager      = require("editor/EditorManager");
     
@@ -114,8 +115,7 @@ define(function (require, exports, module) {
             return;
         }
         
-        // TODO: use mode *at cursor location*, so we can support mixed-mode e.g. JS in script blocks
-        var mode = editor._codeMirror.getOption("mode");
+        var mode = editor.getModeForSelection();
         
         // Currently we only support languages with "//" commenting
         if (mode === "javascript" || mode === "less") {
@@ -152,6 +152,6 @@ define(function (require, exports, module) {
     
     
     // Register commands
-    CommandManager.register(Commands.EDIT_LINE_COMMENT, lineComment);
-    CommandManager.register(Commands.EDIT_DUPLICATE, duplicateText);
+    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT, lineComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE, duplicateText);
 });

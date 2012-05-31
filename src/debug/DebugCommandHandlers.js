@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -31,9 +31,14 @@ define(function (require, exports, module) {
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         Editor                  = require("editor/Editor").Editor,
+        Strings                 = require("strings"),
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         NativeApp               = require("utils/NativeApp");
+    
+    function handleShowDeveloperTools(commandData) {
+        brackets.app.showDeveloperTools();
+    }
     
     function _handleEnableJSLint() {
         JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
@@ -51,7 +56,7 @@ define(function (require, exports, module) {
         }
 
         if (!_testWindow) {
-            _testWindow = window.open("../test/SpecRunner.html");
+            _testWindow = window.open("../test/SpecRunner.html", "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
             _testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
         }
     }
@@ -93,7 +98,7 @@ define(function (require, exports, module) {
         };
             
         var testName;
-        var perfData = PerfUtils.perfData;
+        var perfData = PerfUtils.getData();
         for (testName in perfData) {
             if (perfData.hasOwnProperty(testName)) {
                 // Add row to error table
@@ -148,10 +153,14 @@ define(function (require, exports, module) {
     _updateJSLintMenuItem(JSLintUtils.getEnabled());
     
     // Register all the command handlers
-    CommandManager.register(Commands.DEBUG_JSLINT, _handleEnableJSLint);
-    CommandManager.register(Commands.DEBUG_RUN_UNIT_TESTS, _handleRunUnitTests);
-    CommandManager.register(Commands.DEBUG_SHOW_PERF_DATA, _handleShowPerfData);
-    CommandManager.register(Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
-    CommandManager.register(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
-    CommandManager.register(Commands.DEBUG_USE_TAB_CHARS, _handleUseTabChars);
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS, Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
+    CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint);
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS, Commands.DEBUG_RUN_UNIT_TESTS,      _handleRunUnitTests);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
+    CommandManager.register(Strings.CMD_EXPERIMENTAL,   Commands.DEBUG_EXPERIMENTAL,        function () {});
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
+                                                        Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_CLOSE_ALL_LIVE_BROWSERS,
+                                                        Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
+    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.DEBUG_USE_TAB_CHARS,       _handleUseTabChars);
 });

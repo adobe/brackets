@@ -74,18 +74,17 @@ define(function (require, exports, module) {
         right = right.trim().toLowerCase();
         var matched = (left.length > 0 && left === right);
         if (matched && previouslyFound) {
-            console.log("KeyMap _normalizeKeyDescriptorString() - Modifier defined twice: " + origDescriptor);
+            console.log("KeyMap normalizeKeyDescriptorString() - Modifier defined twice: " + origDescriptor);
         }
         return matched;
     }
     
     /**
-     * @private
      * normalizes the incoming key descriptor so the modifier keys are always specified in the correct order
      * @param {string} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
      * @return {string} The normalized key descriptor
      */
-    function _normalizeKeyDescriptorString(origDescriptor) {
+    function normalizeKeyDescriptorString(origDescriptor) {
         var hasCtrl = false,
             hasAlt = false,
             hasShift = false,
@@ -95,17 +94,17 @@ define(function (require, exports, module) {
             if (_isModifier("ctrl", ele, hasCtrl)) {
                 hasCtrl = true;
             } else if (_isModifier("cmd", ele, hasCtrl, origDescriptor)) {
-                console.log("KeyMap _normalizeKeyDescriptorString() - Cmd getting mapped to Ctrl from: " + origDescriptor);
+                console.log("KeyMap normalizeKeyDescriptorString() - Cmd getting mapped to Ctrl from: " + origDescriptor);
                 hasCtrl = true;
             } else if (_isModifier("alt", ele, hasAlt, origDescriptor)) {
                 hasAlt = true;
             } else if (_isModifier("opt", ele, hasAlt, origDescriptor)) {
-                console.log("KeyMap _normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
+                console.log("KeyMap normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
                 hasAlt = true;
             } else if (_isModifier("shift", ele, hasShift, origDescriptor)) {
                 hasShift = true;
             } else if (key.length > 0) {
-                console.log("KeyMap _normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
+                console.log("KeyMap normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
             } else {
                 key = ele;
             }
@@ -129,7 +128,7 @@ define(function (require, exports, module) {
         var finalMap = {};
         Object.keys(map).forEach(function normalizeKey(ele, i, arr) {
             var val = map[ele];
-            var normalizedKey = _normalizeKeyDescriptorString(ele);
+            var normalizedKey = normalizeKeyDescriptorString(ele);
             if (normalizedKey.length === 0) {
                 console.log("KeyMap _normalizeMap() - Rejecting malformed key: " + ele + " (value: " + val + ")");
             } else if (!val) {
@@ -169,6 +168,43 @@ define(function (require, exports, module) {
             map[key] = ele[key];
         });
         return map;
+    }
+    
+    
+    /**
+     * @private
+     * Looks for keycodes that have os-inconsistent keys and fixes them.
+     * @param {number} The keycode from the keyboard event.
+     * @param {string} The current best guess at what the key is.
+     * @return {string} If the key is OS-inconsistent, the correct key; otherwise, the original key.
+     **/
+    function _mapKeycodeToKey(keycode, key) {
+        switch (keycode) {
+        case 186:
+            return ";";
+        case 187:
+            return "=";
+        case 188:
+            return ",";
+        case 189:
+            return "-";
+        case 190:
+            return ".";
+        case 191:
+            return "/";
+        case 192:
+            return "`";
+        case 219:
+            return "[";
+        case 220:
+            return "\\";
+        case 221:
+            return "]";
+        case 222:
+            return "'";
+        default:
+            return key;
+        }
     }
     
     /** class Keymap
@@ -228,7 +264,7 @@ define(function (require, exports, module) {
         
         // Translate some keys to their common names
         if (key === "\t") { key = "Tab"; }
-        if (event.keyCode === 191) { key = "/"; }
+        key = _mapKeycodeToKey(event.keyCode, key);
 
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
@@ -236,4 +272,5 @@ define(function (require, exports, module) {
     // Define public API
     exports.create = create;
     exports.translateKeyboardEvent = translateKeyboardEvent;
+    exports.normalizeKeyDescriptorString = normalizeKeyDescriptorString;
 });

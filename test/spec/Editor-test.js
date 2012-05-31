@@ -33,31 +33,36 @@ define(function (require, exports, module) {
         EditorUtils     = require("editor/EditorUtils");
 
     describe("Editor", function () {
-        var content = 'Brackets is going to be awesome!\n';
-
+        var defaultContent = 'Brackets is going to be awesome!\n';
         var myDocument, myEditor;
-        beforeEach(function () {
+        
+        function createTestEditor(content, mode) {
             // create dummy Document for the Editor
             myDocument = SpecRunnerUtils.createMockDocument(content);
             
             // create Editor instance (containing a CodeMirror instance)
             $("body").append("<div id='editor'/>");
-            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
-        });
+            myEditor = new Editor(myDocument, true, mode, $("#editor").get(0), {});
+        }
 
         afterEach(function () {
-            myEditor.destroy();
-            myEditor = null;
-            $("#editor").remove();
-            myDocument = null;
+            if (myEditor) {
+                myEditor.destroy();
+                myEditor = null;
+                $("#editor").remove();
+                myDocument = null;
+            }
         });
         
 
         describe("Editor wrapper", function () {
-
+            beforeEach(function () {
+                createTestEditor(defaultContent, "");
+            });
+            
             it("should initialize with content", function () {
                 // verify editor content
-                expect(myEditor._getText()).toEqual(content);
+                expect(myEditor._getText()).toEqual(defaultContent);
             });
             
             // FUTURE: this should really be in a Document unit test, but there's no "official"
@@ -95,7 +100,7 @@ define(function (require, exports, module) {
                 expect(mode).toEqual("css");
             });
             
-            it("should accecpt just a file name too", function () {
+            it("should accept just a file name too", function () {
                 // verify editor content
                 var mode = EditorUtils.getModeFromFileExtension("path.js");
                 expect(mode).toEqual("javascript");
@@ -109,6 +114,9 @@ define(function (require, exports, module) {
         });
         
         describe("Focus", function () {
+            beforeEach(function () {
+                createTestEditor(defaultContent, "");
+            });
             
             it("should not have focus until explicitly set", function () {
                 expect(myEditor.hasFocus()).toBe(false);
@@ -118,6 +126,72 @@ define(function (require, exports, module) {
                 myEditor.focus();
                 expect(myEditor.hasFocus()).toBe(true);
             });
+        });
+        
+        describe("getModeForSelection()", function () {
+            var jsContent = "var foo;";
+            var htmlContent = "<html><head>\n" +
+                              "  <script>\n" +
+                              "    var bar;\n" +
+                              "  </script>\n" +
+                              "</head><body>\n" +
+                              "  <p>Hello</p>\n" +
+                              "</body></html>";
+            
+            it("should get mode in homogenous file", function () {
+                createTestEditor(jsContent, "javascript");
+                
+                // Mode at point
+                myEditor.setCursorPos(0, 0);    // first char in text
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                myEditor.setCursorPos(0, 8);    // last char in text
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                
+                myEditor.setCursorPos(0, 3);    // middle of text
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                
+                // Mode for range
+                myEditor.setSelection({line: 0, ch: 4}, {line: 0, ch: 7});
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                myEditor.setSelection({line: 0, ch: 0}, {line: 0, ch: 8});  // select all
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+            });
+            
+            it("should get mode in htmlmixed file", function () {
+                createTestEditor(htmlContent, "htmlmixed");
+                
+                // Mode at point
+                myEditor.setCursorPos(0, 0);    // first char in text
+                expect(myEditor.getModeForSelection()).toBe("html");
+                myEditor.setCursorPos(6, 14);    // last char in text
+                expect(myEditor.getModeForSelection()).toBe("html");
+                
+                myEditor.setCursorPos(5, 7);    // middle of text - html
+                expect(myEditor.getModeForSelection()).toBe("html");
+                myEditor.setCursorPos(2, 7);    // middle of text - js
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                
+                // Mode for range - homogenous mode
+                myEditor.setSelection({line: 5, ch: 2}, {line: 5, ch: 14});
+                expect(myEditor.getModeForSelection()).toBe("html");
+                myEditor.setSelection({line: 5, ch: 0}, {line: 6, ch: 0});  // whole line
+                expect(myEditor.getModeForSelection()).toBe("html");
+                myEditor.setSelection({line: 2, ch: 4}, {line: 2, ch: 12});
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                myEditor.setSelection({line: 2, ch: 0}, {line: 3, ch: 0});  // whole line
+                expect(myEditor.getModeForSelection()).toBe("javascript");
+                
+                // Mode for range - mix of modes
+                myEditor.setSelection({line: 2, ch: 4}, {line: 3, ch: 7});
+                expect(myEditor.getModeForSelection()).toBeNull();
+                
+                // Mode for range - mix of modes where start & endpoints are same mode
+                // Known limitation of getModeForSelection() that it does not spot where the mode
+                // differs in mid-selection
+                myEditor.setSelection({line: 0, ch: 0}, {line: 6, ch: 14});  // select all
+                expect(myEditor.getModeForSelection()).toBe("html");
+            });
+            
         });
     });
 });
