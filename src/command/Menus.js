@@ -153,22 +153,20 @@ define(function (require, exports, module) {
     }
 
     // Help function for inserting elements into a list
-    function _insertInList($list, $element, position, relativeID) {
+    function _insertInList($list, $element, position, $relativeElement) {
         // Determine where to insert. Default is LAST.
         var inserted = false;
         if (position) {
             if (position === FIRST) {
                 $list.prepend($element);
                 inserted = true;
-            } else if (relativeID) {
-                var $relative = $(_getHTMLMenu(relativeID));
-                if ($relative.length > 0) {
+            } else if ($relativeElement && $relativeElement.length > 0) {
+                if (position === AFTER) {
+                    $relativeElement.after($element);
                     inserted = true;
-                    if (position === AFTER) {
-                        $relative.after($element);
-                    } else if (position === BEFORE) {
-                        $relative.before($element);
-                    }
+                } else if (position === BEFORE) {
+                    $relativeElement.before($element);
+                    inserted = true;
                 }
             }
         }
@@ -321,7 +319,8 @@ define(function (require, exports, module) {
         }
 
         // Insert menu item
-        _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, relativeID);
+        var $relativeElement = relativeID && $($(_getHTMLMenuItem(relativeID)).parents("li").get(0));
+        _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
         menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
@@ -484,7 +483,8 @@ define(function (require, exports, module) {
             .append("<ul class='dropdown-menu'></ul>");
 
         // Insert menu
-        _insertInList($menubar, $newMenu, position, relativeID);
+        var $relativeElement = relativeID && $(_getHTMLMenu(relativeID));
+        _insertInList($menubar, $newMenu, position, $relativeElement);
 
         // todo error handling
 
