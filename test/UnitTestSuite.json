@@ -15,5 +15,6 @@
         "spec/InlineEditorProviders-test.js",
         "spec/MultiRangeInlineEditor-test.js",
         "spec/LiveDevelopment-test.js",
+        "spec/CommandManager-test.js",
         "spec/ViewUtils-test.js"]
 }

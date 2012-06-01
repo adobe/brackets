@@ -167,6 +167,11 @@ define(function (require, exports, module) {
         return command;
     }
 
+
+    function _reset() {
+        _commands = {};
+    }
+
     /**
      * Retrieves a Command object by id
      * @param {string} id
@@ -195,4 +200,5 @@ define(function (require, exports, module) {
     exports.register = register;
     exports.execute = execute;
     exports.get = get;
+    exports._reset = _reset;
 });
