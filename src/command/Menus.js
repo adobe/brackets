@@ -83,6 +83,10 @@ define(function (require, exports, module) {
     var FIRST =   "first";
     var LAST =    "last";
 
+    /**
+      * Other constants
+      */
+    var DIVIDER = "---";
 
     /**
      * Maps menuID's to Menu objects
@@ -173,7 +177,7 @@ define(function (require, exports, module) {
      */
     function MenuItem(id, command) {
         this.id = id;
-        this.isDivider = command === "---";
+        this.isDivider = (command === DIVIDER);
 
         if (!this.isDivider) {
             // Bind event handlers
@@ -245,8 +249,8 @@ define(function (require, exports, module) {
 
         var name, commandID;
         if (typeof (command) === "string") {
-            if (command === "---") {
-                name = "---";
+            if (command === DIVIDER) {
+                name = DIVIDER;
             } else {
                 commandID = command;
                 command = CommandManager.get(commandID);
@@ -257,7 +261,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if (name === "---") {
+        if (name === DIVIDER) {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
             // Create the HTML Menu
@@ -319,7 +323,7 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created divider
      */
     Menu.prototype.addMenuDivider = function (position, relativeID) {
-        return this.addMenuItem(_getNextMenuItemDividerID(), "---", position, relativeID);
+        return this.addMenuItem(_getNextMenuItemDividerID(), DIVIDER, position, relativeID);
     };
 
     /**
@@ -594,6 +598,7 @@ define(function (require, exports, module) {
     exports.AFTER = AFTER;
     exports.LAST = LAST;
     exports.FIRST = FIRST;
+    exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
     exports.addMenu = addMenu;
