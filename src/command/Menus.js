@@ -31,7 +31,6 @@ define(function (require, exports, module) {
     // Load dependent modules
     var Commands                = require("command/Commands"),
         KeyBindingManager       = require("command/KeyBindingManager"),
-        EditorManager           = require("editor/EditorManager"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         CommandManager          = require("command/CommandManager");
@@ -99,6 +98,12 @@ define(function (require, exports, module) {
      * @type {Object.<string, MenuItem>}
      */
     var menuItemMap = {};
+
+    /**
+     * Maps commands to one or more MenuItem DOMElement records
+     * @type {Object.<string, Array.<{jQuery}>}
+     */
+    var commandToMenuItemsMap = {};
     
     /**
      * Retrieves the Menu object for the corresponding id. 
@@ -126,6 +131,19 @@ define(function (require, exports, module) {
         return $("#" + id).get(0);
     }
     
+    function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
+        var $link = $menuItem.find("a"),
+            $shortcut;
+        
+        if ($link.find(".menu-shortcut").length === 0) {
+            $shortcut = $("<span class='menu-shortcut'/>");
+            $link.append($shortcut);
+        }
+        
+        $shortcut.data("key", key);
+        $shortcut.html(KeyBindingManager.formatKeyDescriptor(displayKey));
+    }
+    
     /** NOT IMPLEMENTED
      * Removes MenuItem
      * 
@@ -135,21 +153,6 @@ define(function (require, exports, module) {
     // function removeMenuItem(id) {
     //    NOT IMPLEMENTED
     // }
-
-    // Convert normalized key representation to display appropriate for platform
-    function formatKeyCommand(keyCmd) {
-        var displayStr;
-        if (brackets.platform === "mac") {
-            displayStr = keyCmd.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
-            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
-        } else {
-            displayStr = keyCmd.replace(/-/g, "+");
-        }
-
-        return displayStr;
-    }
 
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
@@ -264,7 +267,10 @@ define(function (require, exports, module) {
      */
     Menu.prototype.addMenuItem = function (id, command, keyBindings, position, relativeID) {
         var $menuItem,
-            menuItem;
+            $link,
+            menuItem,
+            name,
+            commandID;
 
         if (!id || !command) {
             throw new Error("addMenuItem(): missing required parameters. id: " + id);
@@ -274,7 +280,6 @@ define(function (require, exports, module) {
             throw new Error("MenuItem added with same id of existing MenuItem: " + id);
         }
 
-        var name, commandID;
         if (typeof (command) === "string") {
             if (command === DIVIDER) {
                 name = DIVIDER;
@@ -288,36 +293,16 @@ define(function (require, exports, module) {
             }
         }
 
+        // create MenuItem
+        menuItem = new MenuItem(id, command);
+        menuItemMap[id] = menuItem;
+
+        // create MenuItem DOM
         if (name === DIVIDER) {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
             // Create the HTML Menu
             $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
-
-            // Add key bindings
-            if (keyBindings) {
-                if (!$.isArray(keyBindings)) {
-                    keyBindings = [{key: keyBindings}];
-                }
-
-                var key, i, platform;
-                for (i = 0; i < keyBindings.length; i++) {
-                    key = keyBindings[i].key;
-                    platform = keyBindings[i].platform;
-
-                    // TODO: support inserting into Menu Sections
-
-                    // TODO: shortcut needs to update dynamically when keybinding changes
-
-                    if ($menuItem.find(".menu-shortcut").length === 0) {
-                        $menuItem.find("a").append("<span class='menu-shortcut'>" + formatKeyCommand(key) + "</span>");
-                    }
-
-                    KeyBindingManager.addBinding(command.getID(), key, platform);
-                }
-            }
-
-
 
             $menuItem.on("click", function () {
                 menuItem._command.execute();
@@ -328,8 +313,33 @@ define(function (require, exports, module) {
         var $relativeElement = relativeID && $(_getHTMLMenuItem(relativeID)).closest("li");
         _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
-        menuItem = new MenuItem(id, command);
-        menuItemMap[id] = menuItem;
+        // map command to MenuItem DOM
+        var menuItems = commandToMenuItemsMap[commandID];
+        
+        if (!menuItems) {
+            menuItems = [];
+            commandToMenuItemsMap[commandID] = menuItems;
+        }
+        
+        menuItems.push($menuItem);
+
+        if (keyBindings) {
+            // Add key bindings. The module listes to KeyBindingManager to update MenuItem DOM with shortcuts.
+            if (!$.isArray(keyBindings)) {
+                keyBindings = [{key: keyBindings}];
+            }
+
+            keyBindings.forEach(function (keyBinding) {
+                KeyBindingManager.addBinding(commandID, keyBinding.key, keyBinding.platform);
+            });
+        } else {
+            // Look for existing key bindings
+            var bindings = KeyBindingManager.getKeyBindings(commandID);
+            
+            if (bindings.length > 0) {
+                _addKeyBindingToMenuItem($menuItem, bindings[0].key, bindings[0].displayKey);
+            }
+        }
 
         // Initialize MenuItem state
         if (!menuItem.isDivider) {
@@ -555,8 +565,8 @@ define(function (require, exports, module) {
         menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
         menu.addMenuItem("menu-view-sidebar",            Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
         menu.addMenuDivider();
-        menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, "Ctrl-=");
-        menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, "Ctrl--");
+        menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
+        menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-&#x2212"}]);
 
         /*
          * Navigate menu
@@ -612,6 +622,30 @@ define(function (require, exports, module) {
                 }
             });
     }
+    
+    // init event listeners
+    $(KeyBindingManager).on("keyBindingAdded", function (event, commandID, keyBinding) {
+        var menuItems = commandToMenuItemsMap[commandID];
+        
+        if (menuItems) {
+            menuItems.forEach(function ($menuItem) {
+                _addKeyBindingToMenuItem($menuItem, keyBinding.key, keyBinding.displayKey);
+            });
+        }
+    });
+    
+    $(KeyBindingManager).on("keyBindingRemoved", function (event, commandID, keyBinding) {
+        var menuItems = commandToMenuItemsMap[commandID];
+        
+        if (menuItems) {
+            menuItems.forEach(function ($menuItem) {
+                var $shortcut = $menuItem.find(".menu-shortcut");
+                if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
+                    $shortcut.empty();
+                }
+            });
+        }
+    });
 
     // Define public API
     exports.init = init;
@@ -625,7 +659,6 @@ define(function (require, exports, module) {
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
     exports.addMenu = addMenu;
-    exports.formatKeyCommand = formatKeyCommand;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
 });
