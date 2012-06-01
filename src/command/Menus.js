@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         }
         
         $shortcut.data("key", key);
-        $shortcut.html(KeyBindingManager.formatKeyDescriptor(displayKey));
+        $shortcut.text(KeyBindingManager.formatKeyDescriptor(displayKey));
     }
     
     /** NOT IMPLEMENTED
@@ -326,11 +326,11 @@ define(function (require, exports, module) {
         if (keyBindings) {
             // Add key bindings. The module listes to KeyBindingManager to update MenuItem DOM with shortcuts.
             if (!$.isArray(keyBindings)) {
-                keyBindings = [{key: keyBindings}];
+                keyBindings = [keyBindings];
             }
 
             keyBindings.forEach(function (keyBinding) {
-                KeyBindingManager.addBinding(commandID, keyBinding.key, keyBinding.platform);
+                KeyBindingManager.addBinding(commandID, keyBinding, keyBinding.platform);
             });
         } else {
             // Look for existing key bindings
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").html(this._command.getName());
+        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
     };
     
     /**
@@ -566,7 +566,7 @@ define(function (require, exports, module) {
         menu.addMenuItem("menu-view-sidebar",            Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
         menu.addMenuDivider();
         menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
-        menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-&#x2212"}]);
+        menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
 
         /*
          * Navigate menu

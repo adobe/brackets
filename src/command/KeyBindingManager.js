@@ -52,8 +52,8 @@ define(function (require, exports, module) {
      * @private
      */
     function _reset() {
-        _keymap = {};
-        _commandMap = {}
+        _keyMap = {};
+        _commandMap = {};
     }
 
     /**
@@ -68,7 +68,7 @@ define(function (require, exports, module) {
      */
     function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key) {
         if (!key) {
-            console.log("KeyMap _buildKeyDescriptor() - No key provided!");
+            console.log("KeyBindingManager _buildKeyDescriptor() - No key provided!");
             return "";
         }
         
@@ -103,7 +103,7 @@ define(function (require, exports, module) {
         right = right.trim().toLowerCase();
         var matched = (left.length > 0 && left === right);
         if (matched && previouslyFound) {
-            console.log("KeyMap normalizeKeyDescriptorString() - Modifier defined twice: " + origDescriptor);
+            console.log("KeyBindingManager normalizeKeyDescriptorString() - Modifier defined twice: " + origDescriptor);
         }
         return matched;
     }
@@ -111,33 +111,39 @@ define(function (require, exports, module) {
     /**
      * normalizes the incoming key descriptor so the modifier keys are always specified in the correct order
      * @param {string} The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
-     * @return {string} The normalized key descriptor
+     * @return {string} The normalized key descriptor or null if the descriptor invalid
      */
     function normalizeKeyDescriptorString(origDescriptor) {
         var hasCtrl = false,
             hasAlt = false,
             hasShift = false,
-            key = "";
+            key = "",
+            error = false;
         
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
             if (_isModifier("ctrl", ele, hasCtrl)) {
                 hasCtrl = true;
             } else if (_isModifier("cmd", ele, hasCtrl, origDescriptor)) {
-                console.log("KeyMap normalizeKeyDescriptorString() - Cmd getting mapped to Ctrl from: " + origDescriptor);
+                console.log("KeyBindingManager normalizeKeyDescriptorString() - Cmd getting mapped to Ctrl from: " + origDescriptor);
                 hasCtrl = true;
             } else if (_isModifier("alt", ele, hasAlt, origDescriptor)) {
                 hasAlt = true;
             } else if (_isModifier("opt", ele, hasAlt, origDescriptor)) {
-                console.log("KeyMap normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
+                console.log("KeyBindingManager normalizeKeyDescriptorString() - Opt getting mapped to Alt from: " + origDescriptor);
                 hasAlt = true;
             } else if (_isModifier("shift", ele, hasShift, origDescriptor)) {
                 hasShift = true;
             } else if (key.length > 0) {
-                console.log("KeyMap normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
+                console.log("KeyBindingManager normalizeKeyDescriptorString() - Multiple keys defined. Using key: " + key + " from: " + origDescriptor);
+                error = true;
             } else {
                 key = ele;
             }
         });
+        
+        if (error) {
+            return null;
+        }
 
         // Check to see if the binding is for "-".
         if (key === "" && origDescriptor.search(/^.+--$/) !== -1) {
@@ -159,11 +165,11 @@ define(function (require, exports, module) {
             var val = map[ele];
             var normalizedKey = normalizeKeyDescriptorString(ele);
             if (normalizedKey.length === 0) {
-                console.log("KeyMap _normalizeMap() - Rejecting malformed key: " + ele + " (value: " + val + ")");
+                console.log("KeyBindingManager _normalizeMap() - Rejecting malformed key: " + ele + " (value: " + val + ")");
             } else if (!val) {
-                console.log("KeyMap _normalizeMap() - Rejecting key for falsy value: " + ele + " (value: " + val + ")");
+                console.log("KeyBindingManager _normalizeMap() - Rejecting key for falsy value: " + ele + " (value: " + val + ")");
             } else if (finalMap[normalizedKey]) {
-                console.log("KeyMap _normalizeMap() - Rejecting key because it was defined twice: " + ele + " (value: " + val + ")");
+                console.log("KeyBindingManager _normalizeMap() - Rejecting key because it was defined twice: " + ele + " (value: " + val + ")");
             } else {
                 finalMap[normalizedKey] = val;
             }
@@ -190,7 +196,7 @@ define(function (require, exports, module) {
                 keys.splice(platformIndex, 1);
             }
             if (keys.length !== 1) {
-                console.log("KeyMap _bindingsToMap() - bindings list has unknown keys: " + bindings);
+                console.log("KeyBindingManager _bindingsToMap() - bindings list has unknown keys: " + bindings);
                 return;
             }
             var key = keys[0];
@@ -277,9 +283,9 @@ define(function (require, exports, module) {
         
         if (brackets.platform === "mac") {
             displayStr = descriptor.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "&#8984");  // Ctrl > command symbol
-            displayStr = displayStr.replace("Shift", "&#8679"); // Shift > shift symbol
-            displayStr = displayStr.replace("Alt", "&#8997");   // Alt > option symbol
+            displayStr = displayStr.replace("Ctrl", "\u2318");  // Ctrl > command symbol
+            displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
+            displayStr = displayStr.replace("Alt", "\u2325");   // Alt > option symbol
         } else {
             displayStr = descriptor.replace(/-/g, "+");
         }
@@ -300,7 +306,7 @@ define(function (require, exports, module) {
      * @private
      *
      * @param {string} commandID
-     * @param {string} keyBindingRequest - a single shortcut.
+     * @param {string|{key: string, displayKey: string} keyBindingRequest - a single shortcut.
      * @param {?string} platform - undefined indicates all platforms
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings
      */
@@ -344,7 +350,7 @@ define(function (require, exports, module) {
         _commandMap[commandID].push(keyBinding);
         
         // 1-to-1 key binding to commandID
-        _keyMap[normalized] = {commandID: commandID, displayKey: normalizedDisplay};
+        _keyMap[normalized] = {commandID: commandID, key: normalized, displayKey: normalizedDisplay};
         
         $(exports).triggerHandler("keyBindingAdded", [commandID, keyBinding]);
         
@@ -353,7 +359,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns a copy of the keymap
-     * @returns {KeyMap}
+     * @returns {!{commandID:string, displayKey:string}}
      */
     function getKeymap() {
         return $.extend({}, _keyMap);
@@ -396,7 +402,7 @@ define(function (require, exports, module) {
      * Add one or more key bindings to a particular Command.
      * 
      * @param {string} commandID
-     * @param {?(string | Array.<{key: string, displayKey: string, platform: string)}>}  keyBindings - a single key binding
+     * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string)}>}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
      * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
@@ -418,7 +424,7 @@ define(function (require, exports, module) {
                                             
             keyBindingRequests.forEach(function (keyBindingRequest) {
                 targetPlatform = keyBindingRequest.platform || platform || brackets.platform;
-                keyBinding = results.push(_addBinding(commandID, keyBindingRequest, targetPlatform));
+                keyBinding = _addBinding(commandID, keyBindingRequest, targetPlatform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
@@ -466,21 +472,27 @@ define(function (require, exports, module) {
         return bindings || [];
     }
 
-    // init
-    window.document.body.addEventListener(
-        "keydown",
-        function (event) {
-            if (handleKey(_translateKeyboardEvent(event))) {
-                event.stopPropagation();
-            }
-        },
-        true
-    );
+    /**
+     * Install keydown event listener.
+     */
+    function init() {
+        // init
+        window.document.body.addEventListener(
+            "keydown",
+            function (event) {
+                if (handleKey(_translateKeyboardEvent(event))) {
+                    event.stopPropagation();
+                }
+            },
+            true
+        );
+    }
 
     // unit test only
     exports._reset = _reset;
 
     // Define public API
+    exports.init = init;
     exports.getKeymap = getKeymap;
     exports.handleKey = handleKey;
     exports.setEnabled = setEnabled;

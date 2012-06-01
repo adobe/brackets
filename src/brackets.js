@@ -232,6 +232,7 @@ define(function (require, exports, module) {
 
         _initDragAndDropListeners();
         _initCommandHandlers();
+        KeyBindingManager.init();
         Menus.init(); // key bindings should be initialized first
         _initWindowListeners();
         
