@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils.js"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         FileUtils           = require("file/FileUtils"),
+        Menus               = require("command/Menus"),
         PerformanceReporter = require("perf/PerformanceReporter.js").PerformanceReporter;
     
     var suite;
