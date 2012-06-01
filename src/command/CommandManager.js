@@ -123,6 +123,11 @@ define(function (require, exports, module) {
     /**
      * Sets the name of the Command and dispatches "nameChange" so that
      * UI that reflects the command name can update.
+     *
+     * Note, a Command name can appear in either HTML or native UI
+     * so HTML tags should not be used. To add a Unicode character,
+     * use \uXXXX instead of an HTML entity.
+     *
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
