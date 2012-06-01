@@ -211,6 +211,8 @@ define(function (require, exports, module) {
     function updateMeasurement(name) {
         var elapsedTime = brackets.app.getElapsedMilliseconds();
 
+        name = toMeasurementId(name);
+
         if (updatableTests[name]) {
             // update existing measurement
             elapsedTime -= updatableTests[name].startTime;
@@ -246,9 +248,13 @@ define(function (require, exports, module) {
      * @param {string} name  Timer name.
      */
     function finalizeMeasurement(name) {
+
+        name = toMeasurementId(name);
+
         if (activeTests[name]) {
             delete activeTests[name];
         }
+
         if (updatableTests[name]) {
             delete updatableTests[name];
         }
