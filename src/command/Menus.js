@@ -445,7 +445,7 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        $(_getHTMLMenuItem(this.id)).find(".menu-name").html(this._command.getName());
     };
     
     /**
