@@ -173,7 +173,8 @@ define(function (require, exports, module) {
      * name, enabled, and checked state of a MenuItem. The MenuItem will update automatically
      *
      * @param {string} id
-     * @param {string|Command} command - the Command this MenuItem will reflect. Use "---" to specify a menu divider
+     * @param {string|Command} command - the Command this MenuItem will reflect.
+     *                                   Use DIVIDER to specify a menu divider
      */
     function MenuItem(id, command) {
         this.id = id;
@@ -224,7 +225,8 @@ define(function (require, exports, module) {
      *      will be bound to the supplied Command object rather than the MenuItem.
      * 
      * @param {!string} id
-     * @param {!string | Command} command - the command the menu will execute. Use "---" for a menu divider
+     * @param {!string | Command} command - the command the menu will execute.
+     *      Use DIVIDER for a menu divider
      * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
      * @param {?string} position - constant defining the position of new the MenuItem relative
