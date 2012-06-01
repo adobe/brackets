@@ -319,7 +319,7 @@ define(function (require, exports, module) {
         }
 
         // Insert menu item
-        var $relativeElement = relativeID && $($(_getHTMLMenuItem(relativeID)).parents("li").get(0));
+        var $relativeElement = relativeID && $(_getHTMLMenuItem(relativeID)).closest("li");
         _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
         menuItem = new MenuItem(id, command);

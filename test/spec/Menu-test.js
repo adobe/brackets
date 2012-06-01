@@ -170,7 +170,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     CommandManager.register("Command Custom", "custom.command", function () {});
                     var menu = Menus.addMenu("Custom", "menu-custom");
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(0);
 
                     // Re-use commands that are already registered
@@ -178,7 +178,7 @@ define(function (require, exports, module) {
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(1);
                     expect($($listItems[0]).length).toBe(1);
                     expect($($listItems[0]).find("a#menuitem-custom").length).toBe(1);
@@ -192,7 +192,7 @@ define(function (require, exports, module) {
                     var menu = Menus.addMenu("Custom", "menu-custom");
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0");
 
-                    var listSelector = "#main-toolbar > ul.nav > li#menu-custom > ul";
+                    var listSelector = "#menu-custom > ul";
                     var $listItems = testWindow.$(listSelector).children();
 
                     menuItem = menu.addMenuItem("menuitem-custom-1", "custom.command1", "Ctrl-Alt-0", Menus.FIRST);
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
                     var menu = Menus.addMenu("Custom", "menu-custom");
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0");
 
-                    var listSelector = "#main-toolbar > ul.nav > li#menu-custom > ul";
+                    var listSelector = "#menu-custom > ul";
                     var $listItems = testWindow.$(listSelector).children();
 
                     menuItem = menu.addMenuItem("menuitem-custom-1", "custom.command1", Menus.LAST);
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0", "Ctrl-Alt-0");
                     menuItem = menu.addMenuItem("menuitem-custom-1", "custom.command1", "Ctrl-Alt-1");
 
-                    var listSelector = "#main-toolbar > ul.nav > li#menu-custom > ul";
+                    var listSelector = "#menu-custom > ul";
                     var $listItems = testWindow.$(listSelector).children();
 
                     menuItem = menu.addMenuItem("menuitem-custom-2", "custom.command2", "Ctrl-Alt-2", Menus.AFTER, "menuitem-custom-0");
@@ -256,7 +256,7 @@ define(function (require, exports, module) {
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0", "Ctrl-Alt-0");
                     menuItem = menu.addMenuItem("menuitem-custom-1", "custom.command1", "Ctrl-Alt-1");
 
-                    var listSelector = "#main-toolbar > ul.nav > li#menu-custom > ul";
+                    var listSelector = "#menu-custom > ul";
                     var $listItems = testWindow.$(listSelector).children();
 
                     menuItem = menu.addMenuItem("menuitem-custom-2", "custom.command2", "Ctrl-Alt-2", Menus.BEFORE, "menuitem-custom-1");
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0", "Ctrl-Alt-0");
                     menuItem = menu.addMenuItem("menuitem-custom-1", "custom.command1", "Ctrl-Alt-1");
 
-                    var listSelector = "#main-toolbar > ul.nav > li#menu-custom > ul";
+                    var listSelector = "#menu-custom > ul";
                     var $listItems = testWindow.$(listSelector).children();
 
                     menuItem = menu.addMenuItem("menuitem-custom-2", "custom.command2", "Ctrl-Alt-2", Menus.BEFORE, "NONEXISTANT");
@@ -299,7 +299,7 @@ define(function (require, exports, module) {
 
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0");
 
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(1);
 
                     var exceptionThrown = false;
@@ -311,7 +311,7 @@ define(function (require, exports, module) {
                     }
                     expect(exceptionThrown).toBeTruthy();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    $listItems = testWindow.$("#menu-custom > ul").children();
 
                     expect($listItems.length).toBe(1);
                     expect(menuItem).toBeNull();
@@ -322,7 +322,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     var menu = Menus.addMenu("Custom", "menu-custom");
 
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(0);
 
                     var menuItem = null;
@@ -334,7 +334,7 @@ define(function (require, exports, module) {
                     }
                     expect(exceptionThrown).toBeTruthy();
 
-                    $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    $listItems = testWindow.$("#menu-custom > ul").children();
 
                     expect($listItems.length).toBe(0);
                     expect(menuItem).toBeNull();
@@ -352,7 +352,7 @@ define(function (require, exports, module) {
                     menuItem = menu.addMenuDivider();
                     menuItem = menu.addMenuItem("menuitem-custom-1", "custom.command1");
 
-                    var $listItems = testWindow.$("#main-toolbar > ul.nav > li#menu-custom > ul").children();
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(3);
                     expect($($listItems[1]).find("hr.divider").length).toBe(1);
                 });
@@ -369,7 +369,7 @@ define(function (require, exports, module) {
 
                     var menu = Menus.addMenu("Custom", "menu-custom");
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0");
-                    var menuSelector = "#main-toolbar > ul.nav > li#menu-custom > ul > li a#menuitem-custom-0";
+                    var menuSelector = "#menuitem-custom-0";
                     
                     // Verify menu is synced with command
                     var $menuItem = testWindow.$(menuSelector);
@@ -400,7 +400,7 @@ define(function (require, exports, module) {
 
                     var menu = Menus.addMenu("Custom", "menu-custom");
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0");
-                    var menuSelector = "#main-toolbar > ul.nav > li#menu-custom > ul > li a#menuitem-custom-0";
+                    var menuSelector = "#menuitem-custom-0";
                     
                     // Verify menu is synced with command
                     var $menuItem = testWindow.$(menuSelector);
