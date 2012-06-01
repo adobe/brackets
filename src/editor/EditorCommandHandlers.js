@@ -48,6 +48,7 @@ define(function (require, exports, module) {
      */
     function lineCommentSlashSlash(editor) {
         
+        var doc = editor.document;
         var sel = editor.getSelection();
         var startLine = sel.start.line;
         var endLine = sel.end.line;
@@ -67,7 +68,7 @@ define(function (require, exports, module) {
         var i;
         var line;
         for (i = startLine; i <= endLine; i++) {
-            line = editor.getLineText(i);
+            line = doc.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then "//"
             if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
                 containsUncommented = true;
@@ -76,7 +77,6 @@ define(function (require, exports, module) {
         }
         
         // Make the edit
-        var doc = editor.document;
         doc.batchOperation(function () {
             
             if (containsUncommented) {
@@ -94,7 +94,7 @@ define(function (require, exports, module) {
             } else {
                 // Uncomment - remove first "//" on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
-                    line = editor.getLineText(i);
+                    line = doc.getLine(i);
                     var commentI = line.indexOf("//");
                     if (commentI !== -1) {
                         doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});

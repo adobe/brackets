@@ -276,6 +276,8 @@ define(function (require, exports, module) {
      * "master" editor from the Document, rendering it immutable until either inline-editor edits or
      * currentDocument change triggers _createFullEditorForDocument() full-size editor again.
      *
+     * In certain edge cases, this is called directly by DocumentManager; see _gcDocuments() for details.
+     *
      * @param {!Document} document Document whose "master" editor we may destroy
      */
     function _destroyEditorIfUnneeded(document) {
@@ -535,6 +537,7 @@ define(function (require, exports, module) {
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;

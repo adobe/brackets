@@ -384,6 +384,23 @@ define(function (require, exports, module) {
     
     
     /**
+     * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
+     * rooted in the UI anywhere. This can happen if the Editor is auto-created via Document APIs that
+     * trigger _ensureMasterEditor() without making it dirty. E.g. a command invoked on the focused
+     * inline editor makes no-op edits or does a read-only operation.
+     */
+    function _gcDocuments() {
+        getAllOpenDocuments().forEach(function (doc) {
+            // Is the only ref to this document its own master Editor?
+            if (doc._refCount === 1 && doc._masterEditor) {
+                // Destroy the Editor if it's not being kept alive by the UI
+                EditorManager._destroyEditorIfUnneeded(doc);
+            }
+        });
+    }
+    
+    
+    /**
      * @constructor
      * Model for the contents of a single file and its current modification state.
      * See DocumentManager documentation for important usage notes.
@@ -432,6 +449,9 @@ define(function (require, exports, module) {
         
         this.file = file;
         this.refreshText(rawText, initialTimestamp);
+        
+        // This is a good point to clean up any dangling Documents
+        _gcDocuments();
     }
     
     /**
@@ -544,6 +564,7 @@ define(function (require, exports, module) {
     /**
      * Guarantees that _masterEditor is non-null. If needed, asks EditorManager to create a new master
      * editor bound to this Document (which in turn causes Document._makeEditable() to be called).
+     * Should ONLY be called by Editor and Document.
      */
     Document.prototype._ensureMasterEditor = function () {
         if (!this._masterEditor) {
@@ -552,22 +573,34 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {string} The document's current contents; may not be saved to disk yet. Whenever this
-     * value changes, the Document dispatches a "change" event. Line endings in the string depend on
-     * the Document's line endings setting.
+     * Returns the document's current contents; may not be saved to disk yet. Whenever this
+     * value changes, the Document dispatches a "change" event.
+     *
+     * @param {boolean=} useOriginalLineEndings If true, line endings in the result depend on the
+     *      Document's line endings setting (based on OS & the original text loaded from disk).
+     *      If false, line endings are always \n (like all the other Document text getter methods).
+     * @return {string}
      */
-    Document.prototype.getText = function () {
+    Document.prototype.getText = function (useOriginalLineEndings) {
         if (this._masterEditor) {
             // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
             // endings preferred by the document, if necessary
             var codeMirrorText = this._masterEditor._getText();
-            if (this._lineEndings === FileUtils.LINE_ENDINGS_LF) {
-                return codeMirrorText;
-            } else {
-                return codeMirrorText.replace(/\n/g, "\r\n");
+            if (useOriginalLineEndings) {
+                if (this._lineEndings === FileUtils.LINE_ENDINGS_CRLF) {
+                    return codeMirrorText.replace(/\n/g, "\r\n");
+                }
             }
+            return codeMirrorText;
+            
         } else {
-            return this._text;
+            // getText() is common enough to warrant an optimized path that doesn't require auto-creating
+            // the master editor
+            if (useOriginalLineEndings) {
+                return this._text;
+            } else {
+                return this._text.replace(/\r\n/g, "\n");
+            }
         }
     };
     
@@ -617,13 +650,13 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Adds, replaces, or removes text. If a range is given, the text at that range (inclusive) is replaced
-     * with the given new text; if text == "", then the entire range is effectively deleted. If 'end' is
-     * omitted, then the new text is inserted at that point and all existing text is preserved. Any style of
-     * line ending can be provided as input.
+     * Adds, replaces, or removes text. If a range is given, the text at that range is replaced with the
+     * given new text; if text == "", then the entire range is effectively deleted. If 'end' is omitted,
+     * then the new text is inserted at that point and all existing text is preserved. Line endings will
+     * be rewritten to match the document's current line-ending style.
      * @param {!string} text  Text to insert or replace the range with
-     * @param {!{line:number, ch:number}} start  Start of range (if 'to' specified) or insertion point (if not)
-     * @param {?{line:number, ch:number}} end  End of range; optional
+     * @param {!{line:number, ch:number}} start  Start of range, inclusive (if 'to' specified) or insertion point (if not)
+     * @param {?{line:number, ch:number}} end  End of range, exclusive; optional
      */
     Document.prototype.replaceRange = function (text, start, end) {
         this._ensureMasterEditor();
@@ -632,15 +665,24 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Returns the characters in the given range (inclusive). Line endings will always be '\n', regardless
-     * of the Document's line endings setting.
-     * @param {!{line:number, ch:number}} start
-     * @param {!{line:number, ch:number}} end
+     * Returns the characters in the given range. Line endings are normalized to '\n'.
+     * @param {!{line:number, ch:number}} start  Start of range, inclusive
+     * @param {!{line:number, ch:number}} end  End of range, exclusive
      * @return {!string}
      */
     Document.prototype.getRange = function (start, end) {
         this._ensureMasterEditor();
         return this._masterEditor._codeMirror.getRange(start, end);
+    };
+    
+    /**
+     * Returns the text of the given line (excluding any line ending characters)
+     * @param {number} Zero-based line number
+     * @return {!string}
+     */
+    Document.prototype.getLine = function (lineNum) {
+        this._ensureMasterEditor();
+        return this._masterEditor._codeMirror.getLine(lineNum);
     };
     
     /**

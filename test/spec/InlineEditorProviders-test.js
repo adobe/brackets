@@ -402,7 +402,9 @@ define(function (require, exports, module) {
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
-                    newText = inlineEditor.document.getText();
+                    
+                    // we're going to compare this to disk later, so pass true to get non-normalized line endings
+                    newText = inlineEditor.document.getText(true);
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeTruthy();
@@ -456,12 +458,13 @@ define(function (require, exports, module) {
                     
                     // insert text at the host editor's cursor position
                     hostEditor._codeMirror.replaceRange(newHostText, hostEditor.getCursorPos());
-                    newHostText = hostEditor.document.getText();
                     
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newInlineText, inlineEditor.getCursorPos());
-                    newInlineText = inlineEditor.document.getText();
+                    
+                    // we're going to compare this to disk later, so pass true to get non-normalized line endings
+                    newInlineText = inlineEditor.document.getText(true);
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeTruthy();
@@ -497,7 +500,7 @@ define(function (require, exports, module) {
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
-                    expect(savedHostText).toEqual(this.infos["test1.html"].text);
+                    expect(savedHostText).toEqual(this.infos["test1.html"].text); // i.e, should be unchanged
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeFalsy();

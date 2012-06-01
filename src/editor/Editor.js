@@ -447,7 +447,7 @@ define(function (require, exports, module) {
         var startLine = this.getFirstVisibleLine(),
             endLine = this.getLastVisibleLine();
         this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.getLineText(endLine).length});
+                          {line: endLine, ch: this._codeMirror.getLine(endLine).length});
     };
     
     Editor.prototype._applyChanges = function (changeList) {
@@ -513,9 +513,7 @@ define(function (require, exports, module) {
         }
         
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
-        if (!this.document._masterEditor) {
-            EditorManager._createFullEditorForDocument(this.document);
-        }
+        this.document._ensureMasterEditor();
         
         if (this.document._masterEditor !== this) {
             // Secondary editor:
@@ -952,16 +950,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype.isFullyVisible = function () {
         return $(this.getRootElement()).is(":visible");
-    };
-    
-    /**
-     * Returns the text of the given line.
-     * TODO: move to Document; it's a pretty close sibling to getRange()...
-     * @param {number} The zero-based number of the line to retrieve.
-     * @return {string} The contents of the line.
-     */
-    Editor.prototype.getLineText = function (num) {
-        return this._codeMirror.getLine(num);
     };
     
     /**
