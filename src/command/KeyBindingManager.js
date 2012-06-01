@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     var _keyMap = {};
 
     /**
-     * @type {Object}
+     * @type {Object.<string, Array.<{{key: string, displayKey: string}}>}
      */
     var _commandMap = {};
 
@@ -155,59 +155,6 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * normalizes the incoming map so all the key descriptors are specified the correct way
-     * @param {map} map The string for a key descriptor, can be in any order, the result will be Ctrl-Alt-Shift-<Key>
-     * @return {map} The normalized map
-     */
-    function _normalizeMap(map) {
-        var finalMap = {};
-        Object.keys(map).forEach(function normalizeKey(ele, i, arr) {
-            var val = map[ele];
-            var normalizedKey = normalizeKeyDescriptorString(ele);
-            if (normalizedKey.length === 0) {
-                console.log("KeyBindingManager _normalizeMap() - Rejecting malformed key: " + ele + " (value: " + val + ")");
-            } else if (!val) {
-                console.log("KeyBindingManager _normalizeMap() - Rejecting key for falsy value: " + ele + " (value: " + val + ")");
-            } else if (finalMap[normalizedKey]) {
-                console.log("KeyBindingManager _normalizeMap() - Rejecting key because it was defined twice: " + ele + " (value: " + val + ")");
-            } else {
-                finalMap[normalizedKey] = val;
-            }
-        });
-        return finalMap;
-    }
-    
-    /**
-     * @private
-     * given a list of bindings, goes through and turns them into a map. The list is filtered based 
-     * on platform, so if a binding has no specific platform or needs to match the given platform
-     * @param [{bindings}] bindings A list of binding objects
-     * @param {string} platform The platform to filter on
-     */
-    function _bindingsToMap(bindings, platform) {
-        var map = {};
-        bindings.forEach(function transformToMap(ele, i, arr) {
-            var keys = Object.keys(ele);
-            var platformIndex = keys.indexOf("platform");
-            if (platformIndex > -1) {
-                if (ele.platform !== platform) {
-                    return; //don't add this to the map
-                }
-                keys.splice(platformIndex, 1);
-            }
-            if (keys.length !== 1) {
-                console.log("KeyBindingManager _bindingsToMap() - bindings list has unknown keys: " + bindings);
-                return;
-            }
-            var key = keys[0];
-            map[key] = ele[key];
-        });
-        return map;
-    }
-    
-    
-    /**
-     * @private
      * Looks for keycodes that have os-inconsistent keys and fixes them.
      * @param {number} The keycode from the keyboard event.
      * @param {string} The current best guess at what the key is.
@@ -299,35 +246,36 @@ define(function (require, exports, module) {
      * @return {boolean} true if the key is already assigned, false otherwise.
      */
     function _isKeyAssigned(key) {
-        return (_keyMap && (_keyMap[key] !== undefined));
+        return (_keyMap[key] !== undefined);
     }
 
     /**
      * @private
      *
      * @param {string} commandID
-     * @param {string|{key: string, displayKey: string} keyBindingRequest - a single shortcut.
+     * @param {string|{{key: string, displayKey: string}}} keyBinding - a single shortcut.
      * @param {?string} platform - undefined indicates all platforms
      * @return {?{key: string, displayKey:String}} Returns a record for valid key bindings
      */
-    function _addBinding(commandID, keyBindingRequest, platform) {
+    function _addBinding(commandID, keyBinding, platform) {
         var key,
-            keyBinding = null,
+            result = null,
             normalized,
             normalizedDisplay,
-            targetPlatform = keyBindingRequest.platform || platform || brackets.platform;
+            targetPlatform = keyBinding.platform || platform || brackets.platform,
+            command;
         
         // skip if this binding doesn't match the current platform
         if (targetPlatform !== brackets.platform) {
             return null;
         }
         
-        key = (keyBindingRequest.key) || keyBindingRequest;
+        key = (keyBinding.key) || keyBinding;
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
         if (!normalized) {
-            console.log("Fail to nomalize " + key);
+            console.log("Failed to normalize " + key);
             return null;
         }
         
@@ -339,22 +287,27 @@ define(function (require, exports, module) {
         }
         
         // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
-        normalizedDisplay = (keyBindingRequest.displayKey) ? normalizeKeyDescriptorString(keyBindingRequest.displayKey) : normalized;
+        normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
         
         // 1-to-many commandID mapping to key binding
         if (!_commandMap[commandID]) {
             _commandMap[commandID] = [];
         }
         
-        keyBinding = {key: normalized, displayKey: normalizedDisplay};
-        _commandMap[commandID].push(keyBinding);
+        result = {key: normalized, displayKey: normalizedDisplay};
+        _commandMap[commandID].push(result);
         
         // 1-to-1 key binding to commandID
         _keyMap[normalized] = {commandID: commandID, key: normalized, displayKey: normalizedDisplay};
         
-        $(exports).triggerHandler("keyBindingAdded", [commandID, keyBinding]);
+        // notify listeners
+        command = CommandManager.get(commandID);
         
-        return keyBinding;
+        if (command) {
+            $(command).triggerHandler("keyBindingAdded", [result]);
+        }
+        
+        return result;
     }
 
     /**
@@ -390,13 +343,6 @@ define(function (require, exports, module) {
     function setEnabled(value) {
         _enabled = value;
     }
-    
-    /**
-     * @private
-     */
-    function _matchPlatform(platform) {
-        return (platform === undefined) || (platform === brackets.platform);
-    }
 
     /**
      * Add one or more key bindings to a particular Command.
@@ -423,7 +369,7 @@ define(function (require, exports, module) {
             results = [];
                                             
             keyBindingRequests.forEach(function (keyBindingRequest) {
-                targetPlatform = keyBindingRequest.platform || platform || brackets.platform;
+                targetPlatform = keyBindingRequest.platform || brackets.platform;
                 keyBinding = _addBinding(commandID, keyBindingRequest, targetPlatform);
                 
                 if (keyBinding) {
@@ -454,21 +400,25 @@ define(function (require, exports, module) {
         if (!normalizedKey) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
-            var binding = _keyMap[normalizedKey];
+            var binding = _keyMap[normalizedKey],
+                command = CommandManager.get(binding.commandID);
+            
             delete _keyMap[normalizedKey];
 
-            $(exports).triggerHandler("keyBindingRemoved", [binding.commandID, {key: normalizedKey, displayKey: binding.displayKey}]);
+            if (command) {
+                $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+            }
         }
     }
     
     /**
      * Retrieve key bindings currently associated with a command
      *
-     * @param {!string} key - a key-description string that may or may not be normalized.
-     * @return {!Array} An array of associated key bindings.
+     * @param {!string} command - A command ID
+     * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
      */
-    function getKeyBindings(command) {
-        var bindings = _commandMap[command];
+    function getKeyBindings(commandID) {
+        var bindings = _commandMap[commandID];
         return bindings || [];
     }
 

@@ -50,6 +50,8 @@ define(function (require, exports, module) {
      * Events:
      *      enabledStateChange
      *      checkedStateChange
+     *      keyBindingAdded
+     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;

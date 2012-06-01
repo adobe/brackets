@@ -98,12 +98,6 @@ define(function (require, exports, module) {
      * @type {Object.<string, MenuItem>}
      */
     var menuItemMap = {};
-
-    /**
-     * Maps commands to one or more MenuItem DOMElement records
-     * @type {Object.<string, Array.<{jQuery}>}
-     */
-    var commandToMenuItemsMap = {};
     
     /**
      * Retrieves the Menu object for the corresponding id. 
@@ -132,12 +126,11 @@ define(function (require, exports, module) {
     }
     
     function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
-        var $link = $menuItem.find("a"),
-            $shortcut;
+        var $shortcut;
         
-        if ($link.find(".menu-shortcut").length === 0) {
+        if ($menuItem.find(".menu-shortcut").length === 0) {
             $shortcut = $("<span class='menu-shortcut'/>");
-            $link.append($shortcut);
+            $menuItem.append($shortcut);
         }
         
         $shortcut.data("key", key);
@@ -213,12 +206,16 @@ define(function (require, exports, module) {
             this._enabledChanged = this._enabledChanged.bind(this);
             this._checkedChanged = this._checkedChanged.bind(this);
             this._nameChanged = this._nameChanged.bind(this);
+            this._keyBindingAdded = this._keyBindingAdded.bind(this);
+            this._keyBindingRemoved = this._keyBindingRemoved.bind(this);
 
             this._command = command;
             $(this._command)
                 .on("enabledStateChange", this._enabledChanged)
                 .on("checkedStateChange", this._checkedChanged)
-                .on("nameChange", this._nameChanged);
+                .on("nameChange", this._nameChanged)
+                .on("keyBindingAdded", this._keyBindingAdded)
+                .on("keyBindingRemoved", this._keyBindingRemoved);
         }
     }
 
@@ -313,16 +310,6 @@ define(function (require, exports, module) {
         var $relativeElement = relativeID && $(_getHTMLMenuItem(relativeID)).closest("li");
         _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
-        // map command to MenuItem DOM
-        var menuItems = commandToMenuItemsMap[commandID];
-        
-        if (!menuItems) {
-            menuItems = [];
-            commandToMenuItemsMap[commandID] = menuItems;
-        }
-        
-        menuItems.push($menuItem);
-
         if (keyBindings) {
             // Add key bindings. The module listes to KeyBindingManager to update MenuItem DOM with shortcuts.
             if (!$.isArray(keyBindings)) {
@@ -337,7 +324,8 @@ define(function (require, exports, module) {
             var bindings = KeyBindingManager.getKeyBindings(commandID);
             
             if (bindings.length > 0) {
-                _addKeyBindingToMenuItem($menuItem, bindings[0].key, bindings[0].displayKey);
+                // add the first key binding
+                _addKeyBindingToMenuItem($(_getHTMLMenuItem(id)), bindings[0].key, bindings[0].displayKey);
             }
         }
 
@@ -465,6 +453,25 @@ define(function (require, exports, module) {
     };
     
     /**
+     * @private
+     * Updates MenuItem DOM with a keyboard shortcut label
+     */
+    MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
+        _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+    };
+    
+    /**
+     * @private
+     * Updates MenuItem DOM to remove keyboard shortcut label
+     */
+    MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
+        var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
+        if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
+            $shortcut.empty();
+        }
+    };
+    
+    /**
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
      *
      * @param {!string} name - display text for menu 
@@ -584,9 +591,9 @@ define(function (require, exports, module) {
         menu.addMenuItem("menu-navigate-quick-edit",  Commands.SHOW_INLINE_EDITOR,
                                                                                                         "Ctrl-E");
         menu.addMenuItem("menu-navigate-prev-match",  Commands.QUICK_EDIT_PREV_MATCH,
-                                                                                                        "Alt-Up");
+                                                                                                        {key: "Alt-Up", displayKey: "Alt-\u2191"});
         menu.addMenuItem("menu-navigate-next-match",  Commands.QUICK_EDIT_NEXT_MATCH,
-                                                                                                        "Alt-Down");
+                                                                                                        {key: "Alt-Down", displayKey: "Alt-\u2193"});
         /*
          * Debug menu
          */
@@ -622,30 +629,6 @@ define(function (require, exports, module) {
                 }
             });
     }
-    
-    // init event listeners
-    $(KeyBindingManager).on("keyBindingAdded", function (event, commandID, keyBinding) {
-        var menuItems = commandToMenuItemsMap[commandID];
-        
-        if (menuItems) {
-            menuItems.forEach(function ($menuItem) {
-                _addKeyBindingToMenuItem($menuItem, keyBinding.key, keyBinding.displayKey);
-            });
-        }
-    });
-    
-    $(KeyBindingManager).on("keyBindingRemoved", function (event, commandID, keyBinding) {
-        var menuItems = commandToMenuItemsMap[commandID];
-        
-        if (menuItems) {
-            menuItems.forEach(function ($menuItem) {
-                var $shortcut = $menuItem.find(".menu-shortcut");
-                if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
-                    $shortcut.empty();
-                }
-            });
-        }
-    });
 
     // Define public API
     exports.init = init;
