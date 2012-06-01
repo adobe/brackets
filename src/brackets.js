@@ -152,6 +152,7 @@ define(function (require, exports, module) {
             CommandManager          : require("command/CommandManager"),
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,
+            Menus                   : Menus,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
