@@ -51,7 +51,7 @@ define(function (require, exports, module) {
             expect(command).toBeTruthy();
             expect(command.getName()).toBe("test command");
             expect(command.getID()).toBe(commandID);
-            expect(command.getEnabled()).toBe(true);
+            expect(command.getEnabled()).toBeTruthy();
             expect(command.getChecked()).toBe(undefined);
             expect(command._commandFn).toBe(testCommandFn);
 
@@ -68,15 +68,14 @@ define(function (require, exports, module) {
         it("execute a command", function () {
             var command = CommandManager.register("test command", commandID, testCommandFn);
             command.execute();
-            expect(executed).toBe(true);
+            expect(executed).toBeTruthy();
         });
 
         it("not execute a disabled command", function () {
             var command = CommandManager.register("test command", commandID, testCommandFn);
             command.setEnabled(false);
-            executed = false;
             command.execute();
-            expect(executed).toBe(false);
+            expect(executed).toBeFalsy();
         });
 
         it("set enabled state and trigger enabledStateChange", function () {
@@ -86,8 +85,8 @@ define(function (require, exports, module) {
                 eventTriggered = true;
             });
             command.setEnabled(false);
-            expect(eventTriggered).toBe(true);
-            expect(command.getEnabled()).toBe(false);
+            expect(eventTriggered).toBeTruthy();
+            expect(command.getEnabled()).toBeFalsy();
         });
 
         it("set checked state and trigger checkedStateChange", function () {
@@ -96,9 +95,9 @@ define(function (require, exports, module) {
             $(command).on("checkedStateChange", function () {
                 eventTriggered = true;
             });
-            command.setChecked(false);
-            expect(eventTriggered).toBe(true);
-            expect(command.getChecked()).toBe(false);
+            command.setChecked(true);
+            expect(eventTriggered).toBeTruthy();
+            expect(command.getChecked()).toBeTruthy();
         });
 
         it("rename command trigger nameChange", function () {
@@ -108,7 +107,7 @@ define(function (require, exports, module) {
                 eventTriggered = true;
             });
             command.setName("newName");
-            expect(eventTriggered).toBe(true);
+            expect(eventTriggered).toBeTruthy();
             expect(command.getName()).toBe("newName");
         });
     });
