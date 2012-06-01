@@ -8,6 +8,7 @@
         "spec/ProjectManager-test.js",
         "spec/WorkingSetView-test.js",
         "spec/KeyMap-test.js",
+        "spec/KeyBindingManager-test.js",
         "spec/FileIndexManager-test.js",
         "spec/CodeHintUtils-test.js",
         "spec/CSSUtils-test.js",
