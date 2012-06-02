@@ -32,6 +32,7 @@ define(function (require, exports, module) {
         WorkingSetView          = require("project/WorkingSetView"),
         CommandManager          = require("command/CommandManager"),
         Commands                = require("command/Commands"),
+        Strings                 = require("strings"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
 
@@ -95,8 +96,8 @@ define(function (require, exports, module) {
         }
         
         if (updateMenu) {
-            var text = (isSidebarClosed) ? "Show Sidebar" : "Hide Sidebar";
-            $sidebarMenuText.first().text(text);
+            var text = (isSidebarClosed) ? Strings.CMD_SHOW_SIDEBAR : Strings.CMD_HIDE_SIDEBAR;
+            CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(text);
         }
         EditorManager.resizeEditor();
     }
@@ -239,6 +240,8 @@ define(function (require, exports, module) {
         WorkingSetView.create($openFilesContainer);
         
         $(ProjectManager).on("projectRootChanged", _updateProjectTitle);
+
+        CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
         
         _initSidebarResizer();
     }());

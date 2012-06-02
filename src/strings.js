@@ -115,4 +115,69 @@ define(function (require, exports, module) {
                                                 + "Do you want to keep your changes?";
     
     exports.OPEN_FILE                         = "Open File";
+
+
+
+    /**
+     * Command Name Constants
+     *
+    */
+
+    // File menu commands
+    exports.FILE_MENU                           = "File";
+    exports.CMD_FILE_NEW                        = "New";
+    exports.CMD_FILE_OPEN                       = "Open\u2026";
+    exports.CMD_ADD_TO_WORKING_SET              = "Add To Working Set";
+    exports.CMD_OPEN_FOLDER                     = "Open Folder\u2026";
+    exports.CMD_FILE_CLOSE                      = "Close";
+    exports.CMD_FILE_CLOSE_ALL                  = "Close All";
+    exports.CMD_FILE_SAVE                       = "Save";
+    exports.CMD_LIVE_FILE_PREVIEW               = "Live File Preview";
+    exports.CMD_QUIT                            = "Quit";
+
+    // Edit menu commands
+    exports.EDIT_MENU                           = "Edit";
+    exports.CMD_SELECT_ALL                      = "Select All";
+    exports.CMD_FIND                            = "Find";
+    exports.CMD_FIND_IN_FILES                   = "Find in Files";
+    exports.CMD_FIND_NEXT                       = "Find Next";
+    exports.CMD_FIND_PREVIOUS                   = "Find Previous";
+    exports.CMD_REPLACE                         = "Replace";
+    exports.CMD_DUPLICATE                       = "Duplicate";
+    exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
+     
+    // View menu commands
+    exports.VIEW_MENU                           = "View";
+    exports.CMD_HIDE_SIDEBAR                    = "Hide Sidebar";
+    exports.CMD_SHOW_SIDEBAR                    = "Show Sidebar";
+    exports.CMD_INCREASE_FONT_SIZE              = "Increase Font Size";
+    exports.CMD_DECREASE_FONT_SIZE              = "Decrease Font Size";
+
+    // Navigate menu Commands
+    exports.NAVIGATE_MENU                       = "Navigate";
+    exports.CMD_QUICK_OPEN                      = "Quick Open";
+    exports.CMD_GOTO_LINE                       = "Go to Line";
+    exports.CMD_GOTO_DEFINITION                 = "Go to Definition";
+    exports.CMD_SHOW_INLINE_EDITOR              = "Quick Edit";
+    exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";
+    exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";
+    exports.CMD_NEXT_DOC                        = "Next Document";
+    exports.CMD_PREV_DOC                       = "Previous Document";
+    
+    // Debug menu commands
+    exports.DEBUG_MENU                          = "Debug";
+    exports.CMD_REFRESH_WINDOW                  = "Reload Window";
+    exports.CMD_CLOSE_WINDOW                    = "Close Window";
+    exports.CMD_SHOW_DEV_TOOLS                  = "Show Developer Tools";
+    exports.CMD_RUN_UNIT_TESTS                  = "Run Tests";
+    exports.CMD_JSLINT                          = "Enable JSLint";
+    exports.CMD_SHOW_PERF_DATA                  = "Show Perf Data";
+    exports.CMD_EXPERIMENTAL                    = "Experimental";
+    exports.CMD_NEW_BRACKETS_WINDOW             = "New Window";
+    exports.CMD_CLOSE_ALL_LIVE_BROWSERS         = "Close Browsers";
+    exports.CMD_USE_TAB_CHARS                   = "Use Tab Characters";
+
+    // Help menu commands
+    exports.CMD_ABOUT                           = "About";
+
 });

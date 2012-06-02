@@ -37,7 +37,6 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/css/css");
     require("thirdparty/CodeMirror2/mode/less/less");
     require("thirdparty/CodeMirror2/mode/htmlmixed/htmlmixed");
-    require("thirdparty/CodeMirror2/mode/xml/xml");
     require("thirdparty/CodeMirror2/mode/clike/clike");
     require("thirdparty/CodeMirror2/mode/php/php");
     require("thirdparty/CodeMirror2/mode/coffeescript/coffeescript");

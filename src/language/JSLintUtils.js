@@ -28,8 +28,6 @@
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
  *
- * jQuery Events:
- *    - enabledChanged -- When JSLint is enabled or disabled
  */
 define(function (require, exports, module) {
     'use strict';
@@ -138,6 +136,9 @@ define(function (require, exports, module) {
                 $lintResults.hide();
                 $goldStar.show();
             }
+
+            PerfUtils.addMeasurement(perfTimerDOM);
+
         } else {
             // JSLint is disabled or does not apply to the current file, hide
             // both the results and the gold star
@@ -146,8 +147,6 @@ define(function (require, exports, module) {
         }
         
         EditorManager.resizeEditor();
-
-        PerfUtils.addMeasurement(perfTimerDOM);
     }
     
     /**
@@ -173,11 +172,7 @@ define(function (require, exports, module) {
     
     function _setEnabled(enabled) {
         _enabled = enabled;
-        
-        $(exports).triggerHandler("enabledChanged", _enabled);
-        
         _updateListeners();
-        
         _prefs.setValue("enabled", _enabled);
     
         // run immediately

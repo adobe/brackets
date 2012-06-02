@@ -268,6 +268,10 @@ define(function (require, exports, module) {
     };
     NativeFileSystem.FileEntry.prototype = new NativeFileSystem.Entry();
 
+    NativeFileSystem.FileEntry.prototype.toString = function () {
+        return "[FileEntry " + this.fullPath + "]";
+    };
+    
     /**
      * Creates a new FileWriter associated with the file that this FileEntry represents.
      *
@@ -497,6 +501,10 @@ define(function (require, exports, module) {
         // TODO (issue #241): void removeRecursively (VoidCallback successCallback, optional ErrorCallback errorCallback);
     };
     NativeFileSystem.DirectoryEntry.prototype = new NativeFileSystem.Entry();
+    
+    NativeFileSystem.DirectoryEntry.prototype.toString = function () {
+        return "[DirectoryEntry " + this.fullPath + "]";
+    };
     
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
         // TODO (issue #241)
