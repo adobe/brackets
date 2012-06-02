@@ -137,6 +137,19 @@ define(function (require, exports, module) {
         $shortcut.text(KeyBindingManager.formatKeyDescriptor(displayKey));
     }
     
+    function _addExistingKeyBinding(menuItem) {
+        var bindings = KeyBindingManager.getKeyBindings(menuItem.getCommand().getID()),
+            binding = null;
+        
+        if (bindings.length > 0) {
+            // add the latest key binding
+            binding = bindings[bindings.length - 1];
+            _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey);
+        }
+        
+        return binding;
+    }
+    
     /** NOT IMPLEMENTED
      * Removes MenuItem
      * 
@@ -310,27 +323,21 @@ define(function (require, exports, module) {
         var $relativeElement = relativeID && $(_getHTMLMenuItem(relativeID)).closest("li");
         _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
-        if (keyBindings) {
-            // Add key bindings. The module listes to KeyBindingManager to update MenuItem DOM with shortcuts.
-            if (!$.isArray(keyBindings)) {
-                keyBindings = [keyBindings];
-            }
-
-            keyBindings.forEach(function (keyBinding) {
-                KeyBindingManager.addBinding(commandID, keyBinding, keyBinding.platform);
-            });
-        } else {
-            // Look for existing key bindings
-            var bindings = KeyBindingManager.getKeyBindings(commandID);
-            
-            if (bindings.length > 0) {
-                // add the first key binding
-                _addKeyBindingToMenuItem($(_getHTMLMenuItem(id)), bindings[0].key, bindings[0].displayKey);
-            }
-        }
-
         // Initialize MenuItem state
         if (!menuItem.isDivider) {
+            if (keyBindings) {
+                // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
+                if (!$.isArray(keyBindings)) {
+                    keyBindings = [keyBindings];
+                }
+                
+                // Note that keyBindings passed during MenuItem creation take precedent over any existing key bindings
+                KeyBindingManager.addBinding(commandID, keyBindings);
+            } else {
+                // Look for existing key bindings
+                _addExistingKeyBinding(menuItem, commandID);
+            }
+
             menuItem._checkedChanged();
             menuItem._enabledChanged();
             menuItem._nameChanged();
@@ -466,8 +473,12 @@ define(function (require, exports, module) {
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
         var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
+        
         if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
-            $shortcut.empty();
+            // check for any other bindings
+            if (_addExistingKeyBinding(this) === null) {
+                $shortcut.empty();
+            }
         }
     };
     

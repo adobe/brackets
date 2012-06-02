@@ -211,6 +211,10 @@ define(function (require, exports, module) {
                 KeyBindingManager.removeBinding("Ctrl-A");
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([key("Ctrl-B")]);
+                
+                KeyBindingManager.removeBinding("Ctrl-B");
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([]);
             });
             
             it("should remove a key from the key map for the specified platform", function () {

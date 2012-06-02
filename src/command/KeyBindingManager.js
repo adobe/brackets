@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     var CommandManager = require("command/CommandManager");
 
     /**
-     * @type {Object}
+     * @type {Object.<string, {{commandID: string, key: string, displayKey: string}}}
      */
     var _keyMap = {};
 
@@ -352,7 +352,7 @@ define(function (require, exports, module) {
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
      * @param {?string} platform - the target OS of the keyBindings either "mac" or "win". If undefined, all platforms will use
-     *      the key binding.
+     *      the key binding. Ignored if keyBindings is passed an Array.
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
      */
     function addBinding(commandID, keyBindingRequests, platform) {
@@ -401,12 +401,21 @@ define(function (require, exports, module) {
             console.log("Fail to nomalize " + key);
         } else if (_isKeyAssigned(normalizedKey)) {
             var binding = _keyMap[normalizedKey],
-                command = CommandManager.get(binding.commandID);
+                command = CommandManager.get(binding.commandID),
+                bindings = _commandMap[binding.commandID];
             
+            // delete key binding record
             delete _keyMap[normalizedKey];
-
-            if (command) {
-                $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+            
+            if (bindings) {
+                // delete mapping from command to key binding
+                _commandMap[binding.commandID] = bindings.filter(function (b) {
+                    return (b.key !== normalizedKey);
+                });
+    
+                if (command) {
+                    $(command).triggerHandler("keyBindingRemoved", [{key: normalizedKey, displayKey: binding.displayKey}]);
+                }
             }
         }
     }
