@@ -164,7 +164,7 @@ define(function (require, exports, module) {
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
-            }            
+            }
                         
             
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
@@ -206,9 +206,8 @@ define(function (require, exports, module) {
                     }
                 
                     if (newWidth === 0) {
-                        console.log('newWidth === 0');
-                        //$mainView.off("mousemove.sidebar");
-                        //$("body").toggleClass("resizing");
+                        $mainView.off("mousemove.sidebar");
+                        $("body").toggleClass("resizing");
                     }
                     animationRequest = window.webkitRequestAnimationFrame(doRedraw);
                 }
