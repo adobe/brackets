@@ -136,6 +136,9 @@ define(function (require, exports, module) {
                 $lintResults.hide();
                 $goldStar.show();
             }
+
+            PerfUtils.addMeasurement(perfTimerDOM);
+
         } else {
             // JSLint is disabled or does not apply to the current file, hide
             // both the results and the gold star
@@ -144,8 +147,6 @@ define(function (require, exports, module) {
         }
         
         EditorManager.resizeEditor();
-
-        PerfUtils.addMeasurement(perfTimerDOM);
     }
     
     /**

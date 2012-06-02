@@ -83,6 +83,10 @@ define(function (require, exports, module) {
     var FIRST =   "first";
     var LAST =    "last";
 
+    /**
+      * Other constants
+      */
+    var DIVIDER = "---";
 
     /**
      * Maps menuID's to Menu objects
@@ -152,6 +156,31 @@ define(function (require, exports, module) {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
     }
 
+    // Help function for inserting elements into a list
+    function _insertInList($list, $element, position, $relativeElement) {
+        // Determine where to insert. Default is LAST.
+        var inserted = false;
+        if (position) {
+            if (position === FIRST) {
+                $list.prepend($element);
+                inserted = true;
+            } else if ($relativeElement && $relativeElement.length > 0) {
+                if (position === AFTER) {
+                    $relativeElement.after($element);
+                    inserted = true;
+                } else if (position === BEFORE) {
+                    $relativeElement.before($element);
+                    inserted = true;
+                }
+            }
+        }
+
+        // Default to LAST
+        if (!inserted) {
+            $list.append($element);
+        }
+    }
+
     /**
      * @constructor
      * @private
@@ -169,11 +198,12 @@ define(function (require, exports, module) {
      * name, enabled, and checked state of a MenuItem. The MenuItem will update automatically
      *
      * @param {string} id
-     * @param {string|Command} command - the Command this MenuItem will reflect. Use "---" to specify a menu divider
+     * @param {string|Command} command - the Command this MenuItem will reflect.
+     *                                   Use DIVIDER to specify a menu divider
      */
     function MenuItem(id, command) {
         this.id = id;
-        this.isDivider = command === "---";
+        this.isDivider = (command === DIVIDER);
 
         if (!this.isDivider) {
             // Bind event handlers
@@ -220,7 +250,8 @@ define(function (require, exports, module) {
      *      will be bound to the supplied Command object rather than the MenuItem.
      * 
      * @param {!string} id
-     * @param {!string | Command} command - the command the menu will execute. Use "---" for a menu divider
+     * @param {!string | Command} command - the command the menu will execute.
+     *      Use DIVIDER for a menu divider
      * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
      * @param {?string} position - constant defining the position of new the MenuItem relative
@@ -245,8 +276,8 @@ define(function (require, exports, module) {
 
         var name, commandID;
         if (typeof (command) === "string") {
-            if (command === "---") {
-                name = "---";
+            if (command === DIVIDER) {
+                name = DIVIDER;
             } else {
                 commandID = command;
                 command = CommandManager.get(commandID);
@@ -257,7 +288,7 @@ define(function (require, exports, module) {
             }
         }
 
-        if (name === "---") {
+        if (name === DIVIDER) {
             $menuItem = $("<li><hr class='divider'></li>");
         } else {
             // Create the HTML Menu
@@ -274,8 +305,7 @@ define(function (require, exports, module) {
                     key = keyBindings[i].key;
                     platform = keyBindings[i].platform;
 
-                    // TODO: handle insertion position as specified by relativeID, position
-                    // also support inserting into Menu Sections
+                    // TODO: support inserting into Menu Sections
 
                     // TODO: shortcut needs to update dynamically when keybinding changes
 
@@ -293,7 +323,10 @@ define(function (require, exports, module) {
                 menuItem._command.execute();
             });
         }
-        $("#main-toolbar #" + this.id + " .dropdown-menu").append($menuItem);
+
+        // Insert menu item
+        var $relativeElement = relativeID && $(_getHTMLMenuItem(relativeID)).closest("li");
+        _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
         menuItem = new MenuItem(id, command);
         menuItemMap[id] = menuItem;
@@ -319,7 +352,7 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created divider
      */
     Menu.prototype.addMenuDivider = function (position, relativeID) {
-        return this.addMenuItem(_getNextMenuItemDividerID(), "---", position, relativeID);
+        return this.addMenuItem(_getNextMenuItemDividerID(), DIVIDER, position, relativeID);
     };
 
     /**
@@ -418,7 +451,7 @@ define(function (require, exports, module) {
      * Synchronizes MenuItem name with underlying Command name
      */
     MenuItem.prototype._nameChanged = function () {
-        $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+        $(_getHTMLMenuItem(this.id)).find(".menu-name").html(this._command.getName());
     };
     
     /**
@@ -455,15 +488,9 @@ define(function (require, exports, module) {
             .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
             .append("<ul class='dropdown-menu'></ul>");
 
-
-        // TODO: relative logic
-        if (relativeID) {
-            var relative = _getHTMLMenu(relativeID);
-            // TODO: handle not found
-            relative.after($newMenu);
-        } else {
-            $menubar.append($newMenu);
-        }
+        // Insert menu
+        var $relativeElement = relativeID && $(_getHTMLMenu(relativeID));
+        _insertInList($menubar, $newMenu, position, $relativeElement);
 
         // todo error handling
 
@@ -594,6 +621,7 @@ define(function (require, exports, module) {
     exports.AFTER = AFTER;
     exports.LAST = LAST;
     exports.FIRST = FIRST;
+    exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
     exports.addMenu = addMenu;

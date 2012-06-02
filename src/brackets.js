@@ -152,6 +152,7 @@ define(function (require, exports, module) {
             CommandManager          : require("command/CommandManager"),
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,
+            Menus                   : Menus,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
@@ -269,11 +270,10 @@ define(function (require, exports, module) {
         
         PerfUtils.addMeasurement("Application Startup");
         
-        // load extensions before loading project
-        _initExtensions().done(function () {
-            ProjectManager.loadProject().done(function () {
-                _initTest();
-            });
+        // finish UI initialization before loading extensions
+        ProjectManager.loadProject().done(function () {
+            _initTest();
+            _initExtensions();
         });
     }
             
