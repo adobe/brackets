@@ -75,7 +75,7 @@ define(function (require, exports, module) {
         
         if (typeof displayTriangle === "boolean") {
             var display = (displayTriangle) ? "block" : "none";
-            $sidebar.find(".triangle-visible").css("display", display);
+            $sidebar.find(".sidebar-selection-triangle").css("display", display);
         }
         
         if (isSidebarClosed) {
@@ -151,7 +151,7 @@ define(function (require, exports, module) {
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
             var startX = e.clientX,
-                newWidth = Math.max(startX, 0),
+                newWidth = Math.max(e.clientX, 0),
                 doResize = true;
             
             isMouseDown = true;
@@ -160,13 +160,14 @@ define(function (require, exports, module) {
             $sidebar.find(".scroller-shadow").css("display", "none");
             
             $body.toggleClass("resizing");
+            
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
-            }
+            }            
+                        
             
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
-                console.log('rAF');
                 // only run this if the mouse is down so we don't constantly loop even 
                 // after we're done resizing.
                 if (isMouseDown) {
@@ -174,19 +175,20 @@ define(function (require, exports, module) {
                     // sidebar is shrinking, hide the sidebar automatically an
                     // unbind the mouse event. 
                     if ((startX > 10) && (newWidth < 10)) {
-                        console.log('beginning startX: ' + startX);
                         toggleSidebar(startingSidebarPosition);
                         $mainView.off("mousemove.sidebar");
+                        
+                        // turn off the mouseup event so that it doesn't fire twice and retoggle the 
+                        // resizing class
+                        $mainView.off("mouseup.sidebar");
                         $body.toggleClass("resizing");
                         doResize = false;
                         startX = 0;
-                        console.log('ending startX: ' + startX);
-                        window.webkitCancelRequestAnimationFrame(this);
-                        return;
                         
-                    } else if (startX < 10) {
-                        // reset startX if we're going from a snapped closed position to open
-                        startX = startingSidebarPosition;
+                        // force isMouseDown so that we don't keep calling requestAnimationFrame
+                        // this keeps the sidebar from stuttering
+                        isMouseDown = false;
+                        
                     }
                 
                     if (doResize) {
@@ -204,8 +206,9 @@ define(function (require, exports, module) {
                     }
                 
                     if (newWidth === 0) {
-                        $mainView.off("mousemove.sidebar");
-                        $("body").toggleClass("resizing");
+                        console.log('newWidth === 0');
+                        //$mainView.off("mousemove.sidebar");
+                        //$("body").toggleClass("resizing");
                     }
                     animationRequest = window.webkitRequestAnimationFrame(doRedraw);
                 }
@@ -213,7 +216,7 @@ define(function (require, exports, module) {
             
             $mainView.on("mousemove.sidebar", function (e) {
                 newWidth = Math.max(e.clientX, 0);
-                    
+                
                 e.preventDefault();
             });
                 
@@ -221,7 +224,7 @@ define(function (require, exports, module) {
                 isMouseDown = false;
                 
                 // replace shadows and triangle
-                $sidebar.find(".triangle-visible").css("display", "block");
+                $sidebar.find(".sidebar-selection-triangle").css("display", "block");
                 $sidebar.find(".scroller-shadow").css("display", "block");
                 
                 $projectFilesContainer.triggerHandler("scroll");
