@@ -164,7 +164,7 @@ define(function (require, exports, module) {
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
-            }            
+            }
                         
             
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
