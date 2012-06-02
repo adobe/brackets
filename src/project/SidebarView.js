@@ -206,9 +206,8 @@ define(function (require, exports, module) {
                     }
                 
                     if (newWidth === 0) {
-                        console.log('newWidth === 0');
-                        //$mainView.off("mousemove.sidebar");
-                        //$("body").toggleClass("resizing");
+                        $mainView.off("mousemove.sidebar");
+                        $("body").toggleClass("resizing");
                     }
                     animationRequest = window.webkitRequestAnimationFrame(doRedraw);
                 }
