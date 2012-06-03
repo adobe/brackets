@@ -126,9 +126,9 @@ define(function (require, exports, module) {
     }
     
     function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
-        var $shortcut;
+        var $shortcut = $menuItem.find(".menu-shortcut");
         
-        if ($menuItem.find(".menu-shortcut").length === 0) {
+        if ($shortcut.length === 0) {
             $shortcut = $("<span class='menu-shortcut'/>");
             $menuItem.append($shortcut);
         }
