@@ -276,7 +276,7 @@ define(function (require, exports, module) {
      */
     function _renderTree(treeDataProvider) {
         var result = new $.Deferred(),
-            toggleNodeEvent = false;
+            suppressToggleOpen = false;
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -307,7 +307,10 @@ define(function (require, exports, module) {
                 "before.jstree",
                 function (event, data) {
                     if (data.func === "toggle_node") {
-                        toggleNodeEvent = true;
+                        // jstree will automaticaly select parent node when the parent is closed
+                        // and any descendant is selected. Prevent the select_node handler from
+                        // immediately toggling open again in this case.
+                        suppressToggleOpen = _projectTree.jstree("is_open", data.args[0]);
                     }
                 }
             )
@@ -337,12 +340,12 @@ define(function (require, exports, module) {
                         
                         // toggle folder open/closed
                         // suppress if this selection was triggered by clicking the disclousre triangle
-                        if (!toggleNodeEvent) {
+                        if (!suppressToggleOpen) {
                             _projectTree.jstree("toggle_node", data.rslt.obj);
                         }
-                        
-                        toggleNodeEvent = false;
                     }
+                    
+                    suppressToggleOpen = false;
                 }
             )
             .bind(
@@ -379,7 +382,6 @@ define(function (require, exports, module) {
             .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
-                    
                     if (event.type === "open_node") {
                         // select the current document if it becomes visible when this folder is opened
                         var curDoc = DocumentManager.getCurrentDocument();
