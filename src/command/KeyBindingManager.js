@@ -150,6 +150,13 @@ define(function (require, exports, module) {
             key = "-";
         }
         
+        // '+' char is valid if it's the only key. Keyboard shortcut strings should use
+        // unicode characters (unescaped). Keyboard shortcut display strings may use
+        // unicode escape sequences (e.g. \u20AC euro sign)
+        if ((key.indexOf("+")) >= 0 && (key.length > 1)) {
+            return null;
+        }
+        
         return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
     }
     
@@ -355,8 +362,8 @@ define(function (require, exports, module) {
      *      the key binding. Ignored if keyBindings is passed an Array.
      * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>} Returns record(s) for valid key binding(s)
      */
-    function addBinding(commandID, keyBindingRequests, platform) {
-        if ((commandID === null) || (commandID === undefined) || !keyBindingRequests) {
+    function addBinding(commandID, keyBindings, platform) {
+        if ((commandID === null) || (commandID === undefined) || !keyBindings) {
             return;
         }
         
@@ -364,11 +371,11 @@ define(function (require, exports, module) {
             targetPlatform,
             results;
 
-        if ($.isArray(keyBindingRequests)) {
+        if ($.isArray(keyBindings)) {
             var keyBinding;
             results = [];
                                             
-            keyBindingRequests.forEach(function (keyBindingRequest) {
+            keyBindings.forEach(function (keyBindingRequest) {
                 targetPlatform = keyBindingRequest.platform || brackets.platform;
                 keyBinding = _addBinding(commandID, keyBindingRequest, targetPlatform);
                 
@@ -378,7 +385,7 @@ define(function (require, exports, module) {
             });
         } else {
             targetPlatform = platform || brackets.platform;
-            results = _addBinding(commandID, keyBindingRequests, targetPlatform);
+            results = _addBinding(commandID, keyBindings, targetPlatform);
         }
         
         return results;

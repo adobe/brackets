@@ -74,8 +74,8 @@ define(function (require, exports, module) {
             });
             
             it("should ignore invalid bindings", function () {
-                var result = KeyBindingManager.addBinding("test.foo", "Ktrl-Shift-A");
-                expect(result).toBeNull();
+                expect(KeyBindingManager.addBinding("test.foo", "Ktrl-Shift-A")).toBeNull();
+                expect(KeyBindingManager.addBinding("test.foo", "Ctrl+R")).toBeNull();
                 expect(KeyBindingManager.getKeymap()).toEqual({});
             });
             
