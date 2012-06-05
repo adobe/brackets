@@ -426,6 +426,7 @@ define(function (require, exports, module) {
 
             it("should respond to key binding updates", function () {
                 runs(function () {
+                    CommandManager.register("Command Custom 0", "custom.command0", function () {});
                     var menu = Menus.addMenu("Custom", "menu-custom");
                     var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0", "Ctrl-9");
                     var menuSelector = "#menuitem-custom-0";
