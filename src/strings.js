@@ -162,7 +162,7 @@ define(function (require, exports, module) {
     exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";
     exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";
     exports.CMD_NEXT_DOC                        = "Next Document";
-    exports.CMD_PREV_DOC                       = "Previous Document";
+    exports.CMD_PREV_DOC                        = "Previous Document";
     
     // Debug menu commands
     exports.DEBUG_MENU                          = "Debug";
