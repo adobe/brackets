@@ -57,7 +57,6 @@ define(function (require, exports, module) {
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
         KeyBindingManager       = require("command/KeyBindingManager"),
-        KeyMap                  = require("command/KeyMap"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
@@ -153,6 +152,7 @@ define(function (require, exports, module) {
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
+            KeyBindingManager       : KeyBindingManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
@@ -203,18 +203,6 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
         });
     }
-
-    function initKeyHandler() {
-        window.document.body.addEventListener(
-            "keydown",
-            function (event) {
-                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                    event.stopPropagation();
-                }
-            },
-            true
-        );
-    }
     
     function _initWindowListeners() {
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
@@ -245,7 +233,7 @@ define(function (require, exports, module) {
 
         _initDragAndDropListeners();
         _initCommandHandlers();
-        initKeyHandler();
+        KeyBindingManager.init();
         Menus.init(); // key bindings should be initialized first
         _initWindowListeners();
         

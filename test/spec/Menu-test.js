@@ -29,6 +29,7 @@ define(function (require, exports, module) {
 
     var CommandManager,
         Commands,
+        KeyBindingManager,
         Menus,
         SpecRunnerUtils     = require("./SpecRunnerUtils.js"),
         Strings             = require("strings");
@@ -42,9 +43,10 @@ define(function (require, exports, module) {
                 testWindow = w;
 
                 // Load module instances from brackets.test
-                CommandManager  = testWindow.brackets.test.CommandManager;
-                Commands        = testWindow.brackets.test.Commands;
-                Menus           = testWindow.brackets.test.Menus;
+                CommandManager      = testWindow.brackets.test.CommandManager;
+                Commands            = testWindow.brackets.test.Commands;
+                KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
+                Menus               = testWindow.brackets.test.Menus;
             });
         });
 
@@ -419,6 +421,28 @@ define(function (require, exports, module) {
 
                     // Verify menu gets synced with command
                     expect($($menuItem).hasClass("disabled")).toBeFalsy();
+                });
+            });
+
+            it("should respond to key binding updates", function () {
+                runs(function () {
+                    CommandManager.register("Command Custom 0", "custom.command0", function () {});
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+                    var menuItem = menu.addMenuItem("menuitem-custom-0", "custom.command0", "Ctrl-9");
+                    var menuSelector = "#menuitem-custom-0";
+                    
+                    // Verify menu is synced with command
+                    var $menuItem = testWindow.$(menuSelector),
+                        $shortcut = $menuItem.find(".menu-shortcut");
+                    
+                    // verify key data instead of platform-specific labels
+                    expect($shortcut.data("key")).toBe("Ctrl-9");
+                    
+                    // change keyboard shortcut
+                    KeyBindingManager.addBinding("custom.command0", "Alt-8");
+                    
+                    // verify updated keyboard shortcut
+                    expect($shortcut.data("key")).toBe("Alt-8");
                 });
             });
         });

@@ -30,15 +30,27 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var CommandManager      = require("command/CommandManager"),
-        KeyBindingManager   = require("command/KeyBindingManager"),
-        KeyMap              = require("command/KeyMap");
+        KeyBindingManager   = require("command/KeyBindingManager");
     
-    function keymap(bindings, platform) {
-        if (!$.isArray(bindings)) {
-            bindings = [bindings];
-        }
+    function key(k, displayKey) {
+        return {key: k, displayKey: displayKey || k };
+    }
+    
+    function keyBinding(k, commandID, displayKey) {
+        var obj = key(k, displayKey);
+        obj.commandID = commandID;
         
-        return KeyMap.create({bindings: bindings, platform: platform}).map;
+        return obj;
+    }
+    
+    function keyMap(keyBindings) {
+        var map = {};
+        
+        keyBindings.forEach(function (k) {
+            map[k.key] = k;
+        });
+        
+        return map;
     }
     
     describe("KeyBindingManager", function () {
@@ -58,33 +70,50 @@ define(function (require, exports, module) {
                 
                 KeyBindingManager.addBinding("test.foo");
                 expect(KeyBindingManager.getKeymap()).toEqual({});
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([]);
             });
             
             it("should ignore invalid bindings", function () {
-                KeyBindingManager.addBinding("test.foo", "Ktrl-Shift-A");
-                
-                // TODO (issue #957): invalid key bindings are currently allowed
-                var expected = keymap([
-                    {"Ktrl-Shift-A": "test.foo"}
-                ]);
-                
-                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+                expect(KeyBindingManager.addBinding("test.foo", "Ktrl-Shift-A")).toBeNull();
+                expect(KeyBindingManager.addBinding("test.foo", "Ctrl+R")).toBeNull();
+                expect(KeyBindingManager.getKeymap()).toEqual({});
             });
             
             it("should add single bindings to the keymap", function () {
                 // use a fake platform
                 brackets.platform = "test";
                 
-                KeyBindingManager.addBinding("test.foo", "Ctrl-A");
-                KeyBindingManager.addBinding("test.bar", "Ctrl-B");
-                KeyBindingManager.addBinding("test.cat", "Ctrl-C", "bark");
-                KeyBindingManager.addBinding("test.dog", "Ctrl-D", "test");
+                var result = KeyBindingManager.addBinding("test.foo", "Ctrl-A");
+                expect(result).toEqual(key("Ctrl-A"));
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([key("Ctrl-A")]);
+                
+                result = KeyBindingManager.addBinding("test.bar", "Ctrl-B");
+                expect(result).toEqual(key("Ctrl-B"));
+                expect(KeyBindingManager.getKeyBindings("test.bar")).toEqual([key("Ctrl-B")]);
+                
+                result = KeyBindingManager.addBinding("test.cat", "Ctrl-C", "bark");
+                expect(result).toBeNull();
+                
+                result = KeyBindingManager.addBinding("test.dog", "Ctrl-D", "test");
+                expect(result).toEqual(key("Ctrl-D"));
+                expect(KeyBindingManager.getKeyBindings("test.dog")).toEqual([key("Ctrl-D")]);
                 
                 // only "test" platform bindings
-                var expected = keymap([
-                    {"Ctrl-A": "test.foo"},
-                    {"Ctrl-B": "test.bar"},
-                    {"Ctrl-D": "test.dog"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo"),
+                    keyBinding("Ctrl-B", "test.bar"),
+                    keyBinding("Ctrl-D", "test.dog")
+                ]);
+                
+                expect(KeyBindingManager.getKeymap()).toEqual(expected);
+            });
+            
+            it("should use displayKey to override display of the shortcut", function () {
+                KeyBindingManager.addBinding("test.foo", key("Ctrl-=", "Ctrl-+"));
+                
+                // only "test" platform bindings
+                var expected = keyMap([
+                    keyBinding("Ctrl-=", "test.foo", "Ctrl-+")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -94,14 +123,29 @@ define(function (require, exports, module) {
                 // use a fake platform
                 brackets.platform = "test1";
                 
-                KeyBindingManager.addBinding("test.foo", [{key: "Ctrl-A", platform: "test1"}, "Ctrl-1"]);
-                KeyBindingManager.addBinding("test.bar", [{key: "Ctrl-B"}, {key: "Ctrl-2", platform: "test2"}]);
+                var results = KeyBindingManager.addBinding("test.foo", [{key: "Ctrl-A", platform: "test1"}, "Ctrl-1"]);
+                expect(results).toEqual([
+                    key("Ctrl-A"),
+                    key("Ctrl-1")
+                ]);
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([
+                    key("Ctrl-A"),
+                    key("Ctrl-1")
+                ]);
+                
+                results = KeyBindingManager.addBinding("test.bar", [{key: "Ctrl-B"}, {key: "Ctrl-2", platform: "test2"}]);
+                expect(results).toEqual([
+                    key("Ctrl-B")
+                ]);
+                expect(KeyBindingManager.getKeyBindings("test.bar")).toEqual([
+                    key("Ctrl-B")
+                ]);
             
                 // only "test1" platform and cross-platform bindings
-                var expected = keymap([
-                    {"Ctrl-A": "test.foo"},
-                    {"Ctrl-1": "test.foo"},
-                    {"Ctrl-B": "test.bar"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo"),
+                    keyBinding("Ctrl-1", "test.foo"),
+                    keyBinding("Ctrl-B", "test.bar")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -111,8 +155,8 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 KeyBindingManager.addBinding("test.bar", "Ctrl-A");
                 
-                var expected = keymap([
-                    {"Ctrl-A": "test.foo"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -123,9 +167,9 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-B");
                 
                 // only "test1" platform and cross-platform bindings
-                var expected = keymap([
-                    {"Ctrl-A": "test.foo"},
-                    {"Ctrl-B": "test.foo"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo"),
+                    keyBinding("Ctrl-B", "test.foo")
                 ]);
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
@@ -137,7 +181,7 @@ define(function (require, exports, module) {
             
             it("should handle an empty keymap gracefully", function () {
                 KeyBindingManager.removeBinding("Ctrl-A");
-                expect(KeyBindingManager.getKeymap()).toBeNull();
+                expect(KeyBindingManager.getKeymap()).toEqual({});
             });
             
             it("should require a key to remove", function () {
@@ -145,9 +189,9 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("test.bar", "Ctrl-B");
                 
                 // keymap should be unchanged
-                var expected = keymap([
-                    {"Ctrl-A": "test.foo"},
-                    {"Ctrl-B": "test.bar"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-A", "test.foo"),
+                    keyBinding("Ctrl-B", "test.bar")
                 ]);
                 
                 KeyBindingManager.removeBinding();
@@ -160,13 +204,17 @@ define(function (require, exports, module) {
                 KeyBindingManager.addBinding("test.foo", "Ctrl-B");
                 
                 // Ctrl-A should be removed
-                var expected = keymap([
-                    {"Ctrl-B": "test.foo"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-B", "test.foo")
                 ]);
                 
                 KeyBindingManager.removeBinding("Ctrl-A");
                 
                 expect(KeyBindingManager.getKeymap()).toEqual(expected);
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([key("Ctrl-B")]);
+                
+                KeyBindingManager.removeBinding("Ctrl-B");
+                expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([]);
             });
             
             it("should remove a key from the key map for the specified platform", function () {
@@ -185,8 +233,8 @@ define(function (require, exports, module) {
                 // all platforms
                 KeyBindingManager.addBinding("test.foo", "Ctrl-B");
                 
-                var expected = keymap([
-                    {"Ctrl-B": "test.foo"}
+                var expected = keyMap([
+                    keyBinding("Ctrl-B", "test.foo")
                 ]);
                 
                 // remove Ctrl-B, only for platform "test2"
