@@ -63,6 +63,21 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * adds the style 'vertical-scroll' if a vertical scroll bar is present
+     */
+    function _adjustForScrollbars() {
+        var $container = $("#open-files-container");
+        if ($container[0].scrollHeight > $container[0].clientHeight) {
+            if (!$container.hasClass("vertical-scroll")) {
+                $container.addClass("vertical-scroll");
+            }
+        } else {
+            $container.removeClass("vertical-scroll");
+        }
+    }
+    
+    /**
+     * @private
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
@@ -71,7 +86,7 @@ define(function (require, exports, module) {
         } else {
             $openFilesContainer.show();
         }
-        
+        _adjustForScrollbars();
         _fireSelectionChanged();
     }
     
