@@ -31,6 +31,9 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var TIME_SLICE = 15,
+        TIME_YIELD = 30;
+    
     // Further ideas for Async utilities...
     //  - Utilities for blocking UI until a Promise completes?
     //  - A "SuperDeferred" could feature some very useful enhancements:
@@ -157,18 +160,29 @@ define(function (require, exports, module) {
      *
      * To perform task-specific work after an individual task completes, attach handlers to each
      * Promise before beginProcessItem() returns it.
+     * 
+     * processInBackground causes doSequentially to process the list in time slices.
+     * sliceNow is only relevant with processInBackground=true and causes the first time slice to happen synchronously.
      *
      * @param {!Array.<*>} items
      * @param {!function(*, number):Promise} beginProcessItem
      * @param {!boolean} failAndStopFast
+     * @param {!boolean} processInBackground
+     * @param {!boolean} sliceNow
      * @return {$.Promise}
      */
-    function doSequentially(items, beginProcessItem, failAndStopFast) {
+    function doSequentially(items, beginProcessItem, failAndStopFast, processInBackground, sliceNow) {
 
-        var masterDeferred = new $.Deferred();
-        var hasFailed = false;
+        var masterDeferred = new $.Deferred(),
+            hasFailed = false,
+            sliceStartTime = 0,
+            doItem;
         
-        function doItem(i) {
+        if (sliceNow) {
+            sliceStartTime = (new Date()).getTime();
+        }
+        
+        function doItemAsync(i) {
             if (i >= items.length) {
                 if (hasFailed) {
                     masterDeferred.reject();
@@ -178,10 +192,27 @@ define(function (require, exports, module) {
                 return;
             }
             
+            if (processInBackground) {
+                if ((new Date()).getTime() - sliceStartTime >= TIME_SLICE) {
+                    window.setTimeout(function () {
+                        sliceStartTime = (new Date()).getTime();
+                        doItem(i);
+                    }, TIME_YIELD);
+                    
+                } else {
+                    doItem(i);
+                }
+            } else {
+                doItem(i);
+            }
+        }
+        
+        doItem = function (i) {
+            
             var itemPromise = beginProcessItem(items[i], i);
             
             itemPromise.done(function () {
-                doItem(i + 1);
+                doItemAsync(i + 1);
             });
             itemPromise.fail(function () {
                 if (failAndStopFast) {
@@ -189,12 +220,12 @@ define(function (require, exports, module) {
                     // note: we do NOT process any further items in this case
                 } else {
                     hasFailed = true;
-                    doItem(i + 1);
+                    doItemAsync(i + 1);
                 }
             });
-        }
+        };
         
-        doItem(0);
+        doItemAsync(0);
         
         return masterDeferred.promise();
     }
