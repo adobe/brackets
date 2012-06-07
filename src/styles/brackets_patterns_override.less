@@ -157,7 +157,110 @@
         }
     }
 }
+ 
+ // HACK: TODO: factor commonalities out of menuAppearance and .toolbar .nav
+ .menuAppearance {
+    @menubar-top-padding: 8px;
+    @menubar-bottom-padding: 6px;
+    @menubar-h-padding: 9px;
+    @item-highlight-color: #e0f0fa;
 
+    // 
+    .menu-shortcut {
+      float: right;
+    }
+    
+    // The 1px adjustments here are to account for the border around the top-level menu items.
+    margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
+    
+    // General item appearance
+    a {
+        color: @bc-black;
+        text-shadow: none;
+    }
+
+    // Menubar item appearance
+    .dropdown-toggle {
+        padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
+        border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
+        color: fadeout(@bc-black, 25%);
+        font-weight: @font-weight-light;
+    }
+    .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
+        /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+           color rules we need to override (and Bootstrap has several selectors because the colors really differ
+           in their defaults). */
+        color: @bc-black;
+        background: @item-highlight-color;
+        border-color: #dbeaf4;
+    }
+
+    // no triangle icon after menu items
+    .dropdown-toggle:after {
+        border: 0;
+        margin: 0;
+    }
+    
+    // Menu dropdown appearance
+    .dropdown-menu {
+        top: 34px; // Offset from top of menubar item
+                
+        background-color: @bc-white;
+        border: 1px solid #c8c8c8;
+        .border-radius(0 0 3px 3px);
+        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        
+        // Menu items
+        li {
+            a {
+                font-size: @menu-item-font-size;
+                line-height: 18px;
+                
+                // Slightly less padding on left to account for checkmark.
+                // More padding on top than bottom to center font within its bg highlight better.
+                padding: 2px 10px 0px 6px;
+                
+                color: @bc-black;
+                text-shadow: none;
+                white-space: nowrap;
+                .box-shadow(none);
+
+                &:hover {
+                    color: @bc-black;
+                    background: @item-highlight-color;
+                }
+
+                &.disabled {
+                    color: @bc-gray;
+
+                    &:hover {
+                        background: @bc-white;
+                    }
+                }
+
+                /* hidden checkmark for all list item content ensures consistent left spacing */
+                &::before {
+                    content: "✓\00a0"; /* non-breaking space */
+                    visibility: hidden;
+                }
+                /* toggle checkmark visibility */
+                &.checked::before {
+                    visibility: visible;
+                }
+            }
+        }
+        
+        .divider {
+            background-color: #eaeaea;
+            border: 0;
+        }
+    }
+    
+    // Ensure a minimum amount of space to the left of the shortcut
+    .menu-shortcut {
+        margin-left: 15px;
+    }
+ }
 
 /* Menu-related styles */
 .toolbar .nav {
