@@ -544,16 +544,36 @@ define(function (require, exports, module) {
         return menu;
     }
     
+    /**
+     * @constructor
+     * @private
+     *
+     * Represents a context menu that can open at a specific location in the UI. Call getMenu()
+     * to access the Menu object for adding MenuItems.
+     *
+     * Clients should nowtcreate this object directly and should instead use registerContextMenu()
+     * to create new ContextMenu objects.
+     *
+     * Context menus in brackets may be HTML-based on native so clients should not reach into
+     * the HTML and should instead manipulate ContextMenus through the API.
+     *
+     * Events:
+     *      beforeContextMenuOpen
+     *      contextMenuClose
+     *
+     */
     function ContextMenu(id) {
-        //TODO: check id
         this.id = id;
         this.menu = new Menu(id);
 
-        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>");
+        // TODO: menuAppearance is a temporary class to make the context menus look correct
+        // until the CSS code for menus is refactored to support menus and context menus
+        var $newMenu = $("<li class='dropdown menuAppearance' id='" + id + "'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
 
+        // TODO: move this css into a less file for context menus
         $newMenu.append($toggle)
             .append("<ul class='dropdown-menu'></ul>")
             .css({"position": "absolute",
@@ -565,30 +585,61 @@ define(function (require, exports, module) {
         $(window.document.body).append($newMenu);
     }
 
+    /**
+     * Returns the menu assocatiated with this ContextMenu
+     * @return {Menu}
+     */
     ContextMenu.prototype.getMenu = function () {
         return this.menu;
     };
 
+    /**
+     * Displays the ContextMenu at the specified location and dispatches the 
+     * "contextMenuOpen" event. All other menus and ContextMenus will be closed
+     * bofore a new menu is shown.
+     * 
+     * @param {number} x - page relative x coodinate
+     * @param {number} y - page relative y coodinate
+     */
     ContextMenu.prototype.open = function (x, y) {
         // TODO: positioning logic
 
-        $.each(contextMenuMap, function (index, cmenu) {
-            cmenu.close();
-        });
+        $(".dropdown").removeClass("open");
 
         $("#" + this.id)
             .addClass("open")
             .css({"left": x,
                   "top": y - 30}); // todo: compute offset
+
+        $(this).triggerHandler("beforeContextMenuOpen");
     };
 
+    /**
+     * Closes the context menu and dispatches the "contextMenuOpen" event.
+     */
     ContextMenu.prototype.close = function () {
         $("#" + this.id).removeClass("open");
+
+        $(this).triggerHandler("contextMenuClose");
     };
 
-    function addContextMenu(id) {
+    /**
+     * Registers new context menu with Brackets. 
+     * After registering  a context menu clients should:
+     *      1) call yourContextMenu.getMenu() to access to the Menu object
+     *      2) use addMenuItem() to add items to the Menu object
+     *      3) call open() to show the context menu (often trigged via an event handler)
+     *
+     * To make menu items be contextual to things like selection listen for the "beforeContextMenuOpen"
+     * to make changes to Command objects before the context menu is shown. MenuItems are views of
+     * Commands and control a MenuItem's name, enabled state, and checked stae.
+     *
+     * @param {string} id
+     * @return {ContextMenu} the newly created context menu
+     */
+    function registerContextMenu(id) {
         if (!id) {
-            throw new Error("call to addContextMenu() is missing required parameters");
+            throw new Error("call to registerContextMenu() is missing required parameters");
         }
         
         // Guard against duplicate menu ids
@@ -705,14 +756,15 @@ define(function (require, exports, module) {
          * Context Menus Test Code
          *
          */
-        var project_cmenu = addContextMenu("cmenutest1");
+        var project_cmenu = registerContextMenu("cmenutest1");
         menu = project_cmenu.getMenu();
         menu.addMenuItem("test4", Commands.FILE_OPEN);
         menu.addMenuItem("test5", Commands.FILE_CLOSE);
         menu.addMenuItem("test6", Commands.FILE_NEW);
 
-        var editor_cmenu = addContextMenu("cmenutest2");
+        var editor_cmenu = registerContextMenu("cmenutest2");
         menu = editor_cmenu.getMenu();
+        menu.addMenuItem("test0", Commands.SHOW_INLINE_EDITOR);
         menu.addMenuItem("test1", Commands.EDIT_SELECT_ALL);
         menu.addMenuItem("test2", Commands.EDIT_DUPLICATE);
         menu.addMenuItem("test3", Commands.EDIT_LINE_COMMENT);
