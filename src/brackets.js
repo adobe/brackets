@@ -262,6 +262,7 @@ define(function (require, exports, module) {
 
 
         EditorManager.setEditorHolder($('#editor-holder'));
+        EditorManager.setPositionedEditorHolder($('#positioned-editor-holder'));
 
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {

@@ -52,8 +52,11 @@ define(function (require, exports, module) {
         ViewUtils           = require("utils/ViewUtils"),
         Strings             = require("strings");
     
-    /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
+    /** @type {jQueryObject} DOM node that we can use to position the _positionedEditorHolder on screen */
     var _editorHolder = null;
+
+    /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
+    var _positionedEditorHolder = null;
     
     /** @type {Editor} */
     var _currentEditor = null;
@@ -230,7 +233,7 @@ define(function (require, exports, module) {
      */
     function _createFullEditorForDocument(document) {
         // Create editor; make it initially invisible
-        var container = _editorHolder.get(0);
+        var container = _positionedEditorHolder.get(0);
         var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
         editor.setVisible(false);
     }
@@ -304,6 +307,15 @@ define(function (require, exports, module) {
         }
     }
     
+    function _syncEditorPosition() {
+        if (!_positionedEditorHolder || !_editorHolder)
+            return;
+        var offset = _editorHolder.offset();
+        _positionedEditorHolder.css("left", offset.left)
+            .css("top", offset.top)
+            .css("width", _editorHolder.width())
+            .css("height", _editorHolder.height());
+    }
     
     /** 
      * Resize the editor. This should only be called if the contents of the editor holder are changed
@@ -312,6 +324,7 @@ define(function (require, exports, module) {
      * @see #_updateEditorSize()
      */
     function resizeEditor() {
+        _syncEditorPosition();
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
             _currentEditor.refresh();
@@ -324,6 +337,7 @@ define(function (require, exports, module) {
      * @see #resizeEditor()
      */
     function _updateEditorSize() {
+        _syncEditorPosition();
         // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
             $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
@@ -447,6 +461,17 @@ define(function (require, exports, module) {
         }
         
         _editorHolder = holder;
+        _editorHolder.css("z-index", "-1000000")
+            .css("visibility", "hidden");
+    }
+
+    function setPositionedEditorHolder(holder) {
+        if (_currentEditor) {
+            throw new Error("Cannot change editor area after an editor has already been created!");
+        }
+        
+        _positionedEditorHolder = holder;
+        _positionedEditorHolder.css("position", "absolute");
     }
     
     /**
@@ -529,6 +554,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
+    exports.setPositionedEditorHolder = setPositionedEditorHolder;
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
