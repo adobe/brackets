@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, window */
 
 define(function (require, exports, module) {
     'use strict';
@@ -46,6 +46,8 @@ define(function (require, exports, module) {
         NAVIGATE_MENU: "navigate-menu",
         DEBUG_MENU:    "debug-menu"
     };
+
+
 
 
     /**
@@ -94,6 +96,12 @@ define(function (require, exports, module) {
     var menuMap = {};
 
     /**
+     * Maps contextMenuID's to ContextMenu objects
+     * @type {Object.<string, ContextMenu>}
+     */
+    var contextMenuMap = {};
+
+    /**
      * Maps menuItemID's to MenuItem objects
      * @type {Object.<string, MenuItem>}
      */
@@ -106,6 +114,15 @@ define(function (require, exports, module) {
      */
     function getMenu(id) {
         return menuMap[id];
+    }
+
+    /**
+     * Retrieves the ContextMenu object for the corresponding id. 
+     * @param {string} id
+     * @return {ContextMenu}
+     */
+    function getContextMenu(id) {
+        return contextMenuMap[id];
     }
 
     /**
@@ -189,6 +206,8 @@ define(function (require, exports, module) {
             $list.append($element);
         }
     }
+
+   
 
     /**
      * @constructor
@@ -321,7 +340,7 @@ define(function (require, exports, module) {
 
         // Insert menu item
         var $relativeElement = relativeID && $(_getHTMLMenuItem(relativeID)).closest("li");
-        _insertInList($("#main-toolbar li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
+        _insertInList($("li#" + this.id + " > ul.dropdown-menu"), $menuItem, position, $relativeElement);
 
         // Initialize MenuItem state
         if (!menuItem.isDivider) {
@@ -524,6 +543,63 @@ define(function (require, exports, module) {
 
         return menu;
     }
+    
+    function ContextMenu(id) {
+        //TODO: check id
+        this.id = id;
+        this.menu = new Menu(id);
+
+        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>");
+
+        var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
+            .hide();
+
+        $newMenu.append($toggle)
+            .append("<ul class='dropdown-menu'></ul>")
+            .css({"position": "absolute",
+                     "z-index": "1000",
+                     "list-style-type": "none",
+                     "top": 200,
+                     "left": 300});
+
+        $(window.document.body).append($newMenu);
+    }
+
+    ContextMenu.prototype.getMenu = function () {
+        return this.menu;
+    };
+
+    ContextMenu.prototype.open = function (x, y) {
+        // TODO: positioning logic
+
+        $.each(contextMenuMap, function (index, cmenu) {
+            cmenu.close();
+        });
+
+        $("#" + this.id)
+            .addClass("open")
+            .css({"left": x,
+                  "top": y - 30}); // todo: compute offset
+    };
+
+    ContextMenu.prototype.close = function () {
+        $("#" + this.id).removeClass("open");
+    };
+
+    function addContextMenu(id) {
+        if (!id) {
+            throw new Error("call to addContextMenu() is missing required parameters");
+        }
+        
+        // Guard against duplicate menu ids
+        if (contextMenuMap[id]) {
+            throw new Error("Context Menu added with same name and id of existing Context Menu: " + id);
+        }
+
+        var cmenu = new ContextMenu(id);
+        contextMenuMap[id] = cmenu;
+        return cmenu;
+    }
 
     /** NOT IMPLEMENTED
      * Removes Menu
@@ -622,6 +698,39 @@ define(function (require, exports, module) {
         menu.addMenuItem("menu-debug-new-window",     Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuItem("menu-debug-close-browser",  Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
         menu.addMenuItem("menu-debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
+
+
+
+        /**
+         * Context Menus Test Code
+         *
+         */
+        var project_cmenu = addContextMenu("cmenutest1");
+        menu = project_cmenu.getMenu();
+        menu.addMenuItem("test4", Commands.FILE_OPEN);
+        menu.addMenuItem("test5", Commands.FILE_CLOSE);
+        menu.addMenuItem("test6", Commands.FILE_NEW);
+
+        var editor_cmenu = addContextMenu("cmenutest2");
+        menu = editor_cmenu.getMenu();
+        menu.addMenuItem("test1", Commands.EDIT_SELECT_ALL);
+        menu.addMenuItem("test2", Commands.EDIT_DUPLICATE);
+        menu.addMenuItem("test3", Commands.EDIT_LINE_COMMENT);
+
+         
+
+        $("#projects").mousedown(function (e) {
+            if (e.which === 3) {
+                project_cmenu.open(e.pageX, e.pageY);
+            }
+        });
+
+        $("#editor-holder").mousedown(function (e) {
+            if (e.which === 3) {
+                editor_cmenu.open(e.pageX, e.pageY);
+            }
+        });
+
 
         $("#main-toolbar .dropdown")
             // Prevent clicks on the top-level menu bar from taking focus
