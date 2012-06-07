@@ -242,6 +242,13 @@ define(function (require, exports, module) {
             }
         });
 
+        // Init any closed parent nodes with an empty array.
+        for (i = 0; i < openNodes.length; i++) {
+            if (openNodes[i] === undefined) {
+                openNodes[i] = [];
+            }
+        }
+        
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
         
