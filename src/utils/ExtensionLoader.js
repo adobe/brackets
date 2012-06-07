@@ -34,7 +34,19 @@ define(function (require, exports, module) {
 
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
-        Async               = require("utils/Async");
+        Async               = require("utils/Async"),
+        contexts            = {};
+    /**
+     * Returns the require.js require context used to load an extension
+     *
+     * @param {!string} name, used to identify the extension
+     * @return {!Object} A require.js require object used to load the extension, or undefined if 
+     * there is no require object ith that name
+     */
+    function getRequireContextForExtension(name) {
+        return contexts[name];
+    }
+
     
     /**
      * Loads the extension that lives at baseUrl into its own Require.js context
@@ -50,6 +62,7 @@ define(function (require, exports, module) {
                 context: name,
                 baseUrl: baseUrl
             });
+        contexts[name] = extensionRequire;
 
         console.log("[Extension] starting to load " + baseUrl);
         
@@ -173,6 +186,7 @@ define(function (require, exports, module) {
         return _loadAll(directory, baseUrl, "unittests", testExtension);
     }
     
+    exports.getRequireContextForExtension = getRequireContextForExtension;
     exports.loadExtension = loadExtension;
     exports.testExtension = testExtension;
     exports.loadAllExtensionsInNativeDirectory = loadAllExtensionsInNativeDirectory;
