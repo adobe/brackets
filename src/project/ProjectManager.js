@@ -835,11 +835,7 @@ define(function (require, exports, module) {
         _projectTree.jstree("create", node, position, {data: initialName}, null, skipRename);
 
         if (!skipRename) {
-            var $renameInput = _projectTree.find(".jstree-rename-input"),
-                projectTreeOffset = _projectTree.offset(),
-                projectTreeScroller = _projectTree.get(0),
-                renameInput = $renameInput.get(0),
-                renameInputOffset = $renameInput.offset();
+            var $renameInput = _projectTree.find(".jstree-rename-input");
 
             $renameInput.on("keydown", function (event) {
                 // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
@@ -847,22 +843,8 @@ define(function (require, exports, module) {
                     escapeKeyPressed = true;
                 }
             });
-            
-            // make sure edit box is visible within the jstree, only scroll vertically when necessary
-            if (renameInputOffset.top + $renameInput.height() >= (projectTreeOffset.top + _projectTree.height())) {
-                // below viewport
-                renameInput.scrollIntoView(false);
-            } else if (renameInputOffset.top <= projectTreeOffset.top) {
-                // above viewport
-                renameInput.scrollIntoView(true);
-            }
-            
-            // left-align renameInput
-            if (renameInputOffset.left < 0) {
-                _projectTree.scrollLeft(_projectTree.scrollLeft() + renameInputOffset.left);
-            } else if (renameInputOffset.left + $renameInput.width() >= projectTreeOffset.left + _projectTree.width()) {
-                _projectTree.scrollLeft(renameInputOffset.left - projectTreeOffset.left);
-            }
+
+            ViewUtils.scrollElementIntoView(_projectTree, $renameInput, true);
         }
         
         return result.promise();
