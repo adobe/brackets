@@ -154,9 +154,13 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(PerfUtils.OPEN_INLINE_EDITOR);
                 result.resolve();
             }).fail(function () {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.OPEN_INLINE_EDITOR);
                 result.reject();
             });
         } else {
+            // terminate timer that was started above
+            PerfUtils.finalizeMeasurement(PerfUtils.OPEN_INLINE_EDITOR);
             result.reject();
         }
         

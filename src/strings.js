@@ -126,9 +126,9 @@ define(function (require, exports, module) {
     // File menu commands
     exports.FILE_MENU                           = "File";
     exports.CMD_FILE_NEW                        = "New";
-    exports.CMD_FILE_OPEN                       = "Open&#8230;";
+    exports.CMD_FILE_OPEN                       = "Open\u2026";
     exports.CMD_ADD_TO_WORKING_SET              = "Add To Working Set";
-    exports.CMD_OPEN_FOLDER                     = "Open Folder&#8230;";
+    exports.CMD_OPEN_FOLDER                     = "Open Folder\u2026";
     exports.CMD_FILE_CLOSE                      = "Close";
     exports.CMD_FILE_CLOSE_ALL                  = "Close All";
     exports.CMD_FILE_SAVE                       = "Save";
@@ -162,7 +162,7 @@ define(function (require, exports, module) {
     exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";
     exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";
     exports.CMD_NEXT_DOC                        = "Next Document";
-    exports.CMD_PREV_DOC                       = "Previous Document";
+    exports.CMD_PREV_DOC                        = "Previous Document";
     
     // Debug menu commands
     exports.DEBUG_MENU                          = "Debug";

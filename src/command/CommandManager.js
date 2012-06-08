@@ -50,6 +50,8 @@ define(function (require, exports, module) {
      * Events:
      *      enabledStateChange
      *      checkedStateChange
+     *      keyBindingAdded
+     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;
@@ -123,6 +125,11 @@ define(function (require, exports, module) {
     /**
      * Sets the name of the Command and dispatches "nameChange" so that
      * UI that reflects the command name can update.
+     * 
+     * Note, a Command name can appear in either HTML or native UI
+     * so HTML tags should not be used. To add a Unicode character,
+     * use \uXXXX instead of an HTML entity.
+     * 
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
@@ -167,6 +174,11 @@ define(function (require, exports, module) {
         return command;
     }
 
+
+    function _reset() {
+        _commands = {};
+    }
+
     /**
      * Retrieves a Command object by id
      * @param {string} id
@@ -195,4 +207,5 @@ define(function (require, exports, module) {
     exports.register = register;
     exports.execute = execute;
     exports.get = get;
+    exports._reset = _reset;
 });

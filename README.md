@@ -79,7 +79,7 @@ if that's convenient)
 For feature requests, go ahead and file them in the issue tracker; they'll be converted
 to user stories on the [public Brackets backlog*](http://bit.ly/BracketsBacklog).
 
-\* Please excuse the mess in the public backlog ("Backlog Archive To Be Sorted"). We're still importing data from our internal system.
+\* Please excuse the mess in the "Icebox (To Be Reviewed)" list. We're still importing data from our internal system.
 
 I want to help!
 ---------------
