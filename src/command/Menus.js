@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, $, brackets, window, MouseEvent */
 
 define(function (require, exports, module) {
     'use strict';
@@ -546,15 +546,15 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
+     * @extends {Menu}
      * @private
      *
-     * Represents a context menu that can open at a specific location in the UI. Call getMenu()
-     * to access the Menu object for adding MenuItems.
+     * Represents a context menu that can open at a specific location in the UI. 
      *
-     * Clients should nowtcreate this object directly and should instead use registerContextMenu()
+     * Clients should not create this object directly and should instead use registerContextMenu()
      * to create new ContextMenu objects.
      *
-     * Context menus in brackets may be HTML-based on native so clients should not reach into
+     * Context menus in brackets may be HTML-based or native so clients should not reach into
      * the HTML and should instead manipulate ContextMenus through the API.
      *
      * Events:
@@ -584,32 +584,43 @@ define(function (require, exports, module) {
 
         $(window.document.body).append($newMenu);
     }
+    ContextMenu.prototype = new Menu();
+    ContextMenu.prototype.constructor = ContextMenu;
+    ContextMenu.prototype.parentClass = Menu.prototype;
 
-    /**
-     * Returns the menu assocatiated with this ContextMenu
-     * @return {Menu}
-     */
-    ContextMenu.prototype.getMenu = function () {
-        return this.menu;
-    };
 
     /**
      * Displays the ContextMenu at the specified location and dispatches the 
-     * "contextMenuOpen" event. All other menus and ContextMenus will be closed
+     * "contextMenuOpen" event.The menu location may be adjusted to prevent
+     * clipping by the browser window. All other menus and ContextMenus will be closed
      * bofore a new menu is shown.
+     *
+     * @param {MouseEvent | {pageX:number, pageY:number}} mouseOrLocation - pass a MouseEvent
+     *      to display the menu near the mouse or pass in an object with page x/y coordinates
+     *      for a specific location.
      * 
-     * @param {number} x - page relative x coodinate
-     * @param {number} y - page relative y coodinate
+     * @param {?number} x - page relative x coodinate
+     * @param {?number} y - page relative y coodinate
      */
-    ContextMenu.prototype.open = function (x, y) {
+    ContextMenu.prototype.open = function (mouseOrLocation) {
+        var pageX, pageY;
+        if (typeof mouseOrLocation === MouseEvent) {
+            pageX = mouseOrLocation.pageX;
+            pageY = mouseOrLocation.pageY;
+        } else {
+            pageX = mouseOrLocation.pageX;
+            pageY = mouseOrLocation.pageY;
+        }
+
         // TODO: positioning logic
+
 
         $(".dropdown").removeClass("open");
 
         $("#" + this.id)
             .addClass("open")
-            .css({"left": x,
-                  "top": y - 30}); // todo: compute offset
+            .css({"left": pageX,
+                  "top": pageY - 30}); // todo: compute offset
 
         $(this).triggerHandler("beforeContextMenuOpen");
     };
@@ -626,9 +637,8 @@ define(function (require, exports, module) {
     /**
      * Registers new context menu with Brackets. 
      * After registering  a context menu clients should:
-     *      1) call yourContextMenu.getMenu() to access to the Menu object
-     *      2) use addMenuItem() to add items to the Menu object
-     *      3) call open() to show the context menu (often trigged via an event handler)
+     *      - use addMenuItem() to add items to the context menu
+     *      - call open() to show the context menu (often trigged via an event handler for right click)
      *
      * To make menu items be contextual to things like selection listen for the "beforeContextMenuOpen"
      * to make changes to Command objects before the context menu is shown. MenuItems are views of
@@ -757,29 +767,27 @@ define(function (require, exports, module) {
          *
          */
         var project_cmenu = registerContextMenu("cmenutest1");
-        menu = project_cmenu.getMenu();
-        menu.addMenuItem("test4", Commands.FILE_OPEN);
-        menu.addMenuItem("test5", Commands.FILE_CLOSE);
-        menu.addMenuItem("test6", Commands.FILE_NEW);
+        project_cmenu.addMenuItem("test4", Commands.FILE_OPEN);
+        project_cmenu.addMenuItem("test5", Commands.FILE_CLOSE);
+        project_cmenu.addMenuItem("test6", Commands.FILE_NEW);
 
         var editor_cmenu = registerContextMenu("cmenutest2");
-        menu = editor_cmenu.getMenu();
-        menu.addMenuItem("test0", Commands.SHOW_INLINE_EDITOR);
-        menu.addMenuItem("test1", Commands.EDIT_SELECT_ALL);
-        menu.addMenuItem("test2", Commands.EDIT_DUPLICATE);
-        menu.addMenuItem("test3", Commands.EDIT_LINE_COMMENT);
+        editor_cmenu.addMenuItem("test0", Commands.SHOW_INLINE_EDITOR);
+        editor_cmenu.addMenuItem("test1", Commands.EDIT_SELECT_ALL);
+        editor_cmenu.addMenuItem("test2", Commands.EDIT_DUPLICATE);
+        editor_cmenu.addMenuItem("test3", Commands.EDIT_LINE_COMMENT);
 
          
 
-        $("#projects").mousedown(function (e) {
-            if (e.which === 3) {
-                project_cmenu.open(e.pageX, e.pageY);
-            }
-        });
+        // $("#projects").mousedown(function (e) {
+        //     if (e.which === 3) {
+        //         project_cmenu.open(e);
+        //     }
+        // });
 
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
-                editor_cmenu.open(e.pageX, e.pageY);
+                editor_cmenu.open(e);
             }
         });
 
