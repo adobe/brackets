@@ -142,7 +142,7 @@ define(function (require, exports, module) {
         var match;
         var lines = StringUtils.getLines(contents);
         while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum = StringUtils.offsetToLineNumForLoops(lines,match.index);
+            var lineNum = StringUtils.offsetToLineNumForLoops(lines, match.index);
             var line = lines[lineNum];
             var ch = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
             var matchLength = match[0].length;

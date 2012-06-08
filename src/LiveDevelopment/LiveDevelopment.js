@@ -58,6 +58,7 @@ define(function LiveDevelopment(require, exports, module) {
     var NativeApp = require("utils/NativeApp");
     var Dialogs = require("widgets/Dialogs");
     var Strings = require("strings");
+    var StringUtils = require("utils/StringUtils");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");

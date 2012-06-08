@@ -88,9 +88,9 @@ define(function (require, exports, module) {
             if (total <= offset) {
                 // add 1 per line since /n were removed by splitting, but they needed to 
                 // contribute to the total offset count
-                total += lines[line].length + 1; 
+                total += lines[line].length + 1;
             } else {
-                return line -1;
+                return line - 1;
             }
         }
 
