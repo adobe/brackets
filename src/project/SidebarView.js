@@ -170,9 +170,6 @@ define(function (require, exports, module) {
                 // only run this if the mouse is down so we don't constantly loop even 
                 // after we're done resizing.
                 if (!isMouseDown) {
-                    //$mainView.off("mouseup.sidebar");
-                    //$mainView.off("mousemove.sidebar");
-                    //$("body").toggleClass("resizing");
                     return;
                 }
                     
