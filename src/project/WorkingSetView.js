@@ -66,13 +66,12 @@ define(function (require, exports, module) {
      * adds the style 'vertical-scroll' if a vertical scroll bar is present
      */
     function _adjustForScrollbars() {
-        var $container = $("#open-files-container");
-        if ($container[0].scrollHeight > $container[0].clientHeight) {
-            if (!$container.hasClass("vertical-scroll")) {
-                $container.addClass("vertical-scroll");
+        if ($openFilesContainer[0].scrollHeight > $openFilesContainer[0].clientHeight) {
+            if (!$openFilesContainer.hasClass("vertical-scroll")) {
+                $openFilesContainer.addClass("vertical-scroll");
             }
         } else {
-            $container.removeClass("vertical-scroll");
+            $openFilesContainer.removeClass("vertical-scroll");
         }
     }
     
