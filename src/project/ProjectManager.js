@@ -217,11 +217,10 @@ define(function (require, exports, module) {
             entry,
             fullPath,
             shortPath,
-            depth,
-            i;
+            depth;
 
         // Query open nodes by class selector
-        $(".jstree-open").each(function (index) {
+        $(".jstree-open:visible").each(function (index) {
             entry = $(this).data("entry");
 
             if (entry.fullPath) {
@@ -243,13 +242,6 @@ define(function (require, exports, module) {
             }
         });
 
-        // Initialize any closed parent nodes with an empty array.
-        for (i = 0; i < openNodes.length; i++) {
-            if (openNodes[i] === undefined) {
-                openNodes[i] = [];
-            }
-        }
-        
         // Store the open nodes by their full path and persist to storage
         storage.projectTreeState = openNodes;
         
