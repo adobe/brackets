@@ -262,8 +262,12 @@
 
 .context-menu {
     position: absolute;
-    z-index: 1000;      // TODO: define in @variable
+    z-index: @z-index-brackets-context-menu-base;
     list-style-type: none;
+
+    .dropdown-menu {
+        .top-border-radius(6px);
+    }
     
     .menu-shortcut {
         float: right;
