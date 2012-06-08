@@ -816,4 +816,6 @@ define(function (require, exports, module) {
     exports.addMenu = addMenu;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
+    exports.registerContextMenu = registerContextMenu;
+    exports.ContextMenu = ContextMenu;
 });
