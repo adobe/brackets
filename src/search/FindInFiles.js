@@ -182,9 +182,10 @@ define(function (require, exports, module) {
             
             // Show result summary in header
             $("#search-result-summary")
-                .text(" - " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
+                .text("- " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
                       " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : "") +
-                     (numMatches > 100 ? " (showing the first 100 matches)" : ""));
+                     (numMatches > 100 ? " (showing the first 100 matches)" : ""))
+                .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
@@ -205,8 +206,13 @@ define(function (require, exports, module) {
                     };
                     
                     // Add row for file name
-                    $("<tr/>")
+                    $("<tr class='file-section' />")
                         .append("<td colspan='3'>File: <b>" + item.fullPath + "</b></td>")
+                        .click(function () {
+                            // Clicking file section header collapses/expands result rows for that file
+                            var $fileHeader = $(this);
+                            $fileHeader.nextUntil(".file-section").toggle();
+                        })
                         .appendTo($resultTable);
                     
                     // Add row for each match in file

@@ -152,6 +152,7 @@ define(function (require, exports, module) {
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
+            KeyBindingManager       : KeyBindingManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),

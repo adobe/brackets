@@ -220,7 +220,7 @@ define(function (require, exports, module) {
             depth;
 
         // Query open nodes by class selector
-        $(".jstree-open").each(function (index) {
+        $(".jstree-open:visible").each(function (index) {
             entry = $(this).data("entry");
 
             if (entry.fullPath) {
@@ -275,7 +275,8 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var result = new $.Deferred();
+        var result = new $.Deferred(),
+            suppressToggleOpen = false;
 
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
@@ -299,6 +300,17 @@ define(function (require, exports, module) {
                         } else {
                             return this.get_text(a).toLowerCase() > this.get_text(b).toLowerCase() ? 1 : -1;
                         }
+                    }
+                }
+            )
+            .bind(
+                "before.jstree",
+                function (event, data) {
+                    if (data.func === "toggle_node") {
+                        // jstree will automaticaly select parent node when the parent is closed
+                        // and any descendant is selected. Prevent the select_node handler from
+                        // immediately toggling open again in this case.
+                        suppressToggleOpen = _projectTree.jstree("is_open", data.args[0]);
                     }
                 }
             )
@@ -327,8 +339,13 @@ define(function (require, exports, module) {
                         _redraw(true);
                         
                         // toggle folder open/closed
-                        _projectTree.jstree("toggle_node", data.rslt.obj);
+                        // suppress if this selection was triggered by clicking the disclousre triangle
+                        if (!suppressToggleOpen) {
+                            _projectTree.jstree("toggle_node", data.rslt.obj);
+                        }
                     }
+                    
+                    suppressToggleOpen = false;
                 }
             )
             .bind(
@@ -365,7 +382,6 @@ define(function (require, exports, module) {
             .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
-                    
                     if (event.type === "open_node") {
                         // select the current document if it becomes visible when this folder is opened
                         var curDoc = DocumentManager.getCurrentDocument();
