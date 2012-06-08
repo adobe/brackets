@@ -354,7 +354,7 @@ define(function LiveDevelopment(require, exports, module) {
                             if (err === FileError.NOT_FOUND_ERR) {
                                 message = Strings.ERROR_CANT_FIND_CHROME;
                             } else {
-                                message = Strings.format(Strings.ERROR_LAUNCHING_BROWSER, err);
+                                message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                             }
                             
                             Dialogs.showModalDialog(

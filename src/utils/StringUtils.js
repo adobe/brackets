@@ -31,6 +31,24 @@
 define(function (require, exports, module) {
     'use strict';
 
+    /**
+     * Format a string by replacing placeholder symbols with passed in arguments.
+     *
+     * Example: var formatted = StringUtils.format("Hello {0}", "World");
+     *
+     * @param {string} str The base string
+     * @param {...} Arguments to be substituted into the string
+     *
+     * @return {string} Formatted string
+     */
+    function format(str) {
+        // arguments[0] is the base string, so we need to adjust index values here
+        var args = [].slice.call(arguments, 1);
+        return str.replace(/\{(\d+)\}/g, function (match, num) {
+            return typeof args[num] !== 'undefined' ? args[num] : match;
+        });
+    }
+
     function htmlEscape(str) {
         return String(str)
             .replace(/&/g, '&amp;')
@@ -44,6 +62,55 @@ define(function (require, exports, module) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
     }
 
-    exports.htmlEscape = htmlEscape;
-    exports.regexEscape = regexEscape;
+    /**
+     * Splits the text by new line characters and returns an array of lines
+     * @param {string} text
+     * @return {Array.<string>} lines
+     */
+    function getLines(text) {
+        return text.split("\n");
+    }
+
+    /**
+     * Returns a line number corresponding to an offset in some text. This version
+     * is optimized for repeatidly calling the function on the same text in a loop.
+     * Use getLines() to divide the text into lines onces, then repeatidly call
+     * this function to compute a line number from the offset.
+     *
+     * @param {Array.<string>} lines - an array of strings corresponding to the
+     *      lines of text in a string.
+     * @param {number} offset
+     * @return {number} line number
+     */
+    function offsetToLineNumForLoops(lines, offset) {
+        var line, total = 0;
+        for (line = 0; line < lines.length; line++) {
+            if (total < offset) {
+                total += lines[line].length + 1;
+            } else {
+                return line - 1;
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Returns the line number corresponding to an offset in text
+     *
+     * Note: When repeatidly computing line numbers for offsets in the same text
+     * use offsetToLineNumForLoops() instead which is performance optimized for loops
+     *
+     * @param {string} text
+     * @param {number} offset
+     * @return {number} line number
+     */
+    function _offsetToLineNum(text, offset) {
+        return text.substr(0, offset).split("\n").length - 1;
+    }
+
+    // Define public API
+    exports.format          = format;
+    exports.htmlEscape      = htmlEscape;
+    exports.regexEscape     = regexEscape;
 });
