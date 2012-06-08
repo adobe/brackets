@@ -41,23 +41,23 @@ define(function (require, exports, module) {
     function _adjustFontSize(direction) {
         var styleId = "codemirror-dynamic-fonts";
 
-        var fs = $(".CodeMirror-scroll").css("font-size");
-        var lh = $(".CodeMirror-scroll").css("line-height");
+        var fsStyle = $(".CodeMirror-scroll").css("font-size");
+        var lhStyle = $(".CodeMirror-scroll").css("line-height");
 
         var validFont = /^[\d\.]+(px|em)$/;
         
         // Make sure the font size and line height are expressed in terms
         // we can handle (px or em). If not, simply bail.
-        if (fs.search(validFont) === -1 || lh.search(validFont) === -1) {
+        if (fsStyle.search(validFont) === -1 || lhStyle.search(validFont) === -1) {
             return;
         }
         
         // Guaranteed to work by the validation above.
-        var fsUnits = fs.substring(fs.length - 2, fs.length);
-        var lhUnits = lh.substring(lh.length - 2, lh.length);
+        var fsUnits = fsStyle.substring(fsStyle.length - 2, fsStyle.length);
+        var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
 
-        fs = fs.substring(0, fs.length - 2);
-        lh = lh.substring(0, lh.length - 2);
+        var fsOld = parseFloat(fsStyle.substring(0, fsStyle.length - 2));
+        var lhOld = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
 
         var fsDelta = (fsUnits === "px") ? 1 : 0.1;
         var lhDelta = (lhUnits === "px") ? 1 : 0.1;
@@ -67,11 +67,14 @@ define(function (require, exports, module) {
             lhDelta *= -1;
         }
 
-        var fsStr = (parseFloat(fs) + fsDelta) + fsUnits;
-        var lhStr = (parseFloat(lh) + lhDelta) + lhUnits;
+        var fsNew = fsOld + fsDelta;
+        var lhNew = lhOld + lhDelta;
+        
+        var fsStr = fsNew + fsUnits;
+        var lhStr = lhNew + lhUnits;
 
         // Don't let the fonts get too small.
-        if (direction === -1 && ((fsUnits === "px" && fs <= 1) || (fsUnits === "em" && fs <= 0.1))) {
+        if (direction === -1 && ((fsUnits === "px" && fsNew <= 1) || (fsUnits === "em" && fsNew <= 0.1))) {
             return;
         }
 
@@ -82,8 +85,20 @@ define(function (require, exports, module) {
                    "font-size: "   + fsStr + " !important;" +
                    "line-height: " + lhStr + " !important;}");
         $("head").append(style);
+        
+        var editor = EditorManager.getCurrentFullEditor();
+        editor.refreshAll();
+        
+        // Scroll the document back to its original position. This can only happen
+        // if the font size is specified in pixels (which it currently is).
+        if (fsUnits === "px") {
+            var scrollPos = editor.getScrollPos();
+            var scrollDeltaX = Math.round(scrollPos.x / lhOld);
+            var scrollDeltaY = Math.round(scrollPos.y / lhOld);
+            editor.setScrollPos(scrollPos.x + (scrollDeltaX * direction),
+                                scrollPos.y + (scrollDeltaY * direction));
+        }
 
-        EditorManager.getCurrentFullEditor().refreshAll();
     }
 
     function _handleIncreaseFontSize() {
