@@ -87,8 +87,10 @@ define(function (require, exports, module) {
         for (line = 0; line < lines.length; line++) {
             if (total < offset) {
                 total += lines[line].length + 1;
+                console.log( lines[line] + "\b" + total );
             } else {
-                return line - 1;
+                return line -1;
+                console.log( "returned " + line );
             }
         }
 
@@ -105,7 +107,7 @@ define(function (require, exports, module) {
      * @param {number} offset
      * @return {number} line number
      */
-    function _offsetToLineNum(text, offset) {
+    function offsetToLineNum(text, offset) {
         return text.substr(0, offset).split("\n").length - 1;
     }
 
@@ -113,4 +115,6 @@ define(function (require, exports, module) {
     exports.format          = format;
     exports.htmlEscape      = htmlEscape;
     exports.regexEscape     = regexEscape;
+    exports.offsetToLineNum = offsetToLineNum;
+    exports.offsetToLineNumForLoops = offsetToLineNumForLoops;
 });
