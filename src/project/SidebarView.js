@@ -141,8 +141,8 @@ define(function (require, exports, module) {
         }
         
         $sidebarResizer.on("dblclick", function () {
-            if ($sidebar.width() === 1) {
-                // mousedown is fired first. Sidebar is already toggeled open to 1px.
+            if ($sidebar.width() < 10) {
+                //mousedown is fired first. Sidebar is already toggeled open to 1px.
                 _setWidth(null, true, true);
             } else {
                 toggleSidebar(sidebarWidth);
