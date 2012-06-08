@@ -93,8 +93,8 @@ define(function (require, exports, module) {
         // if the font size is specified in pixels (which it currently is).
         if (fsUnits === "px") {
             var scrollPos = editor.getScrollPos();
-            var scrollDelta = scrollPos.y / (fsOld + (lhOld - fsOld));
-            editor.setScrollPos(scrollPos.x, scrollPos.y + (scrollDelta * direction));
+            var scrollDeltaY = Math.round(scrollPos.y / (fsOld + (lhOld - fsOld)));
+            editor.setScrollPos(scrollPos.x, scrollPos.y + (scrollDeltaY * direction));
         }
 
     }
