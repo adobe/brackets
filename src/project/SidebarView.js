@@ -142,8 +142,10 @@ define(function (require, exports, module) {
         
         $sidebarResizer.on("dblclick", function () {
             if ($sidebar.width() < 10) {
-                //mousedown is fired first. Sidebar is already toggeled open to 1px.
+                //mousedown is fired first. Sidebar is already toggeled open to at least 10px.
                 _setWidth(null, true, true);
+                $projectFilesContainer.triggerHandler("scroll");
+                $openFilesContainer.triggerHandler("scroll");
             } else {
                 toggleSidebar(sidebarWidth);
             }
