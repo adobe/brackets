@@ -85,12 +85,12 @@ define(function (require, exports, module) {
     function offsetToLineNumForLoops(lines, offset) {
         var line, total = 0;
         for (line = 0; line < lines.length; line++) {
-            if (total < offset) {
-                total += lines[line].length + 1;
-                console.log( lines[line] + "\b" + total );
+            if (total <= offset) {
+                // add 1 per line since /n were removed by splitting, but they needed to 
+                // contribute to the total offset count
+                total += lines[line].length + 1; 
             } else {
                 return line -1;
-                console.log( "returned " + line );
             }
         }
 
@@ -115,6 +115,7 @@ define(function (require, exports, module) {
     exports.format          = format;
     exports.htmlEscape      = htmlEscape;
     exports.regexEscape     = regexEscape;
+    exports.getLines        = getLines;
     exports.offsetToLineNum = offsetToLineNum;
     exports.offsetToLineNumForLoops = offsetToLineNumForLoops;
 });
