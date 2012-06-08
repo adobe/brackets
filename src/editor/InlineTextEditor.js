@@ -73,7 +73,7 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     *
+     * @extends {InlineWidget}
      */
     function InlineTextEditor() {
         InlineWidget.call(this);
