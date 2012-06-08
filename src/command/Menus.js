@@ -566,21 +566,13 @@ define(function (require, exports, module) {
         this.id = id;
         this.menu = new Menu(id);
 
-        // TODO: menuAppearance is a temporary class to make the context menus look correct
-        // until the CSS code for menus is refactored to support menus and context menus
-        var $newMenu = $("<li class='dropdown menuAppearance' id='" + id + "'></li>");
+        var $newMenu = $("<li class='dropdown context-menu' id='" + id + "'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
 
-        // TODO: move this css into a less file for context menus
         $newMenu.append($toggle)
-            .append("<ul class='dropdown-menu'></ul>")
-            .css({"position": "absolute",
-                     "z-index": "1000",
-                     "list-style-type": "none",
-                     "top": 200,
-                     "left": 300});
+            .append("<ul class='dropdown-menu'></ul>");
 
         $(window.document.body).append($newMenu);
     }
