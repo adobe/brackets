@@ -100,14 +100,3 @@
     -o-transform-origin: @horizontal @vertical;
     transform-origin: @horizontal @vertical;
 }
-
-// Top Border Radius - bootstrap/mixins.less has border-radius() mixin
-//   for all corners; this just does the top corners
-.top-border-radius(@radius: 5px) {
-    -webkit-border-top-left-radius:  @radius;
-    -webkit-border-top-right-radius: @radius;
-       -moz-border-radius-topleft:   @radius;
-       -moz-border-radius-topright:  @radius;
-            border-top-left-radius:  @radius;
-            border-top-right-radius: @radius;
-}
