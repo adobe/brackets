@@ -264,7 +264,7 @@ define(function (require, exports, module) {
      * 
      * @param {!string} id
      * @param {!string | Command} command - the command the menu will execute.
-     *      Use DIVIDER for a menu divider
+     *      Pass Menus.DIVIDER for a menu divider, or just call addMenuDivider() instead.
      * @param {?string | Array.<{key: string, platform: string}>}  keyBindings - register one
      *      one or more key bindings to associate with the supplied command.
      * @param {?string} position - constant defining the position of new the MenuItem relative

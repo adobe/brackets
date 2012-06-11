@@ -60,7 +60,7 @@ define(function (require, exports, module) {
         }
         
         var content = finalLines.join("\n");
-        myEditor._setText(content);
+        myDocument.setText(content);
     }
     
     

@@ -450,7 +450,7 @@ define(function (require, exports, module) {
         this.file = file;
         this.refreshText(rawText, initialTimestamp);
         
-        // This is a good point to clean up any dangling Documents
+        // This is a good point to clean up any old dangling Documents
         _gcDocuments();
     }
     
@@ -556,7 +556,8 @@ define(function (require, exports, module) {
         if (!this._masterEditor) {
             throw new Error("Document is already non-editable");
         } else {
-            this._text = this.getText();
+            // _text represents the raw text, so fetch without normalized line endings
+            this._text = this.getText(true);
             this._masterEditor = null;
         }
     };
@@ -585,7 +586,7 @@ define(function (require, exports, module) {
         if (this._masterEditor) {
             // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
             // endings preferred by the document, if necessary
-            var codeMirrorText = this._masterEditor._getText();
+            var codeMirrorText = this._masterEditor._codeMirror.getValue();
             if (useOriginalLineEndings) {
                 if (this._lineEndings === FileUtils.LINE_ENDINGS_CRLF) {
                     return codeMirrorText.replace(/\n/g, "\r\n");
@@ -594,8 +595,7 @@ define(function (require, exports, module) {
             return codeMirrorText;
             
         } else {
-            // getText() is common enough to warrant an optimized path that doesn't require auto-creating
-            // the master editor
+            // Optimized path that doesn't require creating master editor
             if (useOriginalLineEndings) {
                 return this._text;
             } else {
@@ -611,7 +611,7 @@ define(function (require, exports, module) {
      */
     Document.prototype.setText = function (text) {
         this._ensureMasterEditor();
-        this._masterEditor._setText(text);
+        this._masterEditor._codeMirror.setValue(text);
         // _handleEditorChange() triggers "change" event
     };
     

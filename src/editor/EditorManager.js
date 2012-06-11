@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
      * Document's master backing editor. The editor is not yet visible; to show it, use
      * DocumentManager.setCurrentDocument().
-     * Semi-private: should not be called outside this module other than by Editor.
+     * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      */
     function _createFullEditorForDocument(document) {
