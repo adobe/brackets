@@ -117,8 +117,8 @@ define(function (require, exports, module) {
                                 matchingFunctions.push({
                                     document: doc,
                                     name: funcEntry.functionName,
-                                    lineStart: StringUtils.offsetToLineNumForLoops(lines, funcEntry.offset),
-                                    lineEnd: StringUtils.offsetToLineNumForLoops(lines, endOffset)
+                                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
                                 });
                             }
                         });
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
      * @return {Array.<{offset:number, functionName:string}>}
      *      Array of objects containing the start offset for each matched function name.
      */
-     function _findAllMatchingFunctionsInText(text, functionName) {
+    function _findAllMatchingFunctionsInText(text, functionName) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
         var lines = text.split("\n");
@@ -281,8 +281,8 @@ define(function (require, exports, module) {
                 var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
                 result.push({
                     name: funcEntry.functionName,
-                    lineStart: StringUtils.offsetToLineNumForLoops(lines, funcEntry.offset),
-                    lineEnd: StringUtils.offsetToLineNumForLoops(lines, endOffset)
+                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
                 });
             }
         });

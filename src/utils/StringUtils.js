@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, $ */
 
 /**
  *	Utilities functions related to string manipulation
@@ -72,43 +72,38 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Returns a line number corresponding to an offset in some text. This version
-     * is optimized for repeatidly calling the function on the same text in a loop.
-     * Use getLines() to divide the text into lines onces, then repeatidly call
+     * Returns a line number corresponding to an offset in some text. The text can
+     * be specified as a single string or as an array of strings that correspond to
+     * the lines of the string.
+     *
+     * Specify the text in lines when repeatedly calling the function on the same
+     * text in a loop. Use getLines() to divide the text into lines, then repeatedly call
      * this function to compute a line number from the offset.
      *
-     * @param {Array.<string>} lines - an array of strings corresponding to the
-     *      lines of text in a string.
+     * @param {string | Array.<string>} textOrLines - string or array of lines from which
+     *      to compute the line number from the offset
      * @param {number} offset
      * @return {number} line number
      */
-    function offsetToLineNumForLoops(lines, offset) {
-        var line, total = 0;
-        for (line = 0; line < lines.length; line++) {
-            if (total <= offset) {
-                // add 1 per line since /n were removed by splitting, but they needed to 
-                // contribute to the total offset count
-                total += lines[line].length + 1;
-            } else {
-                return line - 1;
+    function offsetToLineNum(textOrLines, offset) {
+        if ($.isArray(textOrLines)) {
+            var lines = textOrLines,
+                total = 0,
+                line;
+            for (line = 0; line < lines.length; line++) {
+                if (total <= offset) {
+                    // add 1 per line since /n were removed by splitting, but they needed to 
+                    // contribute to the total offset count
+                    total += lines[line].length + 1;
+                } else {
+                    return line - 1;
+                }
             }
+
+            return undefined;
+        } else {
+            return textOrLines.substr(0, offset).split("\n").length - 1;
         }
-
-        return undefined;
-    }
-
-    /**
-     * Returns the line number corresponding to an offset in text
-     *
-     * Note: When repeatidly computing line numbers for offsets in the same text
-     * use offsetToLineNumForLoops() instead which is performance optimized for loops
-     *
-     * @param {string} text
-     * @param {number} offset
-     * @return {number} line number
-     */
-    function offsetToLineNum(text, offset) {
-        return text.substr(0, offset).split("\n").length - 1;
     }
 
     // Define public API
@@ -117,5 +112,4 @@ define(function (require, exports, module) {
     exports.regexEscape     = regexEscape;
     exports.getLines        = getLines;
     exports.offsetToLineNum = offsetToLineNum;
-    exports.offsetToLineNumForLoops = offsetToLineNumForLoops;
 });
