@@ -785,22 +785,22 @@ define(function (require, exports, module) {
         });
 
 
-        $("#main-toolbar .dropdown")
-            // Prevent clicks on the top-level menu bar from taking focus
-            // Note, bootstrap handles this already for the menu drop downs 
-            .mousedown(function (e) {
-                e.preventDefault();
-            })
-            // Switch menus when the mouse enters an adjacent menu
-            // Only open the menu if another one has already been opened
-            // by clicking
-            .mouseenter(function (e) {
-                var open = $(this).siblings(".open");
-                if (open.length > 0) {
-                    open.removeClass("open");
-                    $(this).addClass("open");
-                }
-            });
+        // Prevent clicks on the top-level menu bar from taking focus
+        // Note, bootstrap handles this already for the menu drop downs
+        $(document).on("mousedown", ".dropdown", function (e) {
+            e.preventDefault();
+        });
+        
+        // Switch menus when the mouse enters an adjacent menu
+        // Only open the menu if another one has already been opened
+        // by clicking
+        $(document).on("mouseenter", "#main-toolbar .dropdown", function (e) {
+            var open = $(this).siblings(".open");
+            if (open.length > 0) {
+                open.removeClass("open");
+                $(this).addClass("open");
+            }
+        });
     }
 
     // Define public API
