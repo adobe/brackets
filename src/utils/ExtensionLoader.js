@@ -173,45 +173,8 @@ define(function (require, exports, module) {
         return _loadAll(directory, baseUrl, "unittests", testExtension);
     }
     
-    /**
-     * Loads a style sheet relative to the extension module.
-     *
-     * @param {!module} module Module provided by RequireJS
-     * @param {!string} path Relative path from the extension folder to a CSS file
-     * @return {!$.Promise} A promise object that is resolved when the CSS file and it's dependencies are loaded
-     */
-    function loadStyleSheet(module, path) {
-        var url = module.uri.replace("main.js", "") + path,
-            $link = $("<link/>"),
-            onload,
-            onerror,
-            result = new $.Deferred();
-        
-        if ($link[0].onload && $link[0].onerror) {
-            onload = function () { result.resolve(); };
-            onerror = function () { result.reject(); };
-        }
-        
-        $link.attr({
-            type:       "text/css",
-            rel:        "stylesheet",
-            href:       url,
-            onload:     onload,
-            onerror:    onerror
-        });
-        
-        $("head").append($link);
-        
-        if (!onload) {
-            result.resolve();
-        }
-        
-        return result;
-    }
-    
     exports.loadExtension = loadExtension;
     exports.testExtension = testExtension;
     exports.loadAllExtensionsInNativeDirectory = loadAllExtensionsInNativeDirectory;
     exports.testAllExtensionsInNativeDirectory = testAllExtensionsInNativeDirectory;
-    exports.loadStyleSheet = loadStyleSheet;
 });
