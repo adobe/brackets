@@ -568,7 +568,12 @@ define(function (require, exports, module) {
 
         // TODO: menuAppearance is a temporary class to make the context menus look correct
         // until the CSS code for menus is refactored to support menus and context menus
-        var $newMenu = $("<li class='dropdown menuAppearance' id='" + id + "'></li>");
+        var $newMenu = $("<li class='dropdown menuAppearance' id='" + id + "'></li>")
+            .mousedown(function (e) {
+
+                // TY TODO
+                e.preventDefault();
+            });
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
@@ -779,14 +784,15 @@ define(function (require, exports, module) {
 
          
 
-        // $("#projects").mousedown(function (e) {
-        //     if (e.which === 3) {
-        //         project_cmenu.open(e);
-        //     }
-        // });
+        $("#projects").mousedown(function (e) {
+            if (e.which === 3) {
+                project_cmenu.open(e);
+            }
+        });
 
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
+
                 editor_cmenu.open(e);
             }
         });
