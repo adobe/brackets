@@ -855,6 +855,7 @@ define(function (require, exports, module) {
     exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
+    exports.getContextMenu = getContextMenu;
     exports.addMenu = addMenu;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
