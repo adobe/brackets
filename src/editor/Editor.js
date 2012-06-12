@@ -673,9 +673,9 @@ define(function (require, exports, module) {
         this._codeMirror.setCursor(line, ch);
     };
 
-    Editor.prototype.posFromMouse = function (e, liberal, dirHint) {
-        return this._codeMirror.posFromMouse(e, liberal, dirHint);
-    };
+//    Editor.prototype.posFromMouse = function (e, liberal, dirHint) {
+//        return this._codeMirror.posFromMouse(e, liberal, dirHint);
+//    };
     
     // TODO TY: move me
     Editor.prototype.selectWordAt = function (pos) {

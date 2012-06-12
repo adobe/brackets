@@ -805,9 +805,9 @@ define(function (require, exports, module) {
 
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
-                var editor = EditorManager.getFocusedEditor();
-                var pos = editor.posFromMouse(e);
-                editor.selectWordAt(pos);
+//                var editor = EditorManager.getFocusedEditor();
+//                var pos = editor.posFromMouse(e);
+//                editor.selectWordAt(pos);
                 editor_cmenu.open(e);
             }
         });
