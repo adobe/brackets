@@ -1,5 +1,6 @@
 body {
-    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+    /* make the container go all the way to the bottom of the topbar */
+    padding-top: 60px;
 }
 pre {
     overflow-x: scroll;
@@ -8,4 +9,9 @@ pre {
 }
 .nav .badge {
     float: right;
+}
+
+/* Make fail (red) color bolder so easier to see */
+.label-important, .badge-important {
+    background-color: #F00;
 }

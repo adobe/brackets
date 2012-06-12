@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, document */
 
 define(function (require, exports, module) {
     'use strict';
@@ -622,23 +622,23 @@ define(function (require, exports, module) {
         menu.addMenuItem("menu-debug-new-window",     Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuItem("menu-debug-close-browser",  Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
         menu.addMenuItem("menu-debug-use-tab-chars",  Commands.DEBUG_USE_TAB_CHARS);
-
-        $("#main-toolbar .dropdown")
-            // Prevent clicks on the top-level menu bar from taking focus
-            // Note, bootstrap handles this already for the menu drop downs 
-            .mousedown(function (e) {
-                e.preventDefault();
-            })
-            // Switch menus when the mouse enters an adjacent menu
-            // Only open the menu if another one has already been opened
-            // by clicking
-            .mouseenter(function (e) {
-                var open = $(this).siblings(".open");
-                if (open.length > 0) {
-                    open.removeClass("open");
-                    $(this).addClass("open");
-                }
-            });
+        
+        // Prevent clicks on the top-level menu bar from taking focus
+        // Note, bootstrap handles this already for the menu drop downs 
+        $(document).on("mousedown", "#main-toolbar .dropdown", function (e) {
+            e.preventDefault();
+        });
+        
+        // Switch menus when the mouse enters an adjacent menu
+        // Only open the menu if another one has already been opened
+        // by clicking
+        $(document).on("mouseenter", "#main-toolbar .dropdown", function (e) {
+            var open = $(this).siblings(".open");
+            if (open.length > 0) {
+                open.removeClass("open");
+                $(this).addClass("open");
+            }
+        });
     }
 
     // Define public API
