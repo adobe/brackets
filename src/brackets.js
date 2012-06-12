@@ -157,6 +157,10 @@ define(function (require, exports, module) {
         //
         // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
         // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
+        //
+        // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
+        // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
+        // add callbacks to this, we need to be robust to exceptions
         brackets.ready = _registerBracketsReadyHandler;
     }
     
