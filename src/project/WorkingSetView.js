@@ -194,42 +194,8 @@ define(function (require, exports, module) {
 
         _redraw();
     }
-    
-    /** 
-     * @private
-     */
-    function _updateListSelection() {
-        var doc;
-        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
-            doc = DocumentManager.getCurrentDocument();
-        } else {
-            doc = null;
-        }
-            
-        // Iterate through working set list and update the selection on each
-        var items = $openFilesContainer.find("ul").children().each(function () {
-            _updateListItemSelection(this, doc);
-        });
-        
-        _fireSelectionChanged();
-    }
 
-    /** 
-     * @private
-     */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
-    }
-    
-    /** 
-     * @private
-     */
-    function _handleDocumentSelectionChange() {
-        _updateListSelection();
-    }
-
-    /** 
+    /**
      * Finds the listItem item assocated with the file. Returns null if not found.
      * @private
      * @param {!FileEntry} file
@@ -251,6 +217,64 @@ define(function (require, exports, module) {
         }
 
         return result;
+    }
+
+    /**
+     * @private
+     */
+    function _scrollSelectedDocIntoView() {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+            return;
+        }
+
+        var doc = DocumentManager.getCurrentDocument();
+        if (!doc) {
+            return;
+        }
+
+        var $selectedDoc = _findListItemFromFile(doc.file);
+        if (!$selectedDoc) {
+            return;
+        }
+
+        ViewUtils.scrollElementIntoView($openFilesContainer, $selectedDoc, false);
+    }
+
+    /** 
+     * @private
+     */
+    function _updateListSelection() {
+        var doc;
+        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
+            doc = DocumentManager.getCurrentDocument();
+        } else {
+            doc = null;
+        }
+            
+        // Iterate through working set list and update the selection on each
+        var items = $openFilesContainer.find("ul").children().each(function () {
+            _updateListItemSelection(this, doc);
+        });
+
+        // Make sure selection is in view
+        _scrollSelectedDocIntoView();
+
+        _fireSelectionChanged();
+    }
+
+    /** 
+     * @private
+     */
+    function _handleFileAdded(file) {
+        _createNewListItem(file);
+        _redraw();
+    }
+    
+    /** 
+     * @private
+     */
+    function _handleDocumentSelectionChange() {
+        _updateListSelection();
     }
 
     /** 
