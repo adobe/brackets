@@ -49,7 +49,16 @@
             if (filterString === "All") {
                 return true;
             }
-            return spec.getFullName().indexOf(filterString) === 0;
+            
+            // spec.getFullName() concatenates the names of all containing describe()s. We want to filter
+            // on just the outermost suite's name (i.e., the item that was selected in the spec list UI)
+            // to avoid ambiguity when suite names share the same prefix.
+            var topLevelSuite = spec.suite;
+            while (topLevelSuite.parentSuite) {
+                topLevelSuite = topLevelSuite.parentSuite;
+            }
+            
+            return topLevelSuite.description === filterString;
         };
     };
         
