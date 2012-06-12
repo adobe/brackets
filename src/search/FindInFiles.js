@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         // Query is a string. Turn it into a case-insensitive regexp
         
         // Escape regex special chars
-        query = query.replace(/(\(|\)|\{|\}|\[|\]|\.|\^|\$|\||\?|\+|\*)/g, "\\$1");
+        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
         return new RegExp(query, "gi");
     }
     
