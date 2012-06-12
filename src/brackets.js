@@ -72,6 +72,10 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async");
+
+    // Local variables
+    var bracketsReady         = false,
+        bracketsReadyHandlers = [];
         
     //Load modules that self-register and just need to get included in the main project
     require("editor/CodeHintManager");
@@ -80,6 +84,34 @@ define(function (require, exports, module) {
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
 
+    function _callBracketsReadyHandler(handler) {
+        try {
+            handler();
+        } catch (e) {
+            console.log("Exception when calling a 'brackets done loading' handler");
+            console.log(e);
+        }
+    }
+
+    function _onBracketsReady() {
+        var i;
+        bracketsReady = true;
+        for (i = 0; i < bracketsReadyHandlers.length; i++) {
+            _callBracketsReadyHandler(bracketsReadyHandlers[i]);
+        }
+        bracketsReadyHandlers = [];
+    }
+
+    // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
+    // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
+    function _registerBracketsReadyHandler(handler) {
+        if (bracketsReady) {
+            _callBracketsReadyHandler(handler);
+        } else {
+            bracketsReadyHandlers.push(handler);
+        }
+    }
+    
     // TODO: Issue 949 - the following code should be shared
     
     function _initGlobalBrackets() {
@@ -119,10 +151,22 @@ define(function (require, exports, module) {
         // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
         // modules. The extension will only be able to load modules that have already been loaded once.
         brackets.getModule = require;
+
+        // Provide a way for anyone (including code not using require) to register a handler for the brackets 'ready' event
+        // This event is like $(document).ready in that it will call the handler immediately if brackets is already done loading
+        //
+        // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
+        // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
+        //
+        // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
+        // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
+        // add callbacks to this, we need to be robust to exceptions
+        brackets.ready = _registerBracketsReadyHandler;
     }
     
+    // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
+    // Making this fix will fix a warning (search for issue 1029) related to the brackets 'ready' event.
     function _initExtensions() {
-        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
         return Async.doInParallel(["default", "user"], function (item) {
             return ExtensionLoader.loadAllExtensionsInNativeDirectory(
                 FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
@@ -156,8 +200,13 @@ define(function (require, exports, module) {
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-            NativeApp               : require("utils/NativeApp")
+            NativeApp               : require("utils/NativeApp"),
+            doneLoading             : false
         };
+
+        brackets.ready(function () {
+            brackets.test.doneLoading = true;
+        });
     }
     
     function _initDragAndDropListeners() {
@@ -261,7 +310,7 @@ define(function (require, exports, module) {
         // finish UI initialization before loading extensions
         ProjectManager.loadProject().done(function () {
             _initTest();
-            _initExtensions();
+            _initExtensions().always(_onBracketsReady);
         });
     }
             
