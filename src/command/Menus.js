@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, MouseEvent */
+/*global define, $, brackets, document */
 
 define(function (require, exports, module) {
     'use strict';
@@ -784,52 +784,11 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuItem(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
         menu.addMenuItem(Commands.DEBUG_USE_TAB_CHARS);
-
-
-        /**
-         * Context Menus Test Code
-         *
-         */
-        var project_cmenu = registerContextMenu("cmenutest1");
-        project_cmenu.addMenuItem(Commands.FILE_OPEN);
-        project_cmenu.addMenuItem(Commands.FILE_CLOSE);
-        project_cmenu.addMenuItem(Commands.FILE_NEW);
-
-        var editor_cmenu = registerContextMenu("editorCo");
-        editor_cmenu.addMenuItem(Commands.SHOW_INLINE_EDITOR);
-        editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-        editor_cmenu.addMenuItem(Commands.EDIT_DUPLICATE);
-        editor_cmenu.addMenuItem(Commands.EDIT_LINE_COMMENT);
-
-
-        $("#editor-holder").mousedown(function (e) {
-            if (e.which === 3) {
-                var editor = EditorManager.getFocusedEditor();
-                var pos = editor.posFromMouse(e);
-                editor.selectWordAt(pos);
-                editor_cmenu.open(e);
-            }
-        });
-
-
-        $("#projects").mousedown(function (e) {
-            if (e.which === 3) {
-                project_cmenu.open(e);
-            }
-        });
-
-
+        
         // Prevent clicks on the top-level menu bar from taking focus
-        // Note, bootstrap handles this already for the menu drop downs
-        $(document).on("mousedown", ".dropdown", function (e) {
+        // Note, bootstrap handles this already for the menu drop downs 
+        $(document).on("mousedown", "#main-toolbar .dropdown", function (e) {
             e.preventDefault();
-        });
-
-        // close all dropdowns on ESC
-        $(document).on("keydown", function (e) {
-            if (e.keyCode === 27) {
-                $(".dropdown").removeClass("open");
-            }
         });
         
         // Switch menus when the mouse enters an adjacent menu
