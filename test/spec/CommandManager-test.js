@@ -40,10 +40,11 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
             executed = false;
-            CommandManager._reset();
+            CommandManager._testReset();
         });
 
         afterEach(function () {
+            CommandManager._testRestore();
         });
         
         it("register and get a command and validate parameters", function () {
