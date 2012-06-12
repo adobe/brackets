@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async               = brackets.getModule("utils/Async"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
+        StringUtils         = brackets.getModule("utils/StringUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
     
     // Return an Array with names and offsets for all functions in the specified text
@@ -94,9 +95,6 @@ define(function (require, exports, module) {
         return length;
     }
     
-    function _offsetToLineNum(text, offset) {
-        return text.substr(0, offset).split("\n").length - 1;
-    }
     
     // Search function list for a specific function. If found, extract info about the function
     // (line start, line end, etc.) and return.
@@ -111,6 +109,7 @@ define(function (require, exports, module) {
                 DocumentManager.getDocumentForPath(fileInfo.fullPath)
                     .done(function (doc) {
                         var text = doc.getText();
+                        var lines = StringUtils.getLines(text);
                         
                         functions.forEach(function (funcEntry) {
                             if (funcEntry.functionName === functionName) {
@@ -118,8 +117,8 @@ define(function (require, exports, module) {
                                 matchingFunctions.push({
                                     document: doc,
                                     name: funcEntry.functionName,
-                                    lineStart: _offsetToLineNum(text, funcEntry.offset),
-                                    lineEnd: _offsetToLineNum(text, endOffset)
+                                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
                                 });
                             }
                         });
@@ -275,18 +274,19 @@ define(function (require, exports, module) {
     function _findAllMatchingFunctionsInText(text, functionName) {
         var allFunctions = _findAllFunctionsInText(text);
         var result = [];
-        
+        var lines = text.split("\n");
+         
         allFunctions.forEach(function (funcEntry) {
-            if (funcEntry.functionName === functionName) {
+            if (funcEntry.functionName === functionName || functionName === "*") {
                 var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
                 result.push({
                     name: funcEntry.functionName,
-                    lineStart: _offsetToLineNum(text, funcEntry.offset),
-                    lineEnd: _offsetToLineNum(text, endOffset)
+                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
                 });
             }
         });
-        
+         
         return result;
     }
 

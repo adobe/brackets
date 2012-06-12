@@ -540,7 +540,7 @@ define(function (require, exports, module) {
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_ERROR,
                     Strings.ERROR_LOADING_PROJECT,
-                    Strings.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
+                    StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR,
                         StringUtils.htmlEscape(dirEntry.fullPath),
                         error.code)
                 );
@@ -637,7 +637,7 @@ define(function (require, exports, module) {
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_ERROR,
                         Strings.ERROR_LOADING_PROJECT,
-                        Strings.format(
+                        StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.htmlEscape(rootPath),
                             error.code,
@@ -685,7 +685,7 @@ define(function (require, exports, module) {
                         Dialogs.showModalDialog(
                             Dialogs.DIALOG_ID_ERROR,
                             Strings.ERROR_LOADING_PROJECT,
-                            Strings.format(Strings.OPEN_DIALOG_ERROR, error.code)
+                            StringUtils.format(Strings.OPEN_DIALOG_ERROR, error.code)
                         );
                     }
                     );
@@ -812,15 +812,15 @@ define(function (require, exports, module) {
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.INVALID_FILENAME_TITLE,
-                                Strings.format(Strings.FILE_ALREADY_EXISTS,
+                                StringUtils.format(Strings.FILE_ALREADY_EXISTS,
                                     StringUtils.htmlEscape(data.rslt.name))
                             );
                         } else {
                             var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
                                              Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                             Strings.format(String.GENERIC_ERROR, error.code);
+                                             StringUtils.format(String.GENERIC_ERROR, error.code);
 
-                            var errMsg = Strings.format(Strings.ERROR_CREATING_FILE,
+                            var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
                                             StringUtils.htmlEscape(data.rslt.name),
                                             errString);
                           

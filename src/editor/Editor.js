@@ -672,6 +672,15 @@ define(function (require, exports, module) {
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
     };
+
+    Editor.prototype.posFromMouse = function (e, liberal, dirHint) {
+        return this._codeMirror.posFromMouse(e, liberal, dirHint);
+    };
+    
+    // TODO TY: move me
+    Editor.prototype.selectWordAt = function (pos) {
+        return this._codeMirror.selectWordAt(pos);
+    };
     
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
