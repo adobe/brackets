@@ -26,8 +26,12 @@
 
 // Set the baseUrl to brackets/src
 require.config({
-    baseUrl: "../src"/*,
-    urlArgs: "bust=" + (new Date()).getTime() // cache busting */
+    baseUrl: "../src",
+    paths: {
+        "test": "../test",
+        "perf": "../test/perf",
+        "spec": "../test/spec"
+    }
 });
 
 define(function (require, exports, module) {
@@ -132,21 +136,17 @@ define(function (require, exports, module) {
             
             // add performance reporting
             if (suite === "PerformanceTestSuite") {
+                require("test/PerformanceTestSuite");
                 jasmineEnv.addReporter(new PerformanceReporter());
+            } else {
+                require("test/UnitTestSuite");
             }
             
             localStorage.setItem("SpecRunner.suite", suite);
             
             $("#" + suite).closest("li").toggleClass("active", true);
             
-            var jsonResult = $.getJSON(suite + ".json");
-            
-            jsonResult.done(function (data) {
-                // load specs and run jasmine
-                require(data.specs, function () {
-                    jasmineEnv.execute();
-                });
-            });
+            jasmineEnv.execute();
         };
     }
 
