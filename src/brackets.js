@@ -83,6 +83,7 @@ define(function (require, exports, module) {
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
+    require("utils/ExtensionUtils");
 
     function _callBracketsReadyHandler(handler) {
         try {
