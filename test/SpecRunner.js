@@ -26,7 +26,11 @@
 
 // Set the baseUrl to brackets/src
 require.config({
-    baseUrl: "../src"/*,
+    baseUrl: "../src",
+    paths: {
+        "perf": "../test/perf",
+        "spec": "../test/spec"
+    }/*,
     urlArgs: "bust=" + (new Date()).getTime() // cache busting */
 });
 
@@ -38,7 +42,7 @@ define(function (require, exports, module) {
         ExtensionLoader     = require("utils/ExtensionLoader"),
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus"),
-        PerformanceReporter = require("perf/PerformanceReporter.js").PerformanceReporter;
+        PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter;
     
     var suite;
         
