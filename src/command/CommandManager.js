@@ -39,7 +39,8 @@ define(function (require, exports, module) {
     var _commands = {};
     
     /**
-     * Map of all registered global commands
+     * Temporary copy of commands map for restoring after testing
+     * TODO (issue #1039): implement separate require contexts for unit tests
      * @type Object.<commandID: string, Command>
      */
     var _commandsOriginal = {};
@@ -182,7 +183,7 @@ define(function (require, exports, module) {
 
     /**
      * Clear all commands for unit testing, but first make copy of commands so that
-    * they can be restored afterward
+     * they can be restored afterward
      */
     function _testReset() {
         _commandsOriginal = _commands;
