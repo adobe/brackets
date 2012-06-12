@@ -44,6 +44,13 @@ define(function (require, exports, module) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
     }
 
-    exports.htmlEscape = htmlEscape;
-    exports.regexEscape = regexEscape;
+    // Periods (aka "dots") are allowed in HTML identifiers, but jQuery interprets
+    // them as the start of a class selector, so they need to be escaped
+    function jQueryIdEscape(str) {
+        return str.replace(/\./g, "\\.");
+    }
+
+    exports.htmlEscape      = htmlEscape;
+    exports.regexEscape     = regexEscape;
+    exports.jQueryIdEscape  = jQueryIdEscape;
 });
