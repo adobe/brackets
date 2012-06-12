@@ -656,7 +656,7 @@ define(function (require, exports, module) {
         $("#" + StringUtils.jQueryIdEscape(this.id))
             .addClass("open")
             .css({"left": pageX,
-                  "top": pageY - 30}); // todo: compute offset
+                  "top": pageY - 20});
 
         $(this).triggerHandler("beforeContextMenuOpen");
     };
@@ -805,9 +805,21 @@ define(function (require, exports, module) {
 
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
-//                var editor = EditorManager.getFocusedEditor();
-//                var pos = editor.posFromMouse(e);
-//                editor.selectWordAt(pos);
+                if($(e.target).parents(".CodeMirror-gutter").length !== 0) {
+                    return;
+                }
+
+                var editor = EditorManager.getFocusedEditor();
+                var clickedSel = false,
+                    pos = editor.coordsChar({x: e.pageX, y: e.pageY});
+                if (editor.getSelectedText() !== "") {
+                    var sel = editor.getSelection();
+                    clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);                
+                }
+
+                if(!clickedSel) {
+                    editor.selectWordAt(pos);
+                }
                 editor_cmenu.open(e);
             }
         });

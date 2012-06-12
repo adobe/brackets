@@ -673,9 +673,32 @@ define(function (require, exports, module) {
         this._codeMirror.setCursor(line, ch);
     };
 
-//    Editor.prototype.posFromMouse = function (e, liberal, dirHint) {
-//        return this._codeMirror.posFromMouse(e, liberal, dirHint);
-//    };
+    /**
+     * @param {line:number, ch:number}
+     * @return {number}
+     */
+    Editor.prototype.indexFromPos = function (coords) {
+        return this._codeMirror.indexFromPos(coords);
+    };
+
+    /**
+     * Returns true if coords is between start and end (inclusive)
+     * @param {line:number, ch:number} coords
+     * @param {line:number, ch:number} start
+     * @param {line:number, ch:number} end
+     *
+     */
+    Editor.prototype.coordsWithinRange = function(coords, start, end) {
+        var startIndex = this.indexFromPos(start),
+            endIndex = this.indexFromPos(end),
+            coordIndex = this.indexFromPos(coords);
+
+        return coordIndex >= startIndex && coordIndex <= endIndex;
+    };
+
+    Editor.prototype.coordsChar = function (coords) {
+        return this._codeMirror.coordsChar(coords);
+    };
     
     // TODO TY: move me
     Editor.prototype.selectWordAt = function (pos) {
