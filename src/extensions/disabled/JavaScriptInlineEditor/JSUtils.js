@@ -21,7 +21,6 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils */
 
@@ -93,8 +92,11 @@ define(function (require, exports, module) {
         var result = new $.Deferred();
         var matchingFunctions = [];
         
-        // Bail early if there are no matches in this file.
-        if (!functions.some(function(funcEntry) { return funcEntry.functionName === functionName; })) {
+        // Filter the list of functions to just the ones that refer to functionName.
+        functions = functions.filter(function (funcEntry) {
+            return funcEntry.functionName === functionName;
+        });
+        if (functions.length === 0) {
             return result.resolve([]).promise();
         }
         
@@ -104,15 +106,13 @@ define(function (require, exports, module) {
                 var lines = StringUtils.getLines(text);
                 
                 functions.forEach(function (funcEntry) {
-                    if (funcEntry.functionName === functionName) {
-                        var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
-                        matchingFunctions.push({
-                            document: doc,
-                            name: funcEntry.functionName,
-                            lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
-                            lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
-                        });
-                    }
+                    var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
+                    matchingFunctions.push({
+                        document: doc,
+                        name: funcEntry.functionName,
+                        lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+                    });
                 });
                 
                 result.resolve(matchingFunctions);
