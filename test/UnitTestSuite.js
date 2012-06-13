@@ -26,22 +26,22 @@
 define(function (require, exports, module) {
     'use strict';
     
-    require("spec/LowLevelFileIO-test");
+    require("spec/CodeHintUtils-test");
+    require("spec/CommandManager-test");
+    require("spec/CSSUtils-test");
     require("spec/DocumentCommandHandlers-test");
-    require("spec/NativeFileSystem-test");
-    require("spec/PreferencesManager-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
-    require("spec/ProjectManager-test");
-    require("spec/WorkingSetView-test");
-    require("spec/KeyBindingManager-test");
     require("spec/FileIndexManager-test");
-    require("spec/CodeHintUtils-test");
-    require("spec/CSSUtils-test");
     require("spec/InlineEditorProviders-test");
-    require("spec/MultiRangeInlineEditor-test");
+    require("spec/KeyBindingManager-test");
     require("spec/LiveDevelopment-test");
-    require("spec/CommandManager-test");
-    require("spec/ViewUtils-test");
+    require("spec/LowLevelFileIO-test");
     require("spec/Menu-test");
+    require("spec/MultiRangeInlineEditor-test");
+    require("spec/NativeFileSystem-test");
+    require("spec/PreferencesManager-test");
+    require("spec/ProjectManager-test");
+    require("spec/ViewUtils-test");
+    require("spec/WorkingSetView-test");
 });

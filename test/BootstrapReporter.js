@@ -20,7 +20,12 @@
         }
         
         this._runAll = this._paramMap.spec === "All";
+        
+        // _topLevelFilter is applied first before the spec filter
         this._topLevelFilter = filter;
+        
+        // Jasmine's runner uses the specFilter to choose which tests to run.
+        // This is typically a subset of all tests loaded.
         this._env.specFilter = this.createSpecFilter(this._paramMap.spec);
         this._runner = this._env.currentRunner();
         
@@ -45,6 +50,11 @@
         this.$resultsContainer = $("#results-container");
     };
 
+    /**
+     * @private
+     * Filters specs by full name. Applies _topLevelFilter first before checking
+     * for a matching starting substring.
+     */
     jasmine.BootstrapReporter.prototype.createSpecFilter = function (filterString) {
         var self = this;
         
@@ -157,8 +167,7 @@
     };
     
     jasmine.BootstrapReporter.prototype.reportRunnerStarting = function (runner) {
-        var i,
-            specs = runner.specs(),
+        var specs = runner.specs(),
             topLevelData,
             self = this;
     
@@ -276,6 +285,7 @@
         this._updateSuiteStatus(allData, results);
     };
     
+    // Jasmine calls this function for all specs, not just filtered specs.
     jasmine.BootstrapReporter.prototype.reportSpecResults = function (spec) {
         var results = spec.results(),
             $specLink,
