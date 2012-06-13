@@ -48,7 +48,14 @@ define(function (require, exports, module) {
         DEBUG_MENU:    "debug-menu"
     };
 
-
+    /**
+     * Brackets Context Menu Constants
+     * @enum {string}
+     */
+    var ContextMenuIds = {
+        EDITOR_MENU:        "editor-context-menu",
+        PROJECT_MENU:       "project-context-menu"
+    };
 
 
     /**
@@ -784,23 +791,22 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuItem(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
         menu.addMenuItem(Commands.DEBUG_USE_TAB_CHARS);
-        
 
 
-        /**
-         * Context Menus Test Code
-         *
+        /*
+         * Context Menus
          */
-        var project_cmenu = registerContextMenu("cmenutest1");
+        var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_OPEN);
         project_cmenu.addMenuItem(Commands.FILE_CLOSE);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
 
-        var editor_cmenu = registerContextMenu("editorCo");
+        var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.SHOW_INLINE_EDITOR);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
         editor_cmenu.addMenuItem(Commands.EDIT_DUPLICATE);
         editor_cmenu.addMenuItem(Commands.EDIT_LINE_COMMENT);
+
 
         // TODO: doesn't word select when changing editors with right click
         $("#editor-holder").mousedown(function (e) {
@@ -859,6 +865,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.init = init;
     exports.AppMenuBar = AppMenuBar;
+    exports.ContextMenuIds = ContextMenuIds;
     exports.MenuSection = MenuSection;
     exports.BEFORE = BEFORE;
     exports.AFTER = AFTER;
