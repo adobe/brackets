@@ -46,10 +46,10 @@ define(function (require, exports, module) {
 
         var checked = command1.getChecked();
         if (checked) {
-            alert("Unchecking and Disabling next");
+            alert("Unchecking self. Disabling next.");
             command2.setEnabled(false);
         } else {
-            alert("Checking and Enabling next");
+            alert("Checking self. Enabling next.");
             command2.setEnabled(true);
         }
         command1.setChecked(!checked);

@@ -616,7 +616,7 @@ define(function (require, exports, module) {
         $newMenu.append($toggle)
             .append("<ul class='dropdown-menu'></ul>");
 
-        $(window.document.body).append($newMenu);
+        $("#context-menu-bar > ul").append($newMenu);
     }
     ContextMenu.prototype = new Menu();
     ContextMenu.prototype.constructor = ContextMenu;
@@ -625,7 +625,7 @@ define(function (require, exports, module) {
 
     /**
      * Displays the ContextMenu at the specified location and dispatches the 
-     * "contextMenuOpen" event.The menu location may be adjusted to prevent
+     * "beforeContextMenuOpen" event.The menu location may be adjusted to prevent
      * clipping by the browser window. All other menus and ContextMenus will be closed
      * bofore a new menu is shown.
      *
@@ -651,7 +651,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Closes the context menu and dispatches the "contextMenuOpen" event.
+     * Closes the context menu and dispatches the "contextMenuClose" event.
      */
     ContextMenu.prototype.close = function () {
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
