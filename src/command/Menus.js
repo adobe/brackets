@@ -268,7 +268,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Determine MenuItem a Command id
+     * Determine relative MenuItem
      *
      * @param {?string} relativeID - id of command (future: also sub-menu, or menu section).
      */
