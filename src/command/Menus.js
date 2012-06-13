@@ -802,7 +802,7 @@ define(function (require, exports, module) {
         editor_cmenu.addMenuItem(Commands.EDIT_DUPLICATE);
         editor_cmenu.addMenuItem(Commands.EDIT_LINE_COMMENT);
 
-
+        // TODO: doesn't word select when changing editors with right click
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
                 if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
