@@ -617,7 +617,7 @@ define(function (require, exports, module) {
         $newMenu.append($toggle)
             .append("<ul class='dropdown-menu'></ul>");
 
-        $(window.document.body).append($newMenu);
+        $("#context-menu-bar > ul").append($newMenu);
     }
     ContextMenu.prototype = new Menu();
     ContextMenu.prototype.constructor = ContextMenu;
