@@ -107,10 +107,10 @@ define(function (require, exports, module) {
 
         // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
-            function () {
-                return testWindow.brackets && testWindow.brackets.test;
+            function isBracketsDoneLoading() {
+                return testWindow.brackets && testWindow.brackets.test && testWindow.brackets.test.doneLoading;
             },
-            5000
+            10000
         );
 
         runs(function () {

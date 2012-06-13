@@ -36,7 +36,6 @@
  *  - Search files in working set that are *not* in the project
  *  - Handle matches that span mulitple lines
  *  - Refactor UI from functionality to enable unit testing
- *  - Cache result of getLine()
  */
 
 
@@ -47,6 +46,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager");
@@ -138,19 +138,12 @@ define(function (require, exports, module) {
         var matchStart;
         var matches = [];
         
-        function getLineNum(offset) {
-            return contents.substr(0, offset).split("\n").length - 1; // 0 based linenum
-        }
-        
-        function getLine(lineNum) {
-            // Future: cache result 
-            return contents.split("\n")[lineNum];
-        }
         
         var match;
+        var lines = StringUtils.getLines(contents);
         while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum = getLineNum(match.index);
-            var line = getLine(lineNum);
+            var lineNum = StringUtils.offsetToLineNum(lines, match.index);
+            var line = lines[lineNum];
             var ch = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
             var matchLength = match[0].length;
             
@@ -182,9 +175,10 @@ define(function (require, exports, module) {
             
             // Show result summary in header
             $("#search-result-summary")
-                .text(" - " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
+                .text("- " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
                       " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : "") +
-                     (numMatches > 100 ? " (showing the first 100 matches)" : ""));
+                     (numMatches > 100 ? " (showing the first 100 matches)" : ""))
+                .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
@@ -205,8 +199,13 @@ define(function (require, exports, module) {
                     };
                     
                     // Add row for file name
-                    $("<tr/>")
+                    $("<tr class='file-section' />")
                         .append("<td colspan='3'>File: <b>" + item.fullPath + "</b></td>")
+                        .click(function () {
+                            // Clicking file section header collapses/expands result rows for that file
+                            var $fileHeader = $(this);
+                            $fileHeader.nextUntil(".file-section").toggle();
+                        })
                         .appendTo($resultTable);
                     
                     // Add row for each match in file
@@ -265,7 +264,7 @@ define(function (require, exports, module) {
         // Query is a string. Turn it into a case-insensitive regexp
         
         // Escape regex special chars
-        query = query.replace(/(\(|\)|\{|\}|\[|\]|\.|\^|\$|\||\?|\+|\*)/g, "\\$1");
+        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
         return new RegExp(query, "gi");
     }
     

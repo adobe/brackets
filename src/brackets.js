@@ -57,7 +57,6 @@ define(function (require, exports, module) {
         FileViewController      = require("project/FileViewController"),
         FileSyncManager         = require("project/FileSyncManager"),
         KeyBindingManager       = require("command/KeyBindingManager"),
-        KeyMap                  = require("command/KeyMap"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         BuildInfoUtils          = require("utils/BuildInfoUtils"),
@@ -73,6 +72,10 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async");
+
+    // Local variables
+    var bracketsReady         = false,
+        bracketsReadyHandlers = [];
         
     //Load modules that self-register and just need to get included in the main project
     require("editor/CodeHintManager");
@@ -80,7 +83,36 @@ define(function (require, exports, module) {
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
+    require("utils/ExtensionUtils");
 
+    function _callBracketsReadyHandler(handler) {
+        try {
+            handler();
+        } catch (e) {
+            console.log("Exception when calling a 'brackets done loading' handler");
+            console.log(e);
+        }
+    }
+
+    function _onBracketsReady() {
+        var i;
+        bracketsReady = true;
+        for (i = 0; i < bracketsReadyHandlers.length; i++) {
+            _callBracketsReadyHandler(bracketsReadyHandlers[i]);
+        }
+        bracketsReadyHandlers = [];
+    }
+
+    // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
+    // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
+    function _registerBracketsReadyHandler(handler) {
+        if (bracketsReady) {
+            _callBracketsReadyHandler(handler);
+        } else {
+            bracketsReadyHandlers.push(handler);
+        }
+    }
+    
     // TODO: Issue 949 - the following code should be shared
     
     function _initGlobalBrackets() {
@@ -120,10 +152,22 @@ define(function (require, exports, module) {
         // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
         // modules. The extension will only be able to load modules that have already been loaded once.
         brackets.getModule = require;
+
+        // Provide a way for anyone (including code not using require) to register a handler for the brackets 'ready' event
+        // This event is like $(document).ready in that it will call the handler immediately if brackets is already done loading
+        //
+        // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
+        // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
+        //
+        // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
+        // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
+        // add callbacks to this, we need to be robust to exceptions
+        brackets.ready = _registerBracketsReadyHandler;
     }
     
+    // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
+    // Making this fix will fix a warning (search for issue 1029) related to the brackets 'ready' event.
     function _initExtensions() {
-        // FUTURE (JRB): As we get more fine-grained performance measurement, move this out of core application startup
         return Async.doInParallel(["default", "user"], function (item) {
             return ExtensionLoader.loadAllExtensionsInNativeDirectory(
                 FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
@@ -152,11 +196,18 @@ define(function (require, exports, module) {
             CommandManager          : require("command/CommandManager"),
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,
+            Menus                   : Menus,
+            KeyBindingManager       : KeyBindingManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
-            NativeApp               : require("utils/NativeApp")
+            NativeApp               : require("utils/NativeApp"),
+            doneLoading             : false
         };
+
+        brackets.ready(function () {
+            brackets.test.doneLoading = true;
+        });
     }
     
     function _initDragAndDropListeners() {
@@ -202,18 +253,6 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
         });
     }
-
-    function initKeyHandler() {
-        window.document.body.addEventListener(
-            "keydown",
-            function (event) {
-                if (KeyBindingManager.handleKey(KeyMap.translateKeyboardEvent(event))) {
-                    event.stopPropagation();
-                }
-            },
-            true
-        );
-    }
     
     function _initWindowListeners() {
         // TODO: (issue 269) to support IE, need to listen to document instead (and even then it may not work when focus is in an input field?)
@@ -244,7 +283,7 @@ define(function (require, exports, module) {
 
         _initDragAndDropListeners();
         _initCommandHandlers();
-        initKeyHandler();
+        KeyBindingManager.init();
         Menus.init(); // key bindings should be initialized first
         _initWindowListeners();
         
@@ -269,11 +308,10 @@ define(function (require, exports, module) {
         
         PerfUtils.addMeasurement("Application Startup");
         
-        // load extensions before loading project
-        _initExtensions().done(function () {
-            ProjectManager.loadProject().done(function () {
-                _initTest();
-            });
+        // finish UI initialization before loading extensions
+        ProjectManager.loadProject().done(function () {
+            _initTest();
+            _initExtensions().always(_onBracketsReady);
         });
     }
             

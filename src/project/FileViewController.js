@@ -90,7 +90,9 @@ define(function (require, exports, module) {
 
         $(exports).triggerHandler("documentSelectionFocusChange");
 
-        PerfUtils.addMeasurement(perfTimerName);
+        if (!_curDocChangedDueToMe) {
+            PerfUtils.addMeasurement(perfTimerName);
+        }
     });
 
     /** 

@@ -324,7 +324,7 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_SAVING_FILE_TITLE,
-            Strings.format(
+            StringUtils.format(
                 Strings.ERROR_SAVING_FILE,
                 StringUtils.htmlEscape(path),
                 FileUtils.getFileErrorString(code)
@@ -506,7 +506,7 @@ define(function (require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_SAVE_CLOSE,
                 Strings.SAVE_CLOSE_TITLE,
-                Strings.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
+                StringUtils.format(Strings.SAVE_CLOSE_MESSAGE, StringUtils.htmlEscape(filename))
             ).done(function (id) {
                 if (id === Dialogs.DIALOG_BTN_CANCEL) {
                     result.reject();
@@ -740,8 +740,8 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
         CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
-        CommandManager.register(Strings.CMD_NEXT_DOC, 			Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
-        CommandManager.register(Strings.CMD_PREV_DOC,			Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+        CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
+        CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
 
         KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, "Ctrl-Tab");
         KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, "Ctrl-Shift-Tab");

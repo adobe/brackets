@@ -285,7 +285,7 @@ define(function (require, exports, module) {
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
-     *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
+     *          custom handler functions. Mapping is in CodeMirror format
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
@@ -314,24 +314,25 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab" : _handleTabKey,
+            "Tab": _handleTabKey,
+            "Shift-Tab": "indentLess",
 
-            "Left" : function (instance) {
+            "Left": function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
                 }
             },
-            "Right" : function (instance) {
+            "Right": function (instance) {
                 if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
                     CodeMirror.commands.goCharRight(instance);
                 }
             },
-            "Backspace" : function (instance) {
+            "Backspace": function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
                     CodeMirror.commands.delCharLeft(instance);
                 }
             },
-            "Delete" : function (instance) {
+            "Delete": function (instance) {
                 if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
                     CodeMirror.commands.delCharRight(instance);
                 }
@@ -907,7 +908,7 @@ define(function (require, exports, module) {
     /** Returns true if the editor has focus */
     Editor.prototype.hasFocus = function () {
         // The CodeMirror instance wrapper has a "CodeMirror-focused" class set when focused
-        return $(this.getRootElement()).hasClass("CodeMirror-focused");
+        return $(this.getScrollerElement()).hasClass("CodeMirror-focused");
     };
     
     /**

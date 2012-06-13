@@ -37,7 +37,14 @@ define(function (require, exports, module) {
      * @type Object.<commandID: string, Command>
      */
     var _commands = {};
-
+    
+    /**
+     * Temporary copy of commands map for restoring after testing
+     * TODO (issue #1039): implement separate require contexts for unit tests
+     * @type Object.<commandID: string, Command>
+     */
+    var _commandsOriginal = {};
+    
     /**
      * @constructor
      * @private
@@ -50,6 +57,8 @@ define(function (require, exports, module) {
      * Events:
      *      enabledStateChange
      *      checkedStateChange
+     *      keyBindingAdded
+     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;
@@ -123,6 +132,11 @@ define(function (require, exports, module) {
     /**
      * Sets the name of the Command and dispatches "nameChange" so that
      * UI that reflects the command name can update.
+     * 
+     * Note, a Command name can appear in either HTML or native UI
+     * so HTML tags should not be used. To add a Unicode character,
+     * use \uXXXX instead of an HTML entity.
+     * 
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
@@ -168,6 +182,23 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Clear all commands for unit testing, but first make copy of commands so that
+     * they can be restored afterward
+     */
+    function _testReset() {
+        _commandsOriginal = _commands;
+        _commands = {};
+    }
+
+    /**
+     * Restore original commands after test and release copy
+     */
+    function _testRestore(commands) {
+        _commands = _commandsOriginal;
+        _commandsOriginal = {};
+    }
+    
+    /**
      * Retrieves a Command object by id
      * @param {string} id
      * @return {Command}
@@ -192,7 +223,9 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.register = register;
-    exports.execute = execute;
-    exports.get = get;
+    exports.register        = register;
+    exports.execute         = execute;
+    exports.get             = get;
+    exports._testReset      = _testReset;
+    exports._testRestore    = _testRestore;
 });
