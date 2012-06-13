@@ -28,10 +28,10 @@
 require.config({
     baseUrl: "../src",
     paths: {
+        "test": "../test",
         "perf": "../test/perf",
         "spec": "../test/spec"
-    }/*,
-    urlArgs: "bust=" + (new Date()).getTime() // cache busting */
+    }
 });
 
 define(function (require, exports, module) {
@@ -43,6 +43,10 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus"),
         PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter;
+    
+    // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
+    require("test/UnitTestSuite");
+    require("test/PerformanceTestSuite");
     
     var suite;
         
@@ -123,8 +127,6 @@ define(function (require, exports, module) {
                 currentWindowOnload();
             }
             
-            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document));
-            
             $("#show-dev-tools").click(function () {
                 brackets.app.showDeveloperTools();
             });
@@ -134,8 +136,30 @@ define(function (require, exports, module) {
             
             suite = getParamMap().suite || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
             
+            // Create a top-level filter to show/hide performance tests
+            var isPerfSuite = (suite === "PerformanceTestSuite"),
+                performanceFilter = function (spec) {
+                    if (spec.performance === true) {
+                        return isPerfSuite;
+                    }
+                    
+                    var suite = spec.suite;
+                    
+                    while (suite) {
+                        if (suite.performance === true) {
+                            return isPerfSuite;
+                        }
+                        
+                        suite = suite.parentSuite;
+                    }
+                    
+                    return !isPerfSuite;
+                };
+            
+            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, performanceFilter));
+            
             // add performance reporting
-            if (suite === "PerformanceTestSuite") {
+            if (isPerfSuite) {
                 jasmineEnv.addReporter(new PerformanceReporter());
             }
             
@@ -143,14 +167,7 @@ define(function (require, exports, module) {
             
             $("#" + suite).closest("li").toggleClass("active", true);
             
-            var jsonResult = $.getJSON(suite + ".json");
-            
-            jsonResult.done(function (data) {
-                // load specs and run jasmine
-                require(data.specs, function () {
-                    jasmineEnv.execute();
-                });
-            });
+            jasmineEnv.execute();
         };
     }
 
