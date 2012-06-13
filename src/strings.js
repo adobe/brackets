@@ -130,6 +130,7 @@ define(function (require, exports, module) {
     exports.CMD_SHOW_SIDEBAR                    = "Show Sidebar";
     exports.CMD_INCREASE_FONT_SIZE              = "Increase Font Size";
     exports.CMD_DECREASE_FONT_SIZE              = "Decrease Font Size";
+    exports.CMD_RESTORE_FONT_SIZE               = "Restore Font Size";
 
     // Navigate menu Commands
     exports.NAVIGATE_MENU                       = "Navigate";
