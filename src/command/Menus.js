@@ -609,8 +609,7 @@ define(function (require, exports, module) {
         this.id = id;
         this.menu = new Menu(id);
 
-        var $newMenu = $("<li class='dropdown context-menu' id='" +
-                         StringUtils.jQueryIdEscape(id) + "'></li>");
+        var $newMenu = $("<li class='dropdown context-menu' id='" + id + "'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
@@ -676,9 +675,9 @@ define(function (require, exports, module) {
      *      - use addMenuItem() to add items to the context menu
      *      - call open() to show the context menu (often trigged via an event handler for right click)
      *
-     * To make menu items be contextual to things like selection listen for the "beforeContextMenuOpen"
+     * To make menu items be contextual to things like selection, listen for the "beforeContextMenuOpen"
      * to make changes to Command objects before the context menu is shown. MenuItems are views of
-     * Commands and control a MenuItem's name, enabled state, and checked stae.
+     * Commands, which control a MenuItem's name, enabled state, and checked state.
      *
      * @param {string} id
      * @return {ContextMenu} the newly created context menu
