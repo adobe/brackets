@@ -74,7 +74,7 @@ define(function (require, exports, module) {
 
 
     var handleDocChanged = function () {
-        var editor = EditorManager.getCurrentFullEditor();
+        var editor = EditorManager.getFocusedEditor();
 
         var handleEnableState = function () {
             command3.setEnabled(editor.getSelectedText() !== "");
