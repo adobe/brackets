@@ -555,14 +555,16 @@ define(function (require, exports, module) {
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
      *
      * @param {!string} name - display text for menu 
-     * @param {!string} id
+     * @param {!string} id - unique identifier for a menu.
+     *      Core Menus in Brackets use a simple  title as an id, for example "file-menu".
+     *      Extensions should use the following format: "author.myextension.mymenuname". 
      * @param {?string} position - constant defining the position of new the Menu relative
      *  to other Menus. Default is LAST (see Insertion position constants).
      *      
      * @param {?string} relativeID - id of Menu the new Menu will be positioned relative to. Required
      *      when position is AFTER or BEFORE, ignored when position is FIRST or LAST
      * 
-     * @return {Menu} the newly created Menu
+     * @return {?Menu} the newly created Menu
      */
     function addMenu(name, id, position, relativeID) {
         name = StringUtils.htmlEscape(name);
@@ -575,7 +577,8 @@ define(function (require, exports, module) {
         
         // Guard against duplicate menu ids
         if (menuMap[id]) {
-            throw new Error("Menu added with same name and id of existing Menu: " + id);
+            console.log("Menu added with same name and id of existing Menu: " + id);
+            return null;
         }
 
         menu = new Menu(id);
@@ -646,15 +649,16 @@ define(function (require, exports, module) {
     ContextMenu.prototype.open = function (mouseOrLocation) {
         // TODO: positioning logic
 
+        $(this).triggerHandler("beforeContextMenuOpen");
 
+        // close all other dropdowns
         $(".dropdown").removeClass("open");
 
+        // open the context menu at specified loation
         $("#" + StringUtils.jQueryIdEscape(this.id))
             .addClass("open")
             .css({"left": mouseOrLocation.pageX,
                   "top": mouseOrLocation.pageY - 20});
-
-        $(this).triggerHandler("beforeContextMenuOpen");
     };
 
     /**
@@ -668,6 +672,10 @@ define(function (require, exports, module) {
 
     /**
      * Registers new context menu with Brackets. 
+
+     * Extensions should generally use the predefined context menus built into Brackets. Use this 
+     * API to add a new context menu specific to UI that is specific to an extension.
+     *
      * After registering  a context menu clients should:
      *      - use addMenuItem() to add items to the context menu
      *      - call open() to show the context menu (often trigged via an event handler for right click)
@@ -676,8 +684,10 @@ define(function (require, exports, module) {
      * to make changes to Command objects before the context menu is shown. MenuItems are views of
      * Commands, which control a MenuItem's name, enabled state, and checked state.
      *
-     * @param {string} id
-     * @return {ContextMenu} the newly created context menu
+     * @param {string} id - unique identifier for context menu.
+     *      Core context menus in Brackets use a simple title as an id.
+     *      Extensions should use the following format: "author.myextension.mycontextmenu name"
+     * @return {?ContextMenu} the newly created context menu
      */
     function registerContextMenu(id) {
         if (!id) {
@@ -686,7 +696,8 @@ define(function (require, exports, module) {
         
         // Guard against duplicate menu ids
         if (contextMenuMap[id]) {
-            throw new Error("Context Menu added with same name and id of existing Context Menu: " + id);
+            console.log("Context Menu added with same name and id of existing Context Menu: " + id);
+            return null;
         }
 
         var cmenu = new ContextMenu(id);
