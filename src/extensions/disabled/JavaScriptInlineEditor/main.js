@@ -31,7 +31,8 @@ define(function (require, exports, module) {
     // Brackets modules
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         FileIndexManager        = brackets.getModule("project/FileIndexManager"),
-        EditorManager           = brackets.getModule("editor/EditorManager");
+        EditorManager           = brackets.getModule("editor/EditorManager"),
+        PerfUtils               = brackets.getModule("utils/PerfUtils");
     
     // Local modules
     var JSUtils         = require("JSUtils");
@@ -56,7 +57,72 @@ define(function (require, exports, module) {
     }
     
     /**
-     * This function is registered with EditManager as an inline editor provider. It creates an inline editor
+     * @private
+     * For unit and performance tests. Allows lookup by function name instead of editor offset
+     * without constructing an inline editor.
+     *
+     * @param {!string} functionName
+     * @return {$.Promise} a promise that will be resolved with an array of function offset information
+     */
+    function _findInProject(functionName) {
+        var result = new $.Deferred();
+        PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+        
+        FileIndexManager.getFileInfoList("all")
+            .done(function (fileInfos) {
+                JSUtils.findMatchingFunctions(functionName, fileInfos)
+                    .done(function (functions) {
+                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        result.resolve(functions);
+                    })
+                    .fail(function () {
+                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        result.reject();
+                    });
+            })
+            .fail(function () {
+                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                result.reject();
+            });
+        
+        return result.promise();
+    }
+    
+    /**
+     * @private
+     * For unit and performance tests. Allows lookup by function name instead of editor offset .
+     *
+     * @param {!Editor} hostEditor
+     * @param {!string} functionName
+     * @return {$.Promise} a promise that will be resolved with an InlineWidget
+     *      or null if we're not going to provide anything.
+     */
+    function _createInlineEditor(hostEditor, functionName) {
+        var result = new $.Deferred();
+        PerfUtils.markStart(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+        
+        _findInProject(functionName).done(function (functions) {
+            if (functions && functions.length > 0) {
+                var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                jsInlineEditor.load(hostEditor);
+                
+                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                result.resolve(jsInlineEditor);
+            } else {
+                // No matching functions were found
+                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                result.reject();
+            }
+        }).fail(function () {
+            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+            result.reject();
+        });
+        
+        return result.promise();
+    }
+    
+    /**
+     * This function is registered with EditorManager as an inline editor provider. It creates an inline editor
      * when cursor is on a JavaScript function name, find all functions that match the name
      * and show (one/all of them) in an inline editor.
      *
@@ -83,34 +149,16 @@ define(function (require, exports, module) {
         if (functionName === "") {
             return null;
         }
-
-        var result = new $.Deferred();
-
-        FileIndexManager.getFileInfoList("all")
-            .done(function (fileInfos) {
-                
-                JSUtils.findMatchingFunctions(functionName, fileInfos)
-                    .done(function (functions) {
-                        if (functions && functions.length > 0) {
-                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                            jsInlineEditor.load(hostEditor);
-                            
-                            result.resolve(jsInlineEditor);
-                        } else {
-                            // No matching functions were found
-                            result.reject();
-                        }
-                    })
-                    .fail(function () {
-                        result.reject();
-                    });
-            })
-            .fail(function () {
-                result.reject();
-            });
         
-        return result.promise();
+        return _createInlineEditor(hostEditor, functionName);
     }
 
+    // init
     EditorManager.registerInlineEditProvider(javaScriptFunctionProvider);
+    PerfUtils.createPerfMeasurement("JAVASCRIPT_INLINE_CREATE", "JavaScript Inline Editor Creation");
+    PerfUtils.createPerfMeasurement("JAVASCRIPT_FIND_FUNCTION", "JavaScript Find Function");
+    
+    // for unit tests only
+    exports._createInlineEditor = _createInlineEditor;
+    exports._findInProject      = _findInProject;
 });

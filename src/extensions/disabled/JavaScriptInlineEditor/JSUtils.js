@@ -34,8 +34,9 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async               = brackets.getModule("utils/Async"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PerfUtils           = brackets.getModule("utils/PerfUtils")
+        StringUtils         = brackets.getModule("utils/StringUtils");
     
     // Return an Array with names and offsets for all functions in the specified text
     function _findAllFunctionsInText(text) {
@@ -160,6 +161,8 @@ define(function (require, exports, module) {
     // Resolves with an Array of all function names and offsets for the specified file. Results
     // may be cached.
     function _getFunctionListForFile(fileInfo) {
+        PerfUtils.markStart(PerfUtils.FUNCTION_LIST_FOR_FILE);
+        
         var result = new $.Deferred();
         var needToRead = false;
         
@@ -198,6 +201,10 @@ define(function (require, exports, module) {
         } else {
             _readFileAndGetFunctionList(fileInfo, result);
         }
+        
+        result.always(function () {
+            PerfUtils.addMeasurement(PerfUtils.FUNCTION_LIST_FOR_FILE);
+        });
                         
         return result.promise();
     }
@@ -231,7 +238,6 @@ define(function (require, exports, module) {
             .fail(function (error) {
                 oneFileResult.reject(error);
             });
-        
     
         return oneFileResult.promise();
     }
@@ -289,6 +295,9 @@ define(function (require, exports, module) {
          
         return result;
     }
+    
+    // init
+    PerfUtils.createPerfMeasurement("FUNCTION_LIST_FOR_FILE", "JSUtils - Search 1 File");
 
     exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
