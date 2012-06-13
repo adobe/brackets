@@ -613,7 +613,9 @@ define(function (require, exports, module) {
                                                                             [{key: "F5",     platform: "win"},
                                                                              {key: "Ctrl-R", platform:  "mac"}]);
 
-        menu.addMenuItem("menu-debug-dev-tools",      Commands.DEBUG_SHOW_DEVELOPER_TOOLS);
+        menu.addMenuItem("menu-debug-dev-tools",      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,
+                                                                            [{key: "F12",        platform: "win"},
+                                                                             {key: "Ctrl-Opt-I", platform: "mac"}]);
         menu.addMenuItem("menu-debug-run-tests",      Commands.DEBUG_RUN_UNIT_TESTS);
         menu.addMenuItem("menu-debug-enable-jslint",  Commands.DEBUG_JSLINT);
         menu.addMenuItem("menu-debug-perf-data",      Commands.DEBUG_SHOW_PERF_DATA);
