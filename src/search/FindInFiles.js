@@ -36,7 +36,6 @@
  *  - Search files in working set that are *not* in the project
  *  - Handle matches that span mulitple lines
  *  - Refactor UI from functionality to enable unit testing
- *  - Cache result of getLine()
  */
 
 
@@ -47,6 +46,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager");
@@ -138,19 +138,12 @@ define(function (require, exports, module) {
         var matchStart;
         var matches = [];
         
-        function getLineNum(offset) {
-            return contents.substr(0, offset).split("\n").length - 1; // 0 based linenum
-        }
-        
-        function getLine(lineNum) {
-            // Future: cache result 
-            return contents.split("\n")[lineNum];
-        }
         
         var match;
+        var lines = StringUtils.getLines(contents);
         while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum = getLineNum(match.index);
-            var line = getLine(lineNum);
+            var lineNum = StringUtils.offsetToLineNum(lines, match.index);
+            var line = lines[lineNum];
             var ch = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
             var matchLength = match[0].length;
             
@@ -271,7 +264,7 @@ define(function (require, exports, module) {
         // Query is a string. Turn it into a case-insensitive regexp
         
         // Escape regex special chars
-        query = query.replace(/(\(|\)|\{|\}|\[|\]|\.|\^|\$|\||\?|\+|\*)/g, "\\$1");
+        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
         return new RegExp(query, "gi");
     }
     

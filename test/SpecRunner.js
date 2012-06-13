@@ -42,7 +42,7 @@ define(function (require, exports, module) {
         ExtensionLoader     = require("utils/ExtensionLoader"),
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus"),
-        PerformanceReporter = require("perf/PerformanceReporter.js").PerformanceReporter;
+        PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter;
     
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");

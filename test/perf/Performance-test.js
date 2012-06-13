@@ -36,8 +36,8 @@ define(function (require, exports, module) {
         PerfUtils,                  // loaded from brackets.test
         JSLintUtils,                // loaded from brackets.test
         DocumentManager,            // loaded from brackets.test
-        SpecRunnerUtils             = require("../spec/SpecRunnerUtils.js"),
-        PerformanceReporter         = require("../perf/PerformanceReporter.js");
+        SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
+        PerformanceReporter         = require("perf/PerformanceReporter");
 
     var jsLintPrevSetting;
 
