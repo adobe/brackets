@@ -688,7 +688,7 @@ define(function (require, exports, module) {
      * @param {line:number, ch:number} end
      *
      */
-    Editor.prototype.coordsWithinRange = function(coords, start, end) {
+    Editor.prototype.coordsWithinRange = function (coords, start, end) {
         var startIndex = this.indexFromPos(start),
             endIndex = this.indexFromPos(end),
             coordIndex = this.indexFromPos(coords);

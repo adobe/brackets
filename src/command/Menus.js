@@ -805,7 +805,7 @@ define(function (require, exports, module) {
 
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
-                if($(e.target).parents(".CodeMirror-gutter").length !== 0) {
+                if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
                     return;
                 }
 
@@ -814,10 +814,10 @@ define(function (require, exports, module) {
                     pos = editor.coordsChar({x: e.pageX, y: e.pageY});
                 if (editor.getSelectedText() !== "") {
                     var sel = editor.getSelection();
-                    clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);                
+                    clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);
                 }
 
-                if(!clickedSel) {
+                if (!clickedSel) {
                     editor.selectWordAt(pos);
                 }
                 editor_cmenu.open(e);
