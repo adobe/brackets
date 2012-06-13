@@ -43,6 +43,8 @@ define(function (require, exports, module) {
 
     describe("Performance Tests", function () {
 
+        this.performance = true;
+        
         // Note: this tests assumes that the "brackets-scenario" repo is in the same folder
         //       as the "brackets-app"
         //
