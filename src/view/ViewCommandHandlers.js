@@ -32,7 +32,20 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         ProjectManager          = require("project/ProjectManager"),
         EditorManager           = require("editor/EditorManager");
-        
+    
+    /**
+     * @const
+     * @type {string}
+     */
+    var DYNAMIC_FONT_STYLE_ID = "codemirror-dynamic-fonts";
+
+    function _removeDynamicFontSize(refresh) {
+        $("#" + DYNAMIC_FONT_STYLE_ID).remove();
+        if (refresh) {
+            EditorManager.getCurrentFullEditor().refreshAll();
+        }
+    }
+    
     /**
      * @private
      * Increases or decreases the editor's font size.
@@ -79,8 +92,8 @@ define(function (require, exports, module) {
         }
 
         // It's necessary to inject a new rule to address all editors.
-        $("#" + styleId).remove();
-        var style = $("<style type='text/css'></style>").attr("id", styleId);
+        _removeDynamicFontSize(false);
+        var style = $("<style type='text/css'></style>").attr("id", DYNAMIC_FONT_STYLE_ID);
         style.html(".CodeMirror-scroll {" +
                    "font-size: "   + fsStr + " !important;" +
                    "line-height: " + lhStr + " !important;}");
@@ -100,7 +113,7 @@ define(function (require, exports, module) {
         }
 
     }
-
+    
     function _handleIncreaseFontSize() {
         _adjustFontSize(1);
     }
@@ -109,7 +122,11 @@ define(function (require, exports, module) {
         _adjustFontSize(-1);
     }
     
+    function _handleRestoreFontSize() {
+        _removeDynamicFontSize(true);
+    }
     
     CommandManager.register(Strings.CMD_INCREASE_FONT_SIZE, Commands.VIEW_INCREASE_FONT_SIZE, _handleIncreaseFontSize);
     CommandManager.register(Strings.CMD_DECREASE_FONT_SIZE, Commands.VIEW_DECREASE_FONT_SIZE, _handleDecreaseFontSize);
+    CommandManager.register(Strings.CMD_RESTORE_FONT_SIZE,  Commands.VIEW_RESTORE_FONT_SIZE,  _handleRestoreFontSize);
 });

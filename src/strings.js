@@ -27,28 +27,6 @@
 define(function (require, exports, module) {
     
     'use strict';
-    
-    /**
-     * Format a string by replacing placeholder symbols with passed in arguments.
-     *
-     * Example: var formatted = Strings.format("Hello {0}", "World");
-     *
-     * @param {string} str The base string
-     * @param {...} Arguments to be substituted into the string
-     *
-     * @return {string} Formatted string
-     */
-    function format(str) {
-        // arguments[0] is the base string, so we need to adjust index values here
-        var args = [].slice.call(arguments, 1);
-        return str.replace(/\{(\d+)\}/g, function (match, num) {
-            return typeof args[num] !== 'undefined' ? args[num] : match;
-        });
-    }
-
-    
-    // Define public API
-    exports.format                            = format;
         
     // General file io error strings
     exports.GENERIC_ERROR                     = "(error {0})";
@@ -152,6 +130,7 @@ define(function (require, exports, module) {
     exports.CMD_SHOW_SIDEBAR                    = "Show Sidebar";
     exports.CMD_INCREASE_FONT_SIZE              = "Increase Font Size";
     exports.CMD_DECREASE_FONT_SIZE              = "Decrease Font Size";
+    exports.CMD_RESTORE_FONT_SIZE               = "Restore Font Size";
 
     // Navigate menu Commands
     exports.NAVIGATE_MENU                       = "Navigate";

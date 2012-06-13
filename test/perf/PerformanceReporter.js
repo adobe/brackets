@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils.js");
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils");
     
     var records = {};
     

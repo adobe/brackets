@@ -37,7 +37,14 @@ define(function (require, exports, module) {
      * @type Object.<commandID: string, Command>
      */
     var _commands = {};
-
+    
+    /**
+     * Temporary copy of commands map for restoring after testing
+     * TODO (issue #1039): implement separate require contexts for unit tests
+     * @type Object.<commandID: string, Command>
+     */
+    var _commandsOriginal = {};
+    
     /**
      * @constructor
      * @private
@@ -174,11 +181,23 @@ define(function (require, exports, module) {
         return command;
     }
 
-
-    function _reset() {
+    /**
+     * Clear all commands for unit testing, but first make copy of commands so that
+     * they can be restored afterward
+     */
+    function _testReset() {
+        _commandsOriginal = _commands;
         _commands = {};
     }
 
+    /**
+     * Restore original commands after test and release copy
+     */
+    function _testRestore(commands) {
+        _commands = _commandsOriginal;
+        _commandsOriginal = {};
+    }
+    
     /**
      * Retrieves a Command object by id
      * @param {string} id
@@ -204,8 +223,9 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.register = register;
-    exports.execute = execute;
-    exports.get = get;
-    exports._reset = _reset;
+    exports.register        = register;
+    exports.execute         = execute;
+    exports.get             = get;
+    exports._testReset      = _testReset;
+    exports._testRestore    = _testRestore;
 });

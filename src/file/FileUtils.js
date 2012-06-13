@@ -166,7 +166,7 @@ define(function (require, exports, module) {
         } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
-            result = Strings.format(Strings.GENERIC_ERROR, code);
+            result = StringUtils.format(Strings.GENERIC_ERROR, code);
         }
 
         return result;
@@ -176,7 +176,7 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
-            Strings.format(
+            StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
                 StringUtils.htmlEscape(path),
                 getFileErrorString(code)
