@@ -91,7 +91,7 @@ define(function (require, exports, module) {
 
     
     // Get editor context menu
-    var editor_cmenu = Menus.getContextMenu("editorCo");
+    var editor_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
     
     // Add our MenuItem at the end
     if (editor_cmenu) {
