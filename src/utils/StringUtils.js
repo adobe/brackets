@@ -25,7 +25,7 @@
 /*global define, $ */
 
 /**
- *	Utilities functions related to string manipulation
+ *  Utilities functions related to string manipulation
  *
  */
 define(function (require, exports, module) {

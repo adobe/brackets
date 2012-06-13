@@ -36,13 +36,15 @@ define(function (require, exports, module) {
         PerfUtils,                  // loaded from brackets.test
         JSLintUtils,                // loaded from brackets.test
         DocumentManager,            // loaded from brackets.test
-        SpecRunnerUtils             = require("../spec/SpecRunnerUtils.js"),
-        PerformanceReporter         = require("../perf/PerformanceReporter.js");
+        SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
+        PerformanceReporter         = require("perf/PerformanceReporter");
 
     var jsLintPrevSetting;
 
     describe("Performance Tests", function () {
 
+        this.performance = true;
+        
         // Note: this tests assumes that the "brackets-scenario" repo is in the same folder
         //       as the "brackets-app"
         //
