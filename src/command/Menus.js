@@ -590,7 +590,6 @@ define(function (require, exports, module) {
     /**
      * @constructor
      * @extends {Menu}
-     * @private
      *
      * Represents a context menu that can open at a specific location in the UI. 
      *
@@ -609,7 +608,7 @@ define(function (require, exports, module) {
         this.id = id;
         this.menu = new Menu(id);
 
-        var $newMenu = $("<li class='dropdown context-menu' id='" + id + "'></li>");
+        var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
@@ -638,15 +637,6 @@ define(function (require, exports, module) {
      * @param {?number} y - page relative y coodinate
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
-        var pageX, pageY;
-        if (typeof mouseOrLocation === MouseEvent) {
-            pageX = mouseOrLocation.pageX;
-            pageY = mouseOrLocation.pageY;
-        } else {
-            pageX = mouseOrLocation.pageX;
-            pageY = mouseOrLocation.pageY;
-        }
-
         // TODO: positioning logic
 
 
@@ -654,8 +644,8 @@ define(function (require, exports, module) {
 
         $("#" + StringUtils.jQueryIdEscape(this.id))
             .addClass("open")
-            .css({"left": pageX,
-                  "top": pageY - 20});
+            .css({"left": mouseOrLocation.pageX,
+                  "top": mouseOrLocation.pageY - 20});
 
         $(this).triggerHandler("beforeContextMenuOpen");
     };

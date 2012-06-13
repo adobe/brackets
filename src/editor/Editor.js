@@ -700,12 +700,7 @@ define(function (require, exports, module) {
     Editor.prototype.coordsChar = function (coords) {
         return this._codeMirror.coordsChar(coords);
     };
-    
-    // TODO TY: move me
-    Editor.prototype.selectWordAt = function (pos) {
-        return this._codeMirror.selectWordAt(pos);
-    };
-    
+
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
@@ -736,6 +731,14 @@ define(function (require, exports, module) {
         this._codeMirror.setSelection(start, end);
     };
 
+    /**
+     * Selects a the word nearest to the position
+     * @param {line:number, ch:number}
+     */
+    Editor.prototype.selectWordAt = function (pos) {
+        this._codeMirror.selectWordAt(pos);
+    };
+    
 
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
