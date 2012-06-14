@@ -801,7 +801,6 @@ define(function (require, exports, module) {
          * Context Menus
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
-        var open_files_cmenu = registerContextMenu(ContextMenuIds.OPEN_FILES_MENU);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.SHOW_INLINE_EDITOR);
