@@ -172,7 +172,6 @@ define(function (require, exports, module) {
                 file.getMetadata(
                     function (metadata) {
                         if (fileInfo.JSUtils.timestamp !== metadata.diskTimestamp) {
-                            console.log("timestamp " + fileInfo.fullPath);
                             _readFileAndGetFunctionList(fileInfo, result);
                         } else {
                             // Return cached data 
@@ -185,7 +184,6 @@ define(function (require, exports, module) {
                 );
             }
         } else {
-            console.log("needToRead " + fileInfo.fullPath);
             _readFileAndGetFunctionList(fileInfo, result);
         }
                         
