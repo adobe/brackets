@@ -160,7 +160,7 @@
 
 
 /* Menu-related styles */
-.toolbar .nav {
+.toolbar .nav, .context-menu {
     @menubar-top-padding: 8px;
     @menubar-bottom-padding: 6px;
     @menubar-h-padding: 9px;
@@ -256,6 +256,26 @@
     .menu-shortcut {
         margin-left: 15px;
     }
+}
+
+/* Context menu styles */
+
+.context-menu {
+    position: absolute;
+    z-index: @z-index-brackets-context-menu-base;
+    list-style-type: none;
+
+    .dropdown-menu {
+        .border-radius(3px);
+    }
+    
+    .menu-shortcut {
+        float: right;
+    }
+}
+
+#context-menu-bar {
+    margin: 0;
 }
 
 /* Dialog-related styles */
