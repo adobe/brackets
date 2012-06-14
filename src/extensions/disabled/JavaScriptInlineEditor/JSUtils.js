@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils, window */
+/*global define, $, brackets, PathUtils */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -64,7 +64,7 @@ define(function (require, exports, module) {
         while ((match = _functionRegExp.exec(text)) !== null) {
             functionName = (match[3] || match[5]).trim();
             
-            if ((results[functionName] === undefined) || (!results[functionName].push)) {
+            if (!Array.isArray(results[functionName])) {
                 results[functionName] = [];
             }
             
