@@ -330,6 +330,8 @@ define(function (require, exports, module) {
     
     createPerfMeasurement("INLINE_EDITOR_OPEN", "Open inline editor");
     createPerfMeasurement("INLINE_EDITOR_CLOSE", "Close inline editor");
+    
+    // extensions may create additional measurement constants during their lifecycle
 
     exports.addMeasurement          = addMeasurement;
     exports.finalizeMeasurement     = finalizeMeasurement;
