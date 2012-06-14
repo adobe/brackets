@@ -368,7 +368,6 @@ define(function (require, exports, module) {
         id = this.id + "-" + commandID;
         
         if (menuItemMap[id]) {
-            debugger;
             throw new Error("MenuItem added with same id of existing MenuItem: " + id);
         }
 
