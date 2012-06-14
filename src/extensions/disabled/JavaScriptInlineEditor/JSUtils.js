@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets, PathUtils, window */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -33,8 +33,21 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async               = brackets.getModule("utils/Async"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PerfUtils           = brackets.getModule("utils/PerfUtils"),
+        StringUtils         = brackets.getModule("utils/StringUtils");
+    
+    /**
+     * Flag to check for timestamps
+     * @type {boolean}
+     */
+    var _doFetchTimestamps = true;
+
+    /**
+     * Tracks dirty documents between invocations of findMatchingFunctions.
+     * @type {DirtyDocumentTracker}
+     */
+    var _dirtyDocumentTracker = DocumentManager.createDirtyDocumentTracker();
     
     // Return an Array with names and offsets for all functions in the specified text
     function _findAllFunctionsInText(text) {
@@ -146,41 +159,33 @@ define(function (require, exports, module) {
     // may be cached.
     function _getFunctionListForFile(fileInfo) {
         var result = new $.Deferred();
-        var needToRead = false;
-        
-        // Always read if we have no cached data
-        if (!fileInfo.JSUtils) {
-            needToRead = true;
-        }
-        
-        // If the document is dirty, we need to read it
-        if (!needToRead) {
-            var openDocs = DocumentManager.getAllOpenDocuments();
-            openDocs.forEach(function (doc) {
-                if (doc.file.fullPath === fileInfo.fullPath && doc.isDirty) {
-                    needToRead = true;
-                }
-            });
-        }
+        var needToRead = !fileInfo.JSUtils || _dirtyDocumentTracker.isPathDirty(fileInfo.fullPath);
         
         // Finally, see if we have missing or stale cache data
         if (!needToRead) {
             var file = new NativeFileSystem.FileEntry(fileInfo.fullPath);
             
-            file.getMetadata(
-                function (metadata) {
-                    if (fileInfo.JSUtils.timestamp !== metadata.diskTimestamp) {
-                        _readFileAndGetFunctionList(fileInfo, result);
-                    } else {
-                        // Return cached data 
-                        result.resolve(fileInfo.JSUtils.functions);
+            if (!_doFetchTimestamps) {
+                // Return cached data 
+                result.resolve(fileInfo.JSUtils.functions);
+            } else {
+                file.getMetadata(
+                    function (metadata) {
+                        if (fileInfo.JSUtils.timestamp !== metadata.diskTimestamp) {
+                            console.log("timestamp " + fileInfo.fullPath);
+                            _readFileAndGetFunctionList(fileInfo, result);
+                        } else {
+                            // Return cached data 
+                            result.resolve(fileInfo.JSUtils.functions);
+                        }
+                    },
+                    function (error) {
+                        result.reject(error);
                     }
-                },
-                function (error) {
-                    result.reject(error);
-                }
-            );
+                );
+            }
         } else {
+            console.log("needToRead " + fileInfo.fullPath);
             _readFileAndGetFunctionList(fileInfo, result);
         }
                         
@@ -244,6 +249,13 @@ define(function (require, exports, module) {
             })
             .fail(function (error) {
                 result.reject(error);
+            })
+            .always(function () {
+                // Reset. Only check for new/changed files when the window gains focus.
+                _doFetchTimestamps = false;
+
+                // Reset DirtyDocumentTracker now that the cache is up to date.
+                _dirtyDocumentTracker.reset();
             });
         
         return result.promise();
@@ -276,6 +288,11 @@ define(function (require, exports, module) {
          
         return result;
     }
+    
+    // init
+    PerfUtils.createPerfMeasurement("FUNCTION_LIST_FOR_FILE", "JSUtils - Search 1 File");
+    
+    $(window).focus(function () { _doFetchTimestamps = true; });
 
     exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
