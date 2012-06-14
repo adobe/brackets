@@ -151,13 +151,9 @@ define(function (require, exports, module) {
                     expect(menu1).not.toBeNull();
 
                     var menu2 = null;
-                    var exceptionThrown = false;
-                    try {
-                        menu2 = Menus.addMenu("Custom", "menu-custom");
-                    } catch (e) {
-                        exceptionThrown = true;
-                    }
-                    expect(exceptionThrown).toBeTruthy();
+                    
+                    menu2 = Menus.addMenu("Custom", "menu-custom");
+                    expect(menu2).toBeFalsy();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav").children();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
