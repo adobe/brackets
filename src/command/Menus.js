@@ -654,11 +654,15 @@ define(function (require, exports, module) {
         // close all other dropdowns
         $(".dropdown").removeClass("open");
 
-        // open the context menu at specified loation
-        $("#" + StringUtils.jQueryIdEscape(this.id))
-            .addClass("open")
-            .css({"left": mouseOrLocation.pageX,
-                  "top": mouseOrLocation.pageY - 20});
+        // open the context menu at specified location
+
+        var menu = $("#" + StringUtils.jQueryIdEscape(this.id));
+        // only show context menu if it has items
+        if (menu.find("ul").children().length > 0) {
+            menu.addClass("open")
+                .css({"left": mouseOrLocation.pageX,
+                      "top": mouseOrLocation.pageY - 20});
+        }
     };
 
     /**
@@ -797,18 +801,20 @@ define(function (require, exports, module) {
          * Context Menus
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
-        project_cmenu.addMenuItem(Commands.FILE_OPEN);
-        project_cmenu.addMenuItem(Commands.FILE_CLOSE);
-        project_cmenu.addMenuItem(Commands.FILE_NEW);
+        var open_files_cmenu = registerContextMenu(ContextMenuIds.OPEN_FILES_MENU);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.SHOW_INLINE_EDITOR);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-        editor_cmenu.addMenuItem(Commands.EDIT_DUPLICATE);
-        editor_cmenu.addMenuItem(Commands.EDIT_LINE_COMMENT);
 
-
-        // TODO: doesn't word select when changing editors with right click
+        /**
+         * Displays context menu when right clicking editor.
+         * Auto selects the word the user clicks if the click does not occur over
+         * an existing selection
+         *
+         * TODO: doesn't word select when changing editors with right click
+         *
+         */
         $("#editor-holder").mousedown(function (e) {
             if (e.which === 3) {
                 if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
