@@ -232,7 +232,7 @@ define(function (require, exports, module) {
      * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
      * Document's master backing editor. The editor is not yet visible; to show it, use
      * DocumentManager.setCurrentDocument().
-     * Semi-private: should not be called outside this module other than by Editor.
+     * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      */
     function _createFullEditorForDocument(document) {
@@ -279,6 +279,8 @@ define(function (require, exports, module) {
      * DocumentManager's standpoint. However, destroying the full-size editor does remove the backing
      * "master" editor from the Document, rendering it immutable until either inline-editor edits or
      * currentDocument change triggers _createFullEditorForDocument() full-size editor again.
+     *
+     * In certain edge cases, this is called directly by DocumentManager; see _gcDocuments() for details.
      *
      * @param {!Document} document Document whose "master" editor we may destroy
      */
@@ -539,6 +541,7 @@ define(function (require, exports, module) {
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;
