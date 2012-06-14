@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, window */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -679,8 +679,19 @@ define(function (require, exports, module) {
      * to documents and update caches.
      */
     function DirtyDocumentTracker() {
+        this._windowFocus = true;
+        
         $(exports).on("dirtyFlagChange", this._onDirtyFlagChange.bind(this));
+        $(window).focus(this._onWindowFocus.bind(this));
     }
+    
+    /**
+     * @private
+     * Assumes all files are dirty when the window loses and regains focus.
+     */
+    DirtyDocumentTracker.prototype._onWindowFocus = function (event, doc) {
+        this._windowFocus = true;
+    };
     
     /**
      * @private
@@ -707,6 +718,7 @@ define(function (require, exports, module) {
      */
     DirtyDocumentTracker.prototype.reset = function () {
         this._dirtyPaths = {};
+        this._windowFocus = false;
     };
     
     /**
@@ -715,7 +727,7 @@ define(function (require, exports, module) {
      * @return {!boolean} Returns true if the file was dirtied since the last reset.
      */
     DirtyDocumentTracker.prototype.isPathDirty = function (path) {
-        return this._dirtyPaths[path] !== undefined;
+        return this._windowFocus || this._dirtyPaths[path] !== undefined;
     };
     
     /**

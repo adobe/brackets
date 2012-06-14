@@ -591,5 +591,74 @@ define(function (require, exports, module) {
                 });
             });
         }); //describe("JS Parsing")
+        
+        describe("Performance suite", function () {
+            
+            this.performance = true;
+            
+            var testPath = SpecRunnerUtils.getTestPath("/../../../brackets-scenario/jquery-ui/");
+
+            beforeEach(function () {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    EditorManager       = testWindow.brackets.test.EditorManager;
+                    PerfUtils           = testWindow.brackets.test.PerfUtils;
+                });
+            });
+    
+            afterEach(function () {
+                SpecRunnerUtils.closeTestWindow();
+            });
+            
+            it("should open inline editors", function () {
+                SpecRunnerUtils.loadProjectInTestWindow(testPath);
+                
+                var extensionRequire,
+                    JavaScriptQuickEdit,
+                    done = false,
+                    error = false,
+                    i;
+                
+                runs(function () {
+                    extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                    JavaScriptQuickEdit = extensionRequire("main");
+                    
+                    SpecRunnerUtils.openProjectFiles(["ui/jquery.effects.core.js"]).done(function () {
+                        done = true;
+                    }).fail(function () {
+                        error = true;
+                    });
+                });
+                
+                waitsFor(function () { return done && !error; }, 500);
+                
+                var runCreateInlineEditor = function () {
+                    done = error = false;
+                    
+                    JavaScriptQuickEdit._createInlineEditor(EditorManager.getCurrentFullEditor(), "extend").done(function () {
+                        done = true;
+                    }).fail(function () {
+                        error = true;
+                    });
+                };
+                
+                var waitForInlineEditor = function () { return done && !error; };
+                
+                // repeat 5 times
+                for (i = 0; i < 5; i++) {
+                    runs(runCreateInlineEditor);
+                    waitsFor(waitForInlineEditor, 500);
+                }
+                
+                // log once (prints all 5 measurements)
+                runs(function () {
+                    PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS, "jQuery UI project");
+                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION, "jQuery UI project");
+                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE, "jQuery UI project ");
+                });
+            });
+            
+        });
     });
 });
