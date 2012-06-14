@@ -56,9 +56,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * This function is registered with EditManager as an inline editor provider. It creates an inline editor
-     * when cursor is on a JavaScript function name, find all functions that match the name
-     * and show (one/all of them) in an inline editor.
+     * This function is registered with EditorManager as an inline editor provider. It creates an inline editor
+     * when the cursor is on a JavaScript function name, finds all functions that match the name
+     * and shows (one/all of them) in an inline editor.
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
@@ -79,7 +79,7 @@ define(function (require, exports, module) {
         
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
-        var functionName = _getFunctionName(hostEditor, hostEditor.getSelection(false).start);
+        var functionName = _getFunctionName(hostEditor, hostEditor.getSelection().start);
         if (functionName === "") {
             return null;
         }
