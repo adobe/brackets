@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*global define, $ */
 
 
 /**
@@ -48,6 +48,7 @@ define(function (require, exports, module) {
      */
     function lineCommentSlashSlash(editor) {
         
+        var doc = editor.document;
         var sel = editor.getSelection();
         var startLine = sel.start.line;
         var endLine = sel.end.line;
@@ -67,7 +68,7 @@ define(function (require, exports, module) {
         var i;
         var line;
         for (i = startLine; i <= endLine; i++) {
-            line = editor.getLineText(i);
+            line = doc.getLine(i);
             // A line is commented out if it starts with 0-N whitespace chars, then "//"
             if (!line.match(/^\s*\/\//) && line.match(/\S/)) {
                 containsUncommented = true;
@@ -76,14 +77,12 @@ define(function (require, exports, module) {
         }
         
         // Make the edit
-        // TODO (#803): should go through Document, not editor._codeMirror
-        var cm = editor._codeMirror;
-        cm.operation(function () {
+        doc.batchOperation(function () {
             
             if (containsUncommented) {
                 // Comment out - prepend "//" to each line
                 for (i = startLine; i <= endLine; i++) {
-                    cm.replaceRange("//", {line: i, ch: 0});
+                    doc.replaceRange("//", {line: i, ch: 0});
                 }
                 
                 // Make sure selection includes "//" that was added at start of range
@@ -95,10 +94,10 @@ define(function (require, exports, module) {
             } else {
                 // Uncomment - remove first "//" on each line (if any)
                 for (i = startLine; i <= endLine; i++) {
-                    line = editor.getLineText(i);
+                    line = doc.getLine(i);
                     var commentI = line.indexOf("//");
                     if (commentI !== -1) {
-                        cm.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});
+                        doc.replaceRange("", {line: i, ch: commentI}, {line: i, ch: commentI + 2});
                     }
                 }
             }
@@ -145,11 +144,10 @@ define(function (require, exports, module) {
         }
         
         // Make the edit
-        // TODO (#803): should go through Document, not Editor._codeMirror
-        var cm = editor._codeMirror;
+        var doc = editor.document;
         
-        var selectedText = cm.getRange(sel.start, sel.end);
-        cm.replaceRange(selectedText, sel.start);
+        var selectedText = doc.getRange(sel.start, sel.end);
+        doc.replaceRange(selectedText, sel.start);
     }
     
     

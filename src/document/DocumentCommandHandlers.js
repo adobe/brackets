@@ -361,8 +361,8 @@ define(function (require, exports, module) {
                         handleError(error, fileEntry);
                     };
 
-                    // TODO (issue #241): Blob instead of string
-                    writer.write(docToSave.getText());
+                    // We don't want normalized line endings, so it's important to pass true to getText()
+                    writer.write(docToSave.getText(true));
                 },
                 function (error) {
                     handleError(error, fileEntry);

@@ -326,7 +326,7 @@ define(function (require, exports, module) {
                     childEditor.setCursorPos(0, 0);
                 } else if (event.pageY > editorPos.top + $(editorRoot).height()) {
                     var lastLine = childEditor.getLastVisibleLine();
-                    childEditor.setCursorPos(lastLine, childEditor.getLineText(lastLine).length);
+                    childEditor.setCursorPos(lastLine, childEditor.document.getLine(lastLine).length);
                 }
             }
         }

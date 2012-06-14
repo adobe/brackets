@@ -389,7 +389,7 @@ define(function (require, exports, module) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
                 if (ctx.token.state.mode !== "css") {
-                    currentStyleBlock.text = editor._codeMirror.getRange(currentStyleBlock.start, currentStyleBlock.end);
+                    currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
                     inStyleBlock = false;
                 } else {
                     currentStyleBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
