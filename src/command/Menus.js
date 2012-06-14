@@ -657,7 +657,7 @@ define(function (require, exports, module) {
         // open the context menu at specified location
 
         var menu = $("#" + StringUtils.jQueryIdEscape(this.id));
-        // only show context menu if it has items
+        // only show context menu if it has menu items
         if (menu.find("ul").children().length > 0) {
             menu.addClass("open")
                 .css({"left": mouseOrLocation.pageX,
