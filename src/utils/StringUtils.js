@@ -62,6 +62,12 @@ define(function (require, exports, module) {
         return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
     }
 
+    // Periods (aka "dots") are allowed in HTML identifiers, but jQuery interprets
+    // them as the start of a class selector, so they need to be escaped
+    function jQueryIdEscape(str) {
+        return str.replace(/\./g, "\\.");
+    }
+
     /**
      * Splits the text by new line characters and returns an array of lines
      * @param {string} text
@@ -117,6 +123,7 @@ define(function (require, exports, module) {
     exports.format          = format;
     exports.htmlEscape      = htmlEscape;
     exports.regexEscape     = regexEscape;
+    exports.jQueryIdEscape  = jQueryIdEscape;
     exports.getLines        = getLines;
     exports.offsetToLineNum = offsetToLineNum;
 });

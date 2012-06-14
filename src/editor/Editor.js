@@ -673,7 +673,34 @@ define(function (require, exports, module) {
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
     };
-    
+
+    /**
+     * @param {line:number, ch:number}
+     * @return {number}
+     */
+    Editor.prototype.indexFromPos = function (coords) {
+        return this._codeMirror.indexFromPos(coords);
+    };
+
+    /**
+     * Returns true if coords is between start and end (inclusive)
+     * @param {line:number, ch:number} coords
+     * @param {line:number, ch:number} start
+     * @param {line:number, ch:number} end
+     *
+     */
+    Editor.prototype.coordsWithinRange = function (coords, start, end) {
+        var startIndex = this.indexFromPos(start),
+            endIndex = this.indexFromPos(end),
+            coordIndex = this.indexFromPos(coords);
+
+        return coordIndex >= startIndex && coordIndex <= endIndex;
+    };
+
+    Editor.prototype.coordsChar = function (coords) {
+        return this._codeMirror.coordsChar(coords);
+    };
+
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
@@ -704,6 +731,14 @@ define(function (require, exports, module) {
         this._codeMirror.setSelection(start, end);
     };
 
+    /**
+     * Selects a the word nearest to the position
+     * @param {line:number, ch:number}
+     */
+    Editor.prototype.selectWordAt = function (pos) {
+        this._codeMirror.selectWordAt(pos);
+    };
+    
 
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)

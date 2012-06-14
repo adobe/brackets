@@ -57,7 +57,7 @@ define(function (require, exports, module) {
             expect(command._commandFn).toBe(testCommandFn);
 
             // duplicate command
-            expect(function () { CommandManager.register("test command", commandID, testCommandFn); }).toThrow();
+            expect(CommandManager.register("test command", commandID, testCommandFn)).toBeFalsy();
 
             // missing arguments
             expect(function () { CommandManager.register(null, "test-command-id2", testCommandFn); }).toThrow();
