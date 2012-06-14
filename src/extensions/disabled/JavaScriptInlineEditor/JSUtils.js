@@ -21,7 +21,6 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, $, brackets, PathUtils */
 
@@ -42,8 +41,7 @@ define(function (require, exports, module) {
     function _findAllFunctionsInText(text) {
         var result = [];
         var regexA = new RegExp(/(function\b)([^)]+)\b\([^)]*\)/gi);  // recognizes the form: function functionName()
-        var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\([^)]*\))/gi); // recognizes the form: functionName = function()
-        var regexC = new RegExp(/((\w+)\s*:\s*function\s*\([^)]*\))/gi); // recognizes the form: functionName: function()
+        var regexB = new RegExp(/(\w+)\s*[:=]\s*function\s*(\([^)]*\))/gi); // recognizes functionName = function() and functionName: function()
         var match;
         
         while ((match = regexA.exec(text)) !== null) {
@@ -60,24 +58,17 @@ define(function (require, exports, module) {
             });
         }
         
-        while ((match = regexC.exec(text)) !== null) {
-            result.push({
-                functionName: match[2].trim(),
-                offset: match.index
-            });
-        }
-        
         return result;
     }
     
-    // Simple scanner to determine the end offset for the function (the closing "}") 
+    // Simple scanner to determine the end offset for the function (the closing "}")
     function _getFunctionEndOffset(text, offsetStart) {
         var curOffset = text.indexOf("{", offsetStart) + 1;
         var length = text.length;
         var blockCount = 1;
         
         // Brute force scan to look for closing curly match
-        // NOTE: This does *not* handle comments.
+        // NOTE: This does *not* handle comments, strings, or regexp literals.
         while (curOffset < length) {
             if (text[curOffset] === "{") {
                 blockCount++;
@@ -96,52 +87,46 @@ define(function (require, exports, module) {
         return length;
     }
     
-    
     // Search function list for a specific function. If found, extract info about the function
     // (line start, line end, etc.) and return.
     function _findAllMatchingFunctions(fileInfo, functions, functionName) {
         var result = new $.Deferred();
-        var foundMatch = false;
+        var matchingFunctions = [];
         
-        functions.forEach(function (funcEntry) {
-            if (funcEntry.functionName === functionName) {
-                var matchingFunctions = [];
-                
-                DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                    .done(function (doc) {
-                        var text = doc.getText();
-                        var lines = StringUtils.getLines(text);
-                        
-                        functions.forEach(function (funcEntry) {
-                            if (funcEntry.functionName === functionName) {
-                                var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
-                                matchingFunctions.push({
-                                    document: doc,
-                                    name: funcEntry.functionName,
-                                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
-                                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
-                                });
-                            }
-                        });
-                        
-                        result.resolve(matchingFunctions);
-                    })
-                    .fail(function (error) {
-                        result.reject(error);
-                    });
-            }
+        // Filter the list of functions to just the ones that refer to functionName.
+        functions = functions.filter(function (funcEntry) {
+            return funcEntry.functionName === functionName;
         });
-        
-        if (!foundMatch) {
-            result.resolve([]);
+        if (functions.length === 0) {
+            return result.resolve([]).promise();
         }
+        
+        DocumentManager.getDocumentForPath(fileInfo.fullPath)
+            .done(function (doc) {
+                var text = doc.getText();
+                var lines = StringUtils.getLines(text);
+                
+                functions.forEach(function (funcEntry) {
+                    var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
+                    matchingFunctions.push({
+                        document: doc,
+                        name: funcEntry.functionName,
+                        lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+                    });
+                });
+                
+                result.resolve(matchingFunctions);
+            })
+            .fail(function (error) {
+                result.reject(error);
+            });
         
         return result.promise();
     }
     
     // Read a file and build a function list. Result is cached in fileInfo.
     function _readFileAndGetFunctionList(fileInfo, result) {
-        
         DocumentManager.getDocumentForPath(fileInfo.fullPath)
             .done(function (doc) {
                 var allFunctions = _findAllFunctionsInText(doc.getText());
@@ -245,7 +230,8 @@ define(function (require, exports, module) {
     /**
      * Return all functions that have the specified name.
      *
-     * @param {!String} functionName The name to match. 
+     * @param {!String} functionName The name to match.
+     * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
      *      Does not addRef() the documents returned in the array.
@@ -255,7 +241,8 @@ define(function (require, exports, module) {
             resultFunctions = [];
         
         // Process each JS file in turn (see above)
-        Async.doInParallel(fileInfos, function (fileInfo, number) {
+        // FUTURE: when we have async I/O, sort these in a predictable order
+        Async.doInParallel(fileInfos, function (fileInfo) {
             return _getMatchingFunctionsInFile(fileInfo, functionName, resultFunctions);
         })
             .done(function () {

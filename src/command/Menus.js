@@ -585,6 +585,7 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
         menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
+        menu.addMenuItem("menu-view-restore-font",       Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
 
         /*
          * Navigate menu
