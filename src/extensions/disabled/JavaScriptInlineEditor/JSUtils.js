@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     var Async               = brackets.getModule("utils/Async"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        PerfUtils           = brackets.getModule("utils/PerfUtils")
+        PerfUtils           = brackets.getModule("utils/PerfUtils"),
         StringUtils         = brackets.getModule("utils/StringUtils");
     
     // Return an Array with names and offsets for all functions in the specified text
