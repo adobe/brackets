@@ -361,13 +361,14 @@ define(function (require, exports, module) {
                 name = command.getName();
             }
         } else {
-            commandID = command.getID;
+            commandID = command.getID();
         }
 
         // Internal id is the a composite of the parent menu id and the command id.
         id = this.id + "-" + commandID;
         
         if (menuItemMap[id]) {
+            debugger;
             throw new Error("MenuItem added with same id of existing MenuItem: " + id);
         }
 
