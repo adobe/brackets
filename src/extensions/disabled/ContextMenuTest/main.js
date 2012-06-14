@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         Menus               = brackets.getModule("command/Menus");
 
+    // Define the functions that Commands will execute
     function TestCommand1() {
         var command1 = CommandManager.get("custom.command1");
         if (!command1) {
@@ -46,11 +47,11 @@ define(function (require, exports, module) {
 
         var checked = command1.getChecked();
         if (checked) {
-            alert("Unchecking self. Disabling next.");
-            command2.setEnabled(false);
+           alert("Unchecking self. Disabling next.");
+           command2.setEnabled(false);
         } else {
-            alert("Checking self. Enabling next.");
-            command2.setEnabled(true);
+           alert("Checking self. Enabling next.");
+           command2.setEnabled(true);
         }
         command1.setChecked(!checked);
     }
@@ -63,37 +64,26 @@ define(function (require, exports, module) {
         alert("Executing command 3");
     }
     
-    // Create command
+    // Register the functions as commands
     var command1 = CommandManager.register("Toggle Checkmark", "custom.command1", TestCommand1);
     var command2 = CommandManager.register("Enabled when previous is Checked", "custom.command2", TestCommand2);
     var command3 = CommandManager.register("Enabled when text selected", "custom.command3", TestCommand3);
 
+    // Set the Command initial state
     command1.setChecked(true);
     command2.setEnabled(true);
     command3.setEnabled(false);
 
-
-    var handleDocChanged = function () {
+    // Update the MenuItem by changing the underlying command right before the context menu is shown
+    var updateEnabledState = function () {
         var editor = EditorManager.getFocusedEditor();
-
-        var handleEnableState = function () {
-            command3.setEnabled(editor.getSelectedText() !== "");
-        };
-
-        if (editor) {
-            $(editor).off("cursorActivity", handleEnableState);
-            $(editor).on("cursorActivity", handleEnableState);
-        }
+        command3.setEnabled(editor.getSelectedText() !== "");
     };
-
-    $(DocumentManager).on("currentDocumentChange", handleDocChanged);
-    handleDocChanged();
-
-    
-    // Get editor context menu
     var editor_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+    $(editor_cmenu).on("beforeContextMenuOpen", updateEnabledState);
+
     
-    // Add our MenuItem at the end
+    // Add the Commands as MenuItems of the Editor context menu
     if (editor_cmenu) {
         editor_cmenu.addMenuDivider();
         editor_cmenu.addMenuItem("custom.command1");
