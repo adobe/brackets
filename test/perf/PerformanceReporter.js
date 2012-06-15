@@ -37,6 +37,12 @@ define(function (require, exports, module) {
         return SpecRunnerUtils.getTestWindow().brackets.test.PerfUtils;
     }
     
+    /**
+     * Records a performance measurement from the test window for the current running spec.
+     * @param {!(PerfMeasurement|string)} measure
+     * @param {string} name An optional name or description to print with the measurement name
+     * @param {string} operation An optional operation to perform on the measurement data. Currently supports sum.
+     */
     function logTestWindow(measure, name, operation) {
         if (!currentSpec) {
             return;
@@ -57,6 +63,7 @@ define(function (require, exports, module) {
         
         if ((operation === "sum") && (Array.isArray(value))) {
             value = value.reduce(function (a, b) { return a + b; });
+            printName = "Sum of all " + printName;
         }
         
         records[currentSpec].push({ name: printName, value: value });

@@ -77,7 +77,7 @@ define(function (require, exports, module) {
                         result.resolve(functions);
                     })
                     .fail(function () {
-                        PerfUtils.finalaizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                         result.reject();
                     });
             })
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
                 result.reject();
             }
         }).fail(function () {
-            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+            PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
             result.reject();
         });
         

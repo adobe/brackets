@@ -647,7 +647,7 @@ define(function (require, exports, module) {
                 var waitForInlineEditor = function () { return done && !error; };
                 
                 function logPerf() {
-                    PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Sum of all Document creation during this search", "sum");
+                    PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Document creation during this search", "sum");
                     PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION, "jQuery UI project");
                     PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE, "jQuery UI project");
                     PerformanceReporter.clearTestWindow();
