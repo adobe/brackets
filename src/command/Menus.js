@@ -840,6 +840,11 @@ define(function (require, exports, module) {
             }
         });
 
+        // Prevent the browser context menu since Brackets creates a custom context menu
+        $(window).contextmenu(function (e) {
+            e.preventDefault();
+        });
+
         // Prevent clicks on the top-level menu bar from taking focus
         // Note, bootstrap handles this already for the menu drop downs
         $(window.document).on("mousedown", ".dropdown", function (e) {

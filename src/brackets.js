@@ -261,9 +261,6 @@ define(function (require, exports, module) {
             FileIndexManager.markDirty();
         });
         
-        $(window).contextmenu(function (e) {
-            e.preventDefault();
-        });
     }
             
     function _onReady() {
