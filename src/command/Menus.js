@@ -644,22 +644,39 @@ define(function (require, exports, module) {
      *      for a specific location.
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
-        // TODO: positioning logic
+
+        var $window = $(window),
+            escapedId = StringUtils.jQueryIdEscape(this.id),
+            $menuAnchor = $("#" + escapedId),
+            $menuWindow = $("#" + escapedId + " > ul"),
+            posTop  = mouseOrLocation.pageY,
+            posLeft = mouseOrLocation.pageX;
+
+        // only show context menu if it has menu items
+        if ($menuWindow.children().length <= 0) {
+            return;
+        }
 
         $(this).triggerHandler("beforeContextMenuOpen");
 
         // close all other dropdowns
         $(".dropdown").removeClass("open");
 
-        // open the context menu at specified location
-
-        var menu = $("#" + StringUtils.jQueryIdEscape(this.id));
-        // only show context menu if it has menu items
-        if (menu.find("ul").children().length > 0) {
-            menu.addClass("open")
-                .css({"left": mouseOrLocation.pageX,
-                      "top": mouseOrLocation.pageY - 20});
+        // adjust positioning so menu is not clipped off bottom or right
+        var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
+        if (bottomOverhang > 0) {
+            posTop = Math.max(0, posTop - bottomOverhang);
         }
+        posTop -= 25;   // shift top for hidden parent element
+
+        var rightOverhang = posLeft + $menuWindow.width() - $window.width();
+        if (rightOverhang > 0) {
+            posLeft = Math.max(0, posLeft - rightOverhang);
+        }
+
+        // open the context menu at final location
+        $menuAnchor.addClass("open")
+                   .css({"left": posLeft, "top": posTop});
     };
 
     /**

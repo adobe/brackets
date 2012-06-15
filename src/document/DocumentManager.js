@@ -778,14 +778,16 @@ define(function (require, exports, module) {
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var result = new $.Deferred();
+        var result  = new $.Deferred(),
+            doc     = _openDocuments[fullPath];
 
-        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-        result.always(function () {
-            PerfUtils.addMeasurement(perfTimerName);
+        PerfUtils.markStart(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
+        result.done(function () {
+            PerfUtils.addMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
+        }).fail(function () {
+            PerfUtils.finalizeMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
         });
 
-        var doc = _openDocuments[fullPath];
         if (doc) {
             result.resolve(doc);
         } else {
@@ -799,6 +801,7 @@ define(function (require, exports, module) {
                     result.reject(fileError);
                 });
         }
+        
         return result.promise();
     }
     
@@ -980,6 +983,9 @@ define(function (require, exports, module) {
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
+    
+    // Performance measurements
+    PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Initialize after ProjectManager is loaded
     $(ProjectManager).on("initializeComplete", function (event, projectRoot) {

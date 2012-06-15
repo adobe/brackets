@@ -23,8 +23,8 @@
 
 // FUTURE: Merge part (or all) of this class with InlineTextEditor
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 /**
  * An inline editor for displaying and editing multiple text ranges. Each range corresponds to a 
@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
-        CommandManager      = require("command/CommandManager");
+        CommandManager      = require("command/CommandManager"),
+        PerfUtils           = require("utils/PerfUtils");
 
     /**
      * Remove trailing "px" from a style size value.
@@ -124,10 +125,10 @@ define(function (require, exports, module) {
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
-        this.$editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
+        this.$editorsDiv = $(window.document.createElement('div')).addClass("inlineEditorHolder");
         
         // Outer container for border-left and scrolling
-        this.$relatedContainer = $(document.createElement("div")).addClass("related-container");
+        this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");
         this._relatedContainerInserted = false;
         this._relatedContainerInsertedHandler = this._relatedContainerInsertedHandler.bind(this);
         
@@ -135,19 +136,19 @@ define(function (require, exports, module) {
         this.$relatedContainer.on("DOMNodeInserted", this._relatedContainerInsertedHandler);
         
         // List "selection" highlight
-        this.$selectedMarker = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
+        this.$selectedMarker = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("selection");
         
         // Inner container
-        var $related = $(document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
+        var $related = $(window.document.createElement("div")).appendTo(this.$relatedContainer).addClass("related");
         
         // Range list
-        var $rangeList = $(document.createElement("ul")).appendTo($related);
+        var $rangeList = $(window.document.createElement("ul")).appendTo($related);
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
         this._ranges.forEach(function (range, i) {
             // Create list item UI
-            var $rangeItem = $(document.createElement("li")).appendTo($rangeList);
+            var $rangeItem = $(window.document.createElement("li")).appendTo($rangeList);
             _updateRangeLabel($rangeItem, range);
             $rangeItem.mousedown(function () {
                 self.setSelectedIndex(i);
@@ -174,7 +175,7 @@ define(function (require, exports, module) {
         this.$htmlContent.append(this.$editorsDiv).append(this.$relatedContainer);
         
         // initialize position based on the main #editor-holder
-        setTimeout(this._updateRelatedContainer, 0);
+        window.setTimeout(this._updateRelatedContainer, 0);
         
         // Changes to the host editor should update the relatedContainer
         // Note: normally it's not kosher to listen to changes on a specific editor,
@@ -213,6 +214,7 @@ define(function (require, exports, module) {
         }
         
         this._selectedRangeIndex = newIndex;
+        
         var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
         
         this._ranges[this._selectedRangeIndex].$listItem.toggleClass("selected", true);
@@ -249,7 +251,7 @@ define(function (require, exports, module) {
 
         // scroll the selection to the rangeItem, use setTimeout to wait for DOM updates
         var self = this;
-        setTimeout(function () {
+        window.setTimeout(function () {
             var containerHeight = self.$relatedContainer.height(),
                 itemTop = $rangeItem.position().top,
                 scrollTop = self.$relatedContainer.scrollTop();
@@ -350,7 +352,7 @@ define(function (require, exports, module) {
             scrollerTop = scrollerOffset.top,
             scrollerBottom = scrollerTop + hostScroller.clientHeight,
             scrollerLeft = scrollerOffset.left,
-            rightOffset = $(document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
+            rightOffset = $(window.document.body).outerWidth() - (scrollerLeft + hostScroller.clientWidth);
         if (rcTop < scrollerTop || rcBottom > scrollerBottom) {
             this.$relatedContainer.css("clip", "rect(" + Math.max(scrollerTop - rcTop, 0) + "px, auto, " +
                                        (rcHeight - Math.max(rcBottom - scrollerBottom, 0)) + "px, auto)");
@@ -393,7 +395,7 @@ define(function (require, exports, module) {
      * scroll position of the host editor to ensure that the cursor is visible.
      */
     MultiRangeInlineEditor.prototype._ensureCursorVisible = function () {
-        if ($.contains(this.editors[0].getRootElement(), document.activeElement)) {
+        if ($.contains(this.editors[0].getRootElement(), window.document.activeElement)) {
             var cursorCoords = this.editors[0]._codeMirror.cursorCoords(),
                 lineSpaceOffset = $(this.editors[0]._getLineSpaceElement()).offset(),
                 rangeListOffset = this.$relatedContainer.offset();
