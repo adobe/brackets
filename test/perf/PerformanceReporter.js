@@ -52,7 +52,7 @@ define(function (require, exports, module) {
             value = PerfUtils.getData(measure.id);
         
         if (!value) {
-            throw new Error(measure.id + " measurement not found");
+            value = "(None)";
         }
         
         var printName = measure.name;
