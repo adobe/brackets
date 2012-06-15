@@ -646,17 +646,20 @@ define(function (require, exports, module) {
                 
                 var waitForInlineEditor = function () { return done && !error; };
                 
+                function logPerf() {
+                    PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Sum of all Document creation during this search", "sum");
+                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION, "jQuery UI project");
+                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE, "jQuery UI project");
+                    PerformanceReporter.clearTestWindow();
+                }
+                
                 // repeat 5 times
                 for (i = 0; i < 5; i++) {
                     runs(runCreateInlineEditor);
                     waitsFor(waitForInlineEditor, 500);
-                }
                 
-                // log once (prints all 5 measurements)
-                runs(function () {
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION, "jQuery UI project");
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE, "jQuery UI project ");
-                });
+                    runs(logPerf);
+                }
             });
             
         });

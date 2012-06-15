@@ -66,22 +66,22 @@ define(function (require, exports, module) {
      */
     function _findInProject(functionName) {
         var result = new $.Deferred();
-        PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
         
         FileIndexManager.getFileInfoList("all")
             .done(function (fileInfos) {
+                PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                
                 JSUtils.findMatchingFunctions(functionName, fileInfos)
                     .done(function (functions) {
                         PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                         result.resolve(functions);
                     })
                     .fail(function () {
-                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+                        PerfUtils.finalaizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                         result.reject();
                     });
             })
             .fail(function () {
-                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                 result.reject();
             });
         

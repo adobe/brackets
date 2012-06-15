@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         return SpecRunnerUtils.getTestWindow().brackets.test.PerfUtils;
     }
     
-    function logTestWindow(measure, name) {
+    function logTestWindow(measure, name, operation) {
         if (!currentSpec) {
             return;
         }
@@ -53,6 +53,10 @@ define(function (require, exports, module) {
         
         if (name) {
             printName = printName + " - " + name;
+        }
+        
+        if ((operation === "sum") && (Array.isArray(value))) {
+            value = value.reduce(function (a, b) { return a + b; });
         }
         
         records[currentSpec].push({ name: printName, value: value });
