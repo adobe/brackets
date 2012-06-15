@@ -451,10 +451,10 @@ define(function (require, exports, module) {
         });
 
         describe("Context Menus", function () {
-            it("register a context menu"), function () {
+            it("register a context menu", function () {
                 CommandManager.register("Command Custom", "custom.command", function () {});
                 var cmenu = Menus.registerContextMenu("test-cmenu");
-                var menuItem = menu.addMenuItem("custom.command");
+                var menuItem = cmenu.addMenuItem("custom.command");
                 expect(cmenu).toBeTruthy();
 
                 // duplicate ids
@@ -462,11 +462,10 @@ define(function (require, exports, module) {
                 expect(cmenu).toBeFalsey();
             });
 
-            it("open a context menu"), function () {
+            it("open a context menu", function () {
                 CommandManager.register("Command Custom", "custom.command", function () {});
                 var cmenu = Menus.registerContextMenu("test-cmenu");
-                var menuItem = menu.addMenuItem("custom.command");
-
+                var menuItem = cmenu.addMenuItem("custom.command");
 
                 cmenu.open(300, 250);
                 var $menus = $(".dropdown");
@@ -477,20 +476,40 @@ define(function (require, exports, module) {
                 expect($menus.get(0).pageY).toBe(250)
                 
 
-
-
                 // position is not clipped
+                cmenu.open(0, 0);
+                var bounds = $(".dropdown").get(0).getBounds();
 
-                // event is fired
+                cmenu.open($window.height(), $window.width());
+                var bounds = $(".dropdown").get(0).getBounds();
+
+                cmenu.open(0, $window.width());
+                var bounds = $(".dropdown").get(0).getBounds();
+
+                cmenu.open($window.height(), 0);
+                var bounds = $(".dropdown").get(0).getBounds();
+
+
+                // event is fired on, closeEvent = false;;
+                cmenu.on("beforeContextMenuOpen", function () {
+                    eventFired = true;
+                });
+                cmenu.on("beforeContextMenuOpen", function () {
+                    openEvent = true;
+                });
+                cmenu.open(0,0);
+                expect(openEvent).toBeTruthy();
+                cmenu.close;
+                expect(closeEvent).toBeTruthy();
             });
 
-            it("close a context menu"), function () {
+            it("close a context menu", function () {
                 // on click
 
                 // on call close
 
                 // event is fired
             });
-        }
+        });
     });
 });
