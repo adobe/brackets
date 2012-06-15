@@ -35,6 +35,8 @@ define(function (require, exports, module) {
         StringsUtils        = require("utils/StringUtils"),
         Strings             = require("strings");
 
+
+
     describe("Menus", function () {
 
         var testWindow;
@@ -54,6 +56,8 @@ define(function (require, exports, module) {
         afterEach(function () {
             SpecRunnerUtils.closeTestWindow();
         });
+
+        
 
         describe("Add Menus", function () {
 
@@ -445,5 +449,48 @@ define(function (require, exports, module) {
                 });
             });
         });
+
+        describe("Context Menus", function () {
+            it("register a context menu"), function () {
+                CommandManager.register("Command Custom", "custom.command", function () {});
+                var cmenu = Menus.registerContextMenu("test-cmenu");
+                var menuItem = menu.addMenuItem("custom.command");
+                expect(cmenu).toBeTruthy();
+
+                // duplicate ids
+                var cmenu2 = Menus.registerContextMenu("test-cmenu");
+                expect(cmenu).toBeFalsey();
+            });
+
+            it("open a context menu"), function () {
+                CommandManager.register("Command Custom", "custom.command", function () {});
+                var cmenu = Menus.registerContextMenu("test-cmenu");
+                var menuItem = menu.addMenuItem("custom.command");
+
+
+                cmenu.open(300, 250);
+                var $menus = $(".dropdown");
+                // all other drops downs should be closed
+                expect($menus.length).toBe(1);
+                // position is at correct location
+                expect($menus.get(0).pageX).toBe(300);
+                expect($menus.get(0).pageY).toBe(250)
+                
+
+
+
+                // position is not clipped
+
+                // event is fired
+            });
+
+            it("close a context menu"), function () {
+                // on click
+
+                // on call close
+
+                // event is fired
+            });
+        }
     });
 });
