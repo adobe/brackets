@@ -448,7 +448,7 @@ define(function (require, exports, module) {
         var startLine = this.getFirstVisibleLine(),
             endLine = this.getLastVisibleLine();
         this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.getLineText(endLine).length});
+                          {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
     Editor.prototype._applyChanges = function (changeList) {
@@ -514,9 +514,7 @@ define(function (require, exports, module) {
         }
         
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
-        if (!this.document._masterEditor) {
-            EditorManager._createFullEditorForDocument(this.document);
-        }
+        this.document._ensureMasterEditor();
         
         if (this.document._masterEditor !== this) {
             // Secondary editor:
@@ -613,27 +611,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {string} The editor's current contents
-     * Semi-private: only Document/EditableDocumentModel should call this.
-     */
-    Editor.prototype._getText = function () {
-        return this._codeMirror.getValue();
-    };
-    
-    /**
-     * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches a
-     * change event.
-     * Note: all line endings will be changed to LFs.
-     * Semi-private: only Document/EditableDocumentModel should call this.
-     * @param {!string} text
-     */
-    Editor.prototype._setText = function (text) {
-        this._codeMirror.setValue(text);
-    };
-    
-    /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
-     * Semi-private: only Document/EditableDocumentModel should call this.
+     * Semi-private: only Document should call this.
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
@@ -988,15 +967,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype.isFullyVisible = function () {
         return $(this.getRootElement()).is(":visible");
-    };
-    
-    /**
-     * Returns the text of the given line.
-     * @param {number} The zero-based number of the line to retrieve.
-     * @return {string} The contents of the line.
-     */
-    Editor.prototype.getLineText = function (num) {
-        return this._codeMirror.getLine(num);
     };
     
     /**
