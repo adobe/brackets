@@ -54,6 +54,15 @@ define(function (require, exports, module) {
     InlineWidget.prototype.height = 0;
     
     /**
+     * Closes this inline widget and all its contained Editors
+     */
+    InlineWidget.prototype.close = function () {
+        var shouldMoveFocus = this._editorHasFocus();
+        EditorManager.closeInlineWidget(this.hostEditor, this, shouldMoveFocus);
+        // closeInlineWidget() causes our onClosed() handler to be called
+    };
+    
+    /**
      * Called any time inline is closed, whether manually or automatically
      */
     InlineWidget.prototype.onClosed = function () {

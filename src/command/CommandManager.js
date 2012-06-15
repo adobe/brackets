@@ -166,11 +166,12 @@ define(function (require, exports, module) {
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
      *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
      *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
-     * @return {Command}
+     * @return {?Command}
      */
     function register(name, id, commandFn) {
         if (_commands[id]) {
-            throw new Error("Attempting to register an already-registered command: " + id);
+            console.log("Attempting to register an already-registered command: " + id);
+            return null;
         }
         if (!name || !id || !commandFn) {
             throw new Error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
