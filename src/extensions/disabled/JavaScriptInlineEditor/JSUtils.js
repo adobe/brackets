@@ -61,6 +61,8 @@ define(function (require, exports, module) {
             functionName,
             match;
         
+        PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
+        
         while ((match = _functionRegExp.exec(text)) !== null) {
             functionName = (match[3] || match[5]).trim();
             
@@ -70,6 +72,8 @@ define(function (require, exports, module) {
             
             results[functionName].push({offsetStart: match.index, offsetEnd: -1});
         }
+        
+        PerfUtils.addMeasurement(PerfUtils.JSUTILS_REGEXP);
         
         return results;
     }
@@ -327,7 +331,8 @@ define(function (require, exports, module) {
         return result;
     }
     
-    PerfUtils.createPerfMeasurement("JSUTILS_GET_ALL_FUNCTIONS", "RegExp search for all functions");
+    PerfUtils.createPerfMeasurement("JSUTILS_GET_ALL_FUNCTIONS", "Parallel file search across project");
+    PerfUtils.createPerfMeasurement("JSUTILS_REGEXP", "RegExp search for all functions");
 
     exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
