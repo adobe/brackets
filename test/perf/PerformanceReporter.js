@@ -37,18 +37,10 @@ define(function (require, exports, module) {
         return SpecRunnerUtils.getTestWindow().brackets.test.PerfUtils;
     }
     
-    function _logTestWindowMeasurement(measureInfo, parentRecord) {
+    function _logTestWindowMeasurement(measureInfo) {
         var value = currentPerfUtils.getData(measureInfo.measure.id),
             printName = measureInfo.measure.name,
             record = {};
-        
-        if (parentRecord) {
-            if (!parentRecord.children) {
-                parentRecord.children = [];
-            }
-            
-            parentRecord.children.push(record);
-        }
         
         if (value === undefined) {
             value = "(None)";
@@ -70,8 +62,9 @@ define(function (require, exports, module) {
         record.value = value;
         
         if (measureInfo.children) {
+            record.children = [];
             measureInfo.children.forEach(function (child) {
-                _logTestWindowMeasurement(child, record);
+                record.children.push(_logTestWindowMeasurement(child));
             });
         }
         
@@ -92,7 +85,6 @@ define(function (require, exports, module) {
         currentPerfUtils = _getTestWindowPerf();
         
         var value,
-            records,
             measure;
         
         if (!Array.isArray(measures)) {
@@ -128,13 +120,19 @@ define(function (require, exports, module) {
         level = (level || 0);
         
         for (i = 0; i < level; i++) {
-            indent = indent.concat("&nbsp;&nbsp;");
+            indent = indent.concat("&nbsp;&nbsp;&nbsp;");
+        }
+        
+        if (level > 0) {
+            indent = indent.concat("•&nbsp;");
+        } else if (record.children) {
+            indent = "»&nbsp;".concat(indent);
         }
         
         $row = $("<tr/>");
         $row.append($("<td>" + indent + record.name + "</td><td>" + record.value + "</td>"));
         
-        rows.push();
+        rows.push($row);
         
         if (record.children) {
             level++;
@@ -160,13 +158,17 @@ define(function (require, exports, module) {
         // add table
         var $table = $('<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Measurement</th><th>Value</th></tr></thead></table>'),
             $tbody = $table.append($('<tbody/>')),
-            rows;
+            rows,
+            specRecords = records[spec];
         
         $container.append($table);
         
-        rows = _createRows(records[spec]);
-        rows.forEach(function (row) {
-            $tbody.append(row);
+        specRecords.forEach(function (record) {
+            rows = _createRows(record);
+            
+            rows.forEach(function (row) {
+                $tbody.append(row);
+            });
         });
         
         delete records[spec];

@@ -677,6 +677,7 @@ define(function (require, exports, module) {
                 var waitForInlineEditor = function () { return done && !error; };
                 
                 function logPerf() {
+                    PerformanceReporter.logTestWindow(perfMeasurements);
                     PerformanceReporter.clearTestWindow();
                 }
                 
