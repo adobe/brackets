@@ -650,6 +650,7 @@ define(function (require, exports, module) {
                     PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Document creation during this search", "sum");
                     PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_REGEXP, null, "sum");
                     PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
+                    PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_END_OFFSET, null, "sum");
                     PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
                     PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                     PerformanceReporter.clearTestWindow();

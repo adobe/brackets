@@ -61,8 +61,11 @@ define(function (require, exports, module) {
             printName = printName + " - " + name;
         }
         
-        if ((operation === "sum") && (Array.isArray(value))) {
-            value = value.reduce(function (a, b) { return a + b; });
+        if (operation === "sum") {
+            if (Array.isArray(value)) {
+                value = value.reduce(function (a, b) { return a + b; });
+            }
+            
             printName = "Sum of all " + printName;
         }
         

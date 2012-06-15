@@ -118,9 +118,13 @@ define(function (require, exports, module) {
         
         functions.forEach(function (funcEntry) {
             if (funcEntry.offsetEnd < 0) {
+                PerfUtils.markStart(PerfUtils.JSUTILS_END_OFFSET);
+                
                 funcEntry.offsetEnd = _getFunctionEndOffset(text, funcEntry.offsetStart);
                 funcEntry.lineStart = StringUtils.offsetToLineNum(lines, funcEntry.offsetStart);
                 funcEntry.lineEnd   = StringUtils.offsetToLineNum(lines, funcEntry.offsetEnd);
+                
+                PerfUtils.addMeasurement(PerfUtils.JSUTILS_END_OFFSET);
             }
             
             rangeResults.push({
@@ -333,6 +337,7 @@ define(function (require, exports, module) {
     
     PerfUtils.createPerfMeasurement("JSUTILS_GET_ALL_FUNCTIONS", "Parallel file search across project");
     PerfUtils.createPerfMeasurement("JSUTILS_REGEXP", "RegExp search for all functions");
+    PerfUtils.createPerfMeasurement("JSUTILS_END_OFFSET", "Find end offset for a single matched function");
 
     exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
