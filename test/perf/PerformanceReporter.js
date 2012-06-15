@@ -37,7 +37,13 @@ define(function (require, exports, module) {
         return SpecRunnerUtils.getTestWindow().brackets.test.PerfUtils;
     }
     
-    function logTestWindow(measure, name) {
+    /**
+     * Records a performance measurement from the test window for the current running spec.
+     * @param {!(PerfMeasurement|string)} measure
+     * @param {string} name An optional name or description to print with the measurement name
+     * @param {string} operation An optional operation to perform on the measurement data. Currently supports sum.
+     */
+    function logTestWindow(measure, name, operation) {
         if (!currentSpec) {
             return;
         }
@@ -49,11 +55,18 @@ define(function (require, exports, module) {
             throw new Error(measure.id + " measurement not found");
         }
         
-        if (!name && measure.name) {
-            name = measure.name;
+        var printName = measure.name;
+        
+        if (name) {
+            printName = printName + " - " + name;
         }
         
-        records[currentSpec].push({ name: name, value: value });
+        if ((operation === "sum") && (Array.isArray(value))) {
+            value = value.reduce(function (a, b) { return a + b; });
+            printName = "Sum of all " + printName;
+        }
+        
+        records[currentSpec].push({ name: printName, value: value });
     }
     
     function clearTestWindow() {
@@ -70,14 +83,15 @@ define(function (require, exports, module) {
     };
     
     PerformanceReporter.prototype.reportSpecResults = function (spec) {
-        if (spec.results().skipped) {
+        if (spec.results().skipped || (records[spec] && records[spec].length === 0)) {
             return;
         }
         
         var $container = $("#results-container");
         
         // add spec name
-        $container.append($('<div class="alert alert-info"/>').text(spec.getFullName()));
+        var $specLink = $('<a href="?spec=' + encodeURIComponent(spec.getFullName()) + '"/>').text(spec.getFullName());
+        $container.append($('<div class="alert alert-info"/>').append($specLink));
         
         // add table
         var $table = $('<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Measurement</th><th>Value</th></tr></thead></table>'),
