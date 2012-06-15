@@ -619,7 +619,37 @@ define(function (require, exports, module) {
                     JavaScriptQuickEdit,
                     done = false,
                     error = false,
-                    i;
+                    i,
+                    perfMeasurements = [
+                        {
+                            measure: PerfUtils.JAVASCRIPT_INLINE_CREATE,
+                            children: [
+                                {
+                                    measure: PerfUtils.JAVASCRIPT_FIND_FUNCTION,
+                                    children: [
+                                        {
+                                            measure: PerfUtils.JSUTILS_GET_ALL_FUNCTIONS,
+                                            children: [
+                                                {
+                                                    measure: PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH,
+                                                    name: "Document creation during this search",
+                                                    operation: "sum"
+                                                },
+                                                {
+                                                    measure: PerfUtils.JSUTILS_REGEXP,
+                                                    operation: "sum"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            measure: PerfUtils.JSUTILS_END_OFFSET,
+                                            operation: "sum"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ];
                 
                 runs(function () {
                     extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
@@ -647,12 +677,6 @@ define(function (require, exports, module) {
                 var waitForInlineEditor = function () { return done && !error; };
                 
                 function logPerf() {
-                    PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Document creation during this search", "sum");
-                    PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_REGEXP, null, "sum");
-                    PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_GET_ALL_FUNCTIONS);
-                    PerformanceReporter.logTestWindow(PerfUtils.JSUTILS_END_OFFSET, null, "sum");
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE);
                     PerformanceReporter.clearTestWindow();
                 }
                 

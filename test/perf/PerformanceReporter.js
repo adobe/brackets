@@ -29,12 +29,53 @@ define(function (require, exports, module) {
     
     var SpecRunnerUtils = require("spec/SpecRunnerUtils");
     
-    var records = {};
-    
-    var currentSpec = null;
+    var records = {},
+        currentSpec = null,
+        currentPerfUtils;
     
     function _getTestWindowPerf() {
         return SpecRunnerUtils.getTestWindow().brackets.test.PerfUtils;
+    }
+    
+    function _logTestWindowMeasurement(measureInfo, parentRecord) {
+        var value = currentPerfUtils.getData(measureInfo.measure.id),
+            printName = measureInfo.measure.name,
+            record = {};
+        
+        if (parentRecord) {
+            if (!parentRecord.children) {
+                parentRecord.children = [];
+            }
+            
+            parentRecord.children.push(record);
+        }
+        
+        if (value === undefined) {
+            value = "(None)";
+        }
+        
+        if (measureInfo.name) {
+            printName = printName + " - " + measureInfo.name;
+        }
+        
+        if (measureInfo.operation === "sum") {
+            if (Array.isArray(value)) {
+                value = value.reduce(function (a, b) { return a + b; });
+            }
+            
+            printName = "Sum of all " + printName;
+        }
+        
+        record.name = printName;
+        record.value = value;
+        
+        if (measureInfo.children) {
+            measureInfo.children.forEach(function (child) {
+                _logTestWindowMeasurement(child, record);
+            });
+        }
+        
+        return record;
     }
     
     /**
@@ -43,33 +84,26 @@ define(function (require, exports, module) {
      * @param {string} name An optional name or description to print with the measurement name
      * @param {string} operation An optional operation to perform on the measurement data. Currently supports sum.
      */
-    function logTestWindow(measure, name, operation) {
+    function logTestWindow(measures, name, operation) {
         if (!currentSpec) {
             return;
         }
         
-        var PerfUtils = _getTestWindowPerf(),
-            value = PerfUtils.getData(measure.id);
+        currentPerfUtils = _getTestWindowPerf();
         
-        if (!value) {
-            value = "(None)";
+        var value,
+            records,
+            measure;
+        
+        if (!Array.isArray(measures)) {
+            measures = [{measure: measure, name: name, operation: operation}];
         }
         
-        var printName = measure.name;
+        measures.forEach(function (measure) {
+            records[currentSpec].push(_logTestWindowMeasurement(measure));
+        });
         
-        if (name) {
-            printName = printName + " - " + name;
-        }
-        
-        if (operation === "sum") {
-            if (Array.isArray(value)) {
-                value = value.reduce(function (a, b) { return a + b; });
-            }
-            
-            printName = "Sum of all " + printName;
-        }
-        
-        records[currentSpec].push({ name: printName, value: value });
+        currentPerfUtils = null;
     }
     
     function clearTestWindow() {
@@ -85,6 +119,33 @@ define(function (require, exports, module) {
         records[spec] = [];
     };
     
+    function _createRows(record, level) {
+        var rows = [],
+            $row,
+            indent = "",
+            i;
+        
+        level = (level || 0);
+        
+        for (i = 0; i < level; i++) {
+            indent = indent.concat("&nbsp;&nbsp;");
+        }
+        
+        $row = $("<tr/>");
+        $row.append($("<td>" + indent + record.name + "</td><td>" + record.value + "</td>"));
+        
+        rows.push();
+        
+        if (record.children) {
+            level++;
+            record.children.forEach(function (child) {
+                Array.prototype.push.apply(rows, _createRows(child, level));
+            });
+        }
+        
+        return rows;
+    }
+    
     PerformanceReporter.prototype.reportSpecResults = function (spec) {
         if (spec.results().skipped || (records[spec] && records[spec].length === 0)) {
             return;
@@ -99,15 +160,16 @@ define(function (require, exports, module) {
         // add table
         var $table = $('<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Measurement</th><th>Value</th></tr></thead></table>'),
             $tbody = $table.append($('<tbody/>')),
-            $tr;
+            rows;
         
         $container.append($table);
         
-        $.each(records[spec], function (index, item) {
-            $tr = $("<tr/>");
-            $tr.append($("<td>" + item.name + "</td><td>" + item.value + "</td>"));
-            $tbody.append($tr);
+        rows = _createRows(records[spec]);
+        rows.forEach(function (row) {
+            $tbody.append(row);
         });
+        
+        delete records[spec];
     };
     
     exports.PerformanceReporter = PerformanceReporter;
