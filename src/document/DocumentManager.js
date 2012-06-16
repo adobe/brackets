@@ -763,85 +763,6 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Tracks dirtyFlagChange events on opened Documents. Used to monitor changes
-     * to documents and update caches.
-     */
-    function DirtyDocumentTracker() {
-        this._windowFocus = true;
-        
-        $(exports).on("dirtyFlagChange", this._onDirtyFlagChange.bind(this));
-        $(window).focus(this._onWindowFocus.bind(this));
-    }
-    
-    /**
-     * @private
-     * Assumes all files are dirty when the window loses and regains focus.
-     */
-    DirtyDocumentTracker.prototype._onWindowFocus = function (event, doc) {
-        this._windowFocus = true;
-    };
-    
-    /**
-     * @private
-     * Tracks dirty files.
-     */
-    DirtyDocumentTracker.prototype._onDirtyFlagChange = function (event, doc) {
-        if (!this._dirtyPaths) {
-            this._dirtyPaths = {};
-        }
-        
-        // if it was already dirty, and the client hasn't reset the tracker,
-        // then leave it dirty.
-        if (!this._dirtyPaths[doc.file.fullPath]) {
-            if (doc.isDirty) {
-                this._dirtyPaths[doc.file.fullPath] = true;
-            } else {
-                delete this._dirtyPaths[doc.file.fullPath];
-            }
-        }
-    };
-    
-    /**
-     * Empty the set of dirty paths. Begin tracking new dirty documents. 
-     */
-    DirtyDocumentTracker.prototype.reset = function () {
-        this._dirtyPaths = {};
-        this._windowFocus = false;
-    };
-    
-    /**
-     * Check if a file path is dirty.
-     * @param {!string} file path
-     * @return {!boolean} Returns true if the file was dirtied since the last reset.
-     */
-    DirtyDocumentTracker.prototype.isPathDirty = function (path) {
-        return this._windowFocus || this._dirtyPaths[path] !== undefined;
-    };
-    
-    /**
-     * Get the set of dirty paths since the last reset.
-     * @return {Array.<string>} Dirty file paths
-     */
-    DirtyDocumentTracker.prototype.getDirtyPaths = function () {
-        var paths = [];
-        
-        $.each(this._dirtyPaths, function (index, value) {
-            paths.push(value);
-        });
-        
-        return paths;
-    };
-    
-    /**
-     * Creates a DirtyDocumentTracker. Watches DocumentManager for dirty document
-     * changes and records dirty file paths.
-     * @return {DirtyDocumentTracker}
-     */
-    function createDirtyDocumentTracker() {
-        return new DirtyDocumentTracker();
-    }
-    
-    /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
      * get Documents; do not call the Document constructor directly.
@@ -1057,7 +978,6 @@ define(function (require, exports, module) {
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
-    exports.createDirtyDocumentTracker = createDirtyDocumentTracker;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);

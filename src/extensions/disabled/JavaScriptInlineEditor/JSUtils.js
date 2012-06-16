@@ -31,17 +31,18 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load brackets modules
-    var Async               = brackets.getModule("utils/Async"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
-        PerfUtils           = brackets.getModule("utils/PerfUtils"),
-        StringUtils         = brackets.getModule("utils/StringUtils");
+    var Async                   = brackets.getModule("utils/Async"),
+        DocumentManager         = brackets.getModule("document/DocumentManager"),
+        DirtyDocumentTracker    = brackets.getModule("document/DirtyDocumentTracker"),
+        NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PerfUtils               = brackets.getModule("utils/PerfUtils"),
+        StringUtils             = brackets.getModule("utils/StringUtils");
 
     /**
      * Tracks dirty documents between invocations of findMatchingFunctions.
      * @type {DirtyDocumentTracker}
      */
-    var _dirtyDocumentTracker = DocumentManager.createDirtyDocumentTracker();
+    var _dirtyDocumentTracker = new DirtyDocumentTracker.DirtyDocumentTracker();
     
     /**
      * Function matching regular expression. Recognizes the forms:
@@ -70,7 +71,7 @@ define(function (require, exports, module) {
                 results[functionName] = [];
             }
             
-            results[functionName].push({offsetStart: match.index, offsetEnd: -1});
+            results[functionName].push({offsetStart: match.index});
         }
         
         PerfUtils.addMeasurement(PerfUtils.JSUTILS_REGEXP);
@@ -117,7 +118,7 @@ define(function (require, exports, module) {
             lines   = StringUtils.getLines(text);
         
         functions.forEach(function (funcEntry) {
-            if (funcEntry.offsetEnd < 0) {
+            if (!funcEntry.offsetEnd) {
                 PerfUtils.markStart(PerfUtils.JSUTILS_END_OFFSET);
                 
                 funcEntry.offsetEnd = _getFunctionEndOffset(text, funcEntry.offsetStart);
@@ -161,15 +162,16 @@ define(function (require, exports, module) {
     
     function _getOrReadFunctionList(fileInfo, useCache, result) {
         if (useCache) {
-            // Return cached data 
-            result.resolve({doc: undefined, fileInfo: fileInfo, functions: fileInfo.JSUtils.functions});
+            // Return cached data. doc property is undefined since we hit the cache.
+            // _getOffsets() will fetch the Document if necessary.
+            result.resolve({/*doc: undefined,*/ fileInfo: fileInfo, functions: fileInfo.JSUtils.functions});
         } else {
             _readFileAndGetFunctionList(fileInfo, result);
         }
     }
     
     /**
-     * Resolves with an record containg the Document or FileInfo and an Array of all
+     * Resolves with a record containing the Document or FileInfo and an Array of all
      * function names with offsets for the specified file. Results may be cached.
      * @param {FileInfo} fileInfo
      */
@@ -179,18 +181,25 @@ define(function (require, exports, module) {
             useCache = false;
         
         if (isDirty && fileInfo.JSUtils) {
-            // If a cache exists, check the timestamp on disk
-            var file = new NativeFileSystem.FileEntry(fileInfo.fullPath);
+            // See if it's dirty and in the working set first
+            var doc = DocumentManager.getOpenDocumentForPath(fileInfo.fullPath);
             
-            file.getMetadata(
-                function (metadata) {
-                    useCache = fileInfo.JSUtils.timestamp === metadata.diskTimestamp;
-                    _getOrReadFunctionList(fileInfo, useCache, result);
-                },
-                function (error) {
-                    result.reject(error);
-                }
-            );
+            if (doc && doc.isDirty) {
+                _getOrReadFunctionList(fileInfo, useCache, result);
+            } else {
+                // If a cache exists, check the timestamp on disk
+                var file = new NativeFileSystem.FileEntry(fileInfo.fullPath);
+                
+                file.getMetadata(
+                    function (metadata) {
+                        useCache = fileInfo.JSUtils.timestamp === metadata.diskTimestamp;
+                        _getOrReadFunctionList(fileInfo, useCache, result);
+                    },
+                    function (error) {
+                        result.reject(error);
+                    }
+                );
+            }
         } else {
             useCache = !isDirty && fileInfo.JSUtils;
             _getOrReadFunctionList(fileInfo, useCache, result);
