@@ -901,7 +901,7 @@ define(function (require, exports, module) {
         });
 
         // append file root to make file list unique for each project
-        _prefs.setValue("files_" + projectRoot, files);
+        _prefs.setValue("files_" + projectRoot.fullPath, files);
     }
 
     /**
@@ -911,7 +911,7 @@ define(function (require, exports, module) {
     function _init() {
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
-            files = _prefs.getValue("files_" + projectRoot);
+            files = _prefs.getValue("files_" + projectRoot.fullPath);
 
         if (!files) {
             return;
