@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets, PathUtils, CodeMirror */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -79,29 +79,73 @@ define(function (require, exports, module) {
         return results;
     }
     
-    // Simple scanner to determine the end offset for the function (the closing "}")
+    // Given the start offset of a function definition (before the opening brace), find
+    // the end offset for the function (the closing "}"). Returns the position one past the
+    // close brace. Properly ignores braces inside comments, strings, and regexp literals.
     function _getFunctionEndOffset(text, offsetStart) {
-        var curOffset = text.indexOf("{", offsetStart) + 1;
-        var length = text.length;
-        var blockCount = 1;
+        var mode = CodeMirror.getMode({}, "javascript");
+        var state = CodeMirror.startState(mode), stream, style, token;
+        var curOffset = offsetStart, length = text.length, blockCount = 0, lineStart;
+        var foundStartBrace = false;
         
-        // Brute force scan to look for closing curly match
-        // NOTE: This does *not* handle comments, strings, or regexp literals.
-        while (curOffset < length) {
-            if (text[curOffset] === "{") {
-                blockCount++;
-            } else if (text[curOffset] === "}") {
-                blockCount--;
+        // Get a stream for the next line, and update curOffset and lineStart to point to the 
+        // beginning of that next line. Returns false if we're at the end of the text.
+        function nextLine() {
+            if (stream) {
+                curOffset++; // account for \n
+                if (curOffset >= length) {
+                    return false;
+                }
             }
-            
-            curOffset++;
-            
-            if (blockCount <= 0) {
+            lineStart = curOffset;
+            var lineEnd = text.indexOf("\n", lineStart);
+            if (lineEnd === -1) {
+                lineEnd = length;
+            }
+            stream = new CodeMirror.StringStream(text.slice(curOffset, lineEnd));
+            return true;
+        }
+        
+        // Get the next token, updating the style and token to refer to the current
+        // token, and updating the curOffset to point to the end of the token (relative
+        // to the start of the original text).
+        function nextToken() {
+            if (curOffset >= length) {
+                return false;
+            }
+            if (stream) {
+                // Set the start of the next token to the current stream position.
+                stream.start = stream.pos;
+            }
+            while (!stream || stream.eol()) {
+                if (!nextLine()) {
+                    return false;
+                }
+            }
+            style = mode.token(stream, state);
+            token = stream.current();
+            curOffset = lineStart + stream.pos;
+            return true;
+        }
+
+        while (nextToken()) {
+            if (style !== "comment" && style !== "regexp" && style !== "string") {
+                if (token === "{") {
+                    foundStartBrace = true;
+                    blockCount++;
+                } else if (token === "}") {
+                    blockCount--;
+                }
+            }
+
+            // blockCount starts at 0, so we don't want to check if it hits 0
+            // again until we've actually gone past the start of the function body.
+            if (foundStartBrace && blockCount <= 0) {
                 return curOffset;
             }
         }
         
-        // Shouldn't get here, but if we do, return the end of the text as the offset
+        // Shouldn't get here, but if we do, return the end of the text as the offset.
         return length;
     }
 
@@ -374,5 +418,6 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("JSUTILS_END_OFFSET", "Find end offset for a single matched function");
 
     exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
+    exports._getFunctionEndOffset = _getFunctionEndOffset; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
 });

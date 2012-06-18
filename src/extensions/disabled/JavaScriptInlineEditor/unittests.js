@@ -286,6 +286,9 @@ define(function (require, exports, module) {
 
         var simpleJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/simple.js");
         var jQueryJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/jquery-1.7.js");
+        var braceEndJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/braceEnd.js");
+        var eofJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/eof.js");
+        var eof2JsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/eof2.js");
 
         function init(spec, fileEntry) {
             spec.fileJsContent = null;
@@ -394,6 +397,76 @@ define(function (require, exports, module) {
                         //expectFunctionRanges(this, this.fileJsContent, "functionX",   [ {start: 53, end: 55} ]);
                         expectFunctionRanges(this, this.fileJsContent, "my_function", [ {start: 56, end: 57} ]);
                         expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
+                    });
+                });
+            });
+            
+            describe("brace ends of functions", function () {
+                beforeEach(function () {
+                    init(this, braceEndJsFileEntry);
+                });
+                
+                function expectEndBrace(spec, funcName) {
+                    var startPos = spec.fileJsContent.indexOf("function " + funcName);
+                    expect(startPos).toNotBe(-1);
+
+                    var endPos = JSUtils._getFunctionEndOffset(spec.fileJsContent, startPos);
+                    var endMarker = spec.fileJsContent.slice(endPos);
+                    expect(endMarker.indexOf("//END " + funcName)).toBe(0);
+                }
+                
+                it("should handle a simple function", function () {
+                    expectEndBrace(this, "simpleFunction");
+                });
+                it("should handle nested braces", function () {
+                    expectEndBrace(this, "nestedBraces");
+                });
+                it("should handle a nested function", function () {
+                    expectEndBrace(this, "nestedFunction");
+                });
+                it("should handle an end brace in a string", function () {
+                    expectEndBrace(this, "endBraceInString");
+                });
+                it("should handle an end brace in a single-quoted string", function () {
+                    expectEndBrace(this, "endBraceInSingleQuoteString");
+                });
+                it("should handle an end brace in a line comment", function () {
+                    expectEndBrace(this, "endBraceInLineComment");
+                });
+                it("should handle an end brace in a block comment", function () {
+                    expectEndBrace(this, "endBraceInBlockComment");
+                });
+                it("should handle an end brace in a multiline block comment", function () {
+                    expectEndBrace(this, "endBraceInMultilineBlockComment");
+                });
+                it("should handle an end brace in a regexp", function () {
+                    expectEndBrace(this, "endBraceInRegexp");
+                });
+                it("should handle a single-line function", function () {
+                    expectEndBrace(this, "singleLine");
+                });
+                it("should handle a single-line function with a fake brace", function () {
+                    expectEndBrace(this, "singleLineWithFakeBrace");
+                });
+                it("should handle a complicated case", function () {
+                    expectEndBrace(this, "itsComplicated");
+                });
+            });
+            
+            describe("brace end of function that ends at end of file", function () {
+                it("should find the end of a function that ends exactly at the end of the file", function () {
+                    init(this, eofJsFileEntry);
+                    runs(function () {
+                        expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
+                    });
+                });
+            });
+            
+            describe("end of function that's unclosed at end of file", function () {
+                it("should find the end of a function that is unclosed at the end of the file", function () {
+                    init(this, eof2JsFileEntry);
+                    runs(function () {
+                        expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
                     });
                 });
             });
