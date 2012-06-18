@@ -887,7 +887,8 @@ define(function (require, exports, module) {
         var files       = [],
             isActive    = false,
             workingSet  = getWorkingSet(),
-            currentDoc  = getCurrentDocument();
+            currentDoc  = getCurrentDocument(),
+            projectRoot = ProjectManager.getProjectRoot();
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
@@ -899,7 +900,8 @@ define(function (require, exports, module) {
             });
         });
 
-        _prefs.setValue("files", files);
+        // append file root to make file list unique for each project
+        _prefs.setValue("files_" + projectRoot, files);
     }
 
     /**
@@ -907,14 +909,15 @@ define(function (require, exports, module) {
      * Initializes the working set.
      */
     function _init() {
-        var prefs = _prefs.getAllValues();
+        // file root is appended for each project
+        var projectRoot = ProjectManager.getProjectRoot(),
+            files = _prefs.getValue("files_" + projectRoot);
 
-        if (!prefs.files) {
+        if (!files) {
             return;
         }
 
-        var projectRoot = ProjectManager.getProjectRoot(),
-            filesToOpen = [],
+        var filesToOpen = [],
             activeFile;
 
         // in parallel, check if files exist
@@ -941,7 +944,7 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
 
-        var result = Async.doInParallel(prefs.files, checkOneFile, false);
+        var result = Async.doInParallel(files, checkOneFile, false);
 
         result.done(function () {
             // Add all existing files to the working set
@@ -982,13 +985,16 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("initializeComplete", function (event, projectRoot) {
+    $(ProjectManager).on("projectOpen", function (event, projectRoot) {
         _init();
+    });
+
+    $(ProjectManager).on("beforeProjectClose", function (event, projectRoot) {
+        _savePreferences();
     });
 });

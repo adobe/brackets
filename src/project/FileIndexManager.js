@@ -395,7 +395,7 @@ define(function (require, exports, module) {
         }
     );
     
-    $(ProjectManager).on("projectRootChanged", function (event, projectRoot) {
+    $(ProjectManager).on("projectOpen", function (event, projectRoot) {
         markDirty();
     });
 
