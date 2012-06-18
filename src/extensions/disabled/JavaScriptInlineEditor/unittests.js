@@ -570,8 +570,12 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return the correct offsets if the file has changed", function () {
-                    var didOpen = false,
-                        gotError = false;
+                    var doc,
+                        didOpen = false,
+                        gotError = false,
+                        extensionRequire,
+                        JSUtilsInExtension,
+                        functions = null;
 
                     runs(function () {
                         FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
@@ -580,21 +584,27 @@ define(function (require, exports, module) {
                     });
                     
                     waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-
-//                    var opened = false, err = false;
-//                    runs(function () {
-//                        SpecRunnerUtils.openProjectFiles([testPath + "/edit.js"])
-//                            .done(function (documents) {
-//                                opened = true;
-//                            })
-//                            .fail(function () {
-//                                err = true;
-//                            });
-//                    });
-//                    
-//                    waitsFor(function () { return opened && !err; }, "FILE_OPEN timeout", 1000);
                     
-                    var functions = null;
+                    // Populate JSUtils cache
+                    runs(function () {
+                        extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                        JSUtilsInExtension = extensionRequire("JSUtils");
+                            
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (fileInfos) {
+                                // Look for "edit2" function
+                                JSUtilsInExtension.findMatchingFunctions("edit2", fileInfos)
+                                    .done(function (result) { functions = result; });
+                            });
+                    });
+                    
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(functions.length).toBe(1);
+                        expect(functions[0].lineStart).toBe(7);
+                        expect(functions[0].lineEnd).toBe(9);
+                    });
                     
                     runs(function () {
                         var doc = DocumentManager.getCurrentDocument();
@@ -604,9 +614,9 @@ define(function (require, exports, module) {
 
                         FileIndexManager.getFileInfoList("all")
                             .done(function (fileInfos) {
-                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
-                                var JSUtilsInExtension = extensionRequire("JSUtils");
-
+                                // JSUtils cache should update with new offsets
+                                functions = null;
+                                
                                 // Look for "edit2" function
                                 JSUtilsInExtension.findMatchingFunctions("edit2", fileInfos)
                                     .done(function (result) { functions = result; });

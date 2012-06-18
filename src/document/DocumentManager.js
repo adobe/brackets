@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $ */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in

@@ -35,8 +35,10 @@ define(function (require, exports, module) {
     
     /**
      * Tracks "change" events on opened Documents. Used to monitor changes
-     * to documents and update caches. Assumes all documents have changed when
-     * the Brackets window loses and regains focus.
+     * to documents in-memory and update caches. Assumes all documents have
+     * changed when the Brackets window loses and regains focus. Does not
+     * read timestamps of files on disk. Clients may optionally track file
+     * timestamps on disk independently.
      */
     function ChangedDocumentTracker() {
         var self = this;
@@ -45,6 +47,7 @@ define(function (require, exports, module) {
         this._windowFocus = true;
         this._addListener = this._addListener.bind(this);
         this._onChange = this._onChange.bind(this);
+        this._onWindowFocus = this._onWindowFocus.bind(this);
         
         $(DocumentManager).on("workingSetAdd", function (event, fileEntry) {
             var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath);
@@ -58,14 +61,16 @@ define(function (require, exports, module) {
             });
         });
         
-        // DocumentManager has already initialized the workings set
+        // DocumentManager has already initialized the working set
         DocumentManager.getWorkingSet().forEach(function (fileEntry) {
+            // Can't use getOpenDocumentForPath() here since being in the working set
+            // does not guarantee that the file is opened (e.g. at startup)
             DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
                 self._addListener(doc);
             });
         });
         
-        $(window).focus(this._onWindowFocus.bind(this));
+        $(window).focus(this._onWindowFocus);
     }
     
     /**
@@ -113,10 +118,10 @@ define(function (require, exports, module) {
     };
     
     /**
-     * Get the set of dirty paths since the last reset.
-     * @return {Array.<string>} Dirty file paths
+     * Get the set of changed paths since the last reset.
+     * @return {Array.<string>} Changed file paths
      */
-    ChangedDocumentTracker.prototype.getDirtyPaths = function () {
+    ChangedDocumentTracker.prototype.getChangedPaths = function () {
         return $.makeArray(this._changedPaths);
     };
 

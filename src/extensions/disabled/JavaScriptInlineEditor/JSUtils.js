@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async                   = brackets.getModule("utils/Async"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
-        ChangedDocumentTracker  = brackets.getModule("document/ChangedDocumentTracker"),
+        ChangedDocumentTracker  = brackets.getModule("document/ChangedDocumentTracker").ChangedDocumentTracker,
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
         StringUtils             = brackets.getModule("utils/StringUtils");
@@ -42,7 +42,7 @@ define(function (require, exports, module) {
      * Tracks dirty documents between invocations of findMatchingFunctions.
      * @type {ChangedDocumentTracker}
      */
-    var _changedDocumentTracker = new ChangedDocumentTracker.ChangedDocumentTracker();
+    var _changedDocumentTracker = new ChangedDocumentTracker();
     
     /**
      * Function matching regular expression. Recognizes the forms:
@@ -207,20 +207,19 @@ define(function (require, exports, module) {
     /**
      * Determines if the document function cache is up to date. 
      * @param {FileInfo} fileInfo
-     * @return {$.Promise} A promised resolved with true with true when a function cache is available for the document. Resolves
+     * @return {$.Promise} A promise resolved with true with true when a function cache is available for the document. Resolves
      *   with false when there is no cache or the cache is stale.
      */
     function _shouldGetFromCache(fileInfo) {
         var result = new $.Deferred(),
-            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath),
-            useCache = false;
+            isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath);
         
         if (isChanged && fileInfo.JSUtils) {
             // See if it's dirty and in the working set first
             var doc = DocumentManager.getOpenDocumentForPath(fileInfo.fullPath);
             
             if (doc && doc.isDirty) {
-                result.resolve(true);
+                result.resolve(false);
             } else {
                 // If a cache exists, check the timestamp on disk
                 var file = new NativeFileSystem.FileEntry(fileInfo.fullPath);
@@ -235,6 +234,7 @@ define(function (require, exports, module) {
                 );
             }
         } else {
+            // Use the cache if the file did not change and the cache exists
             result.resolve(!isChanged && fileInfo.JSUtils);
         }
 
@@ -247,7 +247,7 @@ define(function (require, exports, module) {
      * @param {!Array.<{doc: Document, fileInfo: FileInfo, functions: Array.<offsetStart: number, offsetEnd: number>}>} docEntries
      * @param {!string} functionName
      * @param {!Array.<document: Document, name: string, lineStart: number, lineEnd: number>} rangeResults
-     * @return {$.Promise} A promised resolved with an array of document ranges to populate a MultiRangeInlineEditor.
+     * @return {$.Promise} A promise resolved with an array of document ranges to populate a MultiRangeInlineEditor.
      */
     function _getOffsetsForFunction(docEntries, functionName) {
         // Filter for documents that contain the named function

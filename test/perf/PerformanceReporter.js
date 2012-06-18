@@ -84,9 +84,6 @@ define(function (require, exports, module) {
         
         currentPerfUtils = _getTestWindowPerf();
         
-        var value,
-            measure;
-        
         if (!Array.isArray(measures)) {
             measures = [{measure: measures, name: name, operation: operation}];
         }
