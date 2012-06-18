@@ -295,13 +295,13 @@ define(function (require, exports, module) {
 
         var rootDir = ProjectManager.getProjectRoot();
         if (_indexListDirty) {
-            var perfTimerName = PerfUtils.markStart("FileIndexManager.syncFileIndex(): " + rootDir.fullPath);
+            PerfUtils.markStart(PerfUtils.FILE_INDEX_MANAGER_SYNC);
 
             _clearIndexes();
 
             return _scanDirectorySubTree(rootDir)
                 .done(function () {
-                    PerfUtils.addMeasurement(perfTimerName);
+                    PerfUtils.addMeasurement(PerfUtils.FILE_INDEX_MANAGER_SYNC);
                     _indexListDirty = false;
                     _syncFileIndexReentracyGuard = false;
 
@@ -398,6 +398,8 @@ define(function (require, exports, module) {
     $(ProjectManager).on("projectRootChanged", function (event, projectRoot) {
         markDirty();
     });
+    
+    PerfUtils.createPerfMeasurement("FILE_INDEX_MANAGER_SYNC", "syncFileIndex");
 
     exports.markDirty = markDirty;
     exports.getFileInfoList = getFileInfoList;

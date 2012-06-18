@@ -73,7 +73,7 @@ define(function (require, exports, module) {
     
     /**
      * Records a performance measurement from the test window for the current running spec.
-     * @param {!(PerfMeasurement|string)} measure
+     * @param {!(PerfMeasurement|string)} measure A PerfMeasurement or string key to query PerfUtils for metrics.
      * @param {string} name An optional name or description to print with the measurement name
      * @param {string} operation An optional operation to perform on the measurement data. Currently supports sum.
      */
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
             measure;
         
         if (!Array.isArray(measures)) {
-            measures = [{measure: measure, name: name, operation: operation}];
+            measures = [{measure: measures, name: name, operation: operation}];
         }
         
         measures.forEach(function (measure) {

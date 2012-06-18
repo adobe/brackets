@@ -625,6 +625,9 @@ define(function (require, exports, module) {
                             measure: PerfUtils.JAVASCRIPT_INLINE_CREATE,
                             children: [
                                 {
+                                    measure: PerfUtils.FILE_INDEX_MANAGER_SYNC
+                                },
+                                {
                                     measure: PerfUtils.JAVASCRIPT_FIND_FUNCTION,
                                     children: [
                                         {
