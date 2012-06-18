@@ -762,7 +762,6 @@ define(function (require, exports, module) {
         return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };
     
-    
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to

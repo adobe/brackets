@@ -44,6 +44,10 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus");
     
+    // TODO: Issue 949 - the following code should be shared
+    // Load modules that self-register and just need to get included in the main project
+    require("document/ChangedDocumentTracker");
+    
     // Load both top-level suites. Filtering is applied at the top-level as a filter to BootstrapReporter.
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
