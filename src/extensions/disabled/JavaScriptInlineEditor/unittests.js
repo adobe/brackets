@@ -399,6 +399,23 @@ define(function (require, exports, module) {
                         expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
                     });
                 });
+                
+                it("should ignore identifiers with whitespace", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        var negativeTests = ["invalid", "identifier", "invalid identifier"],
+                            result,
+                            content = this.fileJsContent;
+                        
+                        negativeTests.forEach(function (name) {
+                            result = JSUtils._findAllMatchingFunctionsInText(content, name);
+                            expect(result.length).toBe(0);
+                        });
+                    });
+                });
             });
             
             describe("brace ends of functions", function () {
