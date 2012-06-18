@@ -46,10 +46,14 @@ define(function (require, exports, module) {
     
     /**
      * Function matching regular expression. Recognizes the forms:
-     * "function functionName()", "functionName = function()", and "functionName: function()"
+     * "function functionName()", "functionName = function()", and
+     * "functionName: function()".
+     *
+     * Note: JavaScript identifier matching is not strictly to spec. This
+     * RegExp matches any sequence of characters that is not whitespace.
      * @type {RegExp}
      */
-    var _functionRegExp = /((function\b)([^)]+)\b\([^)]*\))|((\w+)\s*[:=]\s*function\s*(\([^)]*\)))/g;
+    var _functionRegExp = /(function\b\s+([^\s]+)(\([^)]*\)))|([\s\.]+([^\s\.]+)\s*[:=]\s*function\s*(\([^)]*\)))/g;
     
     /**
      * @private
@@ -65,7 +69,7 @@ define(function (require, exports, module) {
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
         
         while ((match = _functionRegExp.exec(text)) !== null) {
-            functionName = (match[3] || match[5]).trim();
+            functionName = (match[2] || match[5]).trim();
             
             if (!Array.isArray(results[functionName])) {
                 results[functionName] = [];
