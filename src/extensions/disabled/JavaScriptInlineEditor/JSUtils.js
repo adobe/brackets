@@ -21,9 +21,8 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets, PathUtils, CodeMirror */
 
 /**
  * Set of utilities for simple parsing of JS text.
@@ -34,15 +33,15 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async               = brackets.getModule("utils/Async"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem;
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        PerfUtils           = brackets.getModule("utils/PerfUtils"),
+        StringUtils         = brackets.getModule("utils/StringUtils");
     
     // Return an Array with names and offsets for all functions in the specified text
     function _findAllFunctionsInText(text) {
         var result = [];
         var regexA = new RegExp(/(function\b)([^)]+)\b\([^)]*\)/gi);  // recognizes the form: function functionName()
-        var regexB = new RegExp(/(\w+)\s*=\s*function\s*(\([^)]*\))/gi); // recognizes the form: functionName = function()
-        var regexC = new RegExp(/((\w+)\s*:\s*function\s*\([^)]*\))/gi); // recognizes the form: functionName: function()
+        var regexB = new RegExp(/(\w+)\s*[:=]\s*function\s*(\([^)]*\))/gi); // recognizes functionName = function() and functionName: function()
         var match;
         
         while ((match = regexA.exec(text)) !== null) {
@@ -59,88 +58,119 @@ define(function (require, exports, module) {
             });
         }
         
-        while ((match = regexC.exec(text)) !== null) {
-            result.push({
-                functionName: match[2].trim(),
-                offset: match.index
-            });
-        }
-        
         return result;
     }
     
-    // Simple scanner to determine the end offset for the function (the closing "}") 
+    // Given the start offset of a function definition (before the opening brace), find
+    // the end offset for the function (the closing "}"). Returns the position one past the
+    // close brace. Properly ignores braces inside comments, strings, and regexp literals.
     function _getFunctionEndOffset(text, offsetStart) {
-        var curOffset = text.indexOf("{", offsetStart) + 1;
-        var length = text.length;
-        var blockCount = 1;
+        var mode = CodeMirror.getMode({}, "javascript");
+        var state = CodeMirror.startState(mode), stream, style, token;
+        var curOffset = offsetStart, length = text.length, blockCount = 0, lineStart;
+        var foundStartBrace = false;
         
-        // Brute force scan to look for closing curly match
-        // NOTE: This does *not* handle comments.
-        while (curOffset < length) {
-            if (text[curOffset] === "{") {
-                blockCount++;
-            } else if (text[curOffset] === "}") {
-                blockCount--;
+        // Get a stream for the next line, and update curOffset and lineStart to point to the 
+        // beginning of that next line. Returns false if we're at the end of the text.
+        function nextLine() {
+            if (stream) {
+                curOffset++; // account for \n
+                if (curOffset >= length) {
+                    return false;
+                }
             }
-            
-            curOffset++;
-            
-            if (blockCount <= 0) {
+            lineStart = curOffset;
+            var lineEnd = text.indexOf("\n", lineStart);
+            if (lineEnd === -1) {
+                lineEnd = length;
+            }
+            stream = new CodeMirror.StringStream(text.slice(curOffset, lineEnd));
+            return true;
+        }
+        
+        // Get the next token, updating the style and token to refer to the current
+        // token, and updating the curOffset to point to the end of the token (relative
+        // to the start of the original text).
+        function nextToken() {
+            if (curOffset >= length) {
+                return false;
+            }
+            if (stream) {
+                // Set the start of the next token to the current stream position.
+                stream.start = stream.pos;
+            }
+            while (!stream || stream.eol()) {
+                if (!nextLine()) {
+                    return false;
+                }
+            }
+            style = mode.token(stream, state);
+            token = stream.current();
+            curOffset = lineStart + stream.pos;
+            return true;
+        }
+
+        while (nextToken()) {
+            if (style !== "comment" && style !== "regexp" && style !== "string") {
+                if (token === "{") {
+                    foundStartBrace = true;
+                    blockCount++;
+                } else if (token === "}") {
+                    blockCount--;
+                }
+            }
+
+            // blockCount starts at 0, so we don't want to check if it hits 0
+            // again until we've actually gone past the start of the function body.
+            if (foundStartBrace && blockCount <= 0) {
                 return curOffset;
             }
         }
         
-        // Shouldn't get here, but if we do, return the end of the text as the offset
+        // Shouldn't get here, but if we do, return the end of the text as the offset.
         return length;
     }
-    
     
     // Search function list for a specific function. If found, extract info about the function
     // (line start, line end, etc.) and return.
     function _findAllMatchingFunctions(fileInfo, functions, functionName) {
         var result = new $.Deferred();
-        var foundMatch = false;
+        var matchingFunctions = [];
         
-        functions.forEach(function (funcEntry) {
-            if (funcEntry.functionName === functionName) {
-                var matchingFunctions = [];
-                
-                DocumentManager.getDocumentForPath(fileInfo.fullPath)
-                    .done(function (doc) {
-                        var text = doc.getText();
-                        var lines = StringUtils.getLines(text);
-                        
-                        functions.forEach(function (funcEntry) {
-                            if (funcEntry.functionName === functionName) {
-                                var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
-                                matchingFunctions.push({
-                                    document: doc,
-                                    name: funcEntry.functionName,
-                                    lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
-                                    lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
-                                });
-                            }
-                        });
-                        
-                        result.resolve(matchingFunctions);
-                    })
-                    .fail(function (error) {
-                        result.reject(error);
-                    });
-            }
+        // Filter the list of functions to just the ones that refer to functionName.
+        functions = functions.filter(function (funcEntry) {
+            return funcEntry.functionName === functionName;
         });
-        
-        if (!foundMatch) {
-            result.resolve([]);
+        if (functions.length === 0) {
+            return result.resolve([]).promise();
         }
+        
+        DocumentManager.getDocumentForPath(fileInfo.fullPath)
+            .done(function (doc) {
+                var text = doc.getText();
+                var lines = StringUtils.getLines(text);
+                
+                functions.forEach(function (funcEntry) {
+                    var endOffset = _getFunctionEndOffset(text, funcEntry.offset);
+                    matchingFunctions.push({
+                        document: doc,
+                        name: funcEntry.functionName,
+                        lineStart: StringUtils.offsetToLineNum(lines, funcEntry.offset),
+                        lineEnd: StringUtils.offsetToLineNum(lines, endOffset)
+                    });
+                });
+                
+                result.resolve(matchingFunctions);
+            })
+            .fail(function (error) {
+                result.reject(error);
+            });
         
         return result.promise();
     }
     
     // Read a file and build a function list. Result is cached in fileInfo.
     function _readFileAndGetFunctionList(fileInfo, result) {
-        
         DocumentManager.getDocumentForPath(fileInfo.fullPath)
             .done(function (doc) {
                 var allFunctions = _findAllFunctionsInText(doc.getText());
@@ -160,6 +190,8 @@ define(function (require, exports, module) {
     // Resolves with an Array of all function names and offsets for the specified file. Results
     // may be cached.
     function _getFunctionListForFile(fileInfo) {
+        PerfUtils.markStart(PerfUtils.FUNCTION_LIST_FOR_FILE);
+        
         var result = new $.Deferred();
         var needToRead = false;
         
@@ -198,6 +230,10 @@ define(function (require, exports, module) {
         } else {
             _readFileAndGetFunctionList(fileInfo, result);
         }
+        
+        result.always(function () {
+            PerfUtils.addMeasurement(PerfUtils.FUNCTION_LIST_FOR_FILE);
+        });
                         
         return result.promise();
     }
@@ -231,7 +267,6 @@ define(function (require, exports, module) {
             .fail(function (error) {
                 oneFileResult.reject(error);
             });
-        
     
         return oneFileResult.promise();
     }
@@ -239,7 +274,8 @@ define(function (require, exports, module) {
     /**
      * Return all functions that have the specified name.
      *
-     * @param {!String} functionName The name to match. 
+     * @param {!String} functionName The name to match.
+     * @param {!Array.<FileIndexManager.FileInfo>} fileInfos The array of files to search.
      * @return {$.Promise} that will be resolved with an Array of objects containing the
      *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
      *      Does not addRef() the documents returned in the array.
@@ -249,7 +285,8 @@ define(function (require, exports, module) {
             resultFunctions = [];
         
         // Process each JS file in turn (see above)
-        Async.doInParallel(fileInfos, function (fileInfo, number) {
+        // FUTURE: when we have async I/O, sort these in a predictable order
+        Async.doInParallel(fileInfos, function (fileInfo) {
             return _getMatchingFunctionsInFile(fileInfo, functionName, resultFunctions);
         })
             .done(function () {
@@ -289,7 +326,11 @@ define(function (require, exports, module) {
          
         return result;
     }
+    
+    // init
+    PerfUtils.createPerfMeasurement("FUNCTION_LIST_FOR_FILE", "JSUtils - Search 1 File");
 
     exports._findAllMatchingFunctionsInText = _findAllMatchingFunctionsInText; // For testing only
+    exports._getFunctionEndOffset = _getFunctionEndOffset; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
 });
