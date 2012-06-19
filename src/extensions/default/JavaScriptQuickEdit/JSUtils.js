@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     // Load brackets modules
     var Async                   = brackets.getModule("utils/Async"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
-        ChangedDocumentTracker  = brackets.getModule("document/ChangedDocumentTracker").ChangedDocumentTracker,
+        ChangedDocumentTracker  = brackets.getModule("document/ChangedDocumentTracker"),
         NativeFileSystem        = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         PerfUtils               = brackets.getModule("utils/PerfUtils"),
         StringUtils             = brackets.getModule("utils/StringUtils");
