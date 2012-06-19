@@ -30,9 +30,8 @@
  * the file tree.
  *
  * This module dispatches these events:
- *    - initializeComplete -- When the ProjectManager initializes the first 
- *                            project at application start-up.
- *    - projectRootChanged -- when _projectRoot changes
+ *    - beforeProjectClose -- before _projectRoot changes
+ *    - projectOpen        -- after  _projectRoot changes
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -580,13 +579,11 @@ define(function (require, exports, module) {
 
         var prefs = _prefs.getAllValues(),
             result = new $.Deferred(),
-            resultRenderTree,
-            isFirstProjectOpen = false;
+            resultRenderTree;
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
             rootPath = prefs.projectPath;
-            isFirstProjectOpen = true;
 
             _projectInitialLoad.previous = prefs.projectTreeState;
 
@@ -597,8 +594,6 @@ define(function (require, exports, module) {
             }
         }
         
-        var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
-
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
@@ -608,6 +603,8 @@ define(function (require, exports, module) {
                         || _projectRoot.fullPath !== rootEntry.fullPath;
 
                     // Success!
+                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
+
                     _projectRoot = rootEntry;
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
@@ -616,17 +613,14 @@ define(function (require, exports, module) {
                     resultRenderTree = _renderTree(_treeDataProvider);
 
                     resultRenderTree.done(function () {
-                        if (isFirstProjectOpen) {
-                            $(exports).triggerHandler("initializeComplete", _projectRoot);
-                        }
-
                         if (projectRootChanged) {
-                            $(exports).triggerHandler("projectRootChanged", _projectRoot);
+                            $(exports).triggerHandler("projectOpen", _projectRoot);
                         }
                         
                         result.resolve();
                     });
                     resultRenderTree.fail(function () {
+                        PerfUtils.terminateMeasurement(perfTimerName);
                         result.reject();
                     });
                     resultRenderTree.always(function () {
@@ -674,6 +668,8 @@ define(function (require, exports, module) {
                     function (files) {
                         // If length == 0, user canceled the dialog; length should never be > 1
                         if (files.length > 0) {
+                            $(exports).triggerHandler("beforeProjectClose", _projectRoot);
+
                             // Actually close all the old files now that we know for sure we're proceeding
                             DocumentManager.closeAll();
                             
