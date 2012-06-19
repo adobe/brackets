@@ -75,7 +75,8 @@ When filing a new bug, please remember to include:
 * repro steps, actual and expected results
 * link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
 if that's convenient)       
-More details can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
+       
+More details how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
 For feature requests, go ahead and file them in the issue tracker; they'll be converted
 to user stories on the [public Brackets backlog*](http://bit.ly/BracketsBacklog).
 
