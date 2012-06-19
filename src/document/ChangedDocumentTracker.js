@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             // Only track documents in the current project
             if (ProjectManager.isWithinProject(fileEntry.fullPath)) {
                 DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
-                    $(doc).off("change", this._onChange);
+                    $(doc).off("change", self._onChange);
                     doc.releaseRef();
                 });
             }
