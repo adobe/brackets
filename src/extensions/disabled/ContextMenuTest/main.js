@@ -47,11 +47,11 @@ define(function (require, exports, module) {
 
         var checked = command1.getChecked();
         if (checked) {
-           alert("Unchecking self. Disabling next.");
-           command2.setEnabled(false);
+            alert("Unchecking self. Disabling next.");
+            command2.setEnabled(false);
         } else {
-           alert("Checking self. Enabling next.");
-           command2.setEnabled(true);
+            alert("Checking self. Enabling next.");
+            command2.setEnabled(true);
         }
         command1.setChecked(!checked);
     }
@@ -74,10 +74,10 @@ define(function (require, exports, module) {
     command2.setEnabled(true);
     command3.setEnabled(false);
 
-    // Update the MenuItem by changing the underlying command right before the context menu is shown
+    // Update the MenuItem by changing the underlying command
     var updateEnabledState = function () {
         var editor = EditorManager.getFocusedEditor();
-        command3.setEnabled(editor.getSelectedText() !== "");
+        command3.setEnabled(editor && editor.getSelectedText() !== "");
     };
     var editor_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
     $(editor_cmenu).on("beforeContextMenuOpen", updateEnabledState);

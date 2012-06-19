@@ -645,6 +645,10 @@ define(function (require, exports, module) {
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
+        if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
+            throw new Error("ContextMenu open(): missing required parameter");
+        }
+
         var $window = $(window),
             escapedId = StringUtils.jQueryIdEscape(this.id),
             $menuAnchor = $("#" + escapedId),
@@ -842,17 +846,19 @@ define(function (require, exports, module) {
                 }
 
                 var editor = EditorManager.getFocusedEditor();
-                var clickedSel = false,
-                    pos = editor.coordsChar({x: e.pageX, y: e.pageY});
-                if (editor.getSelectedText() !== "") {
-                    var sel = editor.getSelection();
-                    clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);
-                }
+                if (editor) {
+                    var clickedSel = false,
+                        pos = editor.coordsChar({x: e.pageX, y: e.pageY});
+                    if (editor.getSelectedText() !== "") {
+                        var sel = editor.getSelection();
+                        clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);
+                    }
 
-                if (!clickedSel) {
-                    editor.selectWordAt(pos);
+                    if (!clickedSel) {
+                        editor.selectWordAt(pos);
+                    }
+                    editor_cmenu.open(e);
                 }
-                editor_cmenu.open(e);
             }
         });
 
