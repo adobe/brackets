@@ -53,6 +53,11 @@ define(function (require, exports, module) {
             token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1});
         }
         
+        // Return valid function expressions only (function call or reference)
+        if (!((token.className === "variable-2") || (token.className === "property"))) {
+            return null;
+        }
+        
         return token.string;
     }
     
@@ -146,7 +151,7 @@ define(function (require, exports, module) {
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
         var functionName = _getFunctionName(hostEditor, hostEditor.getSelection().start);
-        if (functionName === "") {
+        if ((functionName === null) || (functionName === "")) {
             return null;
         }
         
