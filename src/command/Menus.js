@@ -671,7 +671,8 @@ define(function (require, exports, module) {
         if (bottomOverhang > 0) {
             posTop = Math.max(0, posTop - bottomOverhang);
         }
-        posTop -= 25;   // shift top for hidden parent element
+        posTop -= 30;   // shift top for hidden parent element
+        posLeft += 5;
 
         var rightOverhang = posLeft + $menuWindow.width() - $window.width();
         if (rightOverhang > 0) {
@@ -856,6 +857,7 @@ define(function (require, exports, module) {
 
                     if (!clickedSel) {
                         editor.selectWordAt(pos);
+                        e.pageY += 6;
                     }
                     editor_cmenu.open(e);
                 }

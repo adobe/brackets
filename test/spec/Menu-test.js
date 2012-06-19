@@ -57,7 +57,6 @@ define(function (require, exports, module) {
             SpecRunnerUtils.closeTestWindow();
         });
 
-        
         describe("Add Menus", function () {
 
             it("should add new menu in last position of list", function () {
@@ -466,15 +465,15 @@ define(function (require, exports, module) {
                 runs(function () {
                     var openEvent = false;
                     CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
-                    var cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU); //Menus.registerContextMenu("test-cmenu");
+                    var cmenu = Menus.registerContextMenu("test-cmenu");
                     var menuItem = cmenu.addMenuItem("custom.command");
 
-                    $(cmenu).on("beforeContextMenuOpen", function () {
+                    testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
                         openEvent = true;
                     });
 
                     cmenu.open({pageX: 300, pageY: 250});
-                    var $menu = testWindow.$(".dropdown.open");
+                    var $menu = testWindow.$(".dropdown.open > ul");
                     // all other drops downs should be closed
                     expect($menu.length).toBe(1);
                     // position is at correct location
@@ -510,16 +509,19 @@ define(function (require, exports, module) {
                     var winHeight = $(testWindow).height();
                     
                     cmenu.open({pageX: 0, pageY: 0});
-                    var $menu = testWindow.$(".dropdown.open");
+                    var $menu = testWindow.$(".dropdown.open > ul");
                     expect(boundsInsideWindow($menu)).toBeTruthy();
 
                     cmenu.open({pageX: winHeight, pageY: winWidth});
+                    $menu = testWindow.$(".dropdown.open > ul");
                     expect(boundsInsideWindow($menu)).toBeTruthy();
 
                     cmenu.open({pageX: 0, pageY: winWidth});
+                    $menu = testWindow.$(".dropdown.open > ul");
                     expect(boundsInsideWindow($menu)).toBeTruthy();
 
                     cmenu.open({pageX: winHeight, pageY: 0});
+                    $menu = testWindow.$(".dropdown.open > ul");
                     expect(boundsInsideWindow($menu)).toBeTruthy();
                 });
             });
@@ -530,7 +532,7 @@ define(function (require, exports, module) {
                 var menuItem = cmenu.addMenuItem("custom.command");
 
                 var closeEvent = false;
-                $(cmenu).on("contextMenuClose", function () {
+                testWindow.$(cmenu).on("contextMenuClose", function () {
                     closeEvent = true;
                 });
                 cmenu.open({pageX: 0, pageY: 0});
