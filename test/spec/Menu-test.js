@@ -458,7 +458,6 @@ define(function (require, exports, module) {
                 var command = CommandManager.register("Brackets Test Command Custom 2", "custom.command2", function () {});
                 menuItem = cmenu.addMenuItem(command);
                 expect(menuItem).toBeTruthy();
-                expect(cmenu).toBeTruthy();
 
                 // duplicate command in Menu
                 menuItem = cmenu.addMenuItem("custom.command1");
