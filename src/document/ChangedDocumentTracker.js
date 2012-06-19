@@ -53,8 +53,9 @@ define(function (require, exports, module) {
         $(DocumentManager).on("workingSetAdd", function (event, fileEntry) {
             // Only track documents in the current project
             if (ProjectManager.isWithinProject(fileEntry.fullPath)) {
-                var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath);
-                self._addListener(doc);
+                DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
+                    self._addListener(doc);
+                });
             }
         });
         
