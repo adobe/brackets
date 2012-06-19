@@ -286,6 +286,9 @@ define(function (require, exports, module) {
 
         var simpleJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/simple.js");
         var jQueryJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/jquery-1.7.js");
+        var braceEndJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/braceEnd.js");
+        var eofJsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/eof.js");
+        var eof2JsFileEntry = new NativeFileSystem.FileEntry(extensionPath + "/unittest-files/eof2.js");
 
         function init(spec, fileEntry) {
             spec.fileJsContent = null;
@@ -396,6 +399,93 @@ define(function (require, exports, module) {
                         expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
                     });
                 });
+                
+                it("should ignore identifiers with whitespace", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        var negativeTests = ["invalid", "identifier", "invalid identifier"],
+                            result,
+                            content = this.fileJsContent;
+                        
+                        negativeTests.forEach(function (name) {
+                            result = JSUtils._findAllMatchingFunctionsInText(content, name);
+                            expect(result.length).toBe(0);
+                        });
+                    });
+                });
+            });
+            
+            describe("brace ends of functions", function () {
+                beforeEach(function () {
+                    init(this, braceEndJsFileEntry);
+                });
+                
+                function expectEndBrace(spec, funcName) {
+                    var startPos = spec.fileJsContent.indexOf("function " + funcName);
+                    expect(startPos).toNotBe(-1);
+
+                    var endPos = JSUtils._getFunctionEndOffset(spec.fileJsContent, startPos);
+                    var endMarker = spec.fileJsContent.slice(endPos);
+                    expect(endMarker.indexOf("//END " + funcName)).toBe(0);
+                }
+                
+                it("should handle a simple function", function () {
+                    expectEndBrace(this, "simpleFunction");
+                });
+                it("should handle nested braces", function () {
+                    expectEndBrace(this, "nestedBraces");
+                });
+                it("should handle a nested function", function () {
+                    expectEndBrace(this, "nestedFunction");
+                });
+                it("should handle an end brace in a string", function () {
+                    expectEndBrace(this, "endBraceInString");
+                });
+                it("should handle an end brace in a single-quoted string", function () {
+                    expectEndBrace(this, "endBraceInSingleQuoteString");
+                });
+                it("should handle an end brace in a line comment", function () {
+                    expectEndBrace(this, "endBraceInLineComment");
+                });
+                it("should handle an end brace in a block comment", function () {
+                    expectEndBrace(this, "endBraceInBlockComment");
+                });
+                it("should handle an end brace in a multiline block comment", function () {
+                    expectEndBrace(this, "endBraceInMultilineBlockComment");
+                });
+                it("should handle an end brace in a regexp", function () {
+                    expectEndBrace(this, "endBraceInRegexp");
+                });
+                it("should handle a single-line function", function () {
+                    expectEndBrace(this, "singleLine");
+                });
+                it("should handle a single-line function with a fake brace", function () {
+                    expectEndBrace(this, "singleLineWithFakeBrace");
+                });
+                it("should handle a complicated case", function () {
+                    expectEndBrace(this, "itsComplicated");
+                });
+            });
+            
+            describe("brace end of function that ends at end of file", function () {
+                it("should find the end of a function that ends exactly at the end of the file", function () {
+                    init(this, eofJsFileEntry);
+                    runs(function () {
+                        expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
+                    });
+                });
+            });
+            
+            describe("end of function that's unclosed at end of file", function () {
+                it("should find the end of a function that is unclosed at the end of the file", function () {
+                    init(this, eof2JsFileEntry);
+                    runs(function () {
+                        expect(JSUtils._getFunctionEndOffset(this.fileJsContent, 0)).toBe(this.fileJsContent.length);
+                    });
+                });
             });
 
             describe("with real-world jQuery JS code", function () {
@@ -497,8 +587,12 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return the correct offsets if the file has changed", function () {
-                    var didOpen = false,
-                        gotError = false;
+                    var doc,
+                        didOpen = false,
+                        gotError = false,
+                        extensionRequire,
+                        JSUtilsInExtension,
+                        functions = null;
 
                     runs(function () {
                         FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
@@ -507,21 +601,27 @@ define(function (require, exports, module) {
                     });
                     
                     waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-
-//                    var opened = false, err = false;
-//                    runs(function () {
-//                        SpecRunnerUtils.openProjectFiles([testPath + "/edit.js"])
-//                            .done(function (documents) {
-//                                opened = true;
-//                            })
-//                            .fail(function () {
-//                                err = true;
-//                            });
-//                    });
-//                    
-//                    waitsFor(function () { return opened && !err; }, "FILE_OPEN timeout", 1000);
                     
-                    var functions = null;
+                    // Populate JSUtils cache
+                    runs(function () {
+                        extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
+                        JSUtilsInExtension = extensionRequire("JSUtils");
+                            
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (fileInfos) {
+                                // Look for "edit2" function
+                                JSUtilsInExtension.findMatchingFunctions("edit2", fileInfos)
+                                    .done(function (result) { functions = result; });
+                            });
+                    });
+                    
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(functions.length).toBe(1);
+                        expect(functions[0].lineStart).toBe(7);
+                        expect(functions[0].lineEnd).toBe(9);
+                    });
                     
                     runs(function () {
                         var doc = DocumentManager.getCurrentDocument();
@@ -531,9 +631,9 @@ define(function (require, exports, module) {
 
                         FileIndexManager.getFileInfoList("all")
                             .done(function (fileInfos) {
-                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
-                                var JSUtilsInExtension = extensionRequire("JSUtils");
-
+                                // JSUtils cache should update with new offsets
+                                functions = null;
+                                
                                 // Look for "edit2" function
                                 JSUtilsInExtension.findMatchingFunctions("edit2", fileInfos)
                                     .done(function (result) { functions = result; });
@@ -571,7 +671,7 @@ define(function (require, exports, module) {
                         // Look for the selector we just created
                         FileIndexManager.getFileInfoList("all")
                             .done(function (fileInfos) {
-                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
                                 var JSUtilsInExtension = extensionRequire("JSUtils");
 
                                 // Look for "TESTFUNCTION" function
@@ -619,10 +719,43 @@ define(function (require, exports, module) {
                     JavaScriptQuickEdit,
                     done = false,
                     error = false,
-                    i;
+                    i,
+                    perfMeasurements = [
+                        {
+                            measure: PerfUtils.JAVASCRIPT_INLINE_CREATE,
+                            children: [
+                                {
+                                    measure: PerfUtils.FILE_INDEX_MANAGER_SYNC
+                                },
+                                {
+                                    measure: PerfUtils.JAVASCRIPT_FIND_FUNCTION,
+                                    children: [
+                                        {
+                                            measure: PerfUtils.JSUTILS_GET_ALL_FUNCTIONS,
+                                            children: [
+                                                {
+                                                    measure: PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH,
+                                                    name: "Document creation during this search",
+                                                    operation: "sum"
+                                                },
+                                                {
+                                                    measure: PerfUtils.JSUTILS_REGEXP,
+                                                    operation: "sum"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            measure: PerfUtils.JSUTILS_END_OFFSET,
+                                            operation: "sum"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ];
                 
                 runs(function () {
-                    extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                    extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
                     JavaScriptQuickEdit = extensionRequire("main");
                     
                     SpecRunnerUtils.openProjectFiles(["ui/jquery.effects.core.js"]).done(function () {
@@ -647,9 +780,7 @@ define(function (require, exports, module) {
                 var waitForInlineEditor = function () { return done && !error; };
                 
                 function logPerf() {
-                    PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Document creation during this search", "sum");
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION, "jQuery UI project");
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE, "jQuery UI project");
+                    PerformanceReporter.logTestWindow(perfMeasurements);
                     PerformanceReporter.clearTestWindow();
                 }
                 
@@ -657,7 +788,6 @@ define(function (require, exports, module) {
                 for (i = 0; i < 5; i++) {
                     runs(runCreateInlineEditor);
                     waitsFor(waitForInlineEditor, 500);
-                
                     runs(logPerf);
                 }
             });

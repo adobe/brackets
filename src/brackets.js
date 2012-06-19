@@ -78,6 +78,7 @@ define(function (require, exports, module) {
         bracketsReadyHandlers = [];
         
     //Load modules that self-register and just need to get included in the main project
+    require("document/ChangedDocumentTracker");
     require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
