@@ -128,7 +128,7 @@ define(function (require, exports, module) {
      * While true, allow preferences to be saved
      * @type {boolean}
      */
-    var _allowSavePreferences = true;
+    var _isProjectChanging = false;
     
     /**
      * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
@@ -890,7 +890,7 @@ define(function (require, exports, module) {
      */
     function _savePreferences() {
 
-        if (!_allowSavePreferences) {
+        if (_isProjectChanging) {
             return;
         }
         
@@ -930,7 +930,7 @@ define(function (require, exports, module) {
         // the beforeProjectChange event gets fired, DocumentManager.closeAll()
         // causes workingSetRemove event to get fired and update the prefs to an empty
         // list. So, temporarily (until projectOpen event) disallow saving prefs.
-        _allowSavePreferences = false;
+        _isProjectChanging = true;
     }
 
     /**
@@ -938,7 +938,7 @@ define(function (require, exports, module) {
      * Initializes the working set.
      */
     function _projectOpen() {
-        _allowSavePreferences = true;
+        _isProjectChanging = false;
         
         // file root is appended for each project
         var projectRoot = ProjectManager.getProjectRoot(),
@@ -1021,12 +1021,7 @@ define(function (require, exports, module) {
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
-    // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("projectOpen", function (event, projectRoot) {
-        _projectOpen();
-    });
-
-    $(ProjectManager).on("beforeProjectClose", function (event, projectRoot) {
-        _beforeProjectClose();
-    });
+    // Handle project change events
+    $(ProjectManager).on("projectOpen", _projectOpen);
+    $(ProjectManager).on("beforeProjectClose", _beforeProjectClose);
 });
