@@ -305,14 +305,9 @@ define(function (require, exports, module) {
                     var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(1);
 
-                    var exceptionThrown = false;
-                    try {
-                        menuItem = null;
-                        menuItem = menu.addMenuItem("custom.command0");
-                    } catch (e) {
-                        exceptionThrown = true;
-                    }
-                    expect(exceptionThrown).toBeTruthy();
+                    menuItem = menu.addMenuItem("custom.command0");
+                    expect(menuItem).toBeFalsy();
+                    
 
                     $listItems = testWindow.$("#menu-custom > ul").children();
 
@@ -451,10 +446,23 @@ define(function (require, exports, module) {
 
         describe("Context Menus", function () {
             it("register a context menu", function () {
-                CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
                 var cmenu = Menus.registerContextMenu("test-cmenu");
-                var menuItem = cmenu.addMenuItem("custom.command");
+                
+                // Add menu item via command id
+                CommandManager.register("Brackets Test Command Custom 1", "custom.command1", function () {});
+                var menuItem = cmenu.addMenuItem("custom.command1");
+                expect(menuItem).toBeTruthy();
                 expect(cmenu).toBeTruthy();
+
+                // Add menu item via command object
+                var command = CommandManager.register("Brackets Test Command Custom 2", "custom.command2", function () {});
+                menuItem = cmenu.addMenuItem(command);
+                expect(menuItem).toBeTruthy();
+                expect(cmenu).toBeTruthy();
+
+                // duplicate command in Menu
+                menuItem = cmenu.addMenuItem("custom.command1");
+                expect(menuItem).toBeFalsy();
 
                 // duplicate ids
                 var cmenu2 = Menus.registerContextMenu("test-cmenu");
@@ -537,20 +545,14 @@ define(function (require, exports, module) {
                 });
                 cmenu.open({pageX: 0, pageY: 0});
                 
+                // verify close event
                 cmenu.close();
                 expect(closeEvent).toBeTruthy();
 
+                // verify all dropdowns are closed
                 var $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
 
-            });
-
-            it("close a context menu", function () {
-                // on click
-
-                // on call close
-
-                // event is fired
             });
         });
     });

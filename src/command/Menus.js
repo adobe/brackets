@@ -368,7 +368,8 @@ define(function (require, exports, module) {
         id = this.id + "-" + commandID;
         
         if (menuItemMap[id]) {
-            throw new Error("MenuItem added with same id of existing MenuItem: " + id);
+            console.log("MenuItem added with same id of existing MenuItem: " + id);
+            return null;
         }
 
         // create MenuItem
@@ -859,6 +860,8 @@ define(function (require, exports, module) {
 
                     if (!clickedSel) {
                         editor.selectWordAt(pos);
+                        // Prevent menu from overlapping text by
+                        // moving it down a little
                         e.pageY += 6;
                     }
                     editor_cmenu.open(e);
