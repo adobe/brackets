@@ -399,6 +399,23 @@ define(function (require, exports, module) {
                         expectFunctionRanges(this, this.fileJsContent, "function3",   [ {start: 58, end: 60} ]);
                     });
                 });
+                
+                it("should ignore identifiers with whitespace", function () {
+                    runs(function () {
+                        init(this, simpleJsFileEntry);
+                    });
+                    
+                    runs(function () {
+                        var negativeTests = ["invalid", "identifier", "invalid identifier"],
+                            result,
+                            content = this.fileJsContent;
+                        
+                        negativeTests.forEach(function (name) {
+                            result = JSUtils._findAllMatchingFunctionsInText(content, name);
+                            expect(result.length).toBe(0);
+                        });
+                    });
+                });
             });
             
             describe("brace ends of functions", function () {
@@ -570,8 +587,12 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return the correct offsets if the file has changed", function () {
-                    var didOpen = false,
-                        gotError = false;
+                    var doc,
+                        didOpen = false,
+                        gotError = false,
+                        extensionRequire,
+                        JSUtilsInExtension,
+                        functions = null;
 
                     runs(function () {
                         FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
@@ -580,21 +601,27 @@ define(function (require, exports, module) {
                     });
                     
                     waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
-
-//                    var opened = false, err = false;
-//                    runs(function () {
-//                        SpecRunnerUtils.openProjectFiles([testPath + "/edit.js"])
-//                            .done(function (documents) {
-//                                opened = true;
-//                            })
-//                            .fail(function () {
-//                                err = true;
-//                            });
-//                    });
-//                    
-//                    waitsFor(function () { return opened && !err; }, "FILE_OPEN timeout", 1000);
                     
-                    var functions = null;
+                    // Populate JSUtils cache
+                    runs(function () {
+                        extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                        JSUtilsInExtension = extensionRequire("JSUtils");
+                            
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (fileInfos) {
+                                // Look for "edit2" function
+                                JSUtilsInExtension.findMatchingFunctions("edit2", fileInfos)
+                                    .done(function (result) { functions = result; });
+                            });
+                    });
+                    
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(functions.length).toBe(1);
+                        expect(functions[0].lineStart).toBe(7);
+                        expect(functions[0].lineEnd).toBe(9);
+                    });
                     
                     runs(function () {
                         var doc = DocumentManager.getCurrentDocument();
@@ -604,9 +631,9 @@ define(function (require, exports, module) {
 
                         FileIndexManager.getFileInfoList("all")
                             .done(function (fileInfos) {
-                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
-                                var JSUtilsInExtension = extensionRequire("JSUtils");
-
+                                // JSUtils cache should update with new offsets
+                                functions = null;
+                                
                                 // Look for "edit2" function
                                 JSUtilsInExtension.findMatchingFunctions("edit2", fileInfos)
                                     .done(function (result) { functions = result; });
@@ -692,7 +719,40 @@ define(function (require, exports, module) {
                     JavaScriptQuickEdit,
                     done = false,
                     error = false,
-                    i;
+                    i,
+                    perfMeasurements = [
+                        {
+                            measure: PerfUtils.JAVASCRIPT_INLINE_CREATE,
+                            children: [
+                                {
+                                    measure: PerfUtils.FILE_INDEX_MANAGER_SYNC
+                                },
+                                {
+                                    measure: PerfUtils.JAVASCRIPT_FIND_FUNCTION,
+                                    children: [
+                                        {
+                                            measure: PerfUtils.JSUTILS_GET_ALL_FUNCTIONS,
+                                            children: [
+                                                {
+                                                    measure: PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH,
+                                                    name: "Document creation during this search",
+                                                    operation: "sum"
+                                                },
+                                                {
+                                                    measure: PerfUtils.JSUTILS_REGEXP,
+                                                    operation: "sum"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            measure: PerfUtils.JSUTILS_END_OFFSET,
+                                            operation: "sum"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ];
                 
                 runs(function () {
                     extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
@@ -720,9 +780,7 @@ define(function (require, exports, module) {
                 var waitForInlineEditor = function () { return done && !error; };
                 
                 function logPerf() {
-                    PerformanceReporter.logTestWindow(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH, "Document creation during this search", "sum");
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_FIND_FUNCTION, "jQuery UI project");
-                    PerformanceReporter.logTestWindow(PerfUtils.JAVASCRIPT_INLINE_CREATE, "jQuery UI project");
+                    PerformanceReporter.logTestWindow(perfMeasurements);
                     PerformanceReporter.clearTestWindow();
                 }
                 
@@ -730,7 +788,6 @@ define(function (require, exports, module) {
                 for (i = 0; i < 5; i++) {
                     runs(runCreateInlineEditor);
                     waitsFor(waitForInlineEditor, 500);
-                
                     runs(logPerf);
                 }
             });

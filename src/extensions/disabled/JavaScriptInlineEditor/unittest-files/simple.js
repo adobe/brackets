@@ -60,4 +60,5 @@ function3: function () {
     /* comment */
 }
 
-    
+// functions with invalid identifiers
+function invalid identifier () {}
