@@ -368,7 +368,8 @@ define(function (require, exports, module) {
         id = this.id + "-" + commandID;
         
         if (menuItemMap[id]) {
-            throw new Error("MenuItem added with same id of existing MenuItem: " + id);
+            console.log("MenuItem added with same id of existing MenuItem: " + id);
+            return null;
         }
 
         // create MenuItem
@@ -645,6 +646,10 @@ define(function (require, exports, module) {
      */
     ContextMenu.prototype.open = function (mouseOrLocation) {
 
+        if (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY")) {
+            throw new Error("ContextMenu open(): missing required parameter");
+        }
+
         var $window = $(window),
             escapedId = StringUtils.jQueryIdEscape(this.id),
             $menuAnchor = $("#" + escapedId),
@@ -667,7 +672,8 @@ define(function (require, exports, module) {
         if (bottomOverhang > 0) {
             posTop = Math.max(0, posTop - bottomOverhang);
         }
-        posTop -= 25;   // shift top for hidden parent element
+        posTop -= 30;   // shift top for hidden parent element
+        posLeft += 5;
 
         var rightOverhang = posLeft + $menuWindow.width() - $window.width();
         if (rightOverhang > 0) {
@@ -692,11 +698,17 @@ define(function (require, exports, module) {
      * Registers new context menu with Brackets. 
 
      * Extensions should generally use the predefined context menus built into Brackets. Use this 
-     * API to add a new context menu specific to UI that is specific to an extension.
+     * API to add a new context menu to UI that is specific to an extension.
      *
-     * After registering  a context menu clients should:
+     * After registering  a new context menu clients should:
      *      - use addMenuItem() to add items to the context menu
-     *      - call open() to show the context menu (often trigged via an event handler for right click)
+     *      - call open() to show the context menu. 
+     *      For example:
+     *      $("#my_ID").contextmenu(function (e) {
+     *          if (e.which === 3) {
+     *              my_cmenu.open(e);
+     *          }
+     *      });
      *
      * To make menu items be contextual to things like selection, listen for the "beforeContextMenuOpen"
      * to make changes to Command objects before the context menu is shown. MenuItems are views of
@@ -831,32 +843,42 @@ define(function (require, exports, module) {
          * TODO: doesn't word select when changing editors with right click
          *
          */
-        $("#editor-holder").mousedown(function (e) {
+        $("#editor-holder").contextmenu(function (e) {
             if (e.which === 3) {
                 if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
                     return;
                 }
 
                 var editor = EditorManager.getFocusedEditor();
-                var clickedSel = false,
-                    pos = editor.coordsChar({x: e.pageX, y: e.pageY});
-                if (editor.getSelectedText() !== "") {
-                    var sel = editor.getSelection();
-                    clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);
-                }
+                if (editor) {
+                    var clickedSel = false,
+                        pos = editor.coordsChar({x: e.pageX, y: e.pageY});
+                    if (editor.getSelectedText() !== "") {
+                        var sel = editor.getSelection();
+                        clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);
+                    }
 
-                if (!clickedSel) {
-                    editor.selectWordAt(pos);
+                    if (!clickedSel) {
+                        editor.selectWordAt(pos);
+                        // Prevent menu from overlapping text by
+                        // moving it down a little
+                        e.pageY += 6;
+                    }
+                    editor_cmenu.open(e);
                 }
-                editor_cmenu.open(e);
             }
         });
 
 
-        $("#projects").mousedown(function (e) {
+        $("#projects").contextmenu(function (e) {
             if (e.which === 3) {
                 project_cmenu.open(e);
             }
+        });
+
+        // Prevent the browser context menu since Brackets creates a custom context menu
+        $(window).contextmenu(function (e) {
+            e.preventDefault();
         });
 
         // Prevent clicks on the top-level menu bar from taking focus
