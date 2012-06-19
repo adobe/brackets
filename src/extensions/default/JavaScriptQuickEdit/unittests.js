@@ -604,7 +604,7 @@ define(function (require, exports, module) {
                     
                     // Populate JSUtils cache
                     runs(function () {
-                        extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                        extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
                         JSUtilsInExtension = extensionRequire("JSUtils");
                             
                         FileIndexManager.getFileInfoList("all")
@@ -671,7 +671,7 @@ define(function (require, exports, module) {
                         // Look for the selector we just created
                         FileIndexManager.getFileInfoList("all")
                             .done(function (fileInfos) {
-                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                                var extensionRequire = brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
                                 var JSUtilsInExtension = extensionRequire("JSUtils");
 
                                 // Look for "TESTFUNCTION" function
@@ -755,7 +755,7 @@ define(function (require, exports, module) {
                     ];
                 
                 runs(function () {
-                    extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptInlineEditor');
+                    extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
                     JavaScriptQuickEdit = extensionRequire("main");
                     
                     SpecRunnerUtils.openProjectFiles(["ui/jquery.effects.core.js"]).done(function () {
