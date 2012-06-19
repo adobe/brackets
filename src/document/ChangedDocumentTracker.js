@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var DocumentManager = require("document/DocumentManager");
+    var DocumentManager = require("document/DocumentManager"),
+        ProjectManager  = require("project/ProjectManager");
     
     /**
      * Tracks "change" events on opened Documents. Used to monitor changes
@@ -50,15 +51,21 @@ define(function (require, exports, module) {
         this._onWindowFocus = this._onWindowFocus.bind(this);
         
         $(DocumentManager).on("workingSetAdd", function (event, fileEntry) {
-            var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath);
-            self._addListener(doc);
+            // Only track documents in the current project
+            if (ProjectManager.isWithinProject(fileEntry.fullPath)) {
+                var doc = DocumentManager.getOpenDocumentForPath(fileEntry.fullPath);
+                self._addListener(doc);
+            }
         });
         
         $(DocumentManager).on("workingSetRemove", function (event, fileEntry) {
-            DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
-                $(doc).off("change", this._onChange);
-                doc.releaseRef();
-            });
+            // Only track documents in the current project
+            if (ProjectManager.isWithinProject(fileEntry.fullPath)) {
+                DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
+                    $(doc).off("change", self._onChange);
+                    doc.releaseRef();
+                });
+            }
         });
         
         // DocumentManager has already initialized the working set
@@ -125,5 +132,5 @@ define(function (require, exports, module) {
         return $.makeArray(this._changedPaths);
     };
 
-    exports.ChangedDocumentTracker = ChangedDocumentTracker;
+    module.exports = ChangedDocumentTracker;
 });
