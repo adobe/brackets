@@ -96,6 +96,6 @@ define(function (require, exports, module) {
         // do nothing - base implementation
     };
 
-    exports.InlineWidget = InlineWidget;
+    module.exports = InlineWidget;
 
 });

@@ -67,7 +67,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var NativeFileSystem    = require("file/NativeFileSystem"),
         ProjectManager      = require("project/ProjectManager"),
         EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),

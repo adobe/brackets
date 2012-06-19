@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     var CSSUtils                = require("language/CSSUtils"),
         EditorManager           = require("editor/EditorManager"),
         HTMLUtils               = require("language/HTMLUtils"),
-        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor;
+        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor");
 
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag

@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        Editor                  = require("editor/Editor").Editor,
+        Editor                  = require("editor/Editor"),
         Strings                 = require("strings"),
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),

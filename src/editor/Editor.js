@@ -66,7 +66,7 @@ define(function (require, exports, module) {
         CommandManager  = require("command/CommandManager"),
         PerfUtils       = require("utils/PerfUtils"),
         Strings          = require("strings"),
-        TextRange       = require("document/TextRange").TextRange,
+        TextRange       = require("document/TextRange"),
         ViewUtils       = require("utils/ViewUtils");
     
 
@@ -1067,5 +1067,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // Define public API
-    exports.Editor = Editor;
+    module.exports = Editor;
 });

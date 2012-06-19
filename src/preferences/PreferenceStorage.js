@@ -172,5 +172,5 @@ define(function (require, exports, module) {
         _commit();
     };
     
-    exports.PreferenceStorage = PreferenceStorage;
+    module.exports = PreferenceStorage;
 });

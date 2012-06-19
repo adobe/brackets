@@ -35,9 +35,9 @@ define(function (require, exports, module) {
         DocumentManager,    // loaded from brackets.test
         FileViewController, // loaded from brackets.test
         Dialogs          = require("widgets/Dialogs"),
-        NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileSystem = require("file/NativeFileSystem"),
         FileUtils        = require("file/FileUtils"),
-        SpecRunnerUtils  = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("InlineEditorProviders", function () {
 

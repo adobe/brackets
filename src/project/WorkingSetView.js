@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         Commands              = require("command/Commands"),
         EditorManager         = require("editor/EditorManager"),
         FileViewController    = require("project/FileViewController"),
-        NativeFileSystem      = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileSystem      = require("file/NativeFileSystem"),
         ViewUtils             = require("utils/ViewUtils");
     
     

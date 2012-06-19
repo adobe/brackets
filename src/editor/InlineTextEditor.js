@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
-        InlineWidget        = require("editor/InlineWidget").InlineWidget;
+        InlineWidget        = require("editor/InlineWidget");
 
     /**
      * Returns editor holder width (not CodeMirror's width).
@@ -289,6 +289,6 @@ define(function (require, exports, module) {
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
 
-    exports.InlineTextEditor = InlineTextEditor;
+    module.exports = InlineTextEditor;
 
 });

@@ -46,8 +46,8 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
         PerfUtils           = require("utils/PerfUtils"),
-        Editor              = require("editor/Editor").Editor,
-        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+        Editor              = require("editor/Editor"),
+        InlineTextEditor    = require("editor/InlineTextEditor"),
         EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         Strings             = require("strings");

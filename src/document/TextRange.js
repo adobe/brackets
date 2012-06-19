@@ -175,5 +175,5 @@ define(function (require, exports, module) {
     
     
     // Define public API
-    exports.TextRange = TextRange;
+    module.exports = TextRange;
 });

@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var NativeFileSystem    = require("file/NativeFileSystem"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),

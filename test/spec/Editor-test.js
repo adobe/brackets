@@ -28,8 +28,8 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Editor          = require("editor/Editor").Editor,
-        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+    var Editor          = require("editor/Editor"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         EditorUtils     = require("editor/EditorUtils");
 
     describe("Editor", function () {

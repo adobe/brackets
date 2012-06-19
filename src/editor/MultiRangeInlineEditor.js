@@ -40,8 +40,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var TextRange           = require("document/TextRange").TextRange,
-        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+    var TextRange           = require("document/TextRange"),
+        InlineTextEditor    = require("editor/InlineTextEditor"),
         EditorManager       = require("editor/EditorManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
@@ -516,5 +516,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_QUICK_EDIT_PREV_MATCH,      Commands.QUICK_EDIT_PREV_MATCH, _previousRange);
     CommandManager.register(Strings.CMD_QUICK_EDIT_NEXT_MATCH,      Commands.QUICK_EDIT_NEXT_MATCH, _nextRange);
 
-    exports.MultiRangeInlineEditor = MultiRangeInlineEditor;
+    module.exports = MultiRangeInlineEditor;
 });

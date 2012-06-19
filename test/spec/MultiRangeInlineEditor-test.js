@@ -28,12 +28,12 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
-        InlineTextEditor        = require("editor/InlineTextEditor").InlineTextEditor,
-        InlineWidget            = require("editor/InlineWidget").InlineWidget,
-        Editor                  = require("editor/Editor").Editor,
+    var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor"),
+        InlineTextEditor        = require("editor/InlineTextEditor"),
+        InlineWidget            = require("editor/InlineWidget"),
+        Editor                  = require("editor/Editor"),
         EditorManager           = require("editor/EditorManager"),
-        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
     describe("MultiRangeInlineEditor", function () {
         

@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var NativeFileSystem    = require("file/NativeFileSystem"),
         Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),

@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         PerfUtils,              // loaded from brackets.test
         
         FileUtils           = brackets.getModule("file/FileUtils"),
-        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem"),
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
         PerformanceReporter = brackets.getModule("perf/PerformanceReporter");
 
