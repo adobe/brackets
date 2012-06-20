@@ -137,7 +137,7 @@ define(function (require, exports, module) {
     exports.CMD_QUICK_OPEN                      = "Quick Open";
     exports.CMD_GOTO_LINE                       = "Go to Line";
     exports.CMD_GOTO_DEFINITION                 = "Go to Definition";
-    exports.CMD_SHOW_INLINE_EDITOR              = "Quick Edit";
+    exports.CMD_TOGGLE_QUICK_EDIT               = "Quick Edit";
     exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";
     exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";
     exports.CMD_NEXT_DOC                        = "Next Document";

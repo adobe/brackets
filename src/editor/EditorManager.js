@@ -501,15 +501,20 @@ define(function (require, exports, module) {
     }
  
     /**
-     * Show Inline Editor command handler
+     * Toggle Quick Edit command handler
+     * @return {!Promise} A promise resolved with true if an inline editor
+     *   is opened or false when closed. The promise is rejected if there
+     *   is no current editor or an inline editor is not created.
      */
-    function _showInlineEditor() {
+    function _toggleQuickEdit() {
+        var result = new $.Deferred();
+        
         if (_currentEditor) {
             var inlineWidget = null,
-                result = getFocusedInlineWidget();
+                focusedWidgetResult = getFocusedInlineWidget();
             
-            if (result) {
-                inlineWidget = result.widget;
+            if (focusedWidgetResult) {
+                inlineWidget = focusedWidgetResult.widget;
             }
             
             if (inlineWidget) {
@@ -519,18 +524,24 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_CLOSE);
         
                 // return a resolved promise to CommandManager
-                return new $.Deferred().resolve().promise();
+                result.resolve(false);
             } else {
                 // main editor has focus, so create an inline editor
-                return _openInlineWidget(_currentEditor);
+                _openInlineWidget(_currentEditor).done(function () {
+                    result.resolve(true);
+                }).fail(function () {
+                    result.reject();
+                });
             }
+        } else {
+            // Can not open an inline editor without a host editor
+            result.reject();
         }
         
-        // Can not open an inline editor without a host editor
-        return new $.Deferred().reject().promise();
+        return result.promise();
     }
 
-    CommandManager.register(Strings.CMD_SHOW_INLINE_EDITOR,     Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);

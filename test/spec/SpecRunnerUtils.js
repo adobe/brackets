@@ -436,10 +436,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that will be resolved when an inline 
      *  editor is created or rejected when no inline editors are available.
      */
-    function openInlineEditorAtOffset(editor, offset) {
+    function toggleQuickEditAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
         
-        return testWindow.executeCommand(Commands.SHOW_INLINE_EDITOR);
+        return testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
     
     /**
@@ -474,7 +474,7 @@ define(function (require, exports, module) {
     exports.clickDialogButton           = clickDialogButton;
     exports.loadProjectInTestWindow     = loadProjectInTestWindow;
     exports.openProjectFiles            = openProjectFiles;
-    exports.openInlineEditorAtOffset    = openInlineEditorAtOffset;
+    exports.toggleQuickEditAtOffset     = toggleQuickEditAtOffset;
     exports.saveFilesWithOffsets        = saveFilesWithOffsets;
     exports.saveFilesWithoutOffsets     = saveFilesWithoutOffsets;
     exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;

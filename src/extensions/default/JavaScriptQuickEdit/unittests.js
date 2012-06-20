@@ -111,10 +111,10 @@ define(function (require, exports, module) {
         if (openOffset !== undefined) {
             runs(function () {
                 // open inline editor at specified offset index
-                waitsForDone(SpecRunnerUtils.openInlineEditorAtOffset(
+                waitsForDone(SpecRunnerUtils.toggleQuickEditAtOffset(
                     EditorManager.getCurrentFullEditor(),
                     spec.infos[openFile].offsets[openOffset]
-                ), "openInlineEditorAtOffset");
+                ), "toggleQuickEditAtOffset");
             });
         }
     };
