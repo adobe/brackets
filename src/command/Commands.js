@@ -73,7 +73,7 @@ define(function (require, exports, module) {
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
-    exports.TOGGLE_QUICK_EDIT           = "navigate.togleQuickEdit";
+    exports.TOGGLE_QUICK_EDIT           = "navigate.toggleQuickEdit";
     exports.QUICK_EDIT_NEXT_MATCH       = "navigate.nextMatch";
     exports.QUICK_EDIT_PREV_MATCH       = "navigate.previousMatch";
 
