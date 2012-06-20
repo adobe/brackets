@@ -195,6 +195,7 @@ define(function (require, exports, module) {
             WorkingSetView          : WorkingSetView,
             JSLintUtils             : JSLintUtils,
             PerfUtils               : PerfUtils,
+            JSUtils                 : JSUtils,
             CommandManager          : require("command/CommandManager"),
             FileSyncManager         : FileSyncManager,
             FileIndexManager        : FileIndexManager,

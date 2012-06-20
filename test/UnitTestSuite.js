@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     require("spec/CodeHintUtils-test");
     require("spec/CommandManager-test");
     require("spec/CSSUtils-test");
+    require("spec/JSUtils-test");
     require("spec/Document-test");
     require("spec/DocumentCommandHandlers-test");
     require("spec/Editor-test");
