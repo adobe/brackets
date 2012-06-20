@@ -80,7 +80,7 @@ define(function (require, exports, module) {
                 });
                 runs(function () {
                     // Open inline editor onto test.css's ".testClass" rule
-                    promise = SpecRunnerUtils.openInlineEditorAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 4});
+                    promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 4});
                     waitsForDone(promise, "Open inline editor");
                 });
                 runs(function () {
