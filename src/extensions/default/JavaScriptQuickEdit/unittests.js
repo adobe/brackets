@@ -39,10 +39,8 @@ define(function (require, exports, module) {
         FileUtils           = brackets.getModule("file/FileUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = brackets.getModule("spec/SpecRunnerUtils"),
+        JSUtils             = brackets.getModule("language/JSUtils"),
         PerformanceReporter = brackets.getModule("perf/PerformanceReporter");
-
-    // Local modules
-    var JSUtils             = require("JSUtils");
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
         testPath = extensionPath + "/unittest-files",
@@ -277,7 +275,7 @@ define(function (require, exports, module) {
         });
         
 
-        // Verifies whether one of the results returned by JSUtils._findAllMatchingFunctionsInText()
+        // Verifies whether one of the results returned by JSUtils.findAllMatchingFunctionsInText()
         // came from the expected function name or not.
  
         var toMatchFunctionName = function (expected) {
@@ -319,7 +317,7 @@ define(function (require, exports, module) {
                 
                 it("should parse an empty string", function () {
                     runs(function () {
-                        var result = JSUtils._findAllMatchingFunctionsInText("", "myFunc");
+                        var result = JSUtils.findAllMatchingFunctionsInText("", "myFunc");
                         expect(result.length).toEqual(0);
                     });
                 });
@@ -332,7 +330,7 @@ define(function (require, exports, module) {
                 // of the expected line range for that Nth result.
     
                 function expectFunctionRanges(spec, jsCode, funcName, ranges) {
-                    var result = JSUtils._findAllMatchingFunctionsInText(jsCode, funcName);
+                    var result = JSUtils.findAllMatchingFunctionsInText(jsCode, funcName);
                     spec.expect(result.length).toEqual(ranges.length);
                     ranges.forEach(function (range, i) {
                         spec.expect(result[i].lineStart).toEqual(range.start);
@@ -411,7 +409,7 @@ define(function (require, exports, module) {
                             content = this.fileJsContent;
                         
                         negativeTests.forEach(function (name) {
-                            result = JSUtils._findAllMatchingFunctionsInText(content, name);
+                            result = JSUtils.findAllMatchingFunctionsInText(content, name);
                             expect(result.length).toBe(0);
                         });
                     });
@@ -495,7 +493,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should find the first instance of the pushStack function", function () {
-                    var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
+                    var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "pushStack");
                     expect(funcNames).not.toBe(null);
                     expect(funcNames.length).toBeGreaterThan(0);
                     
@@ -505,7 +503,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should find all instances of the ready function", function () {
-                    var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "ready");
+                    var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "ready");
                     //expect(funcNames.length).toBe(3);
                     expect(funcNames.length).toBe(2);
                     
@@ -518,7 +516,7 @@ define(function (require, exports, module) {
                 });
                 
                 it("should return an empty array when findAllMatchingSelectors() can't find any matches", function () {
-                    var funcNames = JSUtils._findAllMatchingFunctionsInText(this.fileJsContent, "NO-SUCH-FUNCTION");
+                    var funcNames = JSUtils.findAllMatchingFunctionsInText(this.fileJsContent, "NO-SUCH-FUNCTION");
                     expect(funcNames.length).toBe(0);
                 });
             });
@@ -536,7 +534,7 @@ define(function (require, exports, module) {
             var _match = function (jsCode, tagInfo) {
                 lastJsCode = jsCode;
                 try {
-                    return JSUtils._findAllMatchingFunctionsInText(jsCode, tagInfo);
+                    return JSUtils.findAllMatchingFunctionsInText(jsCode, tagInfo);
                 } catch (e) {
                     this.fail(e.message + ": " + jsCode);
                     return [];
@@ -549,9 +547,9 @@ define(function (require, exports, module) {
     
             var _expectParseError = function (jsCode, expectedCodeOffset, expectedErrorMessage) {
                 try {
-                    JSUtils._findAllMatchingFunctionsInText(jsCode, null);
+                    JSUtils.findAllMatchingFunctionsInText(jsCode, null);
                     
-                    // shouldn't get here since JSUtils._findAllMatchingFunctionsInText() is expected to throw
+                    // shouldn't get here since JSUtils.findAllMatchingFunctionsInText() is expected to throw
                     this.fail("Expected parse error: " + jsCode);
                     
                 } catch (error) {
