@@ -32,7 +32,6 @@ define(function (require, exports, module) {
         CommandManager          = require("command/CommandManager"),
         Editor                  = require("editor/Editor").Editor,
         Strings                 = require("strings"),
-        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
         NativeApp               = require("utils/NativeApp");
     
@@ -40,16 +39,10 @@ define(function (require, exports, module) {
         brackets.app.showDeveloperTools();
     }
     
-    function _handleEnableJSLint() {
-        var enabled = !JSLintUtils.getEnabled();
-        JSLintUtils.setEnabled(enabled);
-        CommandManager.get(Commands.DEBUG_JSLINT).setChecked(enabled);
-    }
-
     function _handleUseTabChars() {
         var useTabs = !Editor.getUseTabChar();
         Editor.setUseTabChar(useTabs);
-        CommandManager.get(Commands.DEBUG_USE_TAB_CHARS).setChecked(useTabs);
+        CommandManager.get(Commands.TOGGLE_USE_TAB_CHARS).setChecked(useTabs);
     }
     
     
@@ -138,24 +131,14 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
-    function _handleCloseAllLiveBrowsers() {
-        NativeApp.closeAllLiveBrowsers().always(function () {
-            console.log("all live browsers closed");
-        });
-    }
     
     // Register all the command handlers
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS, Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
-    CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint)
-        .setChecked(JSLintUtils.getEnabled());
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS, Commands.DEBUG_RUN_UNIT_TESTS,      _handleRunUnitTests);
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
-    CommandManager.register(Strings.CMD_EXPERIMENTAL,   Commands.DEBUG_EXPERIMENTAL,        function () {})
-        .setEnabled(false);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
                                                         Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
-    CommandManager.register(Strings.CMD_CLOSE_ALL_LIVE_BROWSERS,
-                                                        Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
-    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.DEBUG_USE_TAB_CHARS,       _handleUseTabChars)
+    
+    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,      _handleUseTabChars)
         .setChecked(Editor.getUseTabChar());
 });
