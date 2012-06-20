@@ -23,7 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, PathUtils, window, navigator */
+/*global require, define, brackets: true, $, PathUtils, window, navigator */
+
+require.config({
+    paths: {
+        "text" : "thirdparty/text"
+    }
+});
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
