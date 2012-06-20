@@ -203,6 +203,7 @@ define(function (require, exports, module) {
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
+            ExtensionUtils          : require("utils/ExtensionUtils"),
             doneLoading             : false
         };
 
