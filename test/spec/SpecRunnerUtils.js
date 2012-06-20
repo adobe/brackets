@@ -439,8 +439,7 @@ define(function (require, exports, module) {
     function openInlineEditorAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
         
-        // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
-        return testWindow.brackets.test.EditorManager._openInlineWidget(editor);
+        return testWindow.executeCommand(Commands.SHOW_INLINE_EDITOR);
     }
     
     /**
