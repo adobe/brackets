@@ -1023,7 +1023,7 @@ define(function (require, exports, module) {
 
     // Handle project change events
     $(ProjectManager).on("projectOpen", function () {
-        window.setTimeout(_projectOpen);
+        window.setTimeout(_projectOpen, 0);
     });
     $(ProjectManager).on("beforeProjectClose", _beforeProjectClose);
 });
