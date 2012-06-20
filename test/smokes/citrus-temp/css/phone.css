@@ -1,0 +1,61 @@
+@charset "utf-8";
+#container {
+	width: 100%;
+}
+#logo {
+	height:auto;
+	width:270px;
+	background-image: url(../images/sml_logo.png);
+	margin-left:auto;
+	margin-right:auto;
+}
+nav {
+	padding-top:100px;
+}
+nav ul {
+	font-size:24px;
+}
+nav ul a {
+	width:97%;
+	padding-right:0;
+}
+nav ul li {
+	float:none;
+}
+nav ul li:hover {
+	margin-top:0;
+}
+#maincontent {
+	margin-top: 0;
+	padding:0;
+}
+#vision {
+	background-image:none;
+	width: 280px;
+	height:auto;
+	font-size:16px;
+	line-height:normal;
+	padding-top:0;
+}
+/* Uncomment the declarations in the following rules to hide the images in the pods. */
+.pod {
+	width: 305px;
+	/*padding-bottom:0;*/
+}
+/*.pod h1 {
+	margin-bottom:0;
+}*/
+.podContent {
+	width: 302px;
+	height:180px;
+	/*display:none;*/
+}
+/*#news .podContent {
+	display:block;
+}*/
+footer p {
+	margin-left:5px;
+}
+#facebookTwitter {
+	margin-right:5px;
+}
