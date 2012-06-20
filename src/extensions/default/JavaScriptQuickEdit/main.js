@@ -153,7 +153,7 @@ define(function (require, exports, module) {
         // Always use the selection start for determining the function name. The pos
         // parameter is usually the selection end.        
         var functionName = _getFunctionName(hostEditor, hostEditor.getSelection().start);
-        if ((functionName === null) || (functionName === "")) {
+        if (!functionName) {
             return null;
         }
         

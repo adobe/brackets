@@ -680,7 +680,7 @@ define(function (require, exports, module) {
                     // Populate JSUtils cache
                     if (buildCache) {
                         runs(function () {
-                            // Look for the selector we just created
+                            // Look for the selector we're about to create--we shouldn't find it yet
                             FileIndexManager.getFileInfoList("all")
                                 .done(function (fileInfos) {
                                     // Look for "TESTFUNCTION" function
