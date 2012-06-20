@@ -34,7 +34,7 @@ define(function (require, exports, module) {
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         KeyBindingManager   = require("command/KeyBindingManager"),
-        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        NativeFileSystem    = require("file/NativeFileSystem"),
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),

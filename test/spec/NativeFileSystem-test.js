@@ -29,8 +29,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+    var NativeFileSystem        = require("file/NativeFileSystem"),
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
     
     var Encodings               = NativeFileSystem.Encodings;
     var _FSEncodings            = NativeFileSystem._FSEncodings;

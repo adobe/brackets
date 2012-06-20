@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load Brackets modules
-    var InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget;
+    var InlineWidget        = brackets.getModule("editor/InlineWidget");
     
     function InlineImageViewer(fileName, fullPath) {
         this.fileName = fileName;

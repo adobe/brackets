@@ -29,8 +29,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var SpecRunnerUtils     = require("./SpecRunnerUtils.js");
-    var _FSEncodings        = require("file/NativeFileSystem").NativeFileSystem._FSEncodings;
+    var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+    var _FSEncodings        = require("file/NativeFileSystem")._FSEncodings;
     
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.

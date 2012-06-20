@@ -30,8 +30,8 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
-        Editor          = require("editor/Editor").Editor;
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
+        Editor          = require("editor/Editor");
     
     //Use a clean version of the editor each time
     var myDocument;

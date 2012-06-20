@@ -171,7 +171,11 @@ define(function (require, exports, module) {
         delete records[spec];
     };
     
-    exports.PerformanceReporter = PerformanceReporter;
-    exports.logTestWindow = logTestWindow;
-    exports.clearTestWindow = clearTestWindow;
+    function createPerformanceReporter() {
+        return new PerformanceReporter();
+    }
+    
+    exports.createPerformanceReporter   = createPerformanceReporter;
+    exports.logTestWindow               = logTestWindow;
+    exports.clearTestWindow             = clearTestWindow;
 });

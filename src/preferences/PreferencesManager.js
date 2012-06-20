@@ -32,7 +32,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
+    var PreferenceStorage = require("preferences/PreferenceStorage");
     
     var PREFERENCES_KEY = "com.adobe.brackets.preferences";
 

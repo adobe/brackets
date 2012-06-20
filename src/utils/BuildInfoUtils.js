@@ -31,7 +31,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var NativeFileSystem    = require("file/NativeFileSystem"),
         FileUtils           = require("file/FileUtils");
     
     

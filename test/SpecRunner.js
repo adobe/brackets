@@ -39,7 +39,7 @@ define(function (require, exports, module) {
     
     // Utility dependency
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
-        PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter,
+        PerformanceReporter = require("perf/PerformanceReporter"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus");
@@ -164,7 +164,7 @@ define(function (require, exports, module) {
             
             // add performance reporting
             if (isPerfSuite) {
-                jasmineEnv.addReporter(new PerformanceReporter());
+                jasmineEnv.addReporter(PerformanceReporter.createPerformanceReporter());
             }
             
             localStorage.setItem("SpecRunner.suite", suite);

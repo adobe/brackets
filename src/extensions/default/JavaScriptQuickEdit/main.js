@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Brackets modules
-    var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
+    var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor"),
         FileIndexManager        = brackets.getModule("project/FileIndexManager"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         PerfUtils               = brackets.getModule("utils/PerfUtils");

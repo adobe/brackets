@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Commands,
         DocumentManager,
         FileViewController,
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("WorkingSetView", function () {
     

@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         Commands,
         KeyBindingManager,
         Menus,
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         StringsUtils        = require("utils/StringUtils"),
         Strings             = require("strings");
 
