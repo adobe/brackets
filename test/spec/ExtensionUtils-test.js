@@ -74,8 +74,8 @@ define(function (require, exports, module) {
                 // attach another style sheet in a sub-directory with space and high-ascii chars in name.
                 // note that git choked on double-byte chars, so those were removed.
                 runs(function () {
-                    var promise = ExtensionUtils.loadStyleSheet(module, "ExtensionUtils-test-files/sub dir/HighASCII_été.css");
-                    waitsForDone(promise, "loadStyleSheet: second.css");
+                    var promise = ExtensionUtils.loadStyleSheet(module, "ExtensionUtils-test-files/sub dir/third.css");
+                    waitsForDone(promise, "loadStyleSheet: third.css");
                 });
 
                 runs(function () {
