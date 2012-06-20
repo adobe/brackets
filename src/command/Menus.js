@@ -781,6 +781,8 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_DUPLICATE,           "Ctrl-D");
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT,        "Ctrl-/");
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
 
         /*
          * View menu
@@ -791,6 +793,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
         menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
         menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
         /*
          * Navigate menu
@@ -810,20 +814,14 @@ define(function (require, exports, module) {
          * Debug menu
          */
         menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
-        menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
-                                                         {key: "Ctrl-R", platform:  "mac"}]);
-
         menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
                                                                {key: "Ctrl-Opt-I", platform: "mac"}]);
-        menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-        menu.addMenuItem(Commands.DEBUG_JSLINT);
-        menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
-		
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.DEBUG_EXPERIMENTAL);
+        menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
+                                                         {key: "Ctrl-R", platform:  "mac"}]);
         menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
-        menu.addMenuItem(Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS);
-        menu.addMenuItem(Commands.DEBUG_USE_TAB_CHARS);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
+        menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
 
 
         /*
