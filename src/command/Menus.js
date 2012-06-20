@@ -836,53 +836,53 @@ define(function (require, exports, module) {
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
         /**
-         * Displays context menu when right clicking editor.
+         * Context menu for code editors (both full-size and inline)
          * Auto selects the word the user clicks if the click does not occur over
          * an existing selection
-         *
-         * TODO: doesn't word select when changing editors with right click
-         *
          */
-        $("#editor-holder").contextmenu(function (e) {
-            if (e.which === 3) {
-                if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
-                    return;
+        $("#editor-holder").on("contextmenu", function (e) {
+            if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
+                return;
+            }
+            
+            // Note: on mousedown before this event, CodeMirror automatically checks mouse pos, and
+            // if not clicking on a selection moves the cursor to click location. When triggered
+            // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
+            
+            var editor = EditorManager.getFocusedEditor();
+            if (editor) {
+                // If there's just an insertion point select the word token at the cursor pos so
+                // it's more clear what the context menu applies to.
+                if (!editor.hasSelection()) {
+                    editor.selectWordAt(editor.getCursorPos());
+                    
+                    // Prevent menu from overlapping text by moving it down a little
+                    e.pageY += 6;
                 }
-
-                var editor = EditorManager.getFocusedEditor();
-                if (editor) {
-                    var clickedSel = false,
-                        pos = editor.coordsChar({x: e.pageX, y: e.pageY});
-                    if (editor.getSelectedText() !== "") {
-                        var sel = editor.getSelection();
-                        clickedSel =  editor.coordsWithinRange(pos, sel.start, sel.end);
-                    }
-
-                    if (!clickedSel) {
-                        editor.selectWordAt(pos);
-                        // Prevent menu from overlapping text by
-                        // moving it down a little
-                        e.pageY += 6;
-                    }
-                    editor_cmenu.open(e);
-                }
+                
+                editor_cmenu.open(e);
             }
         });
 
-
-        $("#projects").contextmenu(function (e) {
-            if (e.which === 3) {
-                project_cmenu.open(e);
-            }
+        /**
+         * Context menu for folder tree & working set list
+         *
+         * TODO (#1069): change selection on right mousedown if not on something already selected
+         */
+        $("#projects").on("contextmenu", function (e) {
+            project_cmenu.open(e);
         });
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {
             e.preventDefault();
         });
-
-        // Prevent clicks on the top-level menu bar from taking focus
-        // Note, bootstrap handles this already for the menu drop downs
+        
+        
+        /*
+         * General menu event processing
+         */
+        // Prevent clicks on top level menus and menu items from taking focus
         $(window.document).on("mousedown", ".dropdown", function (e) {
             e.preventDefault();
         });
