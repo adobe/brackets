@@ -654,7 +654,8 @@ define(function (require, exports, module) {
     };
 
     /**
-     * @param {line:number, ch:number}
+     * Given a position, returns its index within the text (assuming \n newlines)
+     * @param {!{line:number, ch:number}}
      * @return {number}
      */
     Editor.prototype.indexFromPos = function (coords) {
@@ -662,33 +663,36 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Returns true if coords is between start and end (inclusive)
-     * @param {line:number, ch:number} coords
-     * @param {line:number, ch:number} start
-     * @param {line:number, ch:number} end
+     * Returns true if pos is between start and end (inclusive at both ends)
+     * @param {{line:number, ch:number}} pos
+     * @param {{line:number, ch:number}} start
+     * @param {{line:number, ch:number}} end
      *
      */
-    Editor.prototype.coordsWithinRange = function (coords, start, end) {
+    Editor.prototype.posWithinRange = function (pos, start, end) {
         var startIndex = this.indexFromPos(start),
             endIndex = this.indexFromPos(end),
-            coordIndex = this.indexFromPos(coords);
+            posIndex = this.indexFromPos(pos);
 
-        return coordIndex >= startIndex && coordIndex <= endIndex;
+        return posIndex >= startIndex && posIndex <= endIndex;
     };
-
-    Editor.prototype.coordsChar = function (coords) {
-        return this._codeMirror.coordsChar(coords);
+    
+    /**
+     * @return {boolean} True if there's a text selection; false if there's just an insertion point
+     */
+    Editor.prototype.hasSelection = function () {
+        return this._codeMirror.somethingSelected();
     };
-
+    
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
      * of length zero).
-     * @return !{start:{line:number, ch:number}, end:{line:number, ch:number}}
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     Editor.prototype.getSelection = function () {
         var selStart = this._codeMirror.getCursor(true),
-            selEnd = this._codeMirror.getCursor(false);
+            selEnd   = this._codeMirror.getCursor(false);
         return { start: selStart, end: selEnd };
     };
     
@@ -711,8 +715,9 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Selects a the word nearest to the position
-     * @param {line:number, ch:number}
+     * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
+     * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
+     * @param {!{line:number, ch:number}}
      */
     Editor.prototype.selectWordAt = function (pos) {
         this._codeMirror.selectWordAt(pos);
