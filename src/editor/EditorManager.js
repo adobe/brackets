@@ -517,11 +517,17 @@ define(function (require, exports, module) {
                 PerfUtils.markStart(PerfUtils.INLINE_EDITOR_CLOSE);
                 inlineWidget.close();
                 PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_CLOSE);
+        
+                // return a resolved promise to CommandManager
+                return new $.Deferred().resolve().promise();
             } else {
                 // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor);
+                return _openInlineWidget(_currentEditor);
             }
         }
+        
+        // Can not open an inline editor without a host editor
+        return new $.Deferred().reject().promise();
     }
 
     CommandManager.register(Strings.CMD_SHOW_INLINE_EDITOR,     Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
