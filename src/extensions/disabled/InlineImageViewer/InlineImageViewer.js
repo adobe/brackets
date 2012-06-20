@@ -56,7 +56,7 @@ define(function (require, exports, module) {
         // TODO (jason-sanjose): Use handlebars.js and update template to
         // use expressions instead e.g. {{filename}}
         // Header
-        $(this.$wrapperDiv.find("span")).text(this.filename);
+        $(this.$wrapperDiv.find("span")).text(this.fileName);
 
         // Image
         this.$image = $(this.$wrapperDiv.find("img")).attr("src", this.fullPath);
