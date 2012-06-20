@@ -39,9 +39,10 @@ define(function (require, exports, module) {
      * @return {!$.Promise} A promise object that is resolved if the CSS file can be loaded.
      */
     function loadStyleSheet(module, path) {
-        var url = encodeURI(module.uri.replace("main.js", "") + path),
+        var modulePath = module.uri.substr(0, module.uri.lastIndexOf("/") + 1),
+            url = encodeURI(modulePath + path),
             result = new $.Deferred();
-        
+
         // Make a request for the same file in order to record success or failure.
         // The link element's onload and onerror events are not consistently supported.
         $.get(url).done(function () {
