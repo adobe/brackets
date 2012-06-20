@@ -33,6 +33,7 @@ define(function (require, exports, module) {
     require("spec/DocumentCommandHandlers-test");
     require("spec/Editor-test");
     require("spec/EditorCommandHandlers-test");
+    require("spec/ExtensionUtils-test");
     require("spec/FileIndexManager-test");
     require("spec/InlineEditorProviders-test");
     require("spec/KeyBindingManager-test");
