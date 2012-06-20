@@ -806,7 +806,7 @@ define(function (require, exports, module) {
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION, "Ctrl-T");
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.SHOW_INLINE_EDITOR,       "Ctrl-E");
+        menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH,    {key: "Alt-Down", displayKey: "Alt-\u2193"});
 
@@ -830,7 +830,7 @@ define(function (require, exports, module) {
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
-        editor_cmenu.addMenuItem(Commands.SHOW_INLINE_EDITOR);
+        editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
         /**
