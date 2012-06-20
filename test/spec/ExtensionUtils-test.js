@@ -37,7 +37,6 @@ define(function (require, exports, module) {
 
         beforeEach(function () {
             SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-//                w.brackets.app.showDeveloperTools();    /*** TODO: remove ***/
                 testWindow = w;
 
                 // Load module instances from brackets.test
@@ -50,34 +49,42 @@ define(function (require, exports, module) {
         });
 
         describe("loadStyleSheet", function () {
-            it("should attach a style sheet", function () {
+
+            // putting everything in 1 test so it runs faster
+            it("should attach style sheets", function () {
+
+                // attach style sheet
                 runs(function () {
-                    // attach style sheet
                     var promise = ExtensionUtils.loadStyleSheet(module, "ExtensionUtils-test-files/basic.css");
-                    waitsForDone(promise, "loadStyleSheet");
+                    waitsForDone(promise, "loadStyleSheet: basic.css");
                 });
-                    
+
+                // placing this code in a separate closure forces styles to update
                 runs(function () {
-                    // placing this code in a separate closure forces styles to update
+                    // basic.css
                     var $projectTitle = testWindow.$("#project-title");
                     var fontSize = $projectTitle.css("font-size");
                     expect(fontSize).toEqual("25px");
+
+                    // second.css is imported in basic.css
+                    var fontWeight = $projectTitle.css("font-weight");
+                    expect(fontWeight).toEqual("500");
+                });
+
+                // attach another style sheet in a sub-directory with space and high-ascii chars in name.
+                // note that git choked on double-byte chars, so those were removed.
+                runs(function () {
+                    var promise = ExtensionUtils.loadStyleSheet(module, "ExtensionUtils-test-files/sub dir/HighASCII_été.css");
+                    waitsForDone(promise, "loadStyleSheet: second.css");
+                });
+
+                runs(function () {
+                    // HighASCII_été.css
+                    var $projectTitle = testWindow.$("#project-title");
+                    var fontVariant = $projectTitle.css("font-variant");
+                    expect(fontVariant).toEqual("small-caps");
                 });
             });
-
-
-            // should attach multiple style sheets
-
-            // should allow references to other resources
-
-            // should accept name with a space, high-ascii, & multi-byte chars
-
-            // should attach style sheet in a subdir
-
-            // should import style sheet in a subdir
-
-            // should not loop infinitely with recursive style sheet reference
-
         });
     });
 });
