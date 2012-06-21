@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
+/*global define, $, window */
 
 /**
  * DocumentManager maintains a list of currently 'open' Documents. It also owns the list of files in
@@ -1021,6 +1021,8 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
     // Handle project change events
-    $(ProjectManager).on("projectOpen", _projectOpen);
+    $(ProjectManager).on("projectOpen", function () {
+        window.setTimeout(_projectOpen, 0);
+    });
     $(ProjectManager).on("beforeProjectClose", _beforeProjectClose);
 });
