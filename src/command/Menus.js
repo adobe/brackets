@@ -597,7 +597,14 @@ define(function (require, exports, module) {
 
         return menu;
     }
-    
+
+    /**
+     * Closes all menus that are open
+     */
+    function closeAll() {
+        $(".dropdown").removeClass("open");
+    }
+
     /**
      * @constructor
      * @extends {Menu}
@@ -665,7 +672,7 @@ define(function (require, exports, module) {
         $(this).triggerHandler("beforeContextMenuOpen");
 
         // close all other dropdowns
-        $(".dropdown").removeClass("open");
+        closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
         var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
@@ -779,8 +786,10 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
                                                              {key: "Ctrl-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_DUPLICATE,           "Ctrl-D");
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,        "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
+        menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
+        menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
 
@@ -828,6 +837,7 @@ define(function (require, exports, module) {
          * Context Menus
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
+        project_cmenu.addMenuItem(Commands.FILE_NEW);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -888,7 +898,7 @@ define(function (require, exports, module) {
         // close all dropdowns on ESC
         $(window.document).on("keydown", function (e) {
             if (e.keyCode === 27) {
-                $(".dropdown").removeClass("open");
+                closeAll();
             }
         });
 
@@ -918,8 +928,9 @@ define(function (require, exports, module) {
     exports.getMenuItem = getMenuItem;
     exports.getContextMenu = getContextMenu;
     exports.addMenu = addMenu;
+    exports.registerContextMenu = registerContextMenu;
+    exports.closeAll = closeAll;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
-    exports.registerContextMenu = registerContextMenu;
     exports.ContextMenu = ContextMenu;
 });

@@ -56,7 +56,7 @@ define(function (require, exports, module) {
             
             $("head").append($link[0]);
             
-            result.resolve();
+            result.resolve($link[0]);
         }).fail(function (err) {
             result.reject(err);
         });

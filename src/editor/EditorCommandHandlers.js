@@ -149,9 +149,34 @@ define(function (require, exports, module) {
         var selectedText = doc.getRange(sel.start, sel.end);
         doc.replaceRange(selectedText, sel.start);
     }
+
+    /**
+     * Indent a line of text if no selection. Otherwise, indent all lines in selection.
+     */
+    function indentText() {
+        var editor = EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        editor._codeMirror.execCommand("indentMore");
+    }
     
-    
+    /**
+     * Unindent a line of text if no selection. Otherwise, unindent all lines in selection.
+     */
+    function unidentText() {
+        var editor = EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        editor._codeMirror.execCommand("indentLess");
+    }
+        
     // Register commands
+    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,       indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,     unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT, lineComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE, duplicateText);
+    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,    duplicateText);
 });

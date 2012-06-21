@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
+        Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
         FileViewController  = require("project/FileViewController"),
@@ -137,7 +138,7 @@ define(function (require, exports, module) {
             if (selectionChanged && !_suppressSelectionChange) {
                 $projectTreeList.triggerHandler("selectionChanged", reveal);
             }
-            
+
             // reposition the selection triangle
             $projectTreeContainer.triggerHandler("scroll");
             
@@ -379,6 +380,13 @@ define(function (require, exports, module) {
                 }
             )
             .bind(
+                "scroll.jstree",
+                function (e) {
+                    // close all dropdowns on scroll
+                    Menus.closeAll();
+                }
+            )
+            .bind(
                 "loaded.jstree open_node.jstree close_node.jstree",
                 function (event, data) {
                     if (event.type === "open_node") {
@@ -402,6 +410,24 @@ define(function (require, exports, module) {
                     }
                     
                     _savePreferences();
+                }
+            )
+            .bind(
+                "mousedown.jstree",
+                function (event) {
+                    // select tree node on right-click
+                    if (event.which === 3) {
+                        var treenode = $(event.target).closest("li");
+                        if (treenode) {
+                            var saveSuppressToggleOpen = suppressToggleOpen;
+                            
+                            // don't toggle open folders (just select)
+                            suppressToggleOpen = true;
+                            _projectTree.jstree("deselect_all");
+                            _projectTree.jstree("select_node", treenode, false);
+                            suppressToggleOpen = saveSuppressToggleOpen;
+                        }
+                    }
                 }
             );
 
