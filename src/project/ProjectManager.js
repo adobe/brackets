@@ -411,6 +411,24 @@ define(function (require, exports, module) {
                     
                     _savePreferences();
                 }
+            )
+            .bind(
+                "mousedown.jstree",
+                function (event) {
+                    // select tree node on right-click
+                    if (event.which === 3) {
+                        var treenode = $(event.target).closest("li");
+                        if (treenode) {
+                            var saveSuppressToggleOpen = suppressToggleOpen;
+                            
+                            // don't toggle open folders (just select)
+                            suppressToggleOpen = true;
+                            _projectTree.jstree("deselect_all");
+                            _projectTree.jstree("select_node", treenode, false);
+                            suppressToggleOpen = saveSuppressToggleOpen;
+                        }
+                    }
+                }
             );
 
         // jstree has a default event handler for dblclick that attempts to clear the
