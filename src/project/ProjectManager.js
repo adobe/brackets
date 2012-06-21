@@ -403,6 +403,19 @@ define(function (require, exports, module) {
                     
                     _savePreferences();
                 }
+            )
+            .bind(
+                "mousedown.jstree",
+                function (event) {
+                    // select tree node on right-click
+                    if (event.which === 3) {
+                        var treenode = $(event.target).closest("li");
+                        if (treenode) {
+                            _projectTree.jstree("deselect_all");
+                            _projectTree.jstree("select_node", treenode, false);
+                        }
+                    }
+                }
             );
 
         // jstree has a default event handler for dblclick that attempts to clear the
