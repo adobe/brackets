@@ -1,0 +1,36 @@
+.toolbar {
+    background-color: #272822;
+    color: #fff;
+}
+
+.toolbar .nav .dropdown-toggle {
+    color: #fff;
+}
+
+.sidebar-selection-triangle.triangle-visible::before {
+    border-right: 9px solid #272822;
+}
+
+.inline-widget {
+    background-color: #333;
+}
+
+.related-container {
+    background-color: #222;
+}
+
+.related-container .selection {
+    background-color: #111;
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #333;
+}
+
+.related-container .selection::before {
+    border-top: 9px solid #111;
+    border-bottom: 9px solid #111;
+    border-left: 9px solid #333;
+}
+
+.related-container .related .selected {
+    color: #fff;
+}
