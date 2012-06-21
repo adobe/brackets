@@ -47,11 +47,11 @@ define(function (require, exports, module) {
         return this.actual.functionName.trim() === expected;
     };
 
-    var simpleJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/simple.js");
-    var jQueryJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
+    var simpleJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/simple.js");
+    var jQueryJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
     var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/braceEnd.js");
-    var eofJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/eof.js");
-    var eof2JsFileEntry = new NativeFileSystem.FileEntry(testPath + "/eof2.js");
+    var eofJsFileEntry      = new NativeFileSystem.FileEntry(testPath + "/eof.js");
+    var eof2JsFileEntry     = new NativeFileSystem.FileEntry(testPath + "/eof2.js");
 
     function init(spec, fileEntry) {
         spec.fileJsContent = null;
