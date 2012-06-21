@@ -56,12 +56,12 @@ define(function (require, exports, module) {
             
             $("head").append($link[0]);
             
-            result.resolve();
+            result.resolve($link);
         }).fail(function (err) {
             result.reject(err);
         });
         
-        return result;
+        return result.promise();
     }
     
     exports.loadStyleSheet = loadStyleSheet;
