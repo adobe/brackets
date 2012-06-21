@@ -1,0 +1,6 @@
+/* basic.css */
+@import url("sub dir/second.css");
+
+#project-title {
+    font-size: 25px;
+}

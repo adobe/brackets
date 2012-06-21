@@ -94,6 +94,7 @@ define(function (require, exports, module) {
     
     /** closeAllLiveBrowsers
      * Closes all the browsers that were tracked on open
+     * TODO: does not seem to work on Windows
      * @return {$.Promise}
      */
     function closeAllLiveBrowsers() {
