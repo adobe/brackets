@@ -134,13 +134,13 @@ define(function (require, exports, module) {
                 var editor = EditorManager.getCurrentFullEditor();
                 
                 // open inline editor at specified offset index
-                var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
+                var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
                     editor,
                     spec.infos[openFile].offsets[openOffset]
                 );
                 
-                inlineEditorResult.done(function () {
-                    inlineOpened = true;
+                inlineEditorResult.done(function (isOpened) {
+                    inlineOpened = isOpened;
                 }).fail(function () {
                     inlineOpened = false;
                 });

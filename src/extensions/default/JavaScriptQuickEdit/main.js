@@ -164,6 +164,7 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("JAVASCRIPT_FIND_FUNCTION", "JavaScript Find Function");
     
     // for unit tests only
-    exports._createInlineEditor = _createInlineEditor;
-    exports._findInProject      = _findInProject;
+    exports.javaScriptFunctionProvider  = javaScriptFunctionProvider;
+    exports._createInlineEditor         = _createInlineEditor;
+    exports._findInProject              = _findInProject;
 });

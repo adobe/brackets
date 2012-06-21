@@ -31,6 +31,9 @@ define(function (require, exports, module) {
     // Load Brackets modules
     var InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget;
     
+    // Load tempalte
+    var inlineEditorTemplate = require("text!InlineImageViewer.html");
+    
     function InlineImageViewer(fileName, fullPath) {
         this.fileName = fileName;
         this.fullPath = fullPath;
@@ -47,23 +50,16 @@ define(function (require, exports, module) {
     
     InlineImageViewer.prototype.load = function (hostEditor) {
         this.parentClass.load.call(this, hostEditor);
-            
+        
+        this.$wrapperDiv = $(inlineEditorTemplate);
+        
+        // TODO (jason-sanjose): Use handlebars.js and update template to
+        // use expressions instead e.g. {{filename}}
         // Header
-        var $filenameDiv = $("<div/>")
-            .addClass("filename")
-            .append($("<span></span>").text(this.fileName));
+        $(this.$wrapperDiv.find("span")).text(this.fileName);
 
         // Image
-        this.$image = $("<img/>")
-            .css("display", "block")
-            .css("margin", "20px auto")
-            .css("opacity", 0)
-            .attr("src", this.fullPath);
-         
-        // Wrapper
-        this.$wrapperDiv = $("<div/>")
-            .append($filenameDiv)
-            .append(this.$image);
+        this.$image = $(this.$wrapperDiv.find("img")).attr("src", this.fullPath);
         
         this.$htmlContent.append(this.$wrapperDiv);
         this.$htmlContent.click(this.close.bind(this));
