@@ -167,8 +167,9 @@ define(function (require, exports, module) {
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
 
-        $newItem.mousedown(function () {
+        $newItem.mousedown(function (e) {
             FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
+            e.preventDefault();
         });
 
         $newItem.hover(
