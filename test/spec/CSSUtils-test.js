@@ -1098,19 +1098,39 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.closeTestWindow();
             });
             
-            it("should return the correct offsets if the file has changed", function () {
-                var didOpen = false,
-                    gotError = false;
-                
+            function fileChangedTest(buildCache) {
+                var doc,
+                    didOpen = false,
+                    gotError = false,
+                    functions = null;
+
                 runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                    FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
                         .done(function () { didOpen = true; })
                         .fail(function () { gotError = true; });
                 });
                 
                 waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                 
-                var rules = null;
+                // Populate JSUtils cache
+                if (buildCache) {
+                    runs(function () {
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (fileInfos) {
+                                // Look for "edit2" function
+                                JSUtils.findMatchingFunctions("edit2", fileInfos)
+                                    .done(function (result) { functions = result; });
+                            });
+                    });
+                    
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(functions.length).toBe(1);
+                        expect(functions[0].lineStart).toBe(7);
+                        expect(functions[0].lineEnd).toBe(9);
+                    });
+                }
                 
                 runs(function () {
                     var doc = DocumentManager.getCurrentDocument();
@@ -1130,23 +1150,53 @@ define(function (require, exports, module) {
                     expect(rules[0].lineStart).toBe(16);
                     expect(rules[0].lineEnd).toBe(18);
                 });
+            }
+                            
+            it("should return the correct offsets if the file has changed", function () {
+                fileChangedTest(false);
             });
             
-            it("should return a newly created rule in an unsaved file", function () {
+            it("should return the correct offsets if the results were cached and the file has changed", function () {
+                fileChangedTest(true);
+            });
+            
+            function insertFunctionTest(buildCache) {
                 var didOpen = false,
-                    gotError = false;
+                    gotError = false,
+                    functions = null;
                 
                 runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/simple.css", FileViewController.PROJECT_MANAGER)
+                    FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
                         .done(function () { didOpen = true; })
                         .fail(function () { gotError = true; });
                 });
                 
                 waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                 
-                var rules = null;
+                // Populate JSUtils cache
+                if (buildCache) {
+                    runs(function () {
+                        // Look for the selector we're about to create--we shouldn't find it yet
+                        FileIndexManager.getFileInfoList("all")
+                            .done(function (fileInfos) {
+                                // Look for "TESTFUNCTION" function
+                                JSUtils.findMatchingFunctions("TESTFUNCTION", fileInfos)
+                                    .done(function (result) {
+                                        functions = result;
+                                    });
+                            });
+                    });
+                    
+                    waitsFor(function () { return functions !== null; }, "JSUtils.findMatchingFunctions() timeout", 1000);
+                    
+                    runs(function () {
+                        expect(functions.length).toBe(0);
+                    });
+                }
                 
                 runs(function () {
+                    // reset result functions array
+                    functions = null;
                     var doc = DocumentManager.getCurrentDocument();
                     
                     // Add a new selector to the file
@@ -1164,6 +1214,14 @@ define(function (require, exports, module) {
                     expect(rules[0].lineStart).toBe(24);
                     expect(rules[0].lineEnd).toBe(26);
                 });
+            }
+
+            it("should return a newly created function in an unsaved file", function () {
+                insertFunctionTest(false);
+            });
+
+            it("should return a newly created function in an unsaved file that already has cached results", function () {
+                insertFunctionTest(true);
             });
         });
     }); //describe("CSS Parsing")

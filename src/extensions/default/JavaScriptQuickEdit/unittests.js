@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -202,42 +202,42 @@ define(function (require, exports, module) {
             });
 
             it("should ignore tokens that are not function calls or references", function () {
-               var editor,
-                   extensionRequire,
-                   jsQuickEditMain,
-                   tokensFile = "tokens.js",
-                   promise,
-                   offsets;
+                var editor,
+                    extensionRequire,
+                    jsQuickEditMain,
+                    tokensFile = "tokens.js",
+                    promise,
+                    offsets;
                
-               initInlineTest(tokensFile);
+                initInlineTest(tokensFile);
                
-               runs(function () {
-                   extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("JavaScriptQuickEdit");
-                   jsQuickEditMain = extensionRequire("main");
-                   editor = EditorManager.getCurrentFullEditor();
-                   offsets = this.infos[tokensFile];
+                runs(function () {
+                    extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("JavaScriptQuickEdit");
+                    jsQuickEditMain = extensionRequire("main");
+                    editor = EditorManager.getCurrentFullEditor();
+                    offsets = this.infos[tokensFile];
                    
-                   // regexp token
-                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[0]);
-                   expect(promise).toBeNull();
-                   
-                   // multi-line comment
-                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[1]);
-                   expect(promise).toBeNull();
-                   
-                   // single-line comment
-                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[2]);
-                   expect(promise).toBeNull();
-                   
-                   // string, double quotes
-                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[3]);
-                   expect(promise).toBeNull();
-                   
-                   // string, single quotes
-                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[4]);
-                   expect(promise).toBeNull();
-               });
-           });
+                    // regexp token
+                    promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[0]);
+                    expect(promise).toBeNull();
+                    
+                    // multi-line comment
+                    promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[1]);
+                    expect(promise).toBeNull();
+                    
+                    // single-line comment
+                    promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[2]);
+                    expect(promise).toBeNull();
+                    
+                    // string, double quotes
+                    promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[3]);
+                    expect(promise).toBeNull();
+                    
+                    // string, single quotes
+                    promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[4]);
+                    expect(promise).toBeNull();
+                });
+            });
 
             it("should open a function with  form: function functionName()", function () {
                 initInlineTest("test1main.js", 0);

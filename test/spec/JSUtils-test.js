@@ -31,8 +31,8 @@ define(function (require, exports, module) {
     var DocumentManager,        // loaded from brackets.test
         FileIndexManager,       // loaded from brackets.test
         FileViewController,     // loaded from brackets.test
-        JSUtils,              // loaded from brackets.test
-        
+
+        JSUtils             = require("language/JSUtils"),
         FileUtils           = require("file/FileUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
@@ -47,11 +47,11 @@ define(function (require, exports, module) {
         return this.actual.functionName.trim() === expected;
     };
 
-    var simpleJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/unittest-files/simple.js");
-    var jQueryJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/unittest-files/jquery-1.7.js");
-    var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/unittest-files/braceEnd.js");
-    var eofJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/unittest-files/eof.js");
-    var eof2JsFileEntry = new NativeFileSystem.FileEntry(testPath + "/unittest-files/eof2.js");
+    var simpleJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/simple.js");
+    var jQueryJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
+    var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/braceEnd.js");
+    var eofJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/eof.js");
+    var eof2JsFileEntry = new NativeFileSystem.FileEntry(testPath + "/eof2.js");
 
     function init(spec, fileEntry) {
         spec.fileJsContent = null;
@@ -352,17 +352,17 @@ define(function (require, exports, module) {
             
             function fileChangedTest(buildCache) {
                 var doc,
-                    didOpen = false,
-                    gotError = false,
                     functions = null;
 
-                runs(function () {                    
-                    FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                runs(function () {
+                    waitsForDone(
+                        FileViewController.openAndSelectDocument(
+                            testPath + "/edit.js",
+                            FileViewController.PROJECT_MANAGER
+                        ),
+                        "openAndSelectDocument"
+                    );
                 });
-                
-                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                 
                 // Populate JSUtils cache
                 if (buildCache) {
@@ -419,17 +419,17 @@ define(function (require, exports, module) {
             });
             
             function insertFunctionTest(buildCache) {
-                var didOpen = false,
-                    gotError = false,
-                    functions = null;
+                var functions = null;
                 
                 runs(function () {
-                    FileViewController.openAndSelectDocument(testPath + "/edit.js", FileViewController.PROJECT_MANAGER)
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                    waitsForDone(
+                        FileViewController.openAndSelectDocument(
+                            testPath + "/edit.js",
+                            FileViewController.PROJECT_MANAGER
+                        ),
+                        "openAndSelectDocument"
+                    );
                 });
-                
-                waitsFor(function () { return didOpen && !gotError; }, "FileViewController.addToWorkingSetAndSelect() timeout", 1000);
                 
                 // Populate JSUtils cache
                 if (buildCache) {
