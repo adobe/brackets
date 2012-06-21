@@ -152,28 +152,26 @@ define(function (require, exports, module) {
 
     /**
      * Indent a line of text if no selection. Otherwise, indent all lines in selection.
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
-    function indentText(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
+    function indentText() {
+        var editor = EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
         
-        CodeMirror.commands.indentMore(editor._codeMirror);
+        editor._codeMirror.execCommand("indentMore");
     }
     
     /**
      * Unindent a line of text if no selection. Otherwise, unindent all lines in selection.
-     * @param {?Editor} editor If unspecified, applies to the currently focused editor
      */
-    function unidentText(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
+    function unidentText() {
+        var editor = EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
         
-        CodeMirror.commands.indentLess(editor._codeMirror);
+        editor._codeMirror.execCommand("indentLess");
     }
         
     // Register commands
