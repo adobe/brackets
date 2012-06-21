@@ -597,7 +597,14 @@ define(function (require, exports, module) {
 
         return menu;
     }
-    
+
+    /**
+     * Closes all menus that are open
+     */
+    function closeAll() {
+        $(".dropdown").removeClass("open");
+    }
+
     /**
      * @constructor
      * @extends {Menu}
@@ -733,13 +740,6 @@ define(function (require, exports, module) {
         var cmenu = new ContextMenu(id);
         contextMenuMap[id] = cmenu;
         return cmenu;
-    }
-
-    /**
-     * Closes all menus that are open
-     */
-    function closeAll() {
-        $(".dropdown").removeClass("open");
     }
 
     /** NOT IMPLEMENTED
