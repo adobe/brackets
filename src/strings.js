@@ -121,6 +121,8 @@ define(function (require, exports, module) {
     exports.CMD_FIND_NEXT                       = "Find Next";
     exports.CMD_FIND_PREVIOUS                   = "Find Previous";
     exports.CMD_REPLACE                         = "Replace";
+    exports.CMD_INDENT                          = "Indent";
+    exports.CMD_UNINDENT                        = "Unindent";
     exports.CMD_DUPLICATE                       = "Duplicate";
     exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
      

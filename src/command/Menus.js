@@ -574,18 +574,20 @@ define(function (require, exports, module) {
                                                                             [{key: "Ctrl-H",     platform: "win"},
                                                                              {key: "Ctrl-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem("menu-edit-duplicate",          Commands.EDIT_DUPLICATE, "Ctrl-D");
-        menu.addMenuItem("menu-edit-comment",            Commands.EDIT_LINE_COMMENT, "Ctrl-/");
+        menu.addMenuItem("menu-edit-indent",             Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
+        menu.addMenuItem("menu-edit-unindent",           Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
+        menu.addMenuItem("menu-edit-duplicate",          Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem("menu-edit-comment",            Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
 
         /*
          * View menu
          */
         menu = addMenu(Strings.VIEW_MENU, AppMenuBar.VIEW_MENU);
-        menu.addMenuItem("menu-view-sidebar",            Commands.VIEW_HIDE_SIDEBAR, "Ctrl-Shift-H");
+        menu.addMenuItem("menu-view-sidebar",            Commands.VIEW_HIDE_SIDEBAR,       "Ctrl-Shift-H");
         menu.addMenuDivider();
         menu.addMenuItem("menu-view-increase-font",      Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
         menu.addMenuItem("menu-view-decrease-font",      Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
-        menu.addMenuItem("menu-view-restore-font",       Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
+        menu.addMenuItem("menu-view-restore-font",       Commands.VIEW_RESTORE_FONT_SIZE,  "Ctrl-0");
 
         /*
          * Navigate menu

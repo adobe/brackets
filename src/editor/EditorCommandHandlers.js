@@ -151,9 +151,36 @@ define(function (require, exports, module) {
         var selectedText = cm.getRange(sel.start, sel.end);
         cm.replaceRange(selectedText, sel.start);
     }
+
+    /**
+     * Indent a line of text if no selection. Otherwise, indent all lines in selection.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function indentText(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        CodeMirror.commands.indentMore(editor._codeMirror);
+    }
     
-    
+    /**
+     * Unindent a line of text if no selection. Otherwise, unindent all lines in selection.
+     * @param {?Editor} editor If unspecified, applies to the currently focused editor
+     */
+    function unidentText(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        CodeMirror.commands.indentLess(editor._codeMirror);
+    }
+        
     // Register commands
+    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,       indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,     unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT, lineComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE, duplicateText);
+    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,    duplicateText);
 });
