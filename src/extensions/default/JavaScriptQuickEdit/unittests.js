@@ -59,15 +59,9 @@ define(function (require, exports, module) {
         
                 // install after function to restore file content
                 spec.after(function () {
-                    var done = false;
-                    
                     runs(function () {
-                        SpecRunnerUtils.saveFilesWithOffsets(spec.infos).done(function () {
-                            done = true;
-                        });
+                        waitsForDone(SpecRunnerUtils.saveFilesWithOffsets(spec.infos), "saveFilesWithOffsets");
                     });
-                    
-                    waitsFor(function () { return done; }, "saveFilesWithOffsets timeout", 1000);
                 });
                 
                 result.resolve();
@@ -92,57 +86,32 @@ define(function (require, exports, module) {
      */
     var _initInlineTest = function (openFile, openOffset, expectInline, workingSet) {
         var allFiles,
-            hostOpened = false,
-            err = false,
             inlineOpened = null,
-            spec = this,
-            rewriteDone = false,
-            rewriteErr = false;
+            spec = this;
         
         workingSet = workingSet || [];
-        
         expectInline = (expectInline !== undefined) ? expectInline : true;
         
         SpecRunnerUtils.loadProjectInTestWindow(testPath);
         
         runs(function () {
-            rewriteProject(spec)
-                .done(function () { rewriteDone = true; })
-                .fail(function () { rewriteErr = true; });
+            waitsForDone(rewriteProject(spec), "rewriteProject");
         });
-        
-        waitsFor(function () { return rewriteDone && !rewriteErr; }, "rewriteProject timeout", 1000);
         
         runs(function () {
             workingSet.push(openFile);
-            SpecRunnerUtils.openProjectFiles(workingSet).done(function (documents) {
-                hostOpened = true;
-            }).fail(function () {
-                err = true;
-            });
+            waitsForDone(SpecRunnerUtils.openProjectFiles(workingSet), "openProjectFiles");
         });
         
-        waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
-        
-        runs(function () {
-            var editor = EditorManager.getCurrentFullEditor();
-            
-            // open inline editor at specified offset index
-            var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
-                editor,
-                spec.infos[openFile].offsets[openOffset]
-            );
-            
-            inlineEditorResult.done(function () {
-                inlineOpened = true;
-            }).fail(function () {
-                inlineOpened = false;
+        if (openOffset !== undefined) {
+            runs(function () {
+                // open inline editor at specified offset index
+                waitsForDone(SpecRunnerUtils.openInlineEditorAtOffset(
+                    EditorManager.getCurrentFullEditor(),
+                    spec.infos[openFile].offsets[openOffset]
+                ), "openInlineEditorAtOffset");
             });
-        });
-        
-        waitsFor(function () {
-            return (inlineOpened !== null) && (inlineOpened === expectInline);
-        }, "inline editor timeout", 1000);
+        }
     };
     
     describe("JSQuickEdit", function () {
@@ -231,6 +200,44 @@ define(function (require, exports, module) {
                 // revert files to original content with offset markup
                 SpecRunnerUtils.closeTestWindow();
             });
+
+            it("should ignore tokens that are not function calls or references", function () {
+               var editor,
+                   extensionRequire,
+                   jsQuickEditMain,
+                   tokensFile = "tokens.js",
+                   promise,
+                   offsets;
+               
+               initInlineTest(tokensFile);
+               
+               runs(function () {
+                   extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("JavaScriptQuickEdit");
+                   jsQuickEditMain = extensionRequire("main");
+                   editor = EditorManager.getCurrentFullEditor();
+                   offsets = this.infos[tokensFile];
+                   
+                   // regexp token
+                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[0]);
+                   expect(promise).toBeNull();
+                   
+                   // multi-line comment
+                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[1]);
+                   expect(promise).toBeNull();
+                   
+                   // single-line comment
+                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[2]);
+                   expect(promise).toBeNull();
+                   
+                   // string, double quotes
+                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[3]);
+                   expect(promise).toBeNull();
+                   
+                   // string, single quotes
+                   promise = jsQuickEditMain.javaScriptFunctionProvider(editor, offsets[4]);
+                   expect(promise).toBeNull();
+               });
+           });
 
             it("should open a function with  form: function functionName()", function () {
                 initInlineTest("test1main.js", 0);
@@ -335,26 +342,15 @@ define(function (require, exports, module) {
                     extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
                     JavaScriptQuickEdit = extensionRequire("main");
                     
-                    SpecRunnerUtils.openProjectFiles(["ui/jquery.effects.core.js"]).done(function () {
-                        done = true;
-                    }).fail(function () {
-                        error = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["ui/jquery.effects.core.js"]), "openProjectFiles");
                 });
                 
-                waitsFor(function () { return done && !error; }, 500);
-                
                 var runCreateInlineEditor = function () {
-                    done = error = false;
-                    
-                    JavaScriptQuickEdit._createInlineEditor(EditorManager.getCurrentFullEditor(), "extend").done(function () {
-                        done = true;
-                    }).fail(function () {
-                        error = true;
-                    });
+                    waitsForDone(
+                        JavaScriptQuickEdit._createInlineEditor(EditorManager.getCurrentFullEditor(), "extend"),
+                        "createInlineEditor"
+                    );
                 };
-                
-                var waitForInlineEditor = function () { return done && !error; };
                 
                 function logPerf() {
                     PerformanceReporter.logTestWindow(perfMeasurements);
@@ -364,7 +360,6 @@ define(function (require, exports, module) {
                 // repeat 5 times
                 for (i = 0; i < 5; i++) {
                     runs(runCreateInlineEditor);
-                    waitsFor(waitForInlineEditor, 500);
                     runs(logPerf);
                 }
             });
