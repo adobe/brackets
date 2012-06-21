@@ -49,6 +49,7 @@ define(function (require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Dialogs             = require("widgets/Dialogs"),
+        Menus               = require("command/Menus"),
         StringUtils         = require("utils/StringUtils"),
         Strings             = require("strings"),
         FileViewController  = require("project/FileViewController"),
@@ -137,7 +138,7 @@ define(function (require, exports, module) {
             if (selectionChanged && !_suppressSelectionChange) {
                 $projectTreeList.triggerHandler("selectionChanged", reveal);
             }
-            
+
             // reposition the selection triangle
             $projectTreeContainer.triggerHandler("scroll");
             
@@ -376,6 +377,13 @@ define(function (require, exports, module) {
                         // resolve after all paths are opened
                         result.resolve();
                     }
+                }
+            )
+            .bind(
+                "scroll.jstree",
+                function (e) {
+                    // close all dropdowns on scroll
+                    Menus.closeAll();
                 }
             )
             .bind(
