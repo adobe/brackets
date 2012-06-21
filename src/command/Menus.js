@@ -665,7 +665,7 @@ define(function (require, exports, module) {
         $(this).triggerHandler("beforeContextMenuOpen");
 
         // close all other dropdowns
-        $(".dropdown").removeClass("open");
+        closeAll();
 
         // adjust positioning so menu is not clipped off bottom or right
         var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
@@ -733,6 +733,13 @@ define(function (require, exports, module) {
         var cmenu = new ContextMenu(id);
         contextMenuMap[id] = cmenu;
         return cmenu;
+    }
+
+    /**
+     * Closes all menus that are open
+     */
+    function closeAll() {
+        $(".dropdown").removeClass("open");
     }
 
     /** NOT IMPLEMENTED
@@ -890,7 +897,7 @@ define(function (require, exports, module) {
         // close all dropdowns on ESC
         $(window.document).on("keydown", function (e) {
             if (e.keyCode === 27) {
-                $(".dropdown").removeClass("open");
+                closeAll();
             }
         });
 
@@ -920,8 +927,9 @@ define(function (require, exports, module) {
     exports.getMenuItem = getMenuItem;
     exports.getContextMenu = getContextMenu;
     exports.addMenu = addMenu;
+    exports.registerContextMenu = registerContextMenu;
+    exports.closeAll = closeAll;
     exports.Menu = Menu;
     exports.MenuItem = MenuItem;
-    exports.registerContextMenu = registerContextMenu;
     exports.ContextMenu = ContextMenu;
 });
