@@ -411,8 +411,13 @@ define(function (require, exports, module) {
                     if (event.which === 3) {
                         var treenode = $(event.target).closest("li");
                         if (treenode) {
+                            var saveSuppressToggleOpen = suppressToggleOpen;
+                            
+                            // don't toggle open folders (just select)
+                            suppressToggleOpen = true;
                             _projectTree.jstree("deselect_all");
                             _projectTree.jstree("select_node", treenode, false);
+                            suppressToggleOpen = saveSuppressToggleOpen;
                         }
                     }
                 }
