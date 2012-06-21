@@ -37,9 +37,12 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var DocumentManager         = require("document/DocumentManager"),
+    var Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        DocumentManager         = require("document/DocumentManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
+        Strings                 = require("strings"),
         EditorManager           = require("editor/EditorManager");
     
     /**
@@ -172,6 +175,8 @@ define(function (require, exports, module) {
     
     function _setEnabled(enabled) {
         _enabled = enabled;
+        
+        CommandManager.get(Commands.TOGGLE_JSLINT).setChecked(_enabled);
         _updateListeners();
         _prefs.setValue("enabled", _enabled);
     
@@ -188,6 +193,15 @@ define(function (require, exports, module) {
             _setEnabled(enabled);
         }
     }
+    
+    /** Command to toggle enablement */
+    function _handleToggleJSLint() {
+        setEnabled(!getEnabled());
+    }
+    
+    
+    // Register command handlers
+    CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
     
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });

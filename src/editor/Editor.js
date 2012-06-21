@@ -448,7 +448,7 @@ define(function (require, exports, module) {
         var startLine = this.getFirstVisibleLine(),
             endLine = this.getLastVisibleLine();
         this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.getLineText(endLine).length});
+                          {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
     Editor.prototype._applyChanges = function (changeList) {
@@ -514,9 +514,7 @@ define(function (require, exports, module) {
         }
         
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
-        if (!this.document._masterEditor) {
-            EditorManager._createFullEditorForDocument(this.document);
-        }
+        this.document._ensureMasterEditor();
         
         if (this.document._masterEditor !== this) {
             // Secondary editor:
@@ -613,27 +611,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {string} The editor's current contents
-     * Semi-private: only Document/EditableDocumentModel should call this.
-     */
-    Editor.prototype._getText = function () {
-        return this._codeMirror.getValue();
-    };
-    
-    /**
-     * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches a
-     * change event.
-     * Note: all line endings will be changed to LFs.
-     * Semi-private: only Document/EditableDocumentModel should call this.
-     * @param {!string} text
-     */
-    Editor.prototype._setText = function (text) {
-        this._codeMirror.setValue(text);
-    };
-    
-    /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
-     * Semi-private: only Document/EditableDocumentModel should call this.
+     * Semi-private: only Document should call this.
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
@@ -673,16 +652,47 @@ define(function (require, exports, module) {
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
     };
+
+    /**
+     * Given a position, returns its index within the text (assuming \n newlines)
+     * @param {!{line:number, ch:number}}
+     * @return {number}
+     */
+    Editor.prototype.indexFromPos = function (coords) {
+        return this._codeMirror.indexFromPos(coords);
+    };
+
+    /**
+     * Returns true if pos is between start and end (inclusive at both ends)
+     * @param {{line:number, ch:number}} pos
+     * @param {{line:number, ch:number}} start
+     * @param {{line:number, ch:number}} end
+     *
+     */
+    Editor.prototype.posWithinRange = function (pos, start, end) {
+        var startIndex = this.indexFromPos(start),
+            endIndex = this.indexFromPos(end),
+            posIndex = this.indexFromPos(pos);
+
+        return posIndex >= startIndex && posIndex <= endIndex;
+    };
+    
+    /**
+     * @return {boolean} True if there's a text selection; false if there's just an insertion point
+     */
+    Editor.prototype.hasSelection = function () {
+        return this._codeMirror.somethingSelected();
+    };
     
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
      * of length zero).
-     * @return !{start:{line:number, ch:number}, end:{line:number, ch:number}}
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     Editor.prototype.getSelection = function () {
         var selStart = this._codeMirror.getCursor(true),
-            selEnd = this._codeMirror.getCursor(false);
+            selEnd   = this._codeMirror.getCursor(false);
         return { start: selStart, end: selEnd };
     };
     
@@ -704,6 +714,15 @@ define(function (require, exports, module) {
         this._codeMirror.setSelection(start, end);
     };
 
+    /**
+     * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
+     * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
+     * @param {!{line:number, ch:number}}
+     */
+    Editor.prototype.selectWordAt = function (pos) {
+        this._codeMirror.selectWordAt(pos);
+    };
+    
 
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
@@ -953,15 +972,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype.isFullyVisible = function () {
         return $(this.getRootElement()).is(":visible");
-    };
-    
-    /**
-     * Returns the text of the given line.
-     * @param {number} The zero-based number of the line to retrieve.
-     * @return {string} The contents of the line.
-     */
-    Editor.prototype.getLineText = function (num) {
-        return this._codeMirror.getLine(num);
     };
     
     /**

@@ -89,8 +89,10 @@ define(function EditAgent(require, exports, module) {
         if (change) {
             var from = codeMirror.posFromIndex(node.location + change.from);
             var to = codeMirror.posFromIndex(node.location + change.to);
-            codeMirror.replaceRange(change.text, from, to);
-            codeMirror.setCursor(codeMirror.posFromIndex(node.location + change.from + change.text.length));
+            editor.document.replaceRange(change.text, from, to);
+            
+            var newPos = codeMirror.posFromIndex(node.location + change.from + change.text.length);
+            editor.setCursorPos(newPos.line, newPos.ch);
         }
     }
 

@@ -21,11 +21,11 @@
         
         this._runAll = this._paramMap.spec === "All";
         
-        // _topLevelFilter is applied first before the spec filter
+        // _topLevelFilter is applied first - selects Performance vs. Unit test suites
         this._topLevelFilter = filter;
         
         // Jasmine's runner uses the specFilter to choose which tests to run.
-        // This is typically a subset of all tests loaded.
+        // If you selected an option other than "All" this will be a subset of all tests loaded.
         this._env.specFilter = this.createSpecFilter(this._paramMap.spec);
         this._runner = this._env.currentRunner();
         
@@ -74,7 +74,15 @@
                 return true;
             }
             
-            return (spec.getFullName().indexOf(filterString) === 0);
+            // spec.getFullName() concatenates the names of all containing describe()s. We want to filter
+            // on just the outermost suite's name (i.e., the item that was selected in the spec list UI)
+            // to avoid ambiguity when suite names share the same prefix.
+            var topLevelSuite = spec.suite;
+            while (topLevelSuite.parentSuite) {
+                topLevelSuite = topLevelSuite.parentSuite;
+            }
+            
+            return topLevelSuite.description === filterString;
         };
     };
         

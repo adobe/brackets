@@ -23,7 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets: true, $, PathUtils, window, navigator */
+/*global require, define, brackets: true, $, PathUtils, window, navigator */
+
+require.config({
+    paths: {
+        "text" : "thirdparty/text"
+    }
+});
 
 /**
  * brackets is the root of the Brackets codebase. This file pulls in all other modules as
@@ -78,6 +84,7 @@ define(function (require, exports, module) {
         bracketsReadyHandlers = [];
         
     //Load modules that self-register and just need to get included in the main project
+    require("document/ChangedDocumentTracker");
     require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
@@ -202,6 +209,7 @@ define(function (require, exports, module) {
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
+            ExtensionUtils          : require("utils/ExtensionUtils"),
             doneLoading             : false
         };
 
@@ -261,9 +269,6 @@ define(function (require, exports, module) {
             FileIndexManager.markDirty();
         });
         
-        $(window).contextmenu(function (e) {
-            e.preventDefault();
-        });
     }
             
     function _onReady() {

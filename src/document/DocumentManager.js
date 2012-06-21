@@ -69,6 +69,7 @@ define(function (require, exports, module) {
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
+        EditorManager       = require("editor/EditorManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         FileUtils           = require("file/FileUtils"),
         CommandManager      = require("command/CommandManager"),
@@ -122,6 +123,12 @@ define(function (require, exports, module) {
      * @type {boolean}
      */
     var _documentNavPending = false;
+    
+    /**
+     * While true, allow preferences to be saved
+     * @type {boolean}
+     */
+    var _isProjectChanging = false;
     
     /**
      * All documents with refCount > 0. Maps Document.file.fullPath -> Document.
@@ -383,6 +390,23 @@ define(function (require, exports, module) {
     
     
     /**
+     * Cleans up any loose Documents whose only ref is its own master Editor, and that Editor is not
+     * rooted in the UI anywhere. This can happen if the Editor is auto-created via Document APIs that
+     * trigger _ensureMasterEditor() without making it dirty. E.g. a command invoked on the focused
+     * inline editor makes no-op edits or does a read-only operation.
+     */
+    function _gcDocuments() {
+        getAllOpenDocuments().forEach(function (doc) {
+            // Is the only ref to this document its own master Editor?
+            if (doc._refCount === 1 && doc._masterEditor) {
+                // Destroy the Editor if it's not being kept alive by the UI
+                EditorManager._destroyEditorIfUnneeded(doc);
+            }
+        });
+    }
+    
+    
+    /**
      * @constructor
      * Model for the contents of a single file and its current modification state.
      * See DocumentManager documentation for important usage notes.
@@ -431,6 +455,9 @@ define(function (require, exports, module) {
         
         this.file = file;
         this.refreshText(rawText, initialTimestamp);
+        
+        // This is a good point to clean up any old dangling Documents
+        _gcDocuments();
     }
     
     /**
@@ -514,6 +541,7 @@ define(function (require, exports, module) {
      * Attach a backing Editor to the Document, enabling setText() to be called. Assumes Editor has
      * already been initialized with the value of getText(). ONLY Editor should call this (and only
      * when EditorManager has told it to act as the master editor).
+     * @param {!Editor} masterEditor
      */
     Document.prototype._makeEditable = function (masterEditor) {
         if (this._masterEditor) {
@@ -534,42 +562,62 @@ define(function (require, exports, module) {
         if (!this._masterEditor) {
             throw new Error("Document is already non-editable");
         } else {
-            this._text = this.getText();
+            // _text represents the raw text, so fetch without normalized line endings
+            this._text = this.getText(true);
             this._masterEditor = null;
         }
     };
     
     /**
-     * @return {string} The document's current contents; may not be saved to disk yet. Whenever this
-     * value changes, the Document dispatches a "change" event.
+     * Guarantees that _masterEditor is non-null. If needed, asks EditorManager to create a new master
+     * editor bound to this Document (which in turn causes Document._makeEditable() to be called).
+     * Should ONLY be called by Editor and Document.
      */
-    Document.prototype.getText = function () {
+    Document.prototype._ensureMasterEditor = function () {
+        if (!this._masterEditor) {
+            EditorManager._createFullEditorForDocument(this);
+        }
+    };
+    
+    /**
+     * Returns the document's current contents; may not be saved to disk yet. Whenever this
+     * value changes, the Document dispatches a "change" event.
+     *
+     * @param {boolean=} useOriginalLineEndings If true, line endings in the result depend on the
+     *      Document's line endings setting (based on OS & the original text loaded from disk).
+     *      If false, line endings are always \n (like all the other Document text getter methods).
+     * @return {string}
+     */
+    Document.prototype.getText = function (useOriginalLineEndings) {
         if (this._masterEditor) {
             // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
             // endings preferred by the document, if necessary
-            var codeMirrorText = this._masterEditor._getText();
-            if (this._lineEndings === FileUtils.LINE_ENDINGS_LF) {
-                return codeMirrorText;
-            } else {
-                return codeMirrorText.replace(/\n/g, "\r\n");
+            var codeMirrorText = this._masterEditor._codeMirror.getValue();
+            if (useOriginalLineEndings) {
+                if (this._lineEndings === FileUtils.LINE_ENDINGS_CRLF) {
+                    return codeMirrorText.replace(/\n/g, "\r\n");
+                }
             }
+            return codeMirrorText;
+            
         } else {
-            return this._text;
+            // Optimized path that doesn't require creating master editor
+            if (useOriginalLineEndings) {
+                return this._text;
+            } else {
+                return this._text.replace(/\r\n/g, "\n");
+            }
         }
     };
     
     /**
      * Sets the contents of the document. Treated as an edit. Line endings will be rewritten to
-     * match the document's current line-ending style. CANNOT be called unless the Document has a
-     * backing editor. Only Editor can ensure that is true; from anywhere else, it's unsafe to call
-     * setText() unless this is the currentDocument.
+     * match the document's current line-ending style.
      * @param {!string} text The text to replace the contents of the document with.
      */
     Document.prototype.setText = function (text) {
-        if (!this._masterEditor) {
-            throw new Error("Cannot mutate a Document before it has been assigned a master Editor");
-        }
-        this._masterEditor._setText(text);
+        this._ensureMasterEditor();
+        this._masterEditor._codeMirror.setValue(text);
         // _handleEditorChange() triggers "change" event
     };
     
@@ -605,6 +653,52 @@ define(function (require, exports, module) {
         }
 
         PerfUtils.addMeasurement(perfTimerName);
+    };
+    
+    /**
+     * Adds, replaces, or removes text. If a range is given, the text at that range is replaced with the
+     * given new text; if text == "", then the entire range is effectively deleted. If 'end' is omitted,
+     * then the new text is inserted at that point and all existing text is preserved. Line endings will
+     * be rewritten to match the document's current line-ending style.
+     * @param {!string} text  Text to insert or replace the range with
+     * @param {!{line:number, ch:number}} start  Start of range, inclusive (if 'to' specified) or insertion point (if not)
+     * @param {?{line:number, ch:number}} end  End of range, exclusive; optional
+     */
+    Document.prototype.replaceRange = function (text, start, end) {
+        this._ensureMasterEditor();
+        this._masterEditor._codeMirror.replaceRange(text, start, end);
+        // _handleEditorChange() triggers "change" event
+    };
+    
+    /**
+     * Returns the characters in the given range. Line endings are normalized to '\n'.
+     * @param {!{line:number, ch:number}} start  Start of range, inclusive
+     * @param {!{line:number, ch:number}} end  End of range, exclusive
+     * @return {!string}
+     */
+    Document.prototype.getRange = function (start, end) {
+        this._ensureMasterEditor();
+        return this._masterEditor._codeMirror.getRange(start, end);
+    };
+    
+    /**
+     * Returns the text of the given line (excluding any line ending characters)
+     * @param {number} Zero-based line number
+     * @return {!string}
+     */
+    Document.prototype.getLine = function (lineNum) {
+        this._ensureMasterEditor();
+        return this._masterEditor._codeMirror.getLine(lineNum);
+    };
+    
+    /**
+     * Batches a series of related Document changes. Repeated calls to replaceRange() should be wrapped in a
+     * batch for efficiency. Begins the batch, calls doOperation(), ends the batch, and then returns.
+     * @param {function()} doOperation
+     */
+    Document.prototype.batchOperation = function (doOperation) {
+        this._ensureMasterEditor();
+        this._masterEditor._codeMirror.operation(doOperation);
     };
     
     /**
@@ -674,7 +768,6 @@ define(function (require, exports, module) {
         return "[Document " + this.file.fullPath + dirtyInfo + editorInfo + refInfo + "]";
     };
     
-    
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
@@ -690,14 +783,16 @@ define(function (require, exports, module) {
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var result = new $.Deferred();
+        var result  = new $.Deferred(),
+            doc     = _openDocuments[fullPath];
 
-        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-        result.always(function () {
-            PerfUtils.addMeasurement(perfTimerName);
+        PerfUtils.markStart(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
+        result.done(function () {
+            PerfUtils.addMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
+        }).fail(function () {
+            PerfUtils.finalizeMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
         });
 
-        var doc = _openDocuments[fullPath];
         if (doc) {
             result.resolve(doc);
         } else {
@@ -711,6 +806,7 @@ define(function (require, exports, module) {
                     result.reject(fileError);
                 });
         }
+        
         return result.promise();
     }
     
@@ -792,11 +888,17 @@ define(function (require, exports, module) {
      * Preferences callback. Saves the document file paths for the working set.
      */
     function _savePreferences() {
+
+        if (_isProjectChanging) {
+            return;
+        }
+        
         // save the working set file paths
         var files       = [],
             isActive    = false,
             workingSet  = getWorkingSet(),
-            currentDoc  = getCurrentDocument();
+            currentDoc  = getCurrentDocument(),
+            projectRoot = ProjectManager.getProjectRoot();
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
@@ -808,22 +910,44 @@ define(function (require, exports, module) {
             });
         });
 
-        _prefs.setValue("files", files);
+        // append file root to make file list unique for each project
+        _prefs.setValue("files_" + projectRoot.fullPath, files);
+    }
+
+    /**
+     * @private
+     * Handle beforeProjectClose event
+     */
+    function _beforeProjectClose() {
+        _savePreferences();
+
+        // When app is shutdown via shortcut key, the command goes directly to the
+        // app shell, so we can't reliably fire the beforeProjectClose event on
+        // app shutdown. To compensate, we listen for currentDocumentChange,
+        // workingSetAdd, and workingSetRemove events so that the prefs for
+        // last project used get updated. But when switching projects, after
+        // the beforeProjectChange event gets fired, DocumentManager.closeAll()
+        // causes workingSetRemove event to get fired and update the prefs to an empty
+        // list. So, temporarily (until projectOpen event) disallow saving prefs.
+        _isProjectChanging = true;
     }
 
     /**
      * @private
      * Initializes the working set.
      */
-    function _init() {
-        var prefs = _prefs.getAllValues();
+    function _projectOpen() {
+        _isProjectChanging = false;
+        
+        // file root is appended for each project
+        var projectRoot = ProjectManager.getProjectRoot(),
+            files = _prefs.getValue("files_" + projectRoot.fullPath);
 
-        if (!prefs.files) {
+        if (!files) {
             return;
         }
 
-        var projectRoot = ProjectManager.getProjectRoot(),
-            filesToOpen = [],
+        var filesToOpen = [],
             activeFile;
 
         // in parallel, check if files exist
@@ -850,7 +974,7 @@ define(function (require, exports, module) {
             return oneFileResult.promise();
         }
 
-        var result = Async.doInParallel(prefs.files, checkOneFile, false);
+        var result = Async.doInParallel(files, checkOneFile, false);
 
         result.done(function () {
             // Add all existing files to the working set
@@ -892,9 +1016,11 @@ define(function (require, exports, module) {
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
     $(exports).bind("currentDocumentChange workingSetAdd workingSetRemove", _savePreferences);
+    
+    // Performance measurements
+    PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
-    // Initialize after ProjectManager is loaded
-    $(ProjectManager).on("initializeComplete", function (event, projectRoot) {
-        _init();
-    });
+    // Handle project change events
+    $(ProjectManager).on("projectOpen", _projectOpen);
+    $(ProjectManager).on("beforeProjectClose", _beforeProjectClose);
 });

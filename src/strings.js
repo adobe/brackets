@@ -98,8 +98,7 @@ define(function (require, exports, module) {
 
     /**
      * Command Name Constants
-     *
-    */
+     */
 
     // File menu commands
     exports.FILE_MENU                           = "File";
@@ -139,7 +138,7 @@ define(function (require, exports, module) {
     exports.CMD_QUICK_OPEN                      = "Quick Open";
     exports.CMD_GOTO_LINE                       = "Go to Line";
     exports.CMD_GOTO_DEFINITION                 = "Go to Definition";
-    exports.CMD_SHOW_INLINE_EDITOR              = "Quick Edit";
+    exports.CMD_TOGGLE_QUICK_EDIT               = "Quick Edit";
     exports.CMD_QUICK_EDIT_PREV_MATCH           = "Previous Match";
     exports.CMD_QUICK_EDIT_NEXT_MATCH           = "Next Match";
     exports.CMD_NEXT_DOC                        = "Next Document";
@@ -147,18 +146,17 @@ define(function (require, exports, module) {
     
     // Debug menu commands
     exports.DEBUG_MENU                          = "Debug";
-    exports.CMD_REFRESH_WINDOW                  = "Reload Window";
-    exports.CMD_CLOSE_WINDOW                    = "Close Window";
+    exports.CMD_REFRESH_WINDOW                  = "Reload Brackets";
     exports.CMD_SHOW_DEV_TOOLS                  = "Show Developer Tools";
     exports.CMD_RUN_UNIT_TESTS                  = "Run Tests";
     exports.CMD_JSLINT                          = "Enable JSLint";
-    exports.CMD_SHOW_PERF_DATA                  = "Show Perf Data";
-    exports.CMD_EXPERIMENTAL                    = "Experimental";
-    exports.CMD_NEW_BRACKETS_WINDOW             = "New Window";
-    exports.CMD_CLOSE_ALL_LIVE_BROWSERS         = "Close Browsers";
+    exports.CMD_SHOW_PERF_DATA                  = "Show Performance Data";
+    exports.CMD_NEW_BRACKETS_WINDOW             = "New Brackets Window";
     exports.CMD_USE_TAB_CHARS                   = "Use Tab Characters";
 
     // Help menu commands
     exports.CMD_ABOUT                           = "About";
 
+    // Special commands invoked by the native shell
+    exports.CMD_CLOSE_WINDOW                    = "Close Window";
 });

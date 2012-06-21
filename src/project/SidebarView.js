@@ -233,7 +233,7 @@ define(function (require, exports, module) {
     (function () {
         WorkingSetView.create($openFilesContainer);
         
-        $(ProjectManager).on("projectRootChanged", _updateProjectTitle);
+        $(ProjectManager).on("projectOpen", _updateProjectTitle);
 
         CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
         

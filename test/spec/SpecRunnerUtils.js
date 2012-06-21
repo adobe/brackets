@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define: false, $: false,  describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waits: false, runs: false */
+/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -58,6 +58,22 @@ define(function (require, exports, module) {
         path.push("src");
         return path.join("/");
     }
+    
+    
+    /**
+     * Utility for tests that wait on a Promise. Placed in the global namespace so it can be used
+     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForDone = function (promise, operationName) {
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "resolved";
+        }, "Timeout waiting for " + operationName, 1000);
+    };
+    
     
     /**
      * Returns a Document suitable for use with an Editor in isolation: i.e., a Document that will
@@ -420,13 +436,28 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that will be resolved when an inline 
      *  editor is created or rejected when no inline editors are available.
      */
-    function openInlineEditorAtOffset(editor, offset) {
+    function toggleQuickEditAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
         
-        // TODO (jasonsj): refactor CMD+E as a Command instead of a CodeMirror key binding?
-        return testWindow.brackets.test.EditorManager._openInlineWidget(editor);
+        return testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
     
+    /**
+     * @param {string} fullPath
+     * @return {$.Promise} Resolved when deletion complete, or rejected if an error occurs
+     */
+    function deleteFile(fullPath) {
+        var result = new $.Deferred();
+        brackets.fs.unlink(fullPath, function (err) {
+            if (err) {
+                result.reject(err);
+            } else {
+                result.resolve();
+            }
+        });
+        return result.promise();
+    }
+
     function getTestWindow() {
         return testWindow;
     }
@@ -443,9 +474,10 @@ define(function (require, exports, module) {
     exports.clickDialogButton           = clickDialogButton;
     exports.loadProjectInTestWindow     = loadProjectInTestWindow;
     exports.openProjectFiles            = openProjectFiles;
-    exports.openInlineEditorAtOffset    = openInlineEditorAtOffset;
+    exports.toggleQuickEditAtOffset     = toggleQuickEditAtOffset;
     exports.saveFilesWithOffsets        = saveFilesWithOffsets;
     exports.saveFilesWithoutOffsets     = saveFilesWithoutOffsets;
     exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
+    exports.deleteFile                  = deleteFile;
     exports.getTestWindow               = getTestWindow;
 });

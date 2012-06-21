@@ -60,7 +60,11 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             extensionRequire = brackets.libRequire.config({
                 context: name,
-                baseUrl: config.baseUrl
+                baseUrl: config.baseUrl,
+                /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
+                paths: {
+                    "text" : "../../../thirdparty/text"
+                }
             });
         contexts[name] = extensionRequire;
 

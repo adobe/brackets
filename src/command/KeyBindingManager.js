@@ -354,7 +354,7 @@ define(function (require, exports, module) {
     /**
      * Add one or more key bindings to a particular Command.
      * 
-     * @param {string} commandID
+     * @param {!string} commandID
      * @param {?({key: string, displayKey: string} | Array.<{key: string, displayKey: string, platform: string)}>}  keyBindings - a single key binding
      *      or an array of keybindings. Example: "Shift-Cmd-F". Mac and Win key equivalents are automatically
      *      mapped to each other. Use displayKey property to display a different string (e.g. "CMD+" instead of "CMD=").
@@ -394,8 +394,8 @@ define(function (require, exports, module) {
     /**
      * Remove a key binding from _keymap
      *
-     * @param {string} key - a key-description string that may or may not be normalized.
-     * @param {string} platform - the intended OS of the key.
+     * @param {!string} key - a key-description string that may or may not be normalized.
+     * @param {?string} platform - OS from which to remove the binding (all platforms if unspecified)
      */
     function removeBinding(key, platform) {
         if (!key || ((platform !== null) && (platform !== undefined) && (platform !== brackets.platform))) {
