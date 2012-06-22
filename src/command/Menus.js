@@ -865,7 +865,10 @@ define(function (require, exports, module) {
                     editor.selectWordAt(editor.getCursorPos());
                     
                     // Prevent menu from overlapping text by moving it down a little
-                    e.pageY += 6;
+                    // Temporarily backout this change for now to help mitigate issue #1111,
+                    // which only happens if mouse is not over context menu. Better fix
+                    // requires change to bootstrap, which is too risky for now.
+                    //e.pageY += 6;
                 }
                 
                 editor_cmenu.open(e);
