@@ -767,8 +767,10 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
         CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
 
-        KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, "Ctrl-Tab");
-        KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, "Ctrl-Shift-Tab");
+        KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, [{key: "Ctrl-Tab",   platform: "win"},
+                                                                    {key: "Ctrl-Tab",  platform:  "mac"}]);
+        KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, [{key: "Ctrl-Shift-Tab",   platform: "win"},
+                                                                    {key: "Ctrl-Shift-Tab",  platform:  "mac"}]);
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

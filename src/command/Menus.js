@@ -777,14 +777,14 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_FIND,                "Ctrl-F");
         menu.addMenuItem(Commands.EDIT_FIND_IN_FILES,       "Ctrl-Shift-F");
         menu.addMenuItem(Commands.EDIT_FIND_NEXT,           [{key: "F3",     platform: "win"},
-                                                             {key: "Ctrl-G", platform: "mac"}]);
+                                                             {key: "Cmd-G", platform: "mac"}]);
 
         menu.addMenuItem(Commands.EDIT_FIND_PREVIOUS,       [{key: "Shift-F3",      platform: "win"},
-                                                             {key:  "Ctrl-Shift-G", platform: "mac"}]);
+                                                             {key:  "Cmd-Shift-G", platform: "mac"}]);
 
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
-                                                             {key: "Ctrl-Alt-F", platform: "mac"}]);
+                                                             {key: "Cmd-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
@@ -811,7 +811,7 @@ define(function (require, exports, module) {
         menu = addMenu(Strings.NAVIGATE_MENU, AppMenuBar.NAVIGATE_MENU);
         menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN,      "Ctrl-Shift-O");
         menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE,       [{key: "Ctrl-G", platform: "win"},
-                                                             {key: "Ctrl-L", platform: "mac"}]);
+                                                             {key: "Cmd-L", platform: "mac"}]);
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION, "Ctrl-T");
         menu.addMenuDivider();
@@ -824,9 +824,9 @@ define(function (require, exports, module) {
          */
         menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
         menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
-                                                               {key: "Ctrl-Opt-I", platform: "mac"}]);
+                                                               {key: "Cmd-Opt-I", platform: "mac"}]);
         menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
-                                                         {key: "Ctrl-R", platform:  "mac"}]);
+                                                         {key: "Cmd-R", platform:  "mac"}]);
         menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
