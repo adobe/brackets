@@ -92,3 +92,11 @@ var noSpaceAfterFunction2 = function() {
     /* jslint hates this too */
 };
 var anotherCrowdedObj={a:100,b:-1,findMe:function () {}};
+
+var highAscÍÍChars = function() {
+    /* jslint hates this too */
+}
+
+function moreHighAscÍÍChars() {
+    /* jslint is really in a bad mood now */
+}

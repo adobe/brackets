@@ -206,6 +206,17 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "findMe", [ {start: 93, end: 93} ]);
                 });
             });
+            
+            it("should work with high-ascii characters in function names", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "highAscÍÍChars", [ {start: 95, end: 97} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "moreHighAscÍÍChars", [ {start: 99, end: 101} ]);
+                });
+            });
         });
         
         describe("brace ends of functions", function () {
