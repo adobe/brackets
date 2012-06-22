@@ -91,3 +91,4 @@ var anotherObj = {
 var noSpaceAfterFunction2 = function() {
     /* jslint hates this too */
 };
+var anotherCrowdedObj={a:100,b:-1,findMe:function () {}};

@@ -203,6 +203,7 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "fakePeriodBeforeFunction", [ {start: 82, end: 84} ]);
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction", [ {start: 86, end: 88} ]);
                     expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction2", [ {start: 90, end: 92} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "findMe", [ {start: 93, end: 93} ]);
                 });
             });
         });
