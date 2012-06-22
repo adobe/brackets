@@ -100,3 +100,24 @@ var highAscÍÍChars = function() {
 function moreHighAscÍÍChars() {
     /* jslint is really in a bad mood now */
 }
+
+function ÅsciiExtendedIdentifierStart () {
+}
+
+function ʸUnicodeModifierLettervalidIdentifierStart () {
+}
+
+function \u02b8UnicodeEscapedIdentifierStart () {
+}
+
+function unicodeModifierLettervalidIdentifierPartʸ () {
+}
+
+function unicodeEscapedIdentifierPart\u02b8 () {
+}
+
+function\u0009unicodeTabBefore () {
+}
+
+function unicodeTabAfter\u0009() {
+}
