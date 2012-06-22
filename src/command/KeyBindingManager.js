@@ -246,7 +246,7 @@ define(function (require, exports, module) {
         if (brackets.platform === "mac") {
             displayStr = descriptor.replace(/-/g, "");          // remove dashes
             displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
-            displayStr = displayStr.replace("Cmd", "\u2318");   // Ctrl > command symbol
+            displayStr = displayStr.replace("Cmd", "\u2318");   // Cmd > command symbol
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
             displayStr = displayStr.replace("Alt", "\u2325");   // Alt > option symbol
         } else {
