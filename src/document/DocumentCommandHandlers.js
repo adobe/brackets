@@ -637,7 +637,7 @@ define(function (require, exports, module) {
     * Common implementation for close/quit/reload which all mostly
     * the same except for the final step
     */
-    function _handleWindowGoingAway(commandData, postCloseHandler) {
+    function _handleWindowGoingAway(commandData, postCloseHandler, failHandler) {
         if (_windowGoingAway) {
             //if we get called back while we're closing, then just return
             return (new $.Deferred()).resolve().promise();
@@ -653,22 +653,46 @@ define(function (require, exports, module) {
                 _windowGoingAway = true;
                 PreferencesManager.savePreferences();
                 postCloseHandler();
+            })
+            .fail(function () {
+                if (failHandler) {
+                    failHandler();
+                }
             });
     }
     
     /** Confirms any unsaved changes, then closes the window */
     function handleFileCloseWindow(commandData) {
-        return _handleWindowGoingAway(commandData, function () {
-            window.close();
-        });
+        return _handleWindowGoingAway(
+            commandData,
+            function () {
+                window.close();
+            },
+            function () {
+                // if fail, tell the app to abort any pending quit operation.
+                // TODO: remove this if statement when we move to the new CEF3 shell
+                if (brackets.app.abortQuit) {
+                    brackets.app.abortQuit();
+                }
+            }
+        );
     }
     
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
-        return _handleWindowGoingAway(commandData, function () {
-            brackets.app.quit();
-        });
-        // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+        return _handleWindowGoingAway(
+            commandData,
+            function () {
+                brackets.app.quit();
+            },
+            function () {
+                // if fail, don't exit: user canceled (or asked us to save changes first, but we failed to do so)
+                // TODO: remove this if statement when we move to the new CEF3 shell
+                if (brackets.app.abortQuit) {
+                    brackets.app.abortQuit();
+                }
+            }
+        );
     }
 
     /** Does a full reload of the browser window */
