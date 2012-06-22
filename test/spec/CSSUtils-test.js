@@ -1081,7 +1081,7 @@ define(function (require, exports, module) {
                 ProjectManager,
                 brackets;
     
-            beforeEach(function () {
+             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                     // Load module instances from brackets.test
                     brackets            = testWindow.brackets;
