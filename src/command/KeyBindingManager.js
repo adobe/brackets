@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      * @param {string} key The key that's pressed
      * @return {string} The normalized key descriptor
      */
-    function _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key) {
+    function _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key) {
         if (!key) {
             console.log("KeyBindingManager _buildKeyDescriptor() - No key provided!");
             return "";
@@ -74,6 +74,9 @@ define(function (require, exports, module) {
         
         var keyDescriptor = [];
        
+        if (hasMacCtrl) {
+            keyDescriptor.push("Ctrl");
+        }
         if (hasAlt) {
             keyDescriptor.push("Alt");
         }
@@ -86,7 +89,7 @@ define(function (require, exports, module) {
             if (brackets.platform === "win") {
                 keyDescriptor.unshift("Ctrl");
             } else {
-                keyDescriptor.push("Ctrl");
+                keyDescriptor.push("Cmd");
             }
         }
 
@@ -114,7 +117,8 @@ define(function (require, exports, module) {
      * @return {string} The normalized key descriptor or null if the descriptor invalid
      */
     function normalizeKeyDescriptorString(origDescriptor) {
-        var hasCtrl = false,
+        var hasMacCtrl = false,
+            hasCtrl = false,
             hasAlt = false,
             hasShift = false,
             key = "",
@@ -122,9 +126,12 @@ define(function (require, exports, module) {
         
         origDescriptor.split("-").forEach(function parseDescriptor(ele, i, arr) {
             if (_isModifier("ctrl", ele, hasCtrl)) {
-                hasCtrl = true;
+                if (brackets.platform === "mac") {
+                    hasMacCtrl = true;
+                } else {
+                    hasCtrl = true;
+                }
             } else if (_isModifier("cmd", ele, hasCtrl, origDescriptor)) {
-                console.log("KeyBindingManager normalizeKeyDescriptorString() - Cmd getting mapped to Ctrl from: " + origDescriptor);
                 hasCtrl = true;
             } else if (_isModifier("alt", ele, hasAlt, origDescriptor)) {
                 hasAlt = true;
@@ -157,7 +164,7 @@ define(function (require, exports, module) {
             return null;
         }
         
-        return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
+        return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
     
     /**
@@ -200,7 +207,8 @@ define(function (require, exports, module) {
      * Takes a keyboard event and translates it into a key in a key map
      */
     function _translateKeyboardEvent(event) {
-        var hasCtrl = (event.metaKey || event.ctrlKey),
+        var hasMacCtrl = (brackets.platform === "win") ? false : (event.ctrlKey),
+            hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey),
             hasAlt = (event.altKey),
             hasShift = (event.shiftKey),
             key = String.fromCharCode(event.keyCode);
@@ -224,7 +232,7 @@ define(function (require, exports, module) {
         if (key === "\t") { key = "Tab"; }
         key = _mapKeycodeToKey(event.keyCode, key);
 
-        return _buildKeyDescriptor(hasCtrl, hasAlt, hasShift, key);
+        return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);
     }
     
     /**
@@ -236,8 +244,9 @@ define(function (require, exports, module) {
         var displayStr;
         
         if (brackets.platform === "mac") {
-            displayStr = descriptor.replace(/-/g, "");        // remove dashes
-            displayStr = displayStr.replace("Ctrl", "\u2318");  // Ctrl > command symbol
+            displayStr = descriptor.replace(/-/g, "");          // remove dashes
+            displayStr = displayStr.replace("Ctrl", "\u2303");  // Ctrl > control symbol
+            displayStr = displayStr.replace("Cmd", "\u2318");   // Cmd > command symbol
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
             displayStr = displayStr.replace("Alt", "\u2325");   // Alt > option symbol
         } else {
@@ -269,7 +278,8 @@ define(function (require, exports, module) {
             result = null,
             normalized,
             normalizedDisplay,
-            targetPlatform = keyBinding.platform || platform || brackets.platform,
+            explicitPlatform = keyBinding.platform || platform,
+            targetPlatform = explicitPlatform || brackets.platform,
             command;
         
         // skip if this binding doesn't match the current platform
@@ -278,6 +288,12 @@ define(function (require, exports, module) {
         }
         
         key = (keyBinding.key) || keyBinding;
+        if (brackets.platform === "mac" && explicitPlatform === undefined) {
+            key = key.replace("Ctrl", "Cmd");
+            if (keyBinding.displayKey !== undefined) {
+                keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
+            }
+        }
         normalized = normalizeKeyDescriptorString(key);
         
         // skip if the key binding is invalid 
@@ -376,16 +392,14 @@ define(function (require, exports, module) {
             results = [];
                                             
             keyBindings.forEach(function (keyBindingRequest) {
-                targetPlatform = keyBindingRequest.platform || brackets.platform;
-                keyBinding = _addBinding(commandID, keyBindingRequest, targetPlatform);
+                keyBinding = _addBinding(commandID, keyBindingRequest, keyBindingRequest.platform);
                 
                 if (keyBinding) {
                     results.push(keyBinding);
                 }
             });
         } else {
-            targetPlatform = platform || brackets.platform;
-            results = _addBinding(commandID, keyBindings, targetPlatform);
+            results = _addBinding(commandID, keyBindings, platform);
         }
         
         return results;
