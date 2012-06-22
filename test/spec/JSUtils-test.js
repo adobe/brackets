@@ -180,6 +180,31 @@ define(function (require, exports, module) {
                     });
                 });
             });
+            
+            it("should return correct start and end line numbers for prototype method declarations", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "myMethod", [ {start: 66, end: 68} ]);
+                });
+            });
+            
+            it("should handle various whitespace variations", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceBeforeFunc", [ {start: 71, end: 71} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "spaceBeforeColon", [ {start: 73, end: 75} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterColon", [ {start: 77, end: 79} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "fakePeriodBeforeFunction", [ {start: 82, end: 84} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction", [ {start: 86, end: 88} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction2", [ {start: 90, end: 92} ]);
+                });
+            });
         });
         
         describe("brace ends of functions", function () {
