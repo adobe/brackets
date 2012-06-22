@@ -31,7 +31,7 @@
         var li = $(this).parent('li')
           , isActive = li.hasClass('open')
 
-        clearMenus()
+        clearMenus(e)
         !isActive && li.toggleClass('open')
         return false
       })
@@ -43,12 +43,17 @@
 
   var d = 'a.menu, .dropdown-toggle'
 
-  function clearMenus() {
-    $(d).parent('li').removeClass('open')
+  function clearMenus(e) {
+    // don't clear menus on mac+ctrl+click, because context menu is already showing
+    if (brackets.platform !== "mac" || !e.ctrlKey) {
+      $(d).parent('li').removeClass('open')
+    }
   }
 
   $(function () {
-    $('html').bind("click", clearMenus)
+    $('html').bind("click", function(event) {
+      clearMenus(event)
+    })
     $('body').dropdown( '[data-dropdown] a.menu, [data-dropdown] .dropdown-toggle' )
   })
 
