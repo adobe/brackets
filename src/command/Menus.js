@@ -597,7 +597,14 @@ define(function (require, exports, module) {
 
         return menu;
     }
-    
+
+    /**
+     * Closes all menus that are open
+     */
+    function closeAll() {
+        $(".dropdown").removeClass("open");
+    }
+
     /**
      * @constructor
      * @extends {Menu}
@@ -735,13 +742,6 @@ define(function (require, exports, module) {
         return cmenu;
     }
 
-    /**
-     * Closes all menus that are open
-     */
-    function closeAll() {
-        $(".dropdown").removeClass("open");
-    }
-
     /** NOT IMPLEMENTED
      * Removes Menu
      */
@@ -786,8 +786,10 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
                                                              {key: "Cmd-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_DUPLICATE,           "Ctrl-D");
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,        "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
+        menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
+        menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
 
@@ -835,6 +837,7 @@ define(function (require, exports, module) {
          * Context Menus
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
+        project_cmenu.addMenuItem(Commands.FILE_NEW);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
