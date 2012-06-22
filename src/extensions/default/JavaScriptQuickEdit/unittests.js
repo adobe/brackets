@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -301,8 +301,6 @@ define(function (require, exports, module) {
                 
                 var extensionRequire,
                     JavaScriptQuickEdit,
-                    done = false,
-                    error = false,
                     i,
                     perfMeasurements = [
                         {

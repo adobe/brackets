@@ -421,7 +421,7 @@ define(function (require, exports, module) {
     PerfUtils.createPerfMeasurement("JSUTILS_REGEXP", "RegExp search for all functions");
     PerfUtils.createPerfMeasurement("JSUTILS_END_OFFSET", "Find end offset for a single matched function");
 
-    exports.findAllMatchingFunctionsInText = findAllMatchingFunctionsInText; 
+    exports.findAllMatchingFunctionsInText = findAllMatchingFunctionsInText;
     exports._getFunctionEndOffset = _getFunctionEndOffset; // For testing only
     exports.findMatchingFunctions = findMatchingFunctions;
 });
