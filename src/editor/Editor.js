@@ -360,6 +360,7 @@ define(function (require, exports, module) {
             indentWithTabs: _useTabChar,
             lineNumbers: true,
             matchBrackets: true,
+            dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap
         });
         
