@@ -62,3 +62,62 @@ function3: function () {
 
 // functions with invalid identifiers
 function invalid identifier () {}
+
+// functions with dot before them
+MyClass.prototype.myMethod = function () {
+    /* myMethod */
+};
+
+// whitespace variations (see #1108)
+var crowdedObj = {noSpaceBeforeFunc:function () { /* noSpaceBeforeFunc */ }};
+var anotherObj = {
+    spaceBeforeColon : function (param) { 
+        /* spaceBeforeColon */
+    },
+    
+    noSpaceAfterColon:function (param) {
+        /* noSpaceAfterColon */
+    },
+    
+    // A comment that ends with a period.
+    fakePeriodBeforeFunction: function () {
+        /* fakePeriodBeforeFunction */
+    },
+    
+    noSpaceAfterFunction: function() {
+        /* jslint hates this */
+    }
+};
+var noSpaceAfterFunction2 = function() {
+    /* jslint hates this too */
+};
+var anotherCrowdedObj={a:100,b:-1,findMe:function () {}};
+
+var highAscÍÍChars = function() {
+    /* jslint hates this too */
+}
+
+function moreHighAscÍÍChars() {
+    /* jslint is really in a bad mood now */
+}
+
+function ÅsciiExtendedIdentifierStart () {
+}
+
+function ʸUnicodeModifierLettervalidIdentifierStart () {
+}
+
+function \u02b8UnicodeEscapedIdentifierStart () {
+}
+
+function unicodeModifierLettervalidIdentifierPartʸ () {
+}
+
+function unicodeEscapedIdentifierPart\u02b8 () {
+}
+
+function\u0009unicodeTabBefore () {
+}
+
+function unicodeTabAfter\u0009() {
+}

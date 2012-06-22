@@ -53,7 +53,7 @@ define(function (require, exports, module) {
      * RegExp matches any sequence of characters that is not whitespace.
      * @type {RegExp}
      */
-    var _functionRegExp = /(function\b\s+([^\s]+)(\([^)]*\)))|(([^\s\.]+)\s*[:=]\s*function\s*(\([^)]*\)))/g;
+    var _functionRegExp = /(function\s+([$_A-Za-z\u007F-\uFFFF][$_A-Za-z0-9\u007F-\uFFFF]*)\s*(\([^)]*\)))|(([$_A-Za-z\u007F-\uFFFF][$_A-Za-z0-9\u007F-\uFFFF]*)\s*[:=]\s*function\s*(\([^)]*\)))/g;
     
     /**
      * @private

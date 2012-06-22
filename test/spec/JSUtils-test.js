@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -48,6 +48,7 @@ define(function (require, exports, module) {
     };
 
     var simpleJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/simple.js");
+    var invalidJsFileEntry  = new NativeFileSystem.FileEntry(testPath + "/invalid.js");
     var jQueryJsFileEntry   = new NativeFileSystem.FileEntry(testPath + "/jquery-1.7.js");
     var braceEndJsFileEntry = new NativeFileSystem.FileEntry(testPath + "/braceEnd.js");
     var eofJsFileEntry      = new NativeFileSystem.FileEntry(testPath + "/eof.js");
@@ -89,6 +90,7 @@ define(function (require, exports, module) {
             });
         });
         
+        // TODO (jason-sanjose): use offset markup in these test files
         describe("line offsets", function () {
             
             // Checks the lines ranges of the results returned by JSUtils. Expects the numbers of
@@ -102,6 +104,11 @@ define(function (require, exports, module) {
                     spec.expect(result[i].lineStart).toEqual(range.start);
                     spec.expect(result[i].lineEnd).toEqual(range.end);
                 });
+            }
+            
+            function expectNoFunction(jsCode, functionName) {
+                var result = JSUtils.findAllMatchingFunctionsInText(jsCode, functionName);
+                expect(result.length).toBe(0);
             }
             
             it("should return correct start and end line numbers for simple functions", function () {
@@ -178,6 +185,81 @@ define(function (require, exports, module) {
                         result = JSUtils.findAllMatchingFunctionsInText(content, name);
                         expect(result.length).toBe(0);
                     });
+                });
+            });
+            
+            it("should return correct start and end line numbers for prototype method declarations", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "myMethod", [ {start: 66, end: 68} ]);
+                });
+            });
+            
+            it("should handle various whitespace variations", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceBeforeFunc", [ {start: 71, end: 71} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "spaceBeforeColon", [ {start: 73, end: 75} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterColon", [ {start: 77, end: 79} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "fakePeriodBeforeFunction", [ {start: 82, end: 84} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction", [ {start: 86, end: 88} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "noSpaceAfterFunction2", [ {start: 90, end: 92} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "findMe", [ {start: 93, end: 93} ]);
+                });
+            });
+            
+            it("should work with high-ascii characters in function names", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "highAscÍÍChars", [ {start: 95, end: 97} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "moreHighAscÍÍChars", [ {start: 99, end: 101} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "ÅsciiExtendedIdentifierStart", [ {start: 103, end: 104} ]);
+                });
+            });
+            
+            it("should work with unicode characters in or around function names", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "ʸUnicodeModifierLettervalidIdentifierStart", [ {start: 106, end: 107} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "unicodeModifierLettervalidIdentifierPartʸ", [ {start: 112, end: 113} ]);
+                });
+            });
+            
+            // TODO (issue #1125): support escaped unicode
+            xit("FAIL should work with unicode characters in or around function names", function () {
+                runs(function () {
+                    init(this, simpleJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectFunctionRanges(this, this.fileJsContent, "\u02b8UnicodeEscapedIdentifierStart", [ {start: 109, end: 110} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "unicodeEscapedIdentifierPart\u02b8", [ {start: 115, end: 116} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "unicodeTabBefore", [ {start: 118, end: 119} ]);
+                    expectFunctionRanges(this, this.fileJsContent, "unicodeTabAfter", [ {start: 121, end: 122} ]);
+                });
+            });
+            
+            it("should fail with invalid function names", function () {
+                runs(function () {
+                    init(this, invalidJsFileEntry);
+                });
+                
+                runs(function () {
+                    expectNoFunction(this.fileJsContent, "0digitIdentifierStart");
+                    expectNoFunction(this.fileJsContent, ".punctuationIdentifierStart");
+                    expectNoFunction(this.fileJsContent, "punctuation.IdentifierPart");
                 });
             });
         });
