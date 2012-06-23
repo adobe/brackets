@@ -86,10 +86,10 @@ define(function (require, exports, module) {
 
         if (hasCtrl) {
             // Windows display Ctrl first, Mac displays Command symbol last
-            if (brackets.platform === "win") {
-                keyDescriptor.unshift("Ctrl");
-            } else {
+            if (brackets.platform === "mac") {
                 keyDescriptor.push("Cmd");
+            } else {
+                keyDescriptor.unshift("Ctrl");
             }
         }
 
