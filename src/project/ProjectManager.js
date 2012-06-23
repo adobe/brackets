@@ -461,7 +461,7 @@ define(function (require, exports, module) {
     
     /** @param {Entry} entry File or directory to filter */
     function _shouldShowInTree(entry) {
-        if (entry.name[0] === ".") {       // "." prefix is always hidden on Mac
+        if (entry.name[0] === "." && entry.name !== ".htaccess") {       // "." prefix is always hidden on Mac
             return false;
         }
         
