@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -432,7 +432,7 @@ define(function (require, exports, module) {
                         $shortcut = $menuItem.find(".menu-shortcut");
                     
                     // verify key data instead of platform-specific labels
-                    //expect($shortcut.data("key")).toBe("Ctrl-9");
+                    expect($shortcut.data("key")).toBe((brackets.platform === "mac") ? "Cmd-9" : "Ctrl-9");
                     
                     // change keyboard shortcut
                     KeyBindingManager.addBinding("custom.command0", "Alt-8");

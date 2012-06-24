@@ -98,6 +98,7 @@ define(function (require, exports, module) {
         // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
         // modules. The extension will only be able to load modules that have already been loaded once.
         brackets.getModule = require;
+        brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
 
         var bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
 
