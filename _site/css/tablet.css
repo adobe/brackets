@@ -53,7 +53,7 @@ body > header nav {
 }
 #hero nav ul li a {
 	position: relative;
-	/*padding: 10px 10px 0px 40px;*/
+	padding: 10px 20px 0px 20px;
 	width: auto;
 }
 #hero nav ul {
