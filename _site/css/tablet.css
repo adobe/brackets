@@ -60,7 +60,7 @@ body > header nav {
   margin-top: 0;
   list-style: none;
 }
-#hero nav li.selected:before {
+#hero nav ul li.selected:before {
 	border: none;
 }
 #hero .indicator {
