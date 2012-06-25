@@ -1,10 +1,13 @@
 ---
 layout: default
 ---
-<div id="post">
-  <h2><a href="{{ page.url }}">
-    {{ page.title }}
-  </a></h2>
-  <div id="date">committed {{ page.date | date_to_string }}</div>
-  {{ content }}
-</div>
+
+<article class="post">
+	<header>
+		<h2><a href="{{ page.url }}">{{ page.title }}</a></h2>
+		<div class="byline">posted <time datetime="{{ page.date }}">{{ page.date | date_to_string }}</time> by <a href="{{page.author.uri}}" rel="author">{{page.author.name}}</a></div>
+	</header>
+	<section>
+		{{ content }}
+	</section>
+</article>

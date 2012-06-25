@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Announcing Brackets
-category: blog
+category: announcement
 author:
   name: Adam Lehman
   uri: http://www.github.com/adrocknaphobia

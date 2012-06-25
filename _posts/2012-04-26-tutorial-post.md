@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Tutorial Post
-category: blog
+category: tutorial
 author:
   name: Adam Lehman
   uri: http://www.github.com/adrocknaphobia

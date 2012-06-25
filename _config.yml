@@ -1,4 +1,5 @@
 auto: true
+permalink: /blog/:year/:month/:day/:title
 
 title: Brackets Blog
 description: News and helpful information from the Brackets team.
