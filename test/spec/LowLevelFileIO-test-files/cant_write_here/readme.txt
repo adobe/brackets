@@ -1,1 +1,0 @@
-This directory is marked read only when tests are run. Attempts to write files here should fail.
