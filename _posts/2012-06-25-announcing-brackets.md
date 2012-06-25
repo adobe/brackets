@@ -2,6 +2,9 @@
 layout: post
 title: Announcing Brackets
 category: blog
+author:
+  name: Adam Lehman
+  uri: http://www.github.com/adrocknaphobia
 ---
 
 Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Maecenas sed diam eget risus varius blandit sit amet non magna. Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam quis risus eget urna mollis ornare vel eu leo. Donec id elit non mi porta gravida at eget metus. Vestibulum id ligula porta felis euismod semper.

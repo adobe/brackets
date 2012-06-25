@@ -2,6 +2,9 @@
 layout: post
 title: Tutorial Post
 category: blog
+author:
+  name: Adam Lehman
+  uri: http://www.github.com/adrocknaphobia
 ---
 Maecenas faucibus mollis interdum. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Curabitur blandit tempus porttitor. Sed posuere consectetur est at lobortis. Maecenas faucibus mollis interdum.
 
