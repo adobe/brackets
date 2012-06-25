@@ -53,18 +53,15 @@ body > header nav {
 }
 #hero nav ul li a {
 	position: relative;
-	padding: 10px 20px 0px 20px;
+	padding: 10px 10px 0px 40px;
 	width: auto;
 }
 #hero nav ul {
   margin-top: 0;
   list-style: none;
 }
-#hero nav li.selected {
-	background: transparent;
-}
 #hero nav li.selected:before {
-	display: none;
+	border: none;
 }
 #hero .indicator {
 	display: none;
