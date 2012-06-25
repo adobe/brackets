@@ -8,7 +8,7 @@ layout: nil
  <link href="http://brackets.io/atom.xml" rel="self"/>
  <link href="http://brackets.io/"/>
  <updated>{{ site.time | date_to_xmlschema }}</updated>
- <id>http://brackets.io/</id>
+ <id>{{ site.production_url }}</id>
  <author>
    <name>{{ site.author.name }}</name>
    <email>{{ site.author.email }}</email>
@@ -21,9 +21,9 @@ layout: nil
    	<name>{{ post.author.name }}</name>
    	<uri>{{ post.author.uri }}</uri>
    </author>
-   <link href="http://brackets.io{{ post.url }}"/>
+   <link href="{{ site.production_url }}{{ post.url }}"/>
    <updated>{{ post.date | date_to_xmlschema }}</updated>
-   <id>http://brackets.io{{ post.id }}</id>
+   <id>{{ site.production_url }}{{ post.id }}</id>
    <content type="html">{{ post.content | xml_escape }}</content>
  </entry>
  {% endfor %}

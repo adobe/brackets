@@ -1,7 +1,8 @@
 auto: true
 
 title: Brackets Blog
-production_url: http://brackets.io/
+description: News and helpful information from the Brackets team.
+production_url: http://brackets.io
 author:
   name: Adam Lehman
   email: info@brackets.io

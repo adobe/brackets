@@ -1,0 +1,18 @@
+---
+layout: nil
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+	<channel>
+		<title>{{ site.title }}</title>
+		<description>{{ site.description }}</description>
+		<link>{{ site.production_url }}</link>
+		{% for post in site.posts %}
+			<item>
+				<title>{{ post.title }}</title>
+				<description>{{ post.content | xml_escape }}</description>
+				<link>{{ site.production_url }}{{ post.url }}</link>
+			</item>
+		{% endfor %}
+	</channel>
+</rss>
