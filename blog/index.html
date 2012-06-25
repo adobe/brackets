@@ -1,0 +1,17 @@
+---
+layout: default
+title: Brackets Blog
+---
+{% for post in site.posts %}
+<article class="post">
+	<header>
+		<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+	</header>
+	<section>
+		{{ post.content | truncate: 450 }} <a id="more" href="{{ post.url }}">Read More &raquo;</a>
+	</section>
+	<footer>
+		<div class="date">posted {{ post.date | date_to_string }}</div>
+	</footer>
+</article>
+{% endfor %}
