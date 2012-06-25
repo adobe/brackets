@@ -67,6 +67,12 @@ header hgroup:before {
 .wrap h3 {
 	font-size: 18px;
 }
+.wrap .list.mailing-list {
+	margin: 10px 0 10px 0;
+}
+.wrap .list.mailing-list li strong {
+  width: 160px;
+}
 h2.icon {
 	font-size: 24px;
 	padding: 10px 0 0 0;
