@@ -433,6 +433,6 @@ footer {
 #about ul {
   list-style: none;
 }
-#about li strong {
+#about strong {
   text-transform: uppercase;
 }
