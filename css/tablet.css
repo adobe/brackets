@@ -51,17 +51,20 @@ body > header nav {
 #hero nav li {
 	display: inline-block;
 }
-#hero nav li a {
+#hero nav ul li a {
 	position: relative;
-	padding: 10px 10px 0px 40px;
+	/*padding: 10px 10px 0px 40px;*/
 	width: auto;
 }
 #hero nav ul {
   margin-top: 0;
   list-style: none;
 }
+#hero nav li.selected {
+	background: transparent;
+}
 #hero nav li.selected:before {
-	border: none;
+	display: none;
 }
 #hero .indicator {
 	display: none;
