@@ -209,12 +209,12 @@ header nav li a:hover {
 }
 #hero #web-focused h3 {
   left: 430px;
-  top: 87px;
+  top: 97px;
   width: 185px;
 }
 #hero #web-focused p {
   left: 430px;
-  top: 150px;
+  top: 160px;
   width: 220px;
 }
 #hero #innovative img {
@@ -231,13 +231,13 @@ header nav li a:hover {
 #hero #innovative p {
   left: 70px;
   top: 150px;
-  width: 220px;
+  width: 200px;
 }
 #hero #standards-based img {
-  left: 45px;
-  top: 34px;
-  width: 371px;
-  height: 293px;
+  left: 75px;
+  top: 80px;
+  width: 301px;
+  height: 205px;
 }
 #hero #standards-based h3 {
   left: 430px;
@@ -257,12 +257,12 @@ header nav li a:hover {
 }
 #hero #extensible h3 {
   left: 130px;
-  top: 108px;
+  top: 88px;
   width: 180px;
 }
 #hero #extensible p {
   left: 130px;
-  top: 147px;
+  top: 127px;
   width: 190px;
 }
 #hero nav {
@@ -298,13 +298,13 @@ header nav li a:hover {
   padding: 10px 0 10px 60px;
   height: 18px;
 }
-#hero nav ul li:nth-child(3) {
+#hero nav ul li:nth-child(1) {
   background-position: 18px -40px;
 }
-#hero nav ul li:nth-child(1) {
+#hero nav ul li:nth-child(2) {
   background-position: 18px -120px;
 }
-#hero nav ul li:nth-child(2) {
+#hero nav ul li:nth-child(3) {
   background-position: 18px -200px;
 }
 #hero nav ul li:nth-child(4) {
@@ -315,13 +315,13 @@ header nav li a:hover {
   box-shadow: 0 -1px 0 #bdc2c2, 0 1px 0 #eef0f0;
   background-color: #d0d5d5;
 }
-#hero nav ul li.selected:nth-child(3) {
+#hero nav ul li.selected:nth-child(1) {
   background-position: 18px 0px;
 }
-#hero nav ul li.selected:nth-child(1) {
+#hero nav ul li.selected:nth-child(2) {
   background-position: 18px -80px;
 }
-#hero nav ul li.selected:nth-child(2) {
+#hero nav ul li.selected:nth-child(3) {
   background-position: 18px -160px;
 }
 #hero nav ul li.selected:nth-child(4) {
