@@ -66,7 +66,9 @@ for a list of new features and known issues in each build.
 
 I found a bug/missing feature!
 ------------------------------
-
+     
+Issues starting Brackets the first time? Please review [Troubleshooting] (https://github.com/adobe/brackets/wiki/Troubleshooting).         
+       
 Brackets bugs are tracked in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
 When filing a new bug, please remember to include:
 
