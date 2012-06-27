@@ -133,20 +133,21 @@ define(function (require, exports, module) {
         if (!editor) {
             return;
         }
-        
-        var sel = editor.getSelection();
-        
-        var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-        
+
+        var doc = editor.document,
+            sel = editor.getSelection(),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            delimiter = "";
+
         if (!hasSelection) {
             sel.start.ch = 0;
             sel.end = {line: sel.start.line + 1, ch: 0};
+            delimiter = typeof doc.getLine(sel.end.line) == "undefined" ? "\n" : delimiter;
         }
-        
+
         // Make the edit
-        var doc = editor.document;
-        
-        var selectedText = doc.getRange(sel.start, sel.end);
+
+        var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
 
