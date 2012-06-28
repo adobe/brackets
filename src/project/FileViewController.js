@@ -94,6 +94,20 @@ define(function (require, exports, module) {
             PerfUtils.addMeasurement(perfTimerName);
         }
     });
+    
+    /** 
+     * @private
+     * @returns {$.Promise}
+     */
+    function _selectCurrentDocument() {
+        // If fullPath corresonds to the current doc being viewed then opening the file won't
+        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // in this case to signify the selection focus has changed even though the current document has not.
+        $(exports).triggerHandler("documentSelectionFocusChange");
+        
+        // Ensure the editor has focus even though we didn't open a new file.
+        EditorManager.focusEditor();
+    }
 
     /** 
      * Opens a document if it's not open and selects the file in the UI corresponding to
@@ -111,7 +125,7 @@ define(function (require, exports, module) {
 
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
-        // and checked in the cyrrentDocumentChange handler
+        // and checked in the currentDocumentChange handler
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
@@ -121,9 +135,7 @@ define(function (require, exports, module) {
         // in this case to signify the selection focus has changed even though the current document has not.
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && curDoc.file.fullPath === fullPath) {
-            $(exports).triggerHandler("documentSelectionFocusChange");
-            // Ensure the editor has focus even though we didn't open a new file.
-            EditorManager.focusEditor();
+            _selectCurrentDocument();
             result = (new $.Deferred()).resolve().promise();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
@@ -148,11 +160,17 @@ define(function (require, exports, module) {
             promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
 
         // This properly handles sending the right nofications in cases where the document
-        // is already the curruent one. In that case we will want to notify with
+        // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        promise.done(function () {
-            openAndSelectDocument(fullPath, WORKING_SET_VIEW)
-                .pipe(result.resolve, result.reject);
+        promise.done(function (doc) {
+            // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
+            // selection focus and trigger documentSelectionFocusChange event
+            _fileSelectionFocus = WORKING_SET_VIEW;
+            _selectCurrentDocument();
+            
+            result.resolve(doc);
+        }).fail(function (err) {
+            result.reject(err);
         });
 
         return result.promise();
