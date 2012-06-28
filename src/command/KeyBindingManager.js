@@ -230,6 +230,7 @@ define(function (require, exports, module) {
         
         // Translate some keys to their common names
         if (key === "\t") { key = "Tab"; }
+        if (key === " ") { key = "Space"; }
         key = _mapKeycodeToKey(event.keyCode, key);
 
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);

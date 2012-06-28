@@ -29,8 +29,10 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var HTMLUtils     = require("language/HTMLUtils"),
-        EditorManager = require("editor/EditorManager");
+    var HTMLUtils       = require("language/HTMLUtils"),
+        CommandManager  = require("command/CommandManager"),
+        Commands        = require("command/Commands"),
+        EditorManager   = require("editor/EditorManager");
     
     /**
      * @private
@@ -51,15 +53,27 @@ define(function (require, exports, module) {
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
     function _checkForHint(editor) {
-        var pos = editor.getCursor();
-        var tagInfo = HTMLUtils.getTagInfo(editor, pos);
-        if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
-            if (tagInfo.attr.name === "class") {
-                _triggerClassHint(editor, pos, tagInfo);
-            } else if (tagInfo.attr.name === "id") {
-                _triggerIdHint(editor, pos, tagInfo);
-            }
-        }
+        // var pos = editor.getCursor();
+        // var tagInfo = HTMLUtils.getTagInfo(editor, pos);
+        // if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
+        //     if (tagInfo.attr.name === "class") {
+        //         _triggerClassHint(editor, pos, tagInfo);
+        //     } else if (tagInfo.attr.name === "id") {
+        //         _triggerIdHint(editor, pos, tagInfo);
+        //     }
+        // }
+
+        $("#codehint-text")
+            .focus();
+    }
+
+    function _handleFilter(query) {
+        var source = ["apple", "bay", "cat", "dog", "egg"]; 
+        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
+
+        return $.grep(source, function(value) {
+          return matcher.test( value );
+        });;
     }
     
     /**
@@ -76,11 +90,21 @@ define(function (require, exports, module) {
         window.setTimeout(function () { _checkForHint(editor); }, 40);
     }
     
-    // Register our listeners
-    // Commenting out the code hinting for now. Uncomment this line to re-enable.
-    // NOTE: this has gone stale a bit; individual Editors now dispatch a keyEvent event; there is
-    // no global EditorManager event
-    //$(EditorManager).on("onKeyEvent", _onKeyEvent);
-    
+    CommandManager.register( "Code Hint", Commands.CODE_HINT, function () {
+        _checkForHint(EditorManager.getFocusedEditor());
+    });
+
+
+
+    $("#codehint-text").smartAutoComplete({
+        maxResults: 20,
+        minCharLimit: 0,
+        autocompleteFocused: true,
+        forceSelect: false,
+        typeAhead: false,
+        filter: _handleFilter,
+        // resultFormatter: _handleResultsFormatter
+    });
+
     // Define public API
 });

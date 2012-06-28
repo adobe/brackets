@@ -786,6 +786,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_REPLACE,             [{key: "Ctrl-H",     platform: "win"},
                                                              {key: "Cmd-Alt-F", platform: "mac"}]);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.CODE_HINT,                "Ctrl-Space")
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
         menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
