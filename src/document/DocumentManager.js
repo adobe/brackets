@@ -138,6 +138,13 @@ define(function (require, exports, module) {
     var _openDocuments = {};
     
     /**
+     * Document promises that are waiting to be resolved.
+     * @private
+     * @type {Object.<string, $.Promise>}
+     */
+    var _pendingDocumentPromises = {};
+    
+    /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
      * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
@@ -241,11 +248,11 @@ define(function (require, exports, module) {
      * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
      * @param {!Document}
      */
-    function _markMostRecent(document) {
-        var mruI = findInWorkingSet(document.file.fullPath, _workingSetMRUOrder);
+    function _markMostRecent(doc) {
+        var mruI = findInWorkingSet(doc.file.fullPath, _workingSetMRUOrder);
         if (mruI !== -1) {
             _workingSetMRUOrder.splice(mruI, 1);
-            _workingSetMRUOrder.unshift(document.file);
+            _workingSetMRUOrder.unshift(doc.file);
         }
     }
     
@@ -281,28 +288,28 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. May or may not already be in the
      *      working set.
      */
-    function setCurrentDocument(document) {
+    function setCurrentDocument(doc) {
         
         // If this doc is already current, do nothing
-        if (_currentDocument === document) {
+        if (_currentDocument === doc) {
             return;
         }
 
-        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + (!document || document.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + (!document || doc.file.fullPath));
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
-        if (!ProjectManager.isWithinProject(document.file.fullPath)) {
-            addToWorkingSet(document.file);
+        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
+            addToWorkingSet(doc.file);
         }
         
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
-            _markMostRecent(document);
+            _markMostRecent(doc);
         }
         
         // Make it the current document
-        _currentDocument = document;
+        _currentDocument = doc;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
 
@@ -784,22 +791,36 @@ define(function (require, exports, module) {
      */
     function getDocumentForPath(fullPath) {
         var result  = new $.Deferred(),
-            doc     = _openDocuments[fullPath];
-
-        PerfUtils.markStart(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
-        result.done(function () {
-            PerfUtils.addMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
-        }).fail(function () {
-            PerfUtils.finalizeMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
-        });
+            doc     = _openDocuments[fullPath],
+            pendingPromise = _pendingDocumentPromises[fullPath];
 
         if (doc) {
+            // use existing document
             result.resolve(doc);
-        } else {
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+        } else if (pendingPromise) {
+            // wait for the result of a previous request
+            pendingPromise.pipe(result.resolve, result.reject);
+        } else if (!pendingPromise) {
+            // log this document's Promise as pending
+            _pendingDocumentPromises[fullPath] = result.promise();
+
+            // create a new document
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
+                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+
+            result.done(function () {
+                PerfUtils.addMeasurement(perfTimerName);
+            }).fail(function () {
+                PerfUtils.finalizeMeasurement(perfTimerName);
+            });
+
             FileUtils.readAsText(fileEntry)
                 .done(function (rawText, readTimestamp) {
                     doc = new Document(fileEntry, readTimestamp, rawText);
+
+                    // document is no longer pending
+                    delete _pendingDocumentPromises[fullPath];
+
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {

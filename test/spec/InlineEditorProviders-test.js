@@ -441,7 +441,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
@@ -508,7 +508,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedInlineText !== null && savedHostText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedInlineText !== undefined && savedHostText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);

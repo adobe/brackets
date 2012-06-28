@@ -130,17 +130,17 @@ define(function (require, exports, module) {
      *  document for the specified file path, or rejected if the file can not be read.
      */
     function doOpen(fullPath) {
-        
-        var result = new $.Deferred(), promise = result.promise();
+        var result = new $.Deferred();
+
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
             result.reject();
             return promise;
         }
         
-        PerfUtils.markStart(PerfUtils.OPEN_FILE);
+        var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
         result.always(function () {
-            PerfUtils.addMeasurement(PerfUtils.OPEN_FILE);
+            PerfUtils.addMeasurement(perfTimerName);
         });
         
         // Load the file if it was never open before, and then switch to it in the UI
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
                 });
             });
 
-        return promise;
+        return result.promise();
     }
     
     /**
@@ -230,7 +230,7 @@ define(function (require, exports, module) {
      * @param {!{fullPath:string}} Params for FILE_OPEN command
      */
     function handleFileAddToWorkingSet(commandData) {
-        handleFileOpen(commandData).done(function (doc) {
+        return handleFileOpen(commandData).done(function (doc) {
             DocumentManager.addToWorkingSet(doc.file);
         });
     }

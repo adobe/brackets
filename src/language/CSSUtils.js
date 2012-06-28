@@ -530,7 +530,6 @@ define(function (require, exports, module) {
      */
     function findMatchingRules(selector, htmlDocument) {
         var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             resultSelectors = [];
         
         // Synchronously search for matches in <style> blocks

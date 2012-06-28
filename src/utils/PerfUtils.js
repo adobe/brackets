@@ -326,8 +326,6 @@ define(function (require, exports, module) {
     }
     
     // create performance measurement constants
-    createPerfMeasurement("OPEN_FILE", "Open file");
-    
     createPerfMeasurement("INLINE_EDITOR_OPEN", "Open inline editor");
     createPerfMeasurement("INLINE_EDITOR_CLOSE", "Close inline editor");
     
