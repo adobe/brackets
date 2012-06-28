@@ -92,7 +92,7 @@ define(function (require, exports, module) {
      * @return {number} line number
      */
     function offsetToLineNum(textOrLines, offset) {
-        if ($.isArray(textOrLines)) {
+        if (Array.isArray(textOrLines)) {
             var lines = textOrLines,
                 total = 0,
                 line;

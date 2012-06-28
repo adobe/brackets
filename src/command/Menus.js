@@ -397,7 +397,7 @@ define(function (require, exports, module) {
         if (!menuItem.isDivider) {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
-                if (!$.isArray(keyBindings)) {
+                if (!Array.isArray(keyBindings)) {
                     keyBindings = [keyBindings];
                 }
                 
