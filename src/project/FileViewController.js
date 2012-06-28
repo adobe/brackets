@@ -150,7 +150,7 @@ define(function (require, exports, module) {
         // This properly handles sending the right nofications in cases where the document
         // is already the curruent one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        promise.done(function (){
+        promise.done(function () {
             openAndSelectDocument(fullPath, WORKING_SET_VIEW)
                 .pipe(result.resolve, result.reject);
         });

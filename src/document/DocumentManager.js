@@ -138,13 +138,6 @@ define(function (require, exports, module) {
     var _openDocuments = {};
     
     /**
-     * Document promises that are waiting to be resolved.
-     * @private
-     * @type {Object.<string, $.Promise>}
-     */
-    var _pendingDocumentPromises = {};
-    
-    /**
      * Returns a list of items in the working set in UI list order. May be 0-length, but never null.
      *
      * When a file is added this list, DocumentManager dispatches a "workingSetAdd" event.
@@ -201,7 +194,7 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file to the end of the working set list, if it is not already in the list.
-     * Does not change which document is currently open in the editor.
+     * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
      */
     function addToWorkingSet(file) {
@@ -295,7 +288,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + (!document || doc.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
@@ -778,7 +771,8 @@ define(function (require, exports, module) {
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
-     * get Documents; do not call the Document constructor directly.
+     * get Documents; do not call the Document constructor directly. This method is safe to call
+     * in parallel.
      *
      * If you are going to hang onto the Document for more than just the duration of a command - e.g.
      * if you are going to display its contents in a piece of UI - then you must addRef() the Document
@@ -790,19 +784,21 @@ define(function (require, exports, module) {
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var result  = new $.Deferred(),
-            doc     = _openDocuments[fullPath],
-            pendingPromise = _pendingDocumentPromises[fullPath];
+        var doc             = _openDocuments[fullPath],
+            pendingPromise  = getDocumentForPath._pendingDocumentPromises[fullPath];
 
         if (doc) {
             // use existing document
-            result.resolve(doc);
+            return new $.Deferred().resolve(doc).promise();
         } else if (pendingPromise) {
             // wait for the result of a previous request
-            pendingPromise.pipe(result.resolve, result.reject);
-        } else if (!pendingPromise) {
+            return pendingPromise;
+        } else {
+            var result = new $.Deferred(),
+                promise = result.promise();
+            
             // log this document's Promise as pending
-            _pendingDocumentPromises[fullPath] = result.promise();
+            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
 
             // create a new document
             var fileEntry = new NativeFileSystem.FileEntry(fullPath),
@@ -815,21 +811,32 @@ define(function (require, exports, module) {
             });
 
             FileUtils.readAsText(fileEntry)
+                .always(function () {
+                    // document is no longer pending
+                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                })
                 .done(function (rawText, readTimestamp) {
                     doc = new Document(fileEntry, readTimestamp, rawText);
-
-                    // document is no longer pending
-                    delete _pendingDocumentPromises[fullPath];
-
                     result.resolve(doc);
                 })
                 .fail(function (fileError) {
                     result.reject(fileError);
                 });
+            
+            return promise;
         }
-        
-        return result.promise();
     }
+    
+    /**
+     * Document promises that are waiting to be resolved. It is possible for multiple clients
+     * to request the same document simultaneously before the initial request has completed.
+     * In particular, this happens at app startup where the working set is created and the
+     * intial active document is opened in an editor. This is essential to ensure that only
+     * 1 Document exists for any FileEntry.
+     * @private
+     * @type {Object.<string, $.Promise>}
+     */
+    getDocumentForPath._pendingDocumentPromises = {};
     
     /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
