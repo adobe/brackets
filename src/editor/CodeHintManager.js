@@ -30,8 +30,28 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var HTMLUtils     = require("language/HTMLUtils"),
-        EditorManager = require("editor/EditorManager");
+        EditorManager = require("editor/EditorManager"),
+        HTMLTags      = require("text!CodeHints/HtmlTags.json");
     
+    /**
+     * @private
+     * Parse the code hints from JSON data and extract all hints from name property.
+     * @param {CodeMirror} editor An instance of a CodeMirror editor
+     */
+    function _getCodeHints(jsonSrc, filter) {
+        var hintArray = [];
+        var hints = JSON.parse(jsonSrc);
+        if (hints && $.isArray(hints.list)) {
+            var hintsList = hints.list;
+            hintsList.forEach(function (hint) {
+                if (!filter || (filter && hint.name.substring(0, filter.length) === filter)) {
+                    hintArray.push(hint.name);
+                }
+            });
+        }
+        return hintArray;
+    }
+
     /**
      * @private
      * Test functions to see if the hinting is working
