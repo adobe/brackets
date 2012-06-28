@@ -387,7 +387,7 @@ define(function (require, exports, module) {
             targetPlatform,
             results;
 
-        if ($.isArray(keyBindings)) {
+        if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
                                             
