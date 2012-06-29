@@ -430,6 +430,13 @@ define(function (require, exports, module) {
         }
         // else, file was listed in working set but never shown in the editor - ignore
     }
+
+    function _onWorkingSetRemoveList(event, removedFiles) {
+        removedFiles.forEach(function (removedFile) {
+            _onWorkingSetRemove(event, removedFile);
+        });
+    }
+
     // Note: there are several paths that can lead to an editor getting destroyed
     //  - file was in working set, but not in current editor; then closed (via working set "X" button)
     //      --> handled by _onWorkingSetRemove()
@@ -546,6 +553,8 @@ define(function (require, exports, module) {
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
+    $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);

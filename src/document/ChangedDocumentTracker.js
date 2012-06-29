@@ -47,37 +47,24 @@ define(function (require, exports, module) {
         this._changedPaths = {};
         this._windowFocus = true;
         this._addListener = this._addListener.bind(this);
+        this._removeListener = this._removeListener.bind(this);
         this._onChange = this._onChange.bind(this);
         this._onWindowFocus = this._onWindowFocus.bind(this);
-        
-        $(DocumentManager).on("workingSetAdd", function (event, fileEntry) {
+
+        $(DocumentManager).on("afterDocumentCreate", function (event, doc) {
             // Only track documents in the current project
-            if (ProjectManager.isWithinProject(fileEntry.fullPath)) {
-                DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
-                    self._addListener(doc);
-                });
+            if (ProjectManager.isWithinProject(doc.file.fullPath)) {
+               self._addListener(doc);
             }
         });
-        
-        $(DocumentManager).on("workingSetRemove", function (event, fileEntry) {
-            // Only track documents in the current project
-            if (ProjectManager.isWithinProject(fileEntry.fullPath)) {
-                DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
-                    $(doc).off("change", self._onChange);
-                    doc.releaseRef();
-                });
+
+        $(DocumentManager).on("beforeDocumentDelete", function (event, doc) {
+            // Only documents in the current project are tracked
+            if (ProjectManager.isWithinProject(doc.file.fullPath)) {
+               self._removeListener(doc);
             }
         });
-        
-        // DocumentManager has already initialized the working set
-        DocumentManager.getWorkingSet().forEach(function (fileEntry) {
-            // Can't use getOpenDocumentForPath() here since being in the working set
-            // does not guarantee that the file is opened (e.g. at startup)
-            DocumentManager.getDocumentForPath(fileEntry.fullPath).done(function (doc) {
-                self._addListener(doc);
-            });
-        });
-        
+
         $(window).focus(this._onWindowFocus);
     }
     
@@ -87,9 +74,15 @@ define(function (require, exports, module) {
      */
     ChangedDocumentTracker.prototype._addListener = function (doc) {
         $(doc).on("change", this._onChange);
-        doc.addRef();
     };
-    
+
+    /**
+     * @private
+     */
+    ChangedDocumentTracker.prototype._removeListener = function (doc) {
+        $(doc).off("change", self._onChange);
+    };
+
     /**
      * @private
      * Assumes all files are changed when the window loses and regains focus.
