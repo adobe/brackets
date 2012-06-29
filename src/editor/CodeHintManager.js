@@ -42,17 +42,22 @@ define(function (require, exports, module) {
      * @param {!string} a string used to filter code hints
      * @return {!Array.<string>} An array of code hints read from the JSON data source.
      */
-    function _getCodeHints(jsonSrc, filter) {
-        var hintArray = [];
-        var hints = JSON.parse(jsonSrc);
-        if (hints && Array.isArray(hints.list)) {
-            hints.list.forEach(function (hint) {
-                if (!filter || (filter && hint.name.substring(0, filter.length) === filter)) {
-                    hintArray.push(hint.name);
-                }
+    function _getCodeHints(jsonStr, filter) {
+        var hintObj = JSON.parse(jsonStr),
+            hintArray = [];
+        hintArray = $.map(hintObj, function(value, key) {           
+            return key;
+        });
+
+        if (!filter) {
+            return hintArray;
+        } else {
+            var matcher = new RegExp(filter.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
+    
+            return $.grep(hintArray, function(value) {
+                return matcher.test( value );
             });
         }
-        return hintArray;
     }
 
     /**
@@ -103,13 +108,13 @@ define(function (require, exports, module) {
     }
 
     function _handleFilter(query) {
-        var source = _getCodeHints(HTMLTags, query); //["apple", "bay", "cat", "dog", "egg"]; 
-        return source;
+        return _getCodeHints(HTMLTags, query); 
+//        var source = ["apple", "bay", "cat", "dog", "egg"]; 
 //        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
 //
 //        return $.grep(source, function(value) {
 //          return matcher.test( value );
-//        });;
+//        });
     }
     
     /**
