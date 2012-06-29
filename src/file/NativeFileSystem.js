@@ -115,7 +115,7 @@ define(function (require, exports, module) {
             // It might seem like you should use FileError.ENCODING_ERR for this,
             // but according to the spec that's for malformed URLs.
             case brackets.fs.ERR_UNSUPPORTED_ENCODING:
-                error = FileError.SECURITY_ERR;
+                error = FileError.NOT_READABLE_ERR;
                 break;
             case brackets.fs.ERR_CANT_WRITE:
                 error = FileError.NO_MODIFICATION_ALLOWED_ERR;
