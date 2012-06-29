@@ -80,6 +80,8 @@ define(function (require, exports, module) {
         case "html":
         case "htm":
         case "xhtml":
+        case "cfm":
+        case "cfc":
             return "htmlmixed";
 
         case "xml":
