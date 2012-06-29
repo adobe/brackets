@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -581,7 +581,8 @@ define(function (require, exports, module) {
                     
                     var newText = "\n/* jasmine was here */",
                         hostEditor,
-                        inlineEditor;
+                        inlineEditor,
+                        promise;
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
@@ -597,9 +598,10 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
-                        
+                        promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
+
+                        waitsForDone(promise);
                     });
                     // clickDialogButton() inserts a wait automatically, so must end runs() block here
                     
