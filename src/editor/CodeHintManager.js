@@ -32,8 +32,29 @@ define(function (require, exports, module) {
     var HTMLUtils       = require("language/HTMLUtils"),
         CommandManager  = require("command/CommandManager"),
         Commands        = require("command/Commands"),
-        EditorManager   = require("editor/EditorManager");
+        EditorManager   = require("editor/EditorManager"),
+        HTMLTags        = require("text!CodeHints/HtmlTags.json");
     
+    /**
+     * @private
+     * Parse the code hints from JSON data and extract all hints from name property.
+     * @param {string} a JSON string that has the code hints data
+     * @param {!string} a string used to filter code hints
+     * @return {!Array.<string>} An array of code hints read from the JSON data source.
+     */
+    function _getCodeHints(jsonSrc, filter) {
+        var hintArray = [];
+        var hints = JSON.parse(jsonSrc);
+        if (hints && Array.isArray(hints.list)) {
+            hints.list.forEach(function (hint) {
+                if (!filter || (filter && hint.name.substring(0, filter.length) === filter)) {
+                    hintArray.push(hint.name);
+                }
+            });
+        }
+        return hintArray;
+    }
+
     /**
      * @private
      * Test functions to see if the hinting is working
@@ -53,27 +74,42 @@ define(function (require, exports, module) {
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
     function _checkForHint(editor) {
-        // var pos = editor.getCursor();
-        // var tagInfo = HTMLUtils.getTagInfo(editor, pos);
-        // if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
-        //     if (tagInfo.attr.name === "class") {
-        //         _triggerClassHint(editor, pos, tagInfo);
-        //     } else if (tagInfo.attr.name === "id") {
-        //         _triggerIdHint(editor, pos, tagInfo);
-        //     }
-        // }
+//        var pos = editor._codeMirror.getCursor();
+//        var tagInfo = HTMLUtils.getTagInfo(editor, pos);
+//        if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
+//            if (tagInfo.attr.name === "class") {
+//                _triggerClassHint(editor, pos, tagInfo);
+//            } else if (tagInfo.attr.name === "id") {
+//                _triggerIdHint(editor, pos, tagInfo);
+//            }
+//        } else if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+//            $("#codehint-text")
+//                .focus()
+//                .html(tagInfo.tagName)
+//                .smartAutoComplete({
+//                    maxResults: 20,
+//                    minCharLimit: 0,
+//                    autocompleteFocused: true,
+//                    forceSelect: false,
+//                    typeAhead: false,
+//                    filter: _handleFilter,
+//                    //resultFormatter: _handleResultsFormatter
+//                });
+//            return false;
+//         }
 
         $("#codehint-text")
             .focus();
     }
 
     function _handleFilter(query) {
-        var source = ["apple", "bay", "cat", "dog", "egg"]; 
-        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
-
-        return $.grep(source, function(value) {
-          return matcher.test( value );
-        });;
+        var source = _getCodeHints(HTMLTags, query); //["apple", "bay", "cat", "dog", "egg"]; 
+        return source;
+//        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
+//
+//        return $.grep(source, function(value) {
+//          return matcher.test( value );
+//        });;
     }
     
     /**
@@ -89,7 +125,7 @@ define(function (require, exports, module) {
         }
         window.setTimeout(function () { _checkForHint(editor); }, 40);
     }
-    
+
     CommandManager.register( "Code Hint", Commands.CODE_HINT, function () {
         _checkForHint(EditorManager.getFocusedEditor());
     });
