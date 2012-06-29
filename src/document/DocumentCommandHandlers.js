@@ -151,6 +151,8 @@ define(function (require, exports, module) {
             })
             .fail(function (fileError) {
                 FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                    // For performance, we do lazy checking of file existence, so it may be in working set
+                    DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                     EditorManager.focusEditor();
                     result.reject();
                 });

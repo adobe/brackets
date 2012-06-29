@@ -258,7 +258,7 @@ define(function (require, exports, module) {
      * the current editor even if it's for this file.
      * @param {!FileEntry} file
      */
-    function _removeFromWorkingSet(file) {
+    function removeFromWorkingSet(file) {
         // If doc isn't in working set, do nothing
         var index = findInWorkingSet(file.fullPath);
         if (index === -1) {
@@ -420,10 +420,10 @@ define(function (require, exports, module) {
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
-        _removeFromWorkingSet(file);
+        removeFromWorkingSet(file);
         
         // Note: EditorManager will dispose the closed document's now-unneeded editor either in
-        // response to the editor-swap call above, or the _removeFromWorkingSet() call, depending on
+        // response to the editor-swap call above, or the removeFromWorkingSet() call, depending on
         // circumstances. See notes in EditorManager for more.
     }
 
@@ -1034,6 +1034,7 @@ define(function (require, exports, module) {
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
     exports.addListToWorkingSet = addListToWorkingSet;
+    exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
