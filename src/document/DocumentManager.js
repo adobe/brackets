@@ -224,6 +224,8 @@ define(function (require, exports, module) {
     /**
      * Adds the given file list to the end of the working set list.
      * Does not change which document is currently open in the editor.
+     * More efficient than calling addToWorkingSet() (in a loop) for
+     * a list of files because there's only 1 redraw at the end
      * @param {!FileEntryArray} fileList
      */
     function addListToWorkingSet(fileList) {
@@ -1031,6 +1033,7 @@ define(function (require, exports, module) {
     exports.getAllOpenDocuments = getAllOpenDocuments;
     exports.setCurrentDocument = setCurrentDocument;
     exports.addToWorkingSet = addToWorkingSet;
+    exports.addListToWorkingSet = addListToWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
     exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
