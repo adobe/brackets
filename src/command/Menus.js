@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     'use strict';
-
+    
     // Load dependent modules
     var Commands                = require("command/Commands"),
         KeyBindingManager       = require("command/KeyBindingManager"),
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         NAVIGATE_GOTO_MENU:         "goto-menu-section",
         NAVIGATE_QUICK_EDIT_MENU:   "quick-edit-menu-section"
     };
-
+    
     /**
       * Insertion position constants
       * Used by addMenu(), addMenuItem(), and addSubMenu() to
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
      * @type {Object.<string, MenuItem>}
      */
     var menuItemMap = {};
-
+    
     /**
      * Retrieves the Menu object for the corresponding id. 
      * @param {string} id
@@ -149,47 +149,32 @@ define(function (require, exports, module) {
     function _getHTMLMenuItem(id) {
         return $("#" + StringUtils.jQueryIdEscape(id)).get(0);
     }
-
+    
     function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
         var $shortcut = $menuItem.find(".menu-shortcut");
-
+        
         if ($shortcut.length === 0) {
             $shortcut = $("<span class='menu-shortcut'/>");
             $menuItem.append($shortcut);
         }
-
+        
         $shortcut.data("key", key);
         $shortcut.text(KeyBindingManager.formatKeyDescriptor(displayKey));
     }
-
+    
     function _addExistingKeyBinding(menuItem) {
         var bindings = KeyBindingManager.getKeyBindings(menuItem.getCommand().getID()),
             binding = null;
-
+        
         if (bindings.length > 0) {
             // add the latest key binding
             binding = bindings[bindings.length - 1];
             _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey);
         }
-
+        
         return binding;
     }
-
-    /**
-     * Removes MenuItem
-     * 
-     * TODO Question: for convenience should API provide a way to remove related
-     * keybindings and Command object?
-     */
-    function _removeMenuItem(id) {
-        var htmlid = "#" + id;
-        // Have to escape . in ID's with \\.        
-        htmlid = htmlid.replace(/(:|\.)/g, '\\$1');
-        var $menuItem = $(htmlid);
-
-        return $menuItem.remove();
-    }
-
+    
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
@@ -290,11 +275,11 @@ define(function (require, exports, module) {
             menuItem,
             map,
             foundMenuItem;
-
+        
         if (relativeID) {
             // Lookup Command for this Command id
             var command = CommandManager.get(relativeID);
-
+            
             if (command) {
                 // Find MenuItem that has this command
                 for (key in menuItemMap) {
@@ -306,33 +291,31 @@ define(function (require, exports, module) {
                         }
                     }
                 }
-
+                
                 if (foundMenuItem) {
                     $relativeElement = $(_getHTMLMenuItem(foundMenuItem.id)).closest("li");
                 }
             }
         }
-
+        
         return $relativeElement;
     };
-
-    //Need to do this too
-    //RemoveContextMenuTime
 
     /**
      * Removes a  menu item with the specified id. 
      *
-     * @param {!string | Command} command - the command the menu will execute.
-     *      Pass Menus.DIVIDER for a menu divider, or just call addMenuDivider() instead.
+     * @param {!string} id - the unique identifier for the menu.
      *
-     * @return {null}
+     * Note, keyBindings are not effected at all by removing a menu item. 
+     * They would have to be removed separately.
+     * 
      */
-    Menu.prototype.removeMenuItem = function (command) {
-        var properID = menuItemMap[this.id + "-" + command].id;
-        _removeMenuItem(properID);
+    Menu.prototype.removeMenuItem = function (id) {
+        var properID = menuItemMap[this.id + "-" + id].id;
+        $(_getHTMLMenuItem(properID)).remove();
         delete menuItemMap[properID];
     };
-
+    
     /**
      * Adds a new menu item with the specified id and display text. The insertion position is
      * specified via the relativeID and position arguments which describe a position 
@@ -388,7 +371,7 @@ define(function (require, exports, module) {
 
         // Internal id is the a composite of the parent menu id and the command id.
         id = this.id + "-" + commandID;
-
+        
         if (menuItemMap[id]) {
             console.log("MenuItem added with same id of existing MenuItem: " + id);
             return null;
@@ -422,7 +405,7 @@ define(function (require, exports, module) {
                 if (!$.isArray(keyBindings)) {
                     keyBindings = [keyBindings];
                 }
-
+                
                 // Note that keyBindings passed during MenuItem creation take precedent over any existing key bindings
                 KeyBindingManager.addBinding(commandID, keyBindings);
             } else {
@@ -522,7 +505,7 @@ define(function (require, exports, module) {
 
         return getMenu(parent.id);
     };
-
+    
     /**
      * Synchronizes MenuItem checked state with underlying Command checked state
      */
@@ -550,7 +533,7 @@ define(function (require, exports, module) {
     MenuItem.prototype._nameChanged = function () {
         $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
     };
-
+    
     /**
      * @private
      * Updates MenuItem DOM with a keyboard shortcut label
@@ -558,14 +541,14 @@ define(function (require, exports, module) {
     MenuItem.prototype._keyBindingAdded = function (event, keyBinding) {
         _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
     };
-
+    
     /**
      * @private
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
     MenuItem.prototype._keyBindingRemoved = function (event, keyBinding) {
         var $shortcut = $(_getHTMLMenuItem(this.id)).find(".menu-shortcut");
-
+        
         if ($shortcut.length > 0 && $shortcut.data("key") === keyBinding.key) {
             // check for any other bindings
             if (_addExistingKeyBinding(this) === null) {
@@ -573,7 +556,7 @@ define(function (require, exports, module) {
             }
         }
     };
-
+    
     /**
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
      *
@@ -597,7 +580,7 @@ define(function (require, exports, module) {
         if (!name || !id) {
             throw new Error("call to addMenu() is missing required parameters");
         }
-
+        
         // Guard against duplicate menu ids
         if (menuMap[id]) {
             console.log("Menu added with same name and id of existing Menu: " + id);
@@ -710,7 +693,8 @@ define(function (require, exports, module) {
         }
 
         // open the context menu at final location
-        $menuAnchor.addClass("open").css({"left": posLeft, "top": posTop});
+        $menuAnchor.addClass("open")
+                   .css({"left": posLeft, "top": posTop});
     };
 
     /**
@@ -751,7 +735,7 @@ define(function (require, exports, module) {
         if (!id) {
             throw new Error("call to registerContextMenu() is missing required parameters");
         }
-
+        
         // Guard against duplicate menu ids
         if (contextMenuMap[id]) {
             console.log("Context Menu added with same name and id of existing Context Menu: " + id);
@@ -873,25 +857,25 @@ define(function (require, exports, module) {
             if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
                 return;
             }
-
+            
             // Note: on mousedown before this event, CodeMirror automatically checks mouse pos, and
             // if not clicking on a selection moves the cursor to click location. When triggered
             // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
-
+            
             var editor = EditorManager.getFocusedEditor();
             if (editor) {
                 // If there's just an insertion point select the word token at the cursor pos so
                 // it's more clear what the context menu applies to.
                 if (!editor.hasSelection()) {
                     editor.selectWordAt(editor.getCursorPos());
-
+                    
                     // Prevent menu from overlapping text by moving it down a little
                     // Temporarily backout this change for now to help mitigate issue #1111,
                     // which only happens if mouse is not over context menu. Better fix
                     // requires change to bootstrap, which is too risky for now.
                     //e.pageY += 6;
                 }
-
+                
                 editor_cmenu.open(e);
             }
         });
@@ -909,8 +893,8 @@ define(function (require, exports, module) {
         $(window).contextmenu(function (e) {
             e.preventDefault();
         });
-
-
+        
+        
         /*
          * General menu event processing
          */
