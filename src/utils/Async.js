@@ -31,9 +31,6 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var TIME_SLICE = 15,
-        TIME_YIELD = 30;
-    
     // Further ideas for Async utilities...
     //  - Utilities for blocking UI until a Promise completes?
     //  - A "SuperDeferred" could feature some very useful enhancements:
@@ -161,28 +158,17 @@ define(function (require, exports, module) {
      * To perform task-specific work after an individual task completes, attach handlers to each
      * Promise before beginProcessItem() returns it.
      * 
-     * processInBackground causes doSequentially to process the list in time slices.
-     * sliceNow is only relevant with processInBackground=true and causes the first time slice to happen synchronously.
-     *
      * @param {!Array.<*>} items
      * @param {!function(*, number):Promise} beginProcessItem
      * @param {!boolean} failAndStopFast
-     * @param {!boolean} processInBackground
-     * @param {!boolean} sliceNow
      * @return {$.Promise}
      */
-    function doSequentially(items, beginProcessItem, failAndStopFast, processInBackground, sliceNow) {
+    function doSequentially(items, beginProcessItem, failAndStopFast) {
 
         var masterDeferred = new $.Deferred(),
-            hasFailed = false,
-            sliceStartTime = 0,
-            doItem;
+            hasFailed = false;
         
-        if (sliceNow) {
-            sliceStartTime = (new Date()).getTime();
-        }
-        
-        function doItemAsync(i) {
+        function doItem(i) {
             if (i >= items.length) {
                 if (hasFailed) {
                     masterDeferred.reject();
@@ -192,27 +178,10 @@ define(function (require, exports, module) {
                 return;
             }
             
-            if (processInBackground) {
-                if ((new Date()).getTime() - sliceStartTime >= TIME_SLICE) {
-                    window.setTimeout(function () {
-                        sliceStartTime = (new Date()).getTime();
-                        doItem(i);
-                    }, TIME_YIELD);
-                    
-                } else {
-                    doItem(i);
-                }
-            } else {
-                doItem(i);
-            }
-        }
-        
-        doItem = function (i) {
-            
             var itemPromise = beginProcessItem(items[i], i);
             
             itemPromise.done(function () {
-                doItemAsync(i + 1);
+                doItem(i + 1);
             });
             itemPromise.fail(function () {
                 if (failAndStopFast) {
@@ -220,14 +189,53 @@ define(function (require, exports, module) {
                     // note: we do NOT process any further items in this case
                 } else {
                     hasFailed = true;
-                    doItemAsync(i + 1);
+                    doItem(i + 1);
                 }
             });
-        };
+        }
         
-        doItemAsync(0);
+        doItem(0);
         
         return masterDeferred.promise();
+    }
+    
+    /**
+     * Executes a series of tasks sequentially in time-slices less than maxBlockingTime.
+     * Processing yields by idleTime between time-slices.
+     * 
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} fnProcessItem
+     * @param {!number} maxBlockingTime
+     * @param {!number} idleTime
+     * @return {$.Promise}
+     */
+    function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime, idleTime) {
+        
+        maxBlockingTime = maxBlockingTime || 15;
+        idleTime = idleTime || 30;
+        
+        var sliceStartTime = (new Date()).getTime();
+        
+        return doSequentially(items, function (item, i) {
+            var result = new $.Deferred();
+            
+            // process the next item
+            fnProcessItem(item, i);
+            
+            // if we've exhausted our maxBlockingTime
+            if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
+                //yield
+                window.setTimeout(function () {
+                    sliceStartTime = (new Date()).getTime();
+                    result.resolve();
+                }, idleTime);
+            } else {
+                //continue processing
+                result.resolve();
+            }
+
+            return result;
+        }, false);
     }
     
     
@@ -312,6 +320,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
+    exports.doSequentiallyInBackground = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;
