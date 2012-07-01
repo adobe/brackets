@@ -397,7 +397,7 @@ define(function (require, exports, module) {
         if (!menuItem.isDivider) {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
-                if (!$.isArray(keyBindings)) {
+                if (!Array.isArray(keyBindings)) {
                     keyBindings = [keyBindings];
                 }
                 
@@ -763,6 +763,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
+        menu.addMenuItem(Commands.FILE_SAVE_ALL,            [{key: "Ctrl-Shift-S",      platform: "win"},
+                                                             {key: "Cmd-Alt-S",         platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
         menu.addMenuDivider();
