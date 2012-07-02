@@ -26,7 +26,7 @@
 /*global define, $ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     //constants
     var TAG_NAME = "tagName",
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         //If this is a fully quoted value, return the whole
         //thing regardless of position
         if (attrValue.length > 1 &&
-                (startChar === "'" || startChar === '"') &&
+                (startChar === "'" || startChar === "\"") &&
                 endChar === startChar) {
             //strip the quotes and return;
             attrValue = attrValue.substring(1, attrValue.length - 1);
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
         
         //If the attrValue start with a quote, trim that now
         startChar = attrValue.charAt(0);
-        if (startChar === "'" || startChar === '"') {
+        if (startChar === "'" || startChar === "\"") {
             attrValue = attrValue.substring(1);
             offset--;
         }
@@ -330,7 +330,7 @@ define(function (require, exports, module) {
         if (ctx.token.className === "tag") {
             //check to see if this is the closing of a tag (either the start or end)
             if (ctx.token.string === ">" ||
-                    (ctx.token.string.charAt(0) === '<' && ctx.token.string.charAt(1) === '/')) {
+                    (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
                 return createTagInfo();
             }
             

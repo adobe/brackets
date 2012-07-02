@@ -28,7 +28,7 @@
  * Set of utilities for simple parsing of JS text.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load brackets modules
     var Async                   = require("utils/Async"),

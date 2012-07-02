@@ -37,7 +37,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var TextRange           = require("document/TextRange").TextRange,
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
         this._onClick = this._onClick.bind(this);
 
         // Create DOM to hold editors and related list
-        this.$editorsDiv = $(window.document.createElement('div')).addClass("inlineEditorHolder");
+        this.$editorsDiv = $(window.document.createElement("div")).addClass("inlineEditorHolder");
         
         // Outer container for border-left and scrolling
         this.$relatedContainer = $(window.document.createElement("div")).addClass("related-container");

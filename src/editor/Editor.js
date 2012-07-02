@@ -59,7 +59,7 @@
  *    $(editorInstance).on("eventname", handler);
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var EditorManager   = require("editor/EditorManager"),
         Commands        = require("command/Commands"),

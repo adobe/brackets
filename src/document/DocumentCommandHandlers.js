@@ -26,7 +26,7 @@
 /*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     require("thirdparty/path-utils/path-utils.min");
     

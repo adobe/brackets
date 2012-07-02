@@ -30,7 +30,7 @@
  * highlight requests, and allows highlighting nodes and rules in the browser.
  */
 define(function HighlightAgent(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");

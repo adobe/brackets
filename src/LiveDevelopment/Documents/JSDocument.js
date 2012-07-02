@@ -43,7 +43,7 @@
  * line is missing.
  */
 define(function JSDocumentModule(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");
