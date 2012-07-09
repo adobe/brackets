@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var HTMLUtils       = require("language/HTMLUtils"),
         CommandManager  = require("command/CommandManager"),
         Commands        = require("command/Commands"),
+        DocumentManager = require("document/DocumentManager"),
         Menus           = require("command/Menus"),
         EditorManager   = require("editor/EditorManager");
     
@@ -41,11 +42,11 @@ define(function (require, exports, module) {
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
     function _triggerClassHint(editor, pos, tagInfo) {
-        //console.log("_triggerClassHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
+        console.log("_triggerClassHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
     function _triggerIdHint(editor, pos, tagInfo) {
-        //console.log("_triggerIdHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
+        console.log("_triggerIdHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
     }
     
     /**
@@ -54,28 +55,21 @@ define(function (require, exports, module) {
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
     function _checkForHint(editor, event) {
-        // var pos = editor.getCursor();
-        // var tagInfo = HTMLUtils.getTagInfo(editor, pos);
-        // if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
-        //     if (tagInfo.attr.name === "class") {
-        //         _triggerClassHint(editor, pos, tagInfo);
-        //     } else if (tagInfo.attr.name === "id") {
-        //         _triggerIdHint(editor, pos, tagInfo);
-        //     }
-        // }
+        var pos = editor.getCursorPos();
+        var tagInfo = HTMLUtils.getTagInfo(editor, pos);
+        if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
+            if (tagInfo.attr.name === "class") {
+                _triggerClassHint(editor, pos, tagInfo);
+            } else if (tagInfo.attr.name === "id") {
+                _triggerIdHint(editor, pos, tagInfo);
+            }
+        }
 
         // $("#codehint-text")
         //     .focus();
-        hintList.open({pageX: 300, pageY: 300});
-    }
-
-    function _handleFilter(query) {
-        var source = ["apple", "bay", "cat", "dog", "egg"];
-        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i");
-
-        return $.grep(source, function (value) {
-            return matcher.test(value);
-        });
+        var cursorCoords = editor._codeMirror.cursorCoords()
+        var lineHeight = 15; // todo: make dynamic
+        hintList.open({pageX: cursorCoords.x, pageY: cursorCoords.y - lineHeight});
     }
     
     /**
@@ -111,9 +105,10 @@ define(function (require, exports, module) {
 
 
     function CodeHintList() {
-        this.source = [];
+        this.source = ["dog", "dig", "cat", "calf", "cool"];
+        this.query = "";
         this.filterFunction = null;
-        this.displayList = ["a", "b", "c"];
+        this.displayList = [];
         var options = {};
 
         // TODO: remove context-menu class
@@ -140,23 +135,52 @@ define(function (require, exports, module) {
             .append($item);
     };
 
+    CodeHintList.prototype.updateList = function () {
+        this.filterList();
+        this.buildListView();
+    };
+            
     CodeHintList.prototype.buildListView = function () {
-        this.$hintMenu.find(".li").remove();
+        this.$hintMenu.find("li").remove();
         var self = this;
         $.each(this.displayList, function (index, item) {
             self.addItem(item);
         });
     };
 
+    CodeHintList.prototype.handleKeyEvent = function (event, editor, keyEvent) {
+        // TODO: temporary, should actually look from pos of first char typed to last char typed
+        
+        var cursor = editor.indexFromPos(editor.getCursorPos());
+
+        // cleanup vars
+        // TODO: get doc for focused editor
+        var doc = DocumentManager.getCurrentDocument();
+
+        // TODO: if doc is null
+        var text = doc.getText();
+        var start = text.lastIndexOf("<", cursor);
+        var end = text.indexOf(" ", cursor);
+        this.query = text.slice(start, end);
+
+        console.log( "query: " +  this.query);
+
+        this.updateList();
+    };
+    
     CodeHintList.prototype.open = function (mouseOrLocation) {
         // TODO error check
 
+        var editor = EditorManager.getFocusedEditor();
+
+        // TODO when to remove listener?
+        $(editor).on("keyEvent", this.handleKeyEvent.bind(this));
+
+        this.query = "";
 
         Menus.closeAll();
 
-        this.filterList();
-
-        this.buildListView();
+        this.updateList();
 
         var posTop  = mouseOrLocation.pageY,
             posLeft = mouseOrLocation.pageX;
@@ -168,7 +192,11 @@ define(function (require, exports, module) {
     };
 
     CodeHintList.prototype.filterList = function () {
+        var matcher = new RegExp(this.query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i");
 
+        this.displayList = $.grep(this.source, function (value) {
+            return matcher.test(value);
+        });
     };
 
     var hintList = new CodeHintList();
