@@ -32,6 +32,7 @@ define(function (require, exports, module) {
     var HTMLUtils       = require("language/HTMLUtils"),
         CommandManager  = require("command/CommandManager"),
         Commands        = require("command/Commands"),
+        Menus           = require("command/Menus"),
         EditorManager   = require("editor/EditorManager");
     
     /**
@@ -52,7 +53,7 @@ define(function (require, exports, module) {
      * Checks to see if this is an attribute value we can hint
      * @param {CodeMirror} editor An instance of a CodeMirror editor
      */
-    function _checkForHint(editor) {
+    function _checkForHint(editor, event) {
         // var pos = editor.getCursor();
         // var tagInfo = HTMLUtils.getTagInfo(editor, pos);
         // if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
@@ -63,17 +64,18 @@ define(function (require, exports, module) {
         //     }
         // }
 
-        $("#codehint-text")
-            .focus();
+        // $("#codehint-text")
+        //     .focus();
+        hintList.open({pageX: 300, pageY: 300});
     }
 
     function _handleFilter(query) {
-        var source = ["apple", "bay", "cat", "dog", "egg"]; 
-        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i" );
+        var source = ["apple", "bay", "cat", "dog", "egg"];
+        var matcher = new RegExp(query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), "i");
 
-        return $.grep(source, function(value) {
-          return matcher.test( value );
-        });;
+        return $.grep(source, function (value) {
+            return matcher.test(value);
+        });
     }
     
     /**
@@ -90,21 +92,86 @@ define(function (require, exports, module) {
         window.setTimeout(function () { _checkForHint(editor); }, 40);
     }
     
-    CommandManager.register( "Code Hint", Commands.CODE_HINT, function () {
+    CommandManager.register("Code Hint", Commands.CODE_HINT, function () {
         _checkForHint(EditorManager.getFocusedEditor());
     });
 
 
 
-    $("#codehint-text").smartAutoComplete({
-        maxResults: 20,
-        minCharLimit: 0,
-        autocompleteFocused: true,
-        forceSelect: false,
-        typeAhead: false,
-        filter: _handleFilter,
-        // resultFormatter: _handleResultsFormatter
-    });
+    // $("#codehint-text").smartAutoComplete({
+    //     maxResults: 20,
+    //     minCharLimit: 0,
+    //     autocompleteFocused: true,
+    //     forceSelect: false,
+    //     typeAhead: false,
+    //     filter: _handleFilter,
+    //     // resultFormatter: _handleResultsFormatter
+    // });
+
+
+
+    function CodeHintList() {
+        this.source = [];
+        this.filterFunction = null;
+        this.displayList = ["a", "b", "c"];
+        var options = {};
+
+        // TODO: remove context-menu class
+        this.$hintMenu = $("<li class='dropdown context-menu'></li>");
+
+        var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
+            .hide();
+
+        this.$hintMenu.append($toggle)
+            .append("<ul class='dropdown-menu'></ul>");
+
+        $("#codehint-menu-bar > ul").append(this.$hintMenu);
+
+    }
+
+    CodeHintList.prototype.addItem = function (name) {
+        var $item = $("<li><a href='#'><span class='codehint-item'>" + name + "</span></a></li>");
+
+        $item.on("click", function () {
+            // TODO
+        });
+
+        this.$hintMenu.find("ul.dropdown-menu")
+            .append($item);
+    };
+
+    CodeHintList.prototype.buildListView = function () {
+        this.$hintMenu.find(".li").remove();
+        var self = this;
+        $.each(this.displayList, function (index, item) {
+            self.addItem(item);
+        });
+    };
+
+    CodeHintList.prototype.open = function (mouseOrLocation) {
+        // TODO error check
+
+
+        Menus.closeAll();
+
+        this.filterList();
+
+        this.buildListView();
+
+        var posTop  = mouseOrLocation.pageY,
+            posLeft = mouseOrLocation.pageX;
+        // TODO: reuse context menu repositioning logic
+
+        // open the context menu at final location
+        this.$hintMenu.addClass("open")
+                   .css({"left": posLeft, "top": posTop});
+    };
+
+    CodeHintList.prototype.filterList = function () {
+
+    };
+
+    var hintList = new CodeHintList();
 
     // Define public API
 });
