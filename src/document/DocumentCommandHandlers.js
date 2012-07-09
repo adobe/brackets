@@ -52,6 +52,8 @@ define(function (require, exports, module) {
     
     /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
     var _$title = null;
+    /** @type {jQueryObject} Container for dirty dot; must be an inline element */
+    var _$dirtydot = null;
     /** @type {jQueryObject} Container for _$title; need not be an inline element */
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
@@ -62,19 +64,17 @@ define(function (require, exports, module) {
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
     
-    var DIRTY_INDICATOR = " <span class='dirty-dot'>\u2022</span>";
-    
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
             _$title.text(_currentTitlePath);
             _$title.attr("title", currentDoc.file.fullPath);
-            if (currentDoc.isDirty) {
-                _$title.append(DIRTY_INDICATOR);
-            }
+            // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+            _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
         } else {
             _$title.text("");
             _$title.attr("title", "");
+            _$dirtydot.css("visibility", "hidden");
         }
         
         // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
@@ -749,6 +749,7 @@ define(function (require, exports, module) {
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
+        _$dirtydot = $(".dirty-dot", _$titleWrapper);
 
         // Register global commands
         CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);
