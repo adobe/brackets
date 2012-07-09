@@ -427,7 +427,7 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created divider
      */
     Menu.prototype.addMenuDivider = function (position, relativeID) {
-        return this.addMenuItem(DIVIDER, position, relativeID);
+        return this.addMenuItem(DIVIDER, "", position, relativeID);
     };
 
     /**
