@@ -26,7 +26,7 @@
 /*global define, $, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     console.log("and a file that foo depends on!");
 

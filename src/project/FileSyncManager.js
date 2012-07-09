@@ -37,7 +37,7 @@
  * DocumentManager directly. DocumentManager, the tree UI, etc. then all listen to that model for changes.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var ProjectManager      = require("project/ProjectManager"),

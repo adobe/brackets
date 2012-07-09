@@ -29,7 +29,7 @@
  * GotoAgent constructs and responds to the in-browser goto dialog.
  */
 define(function GotoAgent(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
@@ -54,7 +54,7 @@ define(function GotoAgent(require, exports, module) {
      * @param {string} URL
      */
     function _fileFromURL(url) {
-        var comp = url.split('/');
+        var comp = url.split("/");
         return comp[comp.length - 1];
     }
 
@@ -171,7 +171,7 @@ define(function GotoAgent(require, exports, module) {
         var matches = /^(.*):([^:]+)$/.exec(url);
         if (matches) {
             url = matches[1];
-            location = matches[2].split(',');
+            location = matches[2].split(",");
             if (location.length === 1) {
                 location = parseInt(location[0], 10);
             } else {

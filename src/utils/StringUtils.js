@@ -29,7 +29,7 @@
  *
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     /**
      * Format a string by replacing placeholder symbols with passed in arguments.
@@ -45,17 +45,17 @@ define(function (require, exports, module) {
         // arguments[0] is the base string, so we need to adjust index values here
         var args = [].slice.call(arguments, 1);
         return str.replace(/\{(\d+)\}/g, function (match, num) {
-            return typeof args[num] !== 'undefined' ? args[num] : match;
+            return typeof args[num] !== "undefined" ? args[num] : match;
         });
     }
 
     function htmlEscape(str) {
         return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
     function regexEscape(str) {

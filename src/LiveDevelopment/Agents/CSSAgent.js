@@ -31,7 +31,7 @@
  */
 
 define(function CSSAgent(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 

@@ -38,7 +38,7 @@
  *    - focusedEditorChange -- When the focused editor (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var FileUtils           = require("file/FileUtils"),

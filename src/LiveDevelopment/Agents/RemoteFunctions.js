@@ -31,7 +31,7 @@
  * exported functions.
  */
 function RemoteFunctions() {
-    'use strict';
+    "use strict";
 
     var _body = window.document.getElementsByTagName("body")[0]; // the document body
     var _sourceHighlight; // the highlighted element in the source
