@@ -207,7 +207,7 @@ eos
 		write "<section id='toc' class='domain'>", "<h1>Table of Contents</h1>"
 		@in["domains"].each do |info|
 			domain = info["domain"]
-			write "<h3><a href='##{info['domain']}'>#{info['domain']}</a></h3>"
+			write "<h3><a href=\"##{info['domain']}\">#{info['domain']}</a></h3>"
 			writeTOCDomain info
 		end
 		write "</section>"
