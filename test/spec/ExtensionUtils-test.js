@@ -50,13 +50,42 @@ define(function (require, exports, module) {
 
         describe("loadStyleSheet", function () {
 
-            // putting everything in 1 test so it runs faster
-            it("should attach style sheets", function () {
+            function loadStyleSheet(doc, path) {
+
+                var styleSheetsCount, lastStyleSheetIndex;
+
+                expect(doc).toBeTruthy();
+                expect(doc.styleSheets).toBeTruthy();
 
                 // attach style sheet
                 runs(function () {
-                    var promise = ExtensionUtils.loadStyleSheet(module, "ExtensionUtils-test-files/basic.css");
-                    waitsForDone(promise, "loadStyleSheet: basic.css");
+                    styleSheetsCount = doc.styleSheets.length;
+                    var promise = ExtensionUtils.loadStyleSheet(module, path);
+                    waitsForDone(promise, "loadStyleSheet: " + path);
+                });
+
+                // even though promise has resolved, stylesheet may still not be loaded,
+                // so wait until styleSheets array length has been incremented.
+                waitsFor(function () {
+                    return (doc.styleSheets.length > styleSheetsCount);
+                }, "loadStyleSheet() increments array timeout", 1000);
+
+                // after styleSheets array is incremented, wait for cssRules object to be defined.
+                // note that this works for Chrome, bu not sure about other browsers.
+                // someday there may be an event to listen for...
+                runs(function () {
+                    lastStyleSheetIndex = doc.styleSheets.length - 1;
+                });
+                waitsFor(function () {
+                    return (doc.styleSheets[lastStyleSheetIndex].cssRules);
+                }, "loadStyleSheet() cssRules defined timeout", 1000);
+            }
+
+            // putting everything in 1 test so it runs faster
+            it("should attach style sheets", function () {
+
+                runs(function () {
+                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/basic.css");
                 });
 
                 // placing this code in a separate closure forces styles to update
@@ -71,15 +100,13 @@ define(function (require, exports, module) {
                     expect(fontWeight).toEqual("500");
                 });
 
-                // attach another style sheet in a sub-directory with space and high-ascii chars in name.
-                // note that git choked on double-byte chars, so those were removed.
+                // attach another style sheet in a sub-directory with space in name.
                 runs(function () {
-                    var promise = ExtensionUtils.loadStyleSheet(module, "ExtensionUtils-test-files/sub dir/third.css");
-                    waitsForDone(promise, "loadStyleSheet: third.css");
+                    loadStyleSheet(testWindow.document, "ExtensionUtils-test-files/sub dir/third.css");
                 });
 
                 runs(function () {
-                    // HighASCII_été.css
+                    // third.css
                     var $projectTitle = testWindow.$("#project-title");
                     var fontVariant = $projectTitle.css("font-variant");
                     expect(fontVariant).toEqual("small-caps");
