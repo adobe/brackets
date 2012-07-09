@@ -53,13 +53,13 @@ end
 class JSDoc
 
 	def typedef(domain, info)
-		return "[" + typedef(domain, info["items"]) + "]" if info["items"]
+		return "[" + typedef(domain, info['items']) + "]" if info['items']
 		if info["$ref"]
 			ref = info["$ref"]
 			ref = domain + "." + ref unless ref =~ /\./
 			r = "<a href='##{ref}'>#{ref}</a>" if info["$ref"]
 		elsif info["enum"]
-			r = "( #{info["enum"].join " | "} )"
+			r = "( #{info['enum'].join " | "} )"
 		else
 			r = info["type"].upcaseFirst
 		end
@@ -74,7 +74,7 @@ class JSDoc
 	def open
 		@in = JSON.parse(File.open(@input).read)
 		@in["domains"].sort! { |a,b| a["domain"] <=> b["domain"] }
-		@version = "#{@in["version"]["major"]}.#{@in["version"]["minor"]}"
+		@version = "#{@in['version']['major']}.#{@in['version']['minor']}"
 		File.open(@output, "w") do |out|
 			@out = out
 			yield
@@ -100,9 +100,9 @@ class JSDoc
 		write "<dl>"
 		params.each do |p|
 			name = p["name"]
-			description = " <span class='text'>#{p["description"]}</span>" if p["description"]
+			description = " <span class='text'>#{p['description']}</span>" if p['description']
 			type = typedef domain, p
-			name += " (optional)" if p["optional"]
+			name += " (optional)" if p['optional']
 			write "<dt>#{name}</dt>"
 			write "<dd>#{type}#{description}</dd>"
 		end
@@ -111,25 +111,25 @@ class JSDoc
 
 	def writeTOCLine(domain, info)
 		info["name"] ||= info["id"]
-		uid = "#{domain}.#{info["name"]}"
-		description = info["description"] ? ": #{info["description"].gsub(/<[^>]*>/, "")}" : ""
+		uid = "#{domain}.#{info['name']}"
+		description = info['description'] ? ": #{info['description'].gsub(/<[^>]*>/, "")}" : ""
 		write "<li><a href='##{uid}'>#{uid}</a>#{description}</li>"
 	end
 
 	def writeTOCDomain(info)
 		domain = info["domain"]
 		unless info["types"].empty?
-			write "<span class="label">Type</span>", "<ul>"
+			write "<span class='label'>Type</span>", "<ul>"
 			info["types"].each { |p| writeTOCLine domain, p }
 			write "</ul>"
 		end
 		unless info["commands"].empty?
-			write "<span class="label label-success">Command</span>", "<ul>"
+			write "<span class='label label-success'>Command</span>", "<ul>"
 			info["commands"].each { |p| writeTOCLine domain, p }
 			write "</ul>"
 		end
 		unless info["events"].empty?
-			write "<span class="label label-info">Event</span>", "<ul>"
+			write "<span class='label label-info'>Event</span>", "<ul>"
 			info["events"].each { |p| writeTOCLine domain, p }
 			write "</ul>"
 		end
@@ -204,7 +204,7 @@ eos
 	end
 
 	def writeTOC
-		write "<section id="toc" class="domain">", "<h1>Table of Contents</h1>"
+		write "<section id='toc' class='domain'>", "<h1>Table of Contents</h1>"
 		@in["domains"].each do |info|
 			domain = info["domain"]
 			write "<h3><a href='##{info['domain']}'>#{info['domain']}</a></h3>"
