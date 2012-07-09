@@ -141,7 +141,7 @@ define(function (require, exports, module) {
         //If this is a fully quoted value, return the whole
         //thing regardless of position
         if (attrValue.length > 1 &&
-                (startChar === "'" || startChar === "\"") &&
+                (startChar === "'" || startChar === '"') &&
                 endChar === startChar) {
             //strip the quotes and return;
             attrValue = attrValue.substring(1, attrValue.length - 1);
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
         
         //If the attrValue start with a quote, trim that now
         startChar = attrValue.charAt(0);
-        if (startChar === "'" || startChar === "\"") {
+        if (startChar === "'" || startChar === '"') {
             attrValue = attrValue.substring(1);
             offset--;
         }
