@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var EditorManager   = require("editor/EditorManager"),
+        CodeHintManager = require("editor/CodeHintManager"),
         Commands        = require("command/Commands"),
         CommandManager  = require("command/CommandManager"),
         Menus           = require("command/Menus"),
@@ -207,6 +208,13 @@ define(function (require, exports, module) {
                     }, 75);
                 }
             }
+        }
+    }
+
+    function _handleKeyEvents(jqEvent, editor, event) {
+        _checkElectricChars(jqEvent, editor, event);
+        if (event.type === "keypress" || (event.type === "keydown" && event.keyCode === 8)) {
+            CodeHintManager.checkForHint(editor);
         }
     }
 
@@ -367,7 +375,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
-            .on("keyEvent", _checkElectricChars)
+            .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
