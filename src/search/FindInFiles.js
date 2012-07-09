@@ -68,11 +68,10 @@ define(function (require, exports, module) {
     * Creates a dialog div floating on top of the current code mirror editor
     */
     FindInFilesDialog.prototype._createDialogDiv = function (template) {
-        // FUTURE: consider using jQuery for all the DOM manipulation here
-        var wrap = $("#editor-holder")[0];
-        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = "<div>" + template + "</div>";
+        $("<div />").insertBefore($("#editor-holder > :first"));
+        this.dialog = $("#editor-holder > div:first")
+                          .attr("class", "CodeMirror-dialog")
+                          .html("<div>" + template + "</div>");
     };
     
     /**
@@ -84,7 +83,7 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-        this.dialog.parentNode.removeChild(this.dialog);
+        this.dialog.remove();
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
