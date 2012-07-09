@@ -39,7 +39,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),

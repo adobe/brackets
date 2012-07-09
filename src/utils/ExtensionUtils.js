@@ -29,7 +29,7 @@
  * ExtensionUtils defines utility methods for implementing extensions.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     /**
      * Loads a style sheet relative to the extension module.

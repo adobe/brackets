@@ -30,7 +30,7 @@
   * of the application.
   */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     /**
      * Map of all registered global commands

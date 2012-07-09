@@ -29,7 +29,7 @@
  * Defines a ChangedDocumentTracker class to monitor changes to files in the current project.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var DocumentManager = require("document/DocumentManager"),
         ProjectManager  = require("project/ProjectManager");

@@ -33,7 +33,7 @@
  * iterated using `each()` or `find()`. `dump` shows the entire tree on the console.
  */
 define(function DOMNodeModule(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var DOMHelpers = require("LiveDevelopment/Agents/DOMHelpers");
 

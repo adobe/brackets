@@ -30,7 +30,7 @@
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),

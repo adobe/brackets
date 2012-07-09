@@ -65,7 +65,7 @@
  *    $(DocumentManager).on("eventname", handler);
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = require("project/ProjectManager"),
