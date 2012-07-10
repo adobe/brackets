@@ -61,7 +61,6 @@ define(function (require, exports, module) {
     exports.EDIT_DUPLICATE              = "edit.duplicate";
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";
     exports.TOGGLE_USE_TAB_CHARS        = "debug.useTabChars";
-    exports.CODE_HINT                   = "edit.codehint";
 
     // VIEW
     exports.VIEW_HIDE_SIDEBAR           = "view.hideSidebar";

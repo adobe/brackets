@@ -211,10 +211,14 @@ define(function (require, exports, module) {
         }
     }
 
+
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
-        if (event.type === "keypress" || (event.type === "keydown" && event.keyCode === 8)) {
-            CodeHintManager.checkForHint(editor);
+
+
+        if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
+            CodeHintManager.showHint(editor);
+            event.preventDefault();
         }
     }
 
