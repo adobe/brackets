@@ -26,7 +26,7 @@
 /*global define, $, brackets, PathUtils, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     require("thirdparty/path-utils/path-utils.min");
     
@@ -52,6 +52,8 @@ define(function (require, exports, module) {
     
     /** @type {jQueryObject} Container for label shown above editor; must be an inline element */
     var _$title = null;
+    /** @type {jQueryObject} Container for dirty dot; must be an inline element */
+    var _$dirtydot = null;
     /** @type {jQueryObject} Container for _$title; need not be an inline element */
     var _$titleWrapper = null;
     /** @type {string} Label shown above editor for current document: filename and potentially some of its path */
@@ -62,19 +64,17 @@ define(function (require, exports, module) {
     /** @type {Number} Last known height of _$titleContainerToolbar */
     var _lastToolbarHeight = null;
     
-    var DIRTY_INDICATOR = " <span class='dirty-dot'>\u2022</span>";
-    
     function updateTitle() {
         var currentDoc = DocumentManager.getCurrentDocument();
         if (currentDoc) {
             _$title.text(_currentTitlePath);
             _$title.attr("title", currentDoc.file.fullPath);
-            if (currentDoc.isDirty) {
-                _$title.append(DIRTY_INDICATOR);
-            }
+            // dirty dot is always in DOM so layout doesn't change, and visibility is toggled
+            _$dirtydot.css("visibility", (currentDoc.isDirty) ? "visible" : "hidden");
         } else {
             _$title.text("");
             _$title.attr("title", "");
+            _$dirtydot.css("visibility", "hidden");
         }
         
         // Set _$titleWrapper to a fixed width just large enough to accomodate _$title. This seems equivalent to what
@@ -149,6 +149,8 @@ define(function (require, exports, module) {
                 })
                 .fail(function (fileError) {
                     FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                        // For performance, we do lazy checking of file existence, so it may be in working set
+                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                         EditorManager.focusEditor();
                         result.reject();
                     });
@@ -188,9 +190,13 @@ define(function (require, exports, module) {
                     var i;
                     
                     if (paths.length > 0) {
-                        for (i = 0; i < paths.length - 1; i++) {
-                            DocumentManager.addToWorkingSet(new NativeFileSystem.FileEntry(paths[i]));
-                        }
+                        // Add all files to the working set without verifying that
+                        // they still exist on disk (for faster opening)
+                        var filesToOpen = [];
+                        paths.forEach(function (file) {
+                            filesToOpen.push(new NativeFileSystem.FileEntry(file));
+                        });
+                        DocumentManager.addListToWorkingSet(filesToOpen);
                         
                         doOpen(paths[paths.length - 1])
                             .done(function (doc) {
@@ -753,6 +759,7 @@ define(function (require, exports, module) {
         _$titleContainerToolbar = $titleContainerToolbar;
         _$titleWrapper = $(".title-wrapper", _$titleContainerToolbar);
         _$title = $(".title", _$titleWrapper);
+        _$dirtydot = $(".dirty-dot", _$titleWrapper);
 
         // Register global commands
         CommandManager.register(Strings.CMD_FILE_OPEN,          Commands.FILE_OPEN, handleFileOpen);

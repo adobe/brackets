@@ -29,7 +29,7 @@
  * name/value pairs for a module or plugin.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var PreferencesManager = require("preferences/PreferencesManager");
     

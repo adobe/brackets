@@ -29,7 +29,7 @@
  * Set of utilites for working with the code editor
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/CodeMirror2/mode/xml/xml");
@@ -59,7 +59,7 @@ define(function (require, exports, module) {
         if (!ext) {
             ext = fileUrl;
         }
-        if (ext.charAt(0) === '.') {
+        if (ext.charAt(0) === ".") {
             ext = ext.substr(1);
         }
 

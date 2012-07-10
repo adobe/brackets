@@ -32,7 +32,7 @@
  * Inspector named "Remote.EVENT".
  */
 define(function RemoteAgent(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 

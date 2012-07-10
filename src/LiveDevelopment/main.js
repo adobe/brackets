@@ -36,7 +36,7 @@
  * @require DocumentManager
  */
 define(function main(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var DocumentManager = require("document/DocumentManager"),
         Commands        = require("command/Commands"),

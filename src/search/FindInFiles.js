@@ -40,7 +40,7 @@
 
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async               = require("utils/Async"),
         CommandManager      = require("command/CommandManager"),
@@ -68,11 +68,10 @@ define(function (require, exports, module) {
     * Creates a dialog div floating on top of the current code mirror editor
     */
     FindInFilesDialog.prototype._createDialogDiv = function (template) {
-        // FUTURE: consider using jQuery for all the DOM manipulation here
-        var wrap = $("#editor-holder")[0];
-        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div>' + template + '</div>';
+        this.dialog = $("<div />")
+                          .attr("class", "CodeMirror-dialog")
+                          .html("<div>" + template + "</div>")
+                          .prependTo($("#editor-holder"));
     };
     
     /**
@@ -84,7 +83,7 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-        this.dialog.parentNode.removeChild(this.dialog);
+        this.dialog.remove();
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
@@ -95,10 +94,10 @@ define(function (require, exports, module) {
     * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function (initialString) {
-        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
+        var dialogHTML = "Find in Files: <input type='text' id='findInFilesInput' style='width: 10em'> <span style='color: #888'>(Use /re/ syntax for regexp search)</span>";
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
-        var $searchField = $('input#findInFilesInput');
+        var $searchField = $("input#findInFilesInput");
         var that = this;
         
         $searchField.attr("value", initialString || "");
@@ -164,7 +163,7 @@ define(function (require, exports, module) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table'>")
+            var $resultTable = $("<table class='zebra-striped condensed-table' />")
                                 .append("<tbody>");
             
             // Count the total number of matches

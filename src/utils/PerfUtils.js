@@ -28,7 +28,7 @@
  * This is a collection of utility functions for gathering performance data.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)

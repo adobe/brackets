@@ -29,7 +29,7 @@
  * DOMHelpers is a collection of functions used by the DOMAgent exports `eachNode(src, callback)`
  */
 define(function DOMHelpersModule(require, exports, module) {
-    'use strict';
+    "use strict";
 
     /** Test if the given character is a quote character
      * {char} source character
@@ -145,8 +145,8 @@ define(function DOMHelpersModule(require, exports, module) {
     function _extractAttributes(content) {
 
         // remove the node name and the closing bracket and optional slash
-        content = content.replace(/^<\S+\s*/, '');
-        content = content.replace(/\s*\/?>$/, '');
+        content = content.replace(/^<\S+\s*/, "");
+        content = content.replace(/\s*\/?>$/, "");
         if (content.length === 0) {
             return;
         }
@@ -205,7 +205,7 @@ define(function DOMHelpersModule(require, exports, module) {
             }
 
             // closed node (/ at the end)
-            if (content[content.length - 2] === '/') {
+            if (content[content.length - 2] === "/") {
                 payload.closed = true;
             }
         }
