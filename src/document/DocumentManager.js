@@ -1014,7 +1014,7 @@ define(function (require, exports, module) {
 
         // Initialize the active editor
         if (!activeFile && _workingSet.length > 0) {
-            activeFile = _workingSet[0];
+            activeFile = _workingSet[0].fullPath;
         }
 
         if (activeFile) {

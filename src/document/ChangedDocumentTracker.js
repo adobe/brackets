@@ -54,15 +54,14 @@ define(function (require, exports, module) {
         $(DocumentManager).on("afterDocumentCreate", function (event, doc) {
             // Only track documents in the current project
             if (ProjectManager.isWithinProject(doc.file.fullPath)) {
-               self._addListener(doc);
+                self._addListener(doc);
             }
         });
 
         $(DocumentManager).on("beforeDocumentDelete", function (event, doc) {
-            // Only documents in the current project are tracked
-            if (ProjectManager.isWithinProject(doc.file.fullPath)) {
-               self._removeListener(doc);
-            }
+            // In case a document somehow remains loaded after its project
+            // has been closed, unconditionally attempt to remove the listener.
+            self._removeListener(doc);
         });
 
         $(window).focus(this._onWindowFocus);
@@ -80,7 +79,7 @@ define(function (require, exports, module) {
      * @private
      */
     ChangedDocumentTracker.prototype._removeListener = function (doc) {
-        $(doc).off("change", self._onChange);
+        $(doc).off("change", this._onChange);
     };
 
     /**
