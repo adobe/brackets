@@ -151,6 +151,8 @@ define(function (require, exports, module) {
             })
             .fail(function (fileError) {
                 FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                    // For performance, we do lazy checking of file existence, so it may be in working set
+                    DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
                     EditorManager.focusEditor();
                     result.reject();
                 });
@@ -189,9 +191,13 @@ define(function (require, exports, module) {
                     var i;
                     
                     if (paths.length > 0) {
-                        for (i = 0; i < paths.length - 1; i++) {
-                            DocumentManager.addToWorkingSet(new NativeFileSystem.FileEntry(paths[i]));
-                        }
+                        // Add all files to the working set without verifying that
+                        // they still exist on disk (for faster opening)
+                        var filesToOpen = [];
+                        paths.forEach(function (file) {
+                            filesToOpen.push(new NativeFileSystem.FileEntry(file));
+                        });
+                        DocumentManager.addListToWorkingSet(filesToOpen);
                         
                         doOpen(paths[paths.length - 1])
                             .done(function (doc) {

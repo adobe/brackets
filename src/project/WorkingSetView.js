@@ -270,7 +270,17 @@ define(function (require, exports, module) {
         _createNewListItem(file);
         _redraw();
     }
-    
+
+    /**
+     * @private
+     */
+    function _handleFileListAdded(files) {
+        files.forEach(function (file) {
+            _createNewListItem(file);
+        });
+        _redraw();
+    }
+
     /** 
      * @private
      */
@@ -287,6 +297,17 @@ define(function (require, exports, module) {
         if ($listItem) {
             $listItem.remove();
         }
+
+        _redraw();
+    }
+
+    function _handleRemoveList(removedFiles) {
+        removedFiles.forEach(function (file) {
+            var $listItem = _findListItemFromFile(file);
+            if ($listItem) {
+                $listItem.remove();
+            }
+        });
 
         _redraw();
     }
@@ -313,11 +334,19 @@ define(function (require, exports, module) {
         $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
             _handleFileAdded(addedFile);
         });
-    
+
+        $(DocumentManager).on("workingSetAddList", function (event, addedFiles) {
+            _handleFileListAdded(addedFiles);
+        });
+
         $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
             _handleFileRemoved(removedFile);
         });
-    
+
+        $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
+            _handleRemoveList(removedFiles);
+        });
+
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
             _handleDirtyFlagChanged(doc);
         });
