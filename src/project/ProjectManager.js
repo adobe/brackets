@@ -460,7 +460,7 @@ define(function (require, exports, module) {
     }
     
     /** @param {Entry} entry File or directory to filter */
-    function _shouldShowInTree(entry) {
+    function shouldShow(entry) {
         return [".git", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) === -1;
     }
 
@@ -484,7 +484,7 @@ define(function (require, exports, module) {
         for (entryI = 0; entryI < entries.length; entryI++) {
             entry = entries[entryI];
             
-            if (_shouldShowInTree(entry)) {
+            if (shouldShow(entry)) {
                 var jsonEntry = {
                     data: entry.name,
                     attr: { id: "node" + _projectInitialLoad.id++ },
@@ -892,6 +892,7 @@ define(function (require, exports, module) {
     exports.getProjectRoot  = getProjectRoot;
     exports.isWithinProject = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
+    exports.shouldShow      = shouldShow;
     exports.openProject     = openProject;
     exports.loadProject     = loadProject;
     exports.getSelectedItem = getSelectedItem;

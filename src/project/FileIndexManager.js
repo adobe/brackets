@@ -125,8 +125,8 @@ define(function (require, exports, module) {
     //
     function _addFileToIndexes(entry) {
 
-        // skip invisible files on mac
-        if (brackets.platform === "mac" && entry.name.charAt(0) === ".") {
+        // skip invisible files
+        if (!ProjectManager.shouldShow(entry)) {
             return;
         }
 
@@ -195,8 +195,8 @@ define(function (require, exports, module) {
 
         // inner helper function
         function _scanDirectoryRecurse(dirEntry) {
-            // skip invisible directories on mac
-            if (brackets.platform === "mac" && dirEntry.name.charAt(0) === ".") {
+            // skip invisible directories
+            if (!ProjectManager.shouldShow(dirEntry)) {
                 return;
             }
 
