@@ -30,9 +30,6 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
-        CommandManager  = require("command/CommandManager"),
-        Commands        = require("command/Commands"),
-        DocumentManager = require("document/DocumentManager"),
         Menus           = require("command/Menus"),
 		HTMLTags        = require("text!CodeHints/HtmlTags.json"),
         EditorManager   = require("editor/EditorManager");
@@ -51,11 +48,16 @@ define(function (require, exports, module) {
     }
 
 
-
+    
+    /**
+     * @constructor
+     *
+     */
     function CodeHintList() {
+        // TODO Ty: should pass array of objects instead of strings as source so richer data can
+        // be passed to hint list
         this.source = _getCodeHints(HTMLTags);
         this.query = "";
-        this.filterFunction = null;
         this.displayList = [];
         this.options = {
             maxResults: 8
@@ -63,7 +65,8 @@ define(function (require, exports, module) {
 
         this.editor = null;
 
-        // TODO: remove context-menu class
+        // TODO Randy: remove context-menu class
+        // how much class sharing should ContextMenus and CodeHints have?
         this.$hintMenu = $("<li class='dropdown context-menu'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
@@ -76,12 +79,19 @@ define(function (require, exports, module) {
 
     }
 
+    /**
+     * Adds a single item to the hint list
+     * @param {string} name
+     */
     CodeHintList.prototype.addItem = function (name) {
         var $item = $("<li><a href='#'><span class='codehint-item'>" + name + "</span></a></li>");
         var self = this;
 
         // TODO: factor click handler into separate function
         $item.on("click", function () {
+
+            // TODO Ray:
+            // use HTMLUtils to find tag bounds instead of using code below
             var start = {line: -1, ch: -1},
                 end = {line: -1, ch: -1};
             if (self.editor.hasSelection()) {
@@ -114,13 +124,27 @@ define(function (require, exports, module) {
             .append($item);
     };
 
+    /**
+     * Rebuilds the hint list based on this.query
+     */
     CodeHintList.prototype.updateList = function () {
         this.filterList();
         this.buildListView();
     };
-            
-    CodeHintList.prototype.buildListView = function () {
+
+    /**
+     * Removes all list items from hint list
+     */
+    CodeHintList.prototype.clearList = function () {
         this.$hintMenu.find("li").remove();
+    };
+            
+    /**
+     * Rebuilds the list items for the hint list based on the display list
+     * array
+     */
+    CodeHintList.prototype.buildListView = function () {
+        this.clearList();
         var self = this;
         var count = 0;
         $.each(this.displayList, function (index, item) {
@@ -131,52 +155,84 @@ define(function (require, exports, module) {
             count++;
         });
 
-        // TODO: if no items, close list
+        // TODO Ty: if no items, close list
     };
 
+    /**
+     * Figures out the text to use for the hint list query based on the text
+     * around the cursor. Query is the text from the start of a tag to the current
+     * cursor position
+     */
     CodeHintList.prototype.updateQueryFromCurPos = function () {
-        var cursor = this.editor.indexFromPos(this.editor.getCursorPos());
+        // TODO Ray: use HTMLUtils to do this in a more robust way
 
-        // TODO: needs to be more robust
+        var cursor = this.editor.indexFromPos(this.editor.getCursorPos());
         var text = this.editor.document.getText();
         var start = text.lastIndexOf("<", cursor) + 1;
         this.query = text.slice(start, cursor);
     };
 
+    /**
+     * Handles key presses when the hint list is being displayed
+     * @param {Event} event
+     * @param {Editor} editor
+     * @param {KeyBoardEvent} keyEvent
+     */
     CodeHintList.prototype.handleKeyEvent = function (event, editor, keyEvent) {
         if (keyEvent.type !== "keyup") {
             return;
         }
+
+        // TODO Glenn: handle arrow keys and return key. Add persistant selection to list.
         
         this.updateQueryFromCurPos();
         this.updateList();
     };
 
+    // TODO Glenn
+    // Right now this code is never called. Need to determine best way to bottleneck
+    // all ways that hint list is closed (esc, clicking, return, etc)
     CodeHintList.prototype.close = function () {
         $(this.editor).off("keyEvent", this.handleKeyEvent);
+
+        this.clearList();
+        this.source = [];
+        this.displayList = [];
     };
     
+    /**
+     * Displays the hint list at the current cursor position
+     */
     CodeHintList.prototype.open = function (editor) {
-        var cursor = editor._codeMirror.cursorCoords(),
+        this.editor = editor;
+
+        Menus.closeAll();
+
+        // TODO Glenn
+        // Need to determine when/where listener is added/removed (see close())
+        // Figure out how to override certain keys in the editor like up and down arrow
+        $(this.editor).on("keyEvent", this.handleKeyEvent.bind(this));
+
+        this.updateQueryFromCurPos();
+        this.updateList();
+    
+        var hintPos = this.calcHintListLocation();
+        this.$hintMenu.addClass("open")
+                   .css({"left": hintPos.left, "top": hintPos.top});
+    };
+
+    /**
+     * Computes top left location for hint list so that the list is not clipped by the window
+     * @ return {Object.<left: Number, to: Number> }
+     */
+    CodeHintList.prototype.calcHintListLocation = function () {
+        var cursor = this.editor._codeMirror.cursorCoords(),
             posTop  = cursor.y,
             posLeft = cursor.x,
             $window = $(window),
             $menuWindow = this.$hintMenu.children("ul");
 
-        this.editor = editor;
-
-        Menus.closeAll();
-
-        // TODO when to remove listener? How to only add one?
-        $(this.editor).on("keyEvent", this.handleKeyEvent.bind(this));
-
-
-
-        this.updateQueryFromCurPos();
-        this.updateList();
-
-    
-        // TODO: factor out menu repositioning logic so code hints and Context menus share code
+        // TODO Ty: factor out menu repositioning logic so code hints and Context menus share code
         // adjust positioning so menu is not clipped off bottom or right
         var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
         if (bottomOverhang > 0) {
@@ -191,11 +247,12 @@ define(function (require, exports, module) {
             posLeft = Math.max(0, posLeft - rightOverhang);
         }
 
-        // open the context menu at final location
-        this.$hintMenu.addClass("open")
-                   .css({"left": posLeft, "top": posTop});
+        return {left: posLeft, top: posTop};
     };
 
+    /**
+     * Filters the source list by query and stores the result in displayList
+     */
     CodeHintList.prototype.filterList = function () {
         var self = this;
         this.displayList = $.map(this.source, function (item) {
@@ -206,28 +263,18 @@ define(function (require, exports, module) {
         // TODO: beter sorting. Should rank tags based on portion of query that is present in tag
     };
 
-        /**
-         * @private
-         * Test functions to see if the hinting is working
-         * @param {CodeMirror} editor An instance of a CodeMirror editor
-         */
-        // function _triggerClassHint(editor, pos, tagInfo) {
-        //     console.log("_triggerClassHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
-        // }
-        
-        // function _triggerIdHint(editor, pos, tagInfo) {
-        //     console.log("_triggerIdHint called for tag: " + tagInfo.tagName + " and attr value: " + tagInfo.attr.value);
-        // }
 
-        // TODO: singleton for now. 
+
+    // TODO Ty: singleton for now. Figure out broader strategy for hint list across editors
+    // and different types of hint list.
     var hintList = new CodeHintList();
         
-        /**
-         * @private
-         * Checks to see if this is an attribute value we can hint
-         * @param {CodeMirror} editor An instance of a CodeMirror editor
-         */
+     /**
+      * Show the code hint list near the current cursor position for the specified editor
+      * @param {Editor}
+      */
     function showHint(editor) {
+    // To be used later when we get to attribute hinting
     //       var pos = editor.getCursorPos();
     //       var tagInfo = HTMLUtils.getTagInfo(editor, pos);
     //       if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
@@ -237,7 +284,7 @@ define(function (require, exports, module) {
     //               _triggerIdHint(editor, pos, tagInfo);
     //           }
     //       }
-        // else if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+    //      else if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
     //           console.log(_getCodeHints(HTMLTags, tagInfo.tagName));
     //       }
 
@@ -245,19 +292,6 @@ define(function (require, exports, module) {
         hintList.open(editor);
     }
         
-        /**
-         * @private
-         * Called whenever a CodeMirror editor gets a key event
-         * @param {object} event the jQuery event for onKeyEvent
-         * @param {CodeMirror} editor An instance of a CodeMirror editor
-         * @param {object} keyboardEvent  the raw keyboard event that CM is handling
-         */
-        // function _onKeyEvent(event, editor, keyboardEvent) {
-        //     if (keyboardEvent.type !== "keypress") {
-        //         return;
-        //     }
-        //     window.setTimeout(function () { checkForHint(editor); }, 40);
-        // }
 
     // Define public API
     exports.showHint = showHint;

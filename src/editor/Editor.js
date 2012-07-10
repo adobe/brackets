@@ -215,8 +215,10 @@ define(function (require, exports, module) {
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
 
-
-        if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
+        // TODO Glenn
+        // Does editor own CodeHintManager and forward messages to it or does CodeHintManager
+        // attached to editor. 
+        if (event.type === "keypress" && event.keyCode === 32 && event.ctrlKey) {
             CodeHintManager.showHint(editor);
             event.preventDefault();
         }
