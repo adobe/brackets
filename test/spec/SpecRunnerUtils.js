@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Utility for tests that wait on a Promise. Placed in the global namespace so it can be used
+     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
      * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
@@ -71,7 +71,21 @@ define(function (require, exports, module) {
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "resolved";
-        }, "Timeout waiting for " + operationName, 1000);
+        }, "Timeout waiting for success " + operationName, 1000);
+    };
+    
+    /**
+     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
+     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForFail = function (promise, operationName) {
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "rejected";
+        }, "Timeout waiting for failure " + operationName, 1000);
     };
     
     
