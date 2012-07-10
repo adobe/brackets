@@ -147,10 +147,10 @@ define(function (require, exports, module) {
      * Creates a dialog div floating on top of the current code mirror editor
      */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        var $wrap = $("#editor-holder")[0];
-        this.dialog = $wrap.insertBefore(window.document.createElement("div"), $wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div align="right">' + template + '</div>';
+        this.dialog = $("<div />")
+                          .attr("class", "CodeMirror-dialog")
+                          .html("<div align='right'>" + template + "</div>")
+                          .prependTo($("#editor-holder"));
     };
 
     function _filenameFromPath(path, includeExtension) {
@@ -354,9 +354,7 @@ define(function (require, exports, module) {
 
         EditorManager.focusEditor();
 
-        // for some odd reason I need to remove the dialog like this through the parent
-        // If I do it more directly listeners are not removed by the smart auto complete plug-in
-        this.dialog.parentNode.removeChild(this.dialog);
+        this.dialog.remove();
         $(".smart_autocomplete_container").remove();
 
         $(window.document).off("mousedown", this.handleDocumentClick);
