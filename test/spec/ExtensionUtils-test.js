@@ -71,7 +71,7 @@ define(function (require, exports, module) {
                 }, "loadStyleSheet() increments array timeout", 1000);
 
                 // after styleSheets array is incremented, wait for cssRules object to be defined.
-                // note that this works for Chrome, bu not sure about other browsers.
+                // note that this works for Chrome, but not sure about other browsers.
                 // someday there may be an event to listen for...
                 runs(function () {
                     lastStyleSheetIndex = doc.styleSheets.length - 1;
