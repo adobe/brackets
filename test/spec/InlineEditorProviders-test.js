@@ -581,8 +581,7 @@ define(function (require, exports, module) {
                     
                     var newText = "\n/* jasmine was here */",
                         hostEditor,
-                        inlineEditor,
-                        promise;
+                        inlineEditor;
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
@@ -598,10 +597,8 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
-
-                        waitsForDone(promise);
                     });
                     // clickDialogButton() inserts a wait automatically, so must end runs() block here
                     
