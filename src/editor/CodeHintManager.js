@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
         Menus           = require("command/Menus"),
+        StringUtils     = require("utils/StringUtils"),
 		HTMLTags        = require("text!CodeHints/HtmlTags.json"),
         EditorManager   = require("editor/EditorManager");
     
@@ -84,7 +85,12 @@ define(function (require, exports, module) {
      * @param {string} name
      */
     CodeHintList.prototype.addItem = function (name) {
-        var $item = $("<li><a href='#'><span class='codehint-item'>" + name + "</span></a></li>");
+        var displayName = name.replace(
+            new RegExp(StringUtils.regexEscape(this.query), "gi"),
+            "<strong>$&</strong>"
+        );
+
+        var $item = $("<li><a href='#'><span class='codehint-item'>" + displayName + "</span></a></li>");
         var self = this;
 
         // TODO: factor click handler into separate function
@@ -260,7 +266,7 @@ define(function (require, exports, module) {
                 return item;
             }
         }).sort();
-        // TODO: beter sorting. Should rank tags based on portion of query that is present in tag
+        // TODO: better sorting. Should rank tags based on portion of query that is present in tag
     };
 
 
