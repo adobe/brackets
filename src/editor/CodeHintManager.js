@@ -65,6 +65,7 @@ define(function (require, exports, module) {
         };
 
         this.opened = false;
+        this.selectedIndex = -1;
         this.editor = null;
 
         // TODO Randy: remove context-menu class
@@ -157,9 +158,11 @@ define(function (require, exports, module) {
             count++;
         });
 
-        // TODO Ty: if no items, close list
         if (count === 0) {
-            Menus.closeAll();
+            this.close();
+        } else {
+            // Select the first item in the list
+            this.setSelectedIndex(0);
         }
     };
 
@@ -182,18 +185,52 @@ define(function (require, exports, module) {
         }
     };
 
+    CodeHintList.prototype.setSelectedIndex = function (index) {
+        var items = this.$hintMenu.find("li");
+        
+        // Range check
+        index = Math.max(0, Math.min(index, items.length - 1));
+        
+        // Clear old highlight
+        if (this.selectedIndex !== -1) {
+            $(items[this.selectedIndex]).find("a").removeClass("highlight");
+        }
+        
+        // Highlight the new selected item
+        this.selectedIndex = index;
+        $(items[this.selectedIndex]).find("a").addClass("highlight");
+    };
+    
     /**
      * Handles key presses when the hint list is being displayed
      * @param {Editor} editor
      * @param {KeyBoardEvent} keyEvent
      */
     CodeHintList.prototype.handleKeyEvent = function (editor, event) {
-
-        // TODO Glenn: handle arrow keys and return key. Add persistant selection to list.
-        if (event.keyCode === 38 || event.keyCode === 40) {
+        var keyCode = event.keyCode;
+        
+        // Up arrow, down arrow and enter key are always handled here
+        if (keyCode === 38 || keyCode === 40 || keyCode === 13) {
+            if (event.type === "keydown") {
+                if (keyCode === 38) { // Up arrow
+                    this.setSelectedIndex(this.selectedIndex - 1);
+                } else if (keyCode === 40) { // Down arrow 
+                    this.setSelectedIndex(this.selectedIndex + 1);
+                } else { // Enter/return key
+                    // Trigger a click handler to commmit the selected item
+                    $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
+                    
+                    // Close the list
+                    this.close();
+                }
+            }
+            
             event.preventDefault();
+            return;
         }
         
+        // All other key events trigger a rebuild of the list, but only
+        // on keyup events
         if (event.type !== "keyup") {
             return;
         }
@@ -235,6 +272,11 @@ define(function (require, exports, module) {
         }
     };
 
+    CodeHintList.prototype.close = function () {
+        Menus.closeAll();
+        this.opened = false;
+    };
+        
     /**
      * Computes top left location for hint list so that the list is not clipped by the window
      * @ return {Object.<left: Number, to: Number> }
