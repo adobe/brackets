@@ -66,10 +66,7 @@ define(function (require, exports, module) {
 
         this.opened = false;
         this.editor = null;
-
-        // TODO Randy: remove context-menu class
-        // how much class sharing should ContextMenus and CodeHints have?
-        this.$hintMenu = $("<li class='dropdown context-menu'></li>");
+        this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();

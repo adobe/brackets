@@ -160,7 +160,7 @@
 
 
 /* Menu-related styles */
-.toolbar .nav, .context-menu {
+.toolbar .nav, .context-menu, .codehint-menu {
     @menubar-top-padding: 8px;
     @menubar-bottom-padding: 6px;
     @menubar-h-padding: 9px;
@@ -269,7 +269,7 @@
 
 
 
-.context-menu {
+.context-menu, .codehint-menu {
     position: absolute;
     z-index: @z-index-brackets-context-menu-base;
     list-style-type: none;
@@ -280,6 +280,20 @@
     
     .menu-shortcut {
         float: right;
+    }
+}
+
+.codehint-menu {
+    .dropdown-menu {
+        .box-shadow(none);
+        
+        li {
+            a {
+                // Less padding than on menus. More padding on top than bottom
+                // to center font within its bg highlight better.
+                padding: 2px 0px 0px 0px;
+            }
+        }
     }
 }
 
