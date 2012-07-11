@@ -97,28 +97,23 @@ define(function (require, exports, module) {
         // TODO: factor click handler into separate function
         $item.on("click", function () {
 
-            // TODO Ray:
-            // use HTMLUtils to find tag bounds instead of using code below
             var start = {line: -1, ch: -1},
-                end = {line: -1, ch: -1};
-            if (self.editor.hasSelection()) {
-                var sel = self.editor.getSelection();
-                start = sel.start;
-                end = sel.end;
-            } else {
-                // find start of tag
-                var cursor = self.editor.getCursorPos();
-                var line = self.editor.document.getLine(cursor.line);
-                end.line = start.line = cursor.line;
-                start.ch = line.lastIndexOf("<", cursor.ch) + 1;
-
-                // find end of tag
-                //TODO: needs to be much smarter
-                end.ch = line.indexOf(" ", cursor.ch);
-                if (end.ch === -1) {
-                    end.ch = line.indexOf(">", cursor.ch);
-                }
+                end = {line: -1, ch: -1},
+                cursor = self.editor.getCursorPos(),
+                tagInfo = HTMLUtils.getTagInfo(self.editor, cursor),
+                charCount = 0;
+            
+            if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+                charCount = tagInfo.tagName.length;
+            } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+                charCount = tagInfo.attr.name.length;
+            } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
+                charCount = tagInfo.attr.value.length;
             }
+            
+            end.line = start.line = cursor.line;
+            start.ch = cursor.ch - tagInfo.position.offset;
+            end.ch = start.ch + charCount;
             
             if (start.ch !== "-1" && end.ch !== "-1") {
                 self.editor.document.replaceRange(name, start, end);
@@ -174,12 +169,17 @@ define(function (require, exports, module) {
      * cursor position
      */
     CodeHintList.prototype.updateQueryFromCurPos = function () {
-        // TODO Ray: use HTMLUtils to do this in a more robust way
+        var pos = this.editor.getCursorPos(),
+            cursor = this.editor.indexFromPos(pos),
+            tagInfo = HTMLUtils.getTagInfo(this.editor, pos);
 
-        var cursor = this.editor.indexFromPos(this.editor.getCursorPos());
-        var text = this.editor.document.getText();
-        var start = text.lastIndexOf("<", cursor) + 1;
-        this.query = text.slice(start, cursor);
+        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+            var text = this.editor.document.getText(),
+                start = text.lastIndexOf("<", cursor) + 1;
+            this.query = text.slice(start, cursor);
+        } else {
+            this.query = null;
+        }
     };
 
     /**
@@ -227,10 +227,12 @@ define(function (require, exports, module) {
         this.updateQueryFromCurPos();
         this.updateList();
     
-        var hintPos = this.calcHintListLocation();
-        this.$hintMenu.addClass("open")
-                   .css({"left": hintPos.left, "top": hintPos.top});
-        this.opened = true;
+        if (this.displayList.length) {
+            var hintPos = this.calcHintListLocation();
+            this.$hintMenu.addClass("open")
+                       .css({"left": hintPos.left, "top": hintPos.top});
+            this.opened = true;
+        }
     };
 
     /**
