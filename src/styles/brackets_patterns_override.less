@@ -160,11 +160,13 @@
 
 
 /* Menu-related styles */
+
+@menubar-top-padding: 8px;
+@menubar-bottom-padding: 6px;
+@menubar-h-padding: 9px;
+@item-highlight-color: #e0f0fa;
+
 .toolbar .nav, .context-menu, .codehint-menu {
-    @menubar-top-padding: 8px;
-    @menubar-bottom-padding: 6px;
-    @menubar-h-padding: 9px;
-    @item-highlight-color: #e0f0fa;
     
     // The 1px adjustments here are to account for the border around the top-level menu items.
     margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
@@ -292,6 +294,16 @@
                 // Less padding than on menus. More padding on top than bottom
                 // to center font within its bg highlight better.
                 padding: 2px 0px 0px 0px;
+                
+                &:hover {
+                    color: @bc-black;
+                    background-color: @bc-white;
+                }
+				
+                &.highlight:hover {
+                    color: @bc-black;
+                    background-color: @item-highlight-color;
+                }
             }
         }
     }
