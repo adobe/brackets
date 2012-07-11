@@ -306,7 +306,7 @@ define(function (require, exports, module) {
      *
      * @param {!string} id - the unique identifier for the menu.
      *
-     * Note, keyBindings are not effected at all by removing a menu item. 
+     * Note, keyBindings are not affected at all by removing a menu item. 
      * They would have to be removed separately.
      * 
      */
