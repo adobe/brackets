@@ -67,10 +67,7 @@ define(function (require, exports, module) {
         this.opened = false;
         this.selectedIndex = -1;
         this.editor = null;
-
-        // TODO Randy: remove context-menu class
-        // how much class sharing should ContextMenus and CodeHints have?
-        this.$hintMenu = $("<li class='dropdown context-menu'></li>");
+        this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
 
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
@@ -179,7 +176,11 @@ define(function (require, exports, module) {
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
             var text = this.editor.document.getText(),
                 start = text.lastIndexOf("<", cursor) + 1;
-            this.query = text.slice(start, cursor);
+            if (start <= cursor) {
+                this.query = text.slice(start, cursor);
+            } else {
+                this.query = null;
+            }
         } else {
             this.query = null;
         }
@@ -237,6 +238,12 @@ define(function (require, exports, module) {
 
         this.updateQueryFromCurPos();
         this.updateList();
+
+        // Update the CodeHistList location
+        if (this.displayList.length) {
+            var hintPos = this.calcHintListLocation();
+            this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
+        }
     };
 
     /**
@@ -292,7 +299,7 @@ define(function (require, exports, module) {
         // adjust positioning so menu is not clipped off bottom or right
         var bottomOverhang = posTop + 25 + $menuWindow.height() - $window.height();
         if (bottomOverhang > 0) {
-            posTop = Math.max(0, posTop - bottomOverhang);
+            posTop -= (27 + $menuWindow.height());
         }
         // todo: should be shifted by line height
         posTop -= 15;   // shift top for hidden parent element
@@ -355,10 +362,12 @@ define(function (require, exports, module) {
             return;
         }
         
-        // Check for Control+Space
+        // Check for Control+Space or "<"
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
             event.preventDefault();
+        } else if (event.type === "keyup" && event.keyCode === 188) {
+            _showHint(editor);
         }
 
         // Pass to the hint list, if it's open
