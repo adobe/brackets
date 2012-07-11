@@ -68,18 +68,23 @@ define(function (require, exports, module) {
      * specify a position of FIRST or LAST.
      */
     var MenuSection = {
-        FILE_OPEN_CLOSE_MENU:       "file-open-close-menu-section",
-        FILE_SAVE_MENU:             "file-save-menu-section",
-        FILE_LIVE_MENU:             "file-live-menu-section",
+        // Menu Section                     Command ID in that section
+        FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
+        FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
+        FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
 
-        EDIT_MODIFY_SELECTION_MENU: "edit-modify-selection-menu-section",
-        EDIT_FIND_MENU:             "find-menu-section",
-        EDIT_REPLACE_MENU:          "replace-menu-section",
-        EDIT_SELECTED_TEXT_COMMANDS: "selected-text-commands-menu-group",
+        EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
+        EDIT_FIND:                          {sectionMarker: Commands.EDIT_FIND},
+        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
+        EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
 
-        NAVIGATE_GOTO_MENU:         "goto-menu-section",
-        NAVIGATE_QUICK_EDIT_MENU:   "quick-edit-menu-section"
+        VIEW_HIDESHOW_COMMANDSkey:          {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
+        VIEW_FONTSIZE_COMMANDSkey:          {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+
+        NAVIGATE_GOTO:                      {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
+        NAVIGATE_QUICK_EDIT:                {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
     };
+
     
     /**
       * Insertion position constants
@@ -274,12 +279,27 @@ define(function (require, exports, module) {
         this.id = id;
     }
 
+    Menu.prototype._getMenuItemForCommand = function (command) {
+        var foundMenuItem, key, menuItem;
+        for (key in menuItemMap) {
+            if (menuItemMap.hasOwnProperty(key)) {
+                menuItem = menuItemMap[key];
+                if (menuItem.getCommand() === command) {
+                    foundMenuItem = menuItem;
+                    break;
+                }
+            }
+        }
+        return $(_getHTMLMenuItem(foundMenuItem.id)).closest("li");
+    };
+
     /**
      * Determine relative MenuItem
      *
      * @param {?string} relativeID - id of command (future: also sub-menu, or menu section).
+     * @param {?string} position - only needed when relativeID is a MenuSection
      */
-    Menu.prototype._getRelativeMenuItem = function (relativeID) {
+    Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement,
             key,
             menuItem,
@@ -292,23 +312,43 @@ define(function (require, exports, module) {
             
             if (command) {
                 // Find MenuItem that has this command
-                for (key in menuItemMap) {
-                    if (menuItemMap.hasOwnProperty(key)) {
-                        menuItem = menuItemMap[key];
-                        if (menuItem.getCommand() === command) {
-                            foundMenuItem = menuItem;
-                            break;
-                        }
-                    }
-                }
-                
-                if (foundMenuItem) {
-                    $relativeElement = $(_getHTMLMenuItem(foundMenuItem.id)).closest("li");
-                }
+                $relativeElement = this._getMenuItemForCommand(command);
             }
         }
         
         return $relativeElement;
+    };
+
+    Menu.prototype._getMenuSectionPosition = function (menuSection, position) {
+        var $relativeElement;
+        var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(menuSection.sectionMarker));
+        var $sectionItems = $sectionMarker.siblings();
+        if (position === FIRST || position === LAST) {
+            // Determine the $relativeElement by traversing the sibling list and
+            // stop at the first divider found
+            var $listElem = $sectionMarker;
+            $relativeElement = $listElem;
+            while (true) {
+                $listElem = (position === FIRST ? $listElem.prev() : $listElem.next());
+                if ($listElem.length === 0) {
+                    break;
+                } else if ($listElem.find(".divider").length === 0) {
+                    $relativeElement = $listElem;
+                } else {
+                    break;
+                }
+            }
+            if (position === FIRST) {
+                position = BEFORE;
+            } else {
+                position = AFTER;
+            }
+        } else {
+            console.log("Bad Parameter: MenuSection used as relativeID with a position other than FIRST or LAST");
+            $relativeElement = null;
+        }
+
+        return {relativeElement: $relativeElement, position: position};
     };
     
     /**
@@ -389,7 +429,14 @@ define(function (require, exports, module) {
         }
 
         // Insert menu item
-        var $relativeElement = this._getRelativeMenuItem(relativeID);
+        var $relativeElement;
+        if (relativeID && relativeID.hasOwnProperty("sectionMarker")) {
+            var sectionPos = this._getMenuSectionPosition(relativeID, position);
+            $relativeElement = sectionPos.relativeElement;
+            position = sectionPos.position;
+        } else {
+            $relativeElement = this._getRelativeMenuItem(relativeID);
+        }
         _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                       $menuItem, position, $relativeElement);
 
@@ -916,6 +963,8 @@ define(function (require, exports, module) {
             }
         });
     }
+
+    
 
     // Define public API
     exports.init = init;
