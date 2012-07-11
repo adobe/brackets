@@ -250,9 +250,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(error) {
-        console.error(error.message);
-    }
+        var message = error.message;
 
+        // Additional information, like exactly which parameter could not be processed.
+        var data = error.data;
+        if ($.isArray(data)) {
+            message += "\n" + data.join("\n");
+        }
+
+        // Show the message, but include the error object for further information (e.g. error code)
+        console.error(message, error);
+    }
+    
     /** Run when all agents are loaded */
     function _onLoad() {
         var doc = _getCurrentDocument();
