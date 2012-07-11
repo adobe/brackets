@@ -64,6 +64,7 @@ define(function (require, exports, module) {
             maxResults: 8
         };
 
+        this.opened = false;
         this.editor = null;
 
         // TODO Randy: remove context-menu class
@@ -162,6 +163,9 @@ define(function (require, exports, module) {
         });
 
         // TODO Ty: if no items, close list
+        if (count === 0) {
+            Menus.closeAll();
+        }
     };
 
     /**
@@ -180,30 +184,36 @@ define(function (require, exports, module) {
 
     /**
      * Handles key presses when the hint list is being displayed
-     * @param {Event} event
      * @param {Editor} editor
      * @param {KeyBoardEvent} keyEvent
      */
-    CodeHintList.prototype.handleKeyEvent = function (event, editor, keyEvent) {
-        if (keyEvent.type !== "keyup") {
+    CodeHintList.prototype.handleKeyEvent = function (editor, event) {
+
+        // TODO Glenn: handle arrow keys and return key. Add persistant selection to list.
+        if (event.keyCode === 38 || event.keyCode === 40) {
+            event.preventDefault();
+        }
+        
+        if (event.type !== "keyup") {
             return;
         }
 
-        // TODO Glenn: handle arrow keys and return key. Add persistant selection to list.
-        
         this.updateQueryFromCurPos();
         this.updateList();
     };
 
-    // TODO Glenn
-    // Right now this code is never called. Need to determine best way to bottleneck
-    // all ways that hint list is closed (esc, clicking, return, etc)
-    CodeHintList.prototype.close = function () {
-        $(this.editor).off("keyEvent", this.handleKeyEvent);
-
-        this.clearList();
-        this.source = [];
-        this.displayList = [];
+    /**
+     * Return true if the CodeHistList is open. 
+     */
+    CodeHintList.prototype.isOpen = function () {
+        // We don't get a notification when the dropdown closes. The best
+        // we can do is keep an "opened" flag and check to see if we
+        // still have the "open" class applied.        
+        if (this.opened && !this.$hintMenu.hasClass("open")) {
+            this.opened = false;
+        }
+        
+        return this.opened;
     };
     
     /**
@@ -213,18 +223,14 @@ define(function (require, exports, module) {
         this.editor = editor;
 
         Menus.closeAll();
-
-        // TODO Glenn
-        // Need to determine when/where listener is added/removed (see close())
-        // Figure out how to override certain keys in the editor like up and down arrow
-        $(this.editor).on("keyEvent", this.handleKeyEvent.bind(this));
-
+        
         this.updateQueryFromCurPos();
         this.updateList();
     
         var hintPos = this.calcHintListLocation();
         this.$hintMenu.addClass("open")
                    .css({"left": hintPos.left, "top": hintPos.top});
+        this.opened = true;
     };
 
     /**
@@ -279,7 +285,7 @@ define(function (require, exports, module) {
       * Show the code hint list near the current cursor position for the specified editor
       * @param {Editor}
       */
-    function showHint(editor) {
+    function _showHint(editor) {
     // To be used later when we get to attribute hinting
     //       var pos = editor.getCursorPos();
     //       var tagInfo = HTMLUtils.getTagInfo(editor, pos);
@@ -299,6 +305,24 @@ define(function (require, exports, module) {
     }
         
 
+    function handleKeyEvent(editor, event) {
+        // For now we only handle hints in html
+        if (editor.getModeForSelection() !== "html") {
+            return;
+        }
+        
+        // Check for Control+Space
+        if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
+            _showHint(editor);
+            event.preventDefault();
+        }
+
+        // Pass to the hint list, if it's open
+        if (hintList && hintList.isOpen()) {
+            hintList.handleKeyEvent(editor, event);
+        }
+    }
+    
     // Define public API
-    exports.showHint = showHint;
+    exports.handleKeyEvent = handleKeyEvent;
 });

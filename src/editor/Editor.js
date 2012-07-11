@@ -211,17 +211,11 @@ define(function (require, exports, module) {
         }
     }
 
-
     function _handleKeyEvents(jqEvent, editor, event) {
         _checkElectricChars(jqEvent, editor, event);
 
-        // TODO Glenn
-        // Does editor own CodeHintManager and forward messages to it or does CodeHintManager
-        // attached to editor. 
-        if (event.type === "keypress" && event.keyCode === 32 && event.ctrlKey) {
-            CodeHintManager.showHint(editor);
-            event.preventDefault();
-        }
+        // Pass the key event to the code hint manager. It may call preventDefault() on the event.
+        CodeHintManager.handleKeyEvent(editor, event);
     }
 
     function _handleSelectAll() {
@@ -613,7 +607,7 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
-            return false;   // false tells CodeMirror we didn't eat the event
+            return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
