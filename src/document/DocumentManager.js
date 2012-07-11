@@ -952,6 +952,10 @@ define(function (require, exports, module) {
             currentDoc  = getCurrentDocument(),
             projectRoot = ProjectManager.getProjectRoot();
 
+        if (!projectRoot) {
+            return;
+        }
+
         workingSet.forEach(function (file, index) {
             // flag the currently active editor
             isActive = currentDoc && (file.fullPath === currentDoc.file.fullPath);
