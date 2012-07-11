@@ -176,7 +176,7 @@ define(function (require, exports, module) {
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
             var text = this.editor.document.getText(),
                 start = text.lastIndexOf("<", cursor) + 1;
-            if (start < cursor) {
+            if (start <= cursor) {
                 this.query = text.slice(start, cursor);
             } else {
                 this.query = null;
