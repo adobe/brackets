@@ -88,7 +88,7 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype.addItem = function (name) {
         var displayName = name.replace(
-            new RegExp(StringUtils.regexEscape(this.query), "gi"),
+            new RegExp(StringUtils.regexEscape(this.query), "i"),
             "<strong>$&</strong>"
         );
 
