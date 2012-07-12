@@ -30,7 +30,7 @@
  *
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent non-module scripts
     require("thirdparty/path-utils/path-utils.min");
@@ -99,7 +99,7 @@ define(function (require, exports, module) {
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
             
             if (!result) {
-                var $errorTable = $("<table class='zebra-striped condensed-table'>")
+                var $errorTable = $("<table class='zebra-striped condensed-table' />")
                                    .append("<tbody>");
                 var $selectedRow;
                 

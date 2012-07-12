@@ -26,7 +26,7 @@
 /*global define, $, document, window  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var ProjectManager          = require("project/ProjectManager"),
         WorkingSetView          = require("project/WorkingSetView"),

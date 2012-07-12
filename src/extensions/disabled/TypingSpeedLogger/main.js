@@ -26,7 +26,7 @@
 /*global define, brackets, $, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var EditorManager   = brackets.getModule("editor/EditorManager"),
         PerfUtils       = brackets.getModule("utils/PerfUtils");

@@ -170,7 +170,7 @@
     
     // The 1px adjustments here are to account for the border around the top-level menu items.
     margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
-    
+
     // General item appearance
     a {
         color: @bc-black;
@@ -260,15 +260,8 @@
     }
 }
 
-#codehint-text {
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: @z-index-brackets-context-menu-base;
-}
 
 /* Context menu styles */
-
 
 
 .context-menu, .codehint-menu {
@@ -288,6 +281,8 @@
 .codehint-menu {
     .dropdown-menu {
         .box-shadow(none);
+
+        padding: 0;
         
         li {
             a {
@@ -349,7 +344,6 @@
 
 .dialog-filename {
     font-weight: @font-weight-semibold;
-    white-space: nowrap;
 }
 
 .btn {

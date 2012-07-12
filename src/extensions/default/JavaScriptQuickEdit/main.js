@@ -26,7 +26,7 @@
 /*global define, brackets, $ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Brackets modules
     var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,

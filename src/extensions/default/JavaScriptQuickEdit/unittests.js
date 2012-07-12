@@ -26,7 +26,7 @@
 /*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var CommandManager,         // loaded from brackets.test
         EditorManager,          // loaded from brackets.test
@@ -337,7 +337,7 @@ define(function (require, exports, module) {
                     ];
                 
                 runs(function () {
-                    extensionRequire = testWindow.brackets.getModule('utils/ExtensionLoader').getRequireContextForExtension('JavaScriptQuickEdit');
+                    extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("JavaScriptQuickEdit");
                     JavaScriptQuickEdit = extensionRequire("main");
                     
                     waitsForDone(SpecRunnerUtils.openProjectFiles(["ui/jquery.effects.core.js"]), "openProjectFiles");

@@ -30,7 +30,7 @@
  *
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var PreferenceStorage = require("preferences/PreferenceStorage").PreferenceStorage;
     
