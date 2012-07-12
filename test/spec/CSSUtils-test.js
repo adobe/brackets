@@ -1061,7 +1061,7 @@ define(function (require, exports, module) {
                     CSSUtils.findMatchingRules("#issue403")
                         .done(function (result) { rules = result; });
                 });
-                waitsFor(function () { return rules !== null; }, "CSSUtils.findMatchingRules() timeout", 1000);
+                waitsFor(function () { return rules !== undefined; }, "CSSUtils.findMatchingRules() timeout", 1000);
                 
                 runs(function () {
                     expect(rules.length).toBe(1);
@@ -1081,7 +1081,7 @@ define(function (require, exports, module) {
                 ProjectManager,
                 brackets;
     
-             beforeEach(function () {
+            beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (testWindow) {
                     // Load module instances from brackets.test
                     brackets            = testWindow.brackets;
