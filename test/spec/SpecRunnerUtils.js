@@ -171,8 +171,7 @@ define(function (require, exports, module) {
     
     /**
      * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
-     * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome.
+     * asynchronously; after calling this, you need to wait for the dialog's promise to resolve.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
      */
     function clickDialogButton(buttonId) {
@@ -186,9 +185,6 @@ define(function (require, exports, module) {
             
             dismissButton.click();
         });
-        // Wait until dialog's result handler runs; it's done on a timeout to avoid Bootstrap bugs
-        // TODO: add unit-test helper API to Dialogs that cleanly tell us when it's done closing
-        waits(100);
     }
     
     
