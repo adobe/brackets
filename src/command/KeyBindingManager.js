@@ -98,6 +98,14 @@ define(function (require, exports, module) {
         return keyDescriptor.join("-");
     }
     
+    /**
+     * 
+     * @param {String} left 
+     * @param {String} right
+     * @param {Boolean} previouslyFound
+     * @param {?String} origDescriptor
+     * @return {Boolean}
+     */
     function _isModifier(left, right, previouslyFound, origDescriptor) {
         if (!left || !right) {
             return false;
@@ -229,8 +237,11 @@ define(function (require, exports, module) {
         }
         
         // Translate some keys to their common names
-        if (key === "\t") { key = "Tab"; }
-        if (key === " ") { key = "Space"; }
+        if (key === "\t") {
+            key = "Tab";
+        } else if (key === " ") {
+            key = "Space";
+        }
         key = _mapKeycodeToKey(event.keyCode, key);
 
         return _buildKeyDescriptor(hasMacCtrl, hasCtrl, hasAlt, hasShift, key);

@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     var HTMLUtils       = require("language/HTMLUtils"),
         Menus           = require("command/Menus"),
         StringUtils     = require("utils/StringUtils"),
-		HTMLTags        = require("text!CodeHints/HtmlTags.json"),
+        HTMLTags        = require("text!CodeHints/HtmlTags.json"),
         EditorManager   = require("editor/EditorManager");
     
     /**
