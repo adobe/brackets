@@ -316,7 +316,8 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement("Application Startup");
         
         // finish UI initialization before loading extensions
-        ProjectManager.loadProject().done(function () {
+        var initialProjectPath = ProjectManager.getInitialProjectPath();
+        ProjectManager.openProject(initialProjectPath).done(function () {
             _initTest();
             _initExtensions().always(_onBracketsReady);
         });
