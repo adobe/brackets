@@ -53,6 +53,9 @@ define(function (require, exports, module) {
     /**
      * @constructor
      *
+     * Displays a popup list of code completions.
+     * Currently only HTML tags are supported, but this will greatly be extended in coming sprint
+     * to include: extensibility API, HTML attributes hints, JavaScript hints, CSS hints
      */
     function CodeHintList() {
         // TODO Ty: should pass array of objects instead of strings as source so richer data can
@@ -67,8 +70,8 @@ define(function (require, exports, module) {
         this.opened = false;
         this.selectedIndex = -1;
         this.editor = null;
-        this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
 
+        this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
         var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
             .hide();
 
@@ -80,45 +83,51 @@ define(function (require, exports, module) {
     }
 
     /**
+     * @private
+     * Enters the code completion text into the editor
+     * @string {string} completion - text to insert into current code editor
+     */
+    CodeHintList.prototype._handleItemClick = function (completion) {
+        var start = {line: -1, ch: -1},
+            end = {line: -1, ch: -1},
+            cursor = this.editor.getCursorPos(),
+            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
+            charCount = 0;
+        
+        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
+            charCount = tagInfo.tagName.length;
+        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+            charCount = tagInfo.attr.completion.length;
+        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
+            charCount = tagInfo.attr.value.length;
+        }
+        
+        end.line = start.line = cursor.line;
+        start.ch = cursor.ch - tagInfo.position.offset;
+        end.ch = start.ch + charCount;
+        
+        if (start.ch !== "-1" && end.ch !== "-1") {
+            this.editor.document.replaceRange(completion, start, end);
+        } else {
+            this.editor.document.replaceRange(completion, start);
+        }
+    };
+
+    /**
      * Adds a single item to the hint list
      * @param {string} name
      */
     CodeHintList.prototype.addItem = function (name) {
+        var self = this;
         var displayName = name.replace(
             new RegExp(StringUtils.regexEscape(this.query), "i"),
             "<strong>$&</strong>"
         );
 
-        var $item = $("<li><a href='#'><span class='codehint-item'>" + displayName + "</span></a></li>");
-        var self = this;
-
-        // TODO: factor click handler into separate function
-        $item.on("click", function () {
-
-            var start = {line: -1, ch: -1},
-                end = {line: -1, ch: -1},
-                cursor = self.editor.getCursorPos(),
-                tagInfo = HTMLUtils.getTagInfo(self.editor, cursor),
-                charCount = 0;
-            
-            if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-                charCount = tagInfo.tagName.length;
-            } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
-                charCount = tagInfo.attr.name.length;
-            } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
-                charCount = tagInfo.attr.value.length;
-            }
-            
-            end.line = start.line = cursor.line;
-            start.ch = cursor.ch - tagInfo.position.offset;
-            end.ch = start.ch + charCount;
-            
-            if (start.ch !== "-1" && end.ch !== "-1") {
-                self.editor.document.replaceRange(name, start, end);
-            } else {
-                self.editor.document.replaceRange(name, start);
-            }
-        });
+        var $item = $("<li><a href='#'><span class='codehint-item'>" + displayName + "</span></a></li>")
+            .on("click", function () {
+                self._handleItemClick(name);
+            });
 
         this.$hintMenu.find("ul.dropdown-menu")
             .append($item);
@@ -140,8 +149,7 @@ define(function (require, exports, module) {
     };
             
     /**
-     * Rebuilds the list items for the hint list based on the display list
-     * array
+     * Rebuilds the list items for the hint list based on this.displayList
      */
     CodeHintList.prototype.buildListView = function () {
         this.clearList();
@@ -165,8 +173,8 @@ define(function (require, exports, module) {
 
     /**
      * Figures out the text to use for the hint list query based on the text
-     * around the cursor. Query is the text from the start of a tag to the current
-     * cursor position
+     * around the cursor and sets this.query.
+     * Query is the text from the start of a tag to the current cursor position
      */
     CodeHintList.prototype.updateQueryFromCurPos = function () {
         var pos = this.editor.getCursorPos(),
@@ -186,6 +194,10 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Selects the item in the hint list specified by index
+     * @param {Number} index
+     */
     CodeHintList.prototype.setSelectedIndex = function (index) {
         var items = this.$hintMenu.find("li");
         
@@ -248,6 +260,7 @@ define(function (require, exports, module) {
 
     /**
      * Return true if the CodeHistList is open. 
+     * @return {Boolean}
      */
     CodeHintList.prototype.isOpen = function () {
         // We don't get a notification when the dropdown closes. The best
@@ -262,6 +275,7 @@ define(function (require, exports, module) {
     
     /**
      * Displays the hint list at the current cursor position
+     * @param {Editor} editor
      */
     CodeHintList.prototype.open = function (editor) {
         this.editor = editor;
@@ -279,6 +293,9 @@ define(function (require, exports, module) {
         }
     };
 
+    /**
+     * Closes the hint list
+     */
     CodeHintList.prototype.close = function () {
         Menus.closeAll();
         this.opened = false;
@@ -328,8 +345,8 @@ define(function (require, exports, module) {
 
 
 
-    // TODO Ty: singleton for now. Figure out broader strategy for hint list across editors
-    // and different types of hint list.
+    // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
+    // and different types of hint list when other types of hinting is added.
     var hintList = new CodeHintList();
         
      /**
@@ -355,7 +372,11 @@ define(function (require, exports, module) {
         hintList.open(editor);
     }
         
-
+    /**
+     * Handles keys related to displaying, searching, and navigating the hint list
+     * @param {Editor} editor
+     * @param {KeyboardEvent} event
+     */
     function handleKeyEvent(editor, event) {
         // For now we only handle hints in html
         if (editor.getModeForSelection() !== "html") {
