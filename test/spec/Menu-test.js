@@ -437,7 +437,11 @@ define(function (require, exports, module) {
                         $shortcut = $menuItem.find(".menu-shortcut");
                     
                     // verify key data instead of platform-specific labels
-                    //expect($shortcut.data("key")).toBe("Ctrl-9");
+                    if (testWindow.brackets.platform === "win") {
+                        expect($shortcut.data("key")).toBe("Ctrl-9");
+                    } else if (testWindow.brackets.platform === "mac") {
+                        expect($shortcut.data("key")).toBe("Cmd-9");
+                    }
                     
                     // change keyboard shortcut
                     KeyBindingManager.addBinding("custom.command0", "Alt-8");
