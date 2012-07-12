@@ -597,10 +597,14 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        var promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        
+                        // synchronously click the don't save button
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
+
+                        // asynchronously wait for the dialog promise to complete
+                        waitsForDone(promise);
                     });
-                    // clickDialogButton() inserts a wait automatically, so must end runs() block here
                     
                     runs(function () {
                         // verify inline is closed
