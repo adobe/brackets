@@ -30,7 +30,8 @@ require.config({
     paths: {
         "test": "../test",
         "perf": "../test/perf",
-        "spec": "../test/spec"
+        "spec": "../test/spec",
+        "text" : "thirdparty/text"
     }
 });
 
