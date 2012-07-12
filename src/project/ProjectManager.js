@@ -205,14 +205,6 @@ define(function (require, exports, module) {
      * Initial project path is stored in prefs, which defaults to brackets/src
      */
     function getInitialProjectPath() {
-
-//        // moved from loadProject() when API was refactored, but currently not used...
-//        if (brackets.inBrowser) {
-//            // In browser: dummy folder tree (hardcoded in ProjectManager)
-//            rootPath = "DummyProject";
-//            $("#project-title").html(rootPath);
-//        }
-
         return _prefs.getValue("projectPath");
     }
 
@@ -702,6 +694,9 @@ define(function (require, exports, module) {
      * @param {string=} path Optional absolute path to the root folder of the project. 
      *  If path is undefined or null, displays a  dialog where the user can choose a
      *  folder to load. If the user cancels the dialog, nothing more happens.
+     * @return {$.Promise} A promise object that will be resolved when the
+     *  project is loaded and tree is rendered, or rejected if the project path
+     *  fails to load.
      */
     function openProject(path) {
 
@@ -714,9 +709,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path)
-                        .done(function () { result.resolve(); })
-                        .fail(function () { result.reject();  });
+                    _loadProject(path).pipe(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
@@ -724,9 +717,7 @@ define(function (require, exports, module) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {
                                 // Load the new project into the folder tree
-                                _loadProject(files[0])
-                                    .done(function () { result.resolve(); })
-                                    .fail(function () { result.reject();  });
+                                _loadProject(files[0]).pipe(result.resolve, result.reject);
                             } else {
                                 result.reject();
                             }
@@ -747,7 +738,7 @@ define(function (require, exports, module) {
             });
 
         // if fail, don't open new project: user canceled (or we failed to save its unsaved changes)
-        return result;
+        return result.promise();
     }
 
     /**
