@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var EditorManager   = require("editor/EditorManager"),
+        CodeHintManager = require("editor/CodeHintManager"),
         Commands        = require("command/Commands"),
         CommandManager  = require("command/CommandManager"),
         Menus           = require("command/Menus"),
@@ -208,6 +209,13 @@ define(function (require, exports, module) {
                 }
             }
         }
+    }
+
+    function _handleKeyEvents(jqEvent, editor, event) {
+        _checkElectricChars(jqEvent, editor, event);
+
+        // Pass the key event to the code hint manager. It may call preventDefault() on the event.
+        CodeHintManager.handleKeyEvent(editor, event);
     }
 
     function _handleSelectAll() {
@@ -367,7 +375,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
-            .on("keyEvent", _checkElectricChars)
+            .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
@@ -599,7 +607,7 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
-            return false;   // false tells CodeMirror we didn't eat the event
+            return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
