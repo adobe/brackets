@@ -294,12 +294,14 @@
                 // Less padding than on menus. More padding on top than bottom
                 // to center font within its bg highlight better.
                 padding: 2px 0px 0px 0px;
-                
+
+                // Don't show highlighting on hover for code hints...
                 &:hover {
                     color: @bc-black;
                     background-color: @bc-white;
                 }
-				
+
+				// ...except for selected item
                 &.highlight:hover {
                     color: @bc-black;
                     background-color: @item-highlight-color;
