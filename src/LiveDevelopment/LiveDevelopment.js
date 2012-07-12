@@ -254,7 +254,7 @@ define(function LiveDevelopment(require, exports, module) {
 
         // Additional information, like exactly which parameter could not be processed.
         var data = error.data;
-        if ($.isArray(data)) {
+        if (Array.isArray(data)) {
             message += "\n" + data.join("\n");
         }
 
