@@ -203,13 +203,27 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * Get prefs tree state lookup key for given project path.
+     */
+    function _getTreeStateKey(path) {
+        // generate unique tree state key for this project path
+        var key = "projectTreeState_" + path;
+
+        // normalize to always have slash at end
+        if (key[key.length - 1] !== "/") {
+            key += "/";
+        }
+        return key;
+    }
+
+    /**
+     * @private
      * Save ProjectManager project path and tree state.
      */
     function _savePreferences() {
-        var storage = {};
         
         // save the current project
-        storage.projectPath = _projectRoot.fullPath;
+        _prefs.setValue("projectPath", _projectRoot.fullPath);
 
         // save jstree state
         var openNodes = [],
@@ -243,9 +257,7 @@ define(function (require, exports, module) {
         });
 
         // Store the open nodes by their full path and persist to storage
-        storage.projectTreeState = openNodes;
-        
-        _prefs.setAllValues(storage);
+        _prefs.setValue(_getTreeStateKey(_projectRoot.fullPath), openNodes);
     }
     
     /**
@@ -595,15 +607,12 @@ define(function (require, exports, module) {
         // reset tree node id's
         _projectInitialLoad.id = 0;
 
-        var prefs = _prefs.getAllValues(),
-            result = new $.Deferred(),
+        var result = new $.Deferred(),
             resultRenderTree;
 
         if (rootPath === null || rootPath === undefined) {
             // Load the last known project into the tree
-            rootPath = prefs.projectPath;
-
-            _projectInitialLoad.previous = prefs.projectTreeState;
+            rootPath = _prefs.getValue("projectPath");
 
             if (brackets.inBrowser) {
                 // In browser: dummy folder tree (hardcoded in ProjectManager)
@@ -611,7 +620,10 @@ define(function (require, exports, module) {
                 $("#project-title").html(rootPath);
             }
         }
-        
+
+        // restore project tree state from last time this project was open
+        _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
+
         // Populate file tree as long as we aren't running in the browser
         if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
@@ -902,10 +914,9 @@ define(function (require, exports, module) {
     // Initialize now
     (function () {
         var defaults = {
-            projectPath:      _getDefaultProjectPath(), /* initialze to brackets source */
-            projectTreeState: ""
+            projectPath:      _getDefaultProjectPath()  /* initialize to brackets source */
         };
-        
+
         // Init PreferenceStorage
         _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
 
