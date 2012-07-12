@@ -29,7 +29,7 @@
  * Manages the mapping of keyboard inputs to commands.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var CommandManager = require("command/CommandManager");
 
@@ -388,7 +388,7 @@ define(function (require, exports, module) {
             targetPlatform,
             results;
 
-        if ($.isArray(keyBindings)) {
+        if (Array.isArray(keyBindings)) {
             var keyBinding;
             results = [];
                                             

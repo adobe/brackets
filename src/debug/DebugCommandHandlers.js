@@ -26,7 +26,7 @@
 /*global define, $, brackets, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),

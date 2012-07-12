@@ -29,7 +29,7 @@
  * Utilities for determining the current "build number" / version
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils");

@@ -29,7 +29,7 @@
  * Utilities for creating and managing standard modal dialogs.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var KeyBindingManager = require("command/KeyBindingManager");
 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             this.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
-            if (e.metaKey && (which === 'D')) {
+            if (e.metaKey && (which === "D")) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === 'N') {
+            if (which === "N") {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }

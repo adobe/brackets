@@ -26,7 +26,7 @@
 /*global define, $, brackets, window, MouseEvent */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var Commands                = require("command/Commands"),
@@ -154,7 +154,7 @@ define(function (require, exports, module) {
         var $shortcut = $menuItem.find(".menu-shortcut");
         
         if ($shortcut.length === 0) {
-            $shortcut = $("<span class='menu-shortcut'/>");
+            $shortcut = $("<span class='menu-shortcut' />");
             $menuItem.append($shortcut);
         }
         
@@ -378,7 +378,7 @@ define(function (require, exports, module) {
 
         // create MenuItem DOM
         if (name === DIVIDER) {
-            $menuItem = $("<li><hr class='divider'></li>");
+            $menuItem = $("<li><hr class='divider' /></li>");
         } else {
             // Create the HTML Menu
             $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
@@ -397,7 +397,7 @@ define(function (require, exports, module) {
         if (!menuItem.isDivider) {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
-                if (!$.isArray(keyBindings)) {
+                if (!Array.isArray(keyBindings)) {
                     keyBindings = [keyBindings];
                 }
                 
@@ -427,7 +427,7 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created divider
      */
     Menu.prototype.addMenuDivider = function (position, relativeID) {
-        return this.addMenuItem(DIVIDER, position, relativeID);
+        return this.addMenuItem(DIVIDER, "", position, relativeID);
     };
 
     /**

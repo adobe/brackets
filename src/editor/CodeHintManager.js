@@ -26,7 +26,7 @@
 /*global define, $, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
