@@ -303,7 +303,7 @@ define(function (require, exports, module) {
         
     /**
      * Computes top left location for hint list so that the list is not clipped by the window
-     * @ return {Object.<left: Number, to: Number> }
+     * @ return {Object.<left: Number, top: Number> }
      */
     CodeHintList.prototype.calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
