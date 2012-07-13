@@ -368,6 +368,22 @@ define(function (require, exports, module) {
                 expect(myDocument.getText()).toEqual(expectedText);
                 expectCursorAt({line: 2, ch: 10});
             });
+
+            it("should duplicate line + \n if selected line is at end of file", function () {
+                var lines = defaultContent.split("\n"),
+                    len = lines.length;
+
+                // place cursor at the beginning of the last line
+                myEditor.setCursorPos(len - 1, 0);
+
+                CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
+
+                lines.push("}");
+                var expectedText = lines.join("\n");
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: len, ch: 0});
+            });
             
             it("should duplicate first line", function () {
                 // place cursor at start of line 0
