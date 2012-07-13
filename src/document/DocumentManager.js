@@ -198,7 +198,7 @@ define(function (require, exports, module) {
     
     /**
      * Adds the given file to the end of the working set list, if it is not already in the list.
-     * Does not change which document is currently open in the editor.
+     * Does not change which document is currently open in the editor. Completes synchronously.
      * @param {!FileEntry} file
      */
     function addToWorkingSet(file) {
@@ -291,11 +291,11 @@ define(function (require, exports, module) {
      * Moves document to the front of the MRU list, IF it's in the working set; no-op otherwise.
      * @param {!Document}
      */
-    function _markMostRecent(document) {
-        var mruI = findInWorkingSet(document.file.fullPath, _workingSetMRUOrder);
+    function _markMostRecent(doc) {
+        var mruI = findInWorkingSet(doc.file.fullPath, _workingSetMRUOrder);
         if (mruI !== -1) {
             _workingSetMRUOrder.splice(mruI, 1);
-            _workingSetMRUOrder.unshift(document.file);
+            _workingSetMRUOrder.unshift(doc.file);
         }
     }
     
@@ -331,28 +331,28 @@ define(function (require, exports, module) {
      * @param {!Document} document  The Document to make current. May or may not already be in the
      *      working set.
      */
-    function setCurrentDocument(document) {
+    function setCurrentDocument(doc) {
         
         // If this doc is already current, do nothing
-        if (_currentDocument === document) {
+        if (_currentDocument === doc) {
             return;
         }
 
-        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + (!document || document.file.fullPath));
+        var perfTimerName = PerfUtils.markStart("setCurrentDocument:\t" + doc.file.fullPath);
         
         // If file not within project tree, add it to working set right now (don't wait for it to
         // become dirty)
-        if (!ProjectManager.isWithinProject(document.file.fullPath)) {
-            addToWorkingSet(document.file);
+        if (!ProjectManager.isWithinProject(doc.file.fullPath)) {
+            addToWorkingSet(doc.file);
         }
         
         // Adjust MRU working set ordering (except while in the middle of a Ctrl+Tab sequence)
         if (!_documentNavPending) {
-            _markMostRecent(document);
+            _markMostRecent(doc);
         }
         
         // Make it the current document
-        _currentDocument = document;
+        _currentDocument = doc;
         $(exports).triggerHandler("currentDocumentChange");
         // (this event triggers EditorManager to actually switch editors in the UI)
 
@@ -823,7 +823,8 @@ define(function (require, exports, module) {
     /**
      * Gets an existing open Document for the given file, or creates a new one if the Document is
      * not currently open ('open' means referenced by the UI somewhere). Always use this method to
-     * get Documents; do not call the Document constructor directly.
+     * get Documents; do not call the Document constructor directly. This method is safe to call
+     * in parallel.
      *
      * If you are going to hang onto the Document for more than just the duration of a command - e.g.
      * if you are going to display its contents in a piece of UI - then you must addRef() the Document
@@ -835,21 +836,37 @@ define(function (require, exports, module) {
      *      with a FileError if the file is not yet open and can't be read from disk.
      */
     function getDocumentForPath(fullPath) {
-        var result  = new $.Deferred(),
-            doc     = _openDocuments[fullPath];
-
-        PerfUtils.markStart(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
-        result.done(function () {
-            PerfUtils.addMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
-        }).fail(function () {
-            PerfUtils.finalizeMeasurement(PerfUtils.DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH);
-        });
+        var doc             = _openDocuments[fullPath],
+            pendingPromise  = getDocumentForPath._pendingDocumentPromises[fullPath];
 
         if (doc) {
-            result.resolve(doc);
+            // use existing document
+            return new $.Deferred().resolve(doc).promise();
+        } else if (pendingPromise) {
+            // wait for the result of a previous request
+            return pendingPromise;
         } else {
-            var fileEntry = new NativeFileSystem.FileEntry(fullPath);
+            var result = new $.Deferred(),
+                promise = result.promise();
+            
+            // log this document's Promise as pending
+            getDocumentForPath._pendingDocumentPromises[fullPath] = promise;
+
+            // create a new document
+            var fileEntry = new NativeFileSystem.FileEntry(fullPath),
+                perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+
+            result.done(function () {
+                PerfUtils.addMeasurement(perfTimerName);
+            }).fail(function () {
+                PerfUtils.finalizeMeasurement(perfTimerName);
+            });
+
             FileUtils.readAsText(fileEntry)
+                .always(function () {
+                    // document is no longer pending
+                    delete getDocumentForPath._pendingDocumentPromises[fullPath];
+                })
                 .done(function (rawText, readTimestamp) {
                     doc = new Document(fileEntry, readTimestamp, rawText);
                     result.resolve(doc);
@@ -857,10 +874,21 @@ define(function (require, exports, module) {
                 .fail(function (fileError) {
                     result.reject(fileError);
                 });
+            
+            return promise;
         }
-        
-        return result.promise();
     }
+    
+    /**
+     * Document promises that are waiting to be resolved. It is possible for multiple clients
+     * to request the same document simultaneously before the initial request has completed.
+     * In particular, this happens at app startup where the working set is created and the
+     * intial active document is opened in an editor. This is essential to ensure that only
+     * 1 Document exists for any FileEntry.
+     * @private
+     * @type {Object.<string, $.Promise>}
+     */
+    getDocumentForPath._pendingDocumentPromises = {};
     
     /**
      * Returns the existing open Document for the given file, or null if the file is not open ('open'
@@ -951,6 +979,10 @@ define(function (require, exports, module) {
             workingSet  = getWorkingSet(),
             currentDoc  = getCurrentDocument(),
             projectRoot = ProjectManager.getProjectRoot();
+
+        if (!projectRoot) {
+            return;
+        }
 
         workingSet.forEach(function (file, index) {
             // flag the currently active editor

@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                 function () {
                     // check working set UI list content
                     $listItems = testWindow.$("#open-files-container > ul").children();
-                    return $listItems.length > 0;
+                    return $listItems.length === 2;
                 },
                 1000
             );

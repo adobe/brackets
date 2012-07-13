@@ -130,35 +130,34 @@ define(function (require, exports, module) {
      *  document for the specified file path, or rejected if the file can not be read.
      */
     function doOpen(fullPath) {
-        
-        var result = new $.Deferred(), promise = result.promise();
+        var result = new $.Deferred();
+
         if (!fullPath) {
             console.log("doOpen() called without fullPath");
             result.reject();
-            return promise;
-        }
-        
-        PerfUtils.markStart(PerfUtils.OPEN_FILE);
-        result.always(function () {
-            PerfUtils.addMeasurement(PerfUtils.OPEN_FILE);
-        });
-        
-        // Load the file if it was never open before, and then switch to it in the UI
-        DocumentManager.getDocumentForPath(fullPath)
-            .done(function (doc) {
-                DocumentManager.setCurrentDocument(doc);
-                result.resolve(doc);
-            })
-            .fail(function (fileError) {
-                FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
-                    // For performance, we do lazy checking of file existence, so it may be in working set
-                    DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
-                    EditorManager.focusEditor();
-                    result.reject();
-                });
+        } else {
+            var perfTimerName = PerfUtils.markStart("Open File:\t" + fullPath);
+            result.always(function () {
+                PerfUtils.addMeasurement(perfTimerName);
             });
+            
+            // Load the file if it was never open before, and then switch to it in the UI
+            DocumentManager.getDocumentForPath(fullPath)
+                .done(function (doc) {
+                    DocumentManager.setCurrentDocument(doc);
+                    result.resolve(doc);
+                })
+                .fail(function (fileError) {
+                    FileUtils.showFileOpenError(fileError.code, fullPath).done(function () {
+                        // For performance, we do lazy checking of file existence, so it may be in working set
+                        DocumentManager.removeFromWorkingSet(new NativeFileSystem.FileEntry(fullPath));
+                        EditorManager.focusEditor();
+                        result.reject();
+                    });
+                });
+        }
 
-        return promise;
+        return result.promise();
     }
     
     /**
@@ -221,6 +220,10 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Opens the given file and makes it the current document. Does NOT add it to the working set.
+     * @param {!{fullPath:string}} Params for FILE_OPEN command
+     */
     function handleFileOpen(commandData) {
         var fullPath = null;
         if (commandData) {
@@ -236,7 +239,8 @@ define(function (require, exports, module) {
      * @param {!{fullPath:string}} Params for FILE_OPEN command
      */
     function handleFileAddToWorkingSet(commandData) {
-        handleFileOpen(commandData).done(function (doc) {
+        return handleFileOpen(commandData).done(function (doc) {
+            // addToWorkingSet is synchronous
             DocumentManager.addToWorkingSet(doc.file);
         });
     }
