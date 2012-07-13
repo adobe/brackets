@@ -73,6 +73,10 @@
             if (filterString === "All") {
                 return true;
             }
+
+            if (spec.getFullName() === filterString) {
+                return true;
+            }
             
             // spec.getFullName() concatenates the names of all containing describe()s. We want to filter
             // on just the outermost suite's name (i.e., the item that was selected in the spec list UI)

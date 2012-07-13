@@ -581,7 +581,8 @@ define(function (require, exports, module) {
                     
                     var newText = "\n/* jasmine was here */",
                         hostEditor,
-                        inlineEditor;
+                        inlineEditor,
+                        promise;
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
@@ -597,10 +598,20 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        
+                        // synchronously click the don't save button,
+                        // asynchronously wait for the dialog to close and the Dialog's
+                        // promise to resolve. 
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
                     });
-                    // clickDialogButton() inserts a wait automatically, so must end runs() block here
+
+                    // Wait on the command's promise also since the command performs
+                    // asynchronous tasks after the Dialog is resolved. If the command
+                    // could complete synchronously, this wait would be unnecessary.
+                    runs(function () {
+                        waitsForDone(promise);
+                    });
                     
                     runs(function () {
                         // verify inline is closed
