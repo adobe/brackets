@@ -39,7 +39,7 @@
 
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var FileIndexManager    = require("project/FileIndexManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -147,10 +147,10 @@ define(function (require, exports, module) {
      * Creates a dialog div floating on top of the current code mirror editor
      */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        var $wrap = $("#editor-holder")[0];
-        this.dialog = $wrap.insertBefore(window.document.createElement("div"), $wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div align="right">' + template + '</div>';
+        this.dialog = $("<div />")
+                          .attr("class", "CodeMirror-dialog")
+                          .html("<div align='right'>" + template + "</div>")
+                          .prependTo($("#editor-holder"));
     };
 
     function _filenameFromPath(path, includeExtension) {
@@ -354,9 +354,7 @@ define(function (require, exports, module) {
 
         EditorManager.focusEditor();
 
-        // for some odd reason I need to remove the dialog like this through the parent
-        // If I do it more directly listeners are not removed by the smart auto complete plug-in
-        this.dialog.parentNode.removeChild(this.dialog);
+        this.dialog.remove();
         $(".smart_autocomplete_container").remove();
 
         $(window.document).off("mousedown", this.handleDocumentClick);
@@ -444,7 +442,7 @@ define(function (require, exports, module) {
 
 
     function _handleResultsFormatter(item) {
-        var query = $('input#quickOpenSearch').val();
+        var query = $("input#quickOpenSearch").val();
 
         if (currentPlugin) {
             // Plugins use their own formatter or the default formatter
@@ -468,7 +466,7 @@ define(function (require, exports, module) {
             }
 
             return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + displayName +
-                "<br><span class='quick-open-path'>" + rPath + "</span></li>";
+                "<br /><span class='quick-open-path'>" + rPath + "</span></li>";
         }
     }
 
@@ -479,7 +477,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
 
         
-        var $field = $('input#quickOpenSearch');
+        var $field = $("input#quickOpenSearch");
         if ($field) {
             $field.val(initialString);
             $field.get(0).setSelectionRange(prefix.length, initialString.length);
@@ -527,9 +525,9 @@ define(function (require, exports, module) {
         FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
-                var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickOpenSearch" style="width: 30em">';
+                var dialogHTML = "Quick Open: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
                 that._createDialogDiv(dialogHTML);
-                that.$searchField = $('input#quickOpenSearch');
+                that.$searchField = $("input#quickOpenSearch");
 
 
                 that.$searchField.smartAutoComplete({

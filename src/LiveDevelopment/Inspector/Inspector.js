@@ -81,7 +81,7 @@
  * that stores all returned values as an object.
  */
 define(function Inspector(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var _messageId = 1; // id used for remote method calls, auto-incrementing
     var _messageCallbacks = {}; // {id -> function} for remote method calls

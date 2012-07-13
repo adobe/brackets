@@ -29,7 +29,7 @@
  * Text-editing commands that apply to whichever Editor is currently focused
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var Commands           = require("command/Commands"),

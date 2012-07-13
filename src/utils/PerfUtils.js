@@ -28,7 +28,7 @@
  * This is a collection of utility functions for gathering performance data.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     /**
      * Flag to enable/disable performance data gathering. Default is true (enabled)
@@ -326,8 +326,6 @@ define(function (require, exports, module) {
     }
     
     // create performance measurement constants
-    createPerfMeasurement("OPEN_FILE", "Open file");
-    
     createPerfMeasurement("INLINE_EDITOR_OPEN", "Open inline editor");
     createPerfMeasurement("INLINE_EDITOR_CLOSE", "Close inline editor");
     

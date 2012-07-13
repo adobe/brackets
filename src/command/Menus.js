@@ -26,7 +26,7 @@
 /*global define, $, brackets, window, MouseEvent */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var Commands                = require("command/Commands"),
@@ -54,6 +54,7 @@ define(function (require, exports, module) {
      */
     var ContextMenuIds = {
         EDITOR_MENU:        "editor-context-menu",
+        INLINE_EDITOR_MENU: "inline-editor-context-menu",
         PROJECT_MENU:       "project-context-menu"
     };
 
@@ -154,7 +155,7 @@ define(function (require, exports, module) {
         var $shortcut = $menuItem.find(".menu-shortcut");
         
         if ($shortcut.length === 0) {
-            $shortcut = $("<span class='menu-shortcut'/>");
+            $shortcut = $("<span class='menu-shortcut' />");
             $menuItem.append($shortcut);
         }
         
@@ -383,7 +384,7 @@ define(function (require, exports, module) {
 
         // create MenuItem DOM
         if (name === DIVIDER) {
-            $menuItem = $("<li><hr class='divider'></li>");
+            $menuItem = $("<li><hr class='divider' /></li>");
         } else {
             // Create the HTML Menu
             $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
@@ -402,7 +403,7 @@ define(function (require, exports, module) {
         if (!menuItem.isDivider) {
             if (keyBindings) {
                 // Add key bindings. The MenuItem listens to the Command object to update MenuItem DOM with shortcuts.
-                if (!$.isArray(keyBindings)) {
+                if (!Array.isArray(keyBindings)) {
                     keyBindings = [keyBindings];
                 }
                 
@@ -432,7 +433,7 @@ define(function (require, exports, module) {
      * @return {MenuItem} the newly created divider
      */
     Menu.prototype.addMenuDivider = function (position, relativeID) {
-        return this.addMenuItem(DIVIDER, position, relativeID);
+        return this.addMenuItem(DIVIDER, "", position, relativeID);
     };
 
     /**
@@ -848,6 +849,13 @@ define(function (require, exports, module) {
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
         editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
+        var inline_editor_cmenu = registerContextMenu(ContextMenuIds.INLINE_EDITOR_MENU);
+        inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+        inline_editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
+        inline_editor_cmenu.addMenuDivider();
+        inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
+        inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
+
         /**
          * Context menu for code editors (both full-size and inline)
          * Auto selects the word the user clicks if the click does not occur over
@@ -862,7 +870,9 @@ define(function (require, exports, module) {
             // if not clicking on a selection moves the cursor to click location. When triggered
             // from keyboard, no pre-processing occurs and the cursor/selection is left as is.
             
-            var editor = EditorManager.getFocusedEditor();
+            var editor = EditorManager.getFocusedEditor(),
+                inlineWidget = EditorManager.getFocusedInlineWidget();
+            
             if (editor) {
                 // If there's just an insertion point select the word token at the cursor pos so
                 // it's more clear what the context menu applies to.
@@ -876,7 +886,11 @@ define(function (require, exports, module) {
                     //e.pageY += 6;
                 }
                 
-                editor_cmenu.open(e);
+                if (inlineWidget) {
+                    inline_editor_cmenu.open(e);
+                } else {
+                    editor_cmenu.open(e);
+                }
             }
         });
 

@@ -46,7 +46,7 @@
  *      2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");

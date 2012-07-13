@@ -25,7 +25,7 @@
 /*global $, define, brackets, FileError, InvalidateStateError */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async = require("utils/Async");
 
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
         
         if (fullPath) {
             // add trailing "/" to directory paths
-            if (isDirectory && (fullPath.charAt(fullPath.length - 1) !== '/')) {
+            if (isDirectory && (fullPath.charAt(fullPath.length - 1) !== "/")) {
                 fullPath = fullPath.concat("/");
             }
         }

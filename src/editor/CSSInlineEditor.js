@@ -26,7 +26,7 @@
 /*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var CSSUtils                = require("language/CSSUtils"),

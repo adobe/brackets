@@ -344,15 +344,20 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 0", "custom.command0", function () {});
                     CommandManager.register("Brackets Test Command Custom 1", "custom.command1", function () {});
                     var menu = Menus.addMenu("Custom", "menu-custom");
-
-                    var menuItem = null;
-                    menuItem = menu.addMenuItem("custom.command0");
-                    menuItem = menu.addMenuDivider();
+                    var menuItem = menu.addMenuItem("custom.command0");
                     menuItem = menu.addMenuItem("custom.command1");
-
+                    
+                    // add positioned divider
+                    menuItem = menu.addMenuDivider(Menus.AFTER, "custom.command0");
                     var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(3);
                     expect($($listItems[1]).find("hr.divider").length).toBe(1);
+
+                    // add divider to end
+                    menuItem = menu.addMenuDivider();
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(4);
+                    expect($($listItems[3]).find("hr.divider").length).toBe(1);
                 });
             });
         });
@@ -432,7 +437,11 @@ define(function (require, exports, module) {
                         $shortcut = $menuItem.find(".menu-shortcut");
                     
                     // verify key data instead of platform-specific labels
-                    //expect($shortcut.data("key")).toBe("Ctrl-9");
+                    if (testWindow.brackets.platform === "win") {
+                        expect($shortcut.data("key")).toBe("Ctrl-9");
+                    } else if (testWindow.brackets.platform === "mac") {
+                        expect($shortcut.data("key")).toBe("Cmd-9");
+                    }
                     
                     // change keyboard shortcut
                     KeyBindingManager.addBinding("custom.command0", "Alt-8");
@@ -458,6 +467,18 @@ define(function (require, exports, module) {
                 var command = CommandManager.register("Brackets Test Command Custom 2", "custom.command2", function () {});
                 menuItem = cmenu.addMenuItem(command);
                 expect(menuItem).toBeTruthy();
+
+                // add positioned divider
+                menuItem = cmenu.addMenuDivider(Menus.BEFORE, "custom.command2");
+                var $listItems = testWindow.$("#test-cmenu > ul").children();
+                expect($listItems.length).toBe(3);
+                expect($($listItems[1]).find("hr.divider").length).toBe(1);
+
+                // add divider to end
+                menuItem = cmenu.addMenuDivider();
+                $listItems = testWindow.$("#test-cmenu > ul").children();
+                expect($listItems.length).toBe(4);
+                expect($($listItems[3]).find("hr.divider").length).toBe(1);
 
                 // duplicate command in Menu
                 menuItem = cmenu.addMenuItem("custom.command1");

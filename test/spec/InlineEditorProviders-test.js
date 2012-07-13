@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -441,7 +441,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
@@ -508,7 +508,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedInlineText !== null && savedHostText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedInlineText !== undefined && savedHostText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
@@ -598,7 +598,6 @@ define(function (require, exports, module) {
                         
                         // close the main editor / working set entry for the inline's file
                         testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
-                        
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
                     });
                     // clickDialogButton() inserts a wait automatically, so must end runs() block here

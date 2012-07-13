@@ -26,7 +26,7 @@
 /*global define, $, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
