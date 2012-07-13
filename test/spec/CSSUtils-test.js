@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async"),
         FileUtils               = require("file/FileUtils"),
         CSSUtils                = require("language/CSSUtils"),
-        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
     
     var testPath                = SpecRunnerUtils.getTestPath("/spec/CSSUtils-test-files"),
         simpleCssFileEntry      = new NativeFileSystem.FileEntry(testPath + "/simple.css"),
