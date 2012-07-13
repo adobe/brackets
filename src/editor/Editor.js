@@ -411,7 +411,7 @@ define(function (require, exports, module) {
         // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
             get: function () {
-                return this._codeMirror.scrollPos().y;
+                return this._codeMirror.getScrollInfo().y;
             }
         });
     }
@@ -811,16 +811,16 @@ define(function (require, exports, module) {
     
     /**
      * Returns the current scroll position of the editor.
-     * @returns {{x:number, y:number}} The x,y scroll position.
+     * @returns {{x:number, y:number}} The x,y scroll position in pixels
      */
     Editor.prototype.getScrollPos = function () {
-        return this._codeMirror.scrollPos();
+        return this._codeMirror.getScrollInfo();
     };
     
     /**
      * Sets the current scroll position of the editor.
-     * @param {number} x scrollLeft position
-     * @param {number} y scrollTop position
+     * @param {number} x scrollLeft position in pixels
+     * @param {number} y scrollTop position in pixels
      */
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
