@@ -370,13 +370,13 @@ define(function (require, exports, module) {
             });
 
             it("should duplicate line + \n if selected line is at end of file", function () {
+                var lines = defaultContent.split("\n"),
+                    len = lines.length;
+
                 // place cursor at the beginning of the last line
                 myEditor.setCursorPos(len - 1, 0);
 
                 CommandManager.execute(Commands.EDIT_DUPLICATE, myEditor);
-
-                var lines = defaultContent.split("\n"),
-                    len = lines.length;
 
                 lines.push("}");
                 var expectedText = lines.join("\n");

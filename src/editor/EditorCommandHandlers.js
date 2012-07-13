@@ -141,7 +141,9 @@ define(function (require, exports, module) {
         if (!hasSelection) {
             sel.start.ch = 0;
             sel.end = {line: sel.start.line + 1, ch: 0};
-            if (sel.end.line === editor.lineCount()) delimiter = "\n";
+            if (sel.end.line === editor.lineCount()) {
+                delimiter = "\n";
+            }
         }
 
         // Make the edit
