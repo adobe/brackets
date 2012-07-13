@@ -59,10 +59,6 @@ define(function (require, exports, module) {
 
         describe("Add Menus", function () {
 
-            it("it should add menu to beginning of menu section", function () {
-
-            });
-
             it("should add new menu in last position of list", function () {
                 runs(function () {
                     var $listItems = testWindow.$("#main-toolbar > ul.nav").children();
