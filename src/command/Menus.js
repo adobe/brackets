@@ -305,16 +305,27 @@ define(function (require, exports, module) {
     /**
      * Removes a  menu item with the specified id. 
      *
-     * @param {!string} id - the unique identifier for the menu.
+     * @param {!string | Command} command - the command the menu would execute if we weren't deleting it.
      *
      * Note, keyBindings are not affected at all by removing a menu item. 
      * They would have to be removed separately.
      * 
      */
-    Menu.prototype.removeMenuItem = function (id) {
-        var properID = menuItemMap[this.id + "-" + id].id;
-        $(_getHTMLMenuItem(properID)).remove();
-        delete menuItemMap[properID];
+    Menu.prototype.removeMenuItem = function (command) {
+        var commandID;
+        if (typeof (command) === "string") {
+            if (command === DIVIDER) {
+                name = DIVIDER;
+                commandID = _getNextMenuItemDividerID();
+            } else {
+                commandID = menuItemMap[this.id + "-" + command].id;
+            }
+        } else {
+            commandID = this.id + "-" + command.getID();
+        }
+        
+        $(_getHTMLMenuItem(commandID)).remove();
+        delete menuItemMap[commandID];
     };
     
     /**

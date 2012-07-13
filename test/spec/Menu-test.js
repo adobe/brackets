@@ -164,6 +164,31 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Remove Menu Items", function () {
+            it("should add then remove new menu item to empty menu", function () {
+                runs(function () {
+                    CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem("custom.command");
+                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeDefined();
+
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(1);
+                    expect($($listItems[0]).length).toBe(1);
+
+                    menu.removeMenuItem("custom.command");
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+                    expect($($listItems[0]).length).toBe(0);
+                    
+                });
+            });
+        });    
 
         describe("Add Menu Items", function () {
 
