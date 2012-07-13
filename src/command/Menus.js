@@ -299,6 +299,7 @@ define(function (require, exports, module) {
      *
      * @param {?string} relativeID - id of command (future: also sub-menu, or menu section).
      * @param {?string} position - only needed when relativeID is a MenuSection
+     * @param {HTMLIElement}
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement,
@@ -320,6 +321,12 @@ define(function (require, exports, module) {
         return $relativeElement;
     };
 
+    /**
+     * Returns a menuItem and a relative position for the menuSection/position requested
+     * @param {{menuSection: String}}
+     * @param {String} position constant
+     * @returns {{relativeElement: HTMLIElement, position: String}}
+     */
     Menu.prototype._getMenuSectionPosition = function (menuSection, position) {
         var $relativeElement;
         var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(menuSection.sectionMarker));
@@ -977,8 +984,6 @@ define(function (require, exports, module) {
             }
         });
     }
-
-    
 
     // Define public API
     exports.init = init;
