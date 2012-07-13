@@ -67,9 +67,11 @@ define(function (require, exports, module) {
      * more semantic. 
      * Use these constants as the "relativeID" parameter when calling addMenuItem() and
      * specify a position of FIRST or LAST.
+     *
+     * Menu sections are denoted by dividers or the beginning/end of a menu
      */
     var MenuSection = {
-        // Menu Section                     Command ID in that section
+        // Menu Section                     Command ID to mark the section
         FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
         FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
         FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
@@ -297,7 +299,7 @@ define(function (require, exports, module) {
     /**
      * Determine relative MenuItem
      *
-     * @param {?string} relativeID - id of command (future: also sub-menu, or menu section).
+     * @param {?string} relativeID - id of command (future: sub-menu).
      * @param {?string} position - only needed when relativeID is a MenuSection
      * @param {HTMLIElement}
      */
@@ -378,7 +380,7 @@ define(function (require, exports, module) {
      *      one or more key bindings to associate with the supplied command.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
-     * @param {?string} relativeID - id of command (future: also sub-menu, or menu section) that 
+     * @param {?string} relativeID - id of command or menu section (future: sub-menu) that 
      *      the new menuItem will be positioned relative to. Required when position is 
      *      AFTER or BEFORE, ignored when position is FIRST or LAST
      *
