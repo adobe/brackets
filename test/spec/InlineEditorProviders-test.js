@@ -600,11 +600,15 @@ define(function (require, exports, module) {
                         // close the main editor / working set entry for the inline's file
                         promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         
-                        // synchronously click the don't save button and wait for the dialog to close
+                        // synchronously click the don't save button,
+                        // asynchronously wait for the dialog to close and the Dialog's
+                        // promise to resolve. 
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
                     });
 
-                    // still need wait on the command's promise since the command must respond to the dialog closing first
+                    // Wait on the command's promise also since the command performs
+                    // asynchronous tasks after the Dialog is resolved. If the command
+                    // could complete synchronously, this wait would be unnecessary.
                     runs(function () {
                         waitsForDone(promise);
                     });

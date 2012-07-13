@@ -172,7 +172,8 @@ define(function (require, exports, module) {
     /**
      * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
      * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome.
+     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
+     * clients must also wait for any additional promises.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
      */
     function clickDialogButton(buttonId) {
