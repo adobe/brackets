@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs */
+/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -171,20 +171,26 @@ define(function (require, exports, module) {
     
     /**
      * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
-     * asynchronously; after calling this, you need to wait for the dialog's promise to resolve.
+     * asynchronously; after calling this, you need to start a new runs() block before testing the
+     * outcome.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
      */
     function clickDialogButton(buttonId) {
-        runs(function () {
-            // Make sure there's one and only one dialog open
-            expect(testWindow.$(".modal.instance").length).toBe(1);
-            
-            // Make sure desired button exists
-            var dismissButton = testWindow.$(".modal.instance .dialog-button[data-button-id='" + buttonId + "']");
-            expect(dismissButton.length).toBe(1);
-            
-            dismissButton.click();
-        });
+        // Make sure there's one and only one dialog open
+        var $dlg = testWindow.$(".modal.instance"),
+            promise = $dlg.data("promise");
+        
+        expect($dlg.length).toBe(1);
+        
+        // Make sure desired button exists
+        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect(dismissButton.length).toBe(1);
+        
+        // Click the button
+        dismissButton.click();
+
+        // Dialog should resolve/reject the promise
+        waitsForDone(promise);
     }
     
     

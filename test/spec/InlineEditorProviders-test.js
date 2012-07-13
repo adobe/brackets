@@ -581,7 +581,8 @@ define(function (require, exports, module) {
                     
                     var newText = "\n/* jasmine was here */",
                         hostEditor,
-                        inlineEditor;
+                        inlineEditor,
+                        promise;
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
@@ -597,12 +598,14 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        var promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         
-                        // synchronously click the don't save button
+                        // synchronously click the don't save button and wait for the dialog to close
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
+                    });
 
-                        // asynchronously wait for the dialog promise to complete
+                    // still need wait on the command's promise since the command must respond to the dialog closing first
+                    runs(function () {
                         waitsForDone(promise);
                     });
                     
