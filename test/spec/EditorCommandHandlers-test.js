@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
-        SpecRunnerUtils       = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
         EditorUtils           = require("editor/EditorUtils");
 
     describe("EditorCommandHandlers", function () {

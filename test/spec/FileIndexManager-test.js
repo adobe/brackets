@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var FileIndexManager,
         ProjectManager,
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     describe("FileIndexManager", function () {
 
