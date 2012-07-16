@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
-        CommandManager          = require("command/CommandManager");
+        CommandManager          = require("command/CommandManager"),
+        PopUpManager            = require("widgets/PopUpManager");
 
     /**
      * Brackets Application Menu Constants
@@ -556,6 +557,13 @@ define(function (require, exports, module) {
             }
         }
     };
+
+    /**
+     * Closes all menus that are open
+     */
+    function closeAll() {
+        $(".dropdown").removeClass("open");
+    }
     
     /**
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
@@ -590,24 +598,20 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
 
-        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>")
-            .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
-            .append("<ul class='dropdown-menu'></ul>");
+        var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
+            $popUp = $("<ul class='dropdown-menu'></ul>"),
+            $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
 
         // Insert menu
         var $relativeElement = relativeID && $(_getHTMLMenu(relativeID));
         _insertInList($menubar, $newMenu, position, $relativeElement);
+        
+        // Install ESC key handling
+        PopUpManager.configurePopUp($popUp, closeAll);
 
         // todo error handling
 
         return menu;
-    }
-
-    /**
-     * Closes all menus that are open
-     */
-    function closeAll() {
-        $(".dropdown").removeClass("open");
     }
 
     /**
@@ -631,15 +635,17 @@ define(function (require, exports, module) {
         this.id = id;
         this.menu = new Menu(id);
 
-        var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>");
+        var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
+            $popUp = $("<ul class='dropdown-menu'></ul>"),
+            $toggle = $("<a href='#' class='dropdown-toggle'></a>").hide();
 
-        var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
-            .hide();
+        // assemble the menu fragments
+        $newMenu.append($toggle).append($popUp);
 
-        $newMenu.append($toggle)
-            .append("<ul class='dropdown-menu'></ul>");
-
+        // insert into DOM
         $("#context-menu-bar > ul").append($newMenu);
+        
+        PopUpManager.configurePopUp($popUp, closeAll);
     }
     ContextMenu.prototype = new Menu();
     ContextMenu.prototype.constructor = ContextMenu;
@@ -905,22 +911,6 @@ define(function (require, exports, module) {
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {
             e.preventDefault();
-        });
-        
-        
-        /*
-         * General menu event processing
-         */
-        $(window.document).on("mousedown", ".dropdown", function (e) {
-            // close all dropdowns on ESC
-            $(window.document).one("keydown", function (e) {
-                if (e.keyCode === 27) {
-                    e.stopImmediatePropagation();
-                    closeAll();
-                }
-            
-                EditorManager.focusEditor();
-            });
         });
 
         // Switch menus when the mouse enters an adjacent menu
