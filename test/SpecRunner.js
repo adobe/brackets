@@ -30,7 +30,8 @@ require.config({
     paths: {
         "test": "../test",
         "perf": "../test/perf",
-        "spec": "../test/spec"
+        "spec": "../test/spec",
+        "text": "thirdparty/text"
     }
 });
 
@@ -70,8 +71,7 @@ define(function (require, exports, module) {
     
     function init() {
         var jasmineEnv = jasmine.getEnv(),
-            runner = jasmineEnv.currentRunner(),
-            currentWindowOnload = window.onload;
+            runner = jasmineEnv.currentRunner();
         
         // TODO: Issue 949 - the following code should be shared
 
@@ -126,11 +126,7 @@ define(function (require, exports, module) {
         
         jasmineEnv.updateInterval = 1000;
         
-        window.onload = function () {
-            if (currentWindowOnload) {
-                currentWindowOnload();
-            }
-            
+        $(window.document).ready(function () {
             $("#show-dev-tools").click(function () {
                 brackets.app.showDeveloperTools();
             });
@@ -172,7 +168,7 @@ define(function (require, exports, module) {
             $("#" + suite).closest("li").toggleClass("active", true);
             
             jasmineEnv.execute();
-        };
+        });
     }
 
     init();
