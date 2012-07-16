@@ -172,8 +172,6 @@ define(function (require, exports, module) {
             localStorage.setItem("SpecRunner.suite", suite);
             
             $(window.document).ready(_documentReadyHandler);
-        }).fail(function () {
-            console.log("Error");
         });
     }
 
