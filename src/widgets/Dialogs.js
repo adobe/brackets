@@ -117,7 +117,8 @@ define(function (require, exports, module) {
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
-        var result = $.Deferred();
+        var result = $.Deferred(),
+            promise = result.promise();
         
         // We clone the HTML rather than using it directly so that if two dialogs of the same
         // type happen to show up, they can appear at the same time. (This is an edge case that
@@ -132,6 +133,9 @@ define(function (require, exports, module) {
         if ($dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
+
+        // Save the dialog promise for unit tests
+        $dlg.data("promise", promise);
 
         // Set title and message
         if (title) {
@@ -187,7 +191,8 @@ define(function (require, exports, module) {
             show: true,
             keyboard: true
         });
-        return result.promise();
+
+        return promise;
     }
     
     /**
