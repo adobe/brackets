@@ -168,23 +168,23 @@ define(function (require, exports, module) {
                 var listSelector = "#menu-custom > ul";
 
                 // Add new menu to END of menuSectionCmd0
-                var menuItem = menu.addMenuItem("custom.command4", null, Menus.LAST, menuSectionCmd0);
+                var menuItem = menu.addMenuItem("custom.command4", null, Menus.LAST_IN_SECTION, menuSectionCmd0);
                 var $listItems = testWindow.$(listSelector).children();
                 expect($listItems.length).toBe(6);
                 expect($($listItems[2]).find("a#menu-custom-custom\\.command4").length).toBe(1);
 
                 // Add new menu to END of menuSectionCmd2
-                menuItem = menu.addMenuItem("custom.command5", null, Menus.LAST, menuSectionCmd2);
+                menuItem = menu.addMenuItem("custom.command5", null, Menus.LAST_IN_SECTION, menuSectionCmd2);
                 $listItems = testWindow.$(listSelector).children();
                 expect($($listItems[6]).find("a#menu-custom-custom\\.command5").length).toBe(1);
 
                 // Add new menu to BEGINNING of menuSectionCmd0
-                menuItem = menu.addMenuItem("custom.command6", null, Menus.FIRST, menuSectionCmd0);
+                menuItem = menu.addMenuItem("custom.command6", null, Menus.FIRST_IN_SECTION, menuSectionCmd0);
                 $listItems = testWindow.$(listSelector).children();
                 expect($($listItems[0]).find("a#menu-custom-custom\\.command6").length).toBe(1);
 
                 // Add new menu to BEGINNING of menuSectionCmd2
-                menuItem = menu.addMenuItem("custom.command6", null, Menus.FIRST, menuSectionCmd2);
+                menuItem = menu.addMenuItem("custom.command7", null, Menus.FIRST_IN_SECTION, menuSectionCmd2);
                 $listItems = testWindow.$(listSelector).children();
                 expect($($listItems[0]).find("a#menu-custom-custom\\.command6").length).toBe(1);
 

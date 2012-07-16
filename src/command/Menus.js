@@ -66,7 +66,7 @@ define(function (require, exports, module) {
      * looser coupling to Bracket's internal MenuItems and makes menu organization
      * more semantic. 
      * Use these constants as the "relativeID" parameter when calling addMenuItem() and
-     * specify a position of FIRST or LAST.
+     * specify a position of FIRST_IN_SECTION or LAST_IN_SECTION.
      *
      * Menu sections are denoted by dividers or the beginning/end of a menu
      */
@@ -81,11 +81,11 @@ define(function (require, exports, module) {
         EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
         EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
 
-        VIEW_HIDESHOW_COMMANDSkey:          {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
-        VIEW_FONTSIZE_COMMANDSkey:          {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+        VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
+        VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
 
-        NAVIGATE_GOTO:                      {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
-        NAVIGATE_QUICK_EDIT:                {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
+        NAVIGATE_GOTO_COMMANDS:             {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
+        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
     };
 
     
@@ -95,10 +95,12 @@ define(function (require, exports, module) {
       * specify the relative position of a newly created menu object
       * @enum {string}
       */
-    var BEFORE =  "before";
-    var AFTER =   "after";
-    var FIRST =   "first";
-    var LAST =    "last";
+    var BEFORE =            "before";
+    var AFTER =             "after";
+    var FIRST =             "first";
+    var LAST =              "last";
+    var FIRST_IN_SECTION =  "firstInSection";
+    var LAST_IN_SECTION =   "lastInSection";
 
     /**
       * Other constants
@@ -203,6 +205,15 @@ define(function (require, exports, module) {
         // Determine where to insert. Default is LAST.
         var inserted = false;
         if (position) {
+
+            // Adjust relative position for menu section positions since $relativeElement
+            // has already been resolved by _getRelativeMenuItem() to a menuItem
+            if (position === FIRST_IN_SECTION) {
+                position = BEFORE;
+            } else if (position === LAST_IN_SECTION) {
+                position = AFTER;
+            }
+
             if (position === FIRST) {
                 $list.prepend($element);
                 inserted = true;
@@ -311,54 +322,43 @@ define(function (require, exports, module) {
             foundMenuItem;
         
         if (relativeID) {
-            // Lookup Command for this Command id
-            var command = CommandManager.get(relativeID);
-            
-            if (command) {
-                // Find MenuItem that has this command
-                $relativeElement = this._getMenuItemForCommand(command);
+            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
+                if (!relativeID.hasOwnProperty("sectionMarker")) {
+                    console.log("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                }
+
+                // Determine the $relativeElement by traversing the sibling list and
+                // stop at the first divider found
+                var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
+                var $sectionItems = $sectionMarker.siblings();
+                var $listElem = $sectionMarker;
+                $relativeElement = $listElem;
+                while (true) {
+                    $listElem = (position === FIRST_IN_SECTION ? $listElem.prev() : $listElem.next());
+                    if ($listElem.length === 0) {
+                        break;
+                    } else if ($listElem.find(".divider").length === 0) {
+                        $relativeElement = $listElem;
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                // handle FIRST, LAST, BEFORE, & AFTER
+                var command = CommandManager.get(relativeID);
+                if (command) {
+                    // Lookup Command for this Command id
+                    // Find MenuItem that has this command
+                    $relativeElement = this._getMenuItemForCommand(command);
+                }
             }
+            
+            return $relativeElement;
+        } else {
+            console.log("Bad Parameter in _getRelativeMenuItem(): relativeID not specified");
         }
         
         return $relativeElement;
-    };
-
-    /**
-     * Returns a menuItem and a relative position for the menuSection/position requested
-     * @param {{menuSection: String}}
-     * @param {String} position constant
-     * @returns {{relativeElement: HTMLIElement, position: String}}
-     */
-    Menu.prototype._getMenuSectionPosition = function (menuSection, position) {
-        var $relativeElement;
-        var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(menuSection.sectionMarker));
-        var $sectionItems = $sectionMarker.siblings();
-        if (position === FIRST || position === LAST) {
-            // Determine the $relativeElement by traversing the sibling list and
-            // stop at the first divider found
-            var $listElem = $sectionMarker;
-            $relativeElement = $listElem;
-            while (true) {
-                $listElem = (position === FIRST ? $listElem.prev() : $listElem.next());
-                if ($listElem.length === 0) {
-                    break;
-                } else if ($listElem.find(".divider").length === 0) {
-                    $relativeElement = $listElem;
-                } else {
-                    break;
-                }
-            }
-            if (position === FIRST) {
-                position = BEFORE;
-            } else {
-                position = AFTER;
-            }
-        } else {
-            console.log("Bad Parameter: MenuSection used as relativeID with a position other than FIRST or LAST");
-            $relativeElement = null;
-        }
-
-        return {relativeElement: $relativeElement, position: position};
     };
     
     /**
@@ -381,8 +381,8 @@ define(function (require, exports, module) {
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
      * @param {?string} relativeID - id of command or menu section (future: sub-menu) that 
-     *      the new menuItem will be positioned relative to. Required when position is 
-     *      AFTER or BEFORE, ignored when position is FIRST or LAST
+     *      the new menuItem will be positioned relative to. Required for all position constants
+     *      except FIRST and LAST.
      *
      * @return {MenuItem} the newly created MenuItem
      */
@@ -439,14 +439,7 @@ define(function (require, exports, module) {
         }
 
         // Insert menu item
-        var $relativeElement;
-        if (relativeID && relativeID.hasOwnProperty("sectionMarker")) {
-            var sectionPos = this._getMenuSectionPosition(relativeID, position);
-            $relativeElement = sectionPos.relativeElement;
-            position = sectionPos.position;
-        } else {
-            $relativeElement = this._getRelativeMenuItem(relativeID);
-        }
+        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
         _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                       $menuItem, position, $relativeElement);
 
@@ -478,8 +471,8 @@ define(function (require, exports, module) {
      * @param {?string} position - constant defining the position of new the divider relative
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
      * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
-     *      divider will be positioned relative to. Required when position is 
-     *      AFTER or BEFORE, ignored when position is FIRST or LAST.
+     *      divider will be positioned relative to. Required for all position constants
+     *      except FIRST and LAST
      * 
      * @return {MenuItem} the newly created divider
      */
@@ -996,6 +989,8 @@ define(function (require, exports, module) {
     exports.AFTER = AFTER;
     exports.LAST = LAST;
     exports.FIRST = FIRST;
+    exports.FIRST_IN_SECTION = FIRST_IN_SECTION;
+    exports.LAST_IN_SECTION = LAST_IN_SECTION;
     exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
