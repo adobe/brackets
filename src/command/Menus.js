@@ -385,6 +385,10 @@ define(function (require, exports, module) {
             $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
 
             $menuItem.on("click", function () {
+                // Set focus back to the editor when the menu is dismissed. The command
+                // may additionally move focus elsewhere.
+                EditorManager.focusEditor();
+                
                 menuItem._command.execute();
             });
         }
@@ -907,16 +911,16 @@ define(function (require, exports, module) {
         /*
          * General menu event processing
          */
-        // Prevent clicks on top level menus and menu items from taking focus
         $(window.document).on("mousedown", ".dropdown", function (e) {
-            e.preventDefault();
-        });
-
-        // close all dropdowns on ESC
-        $(window.document).on("keydown", function (e) {
-            if (e.keyCode === 27) {
-                closeAll();
-            }
+            // close all dropdowns on ESC
+            $(window.document).one("keydown", function (e) {
+                if (e.keyCode === 27) {
+                    e.stopImmediatePropagation();
+                    closeAll();
+                }
+            
+                EditorManager.focusEditor();
+            });
         });
 
         // Switch menus when the mouse enters an adjacent menu
