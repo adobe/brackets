@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils        = require("file/FileUtils"),
-        SpecRunnerUtils  = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("InlineEditorProviders", function () {
 

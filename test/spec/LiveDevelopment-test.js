@@ -27,7 +27,7 @@
 define(function (require, exports, module) {
     'use strict';
 
-    var SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         NativeApp,      //The following are all loaded from the test window
         LiveDevelopment,
         Inspector,

@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         InlineWidget            = require("editor/InlineWidget").InlineWidget,
         Editor                  = require("editor/Editor").Editor,
         EditorManager           = require("editor/EditorManager"),
-        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
     describe("MultiRangeInlineEditor", function () {
         
