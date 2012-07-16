@@ -324,7 +324,9 @@ define(function (require, exports, module) {
             ProjectManager.createNewItem(baseDir, suggestedName, false)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
                 .always(function () { fileNewInProgress = false; })
-                .done(function (entry) { FileViewController.addToWorkingSetAndSelect(entry.fullPath); });
+                .done(function (entry) {
+                    FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                });
         };
 
         deferred.done(createWithSuggestedName);
