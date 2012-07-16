@@ -35,11 +35,13 @@ define(function (require, exports, module) {
     
     var _popUps = [];
     
-    function _removePopUp($popUp) {
+    function _removePopUp($popUp, visible) {
         var initiallyInDOM = $popUp.data("initiallyInDOM"),
             removeHandler = $popUp.data("removeHandler");
         
-        if (removeHandler) {
+        visible = visible || $popUp.find(":visible").length > 0;
+        
+        if (removeHandler && visible) {
             removeHandler();
         }
         
@@ -81,7 +83,7 @@ define(function (require, exports, module) {
     
     /**
      * Remove Esc key handling for a pop-up. Removes the pop-up from the DOM
-     * if the pop-up was not originally attached.
+     * if the pop-up is currently visible and was not originally attached.
      *
      * @param {!jQuery} $popUp
      */
@@ -89,8 +91,6 @@ define(function (require, exports, module) {
         var idx = _popUps.indexOf($popUp[0]),
             initiallyInDOM = $popUp.data("initiallyInDOM"),
             removeHandler = $popUp.data("removeHandler");
-        
-        $popUp.off(".PopUpManager");
         
         _removePopUp($popUp);
         
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
                 if (!event.isDefaultPrevented()) {
                     keyEvent.stopImmediatePropagation();
                     
-                    _removePopUp($popUp);
+                    _removePopUp($popUp, true);
                     EditorManager.focusEditor();
                 }
                 
