@@ -312,7 +312,6 @@ define(function (require, exports, module) {
      *
      * @param {?string} relativeID - id of command (future: sub-menu).
      * @param {?string} position - only needed when relativeID is a MenuSection
-     * @param {HTMLIElement}
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement,
@@ -337,10 +336,10 @@ define(function (require, exports, module) {
                     $listElem = (position === FIRST_IN_SECTION ? $listElem.prev() : $listElem.next());
                     if ($listElem.length === 0) {
                         break;
-                    } else if ($listElem.find(".divider").length === 0) {
-                        $relativeElement = $listElem;
-                    } else {
+                    } else if ($listElem.find(".divider").length > 0) {
                         break;
+                    } else {
+                        $relativeElement = $listElem;
                     }
                 }
             } else {
