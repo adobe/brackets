@@ -304,7 +304,8 @@ define(function (require, exports, module) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.pos = testPos;
                 ctx.token = testToken;
-                offset = _offsetInToken(ctx) - 1; // Get the new offset from test token and subtract one for testPos adjustment
+                // Get the new offset from test token and subtract one for testPos adjustment
+                offset = _offsetInToken(ctx) - 1;
             } else {
                 // next, see what's before pos
                 if (!_movePrevToken(ctx)) {
