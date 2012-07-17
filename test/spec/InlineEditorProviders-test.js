@@ -325,6 +325,30 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should close inline widget on Esc Key", function () {
+                initInlineTest("test1.html", 0);
+
+                var hostEditor, inlineWidget, inlinePos, savedPos;
+
+                runs(function () {
+                    hostEditor =  EditorManager.getCurrentFullEditor();
+                    inlineWidget = hostEditor.getInlineWidgets()[0];
+                    inlinePos = inlineWidget.editors[0].getCursorPos();
+
+                    // verify cursor position in inline editor
+                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+
+                    // close the editor by simulating Esc key
+                    var key = 27,   // Esc key
+                        doc = testWindow.document,
+                        element = doc.getElementsByClassName("inline-widget")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, doc, element);
+
+                    // verify no inline widgets 
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+            });
+
             it("should not open an inline editor when positioned on textContent", function () {
                 initInlineTest("test1.html", 3, false);
                 

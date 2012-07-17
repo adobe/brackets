@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $ */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $ */
 
 define(function (require, exports, module) {
     'use strict';
@@ -619,7 +619,36 @@ define(function (require, exports, module) {
                 // verify all dropdowns are closed
                 var $menus = testWindow.$(".dropdown.open");
                 expect($menus.length).toBe(0);
+            });
 
+            it("close context menu using Esc key", function () {
+                CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
+                var cmenu = Menus.registerContextMenu("test-cmenu");
+                var menuItem = cmenu.addMenuItem("custom.command");
+
+                var closeEvent = false;
+                testWindow.$(cmenu).on("contextMenuClose", function () {
+                    closeEvent = true;
+                });
+                cmenu.open({pageX: 0, pageY: 0});
+
+                // verify dropdown is open
+                var $menus = testWindow.$(".dropdown.open");
+                expect($menus.length).toBe(1);
+
+                // close the context menu by simulating Esc key
+                var key = 27,   // Esc key
+                    doc = testWindow.document,
+                    element = doc.getElementsByClassName("dropdown open")[0];
+                SpecRunnerUtils.simulateKeyEvent(key, doc, element);
+
+                // verify close event
+                // TODO: issue #1270
+                //expect(closeEvent).toBeTruthy();
+
+                // verify all dropdowns are closed
+                $menus = testWindow.$(".dropdown.open");
+                expect($menus.length).toBe(0);
             });
         });
     });

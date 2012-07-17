@@ -475,6 +475,44 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Simulate key event
+     *
+     * TODO: need parameter(s) for modifier keys
+     *
+     * @param {number} key - key code
+     * @param {HTMLDocument} doc - containing document
+     * @param {HTMLElement} element - element to receive event
+     */
+    function simulateKeyEvent(key, doc, element) {
+        var oEvent = doc.createEvent('KeyboardEvent');
+
+        // Chromium Hack
+        Object.defineProperty(oEvent, 'keyCode', {
+            get : function() {
+                return this.keyCodeVal;
+            }
+        });
+        Object.defineProperty(oEvent, 'which', {
+            get : function() {
+                return this.keyCodeVal;
+            }
+        });
+
+        if (oEvent.initKeyboardEvent) {
+            oEvent.initKeyboardEvent("keydown", true, true, doc.defaultView, false, false, false, false, key, key);
+        } else {
+            oEvent.initKeyEvent("keydown", true, true, doc.defaultView, false, false, false, false, key, 0);
+        }
+
+        oEvent.keyCodeVal = key;
+        if (oEvent.keyCode !== key) {
+            console.log("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+        }
+
+        element.dispatchEvent(oEvent);
+    }
+
     function getTestWindow() {
         return testWindow;
     }
@@ -497,4 +535,5 @@ define(function (require, exports, module) {
     exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
     exports.deleteFile                  = deleteFile;
     exports.getTestWindow               = getTestWindow;
+    exports.simulateKeyEvent            = simulateKeyEvent;
 });
