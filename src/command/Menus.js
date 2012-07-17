@@ -386,10 +386,6 @@ define(function (require, exports, module) {
             $menuItem = $("<li><a href='#' id='" + id + "'> <span class='menu-name'></span></a></li>");
 
             $menuItem.on("click", function () {
-                // Set focus back to the editor when the menu is dismissed. The command
-                // may additionally move focus elsewhere.
-                EditorManager.focusEditor();
-                
                 menuItem._command.execute();
             });
         }
@@ -910,6 +906,14 @@ define(function (require, exports, module) {
 
         // Prevent the browser context menu since Brackets creates a custom context menu
         $(window).contextmenu(function (e) {
+            e.preventDefault();
+        });
+        
+        /*
+         * General menu event processing
+         */
+        // Prevent clicks on top level menus and menu items from taking focus
+        $(window.document).on("mousedown", ".dropdown", function (e) {
             e.preventDefault();
         });
 

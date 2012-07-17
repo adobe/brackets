@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     
     var _popUps = [];
     
-    function _removePopUp($popUp, visible) {
+    function _removePopUp($popUp, index, visible) {
         var initiallyInDOM = $popUp.data("initiallyInDOM"),
             removeHandler = $popUp.data("removeHandler");
         
@@ -48,6 +48,8 @@ define(function (require, exports, module) {
         if (!initiallyInDOM) {
             $popUp.remove();
         }
+        
+        _popUps = _popUps.slice(index);
     }
     
     /**
@@ -88,14 +90,12 @@ define(function (require, exports, module) {
      * @param {!jQuery} $popUp
      */
     function removePopUp($popUp) {
-        var idx = _popUps.indexOf($popUp[0]),
+        var index = _popUps.indexOf($popUp[0]),
             initiallyInDOM = $popUp.data("initiallyInDOM"),
             removeHandler = $popUp.data("removeHandler");
         
-        _removePopUp($popUp);
-        
-        if (idx >= 0) {
-            _popUps = _popUps.slice(idx);
+        if (index >= 0) {
+            _removePopUp($popUp, index);
         }
     }
     
@@ -116,9 +116,10 @@ define(function (require, exports, module) {
                 $popUp.trigger(event);
                 
                 if (!event.isDefaultPrevented()) {
+                    // Stop the DOM event from propagating
                     keyEvent.stopImmediatePropagation();
                     
-                    _removePopUp($popUp, true);
+                    _removePopUp($popUp, i, true);
                     EditorManager.focusEditor();
                 }
                 
