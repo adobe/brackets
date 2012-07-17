@@ -179,19 +179,13 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype.updateQueryFromCurPos = function () {
         var pos = this.editor.getCursorPos(),
-            cursor = this.editor.indexFromPos(pos),
             tagInfo = HTMLUtils.getTagInfo(this.editor, pos);
-
+        
+        this.query = null;
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-            var text = this.editor.document.getText(),
-                start = text.lastIndexOf("<", cursor) + 1;
-            if (start <= cursor) {
-                this.query = text.slice(start, cursor);
-            } else {
-                this.query = null;
+            if (tagInfo.position.offset >= 0) {
+                this.query = tagInfo.tagName.slice(0, tagInfo.position.offset);
             }
-        } else {
-            this.query = null;
         }
     };
 
@@ -405,7 +399,15 @@ define(function (require, exports, module) {
             hintList.handleKeyEvent(editor, event);
         }
     }
+
+    /**
+     * Expose CodeHintList for unit testing
+     */
+    function _getCodeHintList() {
+        return hintList;
+    }
     
     // Define public API
-    exports.handleKeyEvent = handleKeyEvent;
+    exports.handleKeyEvent      = handleKeyEvent;
+    exports._getCodeHintList    = _getCodeHintList;
 });
