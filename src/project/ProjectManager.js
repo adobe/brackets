@@ -354,6 +354,7 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
+                        FileViewController.setFileSelectionFocus(FileViewController.PROJECT_MANAGER);
                         // show selection marker on folders
                         _redraw(true);
                         

@@ -72,6 +72,8 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("documentSelectionFocusChange");
     });
 
+
+
     /** 
       * Update the file selection focus when ever the current document changes
       */
@@ -107,6 +109,15 @@ define(function (require, exports, module) {
         
         // Ensure the editor has focus even though we didn't open a new file.
         EditorManager.focusEditor();
+    }
+
+    function setFileSelectionFocus(fileSelectionFocus) {
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
+            throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
+        }
+
+        _fileSelectionFocus = fileSelectionFocus;
+        $(exports).triggerHandler("documentSelectionFocusChange");
     }
 
     /** 
@@ -190,8 +201,7 @@ define(function (require, exports, module) {
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+    exports.setFileSelectionFocus = setFileSelectionFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
-
-
 });
