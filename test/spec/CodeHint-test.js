@@ -113,7 +113,7 @@ define(function (require, exports, module) {
                     expect(editor).toBeTruthy();
 
                     // get text before insert operation
-                    lineBefore = editor._codeMirror.getLine(pos.line);
+                    lineBefore = editor.document.getLine(pos.line);
 
                     CodeHintManager.handleKeyEvent(editor, e);
 
@@ -134,7 +134,7 @@ define(function (require, exports, module) {
 
                     // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
-                    lineAfter = editor._codeMirror.getLine(pos.line);
+                    lineAfter = editor.document.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
                 });
             });
