@@ -381,11 +381,6 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
-        // For now we only handle hints in html
-        if (editor.getModeForSelection() !== "html") {
-            return;
-        }
-        
         // Check for Control+Space or "<"
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
