@@ -49,7 +49,7 @@ define(function (require, exports, module) {
         var hostOpened = false,
             err = false,
             workingSet = [];
-        
+
         SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
         runs(function () {
@@ -60,7 +60,7 @@ define(function (require, exports, module) {
                 err = true;
             });
         });
-        
+
         waitsFor(function () { return hostOpened && !err; }, "FILE_OPEN timeout", 1000);
 
         runs(function () {
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         initCodeHintTest = _initCodeHintTest.bind(this);
         SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
             testWindow = w;
-            
+
             // uncomment this line to debug test window:
             //testWindow.brackets.app.showDeveloperTools();
 
@@ -89,7 +89,7 @@ define(function (require, exports, module) {
 
 
     describe("Code Hint Menus", function () {
-        
+
         describe("HTML Tests", function () {
 
             it("should show code hints menu and insert text at IP", function () {
@@ -114,7 +114,7 @@ define(function (require, exports, module) {
 
                     // get text before insert operation
                     lineBefore = editor._codeMirror.getLine(pos.line);
-                    
+
                     CodeHintManager.handleKeyEvent(editor, e);
 
                     var codeHintList = CodeHintManager._getCodeHintList();
@@ -122,25 +122,22 @@ define(function (require, exports, module) {
                     expect(codeHintList.isOpen()).toBe(true);
                 });
 
-/***
                 // simulate Enter key to insert code hint into doc
                 runs(function () {
                     var e = $.Event("keydown");
-                    e.keyCode = 20;      // Enter/return key
+                    e.keyCode = 13;      // Enter/return key
 
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
                     CodeHintManager.handleKeyEvent(editor, e);
 
-                    // don't know what was inserted, but it should be different
+                    // doesn't matter what was inserted, but line should be different
                     var newPos = editor.getCursorPos();
                     lineAfter = editor._codeMirror.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
                 });
-***/
             });
-
         });
     });
 });
