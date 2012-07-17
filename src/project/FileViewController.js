@@ -72,8 +72,6 @@ define(function (require, exports, module) {
         $(exports).triggerHandler("documentSelectionFocusChange");
     });
 
-
-
     /** 
       * Update the file selection focus when ever the current document changes
       */
@@ -111,6 +109,11 @@ define(function (require, exports, module) {
         EditorManager.focusEditor();
     }
 
+    /**
+     * Modifies the selection focus in the project side bar. A file can either be selected
+     * in the working set (the open files) or in the file tree, but not both.
+     * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKING_SET_VIEW
+     */
     function setFileSelectionFocus(fileSelectionFocus) {
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
             throw new Error("Bad parameter passed to FileViewController.openAndSelectDocument");
