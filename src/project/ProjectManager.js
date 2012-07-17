@@ -150,6 +150,20 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
+     * if no item is selected.
+     *
+     * @return {?Entry}
+     */
+    function getSelectedItem() {
+        var selected = _projectTree.jstree("get_selected");
+        if (selected) {
+            return selected.data("entry");
+        }
+        return null;
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
@@ -157,7 +171,7 @@ define(function (require, exports, module) {
             // Don't update the file tree selection to the current open doc when there is a directory
             // already selected
             var selected = getSelectedItem();
-            if(selected && selected.isDirectory) {
+            if (selected && selected.isDirectory) {
                 return;
             }
 
@@ -749,19 +763,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
-     * if no item is selected.
-     *
-     * @return {?Entry}
-     */
-    function getSelectedItem() {
-        var selected = _projectTree.jstree("get_selected");
-        if (selected) {
-            return selected.data("entry");
-        }
-        return null;
-    }
 
     /**
      * Create a new item in the project tree.
