@@ -346,6 +346,9 @@ define(function (require, exports, module) {
                     CodeMirror.commands.delCharRight(instance);
                 }
             },
+            "Esc": function (instance) {
+                self.removeAllInlineWidgets();
+            },
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
             "Shift-Insert": "paste"
@@ -843,6 +846,18 @@ define(function (require, exports, module) {
         
         // once this widget is added, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(pos.line);
+    };
+    
+    /**
+     * Removes all inline widgets
+     */
+    Editor.prototype.removeAllInlineWidgets = function () {
+        // copy the array because _removeInlineWidgetInternal will modifying the original
+        var widgets = [].concat(this.getInlineWidgets());
+        
+        widgets.forEach(function (widget) {
+            this.removeInlineWidget(widget);
+        }, this);
     };
     
     /**

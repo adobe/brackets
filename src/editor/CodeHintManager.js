@@ -33,7 +33,8 @@ define(function (require, exports, module) {
         Menus           = require("command/Menus"),
         StringUtils     = require("utils/StringUtils"),
         HTMLTags        = require("text!CodeHints/HtmlTags.json"),
-        EditorManager   = require("editor/EditorManager");
+        EditorManager   = require("editor/EditorManager"),
+        PopUpManager    = require("widgets/PopUpManager");
     
     /**
      * @private
@@ -280,10 +281,16 @@ define(function (require, exports, module) {
         this.updateList();
     
         if (this.displayList.length) {
-            var hintPos = this.calcHintListLocation();
+            var self = this,
+                hintPos = this.calcHintListLocation();
+            
             this.$hintMenu.addClass("open")
                        .css({"left": hintPos.left, "top": hintPos.top});
             this.opened = true;
+            
+            PopUpManager.addPopUp(this.$hintMenu, function () {
+                self.close();
+            });
         }
     };
 
@@ -291,8 +298,10 @@ define(function (require, exports, module) {
      * Closes the hint list
      */
     CodeHintList.prototype.close = function () {
-        Menus.closeAll();
+        this.$hintMenu.removeClass("open");
         this.opened = false;
+        
+        PopUpManager.removePopUp(this.$hintMenu);
     };
         
     /**
