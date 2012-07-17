@@ -386,7 +386,7 @@ define(function (require, exports, module) {
         // growing the overall width.
         // This is a bit of a hack since it relies on knowing some detail about the innards of CodeMirror.
         var lineSpace = this.hostEditor._getLineSpaceElement(),
-            minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + $(lineSpace).width();
+            minWidth = $(lineSpace).offset().left - this.$htmlContent.offset().left + lineSpace.scrollWidth;
         this.$htmlContent.css("min-width", minWidth + "px");
     };
     
