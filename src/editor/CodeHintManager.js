@@ -396,7 +396,15 @@ define(function (require, exports, module) {
             hintList.handleKeyEvent(editor, event);
         }
     }
+
+    /**
+     * Expose CodeHintList for unit testing
+     */
+    function _getCodeHintList() {
+        return hintList;
+    }
     
     // Define public API
-    exports.handleKeyEvent = handleKeyEvent;
+    exports.handleKeyEvent      = handleKeyEvent;
+    exports._getCodeHintList    = _getCodeHintList;
 });
