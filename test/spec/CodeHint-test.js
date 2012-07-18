@@ -140,9 +140,7 @@ define(function (require, exports, module) {
 
             it("should dismiss code hints menu with Esc key", function () {
                 var editor,
-                    pos = {line: 3, ch: 1},
-                    lineBefore,
-                    lineAfter;
+                    pos = {line: 3, ch: 1};
 
                 // minimal markup with an open '<' before IP
                 // Note: line for pos is 0-based and editor lines numbers are 1-based
@@ -157,9 +155,6 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
-                    // get text before insert operation
-                    lineBefore = editor.document.getLine(pos.line);
-
                     CodeHintManager.handleKeyEvent(editor, e);
 
                     // verify list is open
@@ -173,7 +168,7 @@ define(function (require, exports, module) {
                     var key = 27,   // Esc key
                         doc = testWindow.document,
                         element = doc.getElementsByClassName("codehint-menu open")[0];
-                    SpecRunnerUtils.simulateKeyEvent(key, doc, element);
+                    SpecRunnerUtils.simulateKeyEvent(key, element);
 
                     // verify list is no longer open
                     var codeHintList = CodeHintManager._getCodeHintList();

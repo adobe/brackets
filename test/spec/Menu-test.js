@@ -391,17 +391,17 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 0", "custom.command0", function () {});
                     CommandManager.register("Brackets Test Command Custom 1", "custom.command1", function () {});
                     var menu = Menus.addMenu("Custom", "menu-custom");
-                    var menuItem = menu.addMenuItem("custom.command0");
-                    menuItem = menu.addMenuItem("custom.command1");
+                    menu.addMenuItem("custom.command0");
+                    menu.addMenuItem("custom.command1");
                     
                     // add positioned divider
-                    menuItem = menu.addMenuDivider(Menus.AFTER, "custom.command0");
+                    menu.addMenuDivider(Menus.AFTER, "custom.command0");
                     var $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(3);
                     expect($($listItems[1]).find("hr.divider").length).toBe(1);
 
                     // add divider to end
-                    menuItem = menu.addMenuDivider();
+                    menu.addMenuDivider();
                     $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(4);
                     expect($($listItems[3]).find("hr.divider").length).toBe(1);
@@ -418,7 +418,7 @@ define(function (require, exports, module) {
                     expect(cmd).toBeDefined();
 
                     var menu = Menus.addMenu("Custom", "menu-custom");
-                    var menuItem = menu.addMenuItem("custom.command0");
+                    menu.addMenuItem("custom.command0");
                     var menuSelector = "#menu-custom-custom\\.command0";
                     
                     // Verify menu is synced with command
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
                     expect(cmd).toBeDefined();
 
                     var menu = Menus.addMenu("Custom", "menu-custom");
-                    var menuItem = menu.addMenuItem("custom.command0");
+                    menu.addMenuItem("custom.command0");
                     var menuSelector = "#menu-custom-custom\\.command0";
                     
                     // Verify menu is synced with command
@@ -476,7 +476,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     CommandManager.register("Brackets Test Command Custom 0", "custom.command0", function () {});
                     var menu = Menus.addMenu("Custom", "menu-custom");
-                    var menuItem = menu.addMenuItem("custom.command0", "Ctrl-9");
+                    menu.addMenuItem("custom.command0", "Ctrl-9");
                     var menuSelector = "#menu-custom-custom\\.command0";
                     
                     // Verify menu is synced with command
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
                     var openEvent = false;
                     CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
                     var cmenu = Menus.registerContextMenu("test-cmenu");
-                    var menuItem = cmenu.addMenuItem("custom.command");
+                    cmenu.addMenuItem("custom.command");
 
                     testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
                         openEvent = true;
@@ -579,7 +579,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
                     var cmenu = Menus.registerContextMenu("test-cmenu");
-                    var menuItem = cmenu.addMenuItem("custom.command");
+                    cmenu.addMenuItem("custom.command");
                     var winWidth = $(testWindow).width();
                     var winHeight = $(testWindow).height();
                     
@@ -604,7 +604,7 @@ define(function (require, exports, module) {
             it("close context menu", function () {
                 CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
                 var cmenu = Menus.registerContextMenu("test-cmenu");
-                var menuItem = cmenu.addMenuItem("custom.command");
+                cmenu.addMenuItem("custom.command");
 
                 var closeEvent = false;
                 testWindow.$(cmenu).on("contextMenuClose", function () {
@@ -624,7 +624,7 @@ define(function (require, exports, module) {
             it("close context menu using Esc key", function () {
                 CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
                 var cmenu = Menus.registerContextMenu("test-cmenu");
-                var menuItem = cmenu.addMenuItem("custom.command");
+                cmenu.addMenuItem("custom.command");
 
                 var closeEvent = false;
                 testWindow.$(cmenu).on("contextMenuClose", function () {
@@ -640,7 +640,7 @@ define(function (require, exports, module) {
                 var key = 27,   // Esc key
                     doc = testWindow.document,
                     element = doc.getElementsByClassName("dropdown open")[0];
-                SpecRunnerUtils.simulateKeyEvent(key, doc, element);
+                SpecRunnerUtils.simulateKeyEvent(key, element);
 
                 // verify close event
                 // TODO: issue #1270

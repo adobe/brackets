@@ -476,25 +476,28 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Simulate key event
+     * Simulate key event. Found this code here:
+     * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
      *
      * TODO: need parameter(s) for modifier keys
      *
      * @param {number} key - key code
-     * @param {HTMLDocument} doc - containing document
      * @param {HTMLElement} element - element to receive event
      */
-    function simulateKeyEvent(key, doc, element) {
-        var oEvent = doc.createEvent('KeyboardEvent');
+    function simulateKeyEvent(key, element) {
+        var doc = element.ownerDocument,
+            oEvent = doc.createEvent('KeyboardEvent');
 
-        // Chromium Hack
+        // Chromium Hack: need to override the 'which' property.
+        // Note: this code is not designed to work in IE, Safari,
+        // or other browsers. Well, maybe with Firefox. YMMV.
         Object.defineProperty(oEvent, 'keyCode', {
-            get : function() {
+            get: function () {
                 return this.keyCodeVal;
             }
         });
         Object.defineProperty(oEvent, 'which', {
-            get : function() {
+            get: function () {
                 return this.keyCodeVal;
             }
         });

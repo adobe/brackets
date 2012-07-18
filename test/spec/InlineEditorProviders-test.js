@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -328,21 +328,16 @@ define(function (require, exports, module) {
             it("should close inline widget on Esc Key", function () {
                 initInlineTest("test1.html", 0);
 
-                var hostEditor, inlineWidget, inlinePos, savedPos;
-
                 runs(function () {
-                    hostEditor =  EditorManager.getCurrentFullEditor();
-                    inlineWidget = hostEditor.getInlineWidgets()[0];
-                    inlinePos = inlineWidget.editors[0].getCursorPos();
-
-                    // verify cursor position in inline editor
-                    expect(inlinePos).toEqual(this.infos["test1.css"].offsets[0]);
+                    var hostEditor =  EditorManager.getCurrentFullEditor(),
+                        inlineWidget = hostEditor.getInlineWidgets()[0],
+                        inlinePos = inlineWidget.editors[0].getCursorPos();
 
                     // close the editor by simulating Esc key
                     var key = 27,   // Esc key
                         doc = testWindow.document,
                         element = doc.getElementsByClassName("inline-widget")[0];
-                    SpecRunnerUtils.simulateKeyEvent(key, doc, element);
+                    SpecRunnerUtils.simulateKeyEvent(key, element);
 
                     // verify no inline widgets 
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
