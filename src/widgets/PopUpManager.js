@@ -34,32 +34,14 @@ define(function (require, exports, module) {
     var EditorManager = require("editor/EditorManager");
     
     var _popUps = [];
-    
-    function _removePopUp($popUp, index, visible) {
-        var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove"),
-            removeHandler = $popUp.data("PopUpManager-removeHandler");
         
-        visible = visible || $popUp.find(":visible").length > 0;
-        
-        if (removeHandler && visible) {
-            removeHandler();
-        }
-        
-        if (autoAddRemove) {
-            $popUp.remove();
-            _popUps = _popUps.slice(index);
-        }
-    }
-    
-
-    
     /**
      * Add Esc key handling for a popup DOM element.
      *
      * @param {!jQuery} $popUp jQuery object for the DOM element pop-up
      * @param {function} removeHandler Pop-up specific remove (e.g. display:none or DOM removal)
-     * @param {?Boolean} autoAddRemove - Specify true to indicate the PopUPManager should 
-     *      add/remove the popup from the DOM when the popup is open/closed. Specifiy false
+     * @param {?Boolean} autoAddRemove - Specify true to indicate the PopUpManager should 
+     *      add/remove the popup from the DOM when the popup is open/closed. Specify false
      *      when the popup is either always persistant in the DOM or the add/remove is handled 
      *      external to the PopupManager 
      *      
@@ -83,11 +65,19 @@ define(function (require, exports, module) {
      * @param {!jQuery} $popUp
      */
     function removePopUp($popUp) {
-        var index = _popUps.indexOf($popUp[0]),
-            removeHandler = $popUp.data("PopUpManager-removeHandler");
-        
+        var index = _popUps.indexOf($popUp[0]);
         if (index >= 0) {
-            _removePopUp($popUp, index);
+            var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove"),
+                removeHandler = $popUp.data("PopUpManager-removeHandler");
+            
+            if (removeHandler && $popUp.find(":visible").length > 0) {
+                removeHandler();
+            }
+            
+            if (autoAddRemove) {
+                $popUp.remove();
+                _popUps = _popUps.slice(index);
+            }
         }
     }
     
@@ -111,7 +101,7 @@ define(function (require, exports, module) {
                     // Stop the DOM event from propagating
                     keyEvent.stopImmediatePropagation();
                     
-                    _removePopUp($popUp, i, true);
+                    removePopUp($popUp);
                     EditorManager.focusEditor();
                 }
                 
