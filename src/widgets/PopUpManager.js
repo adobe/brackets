@@ -36,8 +36,8 @@ define(function (require, exports, module) {
     var _popUps = [];
     
     function _removePopUp($popUp, index, visible) {
-        var initiallyInDOM = $popUp.data("initiallyInDOM"),
-            removeHandler = $popUp.data("removeHandler");
+        var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove"),
+            removeHandler = $popUp.data("PopUpManager-removeHandler");
         
         visible = visible || $popUp.find(":visible").length > 0;
         
@@ -45,40 +45,33 @@ define(function (require, exports, module) {
             removeHandler();
         }
         
-        if (!initiallyInDOM) {
+        if (autoAddRemove) {
             $popUp.remove();
+            _popUps = _popUps.slice(index);
         }
-        
-        _popUps = _popUps.slice(index);
     }
     
+
+    
     /**
-     * Add Esc key handling for pop-up DOM elements that persist in the DOM.
-     * These pop-up elements must handle appearance (i.e. opening) themselves.
+     * Add Esc key handling for a popup DOM element.
      *
      * @param {!jQuery} $popUp jQuery object for the DOM element pop-up
      * @param {function} removeHandler Pop-up specific remove (e.g. display:none or DOM removal)
+     * @param {?Boolean} autoAddRemove - Specify true to indicate the PopUPManager should 
+     *      add/remove the popup from the DOM when the popup is open/closed. Specifiy false
+     *      when the popup is either always persistant in the DOM or the add/remove is handled 
+     *      external to the PopupManager 
+     *      
      */
-    function configurePopUp($popUp, removeHandler) {
+    function addPopUp($popUp, removeHandler, autoAddRemove) {
+        autoAddRemove = autoAddRemove || false;
+        
         _popUps.push($popUp[0]);
+        $popUp.data("PopUpManager-autoAddRemove", autoAddRemove);
+        $popUp.data("PopUpManager-removeHandler", removeHandler);
         
-        $popUp.data("initiallyInDOM", true);
-        $popUp.data("removeHandler", removeHandler);
-    }
-    
-    /**
-     * Add Esc key handling for transient DOM elements. Immediately adds
-     * the element to the DOM if it's not already attached.
-     *
-     * @param {!jQuery} $popUp jQuery object for the DOM element pop-up
-     * @param {function} removeHandler Pop-up specific remove (e.g. display:none or DOM removal)
-     */
-    function addPopUp($popUp, removeHandler) {
-        var initiallyInDOM = $popUp.parent().length === 1;
-        
-        configurePopUp($popUp, removeHandler, initiallyInDOM);
-        
-        if (!initiallyInDOM) {
+        if (autoAddRemove) {
             $(window.document.body).append($popUp);
         }
     }
@@ -91,8 +84,7 @@ define(function (require, exports, module) {
      */
     function removePopUp($popUp) {
         var index = _popUps.indexOf($popUp[0]),
-            initiallyInDOM = $popUp.data("initiallyInDOM"),
-            removeHandler = $popUp.data("removeHandler");
+            removeHandler = $popUp.data("PopUpManager-removeHandler");
         
         if (index >= 0) {
             _removePopUp($popUp, index);
@@ -100,7 +92,7 @@ define(function (require, exports, module) {
     }
     
     function _keydownCaptureListener(keyEvent) {
-        if (keyEvent.keyCode !== 27) {
+        if (keyEvent.keyCode !== 27) { // escape key
             return;
         }
         
@@ -132,5 +124,4 @@ define(function (require, exports, module) {
     
     exports.addPopUp        = addPopUp;
     exports.removePopUp     = removePopUp;
-    exports.configurePopUp  = configurePopUp;
 });
