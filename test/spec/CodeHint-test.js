@@ -93,7 +93,6 @@ define(function (require, exports, module) {
         describe("HTML Tests", function () {
 
             it("should show code hints menu and insert text at IP", function () {
-
                 var editor,
                     pos = {line: 3, ch: 1},
                     lineBefore,
@@ -136,6 +135,49 @@ define(function (require, exports, module) {
                     var newPos = editor.getCursorPos();
                     lineAfter = editor.document.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
+                });
+            });
+
+            it("should dismiss code hints menu with Esc key", function () {
+                var editor,
+                    pos = {line: 3, ch: 1},
+                    lineBefore,
+                    lineAfter;
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                // simulate Ctrl+space keystroke to invoke code hints menu
+                runs(function () {
+                    var e = $.Event("keydown");
+                    e.keyCode = 32;      // spacebar key
+                    e.ctrlKey = true;
+
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+
+                    // get text before insert operation
+                    lineBefore = editor.document.getLine(pos.line);
+
+                    CodeHintManager.handleKeyEvent(editor, e);
+
+                    // verify list is open
+                    var codeHintList = CodeHintManager._getCodeHintList();
+                    expect(codeHintList).toBeTruthy();
+                    expect(codeHintList.isOpen()).toBe(true);
+                });
+
+                // simulate Esc key to dismiss code hints menu
+                runs(function () {
+                    var key = 27,   // Esc key
+                        doc = testWindow.document,
+                        element = doc.getElementsByClassName("codehint-menu open")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, doc, element);
+
+                    // verify list is no longer open
+                    var codeHintList = CodeHintManager._getCodeHintList();
+                    expect(codeHintList.isOpen()).toBe(false);
                 });
             });
         });
