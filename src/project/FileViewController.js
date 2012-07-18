@@ -167,9 +167,11 @@ define(function (require, exports, module) {
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
      * @param {!fullPath}
+     * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
+     *      Default is WORING_SET_VIEW.
      * @return {!$.Promise}
      */
-    function addToWorkingSetAndSelect(fullPath) {
+    function addToWorkingSetAndSelect(fullPath, selectIn) {
         var result = new $.Deferred(),
             promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
 
@@ -179,7 +181,7 @@ define(function (require, exports, module) {
         promise.done(function (doc) {
             // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
             // selection focus and trigger documentSelectionFocusChange event
-            _fileSelectionFocus = WORKING_SET_VIEW;
+            _fileSelectionFocus = selectIn ? selectIn : WORKING_SET_VIEW;
             _selectCurrentDocument();
             
             result.resolve(doc);

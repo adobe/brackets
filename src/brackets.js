@@ -86,7 +86,6 @@ define(function (require, exports, module) {
         
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
-    require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
@@ -207,6 +206,7 @@ define(function (require, exports, module) {
             FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
+            CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
