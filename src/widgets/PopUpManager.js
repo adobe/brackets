@@ -119,7 +119,14 @@ define(function (require, exports, module) {
                     keyEvent.stopImmediatePropagation();
                     
                     _removePopUp($popUp, true);
-                    EditorManager.focusEditor();
+
+                    // TODO: right now Menus and Context Menus do not take focus away from
+                    // the editor. We need to have a focus manager to correctly manage focus
+                    // between editors and other UI elements.
+                    // For now we don't set focus here and assume individual popups
+                    // adjust focus if necessary
+                    // See story in Trello card #404
+                    //EditorManager.focusEditor();
                 }
                 
                 break;
