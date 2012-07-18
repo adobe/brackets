@@ -651,7 +651,7 @@ define(function (require, exports, module) {
         _insertInList($menubar, $newMenu, position, $relativeElement);
         
         // Install ESC key handling
-        PopUpManager.addPopUp($popUp, menu.close, false);
+        PopUpManager.addPopUp($popUp, closeAll, false);
 
         // todo error handling
 
