@@ -330,6 +330,11 @@ define(function (require, exports, module) {
         }
         
         if (ctx.token.className === "tag") {
+            // check if this is inside a style block.
+            if (editor.getModeForSelection() !== "html") {
+                return createTagInfo();
+            }
+            
             //check to see if this is the closing of a tag (either the start or end)
             if (ctx.token.string === ">" ||
                     (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
