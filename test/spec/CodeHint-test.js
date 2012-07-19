@@ -91,7 +91,6 @@ define(function (require, exports, module) {
         describe("HTML Tests", function () {
 
             it("should show code hints menu and insert text at IP", function () {
-
                 var editor,
                     pos = {line: 3, ch: 1},
                     lineBefore,
@@ -113,6 +112,8 @@ define(function (require, exports, module) {
                     // get text before insert operation
                     lineBefore = editor.document.getLine(pos.line);
 
+                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
+                    // here, but it does not yet support modifer keys
                     CodeHintManager.handleKeyEvent(editor, e);
 
                     var codeHintList = CodeHintManager._getCodeHintList();
@@ -134,6 +135,45 @@ define(function (require, exports, module) {
                     var newPos = editor.getCursorPos();
                     lineAfter = editor.document.getLine(pos.line);
                     expect(lineBefore).not.toEqual(lineAfter);
+                });
+            });
+
+            it("should dismiss code hints menu with Esc key", function () {
+                var editor,
+                    pos = {line: 3, ch: 1};
+
+                // minimal markup with an open '<' before IP
+                // Note: line for pos is 0-based and editor lines numbers are 1-based
+                initCodeHintTest("test1.html", pos);
+
+                // simulate Ctrl+space keystroke to invoke code hints menu
+                runs(function () {
+                    var e = $.Event("keydown");
+                    e.keyCode = 32;      // spacebar key
+                    e.ctrlKey = true;
+
+                    editor = EditorManager.getCurrentFullEditor();
+                    expect(editor).toBeTruthy();
+
+                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
+                    // here, but it does not yet support modifer keys
+                    CodeHintManager.handleKeyEvent(editor, e);
+
+                    // verify list is open
+                    var codeHintList = CodeHintManager._getCodeHintList();
+                    expect(codeHintList).toBeTruthy();
+                    expect(codeHintList.isOpen()).toBe(true);
+                });
+
+                // simulate Esc key to dismiss code hints menu
+                runs(function () {
+                    var key = 27,   // Esc key
+                        element = testWindow.$(".dropdown.open")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
+
+                    // verify list is no longer open
+                    var codeHintList = CodeHintManager._getCodeHintList();
+                    expect(codeHintList.isOpen()).toBe(false);
                 });
             });
         });

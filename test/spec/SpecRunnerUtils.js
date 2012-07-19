@@ -475,6 +475,53 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Simulate key event. Found this code here:
+     * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
+     *
+     * TODO: need parameter(s) for modifier keys
+     *
+     * @param {Number} key Key code
+     * @param (String) event Key event to simulate
+     * @param {HTMLElement} element Element to receive event
+     */
+    function simulateKeyEvent(key, event, element) {
+        var doc = element.ownerDocument,
+            oEvent = doc.createEvent('KeyboardEvent');
+
+        if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
+            console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
+            return;
+        }
+
+        // Chromium Hack: need to override the 'which' property.
+        // Note: this code is not designed to work in IE, Safari,
+        // or other browsers. Well, maybe with Firefox. YMMV.
+        Object.defineProperty(oEvent, 'keyCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
+        Object.defineProperty(oEvent, 'which', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
+
+        if (oEvent.initKeyboardEvent) {
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+        } else {
+            oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
+        }
+
+        oEvent.keyCodeVal = key;
+        if (oEvent.keyCode !== key) {
+            console.log("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+        }
+
+        element.dispatchEvent(oEvent);
+    }
+
     function getTestWindow() {
         return testWindow;
     }
@@ -497,4 +544,5 @@ define(function (require, exports, module) {
     exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
     exports.deleteFile                  = deleteFile;
     exports.getTestWindow               = getTestWindow;
+    exports.simulateKeyEvent            = simulateKeyEvent;
 });
