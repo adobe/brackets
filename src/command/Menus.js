@@ -651,12 +651,13 @@ define(function (require, exports, module) {
         _insertInList($menubar, $newMenu, position, $relativeElement);
         
         // Install ESC key handling
-        PopUpManager.configurePopUp($popUp, closeAll);
+        PopUpManager.addPopUp($popUp, closeAll, false);
 
         // todo error handling
 
         return menu;
     }
+
 
     /**
      * @constructor
@@ -689,7 +690,12 @@ define(function (require, exports, module) {
         // insert into DOM
         $("#context-menu-bar > ul").append($newMenu);
         
-        PopUpManager.configurePopUp($popUp, closeAll);
+        var self = this;
+        PopUpManager.addPopUp($popUp,
+            function () {
+                self.close();
+            },
+            false);
     }
     ContextMenu.prototype = new Menu();
     ContextMenu.prototype.constructor = ContextMenu;

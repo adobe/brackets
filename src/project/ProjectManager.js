@@ -150,12 +150,33 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
+     * if no item is selected.
+     *
+     * @return {?Entry}
+     */
+    function getSelectedItem() {
+        var selected = _projectTree.jstree("get_selected");
+        if (selected) {
+            return selected.data("entry");
+        }
+        return null;
+    }
+    
     var _documentSelectionFocusChange = function () {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
+
+            // Don't update the file tree selection to the current open doc when there is a directory
+            // already selected
+            var selected = getSelectedItem();
+            if (selected && selected.isDirectory) {
+                return;
+            }
+
             $("#project-files-container li").is(function (index) {
                 var entry = $(this).data("entry");
-                
                 if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
                     //we don't want to trigger another selection change event, so manually deselect
                     //and select without sending out notifications
@@ -354,6 +375,7 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
+                        FileViewController.setFileSelectionFocus(FileViewController.PROJECT_MANAGER);
                         // show selection marker on folders
                         _redraw(true);
                         
@@ -741,19 +763,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
-     * if no item is selected.
-     *
-     * @return {?Entry}
-     */
-    function getSelectedItem() {
-        var selected = _projectTree.jstree("get_selected");
-        if (selected) {
-            return selected.data("entry");
-        }
-        return null;
-    }
 
     /**
      * Create a new item in the project tree.
