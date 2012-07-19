@@ -642,8 +642,7 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
                 // verify close event
-                // TODO: issue #1270
-                //expect(closeEvent).toBeTruthy();
+                expect(closeEvent).toBeTruthy();
 
                 // verify all dropdowns are closed
                 $menus = testWindow.$(".dropdown.open");
