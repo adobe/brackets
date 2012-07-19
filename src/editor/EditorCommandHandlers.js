@@ -152,6 +152,68 @@ define(function (require, exports, module) {
         var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
+    
+    /**
+     * Moves the selected text, or current line if no selection, one line up. The cursor/selection 
+     * moves with the line/lines.
+     */
+    function moveLineUp(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+
+        var sel = editor.getSelection(),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+        
+        sel.start.ch = 0;
+        // The end of the selection becomes the start of the next line, if it isn't already
+        if (!hasSelection || sel.end.ch !== 0) {
+            sel.end = {line: sel.end.line + 1, ch: 0};
+        }
+
+        // Make the edit
+        var doc = editor.document;
+
+        var currentText = doc.getRange(sel.start, sel.end);
+        var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
+        doc.replaceRange(currentText, { line: sel.start.line - 1, ch: 0 },
+                                      { line: sel.end.line - 1, ch: 0 });
+        doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 }, sel.end);
+        editor.setSelection({ line: sel.start.line - 1, ch: 0 },
+                            { line: sel.end.line - 1, ch: 0 });
+    }
+    
+    /**
+     * Moves the selected text, or current line if no selection, one line down. The cursor/selection 
+     * moves with the line/lines.
+     */
+    function moveLineDown(editor) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+
+        var sel = editor.getSelection(),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+        
+        sel.start.ch = 0;
+        // The end of the selection becomes the start of the next line, if it isn't already
+        if (!hasSelection || sel.end.ch !== 0) {
+            sel.end = {line: sel.end.line + 1, ch: 0};
+        }
+
+        // Make the edit
+        var doc = editor.document;
+
+        var currentText = doc.getRange(sel.start, sel.end);
+        var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
+        doc.replaceRange(currentText, { line: sel.start.line + 1, ch: 0 },
+                                      { line: sel.end.line + 1, ch: 0 });
+        doc.replaceRange(nextText, sel.start, { line: sel.start.line + 1, ch: 0 });
+        editor.setSelection({ line: sel.start.line + 1, ch: 0 },
+                            { line: sel.end.line + 1, ch: 0 });
+    }
 
     /**
      * Indent a line of text if no selection. Otherwise, indent all lines in selection.
@@ -182,4 +244,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,     unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT, lineComment);
     CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,    duplicateText);
+    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,      moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,    moveLineDown);
 });
