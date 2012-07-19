@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -322,6 +322,28 @@ define(function (require, exports, module) {
                     
                     // verify full editor cursor restored
                     expect(savedPos).toEqual(hostEditor.getCursorPos());
+                });
+            });
+
+            it("should close inline widget on Esc Key", function () {
+                initInlineTest("test1.html", 0);
+
+                runs(function () {
+                    var hostEditor = EditorManager.getCurrentFullEditor(),
+                        inlineWidget = hostEditor.getInlineWidgets()[0],
+                        inlinePos = inlineWidget.editors[0].getCursorPos();
+
+                    // verify inline widget
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+
+                    // close the editor by simulating Esc key
+                    var key = 27,   // Esc key
+                        doc = testWindow.document,
+                        element = doc.getElementsByClassName("inline-widget")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
+
+                    // verify no inline widgets
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
             });
 
