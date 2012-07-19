@@ -114,6 +114,8 @@ define(function (require, exports, module) {
                     // get text before insert operation
                     lineBefore = editor.document.getLine(pos.line);
 
+                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
+                    // here, but it does not yet support modifer keys
                     CodeHintManager.handleKeyEvent(editor, e);
 
                     var codeHintList = CodeHintManager._getCodeHintList();
@@ -155,6 +157,8 @@ define(function (require, exports, module) {
                     editor = EditorManager.getCurrentFullEditor();
                     expect(editor).toBeTruthy();
 
+                    // Ultimately want to use SpecRunnerUtils.simulateKeyEvent()
+                    // here, but it does not yet support modifer keys
                     CodeHintManager.handleKeyEvent(editor, e);
 
                     // verify list is open
@@ -166,9 +170,8 @@ define(function (require, exports, module) {
                 // simulate Esc key to dismiss code hints menu
                 runs(function () {
                     var key = 27,   // Esc key
-                        doc = testWindow.document,
-                        element = doc.getElementsByClassName("codehint-menu open")[0];
-                    SpecRunnerUtils.simulateKeyEvent(key, element);
+                        element = testWindow.$(".dropdown.open")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
                     // verify list is no longer open
                     var codeHintList = CodeHintManager._getCodeHintList();

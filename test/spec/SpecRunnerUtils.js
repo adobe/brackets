@@ -481,12 +481,18 @@ define(function (require, exports, module) {
      *
      * TODO: need parameter(s) for modifier keys
      *
-     * @param {number} key - key code
-     * @param {HTMLElement} element - element to receive event
+     * @param {Number} key Key code
+     * @param (String) event Key event to simulate
+     * @param {HTMLElement} element Element to receive event
      */
-    function simulateKeyEvent(key, element) {
+    function simulateKeyEvent(key, event, element) {
         var doc = element.ownerDocument,
             oEvent = doc.createEvent('KeyboardEvent');
+
+        if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
+            console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
+            return;
+        }
 
         // Chromium Hack: need to override the 'which' property.
         // Note: this code is not designed to work in IE, Safari,
@@ -503,9 +509,9 @@ define(function (require, exports, module) {
         });
 
         if (oEvent.initKeyboardEvent) {
-            oEvent.initKeyboardEvent("keydown", true, true, doc.defaultView, false, false, false, false, key, key);
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
         } else {
-            oEvent.initKeyEvent("keydown", true, true, doc.defaultView, false, false, false, false, key, 0);
+            oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
         }
 
         oEvent.keyCodeVal = key;

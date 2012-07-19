@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $ */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $ */
 
 define(function (require, exports, module) {
     'use strict';
@@ -638,9 +638,8 @@ define(function (require, exports, module) {
 
                 // close the context menu by simulating Esc key
                 var key = 27,   // Esc key
-                    doc = testWindow.document,
-                    element = doc.getElementsByClassName("dropdown open")[0];
-                SpecRunnerUtils.simulateKeyEvent(key, element);
+                    element = $menus[0];
+                SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
                 // verify close event
                 // TODO: issue #1270

@@ -329,17 +329,20 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 0);
 
                 runs(function () {
-                    var hostEditor =  EditorManager.getCurrentFullEditor(),
+                    var hostEditor = EditorManager.getCurrentFullEditor(),
                         inlineWidget = hostEditor.getInlineWidgets()[0],
                         inlinePos = inlineWidget.editors[0].getCursorPos();
+
+                    // verify inline widget
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
 
                     // close the editor by simulating Esc key
                     var key = 27,   // Esc key
                         doc = testWindow.document,
                         element = doc.getElementsByClassName("inline-widget")[0];
-                    SpecRunnerUtils.simulateKeyEvent(key, element);
+                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
-                    // verify no inline widgets 
+                    // verify no inline widgets
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
                 });
             });
