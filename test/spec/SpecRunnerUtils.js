@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         OPEN_TAG                = "{{",
         CLOSE_TAG               = "}}",
         RE_MARKER               = /[^\\]?\{\{(\d+)[^\\]?\}\}/g,
-        testWindow;
+        _testWindow,
+        _doLoadExtensions;
     
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
@@ -59,6 +60,23 @@ define(function (require, exports, module) {
         return path.join("/");
     }
     
+    function Params() {
+        this.params = [];
+    }
+    
+    Params.prototype.push = function (name, value) {
+        this.params.push({name: name, value: value});
+    };
+    
+    Params.prototype.toString = function () {
+        var strs = [];
+        
+        this.params.forEach(function (param) {
+            strs.push(encodeURIComponent(param.name) + "=" + encodeURIComponent(param.value));
+        });
+        
+        return strs.join("&");
+    };
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
@@ -128,24 +146,30 @@ define(function (require, exports, module) {
                 testWindowY   = window.screen.availHeight - testWindowHt,
                 optionsStr    = "left=" + testWindowX + ",top=" + testWindowY +
                                 ",width=" + testWindowWid + ",height=" + testWindowHt;
-            testWindow = window.open(getBracketsSourceRoot() + "/index.html", "_blank", optionsStr);
             
-            testWindow.executeCommand = function executeCommand(cmd, args) {
-                return testWindow.brackets.test.CommandManager.execute(cmd, args);
+            var params = new Params();
+            
+            // setup extension loading in the test window
+            params.push("extensions", _doLoadExtensions ? "default,user" : "default");
+            
+            _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
+            
+            _testWindow.executeCommand = function executeCommand(cmd, args) {
+                return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
         });
 
         // FIXME (issue #249): Need an event or something a little more reliable...
         waitsFor(
             function isBracketsDoneLoading() {
-                return testWindow.brackets && testWindow.brackets.test && testWindow.brackets.test.doneLoading;
+                return _testWindow.brackets && _testWindow.brackets.test && _testWindow.brackets.test.doneLoading;
             },
             10000
         );
 
         runs(function () {
             // callback allows specs to query the testWindow before they run
-            callback.call(spec, testWindow);
+            callback.call(spec, _testWindow);
         });
     }
 
@@ -156,7 +180,7 @@ define(function (require, exports, module) {
         runs(function () {
             //we need to mark the documents as not dirty before we close
             //or the window will stay open prompting to save
-            var openDocs = testWindow.brackets.test.DocumentManager.getAllOpenDocuments();
+            var openDocs = _testWindow.brackets.test.DocumentManager.getAllOpenDocuments();
             openDocs.forEach(function resetDoc(doc) {
                 if (doc.isDirty) {
                     //just refresh it back to it's current text. This will mark it
@@ -164,7 +188,7 @@ define(function (require, exports, module) {
                     doc.refreshText(doc.getText(), doc.diskTimestamp);
                 }
             });
-            testWindow.close();
+            _testWindow.close();
         });
     }
     
@@ -178,7 +202,7 @@ define(function (require, exports, module) {
      */
     function clickDialogButton(buttonId) {
         // Make sure there's one and only one dialog open
-        var $dlg = testWindow.$(".modal.instance"),
+        var $dlg = _testWindow.$(".modal.instance"),
             promise = $dlg.data("promise");
         
         expect($dlg.length).toBe(1);
@@ -200,7 +224,7 @@ define(function (require, exports, module) {
 
         runs(function () {
             // begin loading project path
-            var result = testWindow.brackets.test.ProjectManager.openProject(path);
+            var result = _testWindow.brackets.test.ProjectManager.openProject(path);
             result.done(function () {
                 isReady = true;
             });
@@ -268,7 +292,7 @@ define(function (require, exports, module) {
      * @return {!Array.<string>|string} Absolute file path(s)
      */
     function makeAbsolute(paths) {
-        var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
+        var fullPath = _testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath;
         
         function prefixProjectPath(path) {
             if (path.indexOf(fullPath) === 0) {
@@ -292,7 +316,7 @@ define(function (require, exports, module) {
      * @return {!Array.<string>|string} Relative file path(s)
      */
     function makeRelative(paths) {
-        var fullPath = testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath,
+        var fullPath = _testWindow.brackets.test.ProjectManager.getProjectRoot().fullPath,
             fullPathLength = fullPath.length;
         
         function removeProjectPath(path) {
@@ -351,7 +375,7 @@ define(function (require, exports, module) {
             fullpaths = makeArray(makeAbsolute(paths)),
             keys = makeArray(makeRelative(paths)),
             docs = {},
-            FileViewController = testWindow.brackets.test.FileViewController;
+            FileViewController = _testWindow.brackets.test.FileViewController;
         
         Async.doSequentially(fullpaths, function (path, i) {
             var one = new $.Deferred();
@@ -456,7 +480,7 @@ define(function (require, exports, module) {
     function toggleQuickEditAtOffset(editor, offset) {
         editor.setCursorPos(offset.line, offset.ch);
         
-        return testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
+        return _testWindow.executeCommand(Commands.TOGGLE_QUICK_EDIT);
     }
     
     /**
@@ -523,26 +547,31 @@ define(function (require, exports, module) {
     }
 
     function getTestWindow() {
-        return testWindow;
+        return _testWindow;
+    }
+    
+    function setLoadExtensionsInTestWindow(doLoadExtensions) {
+        _doLoadExtensions = doLoadExtensions;
     }
 
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
-    exports.getTestRoot                 = getTestRoot;
-    exports.getTestPath                 = getTestPath;
-    exports.getBracketsSourceRoot       = getBracketsSourceRoot;
-    exports.makeAbsolute                = makeAbsolute;
-    exports.createMockDocument          = createMockDocument;
-    exports.createTestWindowAndRun      = createTestWindowAndRun;
-    exports.closeTestWindow             = closeTestWindow;
-    exports.clickDialogButton           = clickDialogButton;
-    exports.loadProjectInTestWindow     = loadProjectInTestWindow;
-    exports.openProjectFiles            = openProjectFiles;
-    exports.toggleQuickEditAtOffset     = toggleQuickEditAtOffset;
-    exports.saveFilesWithOffsets        = saveFilesWithOffsets;
-    exports.saveFilesWithoutOffsets     = saveFilesWithoutOffsets;
-    exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
-    exports.deleteFile                  = deleteFile;
-    exports.getTestWindow               = getTestWindow;
-    exports.simulateKeyEvent            = simulateKeyEvent;
+    exports.getTestRoot                     = getTestRoot;
+    exports.getTestPath                     = getTestPath;
+    exports.getBracketsSourceRoot           = getBracketsSourceRoot;
+    exports.makeAbsolute                    = makeAbsolute;
+    exports.createMockDocument              = createMockDocument;
+    exports.createTestWindowAndRun          = createTestWindowAndRun;
+    exports.closeTestWindow                 = closeTestWindow;
+    exports.clickDialogButton               = clickDialogButton;
+    exports.loadProjectInTestWindow         = loadProjectInTestWindow;
+    exports.openProjectFiles                = openProjectFiles;
+    exports.toggleQuickEditAtOffset         = toggleQuickEditAtOffset;
+    exports.saveFilesWithOffsets            = saveFilesWithOffsets;
+    exports.saveFilesWithoutOffsets         = saveFilesWithoutOffsets;
+    exports.saveFileWithoutOffsets          = saveFileWithoutOffsets;
+    exports.deleteFile                      = deleteFile;
+    exports.getTestWindow                   = getTestWindow;
+    exports.simulateKeyEvent                = simulateKeyEvent;
+    exports.setLoadExtensionsInTestWindow   = setLoadExtensionsInTestWindow;
 });

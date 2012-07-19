@@ -81,9 +81,16 @@ define(function (require, exports, module) {
         Async                   = require("utils/Async");
 
     // Local variables
-    var bracketsReady         = false,
-        bracketsReadyHandlers = [];
-        
+    var bracketsReady           = false,
+        bracketsReadyHandlers   = [],
+        paramMap                = [],
+        params                  = window.document.location.search.substring(1).split('&');
+    
+    params.forEach(function (param) {
+        var p = param.split('=');
+        paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+    });
+            
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
@@ -175,7 +182,9 @@ define(function (require, exports, module) {
     // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
     // Making this fix will fix a warning (search for issue 1029) related to the brackets 'ready' event.
     function _initExtensions() {
-        return Async.doInParallel(["default", "user"], function (item) {
+        var paths = paramMap.extensions || "default,user";
+        
+        return Async.doInParallel(paths.split(","), function (item) {
             return ExtensionLoader.loadAllExtensionsInNativeDirectory(
                 FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
                 "extensions/" + item
