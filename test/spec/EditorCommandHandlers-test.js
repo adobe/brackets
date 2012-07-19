@@ -500,6 +500,248 @@ define(function (require, exports, module) {
             });
         });
         
+        describe("Move Lines Up/Down", function () {
+            
+            it("should move whole line up if no selection", function () {
+                // place cursor in middle of line 1
+                myEditor.setCursorPos(1, 10);
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[0];
+                lines[0] = lines[1];
+                lines[1] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 1, ch: 0}});
+            });
+            
+            it("should move whole line down if no selection", function () {
+                // place cursor in middle of line 1
+                myEditor.setCursorPos(1, 10);
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[2];
+                lines[2] = lines[1];
+                lines[1] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("shouldn't move up first line", function () {
+                // place cursor at start of line 0
+                myEditor.setCursorPos(0, 0);
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectCursorAt({line: 0, ch: 0});
+            });
+
+            it("shouldn't move line down if selected line is at end of file", function () {
+                var lines = defaultContent.split("\n"),
+                    len = lines.length;
+
+                // place cursor at the beginning of the last line
+                myEditor.setCursorPos(len-1, 0);
+
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var expectedText = lines.join("\n");
+
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: len-1, ch: 0});
+            });
+            
+            it("should move up empty line", function () {
+                // place cursor on line 6
+                myEditor.setCursorPos(6, 0);
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[5];
+                lines[5] = lines[6];
+                lines[6] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 5, ch: 0}, end: {line: 6, ch: 0}});
+            });
+            
+            it("should move down empty line", function () {
+                // place cursor on line 6
+                myEditor.setCursorPos(6, 0);
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[7];
+                lines[7] = lines[6];
+                lines[6] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectCursorAt({line: 7, ch: 0});
+            });
+            
+            it("should move up when entire line selected, excluding newline", function () {
+                // select all of line 1, EXcluding trailing \n
+                myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 20});
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[0];
+                lines[0] = lines[1];
+                lines[1] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 1, ch: 0}});
+            });
+            
+            it("should move down when entire line selected, excluding newline", function () {
+                // select all of line 1, EXcluding trailing \n
+                myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 20});
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[2];
+                lines[2] = lines[1];
+                lines[1] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should move up when entire line selected, including newline", function () {
+                // select all of line 1, INcluding trailing \n
+                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[0];
+                lines[0] = lines[1];
+                lines[1] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 1, ch: 0}});
+            });
+            
+            it("should move down when entire line selected, including newline", function () {
+                // select all of line 1, INcluding trailing \n
+                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[2];
+                lines[2] = lines[1];
+                lines[1] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 2, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should move up when multiple lines selected", function () {
+                // select lines 2-3
+                myEditor.setSelection({line: 2, ch: 0}, {line: 4, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[1];
+                lines[1] = lines[2];
+                lines[2] = lines[3];
+                lines[3] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should move down when multiple lines selected", function () {
+                // select lines 2-3
+                myEditor.setSelection({line: 2, ch: 0}, {line: 4, ch: 0});
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[4];
+                lines[4] = lines[3];
+                lines[3] = lines[2];
+                lines[2] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 3, ch: 0}, end: {line: 5, ch: 0}});
+            });
+            
+            it("should move up selection crossing line boundary", function () {
+                // select from middle of line 2 to middle of line 3
+                myEditor.setSelection({line: 2, ch: 13}, {line: 3, ch: 11});
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[1];
+                lines[1] = lines[2];
+                lines[2] = lines[3];
+                lines[3] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 1, ch: 0}, end: {line: 3, ch: 0}});
+            });
+            
+            it("should move down selection crossing line boundary", function () {
+                // select from middle of line 2 to middle of line 3
+                myEditor.setSelection({line: 2, ch: 13}, {line: 3, ch: 11});
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                var lines = defaultContent.split("\n");
+                var temp = lines[4];
+                lines[4] = lines[3];
+                lines[3] = lines[2];
+                lines[2] = temp;
+                var expectedText = lines.join("\n");
+                
+                expect(myDocument.getText()).toEqual(expectedText);
+                expectSelection({start: {line: 3, ch: 0}, end: {line: 5, ch: 0}});
+            });
+            
+            it("shouldn't move up after select all", function () {
+                myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
+                
+                CommandManager.execute(Commands.EDIT_LINE_UP, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
+            });
+            
+            it("shouldn't move down after select all", function () {
+                myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
+                
+                CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
+                
+                expect(myDocument.getText()).toEqual(defaultContent);
+                expectSelection({start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
+            });
+        });
+        
         
     });
 });

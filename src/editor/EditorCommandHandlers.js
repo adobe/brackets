@@ -171,17 +171,25 @@ define(function (require, exports, module) {
         if (!hasSelection || sel.end.ch !== 0) {
             sel.end = {line: sel.end.line + 1, ch: 0};
         }
-
-        // Make the edit
-        var doc = editor.document;
-
-        var currentText = doc.getRange(sel.start, sel.end);
-        var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
-        doc.replaceRange(currentText, { line: sel.start.line - 1, ch: 0 },
-                                      { line: sel.end.line - 1, ch: 0 });
-        doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 }, sel.end);
-        editor.setSelection({ line: sel.start.line - 1, ch: 0 },
-                            { line: sel.end.line - 1, ch: 0 });
+        
+        if (sel.start.line !== 0) {
+            // Make the edit
+            var doc = editor.document;
+    
+            var currentText = doc.getRange(sel.start, sel.end);
+            var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
+            
+            if (sel.end.line === editor.lineCount()) {
+                currentText += "\n";
+                prevText = prevText.substring(0, prevText.length - 1);
+            }
+            
+            doc.replaceRange(currentText, { line: sel.start.line - 1, ch: 0 },
+                                          { line: sel.end.line - 1, ch: 0 });
+            doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 }, sel.end);
+            editor.setSelection({ line: sel.start.line - 1, ch: 0 },
+                                { line: sel.end.line - 1, ch: 0 });
+        }
     }
     
     /**
@@ -202,17 +210,26 @@ define(function (require, exports, module) {
         if (!hasSelection || sel.end.ch !== 0) {
             sel.end = {line: sel.end.line + 1, ch: 0};
         }
-
-        // Make the edit
-        var doc = editor.document;
-
-        var currentText = doc.getRange(sel.start, sel.end);
-        var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
-        doc.replaceRange(currentText, { line: sel.start.line + 1, ch: 0 },
-                                      { line: sel.end.line + 1, ch: 0 });
-        doc.replaceRange(nextText, sel.start, { line: sel.start.line + 1, ch: 0 });
-        editor.setSelection({ line: sel.start.line + 1, ch: 0 },
-                            { line: sel.end.line + 1, ch: 0 });
+        
+        if (sel.end.line < editor.lineCount()) {
+        
+            // Make the edit
+            var doc = editor.document;
+    
+            var currentText = doc.getRange(sel.start, sel.end);
+            var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
+            
+            if (sel.end.line === editor.lineCount() - 1) {
+                currentText = currentText.substring(0, currentText.length - 1);
+                nextText += "\n";
+            }
+            
+            doc.replaceRange(currentText, { line: sel.start.line + 1, ch: 0 },
+                                          { line: sel.end.line + 1, ch: 0 });
+            doc.replaceRange(nextText, sel.start, { line: sel.start.line + 1, ch: 0 });
+            editor.setSelection({ line: sel.start.line + 1, ch: 0 },
+                                { line: sel.end.line + 1, ch: 0 });
+        }
     }
 
     /**
