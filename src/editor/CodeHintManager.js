@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         this.clearList();
         var self = this;
         var count = 0;
-        this.displayList.froEach(function (item) {
+        this.displayList.forEach(function (item) {
             if (count > self.options.maxResults) {
                 return false;
             }
