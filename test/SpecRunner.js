@@ -137,8 +137,25 @@ define(function (require, exports, module) {
             isExtSuite = (suite === "ExtensionTestSuite");
         
         var topLevelFilter = function (spec) {
+            var suite = spec.suite;
+            
+            // unit test suites have no category
             if (!isPerfSuite && !isExtSuite) {
-                return !spec.category;
+                if (spec.category !== undefined) {
+                    // if an individualy spec has a category, filter it out
+                    return false;
+                }
+                
+                while (suite) {
+                    if (suite.category !== undefined) {
+                        // any suite in the hierarchy may specify a category
+                        return false;
+                    }
+                    
+                    suite = suite.parentSuite;
+                }
+                
+                return true;
             }
             
             var category = (isPerfSuite) ? "performance" : "extension";
@@ -146,8 +163,6 @@ define(function (require, exports, module) {
             if (spec.category === category) {
                 return true;
             }
-            
-            var suite = spec.suite;
             
             while (suite) {
                 if (suite.category === category) {
