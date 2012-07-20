@@ -32,14 +32,11 @@
   <link href="BootstrapReporter.css" rel="stylesheet">
 
   <script src="thirdparty/jasmine-core/jasmine.js"></script>
-  <script src="thirdparty/jasmine-core/jasmine-html.js"></script>
-  <script src="thirdparty/jasmine-jquery-1.3.1.js"></script>    
 
   <!-- Pre-load third party scripts that cannot be async loaded. -->
   <script src="../src/thirdparty/jquery-1.7.min.js"></script>
   <script src="../src/thirdparty/CodeMirror2/lib/codemirror.js"></script>
   <script src="thirdparty/bootstrap2/js/bootstrap.min.js"></script>    
-  <script src="BootstrapReporter.js"></script>
     
   <!-- All other scripts are loaded through require. -->  
   <script src="../src/thirdparty/require.js" data-main="SpecRunner"></script>
@@ -61,6 +58,7 @@
             <ul class="nav">
               <li><a id="UnitTestSuite" href="?suite=UnitTestSuite">Unit</a></li>
               <li><a id="PerformanceTestSuite" href="?suite=PerformanceTestSuite">Performance</a></li>
+              <li><a id="ExtensionSuite" href="?suite=ExtensionTestSuite">Extensions</a></li>
               <li><a id="reload" href="#">Reload</a></li>
               <li><a id="show-dev-tools" href="#">Show Developer Tools</a></li>
             </ul>
