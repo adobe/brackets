@@ -402,8 +402,8 @@ define(function (require, exports, module) {
                             node        = null;
         
                         // use path to lookup ID
-                        $.each(toOpenPaths, function (index, value) {
-                            node = _projectInitialLoad.fullPathToIdMap[value];
+                        toOpenPaths.forEach(function (filePath) {
+                            node = _projectInitialLoad.fullPathToIdMap[filePath];
                             
                             if (node) {
                                 toOpenIds.push(node);
