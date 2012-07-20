@@ -52,6 +52,4 @@ define(function (require, exports, module) {
     // load the default language immediately
     _load();
 
-    // public methods
-    exports.set = set;
 });
