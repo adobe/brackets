@@ -290,7 +290,7 @@ define(function (require, exports, module) {
             tokenType;
         
         // check if this is inside a style block.
-        if (ctx.token.className === "tag" && editor.getModeForSelection() !== "html") {
+        if (editor.getModeForSelection() !== "html") {
             return createTagInfo();
         }
         
