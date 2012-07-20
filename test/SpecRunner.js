@@ -44,7 +44,11 @@ define(function (require, exports, module) {
         ExtensionLoader     = require("utils/ExtensionLoader"),
         Async               = require("utils/Async"),
         FileUtils           = require("file/FileUtils"),
-        Menus               = require("command/Menus");
+        Menus               = require("command/Menus"),
+        Params              = require("utils/Params").Params;
+
+    // Jasmine reporter UI
+    require("test/BootstrapReporter");
     
     // TODO: Issue 949 - the following code should be shared
     // Load modules that self-register and just need to get included in the main project
@@ -54,21 +58,10 @@ define(function (require, exports, module) {
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
     
-    var suite;
-        
-    function getParamMap() {
-        var params = document.location.search.substring(1).split('&'),
-            paramMap = {},
-            i,
-            p;
+    var suite,
+        params = new Params();
     
-        for (i = 0; i < params.length; i++) {
-            p = params[i].split('=');
-            paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-        }
-        
-        return paramMap;
-    }
+    params.parseLocation();
     
     function _loadExtensionTests(suite) {
         // augment jasmine to identify extension unit tests
@@ -137,7 +130,7 @@ define(function (require, exports, module) {
         // modules. The extension will only be able to load modules that have already been loaded once.
         brackets.getModule = require;
             
-        suite = getParamMap().suite || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        suite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
         
         // Create a top-level filter to show/hide performance and extensions tests
         var isPerfSuite = (suite === "PerformanceTestSuite"),
