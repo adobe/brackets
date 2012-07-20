@@ -27,26 +27,25 @@
 define(function (require, exports, module) {
     'use strict';
 
-    // load the active language from the local storage
-    var _language = window.localStorage.language;
-    if (_language === undefined) {
-        // default language: english
-        _language = "en-US";
-    }
-
     // load the active language strings file
     function _load() {
-        var r = $.Deferred();
-        require(["strings/" + _language], function (strings) {
+
+        // load the active language from the local storage
+        var language = window.localStorage.language;
+        if (language === undefined || language === null) {
+            // default language: english
+            language = "en-US";
+        }
+
+        // require the language strings file
+        require(["strings/" + language], function (strings) {
             var i;
             for (i in strings) {
                 if (strings.hasOwnProperty(i)) {
                     exports[i] = strings[i];
                 }
             }
-            r.resolve(exports);
         });
-        return r.promise();
     }
 
     // load the default language immediately
