@@ -45,7 +45,7 @@ define(function (require, exports, module) {
         Async               = require("utils/Async"),
         FileUtils           = require("file/FileUtils"),
         Menus               = require("command/Menus"),
-        Params              = require("utils/Params").Params;
+        UrlParams           = require("utils/UrlParams").UrlParams;
 
     // Jasmine reporter UI
     require("test/BootstrapReporter");
@@ -59,9 +59,9 @@ define(function (require, exports, module) {
     require("test/PerformanceTestSuite");
     
     var suite,
-        params = new Params();
+        params = new UrlParams();
     
-    params.parseLocation();
+    params.parse();
     
     function _loadExtensionTests(suite) {
         // augment jasmine to identify extension unit tests

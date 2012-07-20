@@ -79,15 +79,15 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
-        Params                  = require("utils/Params").Params;
+        UrlParams               = require("utils/UrlParams").UrlParams;
 
     // Local variables
     var bracketsReady           = false,
         bracketsReadyHandlers   = [],
-        params                  = new Params();
+        params                  = new UrlParams();
     
     // read URL params
-    params.parseLocation();
+    params.parse();
             
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");

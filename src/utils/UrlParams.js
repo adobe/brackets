@@ -28,12 +28,18 @@
 define(function (require, exports, module) {
     "use strict";
     
-    function Params() {
+    function UrlParams() {
         this._store = {};
     }
     
-    Params.prototype.parseLocation = function () {
-        var urlParams = window.document.location.search.substring(1).split("&"),
+    UrlParams.prototype.parse = function (url) {
+        if (url) {
+            url = url.substring(indexOf("?") + 1);
+        } else {
+            url = window.document.location.search.substring(1);
+        }
+        
+        var urlParams = url.split("&"),
             p,
             self = this;
         
@@ -43,15 +49,15 @@ define(function (require, exports, module) {
         });
     };
     
-    Params.prototype.put = function (name, value) {
+    UrlParams.prototype.put = function (name, value) {
         this._store[name] = value;
     };
     
-    Params.prototype.get = function (name) {
+    UrlParams.prototype.get = function (name) {
         return this._store[name];
     };
     
-    Params.prototype.toString = function () {
+    UrlParams.prototype.toString = function () {
         var strs = [],
             self = this;
         
@@ -63,5 +69,5 @@ define(function (require, exports, module) {
     };
 
     // Define public API
-    exports.Params = Params;
+    exports.UrlParams = UrlParams;
 });

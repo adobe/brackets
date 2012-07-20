@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
-        Params              = require("utils/Params").Params;
+        UrlParams           = require("utils/UrlParams").UrlParams;
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
                 optionsStr    = "left=" + testWindowX + ",top=" + testWindowY +
                                 ",width=" + testWindowWid + ",height=" + testWindowHt;
             
-            var params = new Params();
+            var params = new UrlParams();
             
             // setup extension loading in the test window
             params.put("extensions", _doLoadExtensions ? "default,user" : "default");

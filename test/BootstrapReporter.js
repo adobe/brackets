@@ -3,13 +3,13 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var Params = require("utils/Params").Params;
+    var UrlParams = require("utils/UrlParams").UrlParams;
 
     jasmine.BootstrapReporter = function (doc, filter) {
         this.document = doc || document;
         this._env = jasmine.getEnv();
-        this.params = new Params();
-        this.params.parseLocation();
+        this.params = new UrlParams();
+        this.params.parse();
         
         // parse querystring
         var self = this,
