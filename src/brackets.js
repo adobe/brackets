@@ -78,18 +78,16 @@ define(function (require, exports, module) {
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
-        Async                   = require("utils/Async");
+        Async                   = require("utils/Async"),
+        Params                  = require("utils/Params").Params;
 
     // Local variables
     var bracketsReady           = false,
         bracketsReadyHandlers   = [],
-        paramMap                = [],
-        params                  = window.document.location.search.substring(1).split('&');
+        params                  = new Params();
     
-    params.forEach(function (param) {
-        var p = param.split('=');
-        paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-    });
+    // read URL params
+    params.parseLocation();
             
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
@@ -182,7 +180,8 @@ define(function (require, exports, module) {
     // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
     // Making this fix will fix a warning (search for issue 1029) related to the brackets 'ready' event.
     function _initExtensions() {
-        var paths = paramMap.extensions || "default,user";
+        // allow unit tests to override which plugin folder(s) to load
+        var paths = params.get("extensions") || "default,user";
         
         return Async.doInParallel(paths.split(","), function (item) {
             return ExtensionLoader.loadAllExtensionsInNativeDirectory(

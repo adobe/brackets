@@ -31,7 +31,8 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
-        DocumentManager     = require("document/DocumentManager");
+        DocumentManager     = require("document/DocumentManager"),
+        Params              = require("utils/Params").Params;
     
     var TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences",
         OPEN_TAG                = "{{",
@@ -59,24 +60,6 @@ define(function (require, exports, module) {
         path.push("src");
         return path.join("/");
     }
-    
-    function Params() {
-        this.params = [];
-    }
-    
-    Params.prototype.push = function (name, value) {
-        this.params.push({name: name, value: value});
-    };
-    
-    Params.prototype.toString = function () {
-        var strs = [];
-        
-        this.params.forEach(function (param) {
-            strs.push(encodeURIComponent(param.name) + "=" + encodeURIComponent(param.value));
-        });
-        
-        return strs.join("&");
-    };
     
     /**
      * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
@@ -150,7 +133,7 @@ define(function (require, exports, module) {
             var params = new Params();
             
             // setup extension loading in the test window
-            params.push("extensions", _doLoadExtensions ? "default,user" : "default");
+            params.put("extensions", _doLoadExtensions ? "default,user" : "default");
             
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
