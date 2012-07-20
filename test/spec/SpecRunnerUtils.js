@@ -214,7 +214,7 @@ define(function (require, exports, module) {
         });
 
         // wait for file system to finish loading
-        waitsFor(function () { return isReady; }, "loadProject() timeout", 1000);
+        waitsFor(function () { return isReady; }, "openProject() timeout", 1000);
     }
     
     /**
