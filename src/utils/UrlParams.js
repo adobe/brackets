@@ -28,10 +28,17 @@
 define(function (require, exports, module) {
     "use strict";
     
+    /**
+     * Convert between URL querystring and name/value pairs. Decodes and encodes URL parameters.
+     */
     function UrlParams() {
         this._store = {};
     }
     
+    /**
+     * Parse the window location by default. Optionally specify a URL to parse.
+     * @param {string} url
+     */
     UrlParams.prototype.parse = function (url) {
         if (url) {
             url = url.substring(indexOf("?") + 1);
@@ -49,14 +56,26 @@ define(function (require, exports, module) {
         });
     };
     
+    /**
+     * Store a name/value string pair
+     * @param {!string} name
+     * @param {!string} value
+     */
     UrlParams.prototype.put = function (name, value) {
         this._store[name] = value;
     };
     
+    /**
+     * Retreive a value by name
+     * @param {!string} name
+     */
     UrlParams.prototype.get = function (name) {
         return this._store[name];
     };
     
+    /**
+     * Encode name/value pairs as URI components.
+     */
     UrlParams.prototype.toString = function () {
         var strs = [],
             self = this;
