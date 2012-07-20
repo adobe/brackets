@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets */
+/*global define, describe, beforeEach, afterEach, it, runs, waitsFor, waitsForDone, expect, brackets */
 
 // TODO: Eventually we should have a brackets performance test suite that is separate from the unit tests
 
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
 
     describe("Performance Tests", function () {
         
-        this.performance = true;
+        this.category = "performance";
         
         // Note: this tests assumes that the "brackets-scenario" repo is in the same folder
         //       as the "brackets-app"
@@ -54,19 +54,14 @@ define(function (require, exports, module) {
             testWindow;
         
         function openFile(path) {
-            var didOpen = false, gotError = false;
-        
+            var fullPath = testPath + path;
             runs(function () {
-                CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + path})
-                    .done(function () {
-                        didOpen = true;
-                    })
-                    .fail(function () { gotError = true; });
+                var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
+                waitsForDone(promise);
             });
-            waitsFor(function () { return didOpen && !gotError; }, 1000);
             
             runs(function () {
-                PerformanceReporter.logTestWindow(PerfUtils.OPEN_FILE, path);
+                PerformanceReporter.logTestWindow(/Open File:\t,*/, path);
                 PerformanceReporter.clearTestWindow();
             });
         }
