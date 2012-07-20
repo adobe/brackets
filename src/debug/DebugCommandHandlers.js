@@ -33,7 +33,9 @@ define(function (require, exports, module) {
         Editor                  = require("editor/Editor").Editor,
         Strings                 = require("strings"),
         PerfUtils               = require("utils/PerfUtils"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils               = require("file/FileUtils");
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
@@ -130,6 +132,87 @@ define(function (require, exports, module) {
     function _handleNewBracketsWindow() {
         window.open(window.location.href);
     }
+
+    function _handleSwitchLanguage() {
+        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/strings";
+        NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
+            dirEntry.createReader().readEntries(function (entries) {
+
+                var $activeLanguage;
+                var $submit;
+                function setLanguage(event) {
+                    if ($activeLanguage) {
+                        $activeLanguage.css("font-weight", "normal");
+                    }
+                    $activeLanguage = $(event.currentTarget);
+                    $activeLanguage.css("font-weight", "bold");
+                    $submit.attr("disabled", false);
+                }
+
+                var $modal = $("<div class='modal hide' />");
+
+                var $header = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
+                    .appendTo($modal);
+                
+                var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
+                    .appendTo($modal);
+
+                var $p = $("<p class='dialog-message'>")
+                    .text(Strings.LANGUAGE_MESSAGE)
+                    .appendTo($body);
+
+                var $ul = $("<ul>")
+                    .appendTo($p);
+
+                // inspect all children of dirEntry
+                entries.forEach(function (entry) {
+                    if (entry.isFile && entry.name.match(/^[a-z]{2}-[A-Z]{2}\.js$/)) {
+                        var language = entry.name.substr(0, entry.name.length - 3);
+                        var $li = $("<li>")
+                            .text(entry.name)
+                            .data("language", language)
+                            .on("click", setLanguage)
+                            .appendTo($ul);
+                    }
+                });
+
+                var $footer = $("<div class='modal-footer' />")
+                    .appendTo($modal);
+
+                var $cancel = $("<button class='dialog-button btn left'>")
+                    .on("click", function () {
+                        $modal.modal('hide');
+                    })
+                    .text(Strings.LANGUAGE_CANCEL)
+                    .appendTo($footer);
+
+                $submit = $("<button class='dialog-button btn primary'>")
+                    .text(Strings.LANGUAGE_SUBMIT)
+                    .on("click", function () {
+                        if (!$activeLanguage) {
+                            return;
+                        }
+                        var language = $activeLanguage.data("language");
+                        window.localStorage.setItem("language", language);
+                        CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
+                    })
+                    .attr("disabled", "disabled")
+                    .appendTo($footer);
+
+                $modal
+                    .appendTo(window.document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    })
+                    .on("hidden", function () {
+                        $(this).remove();
+                    });
+            });
+        });
+    }
     
     
     // Register all the command handlers
@@ -138,6 +221,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
                                                         Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,
+                                                        Commands.DEBUG_SWITCH_LANGUAGE, _handleSwitchLanguage);
     
     CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,      _handleUseTabChars)
         .setChecked(Editor.getUseTabChar());
