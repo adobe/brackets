@@ -29,7 +29,7 @@
  * Utilities for creating and managing standard modal dialogs.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var KeyBindingManager = require("command/KeyBindingManager");
 
@@ -71,7 +71,7 @@ define(function (require, exports, module) {
             this.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
-            if (e.metaKey && (which === 'D')) {
+            if (e.metaKey && (which === "D")) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === 'N') {
+            if (which === "N") {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -117,7 +117,8 @@ define(function (require, exports, module) {
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
-        var result = $.Deferred();
+        var result = $.Deferred(),
+            promise = result.promise();
         
         // We clone the HTML rather than using it directly so that if two dialogs of the same
         // type happen to show up, they can appear at the same time. (This is an edge case that
@@ -132,6 +133,9 @@ define(function (require, exports, module) {
         if ($dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
+
+        // Save the dialog promise for unit tests
+        $dlg.data("promise", promise);
 
         // Set title and message
         if (title) {
@@ -187,7 +191,8 @@ define(function (require, exports, module) {
             show: true,
             keyboard: true
         });
-        return result.promise();
+
+        return promise;
     }
     
     /**

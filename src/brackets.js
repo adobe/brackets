@@ -42,7 +42,7 @@ require.config({
  * a global object, window.brackets.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent non-module scripts
     require("widgets/bootstrap-dropdown");
@@ -86,7 +86,6 @@ define(function (require, exports, module) {
         
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
-    require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
@@ -133,7 +132,7 @@ define(function (require, exports, module) {
         //
         // Taken from:
         //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
-        var Fn = Function, global = (new Fn('return this'))();
+        var Fn = Function, global = (new Fn("return this"))();
         if (!global.brackets) {
             global.brackets = {};
         }
@@ -207,6 +206,7 @@ define(function (require, exports, module) {
             FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
+            CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
@@ -277,7 +277,7 @@ define(function (require, exports, module) {
         // Add the platform (mac or win) to the body tag so we can have platform-specific CSS rules
         $("body").addClass("platform-" + brackets.platform);
         
-        EditorManager.setEditorHolder($('#editor-holder'));
+        EditorManager.setEditorHolder($("#editor-holder"));
 
         // Let the user know Brackets doesn't run in a web browser yet
         if (brackets.inBrowser) {
@@ -316,7 +316,8 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement("Application Startup");
         
         // finish UI initialization before loading extensions
-        ProjectManager.loadProject().done(function () {
+        var initialProjectPath = ProjectManager.getInitialProjectPath();
+        ProjectManager.openProject(initialProjectPath).done(function () {
             _initTest();
             _initExtensions().always(_onBracketsReady);
         });

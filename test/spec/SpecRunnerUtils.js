@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, regexp: true */
-/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs */
+/*global define, $, brackets, describe, it, expect, beforeEach, afterEach, waitsFor, waits, waitsForDone, runs */
 define(function (require, exports, module) {
     'use strict';
     
@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     
     
     /**
-     * Utility for tests that wait on a Promise. Placed in the global namespace so it can be used
+     * Utility for tests that wait on a Promise to complete. Placed in the global namespace so it can be used
      * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
      * the runs() that generates the promise.
      * @param {$.Promise} promise
@@ -71,7 +71,21 @@ define(function (require, exports, module) {
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "resolved";
-        }, "Timeout waiting for " + operationName, 1000);
+        }, "Timeout waiting for success " + operationName, 1000);
+    };
+    
+    /**
+     * Utility for tests that waits on a Promise to fail. Placed in the global namespace so it can be used
+     * similarly to the standards Jasmine waitsFor(). Unlike waitsFor(), must be called from INSIDE
+     * the runs() that generates the promise.
+     * @param {$.Promise} promise
+     * @param {string} operationName  Name used for timeout error message
+     */
+    window.waitsForFail = function (promise, operationName) {
+        expect(promise).toBeTruthy();
+        waitsFor(function () {
+            return promise.state() === "rejected";
+        }, "Timeout waiting for failure " + operationName, 1000);
     };
     
     
@@ -158,23 +172,26 @@ define(function (require, exports, module) {
     /**
      * Dismiss the currently open dialog as if the user had chosen the given button. Dialogs close
      * asynchronously; after calling this, you need to start a new runs() block before testing the
-     * outcome.
+     * outcome. Also, in cases where asynchronous tasks are performed after the dialog closes,
+     * clients must also wait for any additional promises.
      * @param {string} buttonId  One of the Dialogs.DIALOG_BTN_* symbolic constants.
      */
     function clickDialogButton(buttonId) {
-        runs(function () {
-            // Make sure there's one and only one dialog open
-            expect(testWindow.$(".modal.instance").length).toBe(1);
-            
-            // Make sure desired button exists
-            var dismissButton = testWindow.$(".modal.instance .dialog-button[data-button-id='" + buttonId + "']");
-            expect(dismissButton.length).toBe(1);
-            
-            dismissButton.click();
-        });
-        // Wait until dialog's result handler runs; it's done on a timeout to avoid Bootstrap bugs
-        // TODO: add unit-test helper API to Dialogs that cleanly tell us when it's done closing
-        waits(100);
+        // Make sure there's one and only one dialog open
+        var $dlg = testWindow.$(".modal.instance"),
+            promise = $dlg.data("promise");
+        
+        expect($dlg.length).toBe(1);
+        
+        // Make sure desired button exists
+        var dismissButton = $dlg.find(".dialog-button[data-button-id='" + buttonId + "']");
+        expect(dismissButton.length).toBe(1);
+        
+        // Click the button
+        dismissButton.click();
+
+        // Dialog should resolve/reject the promise
+        waitsForDone(promise);
     }
     
     
@@ -183,7 +200,7 @@ define(function (require, exports, module) {
 
         runs(function () {
             // begin loading project path
-            var result = testWindow.brackets.test.ProjectManager.loadProject(path);
+            var result = testWindow.brackets.test.ProjectManager.openProject(path);
             result.done(function () {
                 isReady = true;
             });
@@ -458,6 +475,53 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Simulate key event. Found this code here:
+     * http://stackoverflow.com/questions/10455626/keydown-simulation-in-chrome-fires-normally-but-not-the-correct-key
+     *
+     * TODO: need parameter(s) for modifier keys
+     *
+     * @param {Number} key Key code
+     * @param (String) event Key event to simulate
+     * @param {HTMLElement} element Element to receive event
+     */
+    function simulateKeyEvent(key, event, element) {
+        var doc = element.ownerDocument,
+            oEvent = doc.createEvent('KeyboardEvent');
+
+        if (event !== "keydown" && event !== "keyup" && event !== "keypress") {
+            console.log("SpecRunnerUtils.simulateKeyEvent() - unsupported keyevent: " + event);
+            return;
+        }
+
+        // Chromium Hack: need to override the 'which' property.
+        // Note: this code is not designed to work in IE, Safari,
+        // or other browsers. Well, maybe with Firefox. YMMV.
+        Object.defineProperty(oEvent, 'keyCode', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
+        Object.defineProperty(oEvent, 'which', {
+            get: function () {
+                return this.keyCodeVal;
+            }
+        });
+
+        if (oEvent.initKeyboardEvent) {
+            oEvent.initKeyboardEvent(event, true, true, doc.defaultView, false, false, false, false, key, key);
+        } else {
+            oEvent.initKeyEvent(event, true, true, doc.defaultView, false, false, false, false, key, 0);
+        }
+
+        oEvent.keyCodeVal = key;
+        if (oEvent.keyCode !== key) {
+            console.log("keyCode mismatch " + oEvent.keyCode + "(" + oEvent.which + ")");
+        }
+
+        element.dispatchEvent(oEvent);
+    }
+
     function getTestWindow() {
         return testWindow;
     }
@@ -480,4 +544,5 @@ define(function (require, exports, module) {
     exports.saveFileWithoutOffsets      = saveFileWithoutOffsets;
     exports.deleteFile                  = deleteFile;
     exports.getTestWindow               = getTestWindow;
+    exports.simulateKeyEvent            = simulateKeyEvent;
 });

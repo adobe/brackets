@@ -26,7 +26,7 @@
 /*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var EditorManager       = require("editor/EditorManager");
@@ -36,11 +36,20 @@ define(function (require, exports, module) {
      *
      */
     function InlineWidget() {
+        var self = this;
+        
         // create the outer wrapper div
         this.htmlContent = window.document.createElement("div");
         this.$htmlContent = $(this.htmlContent).addClass("inline-widget");
-        this.$htmlContent.append('<div class="shadow top"/>')
-            .append('<div class="shadow bottom"/>');
+        this.$htmlContent.append("<div class='shadow top' />")
+            .append("<div class='shadow bottom' />");
+        
+        this.$htmlContent.on("keydown", function (e) {
+            if (e.keyCode === 27) {
+                self.close();
+                e.stopImmediatePropagation();
+            }
+        });
     }
     InlineWidget.prototype.htmlContent = null;
     InlineWidget.prototype.$htmlContent = null;

@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils        = require("file/FileUtils"),
-        SpecRunnerUtils  = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("InlineEditorProviders", function () {
 
@@ -325,6 +325,28 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should close inline widget on Esc Key", function () {
+                initInlineTest("test1.html", 0);
+
+                runs(function () {
+                    var hostEditor = EditorManager.getCurrentFullEditor(),
+                        inlineWidget = hostEditor.getInlineWidgets()[0],
+                        inlinePos = inlineWidget.editors[0].getCursorPos();
+
+                    // verify inline widget
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+
+                    // close the editor by simulating Esc key
+                    var key = 27,   // Esc key
+                        doc = testWindow.document,
+                        element = doc.getElementsByClassName("inline-widget")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
+
+                    // verify no inline widgets
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+            });
+
             it("should not open an inline editor when positioned on textContent", function () {
                 initInlineTest("test1.html", 3, false);
                 
@@ -441,7 +463,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
@@ -508,7 +530,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedInlineText !== null && savedHostText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedInlineText !== undefined && savedHostText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
@@ -581,7 +603,8 @@ define(function (require, exports, module) {
                     
                     var newText = "\n/* jasmine was here */",
                         hostEditor,
-                        inlineEditor;
+                        inlineEditor,
+                        promise;
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
@@ -597,11 +620,20 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         
+                        // synchronously click the don't save button,
+                        // asynchronously wait for the dialog to close and the Dialog's
+                        // promise to resolve. 
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
                     });
-                    // clickDialogButton() inserts a wait automatically, so must end runs() block here
+
+                    // Wait on the command's promise also since the command performs
+                    // asynchronous tasks after the Dialog is resolved. If the command
+                    // could complete synchronously, this wait would be unnecessary.
+                    runs(function () {
+                        waitsForDone(promise);
+                    });
                     
                     runs(function () {
                         // verify inline is closed

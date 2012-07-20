@@ -59,9 +59,10 @@
  *    $(editorInstance).on("eventname", handler);
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var EditorManager   = require("editor/EditorManager"),
+        CodeHintManager = require("editor/CodeHintManager"),
         Commands        = require("command/Commands"),
         CommandManager  = require("command/CommandManager"),
         Menus           = require("command/Menus"),
@@ -210,6 +211,13 @@ define(function (require, exports, module) {
         }
     }
 
+    function _handleKeyEvents(jqEvent, editor, event) {
+        _checkElectricChars(jqEvent, editor, event);
+
+        // Pass the key event to the code hint manager. It may call preventDefault() on the event.
+        CodeHintManager.handleKeyEvent(editor, event);
+    }
+
     function _handleSelectAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
@@ -338,6 +346,9 @@ define(function (require, exports, module) {
                     CodeMirror.commands.delCharRight(instance);
                 }
             },
+            "Esc": function (instance) {
+                self.removeAllInlineWidgets();
+            },
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
             "Shift-Insert": "paste"
@@ -367,7 +378,7 @@ define(function (require, exports, module) {
         this._installEditorListeners();
         
         $(this)
-            .on("keyEvent", _checkElectricChars)
+            .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
@@ -403,7 +414,7 @@ define(function (require, exports, module) {
         // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
             get: function () {
-                return this._codeMirror.scrollPos().y;
+                return this._codeMirror.getScrollInfo().y;
             }
         });
     }
@@ -599,7 +610,7 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
-            return false;   // false tells CodeMirror we didn't eat the event
+            return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
@@ -803,16 +814,16 @@ define(function (require, exports, module) {
     
     /**
      * Returns the current scroll position of the editor.
-     * @returns {{x:number, y:number}} The x,y scroll position.
+     * @returns {{x:number, y:number}} The x,y scroll position in pixels
      */
     Editor.prototype.getScrollPos = function () {
-        return this._codeMirror.scrollPos();
+        return this._codeMirror.getScrollInfo();
     };
     
     /**
      * Sets the current scroll position of the editor.
-     * @param {number} x scrollLeft position
-     * @param {number} y scrollTop position
+     * @param {number} x scrollLeft position in pixels
+     * @param {number} y scrollTop position in pixels
      */
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
@@ -835,6 +846,18 @@ define(function (require, exports, module) {
         
         // once this widget is added, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(pos.line);
+    };
+    
+    /**
+     * Removes all inline widgets
+     */
+    Editor.prototype.removeAllInlineWidgets = function () {
+        // copy the array because _removeInlineWidgetInternal will modifying the original
+        var widgets = [].concat(this.getInlineWidgets());
+        
+        widgets.forEach(function (widget) {
+            this.removeInlineWidget(widget);
+        }, this);
     };
     
     /**

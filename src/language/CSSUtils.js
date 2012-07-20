@@ -32,7 +32,7 @@
  * Set of utilities for simple parsing of CSS text.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
@@ -255,7 +255,7 @@ define(function (require, exports, module) {
             if (ruleStartChar !== -1) {
                 return false;       // already included
             }
-            if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf('}') !== -1) {
+            if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf("}") !== -1) {
                 return false;       // on same line as '}', so it's for previous rule
             }
             return true;
@@ -530,7 +530,6 @@ define(function (require, exports, module) {
      */
     function findMatchingRules(selector, htmlDocument) {
         var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             resultSelectors = [];
         
         // Synchronously search for matches in <style> blocks

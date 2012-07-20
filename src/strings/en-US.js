@@ -73,7 +73,7 @@ define(function (require, exports, module) {
     exports.LIVE_DEVELOPMENT_ERROR_TITLE      = "Live Development Error";
     exports.LIVE_DEVELOPMENT_ERROR_MESSAGE    = "A live development connection to Chrome could not be established. "
                                                 + "For live development to work, Chrome needs to be started with remote debugging enabled."
-                                                + "<br><br>Would you like to relaunch Chrome and enable remote debugging?";
+                                                + "<br /><br />Would you like to relaunch Chrome and enable remote debugging?";
     exports.LIVE_DEV_NEED_HTML_MESSAGE        = "Open an HTML file in order to launch live preview.";
     
     exports.LIVE_DEV_STATUS_TIP_NOT_CONNECTED = "Live File Preview";
@@ -86,10 +86,10 @@ define(function (require, exports, module) {
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Do you want to save your changes to the following files?";
     exports.EXT_MODIFIED_TITLE                = "External Changes";
     exports.EXT_MODIFIED_MESSAGE              = "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in Brackets."
-                                                + "<br><br>"
+                                                + "<br /><br />"
                                                 + "Which version do you want to keep?";
     exports.EXT_DELETED_MESSAGE               = "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in Brackets."
-                                                + "<br><br>"
+                                                + "<br /><br />"
                                                 + "Do you want to keep your changes?";
     
     exports.OPEN_FILE                         = "Open File";

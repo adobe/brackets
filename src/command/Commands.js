@@ -26,7 +26,7 @@
 /*global define */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     /**
      * List of constants for global command IDs.

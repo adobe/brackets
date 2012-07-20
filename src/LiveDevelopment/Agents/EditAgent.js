@@ -30,7 +30,7 @@
  * document.
  */
 define(function EditAgent(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");

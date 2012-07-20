@@ -51,7 +51,7 @@
  * 3: Active
  */
 define(function LiveDevelopment(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
@@ -250,9 +250,18 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(error) {
-        console.error(error.message);
-    }
+        var message = error.message;
 
+        // Additional information, like exactly which parameter could not be processed.
+        var data = error.data;
+        if (Array.isArray(data)) {
+            message += "\n" + data.join("\n");
+        }
+
+        // Show the message, but include the error object for further information (e.g. error code)
+        console.error(message, error);
+    }
+    
     /** Run when all agents are loaded */
     function _onLoad() {
         var doc = _getCurrentDocument();
@@ -298,7 +307,7 @@ define(function LiveDevelopment(require, exports, module) {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            if (!doc.extension || doc.extension.indexOf('htm') !== 0) {
+            if (!doc.extension || doc.extension.indexOf("htm") !== 0) {
                 showWrongDocError();
                 return;
             }
@@ -398,7 +407,7 @@ define(function LiveDevelopment(require, exports, module) {
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension && doc.extension.indexOf('htm') === 0 && doc.file.fullPath !== _htmlDocumentPath) {
+                if (doc.extension && doc.extension.indexOf("htm") === 0 && doc.file.fullPath !== _htmlDocumentPath) {
                     close();
                     window.setTimeout(open);
                     _htmlDocumentPath = doc.file.fullPath;

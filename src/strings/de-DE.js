@@ -73,7 +73,7 @@ define(function (require, exports, module) {
     exports.LIVE_DEVELOPMENT_ERROR_TITLE      = "Fehler bei der Live Entwicklung";
     exports.LIVE_DEVELOPMENT_ERROR_MESSAGE    = "Beim Aufbauen einer Live Verbindung zu Chrome ist ein Fehler aufgetreten. "
                                                 + "Für die Live Entwicklung muss das Remote Debugger Protokoll von Chrome aktiviert sein."
-                                                + "<br><br>Soll Chrome neu gestartet werden um das Remote Debugger Protokoll zu aktivieren?";
+                                                + "<br /><br />Soll Chrome neu gestartet werden um das Remote Debugger Protokoll zu aktivieren?";
     exports.LIVE_DEV_NEED_HTML_MESSAGE        = "Öffnen Sie erst eine HTML Datei und aktivieren Sie dann die Live Verbindung.";
     
     exports.LIVE_DEV_STATUS_TIP_NOT_CONNECTED = "Live Entwicklung";
@@ -86,10 +86,10 @@ define(function (require, exports, module) {
     exports.SAVE_CLOSE_MULTI_MESSAGE          = "Wollen Sie die Änderungen in den folgenden Dateien speichern?";
     exports.EXT_MODIFIED_TITLE                = "Externe Änderungen";
     exports.EXT_MODIFIED_MESSAGE              = "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in Brackets."
-                                                + "<br><br>"
+                                                + "<br /><br />"
                                                 + "Welche Version wollen Sie erhalten?";
     exports.EXT_DELETED_MESSAGE               = "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in Brackets."
-                                                + "<br><br>"
+                                                + "<br /><br />"
                                                 + "Wollen Sie die Änderungen erhalten?";
     
     exports.OPEN_FILE                         = "Datei Öffnen";

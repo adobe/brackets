@@ -30,41 +30,41 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Editor          = require("editor/Editor").Editor;
     
-    //Use a clean version of the editor each time
-    var myDocument;
-    var myEditor;
-    beforeEach(function () {
-        // init Editor instance (containing a CodeMirror instance)
-        $("body").append("<div id='editor'/>");
-        myDocument = SpecRunnerUtils.createMockDocument("");
-        myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
-    });
-
-    afterEach(function () {
-        myEditor.destroy();
-        myEditor = null;
-        $("#editor").remove();
-        myDocument = null;
-    });
-    
-    function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
-        pos.line = linesBefore.length;
-        pos.ch = hintLineBefore.length;
-        var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
-        var finalLines = linesBefore.concat([finalHintLine]);
-        if (linesAfter) {
-            finalLines = finalLines.concat(linesAfter);
-        }
-        
-        var content = finalLines.join("\n");
-        myDocument.setText(content);
-    }
-    
-    
     describe("HTMLUtils", function () {
+    
+        //Use a clean version of the editor each time
+        var myDocument,
+            myEditor;
+
+        beforeEach(function () {
+            // init Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            myDocument = SpecRunnerUtils.createMockDocument("");
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+        });
+
+        afterEach(function () {
+            myEditor.destroy();
+            myEditor = null;
+            $("#editor").remove();
+            myDocument = null;
+        });
+    
+        function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
+            pos.line = linesBefore.length;
+            pos.ch = hintLineBefore.length;
+            var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
+            var finalLines = linesBefore.concat([finalHintLine]);
+            if (linesAfter) {
+                finalLines = finalLines.concat(linesAfter);
+            }
+            
+            var content = finalLines.join("\n");
+            myDocument.setText(content);
+        }
         
         describe("Html Hinting", function () {
             beforeEach(function () {

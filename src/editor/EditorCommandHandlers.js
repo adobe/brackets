@@ -29,7 +29,7 @@
  * Text-editing commands that apply to whichever Editor is currently focused
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var Commands           = require("command/Commands"),
@@ -133,20 +133,23 @@ define(function (require, exports, module) {
         if (!editor) {
             return;
         }
-        
-        var sel = editor.getSelection();
-        
-        var hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-        
+
+        var sel = editor.getSelection(),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch),
+            delimiter = "";
+
         if (!hasSelection) {
             sel.start.ch = 0;
             sel.end = {line: sel.start.line + 1, ch: 0};
+            if (sel.end.line === editor.lineCount()) {
+                delimiter = "\n";
+            }
         }
-        
+
         // Make the edit
         var doc = editor.document;
-        
-        var selectedText = doc.getRange(sel.start, sel.end);
+
+        var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
 

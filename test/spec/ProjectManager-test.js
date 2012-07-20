@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var ProjectManager,     // Load from brackets.test
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("ProjectManager", function () {
 

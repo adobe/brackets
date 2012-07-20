@@ -25,7 +25,7 @@
 /*global $, define, brackets, FileError */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async = require("utils/Async");
 
