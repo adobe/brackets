@@ -114,13 +114,13 @@ define(function (require, exports, module) {
      * in the working set (the open files) or in the file tree, but not both.
      * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKING_SET_VIEW
      */
-    function setFileSelectionFocus(fileSelectionFocus) {
+    function setFileViewFocus(fileSelectionFocus) {
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
-            throw new Error("Bad parameter passed to FileViewController.setFileSelectionFocus");
+            throw new Error("Bad parameter passed to FileViewController.setFileViewFocus");
         }
 
         _fileSelectionFocus = fileSelectionFocus;
-        $(exports).triggerHandler("documentSelectionFocusChange");
+        $(exports).triggerHandler("fileViewFocusChange");
     }
 
     /** 
@@ -206,7 +206,7 @@ define(function (require, exports, module) {
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
-    exports.setFileSelectionFocus = setFileSelectionFocus;
+    exports.setFileViewFocus = setFileViewFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
 });
