@@ -289,6 +289,14 @@ define(function (require, exports, module) {
 
     /** 
      * @private
+     */
+    function _handleDocumentSelectionChange() {
+        _updateListSelection();
+        _fireSelectionChanged();
+    }
+
+    /** 
+     * @private
      * @param {FileEntry} file 
      */
     function _handleFileRemoved(file) {
@@ -350,7 +358,7 @@ define(function (require, exports, module) {
             _handleDirtyFlagChanged(doc);
         });
     
-        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _updateListSelection );
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange )
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
