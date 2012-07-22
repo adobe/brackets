@@ -329,8 +329,8 @@ define(function (require, exports, module) {
 
                 // Determine the $relativeElement by traversing the sibling list and
                 // stop at the first divider found
+                // TODO: simplify using nextUntil()/prevUntil()
                 var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
-                var $sectionItems = $sectionMarker.siblings();
                 var $listElem = $sectionMarker;
                 $relativeElement = $listElem;
                 while (true) {
@@ -343,7 +343,12 @@ define(function (require, exports, module) {
                         $relativeElement = $listElem;
                     }
                 }
+                
             } else {
+                if (relativeID.hasOwnProperty("sectionMarker")) {
+                    console.log("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
+                }
+                
                 // handle FIRST, LAST, BEFORE, & AFTER
                 var command = CommandManager.get(relativeID);
                 if (command) {
@@ -354,8 +359,9 @@ define(function (require, exports, module) {
             }
             
             return $relativeElement;
-        } else {
-            console.log("Bad Parameter in _getRelativeMenuItem(): relativeID not specified");
+            
+        } else if (position && position !== FIRST && position !== LAST) {
+            console.log("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
         }
         
         return $relativeElement;
@@ -910,7 +916,7 @@ define(function (require, exports, module) {
         inline_editor_cmenu.addMenuDivider();
         inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
         inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-
+        
         /**
          * Context menu for code editors (both full-size and inline)
          * Auto selects the word the user clicks if the click does not occur over
