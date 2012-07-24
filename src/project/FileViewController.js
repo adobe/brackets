@@ -30,6 +30,13 @@
  * ProjectManager can show file selection. In general the WorkingSetView takes higher
  * priority until the user selects a file in the ProjectManager.
  *
+ * Events dispatched:
+ * - documentSelectionFocusChange - indicates a document change has caused the focus to 
+ *   change between the working set and file tree.
+ *
+ * - fileViewFocusChange - indicates the selection focus has changed between the working
+ *   set and the project tree, but the document selection has NOT changed
+ *
  * Current file selection rules in views:
  * - select a file in WorkingSetView > select in WorkingSetView
  * - add a file to the WorkingSetView > select in WorkingSetView
