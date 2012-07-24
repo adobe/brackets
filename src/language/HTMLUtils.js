@@ -289,6 +289,11 @@ define(function (require, exports, module) {
             tagInfo,
             tokenType;
         
+        // check if this is inside a style block.
+        if (editor.getModeForSelection() !== "html") {
+            return createTagInfo();
+        }
+        
         //check and see where we are in the tag
         if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
 

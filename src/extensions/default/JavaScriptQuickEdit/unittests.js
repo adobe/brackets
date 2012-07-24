@@ -279,7 +279,7 @@ define(function (require, exports, module) {
        
         describe("Performance suite", function () {
             
-            this.performance = true;
+            this.category = "performance";
             
             var testPath = SpecRunnerUtils.getTestPath("/../../../brackets-scenario/jquery-ui/");
 

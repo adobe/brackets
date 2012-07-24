@@ -163,18 +163,14 @@ define(function (require, exports, module) {
         }
         return null;
     }
+
+    function _fileViewFocusChange() {
+        _redraw(true);
+    }
     
-    var _documentSelectionFocusChange = function () {
+    function _documentSelectionFocusChange() {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
-
-            // Don't update the file tree selection to the current open doc when there is a directory
-            // already selected
-            var selected = getSelectedItem();
-            if (selected && selected.isDirectory) {
-                return;
-            }
-
             $("#project-files-container li").is(function (index) {
                 var entry = $(this).data("entry");
                 if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
@@ -192,7 +188,7 @@ define(function (require, exports, module) {
         }
         
         _redraw(true);
-    };
+    }
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
@@ -375,7 +371,7 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
-                        FileViewController.setFileSelectionFocus(FileViewController.PROJECT_MANAGER);
+                        FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
                         // show selection marker on folders
                         _redraw(true);
                         
@@ -953,6 +949,7 @@ define(function (require, exports, module) {
 
         // Event Handlers
         $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+        $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });
