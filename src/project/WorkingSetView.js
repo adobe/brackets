@@ -29,11 +29,6 @@
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
  *
- * Events dispatched:
- *  documentSelectionFocusChange - indicates a document change has caused the focus to change between the working
- *      set and file tree.
- *  fileViewFocusChange - indicates the selection focus has changed between the working set and the project tree, but the
- *      document selection has NOT changed
  */
 define(function (require, exports, module) {
     "use strict";
@@ -358,7 +353,7 @@ define(function (require, exports, module) {
             _handleDirtyFlagChanged(doc);
         });
     
-        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange )
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
