@@ -314,7 +314,7 @@ define(function (require, exports, module) {
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
             event.preventDefault();
-        } else if (event.type === "keyup" && event.keyCode === 188) {
+        } else if (event.type === "keyup" && (event.keyCode === 188 || event.keyCode === 32)) {
             _showHint(editor);
         }
 

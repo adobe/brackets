@@ -31,6 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var HTMLUtils       = brackets.getModule("language/HTMLUtils"),
     	HTMLTags        = require("text!HtmlTags.json"),
+    	//HTMLAttributes        = require("text!HtmlAttributes.json"),
     	CodeHintManager	= brackets.getModule("editor/CodeHintManager");
 
 
@@ -108,10 +109,6 @@ define(function (require, exports, module) {
     	    
     	    if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
     	        charCount = tagInfo.tagName.length;
-    	    } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
-    	        charCount = tagInfo.attr.completion.length;
-    	    } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
-    	        charCount = tagInfo.attr.value.length;
     	    }
     	    
     	    end.line = start.line = cursor.line;
@@ -129,21 +126,79 @@ define(function (require, exports, module) {
          * @constructor
          */
         function AttrHints () {
-            // TODO Raymon
-            // this.attributes = 
+            // TODO Raymond
+            this.tags = JSON.parse(HTMLTags);
+            // this.attributes = JSON.parse(HTMLAttributes);
         }
 
         AttrHints.prototype.handleSelect = function (completion, editor) {
-            // TODO
+    	    var start = {line: -1, ch: -1},
+    	        end = {line: -1, ch: -1},
+    	        cursor = editor.getCursorPos(),
+    	        tagInfo = HTMLUtils.getTagInfo(editor, cursor),
+    	        charCount = 0;
+    	    
+    	    if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+    	        charCount = tagInfo.attr.name.length;
+    	    } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
+    	        charCount = tagInfo.attr.value.length;
+    	    }
+    	    
+    	    end.line = start.line = cursor.line;
+    	    start.ch = cursor.ch - tagInfo.position.offset;
+    	    end.ch = start.ch + charCount;
+    	    
+            // TODO: Append an equal sign and two double quotes if the current attr is not an empty attr
+            //       and then adjust cursor location before the last quote that we just inserted.
+    	    if (start.ch !== "-1" && end.ch !== "-1") {
+    	        editor.document.replaceRange(completion, start, end);
+    	    } else {
+    	        editor.document.replaceRange(completion, start);
+    	    }
         };
 
         AttrHints.prototype.getQueryString = function (editor) {
-            // TODO Peter
-            return null;
+    	    var pos = editor.getCursorPos(),
+    	        tagInfo = HTMLUtils.getTagInfo(editor, pos),
+    	        query = null;
+            
+    	    if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+                query = {};
+                query.tag = tagInfo.tagName;
+    	        if (tagInfo.position.offset >= 0) {
+    	        	query.attrName = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+    	        }
+                
+                // TODO: Peter -- get existing attributes for the current tag and add them to query.usedAttr
+    	    }
+
+    	    return (query) ? JSON.stringify(query) : query;
         }
 
         AttrHints.prototype.search = function(query) {
-            // TODO
+            // TODO: Read in global attributes and merge them into unfiltered array
+	        var queryObj = JSON.parse(query),
+                result = [];
+            
+            if (queryObj) {
+                var tagName = queryObj.tag,
+                    attrName = queryObj.attrName;
+                        
+                if (this.tags && this.tags[tagName]) {
+                    var unfiltered = this.tags[tagName].attributes;
+                    
+                    if (unfiltered.length) {
+                        unfiltered.forEach(function (item) {
+                            if (item.indexOf(attrName) !== 0) {
+                                return false;
+                            }
+                            result.push(item);
+                        });
+                    }
+                }
+            }
+
+	        return result;
         }
 
         var tagHints = new TagHints();
