@@ -274,7 +274,8 @@ define(function Inspector(require, exports, module) {
     /** Connect to the remote debugger WebSocket at the given URL
      * @param {string} WebSocket URL
      */
-    function connect(socketURL) {
+    function connect(socketURL, type) {
+        exports.type = type;
         disconnect();
         _socket = new WebSocket(socketURL);
         _socket.onmessage = _onMessage;
@@ -302,7 +303,7 @@ define(function Inspector(require, exports, module) {
             for (i in response) {
                 page = response[i];
                 if (page.webSocketDebuggerUrl && page.url.search(url) === 0) {
-                    connect(page.webSocketDebuggerUrl);
+                    connect(page.webSocketDebuggerUrl, "chrome");
                     deferred.resolve();
                     return;
                 }

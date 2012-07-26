@@ -183,14 +183,18 @@ define(function GotoAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.on("RemoteAgent.showgoto", _onRemoteShowGoto);
-        Inspector.on("RemoteAgent.goto", _onRemoteGoto);
+        if (Inspector.type === "chrome") {
+            Inspector.on("RemoteAgent.showgoto", _onRemoteShowGoto);
+            Inspector.on("RemoteAgent.goto", _onRemoteGoto);
+        }
     }
 
     /** Initialize the agent */
     function unload() {
-        Inspector.off("RemoteAgent.showgoto", _onRemoteShowGoto);
-        Inspector.off("RemoteAgent.goto", _onRemoteGoto);
+        if (Inspector.type === "chrome") {
+            Inspector.off("RemoteAgent.showgoto", _onRemoteShowGoto);
+            Inspector.off("RemoteAgent.goto", _onRemoteGoto);
+        }
     }
 
     // Export public functions

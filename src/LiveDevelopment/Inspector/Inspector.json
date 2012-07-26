@@ -1,6 +1,39 @@
 {
     "version": { "major": "1", "minor": "0" },
     "domains": [{
+        "domain": "V8",
+        "types": [],
+        "commands": [
+            {
+                "name": "scripts",
+                "parameters": [
+                    { "name": "types", "type": "number", "description": "types of scripts to retrieve, set bit 0 for native scripts, set bit 1 for extension scripts, set bit 2 for normal scripts, (default is 4 for normal scripts)" },
+                    { "name": "ids", "type": "object", "description": "array of id's of scripts to return. If this is not specified all scripts are requrned" },
+                    { "name": "includeSource", "type": "boolean", "description": "boolean indicating whether the source code should be included for the scripts returned" },
+                    { "name": "filter", "type": "string", "description": "string or number: filter string or script id. If a number is specified, then only the script with the same number as its script id will be retrieved. If a string is specified, then only scripts whose names contain the filter string will be retrieved." }
+                ],
+                "description": "The request scripts retrieves active scripts from the VM. An active script is source code from which there is still live objects in the VM. This request will always force a full garbage collection in the VM.",
+                "returns": [
+                    { "name": "name", "type": "string", "description": "name of the script," },
+                    { "name": "id", "type": "number", "description": "id of the script" },
+                    { "name": "lineOffset", "type": "number", "description": "line offset within the containing resource" },
+                    { "name": "columnOffset", "type": "number", "description": "column offset within the containing resource" },
+                    { "name": "lineCount", "type": "number", "description": "number of lines in the script" },
+                    { "name": "data", "type": "string", "description": "optional data object added through the API" },
+                    { "name": "source", "type": "string", "description": "source of the script if includeSource was specified in the request" },
+                    { "name": "sourceStart", "type": "number", "description": "first 80 characters of the script if includeSource was not specified in the request" },
+                    { "name": "sourceLength", "type": "number", "description": "total length of the script in characters" },
+                    { "name": "scriptType", "type": "number", "description": "script type (see request for values)" },
+                    { "name": "compilationType", "type": "number", "description": " How was this script compiled: 0 if script was compiled through the API 1 if script was compiled through eval" },
+                    { "name": "evalFromScript", "type": "number", "description": "if compilationType is 1 this is the script from where eval was called" },
+                    { "name": "evalFromLocation", "type": "object", "description": "location in the script from where eval was called" }
+                ]
+            }
+        ],
+        "events": [
+        ]
+    },
+    {
         "domain": "Inspector",
         "hidden": true,
         "types": [],

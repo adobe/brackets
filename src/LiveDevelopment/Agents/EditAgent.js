@@ -98,12 +98,16 @@ define(function EditAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.on("RemoteAgent.edit", _onRemoteEdit);
+        if (Inspector.type === "chrome") {
+            Inspector.on("RemoteAgent.edit", _onRemoteEdit);
+        }
     }
 
     /** Initialize the agent */
     function unload() {
-        Inspector.off("RemoteAgent.edit", _onRemoteEdit);
+        if (Inspector.type === "chrome") {
+            Inspector.off("RemoteAgent.edit", _onRemoteEdit);
+        }
     }
 
     // Export public functions

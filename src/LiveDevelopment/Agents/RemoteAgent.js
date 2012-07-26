@@ -102,16 +102,20 @@ define(function RemoteAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        _load = new $.Deferred();
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
-        Inspector.on("DOM.attributeModified", _onAttributeModified);
-        return _load.promise();
+        if (Inspector.type === "chrome") {
+            _load = new $.Deferred();
+            Inspector.on("Page.loadEventFired", _onLoadEventFired);
+            Inspector.on("DOM.attributeModified", _onAttributeModified);
+            return _load.promise();
+        }
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
-        Inspector.off("DOM.attributeModified", _onAttributeModified);
+        if (Inspector.type === "chrome") {
+            Inspector.off("Page.loadEventFired", _onLoadEventFired);
+            Inspector.off("DOM.attributeModified", _onAttributeModified);
+        }
     }
 
     // Export public functions
