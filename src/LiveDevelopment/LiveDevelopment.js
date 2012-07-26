@@ -82,15 +82,18 @@ define(function LiveDevelopment(require, exports, module) {
     };
 
     // Some agents are still experimental, so we don't enable them all by default
-    // However, extensions can enable them by calling enableAgent()
-    var _enabledAgents = {
+    // However, extensions can enable them by calling enableAgent().
+    // This object is used as a set (thus all properties have the value 'true').
+    // Property names should match property names in the 'agents' object.
+    var _enabledAgentNames = {
         "console": true,
         "remote": true,
         "network": true,
         "dom": true,
         "css": true
     };
-    var _loadedAgents = [];
+    // store the names (matching property names in the 'agent' object) of agents that we've loaded
+    var _loadedAgentNames = [];
 
     var _htmlDocumentPath; // the path of the html file open for live development
     var _liveDocument; // the document open for live editing.
@@ -230,21 +233,19 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Unload the agents */
     function unloadAgents() {
-        _loadedAgents.forEach(function (i) {
-            if (agents.hasOwnProperty(i) && agents[i].unload) {
-                agents[i].unload();
-            }
+        _loadedAgentNames.forEach(function (i) {
+            agents[i].unload();
         });
-        _loadedAgents = [];
+        _loadedAgentNames = [];
     }
 
     /** Load the agents */
     function loadAgents() {
         var i, promises = [];
-        for (i in _enabledAgents) {
-            if (_enabledAgents.hasOwnProperty(i) && agents.hasOwnProperty(i) && agents[i].load) {
+        for (i in _enabledAgentNames) {
+            if (_enabledAgentNames.hasOwnProperty(i) && agents.hasOwnProperty(i) && agents[i].load) {
                 promises.push(agents[i].load());
-                _loadedAgents.push(i);
+                _loadedAgentNames.push(i);
             }
         }
         return promises;
@@ -256,8 +257,8 @@ define(function LiveDevelopment(require, exports, module) {
      *  @param {string} name of agent to enable
      */
     function enableAgent(name) {
-        if (!_enabledAgents.hasOwnProperty(name)) {
-            _enabledAgents[name] = true;
+        if (!_enabledAgentNames.hasOwnProperty(name)) {
+            _enabledAgentNames[name] = true;
         }
     }
 
@@ -267,8 +268,8 @@ define(function LiveDevelopment(require, exports, module) {
      *  @param {string} name of agent to disable
      */
     function disableAgent(name) {
-        if (_enabledAgents.hasOwnProperty(name)) {
-            delete _enabledAgents[name];
+        if (_enabledAgentNames.hasOwnProperty(name)) {
+            delete _enabledAgentNames[name];
         }
     }
 
