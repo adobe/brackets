@@ -74,13 +74,11 @@ define(function LiveDevelopment(require, exports, module) {
         "remote": require("LiveDevelopment/Agents/RemoteAgent"),
         "network": require("LiveDevelopment/Agents/NetworkAgent"),
         "dom": require("LiveDevelopment/Agents/DOMAgent"),
-        "css": require("LiveDevelopment/Agents/CSSAgent")
-        /* FUTURE 
+        "css": require("LiveDevelopment/Agents/CSSAgent"),
         "script": require("LiveDevelopment/Agents/ScriptAgent"),
         "highlight": require("LiveDevelopment/Agents/HighlightAgent"),
         "goto": require("LiveDevelopment/Agents/GotoAgent"),
         "edit": require("LiveDevelopment/Agents/EditAgent")
-        */
     };
 
     var _htmlDocumentPath; // the path of the html file open for live development
