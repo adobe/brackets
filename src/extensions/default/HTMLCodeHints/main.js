@@ -82,9 +82,9 @@ define(function (require, exports, module) {
     	 */
     	TagHints.prototype.getQueryString = function (editor) {
     	    var pos = editor.getCursorPos(),
-    	        tagInfo = HTMLUtils.getTagInfo(editor, pos);
-    	    
-    	    var query = null;
+    	        tagInfo = HTMLUtils.getTagInfo(editor, pos),
+                query = null;
+            
     	    if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
     	        if (tagInfo.position.offset >= 0) {
     	        	query = tagInfo.tagName.slice(0, tagInfo.position.offset);
@@ -127,30 +127,35 @@ define(function (require, exports, module) {
          */
         function AttrHints () {
             this.tags = JSON.parse(HTMLTags);
-            this.globalAttributes = this.readAttrHints(HTMLAttributes);
+            this.attributes = JSON.parse(HTMLAttributes);
+            this.globalAttributes = this.readGlobalAttrHints();
         }
 
     	/**
     	 * @private
     	 * Parse the code hints from JSON data and extract all hints from property names.
-    	 * @param {string} a JSON string that has the code hints data
     	 * @return {!Array.<string>} An array of code hints read from the JSON data source.
     	 */
-    	AttrHints.prototype.readAttrHints = function(jsonStr) {
-            var hintObj = JSON.parse(jsonStr);
-    	    return $.map(hintObj, function (value, key) {
+    	AttrHints.prototype.readGlobalAttrHints = function() {
+    	    return $.map(this.attributes, function (value, key) {
                 if (value.global === "true") {
     	           return key;
                 }
     	    });
     	};
 
+    	/**
+    	 * Enters the code completion text into the editor
+    	 * @param {string} completion - text to insert into current code editor
+         * @param {Editor} editor
+    	 */
         AttrHints.prototype.handleSelect = function (completion, editor) {
     	    var start = {line: -1, ch: -1},
     	        end = {line: -1, ch: -1},
     	        cursor = editor.getCursorPos(),
     	        tagInfo = HTMLUtils.getTagInfo(editor, cursor),
-    	        charCount = 0;
+    	        charCount = 0,
+                adjustCursor = false;
     	    
     	    if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
     	        charCount = tagInfo.attr.name.length;
@@ -162,15 +167,33 @@ define(function (require, exports, module) {
     	    start.ch = cursor.ch - tagInfo.position.offset;
     	    end.ch = start.ch + charCount;
     	    
-            // TODO: Append an equal sign and two double quotes if the current attr is not an empty attr
-            //       and then adjust cursor location before the last quote that we just inserted.
+            // Append an equal sign and two double quotes if the current attr is not an empty attr
+            // and then adjust cursor location before the last quote that we just inserted.
+            if (this.attributes && this.attributes[completion] && this.attributes[completion].type !== "flag") {
+                completion += "=\"\"";
+                adjustCursor = true;
+            }
+            
     	    if (start.ch !== "-1" && end.ch !== "-1") {
     	        editor.document.replaceRange(completion, start, end);
     	    } else {
     	        editor.document.replaceRange(completion, start);
     	    }
+            
+            if (adjustCursor) {
+            	editor.setCursorPos(start.line, start.ch + completion.length - 1);
+            }
         };
 
+    	/**
+    	 * Figures out the text to use for the hint list query based on the text
+    	 * around the cursor
+    	 * Query is the text from the start of an attribute to the current cursor position
+    	 * @param {Editor} editor
+         * @return {String} search query results will be filtered by.
+         *      Return an empty object string to indicate code hinting should not filter and show all resukts.
+         *      Return null to indicate NO hints can be provided.
+    	 */
         AttrHints.prototype.getQueryString = function (editor) {
     	    var pos = editor.getCursorPos(),
     	        tagInfo = HTMLUtils.getTagInfo(editor, pos),
@@ -180,40 +203,48 @@ define(function (require, exports, module) {
                 query = {};
                 query.tag = tagInfo.tagName;
     	        if (tagInfo.position.offset >= 0) {
-    	        	query.attrName = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+   	                query.attrName = tagInfo.attr.name.slice(0, tagInfo.position.offset);
     	        }
                 
                 // TODO: Peter -- get existing attributes for the current tag and add them to query.usedAttr
     	    }
 
     	    return (query) ? JSON.stringify(query) : query;
-        }
+        };
 
+	    /**
+	     * Create a complete list of attributes for the tag in the query. Then filter 
+		 * the list by attrName in the query and return the result.
+         * @param {Array.<string>}
+	     */
         AttrHints.prototype.search = function(query) {
-            // TODO: Read in global attributes and merge them into unfiltered array
 	        var queryObj = JSON.parse(query),
                 result = [];
             
             if (queryObj) {
                 var tagName = queryObj.tag,
-                    attrName = queryObj.attrName;
+                    attrName = queryObj.attrName,
+                    unfiltered = [];
                         
                 if (this.tags && this.tags[tagName]) {
-                    var unfiltered = this.tags[tagName].attributes,
-                        unfiltered2 = unfiltered.concat(this.globalAttributes);
+                    var unfiltered2 = this.tags[tagName].attributes;
+                    unfiltered = unfiltered2.concat(this.globalAttributes);
                     
-                    if (unfiltered2.length) {
-                        result = $.map(unfiltered2, function (item) {
-                            if (item.indexOf(attrName) === 0) {
-                                return item;
-                            }
-                        }).sort();
-                    }
+                    // TODO: Peter -- exclude existing attributes from unfiltered array
+                    
+                }
+                    
+                if (unfiltered.length && attrName !== undefined) {
+                    result = $.map(unfiltered, function (item) {
+                        if (item.indexOf(attrName) === 0) {
+                            return item;
+                        }
+                    }).sort();
                 }
             }
 
 	        return result;
-        }
+        };
 
         var tagHints = new TagHints();
         var attrHints = new AttrHints();
