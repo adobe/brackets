@@ -21,7 +21,6 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $, less, window, XMLHttpRequest */
 
@@ -63,7 +62,7 @@ define(function main(require, exports, module) {
                           Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, Strings.LIVE_DEV_STATUS_TIP_CONNECTED];  // Status indicator tooltip
     var _statusStyle = ["warning", "", "info", "info", "success"];  // Status indicator's CSS class
     var _allStatusStyles = _statusStyle.join(" ");
-    
+
     var _$btnGoLive; // reference to the GoLive button
     var _$btnHighlight; // reference to the HighlightButton
 
@@ -90,7 +89,7 @@ define(function main(require, exports, module) {
         // Clear text/styles from previous status
         $("span", $btn).remove();
         $btn.removeClass(_allStatusStyles);
-        
+
         // Set text/styles for new status
         if (text && text.length > 0) {
             $("<span class=\"label\">")
@@ -100,7 +99,7 @@ define(function main(require, exports, module) {
         } else {
             $btn.addClass(style);
         }
-        
+
         if (tooltip) {
             $btn.attr("title", tooltip);
         }
@@ -128,8 +127,9 @@ define(function main(require, exports, module) {
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            window.sessionStorage.setItem("live.enabled", status === 3);
         });
-        
+
         // Initialize tooltip for 'not connected' state
         _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
     }
@@ -153,6 +153,15 @@ define(function main(require, exports, module) {
         }
     }
 
+    /** Setup autostarting of the live development connection */
+    function _setupAutoStart() {
+        var $DocumentManager = $(DocumentManager);
+        $DocumentManager.on("currentDocumentChange", function goLive() {
+            _handleGoLiveCommand();
+            $DocumentManager.off("currentDocumentChange", goLive);
+        });
+    }
+
     /** Setup window references to useful LiveDevelopment modules */
     function _setupDebugHelpers() {
         window.ld = LiveDevelopment;
@@ -169,6 +178,9 @@ define(function main(require, exports, module) {
         /* _setupHighlightButton(); FUTURE - Highlight button */
         if (config.debug) {
             _setupDebugHelpers();
+        }
+        if (window.sessionStorage.getItem("live.enabled") === "true") {
+            _setupAutoStart();
         }
     }
     window.setTimeout(init);
