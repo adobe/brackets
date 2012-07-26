@@ -243,7 +243,7 @@ define(function LiveDevelopment(require, exports, module) {
     function loadAgents() {
         var name, promises = [];
         for (name in _enabledAgentNames) {
-            if (_enabledAgentNames.hasOwnProperty(name) && agents.hasOwnProperty(name) && agents[name].load) {
+            if (_enabledAgentNames.hasOwnProperty(name) && agents[name].load) {
                 promises.push(agents[name].load());
                 _loadedAgentNames.push(name);
             }
@@ -257,7 +257,7 @@ define(function LiveDevelopment(require, exports, module) {
      *  @param {string} name of agent to enable
      */
     function enableAgent(name) {
-        if (!_enabledAgentNames.hasOwnProperty(name)) {
+        if (agents.hasOwnProperty(name) && !_enabledAgentNames.hasOwnProperty(name)) {
             _enabledAgentNames[name] = true;
         }
     }
