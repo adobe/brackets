@@ -81,6 +81,17 @@ define(function LiveDevelopment(require, exports, module) {
         "edit": require("LiveDevelopment/Agents/EditAgent")
     };
 
+    // Some agents are still experimental, so we don't enable them all by default
+    // However, extensions can enable them by calling enableAgent()
+    var _enabledAgents = {
+        "console": true,
+        "remote": true,
+        "network": true,
+        "dom": true,
+        "css": true
+    };
+    var _loadedAgents = [];
+
     var _htmlDocumentPath; // the path of the html file open for live development
     var _liveDocument; // the document open for live editing.
     var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
@@ -219,23 +230,46 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Unload the agents */
     function unloadAgents() {
-        var i;
-        for (i in agents) {
+        _loadedAgents.forEach(function (i) {
             if (agents.hasOwnProperty(i) && agents[i].unload) {
                 agents[i].unload();
             }
-        }
+        });
+        _loadedAgents = [];
     }
 
     /** Load the agents */
     function loadAgents() {
         var i, promises = [];
-        for (i in agents) {
-            if (agents.hasOwnProperty(i) && agents[i].load) {
+        for (i in _enabledAgents) {
+            if (_enabledAgents.hasOwnProperty(i) && agents.hasOwnProperty(i) && agents[i].load) {
                 promises.push(agents[i].load());
+                _loadedAgents.push(i);
             }
         }
         return promises;
+    }
+
+    /** Enable an agent. Takes effect next time a connection is made. Does not affect
+     *  current live development sessions.
+     *
+     *  @param {string} name of agent to enable
+     */
+    function enableAgent(name) {
+        if (!_enabledAgents.hasOwnProperty(name)) {
+            _enabledAgents[name] = true;
+        }
+    }
+
+    /** Disable an agent. Takes effect next time a connection is made. Does not affect
+     *  current live development sessions.
+     *
+     *  @param {string} name of agent to disable
+     */
+    function disableAgent(name) {
+        if (_enabledAgents.hasOwnProperty(name)) {
+            delete _enabledAgents[name];
+        }
     }
 
     /** Update the status
@@ -457,6 +491,8 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
+    exports.enableAgent = enableAgent;
+    exports.disableAgent = disableAgent;
     exports.getLiveDocForPath = getLiveDocForPath;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
