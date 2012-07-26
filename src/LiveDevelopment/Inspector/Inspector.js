@@ -1,10 +1,30 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
- * @author Jonathan Diehl <jdiehl@adobe.com>
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, WebSocket */
+
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, WebSocket, FileError, window, XMLHttpRequest */
 
  /**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
@@ -61,7 +81,7 @@
  * that stores all returned values as an object.
  */
 define(function Inspector(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var _messageId = 1; // id used for remote method calls, auto-incrementing
     var _messageCallbacks = {}; // {id -> function} for remote method calls
@@ -85,7 +105,7 @@ define(function Inspector(require, exports, module) {
         var i, handlers = _handlers[name];
         var args = Array.prototype.slice.call(arguments, 1);
         for (i in handlers) {
-            setTimeout(_triggerHandler.bind(undefined, handlers[i], args));
+            window.setTimeout(_triggerHandler.bind(undefined, handlers[i], args));
         }
     }
 
@@ -109,6 +129,16 @@ define(function Inspector(require, exports, module) {
      * @param {object} the method signature
      */
     function _send(method, signature, varargs) {
+        if (!_socket) {
+            // FUTURE: Our current implementation closes and re-opens an inspector connection whenever
+            // a new HTML file is selected. If done quickly enough, pending requests from the previous
+            // connection could come in before the new socket connection is established. For now we 
+            // simply ignore this condition. 
+            // This race condition will go away once we support multiple inspector connections and turn
+            // off auto re-opening when a new HTML file is selected.
+            return;
+        }
+        
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
         var id, callback, args, i, params = {};
 
@@ -277,7 +307,7 @@ define(function Inspector(require, exports, module) {
                     return;
                 }
             }
-            deferred.reject();
+            deferred.reject(FileError.ERR_NOT_FOUND); // Reject with a "not found" error
         });
         promise.fail(function onFail(err) {
             deferred.reject(err);

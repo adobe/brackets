@@ -1,30 +1,62 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, FileError: false, brackets: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
+/*global define, $, FileError, brackets, unescape, window */
 
 /**
  * Set of utilites for working with files and text content.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+        PerfUtils           = require("utils/PerfUtils"),
         Dialogs             = require("widgets/Dialogs"),
-        Strings             = require("strings");
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
+        Encodings           = NativeFileSystem.Encodings;
+
     
     /**
      * Asynchronously reads a file as UTF-8 encoded text.
-     * @return {Deferred} a jQuery Deferred that will be resolved with the 
+     * @return {$.Promise} a jQuery promise that will be resolved with the 
      *  file's text content plus its timestamp, or rejected with a FileError if
      *  the file can not be read.
      */
     function readAsText(fileEntry) {
         var result = new $.Deferred(),
-            reader = new NativeFileSystem.FileReader();
+            reader;
 
+        // Measure performance
+        var perfTimerName = PerfUtils.markStart("readAsText:\t" + fileEntry.fullPath);
+        result.always(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        });
+
+        // Read file
+        reader = new NativeFileSystem.FileReader();
         fileEntry.file(function (file) {
             reader.onload = function (event) {
                 var text = event.target.result;
@@ -43,7 +75,7 @@ define(function (require, exports, module) {
                 result.reject(event.target.error);
             };
 
-            reader.readAsText(file, "utf8");
+            reader.readAsText(file, Encodings.UTF8);
         });
 
         return result.promise();
@@ -53,7 +85,7 @@ define(function (require, exports, module) {
      * Asynchronously writes a file as UTF-8 encoded text.
      * @param {!FileEntry} fileEntry
      * @param {!string} text
-     * @return {Deferred} a jQuery Deferred that will be resolved when
+     * @return {$.Promise} a jQuery promise that will be resolved when
      * file writing completes, or rejected with a FileError.
      */
     function writeText(fileEntry, text) {
@@ -134,7 +166,7 @@ define(function (require, exports, module) {
         } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
-            result = Strings.format(Strings.GENERIC_ERROR, code);
+            result = StringUtils.format(Strings.GENERIC_ERROR, code);
         }
 
         return result;
@@ -144,9 +176,9 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
-            Strings.format(
+            StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
-                path,
+                StringUtils.htmlEscape(path),
                 getFileErrorString(code)
             )
         );
@@ -154,29 +186,78 @@ define(function (require, exports, module) {
 
     /**
      * Convert a URI path to a native path.
-     * On the mac, this is a no-op
+     * On both platforms, this unescapes the URI
      * On windows, URI paths start with a "/", but have a drive letter ("C:"). In this
      * case, remove the initial "/".
      * @param {!string} path
      * @return {string}
      */
     function convertToNativePath(path) {
+        path = unescape(path);
         if (path.indexOf(":") !== -1 && path[0] === "/") {
             return path.substr(1);
         }
         
         return path;
     }
+
+    /**
+     * Returns a native absolute path to the 'brackets' source directory.
+     * Note that this only works when run in brackets/src/index.html, so it does
+     * not work for unit tests (which is run from brackets/test/SpecRunner.html)
+     * @return {string}
+     */
+    function getNativeBracketsDirectoryPath() {
+        var pathname = decodeURI(window.location.pathname);
+        var directory = pathname.substr(0, pathname.lastIndexOf("/"));
+        return convertToNativePath(directory);
+    }
     
+    /**
+     * Given the module object passed to JS module define function,
+     * convert the path (which is relative to the current window)
+     * to a native absolute path.
+     * Returns a native absolute path to the module folder.
+     * @return {string}
+     */
+    function getNativeModuleDirectoryPath(module) {
+        var path, relPath, index, pathname;
+
+        if (module && module.uri) {
+
+            // Remove window name from base path. Maintain trailing slash.
+            pathname = decodeURI(window.location.pathname);
+            path = convertToNativePath(pathname.substr(0, pathname.lastIndexOf("/") + 1));
+
+            // Remove module name from relative path. Remove trailing slash.
+            pathname = decodeURI(module.uri);
+            relPath = pathname.substr(0, pathname.lastIndexOf("/"));
+
+            // handle leading "../" in relative directory
+            while (relPath.substr(0, 3) === "../") {
+                path = path.substr(0, path.length - 1); // strip trailing slash from base path
+                index = path.lastIndexOf("/");          // find next slash from end
+                if (index !== -1) {
+                    path = path.substr(0, index + 1);   // remove last dir while maintaining slash
+                }
+                relPath = relPath.substr(3);            // remove leading "../" from relative path
+            }
+            path += relPath;
+        }
+        return path;
+    }
+
     // Define public API
-    exports.LINE_ENDINGS_CRLF        = LINE_ENDINGS_CRLF;
-    exports.LINE_ENDINGS_LF          = LINE_ENDINGS_LF;
-    exports.getPlatformLineEndings   = getPlatformLineEndings;
-    exports.sniffLineEndings         = sniffLineEndings;
-    exports.translateLineEndings     = translateLineEndings;
-    exports.showFileOpenError        = showFileOpenError;
-    exports.getFileErrorString       = getFileErrorString;
-    exports.readAsText               = readAsText;
-    exports.writeText                = writeText;
-    exports.convertToNativePath      = convertToNativePath;
+    exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
+    exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
+    exports.getPlatformLineEndings         = getPlatformLineEndings;
+    exports.sniffLineEndings               = sniffLineEndings;
+    exports.translateLineEndings           = translateLineEndings;
+    exports.showFileOpenError              = showFileOpenError;
+    exports.getFileErrorString             = getFileErrorString;
+    exports.readAsText                     = readAsText;
+    exports.writeText                      = writeText;
+    exports.convertToNativePath            = convertToNativePath;
+    exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
+    exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
 });

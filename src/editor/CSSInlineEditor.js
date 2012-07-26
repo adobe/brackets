@@ -1,105 +1,38 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
-    'use strict';
-
+    "use strict";
+    
     // Load dependent modules
-    var DocumentManager     = require("document/DocumentManager"),
-        HTMLUtils           = require("language/HTMLUtils"),
-        CSSUtils            = require("language/CSSUtils"),
-        EditorManager       = require("editor/EditorManager"),
-        InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor;
-
-
-    /**
-     * @constructor
-     * @extends {InlineEditor}
-     */
-    function CSSInlineEditor(rules) {
-        InlineTextEditor.call(this);
-        this._rules = rules;
-        this._selectedRuleIndex = -1;
-    }
-    CSSInlineEditor.prototype = new InlineTextEditor();
-    CSSInlineEditor.prototype.constructor = CSSInlineEditor;
-    CSSInlineEditor.prototype.parentClass = InlineTextEditor.prototype;
-
-    /** 
-     * @override
-     * @param {!Editor} hostEditor  Outer Editor instance that inline editor will sit within.
-     * 
-     */
-    CSSInlineEditor.prototype.load = function (hostEditor) {
-        this.parentClass.load.call(this, hostEditor);
-        
-        // Container to hold all editors
-        var self = this,
-            $ruleItem,
-            $location;
-
-        // Create DOM to hold editors and related list
-        var $editorsDiv = $(document.createElement('div')).addClass("inlineEditorHolder");
-        var $relatedContainer = $(document.createElement("div")).addClass("relatedContainer");
-        var $related = $(document.createElement("div")).appendTo($relatedContainer).addClass("related");
-        var $ruleList = $(document.createElement("ul")).appendTo($related);
-       
-        // load first rule
-        var rule = this._rules[0];
-        this.createInlineEditorFromText(rule.document, rule.lineStart, rule.lineEnd, $editorsDiv.get(0));
-        
-        // create rule list
-        this._ruleItems = [];
-        this._rules.forEach(function (rule, i) {
-            $ruleItem = $(document.createElement("li")).appendTo($ruleList);
-            $ruleItem.text(rule.selector + " ");
-            $ruleItem.click(function () {
-                self.setSelectedRule(i);
-            });
-            
-            $location = $(document.createElement("span")).appendTo($ruleItem);
-            $location.addClass("location");
-            $location.text(rule.document.file.name + ":" + (rule.lineStart + 1));
-            
-            self._ruleItems.push($ruleItem);
-        });
-        
-        // select the first rule
-        self.setSelectedRule(0);
-        
-        // attach to main container
-        this.$htmlContent.append($editorsDiv).append($relatedContainer);
-
-        return (new $.Deferred()).resolve();
-    };
-    
-
-    // TY TODO: part of sprint 6
-    CSSInlineEditor.prototype.getRules = function () {
-    };
-    
-    CSSInlineEditor.prototype.getSelectedRule = function () {
-    };
-    
-    CSSInlineEditor.prototype.setSelectedRule = function (index) {
-        if (this._selectedRuleIndex >= 0) {
-            this._ruleItems[this._selectedRuleIndex].toggleClass("selected", false);
-        }
-        
-        this._selectedRuleIndex = index;
-        this._ruleItems[this._selectedRuleIndex].toggleClass("selected", true);
-    };
-    
-    CSSInlineEditor.prototype.nextRule = function () {
-    };
-    
-    CSSInlineEditor.prototype.previousRule = function () {
-    };
-
+    var CSSUtils                = require("language/CSSUtils"),
+        EditorManager           = require("editor/EditorManager"),
+        HTMLUtils               = require("language/HTMLUtils"),
+        MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor;
 
     /**
      * Given a position in an HTML editor, returns the relevant selector for the attribute/tag
@@ -152,42 +85,37 @@ define(function (require, exports, module) {
      *
      * @param {!Editor} editor
      * @param {!{line:Number, ch:Number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineEditor
+     * @return {$.Promise} a promise that will be resolved with an InlineWidget
      *      or null if we're not going to provide anything.
      */
     function htmlToCSSProvider(hostEditor, pos) {
         // Only provide a CSS editor when cursor is in HTML content
-        if (hostEditor._codeMirror.getOption("mode") !== "htmlmixed") {
-            return null;
-        }
-        var htmlmixedState = hostEditor._codeMirror.getTokenAt(pos).state;
-        if (htmlmixedState.mode !== "html") {
+        if (hostEditor.getModeForSelection() !== "html") {
             return null;
         }
         
-        // Only provide CSS editor if the selection is an insertion point
+        // Only provide CSS editor if the selection is within a single line
         var sel = hostEditor.getSelection(false);
-        if (sel.start.line !== sel.end.line || sel.start.ch !== sel.end.ch) {
+        if (sel.start.line !== sel.end.line) {
             return null;
         }
         
-        var selectorName = _getSelectorName(hostEditor, pos);
+        // Always use the selection start for determining selector name. The pos
+        // parameter is usually the selection end.        
+        var selectorName = _getSelectorName(hostEditor, hostEditor.getSelection(false).start);
         if (selectorName === "") {
             return null;
         }
 
         var result = new $.Deferred();
 
-        CSSUtils.findMatchingRules(selectorName)
+        CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 if (rules && rules.length > 0) {
-                    var cssInlineEditor = new CSSInlineEditor(rules);
+                    var cssInlineEditor = new MultiRangeInlineEditor(rules);
+                    cssInlineEditor.load(hostEditor);
                     
-                    cssInlineEditor.load(hostEditor).done(function () {
-                        result.resolve(cssInlineEditor);
-                    }).fail(function () {
-                        result.reject();
-                    });
+                    result.resolve(cssInlineEditor);
                 } else {
                     // No matching rules were found.
                     result.reject();
@@ -201,10 +129,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-
     EditorManager.registerInlineEditProvider(htmlToCSSProvider);
-    
-
-    exports.CSSInlineEditor = CSSInlineEditor;
 
 });

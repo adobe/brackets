@@ -1,6 +1,26 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
+
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, describe: false, beforeEach: false, afterEach: false, it: false, runs: false, waitsFor: false, expect: false, $: false, CodeMirror: false  */
@@ -10,41 +30,41 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Editor          = require("editor/Editor").Editor;
     
-    //Use a clean version of the editor each time
-    var myDocument;
-    var myEditor;
-    beforeEach(function () {
-        // init Editor instance (containing a CodeMirror instance)
-        $("body").append("<div id='editor'/>");
-        myDocument = SpecRunnerUtils.createMockDocument("");
-        myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
-    });
-
-    afterEach(function () {
-        myEditor.destroy();
-        myEditor = null;
-        $("#editor").remove();
-        myDocument = null;
-    });
-    
-    function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
-        pos.line = linesBefore.length;
-        pos.ch = hintLineBefore.length;
-        var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
-        var finalLines = linesBefore.concat([finalHintLine]);
-        if (linesAfter) {
-            finalLines = finalLines.concat(linesAfter);
-        }
-        
-        var content = finalLines.join("\n");
-        myEditor._setText(content);
-    }
-    
-    
     describe("HTMLUtils", function () {
+    
+        //Use a clean version of the editor each time
+        var myDocument,
+            myEditor;
+
+        beforeEach(function () {
+            // init Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            myDocument = SpecRunnerUtils.createMockDocument("");
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+        });
+
+        afterEach(function () {
+            myEditor.destroy();
+            myEditor = null;
+            $("#editor").remove();
+            myDocument = null;
+        });
+    
+        function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
+            pos.line = linesBefore.length;
+            pos.ch = hintLineBefore.length;
+            var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
+            var finalLines = linesBefore.concat([finalHintLine]);
+            if (linesAfter) {
+                finalLines = finalLines.concat(linesAfter);
+            }
+            
+            var content = finalLines.join("\n");
+            myDocument.setText(content);
+        }
         
         describe("Html Hinting", function () {
             beforeEach(function () {
