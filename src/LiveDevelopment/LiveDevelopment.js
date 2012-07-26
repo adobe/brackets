@@ -241,11 +241,11 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Load the agents */
     function loadAgents() {
-        var i, promises = [];
-        for (i in _enabledAgentNames) {
-            if (_enabledAgentNames.hasOwnProperty(i) && agents.hasOwnProperty(i) && agents[i].load) {
-                promises.push(agents[i].load());
-                _loadedAgentNames.push(i);
+        var name, promises = [];
+        for (name in _enabledAgentNames) {
+            if (_enabledAgentNames.hasOwnProperty(name) && agents.hasOwnProperty(name) && agents[name].load) {
+                promises.push(agents[name].load());
+                _loadedAgentNames.push(name);
             }
         }
         return promises;
