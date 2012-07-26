@@ -38,16 +38,22 @@ define(function (require, exports, module) {
     }
     
     function _logTestWindowMeasurement(measureInfo) {
-        var value = currentPerfUtils.getData(measureInfo.measure.id),
-            printName = measureInfo.measure.name,
+        var value,
+            printName = measureInfo.measure.name || measureInfo.name,
             record = {};
+        
+        if (measureInfo.measure instanceof RegExp) {
+            value = currentPerfUtils.searchData(measureInfo.measure);
+        } else {
+            value = currentPerfUtils.getData(measureInfo.measure.id);
+        }
         
         if (value === undefined) {
             value = "(None)";
         }
         
-        if (measureInfo.name) {
-            printName = printName + " - " + measureInfo.name;
+        if (measureInfo.measure.name && measureInfo.name) {
+            printName = measureInfo.measure.name + " - " + measureInfo.name;
         }
         
         if (measureInfo.operation === "sum") {

@@ -30,6 +30,13 @@
  * ProjectManager can show file selection. In general the WorkingSetView takes higher
  * priority until the user selects a file in the ProjectManager.
  *
+ * Events dispatched:
+ * - documentSelectionFocusChange - indicates a document change has caused the focus to 
+ *   change between the working set and file tree.
+ *
+ * - fileViewFocusChange - indicates the selection focus has changed between the working
+ *   set and the project tree, but the document selection has NOT changed
+ *
  * Current file selection rules in views:
  * - select a file in WorkingSetView > select in WorkingSetView
  * - add a file to the WorkingSetView > select in WorkingSetView
@@ -114,13 +121,13 @@ define(function (require, exports, module) {
      * in the working set (the open files) or in the file tree, but not both.
      * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKING_SET_VIEW
      */
-    function setFileSelectionFocus(fileSelectionFocus) {
+    function setFileViewFocus(fileSelectionFocus) {
         if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
-            throw new Error("Bad parameter passed to FileViewController.setFileSelectionFocus");
+            throw new Error("Bad parameter passed to FileViewController.setFileViewFocus");
         }
 
         _fileSelectionFocus = fileSelectionFocus;
-        $(exports).triggerHandler("documentSelectionFocusChange");
+        $(exports).triggerHandler("fileViewFocusChange");
     }
 
     /** 
@@ -181,7 +188,7 @@ define(function (require, exports, module) {
         promise.done(function (doc) {
             // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
             // selection focus and trigger documentSelectionFocusChange event
-            _fileSelectionFocus = selectIn ? selectIn : WORKING_SET_VIEW;
+            _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
             _selectCurrentDocument();
             
             result.resolve(doc);
@@ -206,7 +213,7 @@ define(function (require, exports, module) {
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
-    exports.setFileSelectionFocus = setFileSelectionFocus;
+    exports.setFileViewFocus = setFileViewFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
 });

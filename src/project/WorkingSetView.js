@@ -28,6 +28,7 @@
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
+ *
  */
 define(function (require, exports, module) {
     "use strict";
@@ -286,6 +287,7 @@ define(function (require, exports, module) {
      */
     function _handleDocumentSelectionChange() {
         _updateListSelection();
+        _fireSelectionChanged();
     }
 
     /** 
@@ -351,10 +353,7 @@ define(function (require, exports, module) {
             _handleDirtyFlagChanged(doc);
         });
     
-        $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
-            _handleDocumentSelectionChange();
-            _fireSelectionChanged();
-        });
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);

@@ -316,6 +316,20 @@ define(function (require, exports, module) {
         return perfData[toMeasurementId(name)];
     }
     
+    function searchData(regExp) {
+        var keys = Object.keys(perfData).filter(function (key) {
+            return regExp.test(key);
+        });
+        
+        var datas = [];
+        
+        keys.forEach(function (key) {
+            datas.push(perfData[key]);
+        });
+        
+        return datas;
+    }
+    
     /**
      * Clear all logs including metric data and active tests.
      */
@@ -336,6 +350,7 @@ define(function (require, exports, module) {
     exports.isActive                = isActive;
     exports.markStart               = markStart;
     exports.getData                 = getData;
+    exports.searchData              = searchData;
     exports.updateMeasurement       = updateMeasurement;
     exports.getDelimitedPerfData    = getDelimitedPerfData;
     exports.createPerfMeasurement   = createPerfMeasurement;
