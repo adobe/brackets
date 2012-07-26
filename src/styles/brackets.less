@@ -1,8 +1,27 @@
-/*!
- * Brackets
- *
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
- *
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+/*
  * This file first imports all of the shared LESS/CSS, and then defines 
  * version-specific layout (e.g. layout for the App shell, or layout for
  * the In-Browser version on Firefox).
@@ -45,28 +64,14 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     width: 100%;
-
-    .topbar {
-        position: static;
+    &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
+        cursor: col-resize;   
     }
 }
+
 
 a, img {
     -webkit-user-drag: none;
-}
-
-.topbar-inner {
-    /* We don't want to use the default .container in here, 
-       so we need to .clearfix the children. */
-    .clearfix;
-
-    .brand {
-        .sane-box-model;
-        margin-left: 0;
-        width: 200px;
-        padding-left: @base-padding;
-        padding-right: @base-padding;
-    }
 }
 
 .main-view {
@@ -75,7 +80,7 @@ a, img {
 
     .sidebar {
         .vbox;
-        width: 200px;
+        width: @sidebar-width;
     }
 
     .content {
@@ -86,22 +91,23 @@ a, img {
 
 .toolbar {
     /* make sure the shadow goes above other items */
-    z-index: 20;
+    z-index: @z-index-brackets-toolbar;
 }
 
-#editorHolder {
+#editor-holder {
     .vbox;
     .box-flex(1);
+    position: relative;
     
     /* Placeholder shown when there is no editor open */
-    #notEditor {
+    #not-editor {
         .box-flex(1);
         .vbox;
         .box-pack(center);
         .box-align(center);
         background-color: @background-color-2;
         
-        #notEditorContent {
+        #not-editor-content {
             color: @background-color-1;
             font-size: 350px;
             line-height: normal;
@@ -112,7 +118,7 @@ a, img {
     }
 }
     
-#jslint-results, #search-results {
+.bottom-panel {
     display: none;
     height: 200px;
     border-top-style: solid;
@@ -123,9 +129,12 @@ a, img {
         height: auto;
         padding-top: @base-padding / 2;
         padding-bottom: @base-padding / 2;
-        font-size: 0.9em;
+        z-index: @z-index-brackets-results-panel;
         .box-shadow(0 -1px 3px 0 fadeout(@bc-black, 70%));
-
+        .title {
+            font-size: @label-font-size;
+            font-weight: bold;
+        }
         .close {
             position: absolute;
             right: 10px;
@@ -154,204 +163,291 @@ a, img {
 #gold-star {
     display: none;
     font-size: 1.2em;
-    color: lighten(@bc-yellow, @bc-color-step-size*2);
-    text-shadow: 0 -1px @bc-black;
+    color: #ffe13b;
 }
+
+#toolbar-go-live {
+    padding-right: 8px;
+    
+    // Default icon is for the 'disconnected' state
+    // The 'connecting failed' (.warning) state also maps here
+    .sprite-icon(0,0, 22px,11px, "images/live_development_sprites.svg");
+    &:hover {
+        .sprite-swap(0,11px);
+    }
+    // 'Connected' state
+    &.success {
+        .sprite-swap(0,22px);
+    }
+    &.success:hover {
+        .sprite-swap(0,33px);
+    }
+    // 'Connection in progress' state
+    &.info {
+        .sprite-swap(0,44px);
+    }
+}
+
 
 /* Project panel */
 
-#projects .toolbar {    
-    .picker {
-        .box;
-        .box-flex(1);
-    }
+#project-header {
+    /* Fixed height blank space for now. The mockups have the window "stoplights" or a logo here. */
+    height: 29px;
 }
+
+#sidebar-resizer {
+    position: absolute;
+    width: 6px;
+    height: 100%;
+    z-index: @z-index-brackets-sidebar-resizer;
+    opacity: 0;
+    cursor: col-resize;
+} 
 
 #file-section {
     .vbox;
     .box-flex(1);
-    margin: 5px 0px 5px 0px;
+    margin: 5px 0px 0px 0px;
+    position: relative;
     
     .project-file-header-area {
-        padding: 4px 4px 2px 0px;
-        
-        span {
-            font-weight: bold;
-            vertical-align: middle;        
-        }
+        padding: 6px 6px 2px 10px;
+        font-size: 13px;
+        color: #929292;
     }
 
     .file-list-divider {
         border-bottom: 1px solid #9a9a9a;  
         box-shadow: 0px 1px #eeeeee;
     }
-    
-    
 }
-
-
 
 #open-files-container {
     .box-flex(0);
-    margin: 0px;
+    margin: 0 0 22px 0;
     padding: 0px;
-    overflow: auto;
     max-height: 200px; // TODO (Issue #276): it would be nicer to have this be 50%, but that doesn't seem to work
 
     
     ul {
         list-style-type: none;
         margin: 0;
+    }
         
-        a {
-            color: black;
-            text-decoration: none;
-            margin-left: 26px;
-        }
-        
-        li {
-            padding: 2px 0px 2px 2px;
-            white-space: nowrap;
-            position: relative; // so that children can be positioned absolute
+    li {
+        white-space: nowrap;
+        position: relative; // so that children can be positioned absolute
+        line-height: 18px;
+        padding: 0 0 0 8px;
+        min-height: 18px;
+        vertical-align: baseline;
+    }
             
-            &:hover {
-                background: #E7F4F9;
-            }
-            
-            &.selected {
-                #gradient.vertical(#5fa3e0, #0065be);
+    a {
+        color: #BBB;
         
-                a { color: white; }    
-            }             
-        }        
+        font-size: 13px;
+        text-decoration: none;
+        
+        display: block;
+        height: 16px;
+        line-height: 16px;
+        margin-left: 18px;
+        padding: 3px (@triangle-size * 2) 3px 0;
+        
+        cursor: default;
+    }
+    
+    .selected a {
+        color: #fff;
     }
 }
 
+.sidebar-selection {
+    background: url("images/active_back.png") no-repeat top right;
+    height: 22px;
+    position: absolute;
+}
+
+.sidebar-selection-triangle {
+    background: url("images/active_back.png");
+    width: 10px;
+    height: 22px;
+    position: fixed;
+
+    z-index: @z-index-brackets-selection-triangle; /* scroller-shadow appears above this triangle */
+}
+
+.sidebar-selection-triangle.triangle-visible:before {
+    content: "";
+    
+    border-top: @triangle-size solid transparent;
+    border-bottom: @triangle-size solid transparent; 
+    border-right: @triangle-size solid @background-color-3;
+    
+    display: block;
+    position: absolute;
+    top: 2px;
+    right: 0;
+    width: 0;
+    height: 0;
+    
+    .scale-x(0.9, right, top);
+}
+
 //Initially start with the open files hidden, they will get show as files are added
-#open-files-header, #open-files-container, #open-files-divider {
+#open-files-container {
     display:none;
 }
 
 #project-files-container {
     .box-flex(1);
-    padding: 0px 0px 0px 8px;
-    margin: 0;
-    overflow: auto;
     
-    ul { margin-top: 0; }
+    .jstree-brackets li > a {
+        padding-right: @triangle-size * 2;
+    }
+    
+    ul {
+        padding-left: 8px;
+    }
 }
 
-@spriteSize18: 18px;
+#editor-holder .scroller-shadow {
+    width: 100%;
+}
+
+.scroller-shadow {
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+    height: 5px;
+    position: fixed;
+    z-index: @z-index-brackets-scroller-shadow;
+    
+    &.top {
+        #gradient.vertical(rgba(0,0,0,0.1), rgba(0,0,0,0));
+        background-position: 0 -5px;
+    }
+    
+    &.bottom {
+        #gradient.vertical(rgba(0,0,0,0), rgba(0,0,0,0.1));
+        background-position: 0 5px;
+        background-color: transparent; /* override background-color: @endColor from #gradient.vertical */
+    }
+}
+
+
+@sprite-size-18: 4px;
 
 /** Classes for icons from jsTreeSprites.png 
 */
-.jsTreeSprite {
-    background-image: url("styles/images/jsTreeSprites.png");
+.jstree-sprite {
+    background-image: url("images/jsTreeSprites.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: @sprite-size-18;
+    height: @sprite-size-18;
 }
 
 .disclosure-arrow-opened {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
-    background-position: -@spriteSize18 0px;
+    background-position: -@sprite-size-18 0px;
 }
 
 .disclosure-arrow-closed {
-    .jsTreeSprite;
+    .jstree-sprite;
     display: inline-block;
     background-position: 0px 0px;
 }
-
+ins.jstree-icon {
+    left: -12px !important;
+}
 /** Classes for icons from bracketSprites.png 
 */
 
-.bracketSprite {
-    background-image: url("styles/images/bracketsSprites.png");
+.bracket-sprite {
+    background-image: url("images/close_btn.png");
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
-    width: @spriteSize18;
-    height: @spriteSize18;
+    width: 15px;
+    height: 16px;
 }
 
 
 .file-status-icon {
-    margin: 0px 0px 0px 10px;
-    .bracketSprite;
+    margin: 3px 0 0 8px;
+    .bracket-sprite;
     display: inline-block;
     position: absolute;
     left: 0px;
     top: 1px;
     
     &.dirty {
-        background-position: 0 0;
+        background-position: -30px 0;
     }
     
-    &.canClose {
-        background-position: -@spriteSize18 0;
+    &.can-close {
+        background-position: 0 0;
     }
   
-    &.canClose:hover {
-        background-position: -@spriteSize18*2 0;
+    &.can-close:hover {
+        background-position: -15px 0;
     }
-}
-
-/* This text is used to force the code editor's font to be loaded early on if it's a
-   web font. This is necessary in order for the editor's horizontal measurement of text
-   to work properly. 
-
-   In the future, when we allow the user to switch fonts, we'll need to make sure to 
-   update the font for this text item whenever the user switches. We'll also need to
-   wait to initiate a re-measure in CodeMirror until the new font is loaded (if they
-   choose a web font). This library allows for checking if a web font is loaded:
- 
-     http://code.google.com/apis/webfonts/docs/webfont_loader.html  
-*/
-.dummy-text {
-    position: fixed;
-    top: -10000px;
-    .code-font();
+    
+    &.can-close:active {
+        background-position: -15px 1px;
+    }
 }
 
 /* Styles for inline editors */
-.inlineEditor {
-    border-top:         1px solid #C0C0C0;
-    border-bottom:      1px solid #C0C0C0;
-    min-width:          100%;
-    background-color:   #eaeaea;
+.inline-widget {
+    background-color:   @inline-background-color-1;
     
-    .filename {
-        font-family: sans-serif;
-        font-size: 14px;
-        color: #656565;
+    .inline-editor-header {
         padding: 10px 10px 0px 10px;
         
-        .dirty-indicator {
-            .bracketSprite;
-            display: inline-block;
-            background-position: 0 0;
-            padding-top: 3px;
+        .filename {
+            font-family: @fontstack-sans-serif;
+            font-size: 1.1em;
+            color: @inline-color-1;
+            
+            // Filename header is clickable (it's an <a> tag, so we get underscore on hover by
+            // default; but the hand cursor is shut off by Bootstrap's reset stylesheet)
+            cursor: pointer;
+            
+            .dirty-indicator {
+                .bracket-sprite;
+                display: inline-block;
+                background-position: -32px 0;
+                padding-top: 3px;
+            }
+            
+            .line-number {
+                color: @inline-color-2;
+            }
         }
     }
+    
     .shadow {
         display: block;
-        height: 6px;
+        height: 4px;
         width: 100%;
         position: absolute;
         content: " ";
         left: 0;
-        z-index: 10;
+        z-index: @z-index-brackets-inline-editor-shadow;
     }
+    
     .shadow.top {
         top: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0));
     }
+    
     .shadow.bottom {
-        bottom: -1px;
+        bottom: 0px;
         background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1));
     }
     
@@ -362,48 +458,72 @@ a, img {
     }
 }
 
-.relatedContainer {
+/* CSSInlineEditor rule list */
+.related-container {
+    @top-margin: 12px;
+    
     /*width: 0;*/
-    font-family: sans-serif;
-    position: absolute;
-    height: 100%;
-    top: 0;
-    right: 0;
-    overflow: auto;
-    /*-webkit-transition: width 0.15s ease-out;*/
-    background: #f2f2f2;
-    border-left: 1px solid #ccc;
+    font-family: @fontstack-sans-serif;
+    position: fixed;
     width: 250px;
+    overflow: hidden;
+    /*-webkit-transition: width 0.15s ease-out;*/
+    background: @inline-background-color-2;
+    
+    .selection {
+        width: 100%;
+        background: #d0d5d5;
+        position: absolute;
+        -webkit-transition: height 0.1s ease-out;
+        -webkit-transition: top 0.1s ease-out;
+        border-top: 1px solid darken(@inline-background-color-3, @bc-color-step-size);
+        border-bottom: 1px solid lighten(@inline-background-color-3, @bc-color-step-size);
+        top: @top-margin;
+    }
+    
+    /*
+     * CSS triangle hack with anti-alias workarounds:
+     * (a) Use selection-background-color instead of transparent.
+     * (b) Use transform scaleX and origin to adjust width.
+     */
+    .selection:before {
+        content: " ";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: @triangle-size solid @inline-background-color-3;
+        border-bottom: @triangle-size solid @inline-background-color-3;
+        border-left: @triangle-size solid @inline-background-color-1;
+        margin-top: -@triangle-size;
+        top: 50%;
+        .scale-x(0.9, left, top);
+    }
     
     .related {
+        font-size: 12px;
         position: absolute;
         top: 0;
         left: 1px;
-        height: 100%;
-        box-shadow: -1px 0 0 0 #fff;
-        font-size: 12px;
+        width: 100%;
         
         ul {
             margin: 0;
-            padding: 12px 0px;
+            padding: @top-margin 0px;
             list-style: none;
-            color: #656565;
+        }
             
-            li {
-                padding: 0px 15px;
-                white-space: nowrap;
-            }
-                
-            li.selected {
-                background: #e6e6e6;
-                border-top: 1px solid #d6d6d6;
-                border-bottom: 1px solid #d6d6d6;
-                box-shadow: 0 1px 0 #fff;
-            }
-            
-            .location {
-                color: #acacac;
-            }
+        li {
+            color: @inline-color-2;
+            margin: 0;
+            overflow: hidden;
+            padding: 2px 0px 2px 15px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .selected {
+            color: @inline-color-3;
+            -webkit-transition: color 0.1s ease-out .15s;
         }
     }
 }
@@ -412,11 +532,11 @@ a, img {
 
 .CodeMirror-dialog {
   position: relative;
-  z-index: 11;
+  z-index: @z-index-cm-dialog-override;
 }
 
 .CodeMirror-dialog > div {
-  font-family: sans-serif;
+  font-family: @fontstack-sans-serif;
   position: absolute;
   top: 0; left: 0; right: 0;
   background: @background-color-2;
@@ -429,7 +549,7 @@ a, img {
 }
 
 .CodeMirror-dialog input {
-  font-family: sans-serif;
+  font-family: @fontstack-sans-serif;
   border: 1px solid @content-color-weaker;
   outline: none;
   background: @background-color-3;
@@ -452,7 +572,7 @@ a, img {
     padding: 0px 8px 0px 0px;
     margin: 9px 0px 0px 0px;
 
-    .quickOpenPath {
+    .quick-open-path {
         font-size: 11px;
         color: gray;
     }

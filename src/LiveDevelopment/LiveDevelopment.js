@@ -1,10 +1,28 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
- * @author Jonathan Diehl <jdiehl@adobe.com>
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, FileError, brackets */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*global define, $, FileError, brackets, window */
 
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
@@ -33,13 +51,14 @@
  * 3: Active
  */
 define(function LiveDevelopment(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
     var NativeApp = require("utils/NativeApp");
     var Dialogs = require("widgets/Dialogs");
     var Strings = require("strings");
+    var StringUtils = require("utils/StringUtils");
 
     // Inspector
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
@@ -55,17 +74,41 @@ define(function LiveDevelopment(require, exports, module) {
         "remote": require("LiveDevelopment/Agents/RemoteAgent"),
         "network": require("LiveDevelopment/Agents/NetworkAgent"),
         "dom": require("LiveDevelopment/Agents/DOMAgent"),
-        "css": require("LiveDevelopment/Agents/CSSAgent")
-        /* FUTURE 
+        "css": require("LiveDevelopment/Agents/CSSAgent"),
         "script": require("LiveDevelopment/Agents/ScriptAgent"),
         "highlight": require("LiveDevelopment/Agents/HighlightAgent"),
         "goto": require("LiveDevelopment/Agents/GotoAgent"),
         "edit": require("LiveDevelopment/Agents/EditAgent")
-        */
     };
 
-    var _liveDocument; // the live document
-    var _document; // the open live-document
+    var _htmlDocumentPath; // the path of the html file open for live development
+    var _liveDocument; // the document open for live editing.
+    var _relatedDocuments; // CSS and JS documents that are used by the live HTML document
+
+    /** Augments the given Brackets document with information that's useful for live development. */
+    function _setDocInfo(doc) {
+        // FUTURE: some of these things should just be moved into core Document; others should
+        // be in a LiveDevelopment-specific object attached to the doc.
+        var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
+        if (matches) {
+            var prefix = "file://";
+
+            // The file.fullPath on Windows starts with a drive letter ("C:").
+            // In order to make it a valid file: URL we need to add an 
+            // additional slash to the prefix.
+            if (brackets.platform === "win") {
+                prefix += "/";
+            }
+
+            doc.extension = matches[3];
+            doc.url = encodeURI(prefix + doc.file.fullPath);
+
+            // the root represents the document that should be displayed in the browser
+            // for live development (the file for HTML files, index.html for others)
+            var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
+            doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
+        }
+    }
 
     /** Get the current document from the document manager
      * _adds extension, url and root to the document
@@ -73,25 +116,7 @@ define(function LiveDevelopment(require, exports, module) {
     function _getCurrentDocument() {
         var doc = DocumentManager.getCurrentDocument();
         if (doc) {
-            var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
-            if (matches) {
-                var prefix = "file://";
-                
-                // The file.fullPath on Windows starts with a drive letter ("C:").
-                // In order to make it a valid file: URL we need to add an 
-                // additional slash to the prefix.
-                if (brackets.platform === "win") {
-                    prefix += "/";
-                }
-                
-                doc.extension = matches[3];
-                doc.url = encodeURI(prefix + doc.file.fullPath);
-    
-                // the root represents the document that should be displayed in the browser
-                // for live development (the file for HTML files, index.html for others)
-                var fileName = /^html?$/.test(matches[3]) ? matches[2] : "index.html";
-                doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
-            }
+            _setDocInfo(doc);
         }
         return doc;
     }
@@ -103,7 +128,6 @@ define(function LiveDevelopment(require, exports, module) {
         switch (doc.extension) {
         case "css":
             return CSSDocument;
-        /* FUTURE:
         case "js":
             return JSDocument;
         case "html":
@@ -111,10 +135,22 @@ define(function LiveDevelopment(require, exports, module) {
             return HTMLDocument;
         default:
             throw "Invalid document type: " + doc.extension;
-        */
         }
-        
+
         return null;
+    }
+
+    /**
+     * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
+     * given file is no longer associated with the HTML document that is live (e.g.
+     * if the related file has been deleted on disk).
+     */
+    function _handleRelatedDocumentDeleted(event, liveDoc) {
+        var index = _relatedDocuments.indexOf(liveDoc);
+        if (index !== -1) {
+            $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+            _relatedDocuments.splice(index, 1);
+        }
     }
 
     /** Close a live document */
@@ -123,6 +159,35 @@ define(function LiveDevelopment(require, exports, module) {
             _liveDocument.close();
             _liveDocument = undefined;
         }
+        if (_relatedDocuments) {
+            _relatedDocuments.forEach(function (liveDoc) {
+                liveDoc.close();
+                $(liveDoc).off("deleted", _handleRelatedDocumentDeleted);
+            });
+            _relatedDocuments = undefined;
+        }
+    }
+
+    /** Create a live version of a Brackets document */
+    function _createDocument(doc, editor) {
+        var DocClass = _classForDocument(doc);
+        if (DocClass) {
+            return new DocClass(doc, editor);
+        } else {
+            return null;
+        }
+    }
+
+    /** Convert a file: URL to a local full file path */
+    function _urlToPath(url) {
+        var path;
+        if (url.indexOf("file://") === 0) {
+            path = url.slice(7);
+            if (path && brackets.platform === "win" && path.charAt(0) === "/") {
+                path = path.slice(1);
+            }
+        }
+        return decodeURI(path);
     }
 
     /** Open a live document
@@ -130,10 +195,24 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _openDocument(doc, editor) {
         _closeDocument();
-        var DocumentClass = _classForDocument(doc);
-        if (DocumentClass) {
-            _liveDocument = new DocumentClass(doc, editor);
-        }
+        _liveDocument = _createDocument(doc, editor);
+
+        // Gather related CSS documents.
+        // FUTURE: Gather related JS documents as well.
+        _relatedDocuments = [];
+        agents.css.getStylesheetURLs().forEach(function (url) {
+            // FUTURE: when we get truly async file handling, we might need to prevent other
+            // stuff from happening while we wait to add these listeners
+            DocumentManager.getDocumentForPath(_urlToPath(url))
+                .done(function (doc) {
+                    _setDocInfo(doc);
+                    var liveDoc = _createDocument(doc);
+                    if (liveDoc) {
+                        _relatedDocuments.push(liveDoc);
+                        $(liveDoc).on("deleted", _handleRelatedDocumentDeleted);
+                    }
+                });
+        });
     }
 
     /** Unload the agents */
@@ -167,7 +246,16 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by Inspector.error */
     function _onError(error) {
-        console.error(error.message);
+        var message = error.message;
+
+        // Additional information, like exactly which parameter could not be processed.
+        var data = error.data;
+        if (Array.isArray(data)) {
+            message += "\n" + data.join("\n");
+        }
+
+        // Show the message, but include the error object for further information (e.g. error code)
+        console.error(message, error);
     }
 
     /** Run when all agents are loaded */
@@ -199,21 +287,35 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
-                
-        if (doc && doc.root) {
+
+        function showWrongDocError() {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                Strings.LIVE_DEV_NEED_HTML_MESSAGE
+            );
+        }
+
+        if (!doc || !doc.root) {
+            showWrongDocError();
+
+        } else {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            if (doc.extension.indexOf('htm') !== 0) {
+            /*
+            if (!doc.extension || doc.extension.indexOf('htm') !== 0) {
+                showWrongDocError();
                 return;
             }
-            
+            */
+
             _setStatus(1);
             Inspector.connectToURL(doc.root.url).fail(function onConnectFail(err) {
                 if (err === "CANCEL") {
                     return;
                 }
-                if (retryCount > 4) {
+                if (retryCount > 6) {
                     _setStatus(-1);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
@@ -226,7 +328,7 @@ define(function LiveDevelopment(require, exports, module) {
                             NativeApp.closeLiveBrowser()
                                 .done(function () {
                                     browserStarted = false;
-                                    setTimeout(open);
+                                    window.setTimeout(open);
                                 })
                                 .fail(function (err) {
                                     // Report error?
@@ -238,24 +340,31 @@ define(function LiveDevelopment(require, exports, module) {
                     return;
                 }
                 retryCount++;
-                
+
                 if (!browserStarted && exports.status !== -1) {
+                    // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
+                    // is available, but the requested URL is not loaded in the browser. In that
+                    // case we want to launch the live browser (to open the url in a new tab)
+                    // without using the --remote-debugging-port flag. This works around issues
+                    // on Windows where Chrome can't be opened more than once with the
+                    // --remote-debugging-port flag set.
                     NativeApp.openLiveBrowser(
-                        doc.root.url
+                        doc.root.url,
+                        err !== FileError.ERR_NOT_FOUND
                     )
                         .done(function () {
                             browserStarted = true;
                         })
                         .fail(function (err) {
                             var message;
-                            
+
                             _setStatus(-1);
                             if (err === FileError.NOT_FOUND_ERR) {
                                 message = Strings.ERROR_CANT_FIND_CHROME;
                             } else {
-                                message = Strings.format(Strings.ERROR_LAUNCHING_BROWSER, err);
+                                message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                             }
-                            
+
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
@@ -263,9 +372,9 @@ define(function LiveDevelopment(require, exports, module) {
                             );
                         });
                 }
-                
+
                 if (exports.status !== -1) {
-                    setTimeout(function retryConnect() {
+                    window.setTimeout(function retryConnect() {
                         Inspector.connectToURL(doc.root.url).fail(onConnectFail);
                     }, 500);
                 }
@@ -285,23 +394,46 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
         var doc = _getCurrentDocument();
+        if (!doc) {
+            return;
+        }
+
         if (Inspector.connected()) {
-            if (!doc) {
-                close();
-            } else if (agents.network && agents.network.wasURLRequested(doc.url)) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
                 var editor = EditorManager.getCurrentFullEditor();
                 _openDocument(doc, editor);
             } else {
                 /* FUTURE: support live connections for docments other than html */
-                if (doc.extension.indexOf('htm') === 0) {
+                if (doc.extension && doc.extension.indexOf("htm") === 0 && doc.file.fullPath !== _htmlDocumentPath) {
                     close();
-                    setTimeout(open);
+                    window.setTimeout(open);
+                    _htmlDocumentPath = doc.file.fullPath;
                 }
             }
         } else if (exports.config.autoconnect) {
-            setTimeout(open);
+            window.setTimeout(open);
         }
+    }
+
+    function getLiveDocForPath(path) {
+        var docsToSearch = [];
+        if (_relatedDocuments) {
+            docsToSearch = docsToSearch.concat(_relatedDocuments);
+        }
+        if (_liveDocument) {
+            docsToSearch = docsToSearch.concat(_liveDocument);
+        }
+        var foundDoc;
+        docsToSearch.some(function matchesPath(ele) {
+            if (ele.doc.file.fullPath === path) {
+                foundDoc = ele;
+                return true;
+            }
+            return false;
+        });
+
+        return foundDoc;
     }
 
     /** Hide any active highlighting */
@@ -325,6 +457,7 @@ define(function LiveDevelopment(require, exports, module) {
     exports.agents = agents;
     exports.open = open;
     exports.close = close;
+    exports.getLiveDocForPath = getLiveDocForPath;
     exports.hideHighlight = hideHighlight;
     exports.init = init;
 });

@@ -1,15 +1,35 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, brackets: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, brackets, window */
 
 /**
  * Utilities for creating and managing standard modal dialogs.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var KeyBindingManager = require("command/KeyBindingManager");
 
@@ -24,7 +44,8 @@ define(function (require, exports, module) {
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
-        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog";
+        DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
+        DIALOG_ID_ABOUT = "about-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -50,7 +71,7 @@ define(function (require, exports, module) {
             this.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
-            if (e.metaKey && (which === 'D')) {
+            if (e.metaKey && (which === "D")) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -60,7 +81,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === 'N') {
+            if (which === "N") {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -88,33 +109,47 @@ define(function (require, exports, module) {
      *    of elements with "dialog-button" class, each of which has a "data-button-id".
      *
      * @param {string} dlgClass The class of the dialog node in the HTML.
-     * @param {string} title The title of the error dialog. Can contain HTML markup.
-     * @param {string} message The message to display in the error dialog. Can contain HTML markup.
-     * @return {Deferred} a $.Deferred() that will be resolved with the ID of the clicked button when the dialog
+     * @param {string=} title The title of the error dialog. Can contain HTML markup. If unspecified, title in
+     *      the HTML template is used unchanged.
+     * @param {string=} message The message to display in the error dialog. Can contain HTML markup. If
+     *      unspecified, body in the HTML template is used unchanged.
+     * @return {$.Promise} a promise that will be resolved with the ID of the clicked button when the dialog
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
-        var result = $.Deferred();
+        var result = $.Deferred(),
+            promise = result.promise();
         
         // We clone the HTML rather than using it directly so that if two dialogs of the same
         // type happen to show up, they can appear at the same time. (This is an edge case that
         // shouldn't happen often, but we can't prevent it from happening since everything is
         // asynchronous.)
-        var dlg = $("." + dlgClass + ".template")
+        var $dlg = $("." + dlgClass + ".template")
             .clone()
             .removeClass("template")
             .addClass("instance")
-            .appendTo(document.body);
+            .appendTo(window.document.body);
+        
+        if ($dlg.length === 0) {
+            throw new Error("Dialog id " + dlgClass + " does not exist");
+        }
+
+        // Save the dialog promise for unit tests
+        $dlg.data("promise", promise);
 
         // Set title and message
-        $(".dialog-title", dlg).html(title);
-        $(".dialog-message", dlg).html(message);
+        if (title) {
+            $(".dialog-title", $dlg).html(title);
+        }
+        if (message) {
+            $(".dialog-message", $dlg).html(message);
+        }
 
-        var handleKeyDown = _handleKeyDown.bind(dlg);
+        var handleKeyDown = _handleKeyDown.bind($dlg);
 
         // Pipe dialog-closing notification back to client code
-        dlg.one("hidden", function () {
-            var buttonId = dlg.data("buttonId");
+        $dlg.one("hidden", function () {
+            var buttonId = $dlg.data("buttonId");
             if (!buttonId) {    // buttonId will be undefined if closed via Bootstrap's "x" button
                 buttonId = DIALOG_BTN_CANCEL;
             }
@@ -122,41 +157,42 @@ define(function (require, exports, module) {
             // Let call stack return before notifying that dialog has closed; this avoids issue #191
             // if the handler we're triggering might show another dialog (as long as there's no
             // fade-out animation)
-            setTimeout(function () {
+            window.setTimeout(function () {
                 result.resolve(buttonId);
             }, 0);
             
             // Remove the dialog instance from the DOM.
-            dlg.remove();
+            $dlg.remove();
 
             // Remove keydown event handler
-            document.body.removeEventListener("keydown", handleKeyDown, true);
+            window.document.body.removeEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(true);
         }).one("shown", function () {
             // Set focus to the default button
-            var primaryBtn = dlg.find(".primary");
+            var primaryBtn = $dlg.find(".primary");
 
             if (primaryBtn) {
                 primaryBtn.focus();
             }
 
             // Listen for dialog keyboard shortcuts
-            document.body.addEventListener("keydown", handleKeyDown, true);
+            window.document.body.addEventListener("keydown", handleKeyDown, true);
             KeyBindingManager.setEnabled(false);
         });
         
         // Click handler for buttons
-        dlg.one("click", ".dialog-button", function (e) {
-            _dismissDialog(dlg, $(this).attr("data-button-id"));
+        $dlg.one("click", ".dialog-button", function (e) {
+            _dismissDialog($dlg, $(this).attr("data-button-id"));
         });
 
         // Run the dialog
-        dlg.modal({
+        $dlg.modal({
             backdrop: "static",
             show: true,
             keyboard: true
         });
-        return result;
+
+        return promise;
     }
     
     /**
@@ -164,9 +200,9 @@ define(function (require, exports, module) {
      * be called with the special buttonId DIALOG_CANCELED (note: callback is run asynchronously).
      */
     function cancelModalDialogIfOpen(dlgClass) {
-        $("." + dlgClass + ".instance").each(function (dlg) {
-            if (dlg.is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
-                _dismissDialog(dlg, DIALOG_CANCELED);
+        $("." + dlgClass + ".instance").each(function (index, dlg) {
+            if ($(dlg).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
+                _dismissDialog($(dlg), DIALOG_CANCELED);
             }
         });
     }
@@ -181,6 +217,7 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_CHANGED = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
     exports.DIALOG_ID_LIVE_DEVELOPMENT = DIALOG_ID_LIVE_DEVELOPMENT;
+    exports.DIALOG_ID_ABOUT = DIALOG_ID_ABOUT;
     
     exports.showModalDialog = showModalDialog;
     exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;

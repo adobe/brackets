@@ -1,24 +1,47 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false, CodeMirror: false */
+
+// FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $, CodeMirror, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        InlineEditor        = require("editor/InlineEditor").InlineEditor;
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        InlineWidget        = require("editor/InlineWidget").InlineWidget;
 
     /**
      * Returns editor holder width (not CodeMirror's width).
      * @private
      */
     function _editorHolderWidth() {
-        return $("#editorHolder").width();
+        return $("#editor-holder").width();
     }
 
     /**
@@ -27,9 +50,8 @@ define(function (require, exports, module) {
      */
     function _showDirtyIndicator($indicatorDiv, isDirty) {
         // Show or hide the dirty indicator by adjusting
-        // the width of the div. The "hidden" width is 
-        // 4 pixels to make the padding look correct.
-        $indicatorDiv.css("width", isDirty ? 16 : 4);
+        // the width of the div.
+        $indicatorDiv.css("width", isDirty ? 16 : 0);
     }
     
     /**
@@ -38,7 +60,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _dirtyFlagChangeHandler(event, doc) {
-        var $dirtyIndicators = $(".inlineEditor .dirty-indicator"),
+        var $dirtyIndicators = $(".inlineEditorHolder .dirty-indicator"),
             $indicator;
         
         $.each($dirtyIndicators, function (index, indicator) {
@@ -51,16 +73,18 @@ define(function (require, exports, module) {
     
     /**
      * @constructor
-     *
+     * @extends {InlineWidget}
      */
     function InlineTextEditor() {
-        InlineEditor.call(this);
-        this._docRangeToEditorMap = {};
+        InlineWidget.call(this);
+
+        /* @type {Array.<{Editor}>}*/
         this.editors = [];
     }
-    InlineTextEditor.prototype = new InlineEditor();
+    InlineTextEditor.prototype = new InlineWidget();
     InlineTextEditor.prototype.constructor = InlineTextEditor;
-    InlineTextEditor.prototype.parentClass = InlineEditor.prototype;
+    InlineTextEditor.prototype.parentClass = InlineWidget.prototype;
+    
     InlineTextEditor.prototype.editors = null;
 
    /**
@@ -69,24 +93,16 @@ define(function (require, exports, module) {
      * @private
      */
     function _syncGutterWidths(hostEditor) {
-        var inlines = EditorManager.getInlineEditors(hostEditor),
-            allHostedEditors = [];
+        var allHostedEditors = EditorManager.getInlineEditors(hostEditor);
         
-        // add all Editor instances of each InlineTextEditor
-        inlines.forEach(function (inline) {
-            if (inline instanceof InlineTextEditor) {
-                Array.push.apply(allHostedEditors, inline.editors);
-            }
-        });
-        
-        // add the host to the list and go through them all
+        // add the host itself to the list too
         allHostedEditors.push(hostEditor);
         
         var maxWidth = 0;
         allHostedEditors.forEach(function (editor) {
-            var gutter = $(editor._codeMirror.getGutterElement());
-            gutter.css("min-width", "");
-            var curWidth = gutter.width();
+            var $gutter = $(editor._codeMirror.getGutterElement());
+            $gutter.css("min-width", "");
+            var curWidth = $gutter.width();
             if (curWidth > maxWidth) {
                 maxWidth = curWidth;
             }
@@ -106,7 +122,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Called any time inline was closed, whether manually (via closeThisInline()) or automatically
+     * Called any time inline was closed, whether manually (via close()) or automatically
      */
     InlineTextEditor.prototype.onClosed = function () {
         _syncGutterWidths(this.hostEditor);
@@ -118,29 +134,32 @@ define(function (require, exports, module) {
     
     /**
      * Update the inline editor's height when the number of lines change
+     * @param {boolean} force the editor to resize
      */
-    InlineTextEditor.prototype.sizeInlineEditorToContents = function (force) {
+    InlineTextEditor.prototype.sizeInlineWidgetToContents = function (force) {
         var i,
             len = this.editors.length,
             editor;
         
+        // TODO: only handles 1 editor right now. Add multiple editor support when
+        // the design is finalized
+
+        // Reize the editors to the content
         for (i = 0; i < len; i++) {
+            // Only supports 1 editor right now
+            if (i === 1) {
+                break;
+            }
+            
             editor = this.editors[i];
             
             if (editor.isFullyVisible()) {
-                // set inner editor height
-                var editorHeight = editor.totalHeight(true);
-                if (force || editorHeight !== this._editorHeight) {
-                    this._editorHeight = editorHeight;
-                    $(editor.getScrollerElement()).height(editorHeight);
+                var height = editor.totalHeight(true);
+                if (force || height !== this.height) {
+                    $(editor.getScrollerElement()).height(height);
+                    this.height = height;
                     editor.refresh();
                 }
-                
-                // use outermost wrapper (htmlContent) scrollHeight to prop open the host editor
-                this.height = this.htmlContent.scrollHeight;
-                this.hostEditor.setInlineWidgetHeight(this.inlineId, this.height, true);
-                
-                break; // there should only be 1 visible editor
             }
         }
     };
@@ -150,9 +169,7 @@ define(function (require, exports, module) {
      * @param {string} the inline ID that is generated by CodeMirror after the widget that holds the inline
      *  editor is constructed and added to the DOM
      */
-    InlineTextEditor.prototype.onAdded = function (inlineId) {
-        this.inlineId = inlineId;
-        
+    InlineTextEditor.prototype.onAdded = function () {
         this.editors.forEach(function (editor) {
             editor.refresh();
         });
@@ -160,7 +177,9 @@ define(function (require, exports, module) {
         _syncGutterWidths(this.hostEditor);
         
         // Set initial size
-        this.sizeInlineEditorToContents();
+        // Note that the second argument here (ensureVisibility) is only used by CSSInlineEditor.
+        // FUTURE: Should clean up this API so it's consistent between the two.
+        this.sizeInlineWidgetToContents(true, true);
         
         this.editors[0].focus();
     };
@@ -172,7 +191,7 @@ define(function (require, exports, module) {
      * @param {number} endLine of text to show in inline editor
      * @param {HTMLDivElement} container container to hold the inline editor
      */
-    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container) {
+    InlineTextEditor.prototype.createInlineEditorFromText = function (doc, startLine, endLine, container, additionalKeys) {
         var self = this;
         
         var range = {
@@ -180,44 +199,63 @@ define(function (require, exports, module) {
             endLine: endLine
         };
         
-        // close handler attached to each inline codemirror instance
-        // TODO (jasonsj): make this a global command
-        function closeThisInline(editor) {
-            var shouldMoveFocus = editor.hasFocus();
-            EditorManager.closeInlineWidget(self.hostEditor, self.inlineId, shouldMoveFocus);
-        }
+        // root container holding header & editor
+        var $wrapperDiv = $("<div/>");
+        var wrapperDiv = $wrapperDiv[0];
         
-        // create the filename div
-        var wrapperDiv = document.createElement("div");
-        var $wrapperDiv = $(wrapperDiv);
-        container.appendChild(wrapperDiv);
+        // header containing filename, dirty indicator, line number
+        var $header = $("<div/>").addClass("inline-editor-header");
+        var $filenameInfo = $("<a/>").addClass("filename");
         
-        // dirty indicator followed by filename
-        var $filenameDiv = $(document.createElement("div")).addClass("filename");
-        
-        // save file path data to dirty-indicator
-        var $dirtyIndicatorDiv = $(document.createElement("div"))
+        // dirty indicator, with file path stored on it
+        var $dirtyIndicatorDiv = $("<div/>")
             .addClass("dirty-indicator")
-            .width(4); // initialize indicator as hidden
+            .width(0); // initialize indicator as hidden
         $dirtyIndicatorDiv.data("fullPath", doc.file.fullPath);
         
-        $filenameDiv.append($dirtyIndicatorDiv);
-        $dirtyIndicatorDiv.after(doc.file.name + ":" + (startLine + 1));
-        $wrapperDiv.append($filenameDiv);
-        
-        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, closeThisInline);
-        this.editors.push(inlineInfo.editor);
+        var $lineNumber = $("<span class='line-number'>" + (startLine + 1) + "</span>");
 
-        // Size editor to current content
-        $(inlineInfo.editor).on("change", function () {
-            self.sizeInlineEditorToContents();
+        // wrap filename & line number in clickable link with tooltip
+        $filenameInfo.append($dirtyIndicatorDiv)
+            .append(doc.file.name + " : ")
+            .append($lineNumber)
+            .attr("title", doc.file.fullPath);
+        
+        // clicking filename jumps to full editor view
+        $filenameInfo.click(function () {
+            CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
+                .done(function () {
+                    EditorManager.getCurrentFullEditor().setCursorPos(startLine);
+                });
         });
 
-        // update the current inline editor immediately
-        // use setTimeout to allow filenameDiv to render first
-        setTimeout(function () {
-            _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
-        }, 0);
+        $header.append($filenameInfo);
+        $wrapperDiv.append($header);
+        
+        
+        // Create actual Editor instance
+        var inlineInfo = EditorManager.createInlineEditorForDocument(doc, range, wrapperDiv, additionalKeys);
+        this.editors.push(inlineInfo.editor);
+        container.appendChild(wrapperDiv);
+
+        // Size editor to content whenever it changes (via edits here or any other view of the doc)
+        $(inlineInfo.editor).on("change", function () {
+            self.sizeInlineWidgetToContents();
+            
+            // And update line number since a change to the Editor equals a change to the Document,
+            // which may mean a change to the line range too
+            $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
+        });
+        
+        // If Document's file is deleted, or Editor loses sync with Document, just close
+        $(inlineInfo.editor).on("lostContent", function () {
+            // Note: this closes the entire inline widget if any one Editor loses sync. This seems
+            // better than leaving it open but suddenly removing one rule from the result list.
+            self.close();
+        });
+        
+        // set dirty indicator state
+        _showDirtyIndicator($dirtyIndicatorDiv, doc.isDirty);
     };
 
     /**
@@ -237,9 +275,16 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.onParentShown = function () {
         // We need to call this explicitly whenever the host editor is reshown, since
         // we don't actually resize the inline editor while its host is invisible (see
-        // isFullyVisible() check in sizeInlineEditorToContents()).
-        this.sizeInlineEditorToContents(true);
+        // isFullyVisible() check in sizeInlineWidgetToContents()).
+        this.sizeInlineWidgetToContents(true);
     };
+    
+    InlineTextEditor.prototype._editorHasFocus = function () {
+        return this.editors.some(function (editor) {
+            return editor.hasFocus();
+        });
+    };
+        
     
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);

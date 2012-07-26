@@ -1,12 +1,32 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     //constants
     var TAG_NAME = "tagName",
@@ -44,7 +64,7 @@ define(function (require, exports, module) {
         var eol = ctx.editor.getLine(ctx.pos.line).length;
         if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
             //move down a line
-            if (ctx.pos.line === ctx.editor.lineCount()) {
+            if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
                 return false; //at the bottom
             }
             ctx.pos.line++;
@@ -156,9 +176,11 @@ define(function (require, exports, module) {
     function _extractTagName(ctx) {
         if (ctx.token.state.tagName) {
             return ctx.token.state.tagName; //XML mode
-        } else {
+        } else if (ctx.token.state.htmlState) {
             return ctx.token.state.htmlState.tagName; //HTML mode
         }
+        // Some mixed modes that offer HTML as a nested mode don't actually expose the HTML state
+        return null;
     }
     
     /**
@@ -261,40 +283,61 @@ define(function (require, exports, module) {
         //we're going to changing pos a lot, but we don't want to mess up
         //the pos the caller passed in so we use extend to make a safe copy of it.	
         //This is what pass by value in c++ would do.	
-        var pos = $.extend(constPos),
+        var pos = $.extend({}, constPos),
             ctx = _getInitialContext(editor._codeMirror, pos),
             offset = _offsetInToken(ctx),
             tagInfo,
             tokenType;
         
+        // check if this is inside a style block.
+        if (editor.getModeForSelection() !== "html") {
+            return createTagInfo();
+        }
+        
         //check and see where we are in the tag
-        //first check, if we're in an all whitespace token and move back
-        //and see what's before us
         if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
-            if (!_movePrevToken(ctx)) {
-                return createTagInfo();
-            }
-            
-            if (ctx.token.className !== "tag") {
-                //if wasn't the tag name, assume it was an attr value
-                tagInfo = _getTagInfoStartingFromAttrValue(ctx);
-                //We don't want to give context for the previous attr
-                //and we want it to look like the user is going to add a new attr
-                if (tagInfo.tagName) {
-                    return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+
+            // token at (i.e. before) pos is whitespace, so test token at next pos
+            //
+            // note: getTokenAt() does range checking for ch. If it detects that ch is past
+            // EOL, it uses EOL, same token is returned, and the following condition fails,
+            // so we don't need to worry about testPos being valid.
+            var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
+                testToken = editor._codeMirror.getTokenAt(testPos);
+
+            if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
+                // pos has whitespace before it and non-whitespace after it, so use token after
+                ctx.pos = testPos;
+                ctx.token = testToken;
+                // Get the new offset from test token and subtract one for testPos adjustment
+                offset = _offsetInToken(ctx) - 1;
+            } else {
+                // next, see what's before pos
+                if (!_movePrevToken(ctx)) {
+                    return createTagInfo();
                 }
-                return createTagInfo();
-            }
             
-            //we know the tag was here, so they user is adding an attr name
-            tokenType = ATTR_NAME;
-            offset = 0;
+                if (ctx.token.className !== "tag") {
+                    //if wasn't the tag name, assume it was an attr value
+                    tagInfo = _getTagInfoStartingFromAttrValue(ctx);
+                    //We don't want to give context for the previous attr
+                    //and we want it to look like the user is going to add a new attr
+                    if (tagInfo.tagName) {
+                        return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
+                    }
+                    return createTagInfo();
+                }
+                
+                //we know the tag was here, so they user is adding an attr name
+                tokenType = ATTR_NAME;
+                offset = 0;
+            }
         }
         
         if (ctx.token.className === "tag") {
             //check to see if this is the closing of a tag (either the start or end)
             if (ctx.token.string === ">" ||
-                    (ctx.token.string.charAt(0) === '<' && ctx.token.string.charAt(1) === '/')) {
+                    (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
                 return createTagInfo();
             }
             
@@ -335,6 +378,46 @@ define(function (require, exports, module) {
         return tagInfo;
     }
     
+    
+    /**
+     * Returns an Array of info about all <style> blocks in the given Editor's HTML document (assumes
+     * the Editor contains HTML text).
+     * @param {!Editor} editor
+     */
+    function findStyleBlocks(editor) {
+        // Start scanning from beginning of file
+        var ctx = _getInitialContext(editor._codeMirror, {line: 0, ch: 0});
+        
+        var styleBlocks = [];
+        var currentStyleBlock = null;
+        var inStyleBlock = false;
+        
+        while (_moveNextToken(ctx)) {
+            if (inStyleBlock) {
+                // Check for end of this <style> block
+                if (ctx.token.state.mode !== "css") {
+                    currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
+                    inStyleBlock = false;
+                } else {
+                    currentStyleBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };
+                }
+            } else {
+                // Check for start of a <style> block
+                if (ctx.token.state.mode === "css") {
+                    currentStyleBlock = {
+                        start: { line: ctx.pos.line, ch: ctx.pos.ch }
+                    };
+                    styleBlocks.push(currentStyleBlock);
+                    inStyleBlock = true;
+                }
+                // else, random token in non-CSS content: ignore
+            }
+        }
+        
+        return styleBlocks;
+    }
+    
+    
     // Define public API
     exports.TAG_NAME = TAG_NAME;
     exports.ATTR_NAME = ATTR_NAME;
@@ -344,4 +427,5 @@ define(function (require, exports, module) {
     //The createTagInfo is really only for the unit tests so they can make the same structure to 
     //compare results with
     exports.createTagInfo = createTagInfo;
+    exports.findStyleBlocks = findStyleBlocks;
 });

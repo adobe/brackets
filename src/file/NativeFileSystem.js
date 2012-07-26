@@ -1,12 +1,31 @@
 /*
- * Copyright 2011 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50*/
-/*global $: false, define: false, brackets: false, FileError: false, InvalidateStateError: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50*/
+/*global $, define, brackets, FileError, InvalidateStateError */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async = require("utils/Async");
 
@@ -115,7 +134,49 @@ define(function (require, exports, module) {
             return new NativeFileSystem.FileError(error);
         }
     };
+    
+    /** class: Encodings
+     *
+     * Static class that contains constants for file
+     * encoding types.
+     */
+    NativeFileSystem.Encodings = {};
+    NativeFileSystem.Encodings.UTF8 = "UTF-8";
+    NativeFileSystem.Encodings.UTF16 = "UTF-16";
+    
+    /** class: _FSEncodings
+     *
+     * Internal static class that contains constants for file
+     * encoding types to be used by internal file system
+     * implimentation.
+    */
+    NativeFileSystem._FSEncodings = {};
+    NativeFileSystem._FSEncodings.UTF8 = "utf8";
+    NativeFileSystem._FSEncodings.UTF16 = "utf16";
+    
+    /**
+     * Converts an IANA encoding name to internal encoding name.
+     * http://www.iana.org/assignments/character-sets
+     *
+     * @param {String} encoding The IANA encoding string.
+     */
+    NativeFileSystem.Encodings._IANAToFS = function (encoding) {
+        //IANA names are case-insensitive
+        encoding = encoding.toUpperCase();
 
+        switch (encoding) {
+        case (NativeFileSystem.Encodings.UTF8):
+            return NativeFileSystem._FSEncodings.UTF8;
+        case (NativeFileSystem.Encodings.UTF16):
+            return NativeFileSystem._FSEncodings.UTF16;
+        default:
+            return undefined;
+        }
+    };
+    
+    var Encodings = NativeFileSystem.Encodings;
+    var _FSEncodings = NativeFileSystem._FSEncodings;
+    
     /** class: Entry
      *
      * @param {string} name
@@ -128,7 +189,7 @@ define(function (require, exports, module) {
         
         if (fullPath) {
             // add trailing "/" to directory paths
-            if (isDirectory && (fullPath.charAt(fullPath.length - 1) !== '/')) {
+            if (isDirectory && (fullPath.charAt(fullPath.length - 1) !== "/")) {
                 fullPath = fullPath.concat("/");
             }
         }
@@ -207,6 +268,10 @@ define(function (require, exports, module) {
     };
     NativeFileSystem.FileEntry.prototype = new NativeFileSystem.Entry();
 
+    NativeFileSystem.FileEntry.prototype.toString = function () {
+        return "[FileEntry " + this.fullPath + "]";
+    };
+    
     /**
      * Creates a new FileWriter associated with the file that this FileEntry represents.
      *
@@ -253,7 +318,7 @@ define(function (require, exports, module) {
 
             var self = this;
 
-            brackets.fs.writeFile(fileEntry.fullPath, data, "utf8", function (err) {
+            brackets.fs.writeFile(fileEntry.fullPath, data, _FSEncodings.UTF8, function (err) {
 
                 if ((err !== brackets.fs.NO_ERROR) && self.onerror) {
                     var fileError = NativeFileSystem._nativeToFileError(err);
@@ -298,7 +363,7 @@ define(function (require, exports, module) {
 
         // initialize file length
         var result = new $.Deferred();
-        brackets.fs.readFile(fileEntry.fullPath, "utf8", function (err, contents) {
+        brackets.fs.readFile(fileEntry.fullPath, _FSEncodings.UTF8, function (err, contents) {
             // Ignore "file not found" errors. It's okay if the file doesn't exist yet.
             if (err !== brackets.fs.ERR_NOT_FOUND) {
                 fileWriter._err = err;
@@ -437,6 +502,10 @@ define(function (require, exports, module) {
     };
     NativeFileSystem.DirectoryEntry.prototype = new NativeFileSystem.Entry();
     
+    NativeFileSystem.DirectoryEntry.prototype.toString = function () {
+        return "[DirectoryEntry " + this.fullPath + "]";
+    };
+    
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
         // TODO (issue #241)
         // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-getDirectory
@@ -527,7 +596,7 @@ define(function (require, exports, module) {
 
                 // create the file
                 if (options.create) {
-                    brackets.fs.writeFile(fileFullPath, "", "utf8", function (err) {
+                    brackets.fs.writeFile(fileFullPath, "", _FSEncodings.UTF8, function (err) {
                         if (err) {
                             createFileError(err);
                         } else {
@@ -590,7 +659,7 @@ define(function (require, exports, module) {
                         }
                     });
                     
-                    return deferred;
+                    return deferred.promise();
                 }, true);
 
                 // We want the error callback to get called after some timeout (in case some deferreds don't return).
@@ -684,14 +753,16 @@ define(function (require, exports, module) {
     /** readAsText
      *
      * @param {Blob} blob
-     * @param {string} encoding
+     * @param {string} encoding (IANA Encoding Name)
      */
     NativeFileSystem.FileReader.prototype.readAsText = function (blob, encoding) {
         var self = this;
 
         if (!encoding) {
-            encoding = "utf-8";
+            encoding = Encodings.UTF8;
         }
+        
+        var internalEncoding  = Encodings._IANAToFS(encoding);
 
         if (this.readyState === this.LOADING) {
             throw new InvalidateStateError();
@@ -703,7 +774,7 @@ define(function (require, exports, module) {
             this.onloadstart(); // TODO (issue #241): progressevent
         }
 
-        brackets.fs.readFile(blob._fullPath, encoding, function (err, data) {
+        brackets.fs.readFile(blob._fullPath, internalEncoding, function (err, data) {
 
             // TODO (issue #241): the event objects passed to these event handlers is fake and incomplete right now
             var fakeEvent = {

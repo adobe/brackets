@@ -1,4 +1,26 @@
-/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns) 
+
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+//  
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// DEALINGS IN THE SOFTWARE.
+
+
+/* Brackets patterns (and overrides and re-definitions of Bootstrap patterns)
  *
  * This file should contain all _reusable_ UI elements / LESS definitions
  * That is, things that will either a.) be used for more than one element or
@@ -9,42 +31,43 @@
  *
  */
 
+.project-panel-background {
+    background: rgb(73,77,77); /* Old browsers */
+    background: -moz-linear-gradient(top,  rgb(73,77,77) 0%, rgb(59,63,65) 51%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgb(73,77,77)), color-stop(51%,rgb(59,63,65))); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* IE10+ */
+    background: linear-gradient(top,  rgb(73,77,77) 0%,rgb(59,63,65) 51%); /* W3C */
+    filter: ~"progid:DXImageTransform.Microsoft.gradient( startColorstr='#494d4d', endColorstr='#3b3f41',GradientType=0 )";  /* IE6-9 */
+}
+
 .panel {
     .vbox;
     .box-flex(1);
 
     padding: 0;
     margin: 0;
-    background: @bc-light-blue;
-    border-right: 1px solid @bc-gray;
+
+    .project-panel-background;
+    color: #bbb;
+    letter-spacing: .01em;
+    text-shadow: 0px 1px 2px rgba(0,0,0,.5);
 }
 
-.toolbar {
+
+/* Toolbar-related styles */
+
+/* Simple toolbar layout (project panel, find in files, etc.)
+   We don't set this directly on .toolbar because it'd be a pain to override all the pieces
+   if other code (e.g. #main-toolbar) wants to do a different layout */
+.simple-toolbar-layout.toolbar {
     .hbox;
     .box-align(center);
-    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
-
-    height: 23px;
-    padding: @base-padding;
-    border-bottom: 1px solid @bc-gray;
-    #gradient > .vertical(lighten(@bc-grey, @bc-color-step-size*6), lighten(@bc-grey, @bc-color-step-size*2));
-    .box-shadow(0 1px 3px 0 fadeout(@bc-black, 70%));
-
     .title-wrapper {
         /* This is necessary because text-overflow: ellipsis doesn't work when it's set
            directly on a flexing box in Chrome currently. */
         .box-flex(1);
-    }
-    .title {
-        font-size: 1.1em;
-        font-weight: bold;
-        text-shadow: 0 1px @bc-white;        
-
-        white-space: nowrap;
-        overflow: hidden;
-        -ms-text-overflow: ellipsis;
-        -o-text-overflow: ellipsis;
-        text-overflow: ellipsis;
     }
     .buttons {
         .hbox;
@@ -52,6 +75,240 @@
     }
 }
 
+/* Editor toolbar layout
+
+   CSS hack based on this code: http://jsfiddle.net/cD657/3/ (via StackOverflow)
+   This center-aligns the title across the full width of the toolbar (ignoring the width of the nav floated
+   left and buttons floated right), yet still have the browser automatically wrap the floats onto a 2nd row
+   if they collide with the title. But the centered content must be a block element with fixed width. Since
+   the editor title (filename) varies in width, we rely on JS code to update the width whenever the string
+   changes.
+
+   Another wrinkle: wrapping to/from the two-line toolbar layout requires notifying the CodeMirror editor that
+   its height changed. Currently, we assume this can ONLY happen in two cases:
+    - the window resizes (handled by general listener in EditorManager)
+    - title content changes (the same JS code that sets .title-wrapper's fixed width is expected to handle this)
+*/
+#main-toolbar.toolbar {
+    text-align: center;
+    .nav {
+        float: left;
+        text-align: left;
+    }
+    .title {
+        float: none;
+        display: inline;  // must be an inline for JS to measure text size
+    }
+    .title-wrapper {
+        margin: 0 auto;
+        display: block;  // must be a block for the fixed width applied by JS to be respected
+        // width set in px is appled/updated by JavaScript in DocumentCommandHandlers
+    }
+    .buttons {
+        float: right;
+        text-align: left;
+    }
+}
+
+/* Toolbar appearance - shared by all toolbars, independent of layout */
+
+@toolbar-top-gap-px: 5px;
+    
+.toolbar {
+    font-size: @label-font-size;
+    padding: 4px 8px;
+    background-color: @bc-white;
+    color: @bc-black;
+    
+    position: relative; // starts a new stacking group so that the drop shadow shows up on top of the code editor
+    .box-shadow(0 1px 1px 0 fadeout(@bc-black, 90%));
+    
+    .title-wrapper {
+        // Title is taller than menu text, so reduce top padding to keep its baseline aligned
+        padding: (@toolbar-top-gap-px - 3px) 0 3px 0;
+    }
+    .title {
+        font-size: @title-font-size;
+        line-height: normal;
+        font-weight: @font-weight-light;
+
+        // On Win, the size+weight combo used above does not look good for the bullet character
+        .dirty-dot {
+            font-weight: normal;
+        }
+        
+        white-space: nowrap;
+        overflow: hidden;
+        -ms-text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+        text-overflow: ellipsis;
+    }
+    
+    .buttons {
+        margin: @toolbar-top-gap-px 0 0 4px;
+        
+        .experimental-label {
+            color: #a0a0a0;
+            font-size: 15px;
+            line-height: 20px;  // prevent jumping when 20px-tall JSLint star is added/removed
+            font-weight: normal;
+            font-style: italic;
+            padding-right: 22px;
+        }
+    }
+}
+
+
+/* Menu-related styles */
+
+@menubar-top-padding: 8px;
+@menubar-bottom-padding: 6px;
+@menubar-h-padding: 9px;
+@item-highlight-color: #e0f0fa;
+
+.toolbar .nav, .context-menu, .codehint-menu {
+    
+    // The 1px adjustments here are to account for the border around the top-level menu items.
+    margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
+
+    // General item appearance
+    a {
+        color: @bc-black;
+        text-shadow: none;
+    }
+
+    // Menubar item appearance
+    .dropdown-toggle {
+        padding: @menubar-top-padding @menubar-h-padding @menubar-bottom-padding;
+        border: 1px solid rgba(0, 0, 0, 0); // transparent border just to hold the layout so it doesn't shift on hover
+        color: fadeout(@bc-black, 25%);
+        font-weight: @font-weight-light;
+    }
+    .dropdown-toggle:hover, .dropdown.open .dropdown-toggle {
+        /* Note: we need several selectors for this in order to match the specificity of all the various Bootstrap
+           color rules we need to override (and Bootstrap has several selectors because the colors really differ
+           in their defaults). */
+        color: @bc-black;
+        background: @item-highlight-color;
+        border-color: #dbeaf4;
+    }
+
+    // no triangle icon after menu items
+    .dropdown-toggle:after {
+        border: 0;
+        margin: 0;
+    }
+    
+    // Menu dropdown appearance
+    .dropdown-menu {
+        top: 34px; // Offset from top of menubar item
+                
+        background-color: @bc-white;
+        border: 1px solid #c8c8c8;
+        .border-radius(0 0 3px 3px);
+        .box-shadow(0 6px 18px 0 rgba(0, 0, 0, .2));
+        
+        // Menu items
+        li {
+            a {
+                font-size: @menu-item-font-size;
+                line-height: 18px;
+                
+                // Slightly less padding on left to account for checkmark.
+                // More padding on top than bottom to center font within its bg highlight better.
+                padding: 2px 10px 0px 6px;
+                
+                color: @bc-black;
+                text-shadow: none;
+                white-space: nowrap;
+                .box-shadow(none);
+
+                &:hover, &.highlight {
+                    color: @bc-black;
+                    background: @item-highlight-color;
+                }
+
+                &.disabled {
+                    color: @bc-gray;
+
+                    &:hover {
+                        background: @bc-white;
+                    }
+                }
+
+                /* hidden checkmark for all list item content ensures consistent left spacing */
+                &::before {
+                    content: "✓\00a0"; /* non-breaking space */
+                    visibility: hidden;
+                }
+                /* toggle checkmark visibility */
+                &.checked::before {
+                    visibility: visible;
+                }
+            }
+        }
+        
+        .divider {
+            background-color: #eaeaea;
+            border: 0;
+        }
+    }
+    
+    // Ensure a minimum amount of space to the left of the shortcut
+    .menu-shortcut {
+        margin-left: 15px;
+    }
+}
+
+
+/* Context menu styles */
+
+
+.context-menu, .codehint-menu {
+    position: absolute;
+    z-index: @z-index-brackets-context-menu-base;
+    list-style-type: none;
+
+    .dropdown-menu {
+        .border-radius(3px);
+    }
+    
+    .menu-shortcut {
+        float: right;
+    }
+}
+
+.codehint-menu {
+    .dropdown-menu {
+        .box-shadow(none);
+
+        padding: 0;
+        
+        li {
+            a {
+                // Less padding than on menus. More padding on top than bottom
+                // to center font within its bg highlight better.
+                padding: 2px 0px 0px 0px;
+
+                // Don't show highlighting on hover for code hints...
+                &:hover {
+                    color: @bc-black;
+                    background-color: @bc-white;
+                }
+
+				// ...except for selected item
+                &.highlight:hover {
+                    color: @bc-black;
+                    background-color: @item-highlight-color;
+                }
+            }
+        }
+    }
+}
+
+#context-menu-bar {
+    margin: 0;
+}
 
 /* Dialog-related styles */
 
@@ -63,4 +320,84 @@
     /* Bootstrap's type.less defines a heavy margin-bottom on ul/ol that we don't want in dialogs
        since they have heavy padding instead. */
     margin-bottom: 0;
+}
+
+.dialog-title {
+    margin-bottom: 0;
+    font-size: 26px;
+    line-height: 40px; 
+    font-weight: @font-weight-light;
+}
+
+.dialog-message {
+    font-size: 16px;
+    line-height: 26px;
+    margin-bottom: 20px;
+    font-weight: @font-weight-light;
+}
+
+/* bootstrap's base color for generic li is gray */
+.dialog-message li {
+    line-height: 26px;
+    color: @grayDark;
+}
+
+.dialog-filename {
+    font-weight: @font-weight-semibold;
+}
+
+.btn {
+    font-size: 16px;
+    font-weight: @font-weight-semibold;
+    color: #454545;
+    
+    // On hover, gradient slides away to reveal a solid-color bg. Want same bg color in non-hover
+    // too so we don't see the color cross-fading during the gradient slide animation
+    background-color: #fff;
+    &:hover {
+        background-position: 0 15px;
+    }
+
+    &.primary {
+        background-color: @blue;
+    }
+}
+
+/* About dialog */
+.about-dialog .modal-body {
+    // Simple two-column layout: image on left, text taking up remaining space on right
+    position: relative;
+    .about-icon {
+        position: absolute;
+        left: 10px;  // relative to border of modal-body (bounds outside padding)
+        top:  11px;
+    }
+    .about-text {
+        // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
+        margin: 0 10px 0 123px;
+        
+        #about-build-number {
+            color: #b0b0b0;
+        }
+    }
+    
+    h2 {
+        font-weight: normal;
+        font-size: 25px;
+        margin-bottom: -8px;
+        margin-top: 3px;
+    }
+    .dialog-message {
+        font-size: 14px;
+        line-height: 17px;
+        
+        // Enable text selection, since URLs aren't clickable
+        cursor: auto;
+        -webkit-user-select: text;
+        -khtml-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        -o-user-select: text;
+        user-select: text;
+    }
 }

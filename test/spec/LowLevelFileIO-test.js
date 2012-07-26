@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define: false, describe: false, it: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, brackets: false */
 
@@ -5,7 +29,8 @@ define(function (require, exports, module) {
     'use strict';
     
     // Load dependent modules
-    var SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+    var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+    var _FSEncodings        = require("file/NativeFileSystem").NativeFileSystem._FSEncodings;
     
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.
@@ -121,7 +146,7 @@ define(function (require, exports, module) {
                 
                     runs(function () {
                         expect(error).toBe(brackets.fs.ERR_CANT_READ);
-                    });                    
+                    });
                 }
 
             });
@@ -215,7 +240,7 @@ define(function (require, exports, module) {
             });
         
             it("should read a text file", function () {
-                brackets.fs.readFile(baseDir + "file_one.txt", "utf8", function (err, contents) {
+                brackets.fs.readFile(baseDir + "file_one.txt", _FSEncodings.UTF8, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -230,7 +255,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a non-existent file", function () {
-                brackets.fs.readFile("/This/file/doesnt/exist.txt", "utf8", function (err, contents) {
+                brackets.fs.readFile("/This/file/doesnt/exist.txt", _FSEncodings.UTF8, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -244,7 +269,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to use an unsppported encoding", function () {
-                brackets.fs.readFile(baseDir + "file_one.txt", "utf16", function (err, contents) {
+                brackets.fs.readFile(baseDir + "file_one.txt", _FSEncodings.UTF16, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -272,7 +297,7 @@ define(function (require, exports, module) {
             });
         
             it("should return an error if trying to read a directory", function () {
-                brackets.fs.readFile(baseDir, "utf8", function (err, contents) {
+                brackets.fs.readFile(baseDir, _FSEncodings.UTF8, function (err, contents) {
                     error = err;
                     content = contents;
                     complete = true;
@@ -294,7 +319,7 @@ define(function (require, exports, module) {
             });
         
             it("should write the entire contents of a file", function () {
-                brackets.fs.writeFile(baseDir + "write_test.txt", contents, "utf8", function (err) {
+                brackets.fs.writeFile(baseDir + "write_test.txt", contents, _FSEncodings.UTF8, function (err) {
                     error = err;
                     complete = true;
                 });
@@ -308,7 +333,7 @@ define(function (require, exports, module) {
                 // Read contents to verify
                 runs(function () {
                     complete = false;
-                    brackets.fs.readFile(baseDir + "write_test.txt", "utf8", function (err, data) {
+                    brackets.fs.readFile(baseDir + "write_test.txt", _FSEncodings.UTF8, function (err, data) {
                         error = err;
                         content = data;
                         complete = true;
@@ -325,7 +350,7 @@ define(function (require, exports, module) {
         
             it("should return an error if the file can't be written (Mac only)", function () {
                 if (brackets.platform === "mac") {
-                    brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, "utf8", function (err) {
+                    brackets.fs.writeFile(baseDir + "cant_write_here/write_test.txt", contents, _FSEncodings.UTF8, function (err) {
                         error = err;
                         complete = true;
                     });
@@ -353,7 +378,7 @@ define(function (require, exports, module) {
             });
 
             it("should return an error if trying to write a directory", function () {
-                brackets.fs.writeFile(baseDir, contents, "utf8", function (err) {
+                brackets.fs.writeFile(baseDir, contents, _FSEncodings.UTF8, function (err) {
                     error = err;
                     complete = true;
                 });
@@ -377,7 +402,7 @@ define(function (require, exports, module) {
             it("should remove a file", function () {
                 var filename = baseDir + "remove_me.txt";
             
-                brackets.fs.writeFile(filename, contents, "utf8", function (err) {
+                brackets.fs.writeFile(filename, contents, _FSEncodings.UTF8, function (err) {
                     error = err;
                     complete = true;
                 });
@@ -392,7 +417,7 @@ define(function (require, exports, module) {
                 // Read contents to verify
                 runs(function () {
                     complete = false;
-                    brackets.fs.readFile(filename, "utf8", function (err, data) {
+                    brackets.fs.readFile(filename, _FSEncodings.UTF8, function (err, data) {
                         error = err;
                         content = data;
                         complete = true;

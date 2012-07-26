@@ -1,9 +1,27 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
- * @author Jonathan Diehl <jdiehl@adobe.com>
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $ */
 
 /**
@@ -19,9 +37,15 @@
  * CSSDocument supports highlighting nodes from the HighlightAgent and
  * highlighting all DOMNode corresponding to the rule at the cursor position
  * in the editor.
+ *
+ * # EVENTS
+ *
+ * CSSDocument dispatches these events:
+ *  deleted - When the file for the underlying Document has been deleted. The
+ *      2nd argument to the listener will be this CSSDocument.
  */
 define(function CSSDocumentModule(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var CSSAgent = require("LiveDevelopment/Agents/CSSAgent");
@@ -33,15 +57,28 @@ define(function CSSDocumentModule(require, exports, module) {
      */
     var CSSDocument = function CSSDocument(doc, editor, inspector) {
         this.doc = doc;
+
+        // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
+        // how to deal with different editors pointing at the same document.
+/*
         this.editor = editor;
         this._highlight = [];
         this.onHighlight = this.onHighlight.bind(this);
-        this.onChange = this.onChange.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
         Inspector.on("HighlightAgent.highlight", this.onHighlight);
-        $(this.editor).on("change", this.onChange);
+*/
+
+        // Add a ref to the doc since we're listening for change events
+        this.doc.addRef();
+        this.onChange = this.onChange.bind(this);
+        this.onDeleted = this.onDeleted.bind(this);
+        $(this.doc).on("change", this.onChange);
+        $(this.doc).on("deleted", this.onDeleted);
+
+/*
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
+*/
 
         // get the style sheet
         this.styleSheet = CSSAgent.styleForURL(this.doc.url);
@@ -51,14 +88,53 @@ define(function CSSDocumentModule(require, exports, module) {
             // res = {styleSheet}
             this.rules = res.styleSheet.rules;
         }.bind(this));
+
+        // If the CSS document is dirty, push the changes into the browser now
+        if (doc.isDirty) {
+            CSSAgent.reloadCSSForDocument(this.doc);
+        }
+    };
+
+    /** Get the browser version of the StyleSheet object */
+    CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
+        var deferred = new $.Deferred();
+
+        // WebInspector Command: CSS.getStyleSheet
+        Inspector.CSS.getStyleSheet(this.styleSheet.styleSheetId, function callback(res) {
+            // res = {styleSheet}
+            if (res.styleSheet) {
+                deferred.resolve(res.styleSheet);
+            } else {
+                deferred.reject();
+            }
+        });
+
+        return deferred.promise();
+    };
+
+    /** Get the browser version of the source */
+    CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
+        var deferred = new $.Deferred();
+
+        this.getStyleSheetFromBrowser().done(function onDone(styleSheet) {
+            deferred.resolve(styleSheet.text);
+        }).fail(function onFail() {
+            deferred.reject();
+        });
+
+        return deferred.promise();
     };
 
     /** Close the document */
     CSSDocument.prototype.close = function close() {
+        $(this.doc).off("change", this.onChange);
+        $(this.doc).off("deleted", this.onDeleted);
+        this.doc.releaseRef();
+/*
         Inspector.off("HighlightAgent.highlight", this.onHighlight);
-        $(this.editor).off("change", this.onChange);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
+*/
     };
 
     // find a rule in the given rules
@@ -72,7 +148,6 @@ define(function CSSDocumentModule(require, exports, module) {
         }
         return null;
     };
-
 
     /** Event Handlers *******************************************************/
 
@@ -90,10 +165,19 @@ define(function CSSDocumentModule(require, exports, module) {
         }
     };
 
-    /** Triggered on change of the editor */
+    /** Triggered whenever the Document is edited */
     CSSDocument.prototype.onChange = function onChange(event, editor, change) {
         // brute force: update the CSS
-        CSSAgent.reloadDocument(this.doc);
+        CSSAgent.reloadCSSForDocument(this.doc);
+    };
+    /** Triggered if the Document's file is deleted */
+    CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
+        // clear the CSS
+        CSSAgent.clearCSSForDocument(this.doc);
+
+        // shut down, since our Document is now dead
+        this.close();
+        $(this).triggerHandler("deleted", [this]);
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */

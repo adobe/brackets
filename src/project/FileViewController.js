@@ -1,15 +1,41 @@
 /*
- * Copyright 2012 Adobe Systems Incorporated. All Rights Reserved.
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
  */
 
-/*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, $: false */
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
 
 /**
  * Responsible for coordinating file selection between views by permitting only one view
  * to show the current file selection at a time. Currently, only WorkingSetView and 
  * ProjectManager can show file selection. In general the WorkingSetView takes higher
  * priority until the user selects a file in the ProjectManager.
+ *
+ * Events dispatched:
+ * - documentSelectionFocusChange - indicates a document change has caused the focus to 
+ *   change between the working set and file tree.
+ *
+ * - fileViewFocusChange - indicates the selection focus has changed between the working
+ *   set and the project tree, but the document selection has NOT changed
  *
  * Current file selection rules in views:
  * - select a file in WorkingSetView > select in WorkingSetView
@@ -20,12 +46,13 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
         EditorManager       = require("editor/EditorManager"),
+        PerfUtils           = require("utils/PerfUtils"),
         Commands            = require("command/Commands");
 
     /** 
@@ -56,10 +83,11 @@ define(function (require, exports, module) {
       * Update the file selection focus when ever the current document changes
       */
     $(DocumentManager).on("currentDocumentChange", function (event) {
-
+        var perfTimerName;
         // The the cause of the doc change was not openAndSelectDocument, so pick the best fileSelectionFocus
         if (!_curDocChangedDueToMe) {
             var curDoc = DocumentManager.getCurrentDocument();
+            perfTimerName = PerfUtils.markStart("FileViewController._onCurrentDocumentChange():\t" + (!curDoc || curDoc.file.fullPath));
             if (curDoc && DocumentManager.findInWorkingSet(curDoc.file.fullPath) !== -1) {
                 _fileSelectionFocus = WORKING_SET_VIEW;
             } else {
@@ -68,14 +96,46 @@ define(function (require, exports, module) {
         }
 
         $(exports).triggerHandler("documentSelectionFocusChange");
+
+        if (!_curDocChangedDueToMe) {
+            PerfUtils.addMeasurement(perfTimerName);
+        }
     });
+    
+    /** 
+     * @private
+     * @returns {$.Promise}
+     */
+    function _selectCurrentDocument() {
+        // If fullPath corresonds to the current doc being viewed then opening the file won't
+        // trigger a currentDocumentChanged event, so we need to trigger a documentSelectionFocusChange 
+        // in this case to signify the selection focus has changed even though the current document has not.
+        $(exports).triggerHandler("documentSelectionFocusChange");
+        
+        // Ensure the editor has focus even though we didn't open a new file.
+        EditorManager.focusEditor();
+    }
+
+    /**
+     * Modifies the selection focus in the project side bar. A file can either be selected
+     * in the working set (the open files) or in the file tree, but not both.
+     * @param {String} fileSelectionFocus - either PROJECT_MANAGER or WORKING_SET_VIEW
+     */
+    function setFileViewFocus(fileSelectionFocus) {
+        if (fileSelectionFocus !== PROJECT_MANAGER && fileSelectionFocus !== WORKING_SET_VIEW) {
+            throw new Error("Bad parameter passed to FileViewController.setFileViewFocus");
+        }
+
+        _fileSelectionFocus = fileSelectionFocus;
+        $(exports).triggerHandler("fileViewFocusChange");
+    }
 
     /** 
      * Opens a document if it's not open and selects the file in the UI corresponding to
      * fileSelectionFocus
      * @param {!fullPath}
      * @param {string} - must be either WORKING_SET_VIEW or PROJECT_MANAGER
-     * @returns {!Deferred}
+     * @returns {$.Promise}
      */
     function openAndSelectDocument(fullPath, fileSelectionFocus) {
         var result;
@@ -86,7 +146,7 @@ define(function (require, exports, module) {
 
         // Opening files are asynchronous and we want to know when this function caused a file
         // to open so that _fileSelectionFocus is set appropriatly. _curDocChangedDueToMe is set here
-        // and checked in the cyrrentDocumentChange handler
+        // and checked in the currentDocumentChange handler
         _curDocChangedDueToMe = true;
 
         _fileSelectionFocus = fileSelectionFocus;
@@ -96,10 +156,8 @@ define(function (require, exports, module) {
         // in this case to signify the selection focus has changed even though the current document has not.
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && curDoc.file.fullPath === fullPath) {
-            $(exports).triggerHandler("documentSelectionFocusChange");
-            // Ensure the editor has focus even though we didn't open a new file.
-            EditorManager.focusEditor();
-            result = (new $.Deferred()).resolve();
+            _selectCurrentDocument();
+            result = (new $.Deferred()).resolve().promise();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath});
         }
@@ -116,15 +174,29 @@ define(function (require, exports, module) {
      * Opens the specified document if it's not already open, adds it to the working set,
      * and selects it in the WorkingSetView
      * @param {!fullPath}
+     * @param {?String} selectIn - specify either WORING_SET_VIEW or PROJECT_MANAGER.
+     *      Default is WORING_SET_VIEW.
      * @return {!$.Promise}
      */
-    function addToWorkingSetAndSelect(fullPath) {
-        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
+    function addToWorkingSetAndSelect(fullPath, selectIn) {
+        var result = new $.Deferred(),
+            promise = CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath});
 
         // This properly handles sending the right nofications in cases where the document
-        // is already the curruent one. In that case we will want to notify with
+        // is already the current one. In that case we will want to notify with
         // documentSelectionFocusChange so the views change their selection
-        return openAndSelectDocument(fullPath, WORKING_SET_VIEW);
+        promise.done(function (doc) {
+            // FILE_ADD_TO_WORKING_SET command sets the current document. Update the 
+            // selection focus and trigger documentSelectionFocusChange event
+            _fileSelectionFocus = selectIn || WORKING_SET_VIEW;
+            _selectCurrentDocument();
+            
+            result.resolve(doc);
+        }).fail(function (err) {
+            result.reject(err);
+        });
+
+        return result.promise();
     }
 
     /**
@@ -141,8 +213,7 @@ define(function (require, exports, module) {
     exports.getFileSelectionFocus = getFileSelectionFocus;
     exports.openAndSelectDocument = openAndSelectDocument;
     exports.addToWorkingSetAndSelect = addToWorkingSetAndSelect;
+    exports.setFileViewFocus = setFileViewFocus;
     exports.WORKING_SET_VIEW = WORKING_SET_VIEW;
     exports.PROJECT_MANAGER = PROJECT_MANAGER;
-
-
 });

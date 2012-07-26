@@ -1,4 +1,33 @@
+// Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+//  
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+//  
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//  
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+// DEALINGS IN THE SOFTWARE.
+
 /* Brackets / CodeMirror Code Formatting */
+
+/*
+ * TODO This can be removed next time we update CodeMirror2.
+ * Marijn made this change to codemirror.css, but I need it now
+ * in order to make font resizing work.
+ */
+.CodeMirror pre {
+    line-height: inherit;
+}
 
 .CodeMirror-scroll {
     background-color: @background-color-3;
@@ -11,6 +40,8 @@
 .platform-win .CodeMirror-scroll {
     .code-font-win();
 }
+
+@code-padding: 14px;
 
 .cm-s-default {
     .CodeMirror-cursor {
@@ -40,12 +71,31 @@
     span.cm-quote {color: @accent-quote;}
     span.cm-hr {color: @accent-hr;}
     span.cm-link {color: @accent-link;}
+    span.cm-rangeinfo {color: @accent-rangeinfo;}
+    span.cm-minus {color: @accent-minus;}
+    span.cm-plus {color: @accent-plus;}
     
+    span.CodeMirror-matchingbracket {color: @accent-bracket !important; background-color: @background-color-2;}
+    span.CodeMirror-nonmatchingbracket {color: @accent-bracket !important;}
+
+    
+    .CodeMirror-lines {
+        padding: @code-padding;
+    }
+    .CodeMirror-gutter {
+        background-color: @background-color-3;
+        border-right: none;
+        padding-top: @code-padding;
+        padding-bottom: @code-padding;
+        min-width: 2.5em;
+    }
+    .CodeMirror-gutter-text {
+        color: @accent-comment;
+        font-size: 0.9em;
+        padding-top: 0px;
+        padding-bottom: 0px;
+    }
 }
-
-div.CodeMirror span.CodeMirror-matchingbracket {color: @accent-bracket; background-color: @background-color-2;}
-div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
-
 
 /*
     CodeMirror's use of descendant selectors for certain styling causes problems when editors are
@@ -62,18 +112,22 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: @accent-bracket;}
     .CodeMirror pre.CodeMirror-cursor {
         visibility: hidden;
     }
-    .CodeMirror.CodeMirror-focused pre.CodeMirror-cursor {
+    .CodeMirror .CodeMirror-focused pre.CodeMirror-cursor {
         visibility: visible;
     }
     
     .CodeMirror div.CodeMirror-selected {
         background: #d9d9d9;
     }
-    .CodeMirror.CodeMirror-focused div.CodeMirror-selected {
+    .CodeMirror .CodeMirror-focused div.CodeMirror-selected {
         background: #d2dcf8;
     }
     .CodeMirror .CodeMirror-gutter {
         background: transparent;
         border-right: none;
+    }
+    
+    .CodeMirror-scroll {
+        outline: none;
     }
 }
