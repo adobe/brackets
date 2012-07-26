@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var HTMLUtils       = brackets.getModule("language/HTMLUtils"),
     	HTMLTags        = require("text!HtmlTags.json"),
-    	//HTMLAttributes        = require("text!HtmlAttributes.json"),
+    	HTMLAttributes  = require("text!HtmlAttributes.json"),
     	CodeHintManager	= brackets.getModule("editor/CodeHintManager");
 
 
@@ -126,10 +126,24 @@ define(function (require, exports, module) {
          * @constructor
          */
         function AttrHints () {
-            // TODO Raymond
             this.tags = JSON.parse(HTMLTags);
-            // this.attributes = JSON.parse(HTMLAttributes);
+            this.globalAttributes = this.readAttrHints(HTMLAttributes);
         }
+
+    	/**
+    	 * @private
+    	 * Parse the code hints from JSON data and extract all hints from property names.
+    	 * @param {string} a JSON string that has the code hints data
+    	 * @return {!Array.<string>} An array of code hints read from the JSON data source.
+    	 */
+    	AttrHints.prototype.readAttrHints = function(jsonStr) {
+            var hintObj = JSON.parse(jsonStr);
+    	    return $.map(hintObj, function (value, key) {
+                if (value.global === "true") {
+    	           return key;
+                }
+    	    });
+    	};
 
         AttrHints.prototype.handleSelect = function (completion, editor) {
     	    var start = {line: -1, ch: -1},
@@ -185,15 +199,15 @@ define(function (require, exports, module) {
                     attrName = queryObj.attrName;
                         
                 if (this.tags && this.tags[tagName]) {
-                    var unfiltered = this.tags[tagName].attributes;
+                    var unfiltered = this.tags[tagName].attributes,
+                        unfiltered2 = unfiltered.concat(this.globalAttributes);
                     
-                    if (unfiltered.length) {
-                        unfiltered.forEach(function (item) {
-                            if (item.indexOf(attrName) !== 0) {
-                                return false;
+                    if (unfiltered2.length) {
+                        result = $.map(unfiltered2, function (item) {
+                            if (item.indexOf(attrName) === 0) {
+                                return item;
                             }
-                            result.push(item);
-                        });
+                        }).sort();
                     }
                 }
             }
