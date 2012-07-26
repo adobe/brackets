@@ -233,8 +233,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Unload the agents */
     function unloadAgents() {
-        _loadedAgentNames.forEach(function (i) {
-            agents[i].unload();
+        _loadedAgentNames.forEach(function (name) {
+            agents[name].unload();
         });
         _loadedAgentNames = [];
     }
