@@ -39,6 +39,12 @@ define(function (require, exports, module) {
     
     
     /**
+     * List of constants
+     */
+    var DIRECTION_UP    = -1;
+    var DIRECTION_DOWN  = +1;
+    
+    /**
      * Add or remove line-comment tokens to all the lines in the selected range, preserving selection
      * and cursor position. Applies to currently focused Editor.
      * 
@@ -154,16 +160,20 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Moves the selected text, or current line if no selection, one line up. The cursor/selection 
+     * Moves the selected text, or current line if no selection. The cursor/selection 
      * moves with the line/lines.
+     * @param {Editor} editor - target editor
+     * @param {Number} direction - direction of the move (-1,+1) => (Up,Down)
      */
-    function moveLineUp(editor) {
+    function moveLine(editor, direction) {
         editor = editor || EditorManager.getFocusedEditor();
         if (!editor) {
             return;
         }
-
-        var sel = editor.getSelection(),
+        
+        var doc = editor.document,
+            sel = editor.getSelection(),
+            originalSel = editor.getSelection(),
             hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
         
         sel.start.ch = 0;
@@ -172,24 +182,52 @@ define(function (require, exports, module) {
             sel.end = {line: sel.end.line + 1, ch: 0};
         }
         
-        if (sel.start.line !== 0) {
-            // Make the edit
-            var doc = editor.document;
-    
-            var currentText = doc.getRange(sel.start, sel.end);
-            var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
-            
-            if (sel.end.line === editor.lineCount()) {
-                currentText += "\n";
-                prevText = prevText.substring(0, prevText.length - 1);
+        // Make the move
+        switch (direction) {
+        case DIRECTION_UP:
+            if (sel.start.line !== 0) {
+                var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
+                
+                if (sel.end.line === editor.lineCount()) {
+                    prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                }
+                
+                doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
+                doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 });
+                
+                // fixes selection problems
+                originalSel.start.line--;
+                originalSel.end.line--;
+                editor.setSelection(originalSel.start, originalSel.end);
             }
-            
-            doc.replaceRange(currentText, { line: sel.start.line - 1, ch: 0 },
-                                          { line: sel.end.line - 1, ch: 0 });
-            doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 }, sel.end);
-            editor.setSelection({ line: sel.start.line - 1, ch: 0 },
-                                { line: sel.end.line - 1, ch: 0 });
+            break;
+        case DIRECTION_DOWN:
+            if (sel.end.line < editor.lineCount()) {
+                var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
+                
+                var deletionStart = sel.end;
+                if (sel.end.line === editor.lineCount() - 1) {
+                    nextText += "\n";
+                    
+                    var lastSelectedLine = doc.getLine(sel.end.line - 1);
+                    if (lastSelectedLine !== undefined) {
+                        deletionStart = { line: sel.end.line - 1, ch: lastSelectedLine.length };
+                    }
+                }
+
+                doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
+                doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
+            }
+            break;
         }
+    }
+    
+    /**
+     * Moves the selected text, or current line if no selection, one line up. The cursor/selection 
+     * moves with the line/lines.
+     */
+    function moveLineUp(editor) {
+        moveLine(editor, DIRECTION_UP);
     }
     
     /**
@@ -197,39 +235,7 @@ define(function (require, exports, module) {
      * moves with the line/lines.
      */
     function moveLineDown(editor) {
-        editor = editor || EditorManager.getFocusedEditor();
-        if (!editor) {
-            return;
-        }
-
-        var sel = editor.getSelection(),
-            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
-        
-        sel.start.ch = 0;
-        // The end of the selection becomes the start of the next line, if it isn't already
-        if (!hasSelection || sel.end.ch !== 0) {
-            sel.end = {line: sel.end.line + 1, ch: 0};
-        }
-        
-        if (sel.end.line < editor.lineCount()) {
-        
-            // Make the edit
-            var doc = editor.document;
-    
-            var currentText = doc.getRange(sel.start, sel.end);
-            var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
-            
-            if (sel.end.line === editor.lineCount() - 1) {
-                currentText = currentText.substring(0, currentText.length - 1);
-                nextText += "\n";
-            }
-            
-            doc.replaceRange(currentText, { line: sel.start.line + 1, ch: 0 },
-                                          { line: sel.end.line + 1, ch: 0 });
-            doc.replaceRange(nextText, sel.start, { line: sel.start.line + 1, ch: 0 });
-            editor.setSelection({ line: sel.start.line + 1, ch: 0 },
-                                { line: sel.end.line + 1, ch: 0 });
-        }
+        moveLine(editor, DIRECTION_DOWN);
     }
 
     /**
