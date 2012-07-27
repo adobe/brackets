@@ -96,10 +96,10 @@ define(function (require, exports, module) {
     };
 
     /**
-	 * Enters the code completion text into the editor
-	 * @param {string} completion - text to insert into current code editor
-	 * @param {Editor} editor
-	 */
+     * Enters the code completion text into the editor
+     * @param {string} completion - text to insert into current code editor
+     * @param {Editor} editor
+     */
     TagHints.prototype.handleSelect = function (completion, editor) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
@@ -145,10 +145,10 @@ define(function (require, exports, module) {
     };
     
     /**
-	 * Enters the code completion text into the editor
-	 * @param {string} completion - text to insert into current code editor
-	 * @param {Editor} editor
-	 */
+     * Enters the code completion text into the editor
+     * @param {string} completion - text to insert into current code editor
+     * @param {Editor} editor
+     */
     AttrHints.prototype.handleSelect = function (completion, editor) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
