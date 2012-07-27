@@ -74,21 +74,17 @@ define(function ConsoleAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        if (Inspector.type === "chrome") {
-            Inspector.Console.enable();
-            Inspector.on("Console.messageAdded", _onMessageAdded);
-            Inspector.on("Console.messageRepeatCountUpdated", _onMessageRepeatCountUpdated);
-            Inspector.on("Console.messagesCleared", _onMessagesCleared);
-        }
+        Inspector.Console.enable();
+        Inspector.on("Console.messageAdded", _onMessageAdded);
+        Inspector.on("Console.messageRepeatCountUpdated", _onMessageRepeatCountUpdated);
+        Inspector.on("Console.messagesCleared", _onMessagesCleared);
     }
 
     /** Clean up */
     function unload() {
-        if (Inspector.type === "chrome") {
-            Inspector.off("Console.messageAdded", _onMessageAdded);
-            Inspector.off("Console.messageRepeatCountUpdated", _onMessageRepeatCountUpdated);
-            Inspector.off("Console.messagesCleared", _onMessagesCleared);
-        }
+        Inspector.off("Console.messageAdded", _onMessageAdded);
+        Inspector.off("Console.messageRepeatCountUpdated", _onMessageRepeatCountUpdated);
+        Inspector.off("Console.messagesCleared", _onMessagesCleared);
     }
 
     // Export public functions

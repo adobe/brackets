@@ -64,17 +64,13 @@ define(function NetworkAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _urlRequested = {};
-        if (Inspector.type === "chrome") {
-            Inspector.Network.enable();
-            Inspector.on("Network.requestWillBeSent", _onRequestWillBeSent);
-        }
+        Inspector.Network.enable();
+        Inspector.on("Network.requestWillBeSent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
     function unload() {
-        if (Inspector.type === "chrome") {
-            Inspector.off("Network.requestWillBeSent", _onRequestWillBeSent);
-        }
+        Inspector.off("Network.requestWillBeSent", _onRequestWillBeSent);
     }
 
     // Export public functions
