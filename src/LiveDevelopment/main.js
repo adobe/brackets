@@ -155,7 +155,7 @@ define(function main(require, exports, module) {
 
     /** Setup autostarting of the live development connection */
     function _setupAutoStart() {
-        brackets.ready(function() {
+        brackets.ready(function () {
             if (DocumentManager.getCurrentDocument()) {
                 _handleGoLiveCommand();
             }

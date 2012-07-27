@@ -148,7 +148,7 @@ define(function LiveDevelopment(require, exports, module) {
         case "htm":
             return HTMLDocument;
         default:
-            throw "Invalid document type: " + doc.extension;
+            return null;
         }
 
     }
