@@ -91,9 +91,14 @@ define(function (require, exports, module) {
     }
     
     function _documentReadyHandler() {
-        $("#show-dev-tools").click(function () {
-            brackets.app.showDeveloperTools();
-        });
+        if (brackets.app.showDeveloperTools) {
+            $("#show-dev-tools").click(function () {
+                brackets.app.showDeveloperTools();
+            });
+        } else {
+            $("#show-dev-tools").remove();
+        }
+        
         $("#reload").click(function () {
             window.location.reload(true);
         });
