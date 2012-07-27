@@ -142,6 +142,7 @@ define(function GotoAgent(require, exports, module) {
         codeMirror.setCursor(location);
         codeMirror.setLineClass(location.line, "flash");
         window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+        editor.focus();
     }
 
     /** Open the editor at the given url and editor location
