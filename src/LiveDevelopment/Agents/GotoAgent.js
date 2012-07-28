@@ -151,6 +151,9 @@ define(function GotoAgent(require, exports, module) {
      */
     function open(url, location) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
+
+        var result = new $.Deferred();
+        
         url = _urlWithoutQueryString(url);
         var path = url.substr(7);
         var promise = DocumentManager.getDocumentForPath(path);
@@ -159,10 +162,14 @@ define(function GotoAgent(require, exports, module) {
             if (location) {
                 openLocation(location);
             }
+            result.resolve();
         });
         promise.fail(function onErr(err) {
             console.error(err);
+            result.reject(err);
         });
+
+        return result.promise();
     }
 
     /** Go to the given source node */
