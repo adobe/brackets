@@ -549,14 +549,14 @@ define(function (require, exports, module) {
                     len = lines.length;
 
                 // place cursor at the beginning of the last line
-                myEditor.setCursorPos(len-1, 0);
+                myEditor.setCursorPos(len - 1, 0);
 
                 CommandManager.execute(Commands.EDIT_LINE_DOWN, myEditor);
                 
                 var expectedText = lines.join("\n");
 
                 expect(myDocument.getText()).toEqual(expectedText);
-                expectCursorAt({line: len-1, ch: 0});
+                expectCursorAt({line: len - 1, ch: 0});
             });
             
             it("should move up empty line", function () {

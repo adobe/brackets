@@ -856,8 +856,14 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
         menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
-        menu.addMenuItem(Commands.EDIT_LINE_UP,         {key: "Ctrl-Up", displayKey: "Ctrl-\u2191"});
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       {key: "Ctrl-Down", displayKey: "Ctrl-\u2193"});
+        menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
+                                                          platform: "win"},
+                                                         {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
+                                                          platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2191",
+                                                          platform: "win"},
+                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2191",
+                                                          platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
         menu.addMenuDivider();

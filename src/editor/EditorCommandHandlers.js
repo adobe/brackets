@@ -186,37 +186,38 @@ define(function (require, exports, module) {
         switch (direction) {
         case DIRECTION_UP:
             if (sel.start.line !== 0) {
-                var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
-                
-                if (sel.end.line === editor.lineCount()) {
-                    prevText = "\n" + prevText.substring(0, prevText.length - 1);
-                }
-                
-                doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
-                doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 });
-                
-                // fixes selection problems
-                originalSel.start.line--;
-                originalSel.end.line--;
-                editor.setSelection(originalSel.start, originalSel.end);
+                doc.batchOperation(function () {
+                    var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
+                    
+                    if (sel.end.line === editor.lineCount()) {
+                        prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                    }
+                    
+                    doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
+                    doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 });
+                    
+                    // Make sure CodeMirror hasn't expanded the selection to include
+                    // the line we inserted below.
+                    originalSel.start.line--;
+                    originalSel.end.line--;
+                    editor.setSelection(originalSel.start, originalSel.end);
+                });
             }
             break;
         case DIRECTION_DOWN:
             if (sel.end.line < editor.lineCount()) {
-                var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
-                
-                var deletionStart = sel.end;
-                if (sel.end.line === editor.lineCount() - 1) {
-                    nextText += "\n";
+                doc.batchOperation(function () {
+                    var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
                     
-                    var lastSelectedLine = doc.getLine(sel.end.line - 1);
-                    if (lastSelectedLine !== undefined) {
-                        deletionStart = { line: sel.end.line - 1, ch: lastSelectedLine.length };
+                    var deletionStart = sel.end;
+                    if (sel.end.line === editor.lineCount() - 1) {
+                        nextText += "\n";
+                        deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
                     }
-                }
-
-                doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
-                doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
+    
+                    doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
+                    doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
+                });
             }
             break;
         }
