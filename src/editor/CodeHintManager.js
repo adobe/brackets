@@ -46,7 +46,7 @@ define(function (require, exports, module) {
     function CodeHintList() {
         this.hintProviders = [];
         this.currentProvider = null;
-        this.query = "";
+        this.query = {queryStr: null};
         this.displayList = [];
         this.options = {
             maxResults: 8
@@ -73,7 +73,7 @@ define(function (require, exports, module) {
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
-        this.currentProvider.handleSelect(completion, this.editor);
+        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos());
     };
 
     /**
@@ -83,7 +83,7 @@ define(function (require, exports, module) {
     CodeHintList.prototype.addItem = function (name) {
         var self = this;
         var displayName = name.replace(
-            new RegExp(StringUtils.regexEscape(this.query), "i"),
+            new RegExp(StringUtils.regexEscape(this.query.queryStr), "i"),
             "<strong>$&</strong>"
         );
 
@@ -189,7 +189,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.query = this.currentProvider.getQueryString(this.editor);
+        this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
         this.updateList();
 
         // Update the CodeHistList location
@@ -226,8 +226,8 @@ define(function (require, exports, module) {
 
         this.currentProvider = null;
         $.each(this.hintProviders, function (index, item) {
-            var query = item.getQueryString(self.editor);
-            if (query !== null) {
+            var query = item.getQueryInfo(self.editor, self.editor.getCursorPos());
+            if (query.queryStr !== null) {
                 self.query = query;
                 self.currentProvider = item;
                 return false;
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
     function _showHint(editor) {
         hintList.open(editor);
     }
-        
+    
     /**
      * Handles keys related to displaying, searching, and navigating the hint list
      * @param {Editor} editor
@@ -314,7 +314,9 @@ define(function (require, exports, module) {
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
             event.preventDefault();
-        } else if (event.type === "keyup" && (event.keyCode === 188 || event.keyCode === 32)) {
+        } else if (event.type === "keyup" &&
+                   (event.keyCode === 188 ||    // keyCode for "<"
+                    event.keyCode === 32)) {    // keyCode for space character
             _showHint(editor);
         }
 
@@ -326,20 +328,20 @@ define(function (require, exports, module) {
 
     /**
      * Registers an object that is able to provide code hints. When the user requests a code
-     * hint getQueryString() will be called on every hint provider. Providers should examine
-     * the state of the editor and return a search query string if hints can be provided.
-     * search() will then be called allowing the hint provider to create a list of hints
-     * for the search query. When the user chooses a hint handleSelect() is called
+     * hint getQueryInfo() will be called on every hint provider. Providers should examine
+     * the state of the editor and return a search query object with a filter string if hints 
+     * can be provided. search() will then be called allowing the hint provider to create a 
+     * list of hints for the search query. When the user chooses a hint handleSelect() is called
      * so that the hint provider can insert the hint into the editor.
      *
-     * @param {Object.< getQueryString: function(editor),
+     * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor)>}
+     *                  handleSelect: function(string, Editor, cursor)>}
      *
      * Parameter Details:
-     * - getQueryString - examines cursor location of editor and returns a string representing
-     *      the search query string to be used for hinting
-     * - search - takes a query string and returns an array of hint strings
+     * - getQueryInfo - examines cursor location of editor and returns an object representing
+     *      the search query to be used for hinting
+     * - search - takes a query object and returns an array of hint strings
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position
      */
