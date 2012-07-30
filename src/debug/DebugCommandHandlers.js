@@ -131,14 +131,15 @@ define(function (require, exports, module) {
         window.open(window.location.href);
     }
     
+    /* Register all the command handlers */
     
-    // Register all the command handlers
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS, Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS, Commands.DEBUG_RUN_UNIT_TESTS,      _handleRunUnitTests);
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
-                                                        Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
+    // Show Developer Tools (optionally enabled)
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
+        .setEnabled(!!brackets.app.showDeveloperTools);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     
-    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,      _handleUseTabChars)
+    CommandManager.register(Strings.CMD_USE_TAB_CHARS,       Commands.TOGGLE_USE_TAB_CHARS,         _handleUseTabChars)
         .setChecked(Editor.getUseTabChar());
 });
