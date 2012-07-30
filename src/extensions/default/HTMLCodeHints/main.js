@@ -43,7 +43,8 @@ define(function (require, exports, module) {
     
     /**
      * Filters the source list by query and returns the result
-     * @param {Object} query -- a query object that has a query string to filter out code hints
+     * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
+     *     that will be used to filter out code hints
      * @return {Array.<string>}
      */
     TagHints.prototype.search = function (query) {
@@ -199,7 +200,8 @@ define(function (require, exports, module) {
     /**
      * Create a complete list of attributes for the tag in the query. Then filter 
      * the list by attrName in the query and return the result.
-     * @param {Object} query -- a query object that has a query string to filter out code hints
+     * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
+     *     that will be used to filter out code hints
      * @return {Array.<string>}
      */
     AttrHints.prototype.search = function (query) {

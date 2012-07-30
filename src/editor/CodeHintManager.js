@@ -340,8 +340,10 @@ define(function (require, exports, module) {
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
-     *      the search query to be used for hinting
-     * - search - takes a query object and returns an array of hint strings
+     *      the search query to be used for hinting. queryStr is a required property of the search object
+     *      and a client may provide other properties on the object to carry more context about the query.
+     * - search - takes a query object and returns an array of hint strings based on the queryStr property
+     *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position
      */
