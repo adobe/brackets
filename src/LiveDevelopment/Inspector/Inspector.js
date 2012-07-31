@@ -138,7 +138,7 @@ define(function Inspector(require, exports, module) {
             // off auto re-opening when a new HTML file is selected.
             return;
         }
-        
+
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
         var id, callback, args, i, params = {};
 
@@ -159,6 +159,27 @@ define(function Inspector(require, exports, module) {
             }
         }
         _socket.send(JSON.stringify({ method: method, id: id, params: params }));
+    }
+
+    /** Load the Inspector API from Inspector.json or a compatible file
+     * @param {string} source file (will be loaded from LiveDevelopment/Inspector/)
+     */
+    function _loadInspectorAPI(source) {
+        var request = new XMLHttpRequest();
+        request.open("GET", "LiveDevelopment/Inspector/" + source);
+        request.onload = function onLoad() {
+            var InspectorJSON = JSON.parse(request.response);
+            var i, j, domain, domainDef, command;
+            for (i in InspectorJSON.domains) {
+                domain = InspectorJSON.domains[i];
+                exports[domain.domain] = {};
+                for (j in domain.commands) {
+                    command = domain.commands[j];
+                    exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
+                }
+            }
+        };
+        request.send(null);
     }
 
     /** WebSocket did close */
@@ -327,21 +348,8 @@ define(function Inspector(require, exports, module) {
      */
     function init(theConfig) {
         exports.config = theConfig;
-        var request = new XMLHttpRequest();
-        request.open("GET", "LiveDevelopment/Inspector/Inspector.json");
-        request.onload = function onLoad() {
-            var InspectorJSON = JSON.parse(request.response);
-            var i, j, domain, domainDef, command;
-            for (i in InspectorJSON.domains) {
-                domain = InspectorJSON.domains[i];
-                exports[domain.domain] = {};
-                for (j in domain.commands) {
-                    command = domain.commands[j];
-                    exports[domain.domain][command.name] = _send.bind(undefined, domain.domain + "." + command.name, command.parameters);
-                }
-            }
-        };
-        request.send(null);
+        _loadInspectorAPI("Inspector.json");
+        _loadInspectorAPI("Inspector-v8.json");
     }
 
     // Export public functions
