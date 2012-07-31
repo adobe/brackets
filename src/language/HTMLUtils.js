@@ -312,6 +312,13 @@ define(function (require, exports, module) {
                 ctx.token = testToken;
                 // Get the new offset from test token and subtract one for testPos adjustment
                 offset = _offsetInToken(ctx) - 1;
+
+                // check to see if the user is going to add a new attr before an existing
+                // attribute or before the ">".
+                if (ctx.token.className === "attribute" ||
+                        ctx.token.string === ">") {
+                    return createTagInfo(ATTR_NAME, 0, _extractTagName(ctx));
+                }
             } else {
                 // next, see what's before pos
                 if (!_movePrevToken(ctx)) {
