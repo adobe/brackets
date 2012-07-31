@@ -39,6 +39,12 @@ define(function (require, exports, module) {
     
     
     /**
+     * List of constants
+     */
+    var DIRECTION_UP    = -1;
+    var DIRECTION_DOWN  = +1;
+    
+    /**
      * Add or remove line-comment tokens to all the lines in the selected range, preserving selection
      * and cursor position. Applies to currently focused Editor.
      * 
@@ -152,6 +158,86 @@ define(function (require, exports, module) {
         var selectedText = doc.getRange(sel.start, sel.end) + delimiter;
         doc.replaceRange(selectedText, sel.start);
     }
+    
+    /**
+     * Moves the selected text, or current line if no selection. The cursor/selection 
+     * moves with the line/lines.
+     * @param {Editor} editor - target editor
+     * @param {Number} direction - direction of the move (-1,+1) => (Up,Down)
+     */
+    function moveLine(editor, direction) {
+        editor = editor || EditorManager.getFocusedEditor();
+        if (!editor) {
+            return;
+        }
+        
+        var doc = editor.document,
+            sel = editor.getSelection(),
+            originalSel = editor.getSelection(),
+            hasSelection = (sel.start.line !== sel.end.line) || (sel.start.ch !== sel.end.ch);
+        
+        sel.start.ch = 0;
+        // The end of the selection becomes the start of the next line, if it isn't already
+        if (!hasSelection || sel.end.ch !== 0) {
+            sel.end = {line: sel.end.line + 1, ch: 0};
+        }
+        
+        // Make the move
+        switch (direction) {
+        case DIRECTION_UP:
+            if (sel.start.line !== 0) {
+                doc.batchOperation(function () {
+                    var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
+                    
+                    if (sel.end.line === editor.lineCount()) {
+                        prevText = "\n" + prevText.substring(0, prevText.length - 1);
+                    }
+                    
+                    doc.replaceRange("", { line: sel.start.line - 1, ch: 0 }, sel.start);
+                    doc.replaceRange(prevText, { line: sel.end.line - 1, ch: 0 });
+                    
+                    // Make sure CodeMirror hasn't expanded the selection to include
+                    // the line we inserted below.
+                    originalSel.start.line--;
+                    originalSel.end.line--;
+                    editor.setSelection(originalSel.start, originalSel.end);
+                });
+            }
+            break;
+        case DIRECTION_DOWN:
+            if (sel.end.line < editor.lineCount()) {
+                doc.batchOperation(function () {
+                    var nextText = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 });
+                    
+                    var deletionStart = sel.end;
+                    if (sel.end.line === editor.lineCount() - 1) {
+                        nextText += "\n";
+                        deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
+                    }
+    
+                    doc.replaceRange("", deletionStart, { line: sel.end.line + 1, ch: 0 });
+                    doc.replaceRange(nextText, { line: sel.start.line, ch: 0 });
+                });
+            }
+            break;
+        }
+    }
+    
+    /**
+     * Moves the selected text, or current line if no selection, one line up. The cursor/selection 
+     * moves with the line/lines.
+     */
+    function moveLineUp(editor) {
+        moveLine(editor, DIRECTION_UP);
+    }
+    
+    /**
+     * Moves the selected text, or current line if no selection, one line down. The cursor/selection 
+     * moves with the line/lines.
+     */
+    function moveLineDown(editor) {
+        moveLine(editor, DIRECTION_DOWN);
+    }
 
     /**
      * Indent a line of text if no selection. Otherwise, indent all lines in selection.
@@ -182,4 +268,6 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,     unidentText);
     CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT, lineComment);
     CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,    duplicateText);
+    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,      moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,    moveLineDown);
 });
