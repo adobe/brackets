@@ -123,7 +123,7 @@ define(function GotoAgent(require, exports, module) {
             for (i in node.trace) {
                 _makeJSTarget(targets, node.trace[i]);
             }
-            for (i in res.matchedCSSRules) {
+            for (i in res.matchedCSSRules.reverse()) {
                 _makeCSSTarget(targets, res.matchedCSSRules[i]);
             }
             RemoteAgent.call("showGoto", targets);

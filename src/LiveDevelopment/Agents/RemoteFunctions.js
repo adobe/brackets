@@ -73,40 +73,45 @@ function RemoteFunctions() {
     // construct the info menu
     function Menu(element) {
         this.element = element;
-
-        // compute the position on screen
-        var x = _screenOffset(this.element, "offsetLeft");
-        var y = _screenOffset(this.element, "offsetTop") + this.element.offsetHeight;
-
-        // create the container
-        this.body = document.createElement("div");
-        this.body.style.setProperty("z-index", 2147483647);
-        this.body.style.setProperty("position", "absolute");
-        this.body.style.setProperty("left", x + "px");
-        this.body.style.setProperty("top", y + "px");
-        this.body.style.setProperty("font-size", "11pt");
-
-        // draw the background
-        this.body.style.setProperty("background", "#fff");
-        this.body.style.setProperty("border", "1px solid #888");
-        this.body.style.setProperty("-webkit-box-shadow", "2px 2px 6px 0px #ccc");
-        this.body.style.setProperty("border-radius", "6px");
-        this.body.style.setProperty("padding", "6px");
-
         _trigger(this.element, "showgoto", 1, true);
+        window.setTimeout(window.remoteShowGoto);
     }
 
     Menu.prototype = {
         onClick: function (url, event) {
-            this.hide();
-            _trigger(event.target, "goto", url, true);
+            _trigger(this.element, "goto", url, true);
+            this.remove();
+        },
+
+        createBody: function () {
+            if (this.body) {
+                return;
+            }
+
+            // compute the position on screen
+            var x = _screenOffset(this.element, "offsetLeft");
+            var y = _screenOffset(this.element, "offsetTop") + this.element.offsetHeight;
+
+            // create the container
+            this.body = document.createElement("div");
+            this.body.style.setProperty("z-index", 2147483647);
+            this.body.style.setProperty("position", "absolute");
+            this.body.style.setProperty("left", x + "px");
+            this.body.style.setProperty("top", y + "px");
+            this.body.style.setProperty("font-size", "11pt");
+
+            // draw the background
+            this.body.style.setProperty("background", "#fff");
+            this.body.style.setProperty("border", "1px solid #888");
+            this.body.style.setProperty("-webkit-box-shadow", "2px 2px 6px 0px #ccc");
+            this.body.style.setProperty("border-radius", "6px");
+            this.body.style.setProperty("padding", "6px");
         },
 
         addItem: function (target) {
-            console.log("Add: " + target.name);
             var item = document.createElement("div");
             item.style.setProperty("padding", "2px 6px");
-            if (this.body.childNodes.length === 0) {
+            if (this.body.childNodes.length > 0) {
                 item.style.setProperty("border-top", "1px solid #ccc");
             }
             item.style.setProperty("cursor", "pointer");
@@ -125,13 +130,16 @@ function RemoteFunctions() {
         },
 
         show: function () {
+            if (!this.body) {
+                this.body = this.createBody();
+            }
             if (!this.body.parentNode) {
                 document.body.appendChild(this.body);
             }
         },
 
-        hide: function () {
-            if (this.body.parentNode) {
+        remove: function () {
+            if (this.body && this.body.parentNode) {
                 document.body.removeChild(this.body);
             }
         }
@@ -172,7 +180,7 @@ function RemoteFunctions() {
         },
 
         onChange: function (event) {
-            setTimeout(_trigger.bind(undefined, this.element, "edit", this.element.innerHTML));
+            window.setTimeout(_trigger.bind(undefined, this.element, "edit", this.element.innerHTML));
         }
     };
 
@@ -217,45 +225,64 @@ function RemoteFunctions() {
         }
     };
 
+    var _currentEditor;
+    function _toggleEditor(element) {
+        _currentEditor = new Editor(element);
+    }
+
+    var _currentMenu;
+    function _toggleMenu(element) {
+        if (_currentMenu) {
+            _currentMenu.remove();
+        }
+        _currentMenu = new Menu(element);
+    }
+
     var _localHighlight;
     var _remoteHighlight;
-    var _menu;
-    var _editor;
     var _setup = false;
 
 
     /** Event Handlers ***********************************************************/
 
-    function onMouseMove(event) {
-        if (event.metaKey) {
-            _localHighlight.add(event.target);
-        } else {
-            onKeyUp(event);
+    function onMouseOver(event) {
+        if (!event.metaKey) {
+            return;
         }
+        _localHighlight.add(event.target);
     }
 
     function onMouseOut(event) {
+        if (!event.metaKey) {
+            return;
+        }
         _localHighlight.clear();
     }
 
+    function onMouseMove(event) {
+        onMouseOver(event);
+        document.removeEventListener("mousemove", onMouseMove);
+    }
+
     function onClick(event) {
-        if (event.metaKey) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (_menu) {
-                _menu.hide();
-            }
-            _menu = new Menu(event.target);
-        } else if (event.altKey) {
-            _editor = new Editor(event.target);
+        if (!event.metaKey) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.altKey) {
+            _toggleEditor(event.target);
+        } else {
+            _toggleMenu(event.target);
         }
     }
 
     function onKeyUp(event) {
-        if (_setup && !event.metaKey && !event.altKey) {
+        if (_setup && !event.metaKey) {
             document.removeEventListener("keyup", onKeyUp);
-            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseover", onMouseOver);
             document.removeEventListener("mouseout", onMouseOut);
+            document.removeEventListener("mousemove", onMouseMove);
             document.removeEventListener("click", onClick);
             _localHighlight.clear();
             _localHighlight = undefined;
@@ -264,17 +291,14 @@ function RemoteFunctions() {
     }
 
     function onKeyDown(event) {
-        if (!_setup && (event.metaKey || event.altKey)) {
+        if (!_setup && event.metaKey) {
             document.addEventListener("keyup", onKeyUp);
-            document.addEventListener("mousemove", onMouseMove);
+            document.addEventListener("mouseover", onMouseOver);
             document.addEventListener("mouseout", onMouseOut);
+            document.addEventListener("mousemove", onMouseMove);
             document.addEventListener("click", onClick);
             _localHighlight = new Highlight("#ecc");
             _setup = true;
-        }
-
-        if (event.metaKey) {
-            _localHighlight.add(event.target, true);
         }
     }
 
@@ -283,11 +307,15 @@ function RemoteFunctions() {
 
     // show goto
     function showGoto(targets) {
+        if (!_currentMenu) {
+            return;
+        }
+        _currentMenu.createBody();
         var i;
         for (i in targets) {
-            _menu.add(targets[i]);
+            _currentMenu.addItem(targets[i]);
         }
-        _menu.show();
+        _currentMenu.show();
     }
 
     // remove active highlights
