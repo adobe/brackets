@@ -27,28 +27,6 @@
 define(function (require, exports, module) {
     'use strict';
 
-    // load the active language strings file
-    function _load() {
-
-        // load the active language from the local storage
-        var language = window.localStorage.language;
-        if (language === undefined || language === null) {
-            // default language: english
-            language = "en-US";
-        }
-
-        // require the language strings file
-        require(["strings/" + language], function (strings) {
-            var i;
-            for (i in strings) {
-                if (strings.hasOwnProperty(i)) {
-                    exports[i] = strings[i];
-                }
-            }
-        });
-    }
-
-    // load the default language immediately
-    _load();
+    module.exports = require("thirdparty/i18n!nls/strings");
 
 });

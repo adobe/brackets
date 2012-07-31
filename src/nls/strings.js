@@ -24,9 +24,15 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define */
 
-define(function (require, exports, module) {
+define(function (require, ignored, module) {
     
     'use strict';
+        
+    var exports = {};
+    module.exports = {
+        root: exports,
+        "de-DE": true
+    };
         
     // Project error strings
     exports.ERROR_LOADING_PROJECT             = "Error loading project";

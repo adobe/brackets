@@ -134,7 +134,7 @@ define(function (require, exports, module) {
     }
 
     function _handleSwitchLanguage() {
-        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/strings";
+        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
         NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
             dirEntry.createReader().readEntries(function (entries) {
 
@@ -164,16 +164,22 @@ define(function (require, exports, module) {
                     .appendTo($body);
 
                 var $ul = $("<ul>")
+                    .on("click", "li", setLanguage)
                     .appendTo($p);
+
+                // add english
+                var $li = $("<li>")
+                    .text("en-EN")
+                    .data("locale", "en-EN")
+                    .appendTo($ul);
 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
-                    if (entry.isFile && entry.name.match(/^[a-z]{2}-[A-Z]{2}\.js$/)) {
-                        var language = entry.name.substr(0, entry.name.length - 3);
+                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}-[A-Z]{2}$/)) {
+                        var language = entry.name;
                         var $li = $("<li>")
                             .text(entry.name)
-                            .data("language", language)
-                            .on("click", setLanguage)
+                            .data("locale", language)
                             .appendTo($ul);
                     }
                 });
@@ -194,8 +200,8 @@ define(function (require, exports, module) {
                         if (!$activeLanguage) {
                             return;
                         }
-                        var language = $activeLanguage.data("language");
-                        window.localStorage.setItem("language", language);
+                        var locale = $activeLanguage.data("locale");
+                        window.localStorage.setItem("locale", locale);
                         CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
                     })
                     .attr("disabled", "disabled")
