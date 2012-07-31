@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, less, window, XMLHttpRequest */
+/*global brackets, define, $, less, window, XMLHttpRequest */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -155,10 +155,10 @@ define(function main(require, exports, module) {
 
     /** Setup autostarting of the live development connection */
     function _setupAutoStart() {
-        var $DocumentManager = $(DocumentManager);
-        $DocumentManager.on("currentDocumentChange", function goLive() {
-            _handleGoLiveCommand();
-            $DocumentManager.off("currentDocumentChange", goLive);
+        brackets.ready(function() {
+            if (DocumentManager.getCurrentDocument()) {
+                _handleGoLiveCommand();
+            }
         });
     }
 
