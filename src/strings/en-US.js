@@ -28,13 +28,6 @@ define(function (require, exports, module) {
     
     'use strict';
         
-    // General file io error strings
-    exports.GENERIC_ERROR                     = "(error {0})";
-    exports.NOT_FOUND_ERR                     = "The file could not be found.";
-    exports.NOT_READABLE_ERR                  = "The file could not be read.";
-    exports.NO_MODIFICATION_ALLOWED_ERR       = "The target directory cannot be modified.";
-    exports.NO_MODIFICATION_ALLOWED_ERR_FILE  = "The permissions do not allow you to make modifications.";
-
     // Project error strings
     exports.ERROR_LOADING_PROJECT             = "Error loading project";
     exports.OPEN_DIALOG_ERROR                 = "An error occurred when showing the open file dialog. (error {0})";
@@ -130,6 +123,8 @@ define(function (require, exports, module) {
     exports.CMD_UNINDENT                        = "Unindent";
     exports.CMD_DUPLICATE                       = "Duplicate";
     exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
+    exports.CMD_LINE_UP                         = "Move Line(s) Up";
+    exports.CMD_LINE_DOWN                       = "Move Line(s) Down";
      
     // View menu commands
     exports.VIEW_MENU                           = "View";

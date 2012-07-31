@@ -60,6 +60,8 @@ define(function (require, exports, module) {
     exports.EDIT_UNINDENT               = "edit.unindent";
     exports.EDIT_DUPLICATE              = "edit.duplicate";
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";
+    exports.EDIT_LINE_UP                = "edit.lineUp";
+    exports.EDIT_LINE_DOWN              = "edit.lineDown";
     exports.TOGGLE_USE_TAB_CHARS        = "debug.useTabChars";
 
     // VIEW
