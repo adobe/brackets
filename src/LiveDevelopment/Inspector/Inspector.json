@@ -61,20 +61,6 @@
                     { "name": "object", "$ref": "Runtime.RemoteObject" },
                     { "name": "hints", "type": "object" }
                 ]
-            },
-            {
-                "name": "didCreateWorker",
-                "parameters": [
-                    { "name": "id", "type": "integer" },
-                    { "name": "url", "type": "string" },
-                    { "name": "isShared", "type": "boolean" }
-                ]
-            },
-            {
-                "name": "didDestroyWorker",
-                "parameters": [
-                    { "name": "id", "type": "integer" }
-                ]
             }
         ]
     },
@@ -397,6 +383,29 @@
                 "parameters": [
                     { "name": "value", "type": "boolean", "description": "Whether script execution should be disabled in the page." }
                 ]
+            },
+            {
+                "name": "setGeolocationOverride",
+                "description": "Overrides the Geolocation Position or Error.",
+                "parameters": [
+                    { "name": "latitude", "type": "number", "optional": true, "description": "Mock longitude"},
+                    { "name": "longitude", "type": "number", "optional": true, "description": "Mock latitude"},
+                    { "name": "accuracy", "type": "number", "optional": true, "description": "Mock accuracy"}
+                ],
+                "hidden": true
+            },
+            {
+                "name": "clearGeolocationOverride",
+                "description": "Clears the overriden Geolocation Position and Error.",
+                "hidden": true
+            },
+            {
+                "name": "canOverrideGeolocation",
+                "description": "Checks if Geolocation can be overridden.",
+                "returns": [
+                    { "name": "result", "type": "boolean", "description": "True if browser can ovrride Geolocation." }
+                ],
+                "hidden": true
             }
         ],
         "events": [
@@ -494,6 +503,7 @@
                 ],
                 "hidden": true
             }
+
         ],
         "commands": [
             {
@@ -503,7 +513,7 @@
                     { "name": "objectGroup", "type": "string", "optional": true, "description": "Symbolic group name that can be used to release multiple objects." },
                     { "name": "includeCommandLineAPI", "type": "boolean", "optional": true, "description": "Determines whether Command Line API should be available during the evaluation.", "hidden": true },
                     { "name": "doNotPauseOnExceptionsAndMuteConsole", "type": "boolean", "optional": true, "description": "Specifies whether evaluation should stop on exceptions and mute console. Overrides setPauseOnException state.", "hidden": true },
-                    { "name": "contextId", "$ref": "Runtime.ExecutionContextId", "optional": true, "description": "Specifies in which isolated context to perform evaluation. Each content script lives in an isolated context and this parameter may be used to specify on of those contexts. If the parameter is omitted or 0 the evaluation will be performed in the context of the inspected page.", "hidden": true },
+                    { "name": "contextId", "$ref": "Runtime.ExecutionContextId", "optional": true, "description": "Specifies in which isolated context to perform evaluation. Each content script lives in an isolated context and this parameter may be used to specify one of those contexts. If the parameter is omitted or 0 the evaluation will be performed in the context of the inspected page.", "hidden": true },
                     { "name": "returnByValue", "type": "boolean", "optional": true, "description": "Whether the result is expected to be a JSON object that should be sent by value." }
                 ],
                 "returns": [
@@ -565,6 +575,7 @@
                 "hidden": true,
                 "description": "Enables reporting about creation of isolated contexts by means of <code>isolatedContextCreated</code> event. When the reporting gets enabled the event will be sent immediately for each existing isolated context."
             }
+
         ],
         "events": [
             {
@@ -618,22 +629,22 @@
         "commands": [
             {
                 "name": "enable",
-                "description": "Enables console domain, sends the messages collected so far to the client by means of the <code>messageAdded</code> notification."
+                "description": "Enables console domain, sends the messages collected so far to the client by means of the <code>messageAdded</code> notification." 
             },
             {
                 "name": "disable",
-                "description": "Disables console domain, prevents further console messages from being reported to the client."
+                "description": "Disables console domain, prevents further console messages from being reported to the client." 
             },
             {
                 "name": "clearMessages",
-                "description": "Clears console messages collected in the browser."
+                "description": "Clears console messages collected in the browser." 
             },
             {
                 "name": "setMonitoringXHREnabled",
                 "parameters": [
                     { "name": "enabled", "type": "boolean", "description": "Monitoring enabled state." }
                 ],
-                "description": "Toggles monitoring of XMLHttpRequest. If <code>true</code>, console will receive messages upon each XHR issued.",
+                "description": "Toggles monitoring of XMLHttpRequest. If <code>true</code>, console will receive messages upon each XHR issued.", 
                 "hidden": true
             },
             {
@@ -868,7 +879,7 @@
                 "parameters": [
                     { "name": "cacheDisabled", "type": "boolean", "description": "Cache disabled state." }
                 ],
-                "description": "Toggles ignoring cache for each request. If <code>true</code>, cache will not be used."
+                "description": "Toggles ignoring cache for each request. If <code>true</code>, cache will not be used." 
             }
         ],
         "events": [
@@ -1128,6 +1139,7 @@
                 "properties": [
                     { "name": "name", "type": "string", "description": "Object store name." },
                     { "name": "keyPath", "$ref": "KeyPath", "description": "Object store key path." },
+                    { "name": "autoIncrement", "type": "boolean", "description": "If true, object store has auto increment flag set." },
                     { "name": "indexes", "type": "array", "items": { "$ref": "ObjectStoreIndex" }, "description": "Indexes in this object store." }
                 ]
             },
@@ -1448,7 +1460,8 @@
                     { "name": "name", "type": "string", "description": "The name of the file or directory." },
                     { "name": "isDirectory", "type": "boolean", "description": "True if the entry is a directory." },
                     { "name": "mimeType", "type": "string", "optional": true, "description": "MIME type of the entry, available for a file only." },
-                    { "name": "resourceType", "$ref": "Page.ResourceType", "optional": true, "description": "ResourceType of the entry, available for a file only." }
+                    { "name": "resourceType", "$ref": "Page.ResourceType", "optional": true, "description": "ResourceType of the entry, available for a file only." },
+                    { "name": "isTextFile", "type": "boolean", "optional": true, "description": "True if the entry is a text file." }
                 ],
                 "description": "Represents a browser side file or directory."
             },
@@ -1457,7 +1470,7 @@
                 "type": "object",
                 "properties": [
                     { "name": "modificationTime", "type": "number", "description": "Modification time." },
-                    { "name": "size", "type": "number", "optional": true, "description": "File size. This field is available only for a file." }
+                    { "name": "size", "type": "number", "description": "File size. This field is always zero for directories." }
                 ],
                 "description": "Represents metadata of a file or entry."
             }
@@ -1501,6 +1514,20 @@
                     { "name": "requestId", "$ref": "RequestId", "description": "Request identifier. Corresponding metadataReceived event should have same requestId with this." }
                 ],
                 "description": "Returns metadata of the entry as metadataReceived event."
+            },
+            {
+                "name": "requestFileContent",
+                "parameters": [
+                    { "name": "url", "type": "string", "description": "URL of the file that the frontend is requesting to read from." },
+                    { "name": "readAsText", "type": "boolean", "description": "True if the content should be read as text, otherwise the result will be returned as base64 encoded text." },
+                    { "name": "start", "type": "integer", "optional": true, "description": "Specifies the start of range to read." },
+                    { "name": "end", "type": "integer", "optional": true, "description": "Specifies the end of range to read exclusively." },
+                    { "name": "charset", "type": "string", "optional": true, "description": "Overrides charset of the content when content is served as text." }
+                ],
+                "returns": [
+                    { "name": "requestId", "$ref": "RequestId", "description": "Request identifier. Corresponding fileContentReceived event should have same requestId with this." }
+                ],
+                "description": "Returns content of the file as fileContentReceived event. Result should be sliced into [start, end)."
             }
         ],
         "events": [
@@ -1525,11 +1552,21 @@
             {
                 "name": "metadataReceived",
                 "parameters": [
-                    { "name": "requestId", "type": "integer", "description": "Request Identifier that was returned in response to the corresponding getMetadata request." },
+                    { "name": "requestId", "type": "integer", "description": "Request Identifier that was returned in response to the corresponding requestMetadata command." },
                     { "name": "errorCode", "type": "integer", "description": "0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value." },
                     { "name": "metadata", "$ref": "FileSystem.Metadata", "optional": true, "description": "Contains metadata of the entry if the command completed successfully." }
                 ],
-                "description": "Completion event of getMetadata command."
+                "description": "Completion event of requestMetadata command."
+            },
+            {
+                "name": "fileContentReceived",
+                "parameters": [
+                    { "name": "requestId", "type": "integer", "description": "Request Identifier that was returned in response to the corresponding requestFileContent command." },
+                    { "name": "errorCode", "type": "integer", "description": "0, if no error. Otherwise, errorCode is set to FileError::ErrorCode value." },
+                    { "name": "content", "type": "string", "optional": true, "description": "Content of the file." },
+                    { "name": "charset", "type": "string", "optional": true, "description": "Charset of the content if it is served as text." }
+                ],
+                "description": "Completion event of requestFileContent command."
             }
         ]
     },
@@ -2079,6 +2116,14 @@
                 "type": "object"
             },
             {
+                "id": "CSSPropertyInfo",
+                "type": "object",
+                "properties": [
+                    { "name": "name", "type": "string", "description": "Property name." },
+                    { "name": "longhands", "type": "array", "optional": true, "items": { "type": "string" }, "description": "Longhand property names." }
+                ]
+            },
+            {
                 "id": "CSSComputedStyleProperty",
                 "type": "object",
                 "properties": [
@@ -2111,7 +2156,6 @@
                     { "name": "text", "type": "string", "optional": true, "description": "The full property text as specified in the style." },
                     { "name": "parsedOk", "type": "boolean", "optional": true, "description": "Whether the property is understood by the browser (implies <code>true</code> if absent)." },
                     { "name": "status", "type": "string", "enum": ["active", "inactive", "disabled", "style"], "optional": true, "description": "The property status: \"active\" (implied if absent) if the property is effective in the style, \"inactive\" if the property is overridden by a same-named property in this style later on, \"disabled\" if the property is disabled by the user, \"style\" if the property is reported by the browser rather than by the CSS source parser." },
-                    { "name": "shorthandName", "type": "string", "optional": true, "description": "The related shorthand property name (absent if this property is not a longhand)." },
                     { "name": "range", "$ref": "SourceRange", "optional": true, "description": "The entire property range in the enclosing style declaration (if available)." }
                 ],
                 "description": "CSS style effective visual dimensions and source offsets."
@@ -2147,6 +2191,17 @@
                     { "name": "totalTime", "type": "number", "description": "Total processing time for all selectors in the profile (in milliseconds.)" },
                     { "name": "data", "type": "array", "items": { "$ref": "SelectorProfileEntry" }, "description": "CSS selector profile entries." }
                 ]
+            },
+            {
+                "id": "NamedFlow",
+                "type": "object",
+                "properties": [
+                    { "name": "nodeId", "$ref": "DOM.NodeId", "description": "The document node id." },
+                    { "name": "name", "type": "string", "description": "Named Flow identifier." },
+                    { "name": "overset", "type": "boolean", "description": "The \"overset\" attribute of a Named Flow." }
+                ],
+                "description": "This object represents a Named Flow.",
+                "hidden": true
             }
         ],
         "commands": [
@@ -2280,7 +2335,7 @@
             {
                 "name": "getSupportedCSSProperties",
                 "returns": [
-                    { "name": "cssProperties", "type": "array", "items": { "type": "string" }, "description": "Supported property names." }
+                    { "name": "cssProperties", "type": "array", "items": { "$ref": "CSSPropertyInfo" }, "description": "Supported property metainfo." }
                 ],
                 "description": "Returns all supported CSS property names."
             },
@@ -2292,6 +2347,29 @@
                 "returns": [
                     { "name": "profile", "$ref": "SelectorProfile" }
                 ]
+            },
+            {
+                "name": "getNamedFlowCollection",
+                "parameters": [
+                    { "name": "nodeId", "$ref": "DOM.NodeId", "description": "The document node id for which to get the Named Flow Collection." }
+                ],
+                "returns": [
+                    { "name": "namedFlows", "type": "array", "items": { "type": "string" }, "description": "An array containing the Named Flows in the document." }
+                ],
+                "description": "Returns the Named Flows from the document.",
+                "hidden": true
+            },
+            {
+                "name": "getFlowByName",
+                "parameters": [
+                    { "name": "nodeId", "$ref": "DOM.NodeId", "description": "The document node id." },
+                    { "name": "name", "type": "string", "description": "Named Flow identifier." }
+                ],
+                "returns": [
+                    { "name": "namedFlow", "$ref": "NamedFlow", "description": "A Named Flow." }
+                ],
+                "description": "Returns the Named Flow identified by the given name",
+                "hidden": true
             }
         ],
         "events": [
@@ -2625,8 +2703,8 @@
                 "name": "runScript",
                 "hidden": true,
                 "parameters": [
-                    { "name": "contextId", "$ref": "Runtime.ExecutionContextId", "optional": true, "description": "Specifies in which isolated context to perform script run. Each content script lives in an isolated context and this parameter may be used to specify on of those contexts. If the parameter is omitted or 0 the evaluation will be performed in the context of the inspected page." },
                     { "name": "scriptId", "$ref": "ScriptId", "description": "Id of the script to run." },
+                    { "name": "contextId", "$ref": "Runtime.ExecutionContextId", "optional": true, "description": "Specifies in which isolated context to perform script run. Each content script lives in an isolated context and this parameter may be used to specify one of those contexts. If the parameter is omitted or 0 the evaluation will be performed in the context of the inspected page." },
                     { "name": "objectGroup", "type": "string", "optional": true, "description": "Symbolic group name that can be used to release multiple objects." },
                     { "name": "doNotPauseOnExceptionsAndMuteConsole", "type": "boolean", "optional": true, "description": "Specifies whether script run should stop on exceptions and mute console. Overrides setPauseOnException state." }
                 ],
@@ -2635,6 +2713,14 @@
                     { "name": "wasThrown", "type": "boolean", "optional": true, "description": "True if the result was thrown during the script run." }
                 ],
                 "description": "Runs script with given id in a given context."
+            },
+            {
+                "name": "setOverlayMessage",
+                "parameters": [
+                    { "name": "message", "type": "string", "optional": true, "description": "Overlay message to display when paused in debugger." }
+                ],
+                "hidden": true,
+                "description": "Sets overlay message."
             }
         ],
         "events": [
