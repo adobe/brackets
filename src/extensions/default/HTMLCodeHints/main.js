@@ -141,10 +141,15 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
-            adjustCursor = false;
+            adjustCursor = false,
+            appendASpace = false;
         
         if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
-            charCount = tagInfo.attr.name.length;
+            if (tagInfo.attr.name === " ") {
+                appendASpace = true;
+            } else {
+                charCount = tagInfo.attr.name.length;
+            }
         } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
         }
@@ -157,6 +162,11 @@ define(function (require, exports, module) {
         // and then adjust cursor location before the last quote that we just inserted.
         if (attributes && attributes[completion] && attributes[completion].type !== "flag") {
             completion += "=\"\"";
+            // Append a space character if we're inserting at the very first letter of an 
+            // existing attribute.
+            if (appendASpace) {
+                completion += " ";
+            }
             adjustCursor = true;
         }
         
@@ -167,7 +177,7 @@ define(function (require, exports, module) {
         }
         
         if (adjustCursor) {
-            editor.setCursorPos(start.line, start.ch + completion.length - 1);
+            editor.setCursorPos(start.line, start.ch + completion.length - (appendASpace ? 2 : 1));
         }
     };
     

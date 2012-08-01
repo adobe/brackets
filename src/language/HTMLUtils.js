@@ -315,8 +315,11 @@ define(function (require, exports, module) {
 
                 // check to see if the user is going to add a new attr before an existing
                 // attribute or before the ">".
-                if (ctx.token.className === "attribute" ||
-                        ctx.token.string === ">") {
+                if (ctx.token.className === "attribute") {
+                    // Put a space character in attrName in tagInfo so that attrHint can append an extra space
+                    // when inserting a new attribute before the current existing attribute.
+                    return createTagInfo(ATTR_NAME, 0, _extractTagName(ctx), " ");
+                } else if (ctx.token.string === ">") {
                     return createTagInfo(ATTR_NAME, 0, _extractTagName(ctx));
                 }
             } else {
@@ -378,7 +381,7 @@ define(function (require, exports, module) {
         }
         
         if (ctx.token.className === "attribute") {
-            tagInfo = _getTagInfoStartingFromAttrName(ctx);
+            tagInfo = _getTagInfoStartingFromAttrName(ctx, false);
         } else {
             // if we're not at a tag, "=", or attribute name, assume we're in the value
             tagInfo = _getTagInfoStartingFromAttrValue(ctx);
