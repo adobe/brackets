@@ -238,12 +238,13 @@ define(function (require, exports, module) {
      * @private
      * Gets the taginfo starting from the attribute name and moving forwards
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {boolean} isPriorAttr indicates whether we're getting info for a prior attribute
      * @return {string}
      */
-    function _getTagInfoStartingFromAttrName(ctx) {
+    function _getTagInfoStartingFromAttrName(ctx, isPriorAttr) {
         //Verify We're in the attribute name, move forward and try to extract the rest of
         //the info. If the user it typing the attr the rest might not be here
-        if (ctx.token.className !== "attribute") {
+        if (isPriorAttr === false && ctx.token.className !== "attribute") {
             return createTagInfo();
         }
         
@@ -320,6 +321,12 @@ define(function (require, exports, module) {
                 if (ctx.token.className !== "tag") {
                     //if wasn't the tag name, assume it was an attr value
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
+
+                    //if it wasn't an attr value, assume it was an empty attr (ie. attr with no value)
+                    if (!tagInfo.tagName) {
+                        tagInfo = _getTagInfoStartingFromAttrName(ctx, true);
+                    }
+
                     //We don't want to give context for the previous attr
                     //and we want it to look like the user is going to add a new attr
                     if (tagInfo.tagName) {

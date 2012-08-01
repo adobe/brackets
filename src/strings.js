@@ -124,6 +124,8 @@ define(function (require, exports, module) {
     exports.CMD_UNINDENT                        = "Unindent";
     exports.CMD_DUPLICATE                       = "Duplicate";
     exports.CMD_COMMENT                         = "Comment/Uncomment Lines";
+    exports.CMD_LINE_UP                         = "Move Line(s) Up";
+    exports.CMD_LINE_DOWN                       = "Move Line(s) Down";
      
     // View menu commands
     exports.VIEW_MENU                           = "View";
