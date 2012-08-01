@@ -162,15 +162,16 @@ define(function (require, exports, module) {
         // and then adjust cursor location before the last quote that we just inserted.
         if (attributes && attributes[completion] && attributes[completion].type !== "flag") {
             completion += "=\"\"";
-            // Append a space character if we're inserting at the very first letter of an 
-            // existing attribute.
-            if (appendASpace) {
-                completion += " ";
-            }
             adjustCursor = true;
         }
+
+        // Append a space character if we're inserting at the very first letter of an 
+        // existing attribute.
+        if (appendASpace) {
+            completion += " ";
+        }
         
-        if (start.ch !== end.ch) {
+        if (start.ch !== end.ch || appendASpace) {
             editor.document.replaceRange(completion, start, end);
         } else {
             editor.document.replaceRange(completion, start);
