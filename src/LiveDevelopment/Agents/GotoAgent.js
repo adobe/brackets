@@ -133,7 +133,7 @@ define(function GotoAgent(require, exports, module) {
     /** Point the master editor to the given location
      * @param {integer} location in file
      */
-    function openLocation(location) {
+    function openLocation(location, noFlash) {
         var editor = EditorManager.getCurrentFullEditor();
         var codeMirror = editor._codeMirror;
         if (typeof location === "number") {
@@ -141,16 +141,18 @@ define(function GotoAgent(require, exports, module) {
         }
         codeMirror.setCursor(location);
         editor.focus();
-        
-        codeMirror.setLineClass(location.line, "flash");
-        window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+
+        if (! noFlash) {
+            codeMirror.setLineClass(location.line, "flash");
+            window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+        }
     }
 
     /** Open the editor at the given url and editor location
      * @param {string} url
      * @param {integer} optional location in file
      */
-    function open(url, location) {
+    function open(url, location, noFlash) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
 
         var result = new $.Deferred();
@@ -162,7 +164,7 @@ define(function GotoAgent(require, exports, module) {
         promise.done(function onDone(doc) {
             DocumentManager.setCurrentDocument(doc);
             if (location) {
-                openLocation(location);
+                openLocation(location, noFlash);
             }
             result.resolve();
         });
