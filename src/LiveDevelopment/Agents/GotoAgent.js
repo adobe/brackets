@@ -150,8 +150,10 @@ define(function GotoAgent(require, exports, module) {
      */
     function open(url, location) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
+
         url = _urlWithoutQueryString(url);
-        var path = url.substr(7);
+        // Extract the path, also strip the third slash when on Windows
+        var path = url.slice(brackets.platform === "win" ? 8 : 7);
         var promise = DocumentManager.getDocumentForPath(path);
         promise.done(function onDone(doc) {
             DocumentManager.setCurrentDocument(doc);
