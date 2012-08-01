@@ -113,9 +113,9 @@ define(function (require, exports, module) {
     /**
      * Check whether to show hints on a specific key.
      * @param {number} keyCode -- the key code for the key user just presses.
-     * @return {boolean} true if the keyCode is for the space bar, false otherwise.
+     * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    TagHints.prototype.canShowHints = function (keyCode) {
+    TagHints.prototype.shouldShowHintsOnKey = function (keyCode) {
         return keyCode === 188; // keyCode for "<"
     };
 
@@ -243,9 +243,9 @@ define(function (require, exports, module) {
     /**
      * Check whether to show hints on a specific key.
      * @param {number} keyCode -- the key code for the key user just presses.
-     * @return {boolean} true if the keyCode is for the space bar, false otherwise.
+     * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    AttrHints.prototype.canShowHints = function (keyCode) {
+    AttrHints.prototype.shouldShowHintsOnKey = function (keyCode) {
         return keyCode === 32; // keyCode for space character
     };
 

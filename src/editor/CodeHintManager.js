@@ -319,7 +319,7 @@ define(function (require, exports, module) {
         } else if (event.type === "keyup") {
             // Check if any provider wants to show hints on this key.
             $.each(hintList.hintProviders, function (index, item) {
-                if (item.canShowHints(event.keyCode)) {
+                if (item.shouldShowHintsOnKey(event.keyCode)) {
                     provider = item;
                     return false;
                 }
@@ -347,7 +347,7 @@ define(function (require, exports, module) {
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
      *                  handleSelect: function(string, Editor, cursor),
-     *                  canShowHints: function(number)>}
+     *                  shouldShowHintsOnKey: function(number)>}
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position
-     * - canShowHints - inspects the key code and returns true if it wants to show code hints on that key.
+     * - shouldShowHintsOnKey - inspects the key code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {
         hintList.hintProviders.push(providerInfo);
