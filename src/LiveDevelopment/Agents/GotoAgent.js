@@ -140,6 +140,8 @@ define(function GotoAgent(require, exports, module) {
             location = codeMirror.posFromIndex(location);
         }
         codeMirror.setCursor(location);
+        editor.focus();
+        
         codeMirror.setLineClass(location.line, "flash");
         window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
     }
