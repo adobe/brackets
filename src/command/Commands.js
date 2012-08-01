@@ -87,6 +87,7 @@ define(function (require, exports, module) {
     exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
     exports.DEBUG_SHOW_PERF_DATA        = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
+    exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
 
 	// Command that does nothing. Can be used for place holder menuItems
     
