@@ -91,7 +91,7 @@ define(function (require, exports, module) {
         if (buttonId) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) ||
-                  (this.filter(":input").length === 0)) {
+                  ($(e.target).filter(":input").length === 0)) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
