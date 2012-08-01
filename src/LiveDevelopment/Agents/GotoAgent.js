@@ -158,7 +158,8 @@ define(function GotoAgent(require, exports, module) {
         var result = new $.Deferred();
         
         url = _urlWithoutQueryString(url);
-        var path = url.substr(7);
+		// Extract the path, also strip the third slash when on Windows
+		var path = url.slice(brackets.platform === "win" ? 8 : 7);
         var promise = DocumentManager.getDocumentForPath(path);
         promise.done(function onDone(doc) {
             DocumentManager.setCurrentDocument(doc);
