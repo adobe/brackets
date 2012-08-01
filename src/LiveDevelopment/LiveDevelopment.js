@@ -283,6 +283,9 @@ define(function LiveDevelopment(require, exports, module) {
     function _onError(error) {
         var message = error.message;
 
+        // Remove the prefix "Uncaught" to prevent the development tools from popping up
+        message = message.replace(/^uncaught\s/i, "");
+
         // Additional information, like exactly which parameter could not be processed.
         var data = error.data;
         if (Array.isArray(data)) {
