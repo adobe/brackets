@@ -310,14 +310,24 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
-        // Check for Control+Space or "<"
+        var provider = null;
+        
+        // Check for Control+Space
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
             event.preventDefault();
-        } else if (event.type === "keyup" &&
-                   (event.keyCode === 188 ||    // keyCode for "<"
-                    event.keyCode === 32)) {    // keyCode for space character
-            _showHint(editor);
+        } else if (event.type === "keyup") {
+            // Check if any provider wants to show hints on this key.
+            $.each(hintList.hintProviders, function (index, item) {
+                if (item.canShowHints(event.keyCode)) {
+                    provider = item;
+                    return false;
+                }
+            });
+            
+            if (provider) {
+                _showHint(editor);
+            }
         }
 
         // Pass to the hint list, if it's open
@@ -336,7 +346,8 @@ define(function (require, exports, module) {
      *
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor, cursor)>}
+     *                  handleSelect: function(string, Editor, cursor),
+     *                  canShowHints: function(number)>}
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
@@ -346,6 +357,7 @@ define(function (require, exports, module) {
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position
+     * - canShowHints - inspects the key code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {
         hintList.hintProviders.push(providerInfo);
