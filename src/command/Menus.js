@@ -368,13 +368,9 @@ define(function (require, exports, module) {
      */
     Menu.prototype.removeMenuItem = function (command) {
         var commandID;
+        
         if (typeof (command) === "string") {
-            if (command === DIVIDER) {
-                name = DIVIDER;
-                commandID = _getNextMenuItemDividerID();
-            } else {
-                commandID = menuItemMap[this.id + "-" + command].id;
-            }
+            commandID = menuItemMap[this.id + "-" + command].id;
         } else {
             commandID = this.id + "-" + command.getID();
         }
