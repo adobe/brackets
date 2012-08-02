@@ -264,6 +264,35 @@ define(function (require, exports, module) {
                     expect($($listItems[0]).length).toBe(0);
                 });
             });
+
+            it("should gracefully handle someone trying to delete a menu item that doesn't exist", function () {
+                runs(function () {
+                    var commandString = "custom.command";
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+
+                    var exceptionThrown = false;
+                    try {
+                        menu.removeMenuItem(commandString);
+                    } catch (e) {
+                        exceptionThrown = true;
+                    }
+                    expect(exceptionThrown).toBeTruthy();
+                });
+            });
+
+            it("should gracefully handle someone trying to delete nothing", function () {
+                runs(function () {
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+
+                    var exceptionThrown = false;
+                    try {
+                        menu.removeMenuItem();
+                    } catch (e) {
+                        exceptionThrown = true;
+                    }
+                    expect(exceptionThrown).toBeTruthy();
+                });
+            });
         });
 
         describe("Add Menu Items", function () {
