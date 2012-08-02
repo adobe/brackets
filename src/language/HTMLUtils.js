@@ -193,11 +193,12 @@ define(function (require, exports, module) {
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.            
      */
-    function createTagInfo(tokenType, offset, tagName, attrName, attrValue) {
+    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
-                      value: attrValue || ""},
+                      value: attrValue || "",
+                      valueAssigned: valueAssigned || false},
                  position:
                     { tokenType: tokenType || "",
                       offset: offset || 0} };
@@ -263,7 +264,7 @@ define(function (require, exports, module) {
         var attrInfo = _extractAttrVal(ctx);
         var attrVal = attrInfo.val;
         
-        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal);
+        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true);
     }
     
     /**
@@ -320,10 +321,8 @@ define(function (require, exports, module) {
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
                     }
-                }
-
-                // check to see if the user is going to add a new attr before an existing one
-                if (ctx.token.className === "attribute") {
+                } else if (ctx.token.className === "attribute") {
+                    // check to see if the user is going to add a new attr before an existing one
                     return _getTagInfoStartingFromAttrName(ctx, false);
                 }
 
