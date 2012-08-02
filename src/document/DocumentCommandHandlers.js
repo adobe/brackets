@@ -443,6 +443,14 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Saves all the unsaved files.
+     * @param None
+     * @return {$.Promise} a promise that is resolved after the save completes
+     */
+    function handleFileSaveAll() {
+        return saveAll();
+    }
+    /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
      * @param {Document} doc
@@ -773,6 +781,7 @@ define(function (require, exports, module) {
         // be called from a "+" button in the project
         CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
         CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
+        CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
 
         CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);

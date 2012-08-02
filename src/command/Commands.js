@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     exports.FILE_OPEN                   = "file.open";
     exports.FILE_OPEN_FOLDER            = "file.openFolder";
     exports.FILE_SAVE                   = "file.save";
+    exports.FILE_SAVE_ALL               = "file.saveAll";
     exports.FILE_CLOSE                  = "file.close";
     exports.FILE_CLOSE_ALL              = "file.close_all";
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
