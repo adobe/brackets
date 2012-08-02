@@ -232,10 +232,9 @@ define(function (require, exports, module) {
                     $listItems = testWindow.$("#menu-custom > ul").children();
                     expect($listItems.length).toBe(0);
                     expect($($listItems[0]).length).toBe(0);
-                    
                 });
             });
-        });    
+        });
 
         describe("Add Menu Items", function () {
 
