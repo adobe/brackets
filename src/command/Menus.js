@@ -368,8 +368,18 @@ define(function (require, exports, module) {
      */
     Menu.prototype.removeMenuItem = function (command) {
         var commandID;
-        
+
+        if (!command) {
+            throw new Error("removeMenuItem(): missing required parameters: command");
+        }
+
         if (typeof (command) === "string") {
+            var commandObj = CommandManager.get(command);
+
+            if (!commandObj) {
+                throw new Error("removeMenuItem(): command not found: " + command);
+            }
+
             commandID = menuItemMap[this.id + "-" + command].id;
         } else {
             commandID = this.id + "-" + command.getID();
