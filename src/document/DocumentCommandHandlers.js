@@ -443,13 +443,14 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Saves all the unsaved files.
-     * @param None
-     * @return {$.Promise} a promise that is resolved after the save completes
+     * Saves all unsaved documents.
+     * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
+     *      after all operations completed if any ONE of them failed.
      */
     function handleFileSaveAll() {
         return saveAll();
     }
+    
     /**
      * Reverts the Document to the current contents of its file on disk. Discards any unsaved changes
      * in the Document.
