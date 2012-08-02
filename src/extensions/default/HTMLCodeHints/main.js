@@ -150,7 +150,6 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
-<<<<<<< .merge_file_a07184
             adjustCursor = false,
             appendASpace = false;
 
@@ -160,12 +159,6 @@ define(function (require, exports, module) {
             } else {
                 charCount = tagInfo.attr.name.length;
             }
-=======
-            adjustCursor = false;
-
-        if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
-            charCount = tagInfo.attr.name.length;
->>>>>>> .merge_file_a01248
         } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
         }
@@ -181,7 +174,6 @@ define(function (require, exports, module) {
             adjustCursor = true;
         }
 
-<<<<<<< .merge_file_a07184
         // Append a space character if we're inserting at the very first letter of an 
         // existing attribute.
         if (appendASpace) {
@@ -189,9 +181,6 @@ define(function (require, exports, module) {
         }
         
         if (start.ch !== end.ch || appendASpace) {
-=======
-        if (start.ch !== end.ch) {
->>>>>>> .merge_file_a01248
             editor.document.replaceRange(completion, start, end);
         } else {
             editor.document.replaceRange(completion, start);
