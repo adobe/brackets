@@ -150,15 +150,10 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
-            adjustCursor = false,
-            appendASpace = false;
+            adjustCursor = false;
 
-		if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
-            if (tagInfo.attr.name === " ") {
-                appendASpace = true;
-            } else {
-                charCount = tagInfo.attr.name.length;
-            }
+        if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+            charCount = tagInfo.attr.name.length;
         } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
         }
@@ -174,20 +169,14 @@ define(function (require, exports, module) {
             adjustCursor = true;
         }
 
-        // Append a space character if we're inserting at the very first letter of an 
-        // existing attribute.
-        if (appendASpace) {
-            completion += " ";
-        }
-        
-        if (start.ch !== end.ch || appendASpace) {
+        if (start.ch !== end.ch) {
             editor.document.replaceRange(completion, start, end);
         } else {
             editor.document.replaceRange(completion, start);
         }
 
         if (adjustCursor) {
-            editor.setCursorPos(start.line, start.ch + completion.length - (appendASpace ? 2 : 1));
+            editor.setCursorPos(start.line, start.ch + completion.length - 1);
         }
     };
 
