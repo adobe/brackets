@@ -157,7 +157,7 @@ define(function (require, exports, module) {
      *
      * To perform task-specific work after an individual task completes, attach handlers to each
      * Promise before beginProcessItem() returns it.
-     *
+     * 
      * @param {!Array.<*>} items
      * @param {!function(*, number):Promise} beginProcessItem
      * @param {!boolean} failAndStopFast
@@ -165,8 +165,8 @@ define(function (require, exports, module) {
      */
     function doSequentially(items, beginProcessItem, failAndStopFast) {
 
-        var masterDeferred = new $.Deferred();
-        var hasFailed = false;
+        var masterDeferred = new $.Deferred(),
+            hasFailed = false;
         
         function doItem(i) {
             if (i >= items.length) {
@@ -197,6 +197,45 @@ define(function (require, exports, module) {
         doItem(0);
         
         return masterDeferred.promise();
+    }
+    
+    /**
+     * Executes a series of tasks sequentially in time-slices less than maxBlockingTime.
+     * Processing yields by idleTime between time-slices.
+     * 
+     * @param {!Array.<*>} items
+     * @param {!function(*, number):Promise} fnProcessItem
+     * @param {!number} maxBlockingTime
+     * @param {!number} idleTime
+     * @return {$.Promise}
+     */
+    function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime, idleTime) {
+        
+        maxBlockingTime = maxBlockingTime || 15;
+        idleTime = idleTime || 30;
+        
+        var sliceStartTime = (new Date()).getTime();
+        
+        return doSequentially(items, function (item, i) {
+            var result = new $.Deferred();
+            
+            // process the next item
+            fnProcessItem(item, i);
+            
+            // if we've exhausted our maxBlockingTime
+            if ((new Date()).getTime() - sliceStartTime >= maxBlockingTime) {
+                //yield
+                window.setTimeout(function () {
+                    sliceStartTime = (new Date()).getTime();
+                    result.resolve();
+                }, idleTime);
+            } else {
+                //continue processing
+                result.resolve();
+            }
+
+            return result;
+        }, false);
     }
     
     
@@ -281,6 +320,7 @@ define(function (require, exports, module) {
     // Define public API
     exports.doInParallel   = doInParallel;
     exports.doSequentially = doSequentially;
+    exports.doSequentiallyInBackground = doSequentiallyInBackground;
     exports.doInParallel_aggregateErrors = doInParallel_aggregateErrors;
     exports.withTimeout    = withTimeout;
     exports.ERROR_TIMEOUT  = ERROR_TIMEOUT;

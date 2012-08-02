@@ -28,6 +28,7 @@
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
+ *
  */
 define(function (require, exports, module) {
     "use strict";
@@ -110,6 +111,12 @@ define(function (require, exports, module) {
             
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
+                .mousedown(function (e) {
+                    // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
+                    // selects documents on mousedown, doesn't select the document in the case 
+                    // when the click is on fileStatusIcon
+                    e.stopPropagation();
+                })
                 .click(function () {
                     // Clicking the "X" button is equivalent to File > Close; it doesn't merely
                     // remove a file from the working set
@@ -286,6 +293,7 @@ define(function (require, exports, module) {
      */
     function _handleDocumentSelectionChange() {
         _updateListSelection();
+        _fireSelectionChanged();
     }
 
     /** 
@@ -319,7 +327,7 @@ define(function (require, exports, module) {
     function _handleDirtyFlagChanged(doc) {
         var listItem = _findListItemFromFile(doc.file);
         if (listItem) {
-            var canClose = $(listItem).find("can-close").length === 1;
+            var canClose = $(listItem).find(".can-close").length === 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
 
@@ -351,10 +359,7 @@ define(function (require, exports, module) {
             _handleDirtyFlagChanged(doc);
         });
     
-        $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
-            _handleDocumentSelectionChange();
-            _fireSelectionChanged();
-        });
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);

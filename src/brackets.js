@@ -78,15 +78,19 @@ define(function (require, exports, module) {
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
-        Async                   = require("utils/Async");
+        Async                   = require("utils/Async"),
+        UrlParams               = require("utils/UrlParams").UrlParams;
 
     // Local variables
-    var bracketsReady         = false,
-        bracketsReadyHandlers = [];
-        
+    var bracketsReady           = false,
+        bracketsReadyHandlers   = [],
+        params                  = new UrlParams();
+    
+    // read URL params
+    params.parse();
+            
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
-    require("editor/CodeHintManager");
     require("editor/EditorCommandHandlers");
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
@@ -176,7 +180,10 @@ define(function (require, exports, module) {
     // TODO: (issue 1029) Add timeout to main extension loading promise, so that we always call this function
     // Making this fix will fix a warning (search for issue 1029) related to the brackets 'ready' event.
     function _initExtensions() {
-        return Async.doInParallel(["default", "user"], function (item) {
+        // allow unit tests to override which plugin folder(s) to load
+        var paths = params.get("extensions") || "default,user";
+        
+        return Async.doInParallel(paths.split(","), function (item) {
             return ExtensionLoader.loadAllExtensionsInNativeDirectory(
                 FileUtils.getNativeBracketsDirectoryPath() + "/extensions/" + item,
                 "extensions/" + item
@@ -207,6 +214,7 @@ define(function (require, exports, module) {
             FileIndexManager        : FileIndexManager,
             Menus                   : Menus,
             KeyBindingManager       : KeyBindingManager,
+            CodeHintManager         : CodeHintManager,
             CSSUtils                : require("language/CSSUtils"),
             LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),

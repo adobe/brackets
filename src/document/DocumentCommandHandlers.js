@@ -38,6 +38,7 @@ define(function (require, exports, module) {
         ProjectManager      = require("project/ProjectManager"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
+        FileViewController  = require("project/FileViewController"),
         FileUtils           = require("file/FileUtils"),
         StringUtils         = require("utils/StringUtils"),
         Async               = require("utils/Async"),
@@ -322,7 +323,10 @@ define(function (require, exports, module) {
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
-                .always(function () { fileNewInProgress = false; });
+                .always(function () { fileNewInProgress = false; })
+                .done(function (entry) {
+                    FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                });
         };
 
         deferred.done(createWithSuggestedName);

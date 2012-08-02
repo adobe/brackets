@@ -42,8 +42,13 @@ define(function (require, exports, module) {
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         PerformanceReporter = require("perf/PerformanceReporter").PerformanceReporter,
         ExtensionLoader     = require("utils/ExtensionLoader"),
+        Async               = require("utils/Async"),
         FileUtils           = require("file/FileUtils"),
-        Menus               = require("command/Menus");
+        Menus               = require("command/Menus"),
+        UrlParams           = require("utils/UrlParams").UrlParams;
+
+    // Jasmine reporter UI
+    require("test/BootstrapReporter");
     
     // TODO: Issue 949 - the following code should be shared
     // Load modules that self-register and just need to get included in the main project
@@ -53,26 +58,57 @@ define(function (require, exports, module) {
     require("test/UnitTestSuite");
     require("test/PerformanceTestSuite");
     
-    var suite;
-        
-    function getParamMap() {
-        var params = document.location.search.substring(1).split('&'),
-            paramMap = {},
-            i,
-            p;
+    var suite,
+        params = new UrlParams();
     
-        for (i = 0; i < params.length; i++) {
-            p = params[i].split('=');
-            paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+    params.parse();
+    
+    function _loadExtensionTests(suite) {
+        // augment jasmine to identify extension unit tests
+        var addSuite = jasmine.Runner.prototype.addSuite;
+        jasmine.Runner.prototype.addSuite = function (suite) {
+            suite.category = "extension";
+            addSuite.call(this, suite);
+        };
+        
+        var bracketsPath = FileUtils.getNativeBracketsDirectoryPath(),
+            paths = ["default"];
+        
+        // load user extensions only when running the extension test suite
+        if (suite === "ExtensionTestSuite") {
+            paths.push("user");
+        }
+
+        // This returns path to test folder, so convert to src
+        bracketsPath = bracketsPath.replace("brackets/test", "brackets/src");
+
+        return Async.doInParallel(paths, function (dir) {
+            return ExtensionLoader.testAllExtensionsInNativeDirectory(
+                bracketsPath + "/extensions/" + dir,
+                "extensions/" + dir
+            );
+        });
+    }
+    
+    function _documentReadyHandler() {
+        if (brackets.app.showDeveloperTools) {
+            $("#show-dev-tools").click(function () {
+                brackets.app.showDeveloperTools();
+            });
+        } else {
+            $("#show-dev-tools").remove();
         }
         
-        return paramMap;
+        $("#reload").click(function () {
+            window.location.reload(true);
+        });
+        
+        $("#" + suite).closest("li").toggleClass("active", true);
+        
+        jasmine.getEnv().execute();
     }
     
     function init() {
-        var jasmineEnv = jasmine.getEnv(),
-            runner = jasmineEnv.currentRunner();
-        
         // TODO: Issue 949 - the following code should be shared
 
         // Define core brackets namespace if it isn't already defined
@@ -98,76 +134,88 @@ define(function (require, exports, module) {
         // Note: we change the name to "getModule" because this won't do exactly the same thing as 'require' in AMD-wrapped
         // modules. The extension will only be able to load modules that have already been loaded once.
         brackets.getModule = require;
-
-        var bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
-
-        // This returns path to test folder, so convert to src
-        bracketsPath = bracketsPath.replace("brackets/test", "brackets/src");
-
-        ExtensionLoader.testAllExtensionsInNativeDirectory(
-            bracketsPath + "/extensions/default",
-            "extensions/default"
-        );
-        ExtensionLoader.testAllExtensionsInNativeDirectory(
-            bracketsPath + "/extensions/user",
-            "extensions/user"
-        );
-
-        // Initiailize unit test preferences for each spec
-        beforeEach(function () {
-            // Unique key for unit testing
-            localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
-        });
-        
-        afterEach(function () {
-            // Clean up preferencesKey
-            localStorage.removeItem("preferencesKey");
-        });
-        
-        jasmineEnv.updateInterval = 1000;
-        
-        $(window.document).ready(function () {
-            $("#show-dev-tools").click(function () {
-                brackets.app.showDeveloperTools();
-            });
-            $("#reload").click(function () {
-                window.location.reload(true);
-            });
             
-            suite = getParamMap().suite || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        suite = params.get("suite") || localStorage.getItem("SpecRunner.suite") || "UnitTestSuite";
+        
+        // Create a top-level filter to show/hide performance and extensions tests
+        var isPerfSuite = (suite === "PerformanceTestSuite"),
+            isExtSuite = (suite === "ExtensionTestSuite");
+        
+        var topLevelFilter = function (spec) {
+            var suite = spec.suite;
             
-            // Create a top-level filter to show/hide performance tests
-            var isPerfSuite = (suite === "PerformanceTestSuite"),
-                performanceFilter = function (spec) {
-                    if (spec.performance === true) {
-                        return isPerfSuite;
+            // unit test suites have no category
+            if (!isPerfSuite && !isExtSuite) {
+                if (spec.category !== undefined) {
+                    // if an individualy spec has a category, filter it out
+                    return false;
+                }
+                
+                while (suite) {
+                    if (suite.category !== undefined) {
+                        // any suite in the hierarchy may specify a category
+                        return false;
                     }
                     
-                    var suite = spec.suite;
-                    
-                    while (suite) {
-                        if (suite.performance === true) {
-                            return isPerfSuite;
-                        }
-                        
-                        suite = suite.parentSuite;
-                    }
-                    
-                    return !isPerfSuite;
-                };
+                    suite = suite.parentSuite;
+                }
+                
+                return true;
+            }
             
-            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, performanceFilter));
+            var category = (isPerfSuite) ? "performance" : "extension";
+            
+            if (spec.category === category) {
+                return true;
+            }
+            
+            while (suite) {
+                if (suite.category === category) {
+                    return true;
+                }
+                
+                suite = suite.parentSuite;
+            }
+            
+            return false;
+        };
+        
+        /*
+         * TODO (jason-sanjose): extension unit tests should only load the
+         * extension and the extensions dependencies. We should not load
+         * unrelated extensions. Currently, this solution is all or nothing.
+         */
+        
+        // configure spawned test windows to load extensions
+        SpecRunnerUtils.setLoadExtensionsInTestWindow(isExtSuite);
+        
+        _loadExtensionTests(suite).done(function () {
+            var jasmineEnv = jasmine.getEnv();
+    
+            // Initiailize unit test preferences for each spec
+            beforeEach(function () {
+                // Unique key for unit testing
+                localStorage.setItem("preferencesKey", SpecRunnerUtils.TEST_PREFERENCES_KEY);
+            });
+            
+            afterEach(function () {
+                // Clean up preferencesKey
+                localStorage.removeItem("preferencesKey");
+            });
+            
+            jasmineEnv.updateInterval = 1000;
+            
+            jasmineEnv.addReporter(new jasmine.BootstrapReporter(document, topLevelFilter));
             
             // add performance reporting
             if (isPerfSuite) {
                 jasmineEnv.addReporter(new PerformanceReporter());
             }
             
+            // remember the suite for the next unit test window launch
             localStorage.setItem("SpecRunner.suite", suite);
             
-            $("#" + suite).closest("li").toggleClass("active", true);
-            
-            jasmineEnv.execute();
+            $(window.document).ready(_documentReadyHandler);
         });
     }
 

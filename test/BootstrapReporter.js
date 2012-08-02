@@ -1,32 +1,29 @@
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50, forin: true */
-/*global jasmine, document */
-(function ($) {
+/*global jasmine, $, define, document, require */
+define(function (require, exports, module) {
     'use strict';
+    
+    var UrlParams = require("utils/UrlParams").UrlParams;
 
     jasmine.BootstrapReporter = function (doc, filter) {
-        this._paramMap = {};
         this.document = doc || document;
         this._env = jasmine.getEnv();
+        this.params = new UrlParams();
+        this.params.parse();
         
         // parse querystring
         var self = this,
-            params = this.document.location.search.substring(1).split('&'),
             i,
             p;
         
-        for (i = 0; i < params.length; i++) {
-            p = params[i].split('=');
-            this._paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
-        }
-        
-        this._runAll = this._paramMap.spec === "All";
+        this._runAll = this.params.get("spec") === "All";
         
         // _topLevelFilter is applied first - selects Performance vs. Unit test suites
         this._topLevelFilter = filter;
         
         // Jasmine's runner uses the specFilter to choose which tests to run.
         // If you selected an option other than "All" this will be a subset of all tests loaded.
-        this._env.specFilter = this.createSpecFilter(this._paramMap.spec);
+        this._env.specFilter = this.createSpecFilter(this.params.get("spec"));
         this._runner = this._env.currentRunner();
         
         // build DOM immediately
@@ -71,6 +68,10 @@
             }
             
             if (filterString === "All") {
+                return true;
+            }
+
+            if (spec.getFullName() === filterString) {
                 return true;
             }
             
@@ -183,7 +184,7 @@
         this._createSuiteList();
         
         // highlight the current suite
-        topLevelData = (this._paramMap.spec) ? this._topLevelSuiteMap[this._paramMap.spec] : null;
+        topLevelData = (this.params.get("spec")) ? this._topLevelSuiteMap[this.params.get("spec")] : null;
         
         if (topLevelData) {
             topLevelData.$listItem.toggleClass("active", true);
@@ -225,7 +226,7 @@
             passed,
             data = this._topLevelSuiteMap[suite.getFullName()];
         
-        if ((suite.getFullName() === this._paramMap.spec) && data) {
+        if ((suite.getFullName() === this.params.get("spec")) && data) {
             passed = results.passed();
                                
             data.$badgeAll.hide();
@@ -350,4 +351,4 @@
     
     jasmine.BootstrapReporter.prototype.log = function (str) {
     };
-}(window.jQuery));
+});

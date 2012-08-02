@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     // Load dependent modules
     var PreferencesManager      = require("preferences/PreferencesManager"),
         PreferenceStorage       = require("preferences/PreferenceStorage").PreferenceStorage,
-        SpecRunnerUtils         = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
     var CLIENT_ID = "PreferencesManager-test";
         

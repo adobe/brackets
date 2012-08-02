@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
     
     
     describe("Document", function () {

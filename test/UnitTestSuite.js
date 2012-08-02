@@ -26,6 +26,7 @@
 define(function (require, exports, module) {
     'use strict';
     
+    require("spec/CodeHint-test");
     require("spec/CodeHintUtils-test");
     require("spec/CommandManager-test");
     require("spec/CSSUtils-test");

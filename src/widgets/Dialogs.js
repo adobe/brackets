@@ -91,7 +91,7 @@ define(function (require, exports, module) {
         if (buttonId) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) ||
-                  (this.filter(":input").length === 0)) {
+                  ($(e.target).filter(":input").length === 0)) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
@@ -117,7 +117,8 @@ define(function (require, exports, module) {
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
-        var result = $.Deferred();
+        var result = $.Deferred(),
+            promise = result.promise();
         
         // We clone the HTML rather than using it directly so that if two dialogs of the same
         // type happen to show up, they can appear at the same time. (This is an edge case that
@@ -132,6 +133,9 @@ define(function (require, exports, module) {
         if ($dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
+
+        // Save the dialog promise for unit tests
+        $dlg.data("promise", promise);
 
         // Set title and message
         if (title) {
@@ -187,7 +191,8 @@ define(function (require, exports, module) {
             show: true,
             keyboard: true
         });
-        return result.promise();
+
+        return promise;
     }
     
     /**

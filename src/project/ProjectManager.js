@@ -150,12 +150,29 @@ define(function (require, exports, module) {
         }
     }
     
-    var _documentSelectionFocusChange = function () {
+    /**
+     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
+     * if no item is selected.
+     *
+     * @return {?Entry}
+     */
+    function getSelectedItem() {
+        var selected = _projectTree.jstree("get_selected");
+        if (selected) {
+            return selected.data("entry");
+        }
+        return null;
+    }
+
+    function _fileViewFocusChange() {
+        _redraw(true);
+    }
+    
+    function _documentSelectionFocusChange() {
         var curDoc = DocumentManager.getCurrentDocument();
         if (curDoc && _hasFileSelectionFocus()) {
             $("#project-files-container li").is(function (index) {
                 var entry = $(this).data("entry");
-                
                 if (entry && entry.fullPath === curDoc.file.fullPath && !_projectTree.jstree("is_selected", $(this))) {
                     //we don't want to trigger another selection change event, so manually deselect
                     //and select without sending out notifications
@@ -171,7 +188,7 @@ define(function (require, exports, module) {
         }
         
         _redraw(true);
-    };
+    }
 
     /**
      * Returns the root folder of the currently loaded project, or null if no project is open (during
@@ -354,6 +371,7 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
+                        FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
                         // show selection marker on folders
                         _redraw(true);
                         
@@ -741,19 +759,6 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-    /**
-     * Returns the FileEntry or DirectoryEntry corresponding to the selected item, or null
-     * if no item is selected.
-     *
-     * @return {?Entry}
-     */
-    function getSelectedItem() {
-        var selected = _projectTree.jstree("get_selected");
-        if (selected) {
-            return selected.data("entry");
-        }
-        return null;
-    }
 
     /**
      * Create a new item in the project tree.
@@ -944,6 +949,7 @@ define(function (require, exports, module) {
 
         // Event Handlers
         $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+        $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
         $("#open-files-container").on("contentChanged", function () {
             _redraw(false); // redraw jstree when working set size changes
         });

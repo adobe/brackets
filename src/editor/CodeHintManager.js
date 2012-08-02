@@ -32,23 +32,9 @@ define(function (require, exports, module) {
     var HTMLUtils       = require("language/HTMLUtils"),
         Menus           = require("command/Menus"),
         StringUtils     = require("utils/StringUtils"),
-        HTMLTags        = require("text!CodeHints/HtmlTags.json"),
-        EditorManager   = require("editor/EditorManager");
+        EditorManager   = require("editor/EditorManager"),
+        PopUpManager    = require("widgets/PopUpManager");
     
-    /**
-     * @private
-     * Parse the code hints from JSON data and extract all hints from property names.
-     * @param {string} a JSON string that has the code hints data
-     * @return {!Array.<string>} An array of code hints read from the JSON data source.
-     */
-    function _getCodeHints(jsonStr) {
-        var hintObj = JSON.parse(jsonStr);
-        return $.map(hintObj, function (value, key) {
-            return key;
-        }).sort();
-    }
-
-
     
     /**
      * @constructor
@@ -58,10 +44,9 @@ define(function (require, exports, module) {
      * to include: extensibility API, HTML attributes hints, JavaScript hints, CSS hints
      */
     function CodeHintList() {
-        // TODO Ty: should pass array of objects instead of strings as source so richer data can
-        // be passed to hint list
-        this.source = _getCodeHints(HTMLTags);
-        this.query = "";
+        this.hintProviders = [];
+        this.currentProvider = null;
+        this.query = {queryStr: null};
         this.displayList = [];
         this.options = {
             maxResults: 8
@@ -88,29 +73,7 @@ define(function (require, exports, module) {
      * @string {string} completion - text to insert into current code editor
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
-        var start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            cursor = this.editor.getCursorPos(),
-            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
-            charCount = 0;
-        
-        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-            charCount = tagInfo.tagName.length;
-        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
-            charCount = tagInfo.attr.completion.length;
-        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
-            charCount = tagInfo.attr.value.length;
-        }
-        
-        end.line = start.line = cursor.line;
-        start.ch = cursor.ch - tagInfo.position.offset;
-        end.ch = start.ch + charCount;
-        
-        if (start.ch !== "-1" && end.ch !== "-1") {
-            this.editor.document.replaceRange(completion, start, end);
-        } else {
-            this.editor.document.replaceRange(completion, start);
-        }
+        this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos());
     };
 
     /**
@@ -120,7 +83,7 @@ define(function (require, exports, module) {
     CodeHintList.prototype.addItem = function (name) {
         var self = this;
         var displayName = name.replace(
-            new RegExp(StringUtils.regexEscape(this.query), "i"),
+            new RegExp(StringUtils.regexEscape(this.query.queryStr), "i"),
             "<strong>$&</strong>"
         );
 
@@ -137,7 +100,7 @@ define(function (require, exports, module) {
      * Rebuilds the hint list based on this.query
      */
     CodeHintList.prototype.updateList = function () {
-        this.filterList();
+        this.displayList = this.currentProvider.search(this.query);
         this.buildListView();
     };
 
@@ -171,28 +134,6 @@ define(function (require, exports, module) {
         }
     };
 
-    /**
-     * Figures out the text to use for the hint list query based on the text
-     * around the cursor and sets this.query.
-     * Query is the text from the start of a tag to the current cursor position
-     */
-    CodeHintList.prototype.updateQueryFromCurPos = function () {
-        var pos = this.editor.getCursorPos(),
-            cursor = this.editor.indexFromPos(pos),
-            tagInfo = HTMLUtils.getTagInfo(this.editor, pos);
-
-        if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-            var text = this.editor.document.getText(),
-                start = text.lastIndexOf("<", cursor) + 1;
-            if (start <= cursor) {
-                this.query = text.slice(start, cursor);
-            } else {
-                this.query = null;
-            }
-        } else {
-            this.query = null;
-        }
-    };
 
     /**
      * Selects the item in the hint list specified by index
@@ -248,7 +189,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        this.updateQueryFromCurPos();
+        this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
         this.updateList();
 
         // Update the CodeHistList location
@@ -278,18 +219,36 @@ define(function (require, exports, module) {
      * @param {Editor} editor
      */
     CodeHintList.prototype.open = function (editor) {
+        var self = this;
         this.editor = editor;
 
         Menus.closeAll();
-        
-        this.updateQueryFromCurPos();
+
+        this.currentProvider = null;
+        $.each(this.hintProviders, function (index, item) {
+            var query = item.getQueryInfo(self.editor, self.editor.getCursorPos());
+            if (query.queryStr !== null) {
+                self.query = query;
+                self.currentProvider = item;
+                return false;
+            }
+        });
+        if (!this.currentProvider) {
+            return;
+        }
+
         this.updateList();
     
         if (this.displayList.length) {
             var hintPos = this.calcHintListLocation();
+            
             this.$hintMenu.addClass("open")
                        .css({"left": hintPos.left, "top": hintPos.top});
             this.opened = true;
+            
+            PopUpManager.addPopUp(this.$hintMenu, function () {
+                self.close();
+            });
         }
     };
 
@@ -297,8 +256,11 @@ define(function (require, exports, module) {
      * Closes the hint list
      */
     CodeHintList.prototype.close = function () {
-        Menus.closeAll();
+        this.$hintMenu.removeClass("open");
         this.opened = false;
+        this.currentProvider = null;
+        
+        PopUpManager.removePopUp(this.$hintMenu);
     };
         
     /**
@@ -330,21 +292,6 @@ define(function (require, exports, module) {
         return {left: posLeft, top: posTop};
     };
 
-    /**
-     * Filters the source list by query and stores the result in displayList
-     */
-    CodeHintList.prototype.filterList = function () {
-        var self = this;
-        this.displayList = $.map(this.source, function (item) {
-            if (item.indexOf(self.query) === 0) {
-                return item;
-            }
-        }).sort();
-        // TODO: better sorting. Should rank tags based on portion of query that is present in tag
-    };
-
-
-
     // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
     // and different types of hint list when other types of hinting is added.
     var hintList = new CodeHintList();
@@ -354,41 +301,33 @@ define(function (require, exports, module) {
       * @param {Editor}
       */
     function _showHint(editor) {
-    // To be used later when we get to attribute hinting
-    //       var pos = editor.getCursorPos();
-    //       var tagInfo = HTMLUtils.getTagInfo(editor, pos);
-    //       if (tagInfo.position.type === HTMLUtils.ATTR_VALUE) {
-    //           if (tagInfo.attr.name === "class") {
-    //               _triggerClassHint(editor, pos, tagInfo);
-    //           } else if (tagInfo.attr.name === "id") {
-    //               _triggerIdHint(editor, pos, tagInfo);
-    //           }
-    //       }
-    //      else if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-    //           console.log(_getCodeHints(HTMLTags, tagInfo.tagName));
-    //       }
-
-        
         hintList.open(editor);
     }
-        
+    
     /**
      * Handles keys related to displaying, searching, and navigating the hint list
      * @param {Editor} editor
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
-        // For now we only handle hints in html
-        if (editor.getModeForSelection() !== "html") {
-            return;
-        }
+        var provider = null;
         
-        // Check for Control+Space or "<"
+        // Check for Control+Space
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
             event.preventDefault();
-        } else if (event.type === "keyup" && event.keyCode === 188) {
-            _showHint(editor);
+        } else if (event.type === "keyup") {
+            // Check if any provider wants to show hints on this key.
+            $.each(hintList.hintProviders, function (index, item) {
+                if (item.shouldShowHintsOnKey(event.keyCode)) {
+                    provider = item;
+                    return false;
+                }
+            });
+            
+            if (provider) {
+                _showHint(editor);
+            }
         }
 
         // Pass to the hint list, if it's open
@@ -396,7 +335,43 @@ define(function (require, exports, module) {
             hintList.handleKeyEvent(editor, event);
         }
     }
+
+    /**
+     * Registers an object that is able to provide code hints. When the user requests a code
+     * hint getQueryInfo() will be called on every hint provider. Providers should examine
+     * the state of the editor and return a search query object with a filter string if hints 
+     * can be provided. search() will then be called allowing the hint provider to create a 
+     * list of hints for the search query. When the user chooses a hint handleSelect() is called
+     * so that the hint provider can insert the hint into the editor.
+     *
+     * @param {Object.< getQueryInfo: function(editor, cursor),
+     *                  search: function(string),
+     *                  handleSelect: function(string, Editor, cursor),
+     *                  shouldShowHintsOnKey: function(number)>}
+     *
+     * Parameter Details:
+     * - getQueryInfo - examines cursor location of editor and returns an object representing
+     *      the search query to be used for hinting. queryStr is a required property of the search object
+     *      and a client may provide other properties on the object to carry more context about the query.
+     * - search - takes a query object and returns an array of hint strings based on the queryStr property
+     *      of the query object.
+     * - handleSelect - takes a completion string and inserts it into the editor near the cursor
+     *      position
+     * - shouldShowHintsOnKey - inspects the key code and returns true if it wants to show code hints on that key.
+     */
+    function registerHintProvider(providerInfo) {
+        hintList.hintProviders.push(providerInfo);
+    }
+
+    /**
+     * Expose CodeHintList for unit testing
+     */
+    function _getCodeHintList() {
+        return hintList;
+    }
     
     // Define public API
-    exports.handleKeyEvent = handleKeyEvent;
+    exports.handleKeyEvent          = handleKeyEvent;
+    exports._getCodeHintList        = _getCodeHintList;
+    exports.registerHintProvider    = registerHintProvider;
 });

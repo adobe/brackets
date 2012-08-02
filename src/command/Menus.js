@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
-        CommandManager          = require("command/CommandManager");
+        CommandManager          = require("command/CommandManager"),
+        PopUpManager            = require("widgets/PopUpManager");
 
     /**
      * Brackets Application Menu Constants
@@ -66,21 +67,28 @@ define(function (require, exports, module) {
      * looser coupling to Bracket's internal MenuItems and makes menu organization
      * more semantic. 
      * Use these constants as the "relativeID" parameter when calling addMenuItem() and
-     * specify a position of FIRST or LAST.
+     * specify a position of FIRST_IN_SECTION or LAST_IN_SECTION.
+     *
+     * Menu sections are denoted by dividers or the beginning/end of a menu
      */
     var MenuSection = {
-        FILE_OPEN_CLOSE_MENU:       "file-open-close-menu-section",
-        FILE_SAVE_MENU:             "file-save-menu-section",
-        FILE_LIVE_MENU:             "file-live-menu-section",
+        // Menu Section                     Command ID to mark the section
+        FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
+        FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
+        FILE_LIVE:                          {sectionMarker: Commands.FILE_LIVE_FILE_PREVIEW},
 
-        EDIT_MODIFY_SELECTION_MENU: "edit-modify-selection-menu-section",
-        EDIT_FIND_MENU:             "find-menu-section",
-        EDIT_REPLACE_MENU:          "replace-menu-section",
-        EDIT_SELECTED_TEXT_COMMANDS: "selected-text-commands-menu-group",
+        EDIT_SELECTION_COMMANDS:            {sectionMarker: Commands.EDIT_SELECT_ALL},
+        EDIT_FIND:                          {sectionMarker: Commands.EDIT_FIND},
+        EDIT_REPLACE_COMMANDS:              {sectionMarker: Commands.EDIT_REPLACE},
+        EDIT_MODIFY_SELECTION:              {sectionMarker: Commands.EDIT_INDENT},
 
-        NAVIGATE_GOTO_MENU:         "goto-menu-section",
-        NAVIGATE_QUICK_EDIT_MENU:   "quick-edit-menu-section"
+        VIEW_HIDESHOW_COMMANDS:             {sectionMarker: Commands.VIEW_HIDE_SIDEBAR},
+        VIEW_FONTSIZE_COMMANDS:             {sectionMarker: Commands.VIEW_INCREASE_FONT_SIZE},
+
+        NAVIGATE_GOTO_COMMANDS:             {sectionMarker: Commands.NAVIGATE_QUICK_OPEN},
+        NAVIGATE_QUICK_EDIT_COMMANDS:       {sectionMarker: Commands.TOGGLE_QUICK_EDIT}
     };
+
     
     /**
       * Insertion position constants
@@ -88,10 +96,12 @@ define(function (require, exports, module) {
       * specify the relative position of a newly created menu object
       * @enum {string}
       */
-    var BEFORE =  "before";
-    var AFTER =   "after";
-    var FIRST =   "first";
-    var LAST =    "last";
+    var BEFORE =            "before";
+    var AFTER =             "after";
+    var FIRST =             "first";
+    var LAST =              "last";
+    var FIRST_IN_SECTION =  "firstInSection";
+    var LAST_IN_SECTION =   "lastInSection";
 
     /**
       * Other constants
@@ -186,6 +196,15 @@ define(function (require, exports, module) {
         // Determine where to insert. Default is LAST.
         var inserted = false;
         if (position) {
+
+            // Adjust relative position for menu section positions since $relativeElement
+            // has already been resolved by _getRelativeMenuItem() to a menuItem
+            if (position === FIRST_IN_SECTION) {
+                position = BEFORE;
+            } else if (position === LAST_IN_SECTION) {
+                position = AFTER;
+            }
+
             if (position === FIRST) {
                 $list.prepend($element);
                 inserted = true;
@@ -265,12 +284,27 @@ define(function (require, exports, module) {
         this.id = id;
     }
 
+    Menu.prototype._getMenuItemForCommand = function (command) {
+        var foundMenuItem, key, menuItem;
+        for (key in menuItemMap) {
+            if (menuItemMap.hasOwnProperty(key)) {
+                menuItem = menuItemMap[key];
+                if (menuItem.getCommand() === command) {
+                    foundMenuItem = menuItem;
+                    break;
+                }
+            }
+        }
+        return $(_getHTMLMenuItem(foundMenuItem.id)).closest("li");
+    };
+
     /**
      * Determine relative MenuItem
      *
-     * @param {?string} relativeID - id of command (future: also sub-menu, or menu section).
+     * @param {?string} relativeID - id of command (future: sub-menu).
+     * @param {?string} position - only needed when relativeID is a MenuSection
      */
-    Menu.prototype._getRelativeMenuItem = function (relativeID) {
+    Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement,
             key,
             menuItem,
@@ -278,25 +312,46 @@ define(function (require, exports, module) {
             foundMenuItem;
         
         if (relativeID) {
-            // Lookup Command for this Command id
-            var command = CommandManager.get(relativeID);
-            
-            if (command) {
-                // Find MenuItem that has this command
-                for (key in menuItemMap) {
-                    if (menuItemMap.hasOwnProperty(key)) {
-                        menuItem = menuItemMap[key];
-                        if (menuItem.getCommand() === command) {
-                            foundMenuItem = menuItem;
-                            break;
-                        }
+            if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
+                if (!relativeID.hasOwnProperty("sectionMarker")) {
+                    console.log("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                }
+
+                // Determine the $relativeElement by traversing the sibling list and
+                // stop at the first divider found
+                // TODO: simplify using nextUntil()/prevUntil()
+                var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
+                var $listElem = $sectionMarker;
+                $relativeElement = $listElem;
+                while (true) {
+                    $listElem = (position === FIRST_IN_SECTION ? $listElem.prev() : $listElem.next());
+                    if ($listElem.length === 0) {
+                        break;
+                    } else if ($listElem.find(".divider").length > 0) {
+                        break;
+                    } else {
+                        $relativeElement = $listElem;
                     }
                 }
                 
-                if (foundMenuItem) {
-                    $relativeElement = $(_getHTMLMenuItem(foundMenuItem.id)).closest("li");
+            } else {
+                if (relativeID.hasOwnProperty("sectionMarker")) {
+                    console.log("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
+                }
+                
+                // handle FIRST, LAST, BEFORE, & AFTER
+                var command = CommandManager.get(relativeID);
+                if (command) {
+                    // Lookup Command for this Command id
+                    // Find MenuItem that has this command
+                    $relativeElement = this._getMenuItemForCommand(command);
                 }
             }
+            
+            return $relativeElement;
+            
+        } else if (position && position !== FIRST && position !== LAST) {
+            console.log("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
         }
         
         return $relativeElement;
@@ -347,9 +402,9 @@ define(function (require, exports, module) {
      *      one or more key bindings to associate with the supplied command.
      * @param {?string} position - constant defining the position of new the MenuItem relative
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
-     * @param {?string} relativeID - id of command (future: also sub-menu, or menu section) that 
-     *      the new menuItem will be positioned relative to. Required when position is 
-     *      AFTER or BEFORE, ignored when position is FIRST or LAST
+     * @param {?string} relativeID - id of command or menu section (future: sub-menu) that 
+     *      the new menuItem will be positioned relative to. Required for all position constants
+     *      except FIRST and LAST.
      *
      * @return {MenuItem} the newly created MenuItem
      */
@@ -406,7 +461,7 @@ define(function (require, exports, module) {
         }
 
         // Insert menu item
-        var $relativeElement = this._getRelativeMenuItem(relativeID);
+        var $relativeElement = this._getRelativeMenuItem(relativeID, position);
         _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                       $menuItem, position, $relativeElement);
 
@@ -438,8 +493,8 @@ define(function (require, exports, module) {
      * @param {?string} position - constant defining the position of new the divider relative
      *      to other MenuItems. Default is LAST.  (see Insertion position constants). 
      * @param {?string} relativeID - id of menuItem, sub-menu, or menu section that the new 
-     *      divider will be positioned relative to. Required when position is 
-     *      AFTER or BEFORE, ignored when position is FIRST or LAST.
+     *      divider will be positioned relative to. Required for all position constants
+     *      except FIRST and LAST
      * 
      * @return {MenuItem} the newly created divider
      */
@@ -568,6 +623,13 @@ define(function (require, exports, module) {
             }
         }
     };
+
+    /**
+     * Closes all menus that are open
+     */
+    function closeAll() {
+        $(".dropdown").removeClass("open");
+    }
     
     /**
      * Adds a top-level menu to the application menu bar which may be native or HTML-based.
@@ -602,25 +664,22 @@ define(function (require, exports, module) {
         menu = new Menu(id);
         menuMap[id] = menu;
 
-        var $newMenu = $("<li class='dropdown' id='" + id + "'></li>")
-            .append("<a href='#' class='dropdown-toggle'>" + name + "</a>")
-            .append("<ul class='dropdown-menu'></ul>");
+        var $toggle = $("<a href='#' class='dropdown-toggle'>" + name + "</a>"),
+            $popUp = $("<ul class='dropdown-menu'></ul>"),
+            $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
 
         // Insert menu
         var $relativeElement = relativeID && $(_getHTMLMenu(relativeID));
         _insertInList($menubar, $newMenu, position, $relativeElement);
+        
+        // Install ESC key handling
+        PopUpManager.addPopUp($popUp, closeAll, false);
 
         // todo error handling
 
         return menu;
     }
 
-    /**
-     * Closes all menus that are open
-     */
-    function closeAll() {
-        $(".dropdown").removeClass("open");
-    }
 
     /**
      * @constructor
@@ -643,15 +702,22 @@ define(function (require, exports, module) {
         this.id = id;
         this.menu = new Menu(id);
 
-        var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>");
+        var $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>"),
+            $popUp = $("<ul class='dropdown-menu'></ul>"),
+            $toggle = $("<a href='#' class='dropdown-toggle'></a>").hide();
 
-        var $toggle = $("<a href='#' class='dropdown-toggle'></a>")
-            .hide();
+        // assemble the menu fragments
+        $newMenu.append($toggle).append($popUp);
 
-        $newMenu.append($toggle)
-            .append("<ul class='dropdown-menu'></ul>");
-
+        // insert into DOM
         $("#context-menu-bar > ul").append($newMenu);
+        
+        var self = this;
+        PopUpManager.addPopUp($popUp,
+            function () {
+                self.close();
+            },
+            false);
     }
     ContextMenu.prototype = new Menu();
     ContextMenu.prototype.constructor = ContextMenu;
@@ -806,6 +872,15 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
         menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
+                                                          platform: "win"},
+                                                         {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
+                                                          platform: "mac"}]);
+        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2191",
+                                                          platform: "win"},
+                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2191",
+                                                          platform: "mac"}]);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
@@ -866,7 +941,7 @@ define(function (require, exports, module) {
         inline_editor_cmenu.addMenuDivider();
         inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
         inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
-
+        
         /**
          * Context menu for code editors (both full-size and inline)
          * Auto selects the word the user clicks if the click does not occur over
@@ -919,20 +994,12 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
         
-        
         /*
          * General menu event processing
          */
         // Prevent clicks on top level menus and menu items from taking focus
         $(window.document).on("mousedown", ".dropdown", function (e) {
             e.preventDefault();
-        });
-
-        // close all dropdowns on ESC
-        $(window.document).on("keydown", function (e) {
-            if (e.keyCode === 27) {
-                closeAll();
-            }
         });
 
         // Switch menus when the mouse enters an adjacent menu
@@ -956,6 +1023,8 @@ define(function (require, exports, module) {
     exports.AFTER = AFTER;
     exports.LAST = LAST;
     exports.FIRST = FIRST;
+    exports.FIRST_IN_SECTION = FIRST_IN_SECTION;
+    exports.LAST_IN_SECTION = LAST_IN_SECTION;
     exports.DIVIDER = DIVIDER;
     exports.getMenu = getMenu;
     exports.getMenuItem = getMenuItem;
