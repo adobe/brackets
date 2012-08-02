@@ -367,7 +367,7 @@ define(function (require, exports, module) {
      * 
      */
     Menu.prototype.removeMenuItem = function (command) {
-        var commandID;
+        var menuItemID;
 
         if (!command) {
             throw new Error("removeMenuItem(): missing required parameters: command");
@@ -380,14 +380,14 @@ define(function (require, exports, module) {
                 throw new Error("removeMenuItem(): command not found: " + command);
             }
 
-            commandID = menuItemMap[this.id + "-" + command].id;
+            menuItemID = menuItemMap[this.id + "-" + command].id;
         } else {
-            commandID = this.id + "-" + command.getID();
+            menuItemID = this.id + "-" + command.getID();
         }
 
         //Targeting parent to get the menu item <a> and the <li> that contains it
-        $(_getHTMLMenuItem(commandID)).parent().remove();
-        delete menuItemMap[commandID];
+        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        delete menuItemMap[menuItemID];
     };
     
     /**
