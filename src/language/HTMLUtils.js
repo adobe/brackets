@@ -193,11 +193,12 @@ define(function (require, exports, module) {
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.            
      */
-    function createTagInfo(tokenType, offset, tagName, attrName, attrValue) {
+    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
-                      value: attrValue || ""},
+                      value: attrValue || "",
+                      valueAssigned: valueAssigned || false},
                  position:
                     { tokenType: tokenType || "",
                       offset: offset || 0} };
@@ -263,7 +264,7 @@ define(function (require, exports, module) {
         var attrInfo = _extractAttrVal(ctx);
         var attrVal = attrInfo.val;
         
-        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal);
+        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true);
     }
     
     /**
@@ -308,8 +309,24 @@ define(function (require, exports, module) {
 
             if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
                 // pos has whitespace before it and non-whitespace after it, so use token after
-                ctx.pos = testPos;
                 ctx.token = testToken;
+
+                if (ctx.token.className === "tag") {
+                    // check to see if the user is going to add a new attr before the ">".
+                    if (ctx.token.string === ">") {
+                        return createTagInfo(ATTR_NAME, 0, _extractTagName(ctx));
+                    }
+                    
+                    // check to see if the cursor is just before a "<" but not in any tag.
+                    if (ctx.token.string.charAt(0) === "<") {
+                        return createTagInfo();
+                    }
+                } else if (ctx.token.className === "attribute") {
+                    // check to see if the user is going to add a new attr before an existing one
+                    return _getTagInfoStartingFromAttrName(ctx, false);
+                }
+
+                ctx.pos = testPos;
                 // Get the new offset from test token and subtract one for testPos adjustment
                 offset = _offsetInToken(ctx) - 1;
             } else {
@@ -342,6 +359,11 @@ define(function (require, exports, module) {
         }
         
         if (ctx.token.className === "tag") {
+            // Check if the user just typed a white space after "<" that made an existing tag invalid.
+            if (ctx.token.string.indexOf("< ") === 0) {
+                return createTagInfo();
+            }
+            
             //check to see if this is the closing of a tag (either the start or end)
             if (ctx.token.string === ">" ||
                     (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
@@ -371,7 +393,7 @@ define(function (require, exports, module) {
         }
         
         if (ctx.token.className === "attribute") {
-            tagInfo = _getTagInfoStartingFromAttrName(ctx);
+            tagInfo = _getTagInfoStartingFromAttrName(ctx, false);
         } else {
             // if we're not at a tag, "=", or attribute name, assume we're in the value
             tagInfo = _getTagInfoStartingFromAttrValue(ctx);

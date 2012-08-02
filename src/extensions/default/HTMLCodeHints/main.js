@@ -150,7 +150,8 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
-            adjustCursor = false;
+            adjustCursor = false,
+            replaceExistingOne = tagInfo.attr.valueAssigned;
 
         if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
@@ -164,7 +165,8 @@ define(function (require, exports, module) {
 
         // Append an equal sign and two double quotes if the current attr is not an empty attr
         // and then adjust cursor location before the last quote that we just inserted.
-        if (attributes && attributes[completion] && attributes[completion].type !== "flag") {
+        if (!replaceExistingOne && attributes && attributes[completion] &&
+                attributes[completion].type !== "flag") {
             completion += "=\"\"";
             adjustCursor = true;
         }
