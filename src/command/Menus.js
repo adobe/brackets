@@ -830,8 +830,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
-        menu.addMenuItem(Commands.FILE_SAVE_ALL,            [{key: "Ctrl-Shift-S",      platform: "win"},
-                                                             {key: "Cmd-Alt-S",         platform: "mac"}]);
+        menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
         menu.addMenuDivider();
