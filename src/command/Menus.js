@@ -378,8 +378,9 @@ define(function (require, exports, module) {
         } else {
             commandID = this.id + "-" + command.getID();
         }
-        
-        $(_getHTMLMenuItem(commandID)).remove();
+
+        //Targeting parent to get the menu item <a> and the <li> that contains it
+        $(_getHTMLMenuItem(commandID)).parent().remove();
         delete menuItemMap[commandID];
     };
     
