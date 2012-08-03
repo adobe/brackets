@@ -274,12 +274,10 @@ define(function (require, exports, module) {
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = false;
     
-	/** allow lines of code to be moved by a certain number of lines **/
-	function _moveCurrentLineBy(instance, moveBy) {
-		var cursor = instance.getCursor(true), 
+	/** allow a line of code to be moved by a certain number of lines **/
+	function _moveLineBy(instance, from, moveBy) {
+		var to = from + moveBy,
 			lineCount = instance.lineCount();
-		var from = cursor.line;
-		var to = from + moveBy;
 		
 		// should new lines be created here?
 		if (to < 0) {
@@ -295,8 +293,28 @@ define(function (require, exports, module) {
 		}
 		instance.setLine(to, fromText);
 		instance.setLine(from, toText);
-		instance.setCursor(to, cursor.ch);
 	}
+	
+	/** allows the current selection to be moved by a certain number of lines **/
+	function _moveCurrentSelectionBy(instance, moveBy) {
+		var start = instance.getCursor(true),
+		end = instance.getCursor(false),
+		current = start.line > end.line ? end.line : start.line,
+		stop = start.line > end.line ? start.line : end.line;
+		
+		if(moveBy > 0){//moving down
+			while(current <= stop){
+				_moveLineBy(instance, stop--, moveBy);
+			}
+		}else{//moving up
+			while(current <= stop){
+				_moveLineBy(instance, current++, moveBy);
+			}	
+		}
+		
+		instance.setSelection({line : start.line + moveBy, ch: start.ch}, {line : end.line + moveBy, ch:  end.ch});
+	}
+	
 	
     
     
@@ -377,10 +395,10 @@ define(function (require, exports, module) {
             "Ctrl-Insert": "copy",
             "Shift-Insert": "paste",
             "Ctrl-Up" : function (instance) {
-                _moveCurrentLineBy(instance, -1);
+                _moveCurrentSelectionBy(instance, -1);
             },
 			"Ctrl-Down" : function (instance) {
-				_moveCurrentLineBy(instance, 1);
+				_moveCurrentSelectionBy(instance, 1);
 			}
         };
         
