@@ -77,6 +77,8 @@ define(function (require, exports, module) {
                     waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
                 });
             } else {
+                // Remove this 'else' after migrating to brackets-shell.
+                // brackets-app never resolves the promise for brackets.app.closeLiveBrowser.
                 runs(function () {
                     NativeApp.closeAllLiveBrowsers();
                 });
