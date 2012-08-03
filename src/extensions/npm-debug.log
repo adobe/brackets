@@ -1,0 +1,114 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', '-g', 'node-inspector' ]
+2 info using npm@1.1.45
+3 info using node@v0.8.4
+4 verbose config file /Users/jasonsj/.npmrc
+5 verbose config file /usr/local/etc/npmrc
+6 verbose config file /usr/local/lib/node_modules/npm/npmrc
+7 verbose read json /usr/local/lib/package.json
+8 verbose read json /usr/local/lib/package.json
+9 verbose cache add [ 'node-inspector', null ]
+10 silly cache add name=undefined spec="node-inspector" args=["node-inspector",null]
+11 verbose parsed url { pathname: 'node-inspector',
+11 verbose parsed url   path: 'node-inspector',
+11 verbose parsed url   href: 'node-inspector' }
+12 silly lockFile 4198ef9e-node-inspector node-inspector
+13 verbose lock node-inspector /Users/jasonsj/.npm/4198ef9e-node-inspector.lock
+14 silly lockFile 4198ef9e-node-inspector node-inspector
+15 verbose addNamed [ 'node-inspector', '' ]
+16 verbose addNamed [ null, '' ]
+17 silly lockFile e68b88da-node-inspector node-inspector@
+18 verbose lock node-inspector@ /Users/jasonsj/.npm/e68b88da-node-inspector.lock
+19 silly addNameRange { name: 'node-inspector', range: '', hasData: false }
+20 verbose url raw node-inspector
+21 verbose url resolving [ 'https://registry.npmjs.org/', './node-inspector' ]
+22 verbose url resolved https://registry.npmjs.org/node-inspector
+23 info retry registry request attempt 1 at 17:49:56
+24 verbose etag "8FJIFXE7US9I0BP0QMZGY231W"
+25 http GET https://registry.npmjs.org/node-inspector
+26 http 304 https://registry.npmjs.org/node-inspector
+27 silly registry.get cb [ 304,
+27 silly registry.get   { server: 'CouchDB/1.2.0 (Erlang OTP/R15B)',
+27 silly registry.get     etag: '"8FJIFXE7US9I0BP0QMZGY231W"',
+27 silly registry.get     date: 'Fri, 27 Jul 2012 00:49:58 GMT',
+27 silly registry.get     'content-length': '0' } ]
+28 verbose etag node-inspector from cache
+29 silly addNameRange number 2 { name: 'node-inspector', range: '', hasData: true }
+30 silly addNameRange versions [ 'node-inspector',
+30 silly addNameRange   [ '0.0.1',
+30 silly addNameRange     '0.0.2',
+30 silly addNameRange     '0.0.3',
+30 silly addNameRange     '0.0.4',
+30 silly addNameRange     '0.1.0',
+30 silly addNameRange     '0.1.1',
+30 silly addNameRange     '0.1.2',
+30 silly addNameRange     '0.1.3',
+30 silly addNameRange     '0.1.4',
+30 silly addNameRange     '0.1.5',
+30 silly addNameRange     '0.1.6',
+30 silly addNameRange     '0.1.7',
+30 silly addNameRange     '0.1.8',
+30 silly addNameRange     '0.1.9',
+30 silly addNameRange     '0.1.10',
+30 silly addNameRange     '0.2.0beta1',
+30 silly addNameRange     '0.2.0beta2',
+30 silly addNameRange     '0.2.0beta3' ] ]
+31 verbose addNamed [ 'node-inspector', '0.2.0beta3' ]
+32 verbose addNamed [ '0.2.0beta3', '0.2.0beta3' ]
+33 silly lockFile 4109c2e9-node-inspector-0-2-0beta3 node-inspector@0.2.0beta3
+34 verbose lock node-inspector@0.2.0beta3 /Users/jasonsj/.npm/4109c2e9-node-inspector-0-2-0beta3.lock
+35 verbose read json /Users/jasonsj/.npm/node-inspector/0.2.0beta3/package/package.json
+36 silly lockFile 4109c2e9-node-inspector-0-2-0beta3 node-inspector@0.2.0beta3
+37 silly lockFile e68b88da-node-inspector node-inspector@
+38 silly resolved [ { name: 'node-inspector',
+38 silly resolved     version: '0.2.0beta3',
+38 silly resolved     description: 'Web Inspector based nodeJS debugger',
+38 silly resolved     homepage: 'http://github.com/dannycoates/node-inspector',
+38 silly resolved     author: { name: 'Danny Coates', email: 'dannycoates@gmail.com' },
+38 silly resolved     keywords: [ 'debug', 'debugger', 'inspector', 'profiler' ],
+38 silly resolved     repository:
+38 silly resolved      { type: 'git',
+38 silly resolved        url: 'http://github.com/dannycoates/node-inspector.git' },
+38 silly resolved     engines: { node: '>=0.6.0' },
+38 silly resolved     bin: { 'node-inspector': './bin/inspector.js' },
+38 silly resolved     dependencies: { 'socket.io': '~0.9', connect: '~1.8.5', async: '~0.1' },
+38 silly resolved     preferGlobal: true,
+38 silly resolved     readme: 'Node Inspector is a debugger interface for nodeJS using the WebKit Web Inspector.\n\n## Getting Started\n\n### Requirements\n\n* [nodeJS](http://github.com/ry/node)\n  - versions: 0.3.0 or later\n* [npm](http://github.com/isaacs/npm)\n* A WebKit based browser: Chrome, Safari, etc.\n\n* Optional [v8-profiler](http://github.com/dannycoates/v8-profiler) to use the profiles panel\n\n### Install\n\n* With [npm](http://github.com/isaacs/npm)\n\n        $ npm install -g node-inspector\n\n### Enable debug mode\n\nTo use node-inspector, enable debugging on the node you wish to debug.\nYou can either start node with a debug flag like:\n\n    $ node --debug your/node/program.js\n\nor, to pause your script on the first line:\n\n    $ node --debug-brk your/short/node/script.js\n\nOr you can enable debugging on a node that is already running by sending\nit a signal:\n\n1. Get the PID of the node process using your favorite method. `pgrep` or `ps -ef` are good\n\n\t\t$ pgrep -l node\n\t\t2345 node your/node/server.js\n\n2. Send it the USR1 signal\n\n\t\t$ kill -s USR1 2345\n\nGreat! Now you are ready to attach node-inspector\n\n### Debugging\n\n1. start the inspector. I usually put it in the background\n\n\t\t$ node-inspector &\n\n2. open http://127.0.0.1:8080/debug?port=5858 in your favorite WebKit based browser\n\n3. you should now see the javascript source from node. If you don\'t, click the scripts tab.\n\n4. select a script and set some breakpoints (far left line numbers)\n\n5. then watch the [screencasts](http://www.youtube.com/view_play_list?p=A5216AC29A41EFA8)\n\nFor more information on getting started see the [wiki](http://github.com/dannycoates/node-inspector/wiki/Getting-Started---from-scratch)\n\nnode-inspector works almost exactly like the web inspector in Safari and\nChrome. Here\'s a good [overview](http://code.google.com/chrome/devtools/docs/scripts.html) of the UI\n\n## FAQ / WTF\n\n1. I don\'t see one of my script files in the file list.\n\n    > try refreshing the browser (F5 or command-r)\n\n2. My script runs too fast to attach the debugger.\n\n    > use `--debug-brk` to pause the script on the first line\n\n3. I got the ui in a weird state.\n\n    > when in doubt, refresh\n    \n4. Can I debug remotely?\n\n    > Yes. node-inspector must be running on the same machine, but your browser can be anywhere. Just make sure port 8080 is accessible\n\n## Inspector options\n\n    --web-port=[port]     port to host the inspector (default 8080)\n\n## Cool stuff\n\n* the WebKit Web Inspector debugger is a great js debugger interface, it works just as well for node\n* uses WebSockets, so no polling for breaks\n* remote debugging\n* javascript top to bottom :)\n* [edit running code](http://github.com/dannycoates/node-inspector/wiki/LiveEdit)\n\n## Known Issues\n\nThis is beta quality code, so use at your own risk:\n\n* be careful about viewing the contents of Buffer objects, each byte is displayed as an individual array element, for anything but tiny Buffers this will take too long to render\n* while not stopped at a breakpoint the console doesn\'t always behave as you might expect\n\n## Profiling\n\n**VERY EXPERIMENTAL**\nI don\'t recommend using this yet\n\nTo use the profiles panel, install the v8-profiler module:\n\n    npm install v8-profiler\n\nTo use it do something like:\n\n```javascript\nvar profiler = require(\'v8-profiler\');\n\nprofiler.startProfiling(\'startup\');\nslowStartupFoo();\nprofiler.stopProfiling(\'startup\');\n\nprofiler.takeSnapshot(\'beforeLeak\');\nleakyFoo();\nprofiler.takeSnapshot(\'afterLeak\');\n```\n\nThen view the profiling results with the profiles panel in node-inspector. You can\nalso take heap snapshots on demand from the profiles panel.\n\n## Thanks\n\nThis project respectfully uses code from and thanks the authors of:\n\n* [WebKit](http://webkit.org/building/checkout.html)\n* [node](http://github.com/ry/node)\n* [socket.io](http://github.com/LearnBoost/socket.io)\n* [node-paperboy](http://github.com/felixge/node-paperboy)\n\n\n',
+38 silly resolved     _id: 'node-inspector@0.2.0beta3',
+38 silly resolved     _from: 'node-inspector' } ]
+39 info install node-inspector@0.2.0beta3 into /usr/local/lib
+40 info installOne node-inspector@0.2.0beta3
+41 verbose from cache /Users/jasonsj/.npm/node-inspector/0.2.0beta3/package/package.json
+42 info /usr/local/lib/node_modules/node-inspector unbuild
+43 verbose read json /usr/local/lib/node_modules/node-inspector/package.json
+44 info preuninstall node-inspector@0.2.0beta2
+45 info uninstall node-inspector@0.2.0beta2
+46 verbose true,/usr/local/lib/node_modules,/usr/local/lib/node_modules unbuild node-inspector@0.2.0beta2
+47 verbose /usr/local/bin,[object Object] binRoot
+48 info /usr/local/lib/node_modules/node-inspector unbuild
+49 verbose read json /usr/local/lib/node_modules/node-inspector/package.json
+50 info preuninstall node-inspector@0.2.0beta2
+51 info uninstall node-inspector@0.2.0beta2
+52 verbose true,/usr/local/lib/node_modules,/usr/local/lib/node_modules unbuild node-inspector@0.2.0beta2
+53 verbose /usr/local/bin,[object Object] binRoot
+54 error error rolling back Error: EPERM, chmod '/usr/local/bin/node-inspector'
+54 error error rolling back  node-inspector@0.2.0beta3 { [Error: EPERM, chmod '/usr/local/bin/node-inspector']
+54 error error rolling back   errno: 50,
+54 error error rolling back   code: 'EPERM',
+54 error error rolling back   path: '/usr/local/bin/node-inspector' }
+55 error Error: EPERM, chmod '/usr/local/bin/node-inspector'
+55 error  { [Error: EPERM, chmod '/usr/local/bin/node-inspector']
+55 error   errno: 50,
+55 error   code: 'EPERM',
+55 error   path: '/usr/local/bin/node-inspector' }
+56 error Please try running this command again as root/Administrator.
+57 error System Darwin 11.4.0
+58 error command "node" "/usr/local/bin/npm" "install" "-g" "node-inspector"
+59 error cwd /Users/jasonsj/Github/brackets-app/brackets/src/extensions
+60 error node -v v0.8.4
+61 error npm -v 1.1.45
+62 error path /usr/local/bin/node-inspector
+63 error code EPERM
+64 error errno 50
+65 error stack Error: EPERM, chmod '/usr/local/bin/node-inspector'
+66 verbose exit [ 50, true ]

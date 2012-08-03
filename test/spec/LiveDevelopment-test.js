@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                     expect(Inspector.connected()).toBeFalsy();
 
                     var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.css");
-                    //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
+                    expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeFalsy();
                 });
             });
             
