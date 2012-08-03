@@ -72,9 +72,16 @@ define(function (require, exports, module) {
             waits(20);
             NativeApp._setLiveBrowserUserDataDir("");
             
-            runs(function () {
-                waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
-            });
+            if (window.appshell) {
+                runs(function () {
+                    waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
+                });
+            } else {
+                runs(function () {
+                    NativeApp.closeAllLiveBrowsers();
+                });
+                waits(100);
+            }
 
             SpecRunnerUtils.closeTestWindow();
         });
@@ -161,7 +168,7 @@ define(function (require, exports, module) {
                     localText = curDoc.getText();
                     localText += "\n .testClass { color:#090; }\n";
                     curDoc.setText(localText);
-                })
+                });
 
                 var liveDoc;
                 waitsFor(function () {

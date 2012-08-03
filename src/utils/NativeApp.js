@@ -100,7 +100,7 @@ define(function (require, exports, module) {
     function closeAllLiveBrowsers() {
         //make a copy incase the array is edited as we iterate
         var closeIDs = liveBrowserOpenedPIDs.concat();
-        return Async.doInParallel(closeIDs, closeLiveBrowser, false);
+        return Async.doSequentially(closeIDs, closeLiveBrowser, false);
     }
     
     /** _setLiveBrowserUserDataDir
