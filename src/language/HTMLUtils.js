@@ -307,16 +307,12 @@ define(function (require, exports, module) {
             var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                 testToken = editor._codeMirror.getTokenAt(testPos);
 
-            if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
+            if (testToken.string.length > 0 && testToken.string.trim().length > 0 &&
+                    testToken.string.charAt(0) !== ">") {
                 // pos has whitespace before it and non-whitespace after it, so use token after
                 ctx.token = testToken;
 
                 if (ctx.token.className === "tag") {
-                    // check to see if the user is going to add a new attr before the ">".
-                    if (ctx.token.string === ">") {
-                        return createTagInfo(ATTR_NAME, 0, _extractTagName(ctx));
-                    }
-                    
                     // check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
@@ -330,6 +326,7 @@ define(function (require, exports, module) {
                 // Get the new offset from test token and subtract one for testPos adjustment
                 offset = _offsetInToken(ctx) - 1;
             } else {
+                // We get here if ">" or white spaces after testPos.
                 // next, see what's before pos
                 if (!_movePrevToken(ctx)) {
                     return createTagInfo();
