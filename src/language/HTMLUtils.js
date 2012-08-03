@@ -232,7 +232,7 @@ define(function (require, exports, module) {
         var tagName = _extractTagName(ctx);
  
         //We're good. 
-        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal);
+        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal, true);
     }
 
     /**
