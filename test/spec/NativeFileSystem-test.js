@@ -162,24 +162,22 @@ define(function (require, exports, module) {
                 function requestNativeFileSystemSuccessCB(nfs) {
                     accessedFolder = true;
                 
-                    function recreatePlaceholder(successCallback) {
+                    function recreatePlaceholder(deferred) {
                         nfs.getFile("placeholder",
                                     { create: true, exclusive: true },
-                                    function () { placeholderRecreated = true; },
-                                    function () { placeholderRecreated = false; });
+                                    function () { placeholderRecreated = true; deferred.resolve(); },
+                                    function () { placeholderRecreated = false; deferred.reject(); });
                     }
 
                     function readDirectory() {
                         var reader = nfs.createReader();
                         var successCallback = function (e) {
                             entries = e;
-                            recreatePlaceholder();
-                            deferred.resolve();
+                            recreatePlaceholder(deferred);
                         };
                         var errorCallback = function () {
                             gotErrorReadingContents = true;
-                            recreatePlaceholder();
-                            deferred.reject();
+                            recreatePlaceholder(deferred);
                         };
                         reader.readEntries(successCallback, errorCallback);
                     }
