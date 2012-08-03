@@ -68,11 +68,12 @@ define(function (require, exports, module) {
      * @param {$.Promise} promise
      * @param {string} operationName  Name used for timeout error message
      */
-    window.waitsForDone = function (promise, operationName) {
+    window.waitsForDone = function (promise, operationName, timeout) {
+        timeout = timeout || 1000;
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "resolved";
-        }, "Timeout waiting for success " + operationName, 1000);
+        }, "success " + operationName, timeout);
     };
     
     /**
@@ -86,7 +87,7 @@ define(function (require, exports, module) {
         expect(promise).toBeTruthy();
         waitsFor(function () {
             return promise.state() === "rejected";
-        }, "Timeout waiting for failure " + operationName, 1000);
+        }, "failure " + operationName, 1000);
     };
     
     
