@@ -92,5 +92,8 @@ define(function (require, exports, module) {
 	// Command that does nothing. Can be used for place holder menuItems
     
     exports.HELP_ABOUT                  = "help.about";
+
+    // File shell callbacks
+    exports.APP_ABORT_QUIT              = "app.abort_quit"; // string must MATCH string in native code (appshell_extensions)
 });
 
