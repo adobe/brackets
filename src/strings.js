@@ -162,4 +162,5 @@ define(function (require, exports, module) {
 
     // Special commands invoked by the native shell
     exports.CMD_CLOSE_WINDOW                    = "Close Window";
+    exports.CMD_ABORT_QUIT                      = "Abort Quit";
 });
