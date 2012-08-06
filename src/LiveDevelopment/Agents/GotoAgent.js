@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window */
+/*global define, brackets, $, window */
 
 /**
  * GotoAgent constructs and responds to the in-browser goto dialog.
@@ -142,7 +142,7 @@ define(function GotoAgent(require, exports, module) {
         codeMirror.setCursor(location);
         editor.focus();
 
-        if (! noFlash) {
+        if (!noFlash) {
             codeMirror.setLineClass(location.line, "flash");
             window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
         }
