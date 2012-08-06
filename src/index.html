@@ -39,6 +39,7 @@
     <!-- TODO (Issue #278): switch between runtime LESS compilation in dev mode and precompiled version -->
     <link rel="stylesheet/less" href="styles/brackets.less">
     <script src="thirdparty/less-1.3.0.min.js"></script>
+    <script src="thirdparty/mustache/mustache.js"></script>
     <!-- <link rel="stylesheet" href="brackets.min.css"> -->
 
     <!-- JavaScript -->
@@ -51,9 +52,6 @@
     <script src="thirdparty/CodeMirror2/lib/util/dialog.js"></script>
     <script src="thirdparty/CodeMirror2/lib/util/searchcursor.js"></script>
     <script src="thirdparty/CodeMirror2/lib/util/search.js"></script>
-    
-    <!-- All other scripts are loaded through require. -->
-    <script src="thirdparty/require.js" data-main="brackets"></script>
 
 </head>
 <body>
@@ -91,7 +89,7 @@
                 
                 <!-- Toolbar -->
                 <div class="buttons">
-                    <span class="experimental-label">Experimental Build</span>
+                    <span class="experimental-label">{{ExperimentalBuild}}</span>
                     
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
                     
@@ -114,13 +112,13 @@
             
             <div id="jslint-results" class="bottom-panel">
                 <div class="toolbar simple-toolbar-layout">
-                    <div class="title">JSLint errors</div>
+                    <div class="title">{{JSLintErrors}}</div>
                 </div>
                 <div class="table-container"></div>
             </div>
             <div id="search-results" class="bottom-panel">
                 <div class="toolbar simple-toolbar-layout">
-                    <div class="title">Search Results</div>
+                    <div class="title">{{SearchResults}}</div>
                     <div class="title" id="search-result-summary"></div>
                     <a href="#" class="close">&times;</a>
                 </div>
@@ -139,21 +137,21 @@
             <p class="dialog-message">Message goes here</p>
         </div>
         <div class="modal-footer">
-            <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>
         </div>
     </div>
     <div class="save-close-dialog template modal hide">
         <div class="modal-header">
             <a href="#" class="close">&times;</a>
-            <h1 class="dialog-title">Save Changes</h1>
+            <h1 class="dialog-title">{{Save Changes}}</h1>
         </div>
         <div class="modal-body">
             <p class="dialog-message">Message goes here</p>
         </div>
         <div class="modal-footer">
-            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
-            <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
-            <a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{DontSave}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{Save}}</a>
+            <a href="#" class="dialog-button btn" data-button-id="cancel">{{Cancel}}</a>
         </div>
     </div>
     <div class="ext-changed-dialog template modal hide">
@@ -164,8 +162,8 @@
             <p class="dialog-message">Message goes here</p>
         </div>
         <div class="modal-footer">
-            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Reload from Disk</a>
-            <a href="#" class="dialog-button btn primary" data-button-id="cancel">Keep Changes in Editor</a>
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{ReloadfromDisk}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KeepChangesIn Editor}}</a>
         </div>
     </div>
     <div class="ext-deleted-dialog template modal hide">
@@ -176,8 +174,8 @@
             <p class="dialog-message">Message goes here</p>
         </div>
         <div class="modal-footer">
-            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Close (Don't Save)</a>
-            <a href="#" class="dialog-button btn primary" data-button-id="cancel">Keep Changes in Editor</a>
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{CloseDontSave}}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="cancel">KeepChangesInEditor</a>
         </div>
     </div>
     <div class="live-development-error-dialog template modal hide">
@@ -188,26 +186,26 @@
             <p class="dialog-message">Message goes here</p>
         </div>
         <div class="modal-footer">
-            <a href="#" class="dialog-button btn left" data-button-id="cancel">Cancel</a>
-            <a href="#" class="dialog-button btn primary" data-button-id="ok">Relaunch Chrome</a>
+            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{Cancel}}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{RelaunchChrome}}</a>
         </div>
     </div>
     <div class="about-dialog template modal hide">
         <div class="modal-header">
-            <h1 class="dialog-title">About</h1>
+            <h1 class="dialog-title">{{About}}</h1>
         </div>
         <div class="modal-body">
             <img class="about-icon" src="styles/images/brackets_icon.png">
             <div class="about-text">
-                <h2>Brackets</h2>
-                <p class="dialog-message">sprint 12 experimental build <span id="about-build-number"><!-- populated programmatically --></span></p>
-                <p class="dialog-message">Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
-                <p class="dialog-message">Notices, terms and conditions pertaining to third party software are located at <span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.</p>
-                <p class="dialog-message">Documentation and source at <span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
+                <h2>{{Brackets}}</h2>
+                <p class="dialog-message">{{AboutTextLine1}} <span id="about-build-number"><!-- populated programmatically --></span></p>
+                <p class="dialog-message">{{AboutTextLine2}}</p>
+                <p class="dialog-message">{{AboutTextLine3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{AboutTextLine4}}</p>
+                <p class="dialog-message">{{AboutTextLine5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
             </div>
         </div>
         <div class="modal-footer">
-            <a href="#" class="dialog-button btn primary" data-button-id="ok">Close</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{Close}}</a>
         </div>
     </div>
     <div id="context-menu-bar">
@@ -216,5 +214,35 @@
     <div id="codehint-menu-bar">
         <ul data-dropdown="dropdown"></ul>
     </div>
+
+        <script type="text/javascript">//<![CDATA[
+
+        var locStrings;
+        $.ajax({
+            type: 'GET',
+            url: 'strings.json',
+            dataType: 'json',
+            success: function(data) { 
+                locStrings = data;
+            },
+            data: {},
+            async: false
+        });
+
+        // TEST, use Mustache to replace entire body
+        //var rawHTML = $('body').html();
+        //$('body').html(Mustache.render(rawHTML, locStrings));
+
+        // TEST, use Mustache to replace individual text nodes
+        var $textItems = $('body').find('*').contents().filter(function () { return this.nodeType == 3; });
+        $textItems.each( function(index, item) {
+            item.data = Mustache.render($(item).text(), locStrings);
+        });
+
+        
+    //]]></script> 
+
+    <!-- All other scripts are loaded through require. -->
+    <script src="thirdparty/require.js" data-main="brackets"></script>
 </body>
 </html>
