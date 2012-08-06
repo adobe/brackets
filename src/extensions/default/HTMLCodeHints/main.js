@@ -202,7 +202,7 @@ define(function (require, exports, module) {
                 query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
             }
 
-            // TODO: Peter -- get existing attributes for the current tag and add them to query.usedAttr
+            // TODO: get existing attributes for the current tag and add them to query.usedAttr
         }
 
         return query;
@@ -226,8 +226,7 @@ define(function (require, exports, module) {
             if (tags && tags[tagName]) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
 
-                // TODO: Peter -- exclude existing attributes from unfiltered array
-
+                // TODO: exclude existing attributes from unfiltered array
             }
 
             if (unfiltered.length) {
@@ -255,4 +254,8 @@ define(function (require, exports, module) {
     var attrHints = new AttrHints();
     CodeHintManager.registerHintProvider(tagHints);
     CodeHintManager.registerHintProvider(attrHints);
+    
+    // For unit testing
+    exports.tagHintProvider = tagHints;
+    exports.attrHintProvider = attrHints;
 });
