@@ -192,7 +192,7 @@ define(function (require, exports, module) {
         this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
         this.updateList();
 
-        // Update the CodeHistList location
+        // Update the CodeHintList location
         if (this.displayList.length) {
             var hintPos = this.calcHintListLocation();
             this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
@@ -200,7 +200,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Return true if the CodeHistList is open. 
+     * Return true if the CodeHintList is open.
      * @return {Boolean}
      */
     CodeHintList.prototype.isOpen = function () {
