@@ -294,7 +294,8 @@ define(function (require, exports, module) {
 
     // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
     // and different types of hint list when other types of hinting is added.
-    var hintList = new CodeHintList();
+    var hintList = new CodeHintList(),
+        shouldShowHintsOnKeyUp = false;
         
      /**
       * Show the code hint list near the current cursor position for the specified editor
@@ -316,16 +317,19 @@ define(function (require, exports, module) {
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
             _showHint(editor);
             event.preventDefault();
-        } else if (event.type === "keyup") {
+        } else if (event.type === "keypress") {
             // Check if any provider wants to show hints on this key.
             $.each(hintList.hintProviders, function (index, item) {
-                if (item.shouldShowHintsOnKey(event.keyCode)) {
+                if (item.shouldShowHintsOnKey(String.fromCharCode(event.charCode))) {
                     provider = item;
                     return false;
                 }
             });
             
-            if (provider) {
+            shouldShowHintsOnKeyUp = !!provider;
+        } else if (event.type === "keyup") {
+            if (shouldShowHintsOnKeyUp) {
+                shouldShowHintsOnKeyUp = false;
                 _showHint(editor);
             }
         }
@@ -347,7 +351,7 @@ define(function (require, exports, module) {
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
      *                  handleSelect: function(string, Editor, cursor),
-     *                  shouldShowHintsOnKey: function(number)>}
+     *                  shouldShowHintsOnKey: function(string)>}
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
@@ -357,7 +361,7 @@ define(function (require, exports, module) {
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position
-     * - shouldShowHintsOnKey - inspects the key code and returns true if it wants to show code hints on that key.
+     * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {
         hintList.hintProviders.push(providerInfo);
