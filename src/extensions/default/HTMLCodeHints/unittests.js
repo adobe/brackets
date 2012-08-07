@@ -128,6 +128,7 @@ define(function (require, exports, module) {
         describe("Tag hint provider", function () {
             
             it("should not hint within <style> block", function () {  // (bug #1277)
+                // Replace default test content with code containing a <style> block
                 testDocument.setText("<!doctype html>\n" +
                                      "<html>\n" +
                                      "<head>\n" +
@@ -148,8 +149,18 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 3, ch: 3 });        // cursor between the two <s
                 var hintList = expectHints(HTMLCodeHints.tagHintProvider);
                 verifyTagHints(hintList);
+                expect(hintList.indexOf("div")).not.toBe(-1);  // additional sanity check
             });
             
+            it("should filter hints by prefix", function () {  // (bug #1260)
+                testDocument.replaceRange("  <s\n", { line: 6, ch: 0 }); // insert new line "<s", after line "<p></p>"
+                
+                testEditor.setCursorPos({ line: 6, ch: 4 });        // cursor at end of line
+                var hintList = expectHints(HTMLCodeHints.tagHintProvider);
+                verifyTagHints(hintList, "samp");
+                expect(hintList.indexOf("div")).toBe(-1);
+                expect(hintList.indexOf("span")).not.toBe(-1);
+            });
         });
         
         describe("Attribute hint provider", function () {
@@ -314,7 +325,7 @@ define(function (require, exports, module) {
                 // Expect no filtering - however, we offer some attributes (including first in the list) that
                 // are specific to the <input> tag, so we can't use the default "no filtering" empty arg here.
                 // (This smart filtering isn't officially part of the sprint, so no unit tests specifically
-                // targeting that fucntionality yet).
+                // targeting that functionality yet).
                 verifyAttrHints(hintList, "accept");
             });
             
