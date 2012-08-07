@@ -112,11 +112,11 @@ define(function (require, exports, module) {
 
     /**
      * Check whether to show hints on a specific key.
-     * @param {number} keyCode -- the key code for the key user just presses.
+     * @param {string} key -- the character for the key user just presses.
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    TagHints.prototype.shouldShowHintsOnKey = function (keyCode) {
-        return keyCode === 188; // keyCode for "<"
+    TagHints.prototype.shouldShowHintsOnKey = function (key) {
+        return key === "<";
     };
 
     /**
@@ -244,11 +244,11 @@ define(function (require, exports, module) {
 
     /**
      * Check whether to show hints on a specific key.
-     * @param {number} keyCode -- the key code for the key user just presses.
+     * @param {string} key -- the character for the key user just presses.
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    AttrHints.prototype.shouldShowHintsOnKey = function (keyCode) {
-        return keyCode === 32; // keyCode for space character
+    AttrHints.prototype.shouldShowHintsOnKey = function (key) {
+        return key === " ";
     };
 
     var tagHints = new TagHints();
