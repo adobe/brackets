@@ -33,9 +33,9 @@ define(function (require, exports, module) {
         Menus           = require("command/Menus"),
         StringUtils     = require("utils/StringUtils"),
         EditorManager   = require("editor/EditorManager"),
-        PopUpManager    = require("widgets/PopUpManager");
-    
-    
+        PopUpManager    = require("widgets/PopUpManager"),
+        ViewUtils       = require("utils/ViewUtils");
+
     /**
      * @constructor
      *
@@ -49,11 +49,12 @@ define(function (require, exports, module) {
         this.query = {queryStr: null};
         this.displayList = [];
         this.options = {
-            maxResults: 8
+            maxResults: 999
         };
 
         this.opened = false;
         this.selectedIndex = -1;
+        this.itemsPerPage = -1;
         this.editor = null;
 
         this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
@@ -152,7 +153,14 @@ define(function (require, exports, module) {
         
         // Highlight the new selected item
         this.selectedIndex = index;
-        $(items[this.selectedIndex]).find("a").addClass("highlight");
+
+        if (this.selectedIndex !== -1) {
+            var $item = $(items[this.selectedIndex]);
+            var $view = this.$hintMenu.find("ul.dropdown-menu");
+
+            ViewUtils.scrollElementIntoView($view, $item, false);
+            $item.find("a").addClass("highlight");
+        }
     };
     
     /**
@@ -164,13 +172,30 @@ define(function (require, exports, module) {
         var keyCode = event.keyCode;
         
         // Up arrow, down arrow and enter key are always handled here
-        if (keyCode === 38 || keyCode === 40 || keyCode === 13) {
+        if (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
+                (keyCode >= 33 && keyCode <= 36)) {
+
             if (event.type === "keydown") {
-                if (keyCode === 38) { // Up arrow
+                if (keyCode === 38) {
+                    // Up arrow
                     this.setSelectedIndex(this.selectedIndex - 1);
-                } else if (keyCode === 40) { // Down arrow 
+                } else if (keyCode === 40) {
+                    // Down arrow
                     this.setSelectedIndex(this.selectedIndex + 1);
-                } else { // Enter/return key
+                } else if (keyCode === 33) {
+                    // Page Up
+                    this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
+                } else if (keyCode === 34) {
+                    // Page Down
+                    this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
+                } else if (keyCode === 35) {
+                    // End
+                    this.setSelectedIndex(this.options.maxResults);
+                } else if (keyCode === 36) {
+                    // Home
+                    this.setSelectedIndex(0);
+                } else {
+                    // Enter/return key
                     // Trigger a click handler to commmit the selected item
                     $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
                     
@@ -265,7 +290,7 @@ define(function (require, exports, module) {
         
     /**
      * Computes top left location for hint list so that the list is not clipped by the window
-     * @ return {Object.<left: Number, top: Number> }
+     * @return {Object.<left: Number, top: Number> }
      */
     CodeHintList.prototype.calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
@@ -290,6 +315,35 @@ define(function (require, exports, module) {
         }
 
         return {left: posLeft, top: posTop};
+    };
+
+    /**
+     * @private
+     * Calculate the number of items per scroll page. Used for PageUp and PageDown.
+     * @return {number}
+     */
+    CodeHintList.prototype.getItemsPerPage = function () {
+        if (this.itemsPerPage > 0) {
+            return this.itemsPerPage;
+        }
+
+        // default
+        this.itemsPerPage = 1;
+
+        var $items = this.$hintMenu.find("li"),
+            $view = this.$hintMenu.find("ul.dropdown-menu"),
+            itemHeight;
+
+        if ($items.length !== 0) {
+            itemHeight = $($items[0]).height();
+            if (itemHeight) {
+                // round down to integer value
+                this.itemsPerPage = Math.floor($view.height() / itemHeight);
+                this.itemsPerPage = Math.max(1, Math.min(this.itemsPerPage, $items.length));
+            }
+        }
+
+        return this.itemsPerPage;
     };
 
     // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
