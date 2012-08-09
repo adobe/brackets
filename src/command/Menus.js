@@ -298,6 +298,12 @@ define(function (require, exports, module) {
         return (this.id + "-" + commandId);
     };
 
+    /**
+     * Determine MenuItem in this Menu, that has the specified command
+     *
+     * @param {Command} command - the command to search for.
+     * @return {?HTMLLIElement} menu item list element
+     */
     Menu.prototype._getMenuItemForCommand = function (command) {
         if (!command) {
             return null;
@@ -314,6 +320,7 @@ define(function (require, exports, module) {
      *
      * @param {?string} relativeID - id of command (future: sub-menu).
      * @param {?string} position - only needed when relativeID is a MenuSection
+     * @return {?HTMLLIElement} menu item list element
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement,
@@ -363,11 +370,11 @@ define(function (require, exports, module) {
                     // Lookup Command for this Command id
                     // Find MenuItem that has this command
                     $relativeElement = this._getMenuItemForCommand(command);
-                    if (!$relativeElement) {
-                        console.log("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
-                                    " not found in Menu " + this.id);
-                        return null;
-                    }
+                }
+                if (!$relativeElement) {
+                    console.log("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
+                                " not found in Menu " + this.id);
+                    return null;
                 }
             }
             
