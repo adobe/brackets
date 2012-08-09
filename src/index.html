@@ -55,6 +55,9 @@
 
 </head>
 <body>
+
+    <!-- HTML content is dynamically loaded and rendered by the htmlContentLoad
+         module. Any modules that depend on or modify HTML during load should require the htmlContentLoad module so that it is loaded first. -->
    
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>

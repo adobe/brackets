@@ -52,6 +52,10 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
+    // Note: the htmlContentLoad module renders all of html in Bracktes
+    // If a module depends on the DOM being fulling formed before it is loaded
+    // then the module must require htmlContentLoad so that it is loaded after
+    // htmlContentLoad
     require("htmlContent/htmlContentLoad");
 
     // Load LiveDeveopment
