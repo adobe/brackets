@@ -54,7 +54,6 @@ define(function (require, exports, module) {
 
         this.opened = false;
         this.selectedIndex = -1;
-        this.itemsPerPage = -1;
         this.editor = null;
 
         this.$hintMenu = $("<li class='dropdown codehint-menu'></li>");
@@ -323,14 +322,8 @@ define(function (require, exports, module) {
      * @return {number}
      */
     CodeHintList.prototype.getItemsPerPage = function () {
-        if (this.itemsPerPage > 0) {
-            return this.itemsPerPage;
-        }
-
-        // default
-        this.itemsPerPage = 1;
-
-        var $items = this.$hintMenu.find("li"),
+        var itemsPerPage = 1,
+            $items = this.$hintMenu.find("li"),
             $view = this.$hintMenu.find("ul.dropdown-menu"),
             itemHeight;
 
@@ -338,12 +331,12 @@ define(function (require, exports, module) {
             itemHeight = $($items[0]).height();
             if (itemHeight) {
                 // round down to integer value
-                this.itemsPerPage = Math.floor($view.height() / itemHeight);
-                this.itemsPerPage = Math.max(1, Math.min(this.itemsPerPage, $items.length));
+                itemsPerPage = Math.floor($view.height() / itemHeight);
+                itemsPerPage = Math.max(1, Math.min(itemsPerPage, $items.length));
             }
         }
 
-        return this.itemsPerPage;
+        return itemsPerPage;
     };
 
     // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
