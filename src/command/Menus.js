@@ -294,16 +294,23 @@ define(function (require, exports, module) {
         this.id = id;
     }
 
+    Menu.prototype._getMenuItemId = function (commandId) {
+        return (this.id + "-" + commandId);
+    };
+
+    /**
+     * Determine MenuItem in this Menu, that has the specified command
+     *
+     * @param {Command} command - the command to search for.
+     * @return {?HTMLLIElement} menu item list element
+     */
     Menu.prototype._getMenuItemForCommand = function (command) {
-        var foundMenuItem, key, menuItem;
-        for (key in menuItemMap) {
-            if (menuItemMap.hasOwnProperty(key)) {
-                menuItem = menuItemMap[key];
-                if (menuItem.getCommand() === command) {
-                    foundMenuItem = menuItem;
-                    break;
-                }
-            }
+        if (!command) {
+            return null;
+        }
+        var foundMenuItem = menuItemMap[this._getMenuItemId(command.getID())];
+        if (!foundMenuItem) {
+            return null;
         }
         return $(_getHTMLMenuItem(foundMenuItem.id)).closest("li");
     };
@@ -313,6 +320,7 @@ define(function (require, exports, module) {
      *
      * @param {?string} relativeID - id of command (future: sub-menu).
      * @param {?string} position - only needed when relativeID is a MenuSection
+     * @return {?HTMLLIElement} menu item list element
      */
     Menu.prototype._getRelativeMenuItem = function (relativeID, position) {
         var $relativeElement,
@@ -325,12 +333,18 @@ define(function (require, exports, module) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
                 if (!relativeID.hasOwnProperty("sectionMarker")) {
                     console.log("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
+                    return null;
                 }
 
                 // Determine the $relativeElement by traversing the sibling list and
                 // stop at the first divider found
                 // TODO: simplify using nextUntil()/prevUntil()
                 var $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
+                if (!$sectionMarker) {
+                    console.log("_getRelativeMenuItem(): MenuSection " + relativeID.sectionMarker +
+                                " not found in Menu " + this.id);
+                    return null;
+                }
                 var $listElem = $sectionMarker;
                 $relativeElement = $listElem;
                 while (true) {
@@ -347,6 +361,7 @@ define(function (require, exports, module) {
             } else {
                 if (relativeID.hasOwnProperty("sectionMarker")) {
                     console.log("Bad Parameter in _getRelativeMenuItem(): if relativeID is a MenuSection, position must be FIRST_IN_SECTION or LAST_IN_SECTION");
+                    return null;
                 }
                 
                 // handle FIRST, LAST, BEFORE, & AFTER
@@ -356,12 +371,18 @@ define(function (require, exports, module) {
                     // Find MenuItem that has this command
                     $relativeElement = this._getMenuItemForCommand(command);
                 }
+                if (!$relativeElement) {
+                    console.log("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
+                                " not found in Menu " + this.id);
+                    return null;
+                }
             }
             
             return $relativeElement;
             
         } else if (position && position !== FIRST && position !== LAST) {
             console.log("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
+            return null;
         }
         
         return $relativeElement;
@@ -421,7 +442,7 @@ define(function (require, exports, module) {
         }
 
         // Internal id is the a composite of the parent menu id and the command id.
-        id = this.id + "-" + commandID;
+        id = this._getMenuItemId(commandID);
         
         if (menuItemMap[id]) {
             console.log("MenuItem added with same id of existing MenuItem: " + id);
