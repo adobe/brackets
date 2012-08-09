@@ -294,21 +294,15 @@ define(function (require, exports, module) {
         this.id = id;
     }
 
+    Menu.prototype._getMenuItemId = function (commandId) {
+        return (this.id + "-" + commandId);
+    };
+
     Menu.prototype._getMenuItemForCommand = function (command) {
-        var foundMenuItem, key, menuItem;
-        for (key in menuItemMap) {
-            if (menuItemMap.hasOwnProperty(key)) {
-                menuItem = menuItemMap[key];
-                if (menuItem.getCommand() === command) {
-                    // There can be multiple menu items with this command, so verify it's the same menu
-                    var parentMenu = menuItem.getParentMenu();
-                    if (parentMenu && (parentMenu.id === this.id)) {
-                        foundMenuItem = menuItem;
-                        break;
-                    }
-                }
-            }
+        if (!command) {
+            return null;
         }
+        var foundMenuItem = menuItemMap[this._getMenuItemId(command.getID())];
         if (!foundMenuItem) {
             return null;
         }
@@ -441,7 +435,7 @@ define(function (require, exports, module) {
         }
 
         // Internal id is the a composite of the parent menu id and the command id.
-        id = this.id + "-" + commandID;
+        id = this._getMenuItemId(commandID);
         
         if (menuItemMap[id]) {
             console.log("MenuItem added with same id of existing MenuItem: " + id);
