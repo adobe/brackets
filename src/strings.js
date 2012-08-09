@@ -162,4 +162,26 @@ define(function (require, exports, module) {
 
     // Special commands invoked by the native shell
     exports.CMD_CLOSE_WINDOW                    = "Close Window";
+
+
+    exports.ExperimentalBuild                   = "!!Experimental Build";
+    exports.JSLintErrors                        = "!!JSLint Errors";
+    exports.SearchResults                       = "!!Search Results";
+    exports.OK                                  = "!!OK";
+    exports.DontSave                            = "!!Don't Save";
+    exports.Save                                = "!!Save";
+    exports.Cancel                              = "!!Cancel";
+    exports.ReloadFromDisk                      = "!!Reload from Disk";
+    exports.KeepChangesInEditor                 = "!!Keep Changes in Editor";
+    exports.CloseDontSave                       = "!!Close (Don't Save)";
+    exports.KeepChangesInEditor                 = "!!Keep Changes in Editor";
+    exports.RelaunchChrome                      = "!!Relaunch Chrome";
+    exports.About                               = "!!About";
+    exports.Brackets                            = "!!Brackets";
+    exports.Close                               = "!!Close";
+    exports.AboutTextLine1                      = "sprint 12 experimental build ";
+    exports.AboutTextLine2                      = "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.";
+    exports.AboutTextLine3                      = "Notices; terms and conditions pertaining to third party software are located at ";
+    exports.AboutTextLine4                      = " and incorporated by reference herein.";
+    exports.AboutTextLine5                      = "Documentation and source at ";
 });

@@ -50,6 +50,8 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
+    require("htmlContent/htmlContentLoad");
+
     // Load LiveDeveopment
     require("LiveDevelopment/main");
     
