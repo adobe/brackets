@@ -31,16 +31,7 @@ require.config({
     }
 });
 
-/**
- * brackets is the root of the Brackets codebase. This file pulls in all other modules as
- * dependencies (or dependencies thereof), initializes the UI, and binds global menus & keyboard
- * shortcuts to their Commands.
- *
- * TODO: (issue #264) break out the definition of brackets into a separate module from the application controller logic
- *
- * Unlike other modules, this one can be accessed without an explicit require() because it exposes
- * a global object, window.brackets.
- */
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -48,17 +39,6 @@ define(function (require, exports, module) {
     var Strings                 = require("strings"),
         rootView                = require("text!htmlContent/main-view.html");
 
-    // Load each html template into an object back. Key should match filename with the "dot"
-    // repaced with a hyphen. Example: side-bar.html > side-barhtml
-    var templates = {
-        "modal-windows-html":        require("text!htmlContent/modal-windows.html"),
-        "side-bar-html":             require("text!htmlContent/side-bar.html")
-    };
+    $('body').html(Mustache.render(rootView, Strings));
 
-    // Combine template and string dictionaries
-    var mustacheDict = $.extend({}, Strings, templates);
-    $('body').html(Mustache.render(rootView, mustacheDict));
-
-
-    
 });

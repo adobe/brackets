@@ -27,6 +27,10 @@
 
 define(function (require, exports, module) {
     "use strict";
+
+    // This module modifies the DOM on load so load this module to make sure
+    // all html is rendered before this module loads.
+    require("htmlContent/htmlContentLoad");
     
     var ProjectManager          = require("project/ProjectManager"),
         WorkingSetView          = require("project/WorkingSetView"),
@@ -230,15 +234,11 @@ define(function (require, exports, module) {
     }
     
     // init
-    (function () {
-        WorkingSetView.create($openFilesContainer);
+    WorkingSetView.create($openFilesContainer);
         
-        $(ProjectManager).on("projectOpen", _updateProjectTitle);
-
-        CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
-        
-        _initSidebarResizer();
-    }());
+    $(ProjectManager).on("projectOpen", _updateProjectTitle);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
+    _initSidebarResizer();
     
     exports.toggleSidebar = toggleSidebar;
 });

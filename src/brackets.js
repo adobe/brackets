@@ -28,7 +28,9 @@
 require.config({
     paths: {
         "text" : "thirdparty/text"
-    }
+    },
+    // store the locale in localStorage until CEF sets the correct navigator.language
+    locale: window.localStorage.getItem("locale")
 });
 
 /**

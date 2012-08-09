@@ -1,7 +1,26 @@
- <!-- Main UI -->
+<!-- Main UI -->
     <div class="main-view">
-        
-        {{&side-bar-html}}
+        <div id="sidebar-resizer"></div>
+        <div id="sidebar" class="sidebar quiet-scrollbars">
+            <!-- Left-hand 'Project panel' -->
+            <div id="projects" class="panel">
+                <div id="project-header"></div>
+                <div id="file-section">
+                    <div id="open-files-container">
+                        <!-- This will contain a dynamically generated <ul> at runtime -->
+                        <ul>
+                        </ul>
+                    </div>
+                
+                    <div id="project-files-header" class="project-file-header-area">
+                        <span id="project-title" class="title"></span>
+                    </div>
+                    <div id="project-files-container">
+                    <!-- This will contain a dynamically generated <ul> hierarchy at runtime -->
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <!-- Right-hand content: toolbar, editor, bottom panels -->
         <div class="content">
@@ -13,7 +32,7 @@
                 
                 <!-- Toolbar -->
                 <div class="buttons">
-                    <span class="experimental-label">{{ExperimentalBuild}}</span>
+                    <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>
                     
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
                     
@@ -36,13 +55,13 @@
             
             <div id="jslint-results" class="bottom-panel">
                 <div class="toolbar simple-toolbar-layout">
-                    <div class="title">{{JSLintErrors}}</div>
+                    <div class="title">{{JSLINT_ERRORS}}</div>
                 </div>
                 <div class="table-container"></div>
             </div>
             <div id="search-results" class="bottom-panel">
                 <div class="toolbar simple-toolbar-layout">
-                    <div class="title">{{SearchResults}}</div>
+                    <div class="title">{{SEARCH_RESULTS}}</div>
                     <div class="title" id="search-result-summary"></div>
                     <a href="#" class="close">&times;</a>
                 </div>
@@ -51,8 +70,87 @@
         </div>
     </div>
 
-    {{&modal-windows-html}}
-
+    <!-- Modal Windows -->
+    <div class="error-dialog template modal hide">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h1 class="dialog-title">Error</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{OK}}</a>
+        </div>
+    </div>
+    <div class="save-close-dialog template modal hide">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h1 class="dialog-title">{{SAVE_CHANGES}}</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{DONT_SAVE}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{SAVE}}</a>
+            <a href="#" class="dialog-button btn" data-button-id="cancel">{{CANCEL}}</a>
+        </div>
+    </div>
+    <div class="ext-changed-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Title goes here</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{RELOAD_FROM_DISK}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>
+        </div>
+    </div>
+    <div class="ext-deleted-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Title goes here</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">{{CLOSE_DONT_SAVE}}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="cancel">{{KEEP_CHANGES_IN_EDITOR}}</a>
+        </div>
+    </div>
+    <div class="live-development-error-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Title goes here</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{RELAUNCH_CHROME}}</a>
+        </div>
+    </div>
+    <div class="about-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">{{ABOUT}}</h1>
+        </div>
+        <div class="modal-body">
+            <img class="about-icon" src="styles/images/brackets_icon.png">
+            <div class="about-text">
+                <h2>{{BRACKETS}}</h2>
+                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>
+                <p class="dialog-message">{{ABOUT_TEXT_LINE2}}</p>
+                <p class="dialog-message">{{ABOUT_TEXT_LINE3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{ABOUT_TEXT_LINE4}}</p>
+                <p class="dialog-message">{{ABOUT_TEXT_LINE5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">{{CLOSE}}</a>
+        </div>
+    </div>
     <div id="context-menu-bar">
         <ul data-dropdown="dropdown"></ul>
     </div>

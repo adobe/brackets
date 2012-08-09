@@ -906,6 +906,8 @@ define(function (require, exports, module) {
                                                          {key: "Cmd-R", platform:  "mac"}]);
         menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
         menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
 
