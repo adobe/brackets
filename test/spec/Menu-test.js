@@ -363,6 +363,26 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should add new menu item in last position of menu if reference command exists, but isn't in any menu", function () {
+                runs(function () {
+                    CommandManager.register("Brackets Test Command Custom 0", "Menu-test.command0", function () {});
+                    CommandManager.register("Brackets Test Command Custom 1", "Menu-test.command1", function () {});
+                    CommandManager.register("Brackets Test Command Custom 2", "Menu-test.command2", function () {});
+                    var menu = Menus.addMenu("Custom", "menu-unittest");
+                    var menuItem = menu.addMenuItem("Menu-test.command0", "Ctrl-Alt-0");
+
+                    var listSelector = "#menu-unittest > ul";
+
+                    menuItem = menu.addMenuItem("Menu-test.command1", "Ctrl-Alt-1", Menus.BEFORE, "Menu-test.command2");
+                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeDefined();
+
+                    var $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(2);
+                    expect($($listItems[1]).find("a#menu-unittest-Menu-test\\.command1").length).toBe(1);
+                });
+            });
+
             it("should not add menu item for duplicate command in a menu", function () {
                 runs(function () {
                     CommandManager.register("Brackets Test Command Custom 0", "Menu-test.command0", function () {});
