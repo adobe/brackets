@@ -312,6 +312,18 @@ define(function (require, exports, module) {
     }
     
     
+    function _calcEditorHeight() {
+        function ht(selector) {
+            var $elt = $(selector);
+            if ($elt.css("display") === "none") {
+                return 0;
+            } else {
+                return $elt.height();
+            }
+        }
+        return ht(".content") - ht("#main-toolbar") - ht("#jslint-results") - ht("#search-results");
+    }
+    
     /** 
      * Resize the editor. This should only be called if the contents of the editor holder are changed
      * or if the height of the editor holder changes (except for overall window resizes, which are
@@ -320,7 +332,7 @@ define(function (require, exports, module) {
      */
     function resizeEditor() {
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
+            $(_currentEditor.getScrollerElement()).height(_calcEditorHeight());
             _currentEditor.refresh();
         }
     }
@@ -333,7 +345,7 @@ define(function (require, exports, module) {
     function _updateEditorSize() {
         // The editor itself will call refresh() when it gets the window resize event.
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
+            $(_currentEditor.getScrollerElement()).height(_calcEditorHeight());
         }
     }
     

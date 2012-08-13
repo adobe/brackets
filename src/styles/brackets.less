@@ -60,10 +60,11 @@ html, body {
 }
 
 body {
-    .vbox;
+    height: 100%;
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
-    width: 100%;
+    width: 100%; // TODO: still neded?
+    
     &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
         cursor: col-resize;   
     }
@@ -75,17 +76,17 @@ a, img {
 }
 
 .main-view {
-    .hbox;
-    .box-flex(1);
+    height: 100%;
 
     .sidebar {
+        height: 100%;
         .vbox;
         width: @sidebar-width;
+        float: left;
     }
 
     .content {
-        .vbox;
-        .box-flex(1);
+        height: 100%;
     }
 }
 
@@ -95,13 +96,11 @@ a, img {
 }
 
 #editor-holder {
-    .vbox;
-    .box-flex(1);
     position: relative;
     
     /* Placeholder shown when there is no editor open */
     #not-editor {
-        .box-flex(1);
+        height: 100%;
         .vbox;
         .box-pack(center);
         .box-align(center);
