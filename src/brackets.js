@@ -27,7 +27,8 @@
 
 require.config({
     paths: {
-        "text" : "thirdparty/text"
+        "text" : "thirdparty/text",
+        "i18n" : "thirdparty/i18n"
     },
     // store the locale in localStorage until CEF sets the correct navigator.language
     locale: window.localStorage.getItem("locale")
@@ -42,6 +43,9 @@ require.config({
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
+ *
+ * Events:
+ *      htmlContentLoadComplete - dispatched after the html content is full loaded and the dom is ready.   
  */
 define(function (require, exports, module) {
     "use strict";
@@ -341,6 +345,7 @@ define(function (require, exports, module) {
             
     // Main Brackets initialization
     _initGlobalBrackets();
+    $(exports).trigger("htmlContentLoadComplete");
     $(window.document).ready(_onReady);
     
 });

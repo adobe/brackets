@@ -23,14 +23,10 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window  */
+/*global define, $, document, window, brackets  */
 
 define(function (require, exports, module) {
     "use strict";
-
-    // This module modifies the DOM on load so load this module to make sure
-    // all html is rendered before this module loads.
-    require("htmlContent/htmlContentLoad");
     
     var ProjectManager          = require("project/ProjectManager"),
         WorkingSetView          = require("project/WorkingSetView"),
@@ -232,13 +228,15 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
+
+    $(brackets).on("htmlContentLoadComplete", function () {
+        // init
+        WorkingSetView.create($openFilesContainer);
+        _initSidebarResizer();
+    });
     
-    // init
-    WorkingSetView.create($openFilesContainer);
-        
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
     CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
-    _initSidebarResizer();
     
     exports.toggleSidebar = toggleSidebar;
 });

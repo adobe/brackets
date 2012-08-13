@@ -27,21 +27,6 @@
 define(function (require, exports, module) {
     
     'use strict';
-
-    // General file io error strings
-    // TODO TRANSLATE
-    // exports.GENERIC_ERROR                     = "(error {0})";
-    // exports.NOT_FOUND_ERR                     = "The file could not be found.";
-    // exports.NOT_READABLE_ERR                  = "The file could not be read.";
-    // exports.NO_MODIFICATION_ALLOWED_ERR       = "The target directory cannot be modified.";
-    // exports.NO_MODIFICATION_ALLOWED_ERR_FILE  = "The permissions do not allow you to make modifications.";
-
-    // // Project error strings
-    // exports.ERROR_LOADING_PROJECT             = "Error loading project";
-    // exports.OPEN_DIALOG_ERROR                 = "An error occurred when showing the open file dialog. (error {0})";
-    // exports.REQUEST_NATIVE_FILE_SYSTEM_ERROR  = "An error occurred when trying to load the directory <span class='dialog-filename'>{0}</span>. (error {1})";
-    // exports.READ_DIRECTORY_ENTRIES_ERROR      = "An error occurred when reading the contents of the directory <span class='dialog-filename'>{0}</span>. (error {1})";
-
         
     // Project error strings
     exports.ERROR_LOADING_PROJECT             = "Fehler beim Laden des Projekts";
@@ -176,25 +161,4 @@ define(function (require, exports, module) {
     // Special commands invoked by the native shell
     exports.CMD_CLOSE_WINDOW                    = "Fenster schließen";
 
-    // TODO TRANSLATE
-    // exports.EXPERIMENTAL_BUILD                   = "Experimental Build";
-    // exports.JSLINT_ERRORS                        = "JSLint Errors";
-    // exports.SEARCH_RESULTS                       = "Search Results";
-    // exports.OK                                   = "OK";
-    // exports.DONT_SAVE                            = "Don't Save";
-    // exports.SAVE                                 = "Save";
-    // exports.CANCEL                               = "Cancel";
-    // exports.RELOAD_FROM_DISK                     = "Reload from Disk";
-    // exports.KEEP_CHANGES_IN_EDITOR               = "Keep Changes in Editor";
-    // exports.CLOSE_DONT_SAVE                      = "Close (Don't Save)";
-    // exports.KEEP_CHANGES_IN_EDITOR               = "Keep Changes in Editor";
-    // exports.RELAUNCH_CHROME                      = "Relaunch Chrome";
-    // exports.ABOUT                                = "About";
-    // exports.BRACKETS                             = "Brackets";
-    // exports.CLOSE                                = "Close";
-    // exports.ABOUT_TEXT_LINE1                     = "sprint 12 experimental build ";
-    // exports.ABOUT_TEXT_LINE2                     = "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.";
-    // exports.ABOUT_TEXT_LINE3                     = "Notices; terms and conditions pertaining to third party software are located at ";
-    // exports.ABOUT_TEXT_LINE4                     = " and incorporated by reference herein.";
-    // exports.ABOUT_TEXT_LINE5                     = "Documentation and source at ";
 });

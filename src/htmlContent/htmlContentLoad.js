@@ -23,14 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, Mustache, window, navigator */
-
-require.config({
-    paths: {
-        "text" : "thirdparty/text"
-    }
-});
-
+/*global require, define, brackets: true, $, Mustache */
 
 define(function (require, exports, module) {
     "use strict";
