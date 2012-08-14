@@ -34,12 +34,14 @@ define(function (require, exports, module) {
     var CommandManager = require("command/CommandManager");
 
     /**
-     * @type {Object.<string, {{commandID: string, key: string, displayKey: string}}}
+     * Maps normalized shortcut descriptor to key binding info.
+     * @type {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     var _keyMap = {};
 
     /**
-     * @type {Object.<string, Array.<{{key: string, displayKey: string}}>}
+     * Maps commandID to the list of shortcuts that are bound to it.
+     * @type {!Object.<string, Array.<{key: string, displayKey: string}>>}
      */
     var _commandMap = {};
 
@@ -341,7 +343,7 @@ define(function (require, exports, module) {
 
     /**
      * Returns a copy of the keymap
-     * @returns {!{commandID:string, displayKey:string}}
+     * @returns {!Object.<string, {commandID: string, key: string, displayKey: string}>}
      */
     function getKeymap() {
         return $.extend({}, _keyMap);
