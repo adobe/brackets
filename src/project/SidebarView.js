@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window  */
+/*global define, $, document, window, brackets  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -48,24 +48,7 @@ define(function (require, exports, module) {
         $sidebarResizer,
         $openFilesContainer,
         $projectTitle,
-        $projectFilesContainer,
-        isSidebarClosed;
-
-    // Init sidebar resizer and setup working set view after the DOM
-    // is initialized
-    $(brackets).on("htmlContentLoadComplete", function () {
-        $sidebar                = $("#sidebar");
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
-        $sidebarResizer         = $("#sidebar-resizer");
-        $openFilesContainer     = $("#open-files-container");
-        $projectTitle           = $("#project-title");
-        $projectFilesContainer  = $("#project-files-container");
-
-        // init
-        WorkingSetView.create($openFilesContainer);
-        _initSidebarResizer();
-    });
-    
+        $projectFilesContainer;
     
     /**
      * @private
@@ -248,10 +231,23 @@ define(function (require, exports, module) {
         });
     }
 
+    // Initialize items dependent on HTML DOM
+    $(brackets).on("htmlContentLoadComplete", function () {
+        $sidebar                = $("#sidebar");
+        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
+        $sidebarResizer         = $("#sidebar-resizer");
+        $openFilesContainer     = $("#open-files-container");
+        $projectTitle           = $("#project-title");
+        $projectFilesContainer  = $("#project-files-container");
 
+        // init
+        WorkingSetView.create($openFilesContainer);
+        _initSidebarResizer();
+    });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
     CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
     
+    // Define public API
     exports.toggleSidebar = toggleSidebar;
 });
