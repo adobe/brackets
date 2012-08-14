@@ -42,6 +42,9 @@ define(function (require, exports, module) {
         var testWindow;
 
         beforeEach(function () {
+            // Create a new window that will be shared by ALL tests in this spec. (We need the tests to
+            // run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
+            // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
             if (!testWindow) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
@@ -99,15 +102,15 @@ define(function (require, exports, module) {
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
-                    var menu = Menus.addMenu("CustomFirst", "menu-unittest-first", Menus.FIRST);
-                    menu = Menus.addMenu("CustomAfter", "menu-unittest-after", Menus.AFTER, "menu-unittest-first");
+                    var menu = Menus.addMenu("CustomFirst", "menu-unittest3-first", Menus.FIRST);
+                    menu = Menus.addMenu("CustomAfter", "menu-unittest3-after", Menus.AFTER, "menu-unittest3-first");
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav").children();
                     expect($listItems.length).toBe(menuCountOriginal + 2);
-                    expect($($listItems[0]).attr("id")).toBe("menu-unittest-first");
-                    expect($($listItems[1]).attr("id")).toBe("menu-unittest-after");
+                    expect($($listItems[0]).attr("id")).toBe("menu-unittest3-first");
+                    expect($($listItems[1]).attr("id")).toBe("menu-unittest3-after");
                 });
             });
 
@@ -117,15 +120,15 @@ define(function (require, exports, module) {
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
-                    var menu = Menus.addMenu("CustomLast", "menu-unittest-last", Menus.LAST);
-                    menu = Menus.addMenu("CustomBefore", "menu-unittest-before", Menus.BEFORE, "menu-unittest-last");
+                    var menu = Menus.addMenu("CustomLast", "menu-unittest3-last", Menus.LAST);
+                    menu = Menus.addMenu("CustomBefore", "menu-unittest3-before", Menus.BEFORE, "menu-unittest3-last");
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav").children();
                     expect($listItems.length).toBe(menuCountOriginal + 2);
-                    expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest-before");
-                    expect($($listItems[menuCountOriginal + 1]).attr("id")).toBe("menu-unittest-last");
+                    expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest3-before");
+                    expect($($listItems[menuCountOriginal + 1]).attr("id")).toBe("menu-unittest3-last");
                 });
             });
 
@@ -135,13 +138,13 @@ define(function (require, exports, module) {
                     expect($listItems.length).toBeGreaterThan(0);
 
                     var menuCountOriginal = $listItems.length;
-                    var menu = Menus.addMenu("Custom3", "menu-unittest3", Menus.AFTER, "NONEXISTANT");
+                    var menu = Menus.addMenu("Custom3", "menu-unittest4", Menus.AFTER, "NONEXISTANT");
                     expect(menu).not.toBeNull();
                     expect(menu).toBeDefined();
 
                     $listItems = testWindow.$("#main-toolbar > ul.nav").children();
                     expect($listItems.length).toBe(menuCountOriginal + 1);
-                    expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest3");
+                    expect($($listItems[menuCountOriginal]).attr("id")).toBe("menu-unittest4");
                 });
             });
 
@@ -168,14 +171,16 @@ define(function (require, exports, module) {
 
         describe("Add Menu Items", function () {
 
-            it("should add new menu item to empty menu", function () {
+            it("should add new menu items", function () {
                 runs(function () {
-                    CommandManager.register("Brackets Test Command Custom 0", "Menu-test.command00", function () {});
                     var menu = Menus.addMenu("MenuItem Menu 0", "menuitem-unittest0");
-                    var $listItems = testWindow.$("#menuitem-unittest0 > ul").children();
+                    var listSelector = "#menuitem-unittest0 > ul";
+                    var $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(0);
 
-                    // Re-use commands that are already registered
+
+                    // add new menu item to empty menu
+                    CommandManager.register("Brackets Test Command Custom 0", "Menu-test.command00", function () {});
                     var menuItem = menu.addMenuItem("Menu-test.command00");
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
@@ -187,80 +192,64 @@ define(function (require, exports, module) {
                     // Periods (aka "dots") are allowed in HTML identifiers, but jQuery interprets
                     // them as the start of a class selector, so they need to be escaped
                     expect($($listItems[0]).find("a#menuitem-unittest0-Menu-test\\.command00").length).toBe(1);
-                });
-            });
 
-            it("should add new menu item in first position of menu", function () {
-                runs(function () {
+
+                    // add new menu item in first position of menu
                     CommandManager.register("Brackets Test Command Custom 1", "Menu-test.command01", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest0");
-
-                    var listSelector = "#menuitem-unittest0 > ul";
-                    var $listItems = testWindow.$(listSelector).children();
-
-                    var menuItem = menu.addMenuItem("Menu-test.command01", "Ctrl-Alt-1", Menus.FIRST);
+                    menuItem = menu.addMenuItem("Menu-test.command01", "Ctrl-Alt-1", Menus.FIRST);
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(2);
                     expect($($listItems[0]).find("a#menuitem-unittest0-Menu-test\\.command01").length).toBe(1);
-                });
-            });
 
-            it("should add new menu item in last position of menu", function () {
-                runs(function () {
+
+                    // add new menu item in last position of menu
                     CommandManager.register("Brackets Test Command Custom 2", "Menu-test.command02", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest0");
-
-                    var listSelector = "#menuitem-unittest0 > ul";
-                    var $listItems = testWindow.$(listSelector).children();
-
-                    var menuItem = menu.addMenuItem("Menu-test.command02", Menus.LAST);
+                    menuItem = menu.addMenuItem("Menu-test.command02", Menus.LAST);
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(3);
                     expect($($listItems[2]).find("a#menuitem-unittest0-Menu-test\\.command02").length).toBe(1);
-                });
-            });
 
-            it("should add new menu item in position after reference command", function () {
-                runs(function () {
+
+                    // add new menu item in position after reference command
                     CommandManager.register("Brackets Test Command Custom 3", "Menu-test.command03", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest0");
-
-                    var listSelector = "#menuitem-unittest0 > ul";
-                    var $listItems = testWindow.$(listSelector).children();
-
-                    // command1 is in first position
-                    var menuItem = menu.addMenuItem("Menu-test.command03", "Ctrl-Alt-3", Menus.AFTER, "Menu-test.command01");
+                    menuItem = menu.addMenuItem("Menu-test.command03", "Ctrl-Alt-3", Menus.AFTER, "Menu-test.command01");
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(4);
                     expect($($listItems[1]).find("a#menuitem-unittest0-Menu-test\\.command03").length).toBe(1);
-                });
-            });
 
-            it("should add new menu item in position before reference command", function () {
-                runs(function () {
+
+                    // add new menu item in position before reference command
                     CommandManager.register("Brackets Test Command Custom 4", "Menu-test.command04", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest0");
-
-                    var listSelector = "#menuitem-unittest0 > ul";
-                    var $listItems = testWindow.$(listSelector).children();
-
-                    // command1 is in first position
-                    var menuItem = menu.addMenuItem("Menu-test.command04", "Ctrl-Alt-4", Menus.BEFORE, "Menu-test.command01");
+                    menuItem = menu.addMenuItem("Menu-test.command04", "Ctrl-Alt-4", Menus.BEFORE, "Menu-test.command01");
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
                     $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(5);
                     expect($($listItems[0]).find("a#menuitem-unittest0-Menu-test\\.command04").length).toBe(1);
+
+
+                    // add positioned divider
+                    menu.addMenuDivider(Menus.AFTER, "Menu-test.command04");
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(6);
+                    expect($($listItems[1]).find("hr.divider").length).toBe(1);
+
+
+                    // add divider to end
+                    menu.addMenuDivider();
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(7);
+                    expect($($listItems[6]).find("hr.divider").length).toBe(1);
                 });
             });
 
@@ -311,84 +300,74 @@ define(function (require, exports, module) {
                 expect($($listItems[0]).find("a#menuitem-unittest1-Menu-test\\.command16").length).toBe(1);
             });
 
-            it("should add new menu item in last position of menu if reference command doesn't exist", function () {
+            it("should add new menu item in last position of menu if reference command isn't found in menu", function () {
                 runs(function () {
                     CommandManager.register("Brackets Test Command Custom 20", "Menu-test.command20", function () {});
-                    CommandManager.register("Brackets Test Command Custom 21", "Menu-test.command21", function () {});
-                    CommandManager.register("Brackets Test Command Custom 22", "Menu-test.command22", function () {});
                     var menu = Menus.addMenu("Custom 2", "menuitem-unittest2");
-                    var menuItem = menu.addMenuItem("Menu-test.command20", "Ctrl-Alt-0");
-                    menuItem = menu.addMenuItem("Menu-test.command21", "Ctrl-Alt-1");
-
+                    menu.addMenuItem("Menu-test.command20", "Ctrl-Alt-0");
                     var listSelector = "#menuitem-unittest2 > ul";
 
-                    menuItem = menu.addMenuItem("Menu-test.command22", "Ctrl-Alt-2", Menus.BEFORE, "NONEXISTANT");
+                    // reference command doesn't exist
+                    CommandManager.register("Brackets Test Command Custom 21", "Menu-test.command21", function () {});
+                    var menuItem = menu.addMenuItem("Menu-test.command21", "Ctrl-Alt-2", Menus.BEFORE, "NONEXISTANT");
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
                     var $listItems = testWindow.$(listSelector).children();
-                    expect($listItems.length).toBe(3);
-                    expect($($listItems[2]).find("a#menuitem-unittest2-Menu-test\\.command22").length).toBe(1);
-                });
-            });
+                    expect($listItems.length).toBe(2);
+                    expect($($listItems[1]).find("a#menuitem-unittest2-Menu-test\\.command21").length).toBe(1);
 
-            it("should add new menu item in last position of menu if reference command is in different menu", function () {
-                runs(function () {
+
+                    // reference command is in different menu
+                    CommandManager.register("Brackets Test Command Custom 22", "Menu-test.command22", function () {});
+                    var menuOther = Menus.addMenu("Custom 2 Other", "menuitem-unittest2-other");
+                    menuOther.addMenuItem("Menu-test.command22", "Ctrl-Alt-2");
+
                     CommandManager.register("Brackets Test Command Custom 23", "Menu-test.command23", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest2");
-
-                    var listSelector = "#menuitem-unittest2 > ul";
-
-                    var menuItem = menu.addMenuItem("Menu-test.command23", "Ctrl-Alt-2", Menus.BEFORE, "Menu-test.command10");
+                    menuItem = menu.addMenuItem("Menu-test.command23", "Ctrl-Alt-3", Menus.BEFORE, "Menu-test.command22");
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
-                    var $listItems = testWindow.$(listSelector).children();
-                    expect($listItems.length).toBe(4);
-                    expect($($listItems[3]).find("a#menuitem-unittest2-Menu-test\\.command23").length).toBe(1);
-                });
-            });
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(3);
+                    expect($($listItems[2]).find("a#menuitem-unittest2-Menu-test\\.command23").length).toBe(1);
 
-            it("should add new menu item in last position of menu if reference command exists, but isn't in any menu", function () {
-                runs(function () {
+
+                    // reference command exists, but isn't in any menu
                     CommandManager.register("Brackets Test Command Custom 24", "Menu-test.command24", function () {});
                     CommandManager.register("Brackets Test Command Custom 25", "Menu-test.command25", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest2");
 
-                    var listSelector = "#menuitem-unittest2 > ul";
-
-                    var menuItem = menu.addMenuItem("Menu-test.command24", "Ctrl-Alt-1", Menus.BEFORE, "Menu-test.command25");
+                    menuItem = menu.addMenuItem("Menu-test.command24", "Ctrl-Alt-1", Menus.BEFORE, "Menu-test.command25");
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
-                    var $listItems = testWindow.$(listSelector).children();
-                    expect($listItems.length).toBe(5);
-                    expect($($listItems[4]).find("a#menuitem-unittest2-Menu-test\\.command24").length).toBe(1);
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(4);
+                    expect($($listItems[3]).find("a#menuitem-unittest2-Menu-test\\.command24").length).toBe(1);
                 });
             });
 
-            it("should not add menu item for duplicate command in a menu", function () {
+            it("should not add menu item for these cases", function () {
                 runs(function () {
-                    var menu = Menus.getMenu("menuitem-unittest2");
+                    CommandManager.register("Brackets Test Command Custom 30", "Menu-test.command30", function () {});
+                    var menu = Menus.addMenu("Custom 3", "menuitem-unittest3");
+                    var listSelector = "#menuitem-unittest3 > ul";
+                    var menuItem = menu.addMenuItem("Menu-test.command30");
+                    expect(menuItem).toBeTruthy();
+                    var $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(1);
 
-                    var menuItem = menu.addMenuItem("Menu-test.command24");
+                    // duplicate command in a menu
+                    menuItem = menu.addMenuItem("Menu-test.command30");
                     expect(menuItem).toBeFalsy();
                     
-                    var $listItems = testWindow.$("#menuitem-unittest2 > ul").children();
-
-                    expect($listItems.length).toBe(5);
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(1);
                     expect(menuItem).toBeNull();
-                });
-            });
 
-            it("should not add menu item with unregistered command", function () {
-                runs(function () {
-                    var menu = Menus.getMenu("menuitem-unittest2");
 
-                    var $listItems = testWindow.$("#menuitem-unittest2 > ul").children();
-                    expect($listItems.length).toBe(5);
-
-                    var menuItem = null;
+                    // unregistered command
+                    menuItem = null;
                     var exceptionThrown = false;
                     try {
                         menuItem = menu.addMenuItem("UNREGISTERED_COMMAND");
@@ -397,43 +376,26 @@ define(function (require, exports, module) {
                     }
                     expect(exceptionThrown).toBeTruthy();
 
-                    $listItems = testWindow.$("#menuitem-unittest2 > ul").children();
-
-                    expect($listItems.length).toBe(5);
+                    $listItems = testWindow.$(listSelector).children();
+                    expect($listItems.length).toBe(1);
                     expect(menuItem).toBeNull();
-                });
-            });
-
-            it("should add new menu divider", function () {
-                runs(function () {
-                    var menu = Menus.getMenu("menuitem-unittest2");
-                    
-                    // add positioned divider
-                    menu.addMenuDivider(Menus.AFTER, "Menu-test.command20");
-                    var $listItems = testWindow.$("#menuitem-unittest2 > ul").children();
-                    expect($listItems.length).toBe(6);
-                    expect($($listItems[1]).find("hr.divider").length).toBe(1);
-
-                    // add divider to end
-                    menu.addMenuDivider();
-                    $listItems = testWindow.$("#menuitem-unittest2 > ul").children();
-                    expect($listItems.length).toBe(7);
-                    expect($($listItems[6]).find("hr.divider").length).toBe(1);
                 });
             });
         });
 
         describe("Menu Item synchronizing", function () {
 
-            it("should have same checked state as command", function () {
+            it("should have same state as command", function () {
                 runs(function () {
-                    var cmd = CommandManager.register("Brackets Test Command Custom 30", "Menu-test.command30", function () {});
+
+                    // checked state
+                    var cmd = CommandManager.register("Brackets Test Command Custom 40", "Menu-test.command40", function () {});
                     expect(cmd).not.toBeNull();
                     expect(cmd).toBeDefined();
 
-                    var menu = Menus.addMenu("Synchronizing Menu", "menuitem-unittest3");
-                    menu.addMenuItem("Menu-test.command30");
-                    var menuSelector = "#menuitem-unittest3-Menu-test\\.command30";
+                    var menu = Menus.addMenu("Synchronizing Menu", "menuitem-unittest4");
+                    menu.addMenuItem("Menu-test.command40");
+                    var menuSelector = "#menuitem-unittest4-Menu-test\\.command40";
                     
                     // Verify menu is synced with command
                     var $menuItem = testWindow.$(menuSelector);
@@ -453,19 +415,10 @@ define(function (require, exports, module) {
 
                     // Verify menu gets synced with command
                     expect($($menuItem).hasClass("checked")).toBeFalsy();
-                });
-            });
 
-            it("should have same enabled state as command", function () {
-                runs(function () {
-                    var cmd = CommandManager.get("Menu-test.command30", function () {});
-                    expect(cmd).not.toBeNull();
-                    expect(cmd).toBeDefined();
 
-                    var menuSelector = "#menuitem-unittest3-Menu-test\\.command30";
-                    
-                    // Verify menu is synced with command
-                    var $menuItem = testWindow.$(menuSelector);
+                    // enabled state
+                    $menuItem = testWindow.$(menuSelector);
                     expect($($menuItem).hasClass("disabled")).toBeFalsy();
                     
                     // toggle command
@@ -481,19 +434,16 @@ define(function (require, exports, module) {
 
                     // Verify menu gets synced with command
                     expect($($menuItem).hasClass("disabled")).toBeFalsy();
-                });
-            });
 
-            it("should respond to key binding updates", function () {
-                runs(function () {
-                    CommandManager.register("Brackets Test Command Custom 31", "Menu-test.command31", function () {});
-                    var menu = Menus.getMenu("menuitem-unittest3");
-                    menu.addMenuItem("Menu-test.command31", "Ctrl-9");
-                    var menuSelector = "#menuitem-unittest3-Menu-test\\.command31";
+
+                    // key bindings
+                    CommandManager.register("Brackets Test Command Custom 41", "Menu-test.command41", function () {});
+                    menu.addMenuItem("Menu-test.command41", "Ctrl-9");
+                    menuSelector = "#menuitem-unittest4-Menu-test\\.command41";
                     
                     // Verify menu is synced with command
-                    var $menuItem = testWindow.$(menuSelector),
-                        $shortcut = $menuItem.find(".menu-shortcut");
+                    $menuItem = testWindow.$(menuSelector);
+                    var $shortcut = $menuItem.find(".menu-shortcut");
                     
                     // verify key data instead of platform-specific labels
                     if (testWindow.brackets.platform === "win") {
@@ -503,7 +453,7 @@ define(function (require, exports, module) {
                     }
                     
                     // change keyboard shortcut
-                    KeyBindingManager.addBinding("Menu-test.command31", "Alt-8");
+                    KeyBindingManager.addBinding("Menu-test.command41", "Alt-8");
                     
                     // verify updated keyboard shortcut
                     expect($shortcut.data("key")).toBe("Alt-8");
@@ -513,44 +463,46 @@ define(function (require, exports, module) {
 
         describe("Context Menus", function () {
             it("register a context menu", function () {
-                var cmenu = Menus.registerContextMenu("test-cmenu");
-                
+                var cmenu = Menus.registerContextMenu("test-cmenu50");
+
                 // Add menu item via command id
-                CommandManager.register("Brackets Test Command Custom 40", "Menu-test.command40", function () {});
-                var menuItem = cmenu.addMenuItem("Menu-test.command40");
+                CommandManager.register("Brackets Test Command Custom 50", "Menu-test.command50", function () {});
+                var menuItem = cmenu.addMenuItem("Menu-test.command50");
                 expect(menuItem).toBeTruthy();
                 expect(cmenu).toBeTruthy();
 
                 // Add menu item via command object
-                var command = CommandManager.register("Brackets Test Command Custom 41", "Menu-test.command41", function () {});
+                var command = CommandManager.register("Brackets Test Command Custom 51", "Menu-test.command51", function () {});
                 menuItem = cmenu.addMenuItem(command);
                 expect(menuItem).toBeTruthy();
 
                 // add positioned divider
-                menuItem = cmenu.addMenuDivider(Menus.BEFORE, "Menu-test.command41");
-                var $listItems = testWindow.$("#test-cmenu > ul").children();
+                menuItem = cmenu.addMenuDivider(Menus.BEFORE, "Menu-test.command51");
+                var $listItems = testWindow.$("#test-cmenu50 > ul").children();
                 expect($listItems.length).toBe(3);
                 expect($($listItems[1]).find("hr.divider").length).toBe(1);
 
                 // add divider to end
                 menuItem = cmenu.addMenuDivider();
-                $listItems = testWindow.$("#test-cmenu > ul").children();
+                $listItems = testWindow.$("#test-cmenu50 > ul").children();
                 expect($listItems.length).toBe(4);
                 expect($($listItems[3]).find("hr.divider").length).toBe(1);
 
                 // duplicate command in Menu
-                menuItem = cmenu.addMenuItem("Menu-test.command40");
+                menuItem = cmenu.addMenuItem("Menu-test.command50");
                 expect(menuItem).toBeFalsy();
 
                 // duplicate ids
-                var cmenu2 = Menus.registerContextMenu("test-cmenu");
+                var cmenu2 = Menus.registerContextMenu("test-cmenu50");
                 expect(cmenu2).toBeFalsy();
             });
 
             it("open a context menu", function () {
                 runs(function () {
                     var openEvent = false;
-                    var cmenu = Menus.getContextMenu("test-cmenu");
+                    var cmenu = Menus.registerContextMenu("test-cmenu51");
+                    CommandManager.register("Brackets Test Command Custom 51", "Menu-test.command51", function () {});
+                    var menuItem = cmenu.addMenuItem("Menu-test.command51");
 
                     testWindow.$(cmenu).on("beforeContextMenuOpen", function () {
                         openEvent = true;
@@ -588,7 +540,9 @@ define(function (require, exports, module) {
                 
             it("context menu is not clipped", function () {
                 runs(function () {
-                    var cmenu = Menus.getContextMenu("test-cmenu");
+                    var cmenu = Menus.registerContextMenu("test-cmenu52");
+                    CommandManager.register("Brackets Test Command Custom 52", "Menu-test.command52", function () {});
+                    var menuItem = cmenu.addMenuItem("Menu-test.command52");
                     var winWidth = $(testWindow).width();
                     var winHeight = $(testWindow).height();
                     
@@ -611,7 +565,9 @@ define(function (require, exports, module) {
             });
 
             it("close context menu", function () {
-                var cmenu = Menus.getContextMenu("test-cmenu");
+                var cmenu = Menus.registerContextMenu("test-cmenu53");
+                CommandManager.register("Brackets Test Command Custom 53", "Menu-test.command53", function () {});
+                var menuItem = cmenu.addMenuItem("Menu-test.command53");
 
                 var closeEvent = false;
                 testWindow.$(cmenu).on("contextMenuClose", function () {
@@ -629,7 +585,9 @@ define(function (require, exports, module) {
             });
 
             it("close context menu using Esc key", function () {
-                var cmenu = Menus.getContextMenu("test-cmenu");
+                var cmenu = Menus.registerContextMenu("test-cmenu54");
+                CommandManager.register("Brackets Test Command Custom 54", "Menu-test.command54", function () {});
+                var menuItem = cmenu.addMenuItem("Menu-test.command54");
 
                 var closeEvent = false;
                 testWindow.$(cmenu).on("contextMenuClose", function () {
