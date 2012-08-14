@@ -79,6 +79,7 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
+        UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams;
 
     // Local variables
@@ -329,6 +330,9 @@ define(function (require, exports, module) {
             _initTest();
             _initExtensions().always(_onBracketsReady);
         });
+        
+        // Check for updates
+        UpdateNotification.checkForUpdate();
     }
             
     // Main Brackets initialization

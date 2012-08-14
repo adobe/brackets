@@ -91,6 +91,10 @@
                 
                 <!-- Toolbar -->
                 <div class="buttons">
+                    <span id="update-notification" title="Hey, there is a new build of Brackets available! Click here for details.">
+                        &#9832;
+                    </span>
+                    
                     <span class="experimental-label">Experimental Build</span>
                     
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
@@ -207,6 +211,20 @@
             </div>
         </div>
         <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Close</a>
+        </div>
+    </div>
+    <div class="update-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Update Available</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Hey, there's a new build of Brackets available. Check out the new features:</p>
+            <div class="update-info">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="download">Get it now!</a>
             <a href="#" class="dialog-button btn primary" data-button-id="ok">Close</a>
         </div>
     </div>
