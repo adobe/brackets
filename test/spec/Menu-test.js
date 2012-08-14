@@ -185,7 +185,7 @@ define(function (require, exports, module) {
                     expect(menuItem).not.toBeNull();
                     expect(menuItem).toBeDefined();
 
-                    $listItems = testWindow.$("#menuitem-unittest0 > ul").children();
+                    $listItems = testWindow.$(listSelector).children();
                     expect($listItems.length).toBe(1);
                     expect($($listItems[0]).length).toBe(1);
                     
@@ -287,17 +287,20 @@ define(function (require, exports, module) {
                 // Add new menu to END of menuSectionCmd2
                 menuItem = menu.addMenuItem("Menu-test.command15", null, Menus.LAST_IN_SECTION, menuSectionCmd2);
                 $listItems = testWindow.$(listSelector).children();
+                expect($listItems.length).toBe(7);
                 expect($($listItems[6]).find("a#menuitem-unittest1-Menu-test\\.command15").length).toBe(1);
 
                 // Add new menu to BEGINNING of menuSectionCmd0
                 menuItem = menu.addMenuItem("Menu-test.command16", null, Menus.FIRST_IN_SECTION, menuSectionCmd0);
                 $listItems = testWindow.$(listSelector).children();
+                expect($listItems.length).toBe(8);
                 expect($($listItems[0]).find("a#menuitem-unittest1-Menu-test\\.command16").length).toBe(1);
 
                 // Add new menu to BEGINNING of menuSectionCmd2
                 menuItem = menu.addMenuItem("Menu-test.command17", null, Menus.FIRST_IN_SECTION, menuSectionCmd2);
                 $listItems = testWindow.$(listSelector).children();
-                expect($($listItems[0]).find("a#menuitem-unittest1-Menu-test\\.command16").length).toBe(1);
+                expect($listItems.length).toBe(9);
+                expect($($listItems[5]).find("a#menuitem-unittest1-Menu-test\\.command17").length).toBe(1);
             });
 
             it("should add new menu item in last position of menu if reference command isn't found in menu", function () {
