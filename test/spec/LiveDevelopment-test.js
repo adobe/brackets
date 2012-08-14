@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, waits: false, runs: false, $: false*/
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs, $*/
 
 define(function (require, exports, module) {
     'use strict';
@@ -45,7 +45,6 @@ define(function (require, exports, module) {
     function isOpenInBrowser(doc, agents) {
         return (doc && doc.url && agents && agents.network && agents.network.wasURLRequested(doc.url));
     }
-    
 
     describe("Live Development", function () {
         
@@ -66,7 +65,6 @@ define(function (require, exports, module) {
     
     
         afterEach(function () {
-            var browserDone = false;
             runs(function () {
                 LiveDevelopment.close();
             });
@@ -74,15 +72,20 @@ define(function (require, exports, module) {
             waits(20);
             NativeApp._setLiveBrowserUserDataDir("");
             
-            runs(function () {
-                NativeApp.closeAllLiveBrowsers().always(function () {
-                    browserDone = true;
+            if (window.appshell) {
+                runs(function () {
+                    waitsForDone(NativeApp.closeAllLiveBrowsers(), "NativeApp.closeAllLiveBrowsers", 10000);
                 });
-                SpecRunnerUtils.closeTestWindow();
+            } else {
+                // Remove this 'else' after migrating to brackets-shell.
+                // brackets-app never resolves the promise for brackets.app.closeLiveBrowser.
+                runs(function () {
+                    NativeApp.closeAllLiveBrowsers();
+                });
+                waits(100);
+            }
 
-            });
-            waits(100);
-            //waitsFor(function () { return browserDone; }, "closeLiveBrowser timeout", 10000);
+            SpecRunnerUtils.closeTestWindow();
         });
         
         describe("CSS Editing", function () {
@@ -92,15 +95,9 @@ define(function (require, exports, module) {
                 expect(Inspector.connected()).toBeFalsy();
                 
                 //open a file
-                var htmlOpened = false;
                 runs(function () {
-                    SpecRunnerUtils.openProjectFiles(["simple1.html"]).fail(function () {
-                        expect("Failed To Open").toBe("simple1.html");
-                    }).always(function () {
-                        htmlOpened = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
-                waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
                 
                 //start the connection
                 runs(function () {
@@ -124,15 +121,9 @@ define(function (require, exports, module) {
                 expect(Inspector.connected()).toBeFalsy();
                 
                 //open a file
-                var opened = false;
                 runs(function () {
-                    SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
-                        expect("Failed To Open").toBe("simple1.css");
-                    }).always(function () {
-                        opened = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles");
                 });
-                waitsFor(function () { return opened; }, "FILE_OPEN timeout", 1000);
                 
                 //start the connection
                 runs(function () {
@@ -157,15 +148,9 @@ define(function (require, exports, module) {
                 //verify we aren't currently connected
                 expect(Inspector.connected()).toBeFalsy();
                 
-                var htmlOpened = false;
                 runs(function () {
-                    SpecRunnerUtils.openProjectFiles(["simple1.html"]).fail(function () {
-                        expect("Failed To Open").toBe("simple1.html");
-                    }).always(function () {
-                        htmlOpened = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
-                waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
                 
                 //start the connection
                 runs(function () {
@@ -176,15 +161,9 @@ define(function (require, exports, module) {
                 // Wait for the file and its stylesheets to fully load (and be communicated back).
                 waits(1000);
                 
-                var cssOpened = false;
                 runs(function () {
-                    SpecRunnerUtils.openProjectFiles(["simple1.css"]).fail(function () {
-                        expect("Failed To Open").toBe("simple1.css");
-                    }).always(function () {
-                        cssOpened = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles");
                 });
-                waitsFor(function () { return cssOpened; }, "cssOpened FILE_OPEN timeout", 1000);
                 
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
@@ -192,13 +171,15 @@ define(function (require, exports, module) {
                     localText += "\n .testClass { color:#090; }\n";
                     curDoc.setText(localText);
                 });
-                
-                //add a wait for the change to get pushed, then wait to get the result
-                waits(1000);
+
+                var liveDoc;
+                waitsFor(function () {
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    return !!liveDoc;
+                }, "Waiting for LiveDevelopment document", 10000);
                 
                 var doneSyncing = false;
                 runs(function () {
-                    var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {
@@ -239,28 +220,22 @@ define(function (require, exports, module) {
                     curDoc.setText(localText);
                 });
                 
-                var htmlOpened = false;
                 runs(function () {
-                    SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]).fail(function () {
-                        expect("Failed To Open").toBe("simple1.html");
-                    }).always(function () {
-                        htmlOpened = true;
-                    });
+                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css", "simple1.html"]), "SpecRunnerUtils.openProjectFiles");
                 });
-                waitsFor(function () { return htmlOpened; }, "htmlOpened FILE_OPEN timeout", 1000);
                 
                 //start the connection
+                var liveDoc;
                 runs(function () {
                     LiveDevelopment.open();
                 });
-                waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
-                
-                //wait again for the final changes to load
-                waits(350);
+                waitsFor(function () {
+                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
+                    return !!liveDoc;
+                }, "Waiting for LiveDevelopment document", 10000);
                 
                 var doneSyncing = false;
                 runs(function () {
-                    var liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
                     liveDoc.getSourceFromBrowser().done(function (text) {
                         browserText = text;
                     }).always(function () {

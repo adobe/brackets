@@ -60,9 +60,12 @@ a different folder to edit from *File > Open Folder*.
 
 Most of Brackets should be pretty self-explanatory, but for information on how
 to use its unique features, like Quick Edit and Live Development, please read
-[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets).
+[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
+The [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions) has a list of extensions that have been contributed. 
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
+
+
 
 I found a bug/missing feature!
 ------------------------------

@@ -56,6 +56,7 @@
 </head>
 <body>
 
+<<<<<<< HEAD
     <!-- HTML content is dynamically loaded and rendered by bracket.js.
          Any modules that depend on or modify HTML during load should 
          listen for the "htmlContentLoadComplete" event that is triggered from
@@ -63,5 +64,94 @@
    
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>
+=======
+    <!-- Modal Windows -->
+    <div class="error-dialog template modal hide">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h1 class="dialog-title">Error</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">OK</a>
+        </div>
+    </div>
+    <div class="save-close-dialog template modal hide">
+        <div class="modal-header">
+            <a href="#" class="close">&times;</a>
+            <h1 class="dialog-title">Save Changes</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Don't Save</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Save</a>
+            <a href="#" class="dialog-button btn" data-button-id="cancel">Cancel</a>
+        </div>
+    </div>
+    <div class="ext-changed-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Title goes here</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Reload from Disk</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="cancel">Keep Changes in Editor</a>
+        </div>
+    </div>
+    <div class="ext-deleted-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Title goes here</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="dontsave">Close (Don't Save)</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="cancel">Keep Changes in Editor</a>
+        </div>
+    </div>
+    <div class="live-development-error-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">Title goes here</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">Message goes here</p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="cancel">Cancel</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Relaunch Chrome</a>
+        </div>
+    </div>
+    <div class="about-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">About</h1>
+        </div>
+        <div class="modal-body">
+            <img class="about-icon" src="styles/images/brackets_icon.svg">
+            <div class="about-text">
+                <h2>Brackets</h2>
+                <p class="dialog-message">sprint 13 experimental build <span id="about-build-number"><!-- populated programmatically --></span></p>
+                <p class="dialog-message">Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
+                <p class="dialog-message">Notices, terms and conditions pertaining to third party software are located at <span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.</p>
+                <p class="dialog-message">Documentation and source at <span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn primary" data-button-id="ok">Close</a>
+        </div>
+    </div>
+    <div id="context-menu-bar">
+        <ul data-dropdown="dropdown"></ul>
+    </div>
+    <div id="codehint-menu-bar">
+        <ul data-dropdown="dropdown"></ul>
+    </div>
+>>>>>>> origin/master
 </body>
 </html>

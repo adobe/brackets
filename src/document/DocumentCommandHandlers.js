@@ -678,10 +678,19 @@ define(function (require, exports, module) {
                 postCloseHandler();
             })
             .fail(function () {
+                _windowGoingAway = false;
                 if (failHandler) {
                     failHandler();
                 }
             });
+    }
+
+    /**
+    * @private
+    * Implementation for abortQuit callback to reset quit sequence settings
+    */
+    function _handleAbortQuit() {
+        _windowGoingAway = false;
     }
     
     /** Confirms any unsaved changes, then closes the window */
@@ -791,6 +800,7 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
         CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
         CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
+        CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
 
         KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, [{key: "Ctrl-Tab",   platform: "win"},
                                                                     {key: "Ctrl-Tab",  platform:  "mac"}]);
