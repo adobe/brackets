@@ -186,16 +186,6 @@ define(function (require, exports, module) {
         return binding;
     }
     
-    /** NOT IMPLEMENTED
-     * Removes MenuItem
-     * 
-     * TODO Question: for convenience should API provide a way to remove related
-     * keybindings and Command object?
-     */
-    // function removeMenuItem(id) {
-    //    NOT IMPLEMENTED
-    // }
-
     var _menuDividerIDCount = 1;
     function _getNextMenuItemDividerID() {
         return "brackets-menuDivider-" + _menuDividerIDCount++;
@@ -386,6 +376,39 @@ define(function (require, exports, module) {
         }
         
         return $relativeElement;
+    };
+
+    /**
+     * Removes a  menu item with the specified id. 
+     *
+     * @param {!string | Command} command - the command the menu would execute if we weren't deleting it.
+     *
+     * Note, keyBindings are not affected at all by removing a menu item. 
+     * They would have to be removed separately.
+     * 
+     */
+    Menu.prototype.removeMenuItem = function (command) {
+        var menuItemID;
+
+        if (!command) {
+            throw new Error("removeMenuItem(): missing required parameters: command");
+        }
+
+        if (typeof (command) === "string") {
+            var commandObj = CommandManager.get(command);
+
+            if (!commandObj) {
+                throw new Error("removeMenuItem(): command not found: " + command);
+            }
+
+            menuItemID = menuItemMap[this.id + "-" + command].id;
+        } else {
+            menuItemID = this.id + "-" + command.getID();
+        }
+
+        //Targeting parent to get the menu item <a> and the <li> that contains it
+        $(_getHTMLMenuItem(menuItemID)).parent().remove();
+        delete menuItemMap[menuItemID];
     };
     
     /**

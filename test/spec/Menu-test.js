@@ -211,6 +211,89 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Remove Menu Items", function () {
+            it("should add then remove new menu item to empty menu with a command id", function () {
+                runs(function () {
+                    CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
+                    var commandString = "custom.command";
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem(commandString);
+                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeDefined();
+
+                    expect(typeof (commandString)).toBe("string");
+
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(1);
+                    expect($($listItems[0]).length).toBe(1);
+
+                    menu.removeMenuItem(commandString);
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+                    expect($($listItems[0]).length).toBe(0);
+                });
+            });
+
+            it("should add then remove new menu item to empty menu with a command", function () {
+                runs(function () {
+                    CommandManager.register("Brackets Test Command Custom", "custom.command", function () {});
+                    var commandString = "custom.command";
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+                    var $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+
+                    // Re-use commands that are already registered
+                    var menuItem = menu.addMenuItem(commandString);
+                    expect(menuItem).not.toBeNull();
+                    expect(menuItem).toBeDefined();
+
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(1);
+                    expect($($listItems[0]).length).toBe(1);
+
+                    var command = CommandManager.get(commandString);
+                    expect(typeof (command)).toBe("object");
+
+                    menu.removeMenuItem(command);
+                    $listItems = testWindow.$("#menu-custom > ul").children();
+                    expect($listItems.length).toBe(0);
+                    expect($($listItems[0]).length).toBe(0);
+                });
+            });
+
+            it("should gracefully handle someone trying to delete a menu item that doesn't exist", function () {
+                runs(function () {
+                    var commandString = "custom.command";
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+
+                    var exceptionThrown = false;
+                    try {
+                        menu.removeMenuItem(commandString);
+                    } catch (e) {
+                        exceptionThrown = true;
+                    }
+                    expect(exceptionThrown).toBeTruthy();
+                });
+            });
+
+            it("should gracefully handle someone trying to delete nothing", function () {
+                runs(function () {
+                    var menu = Menus.addMenu("Custom", "menu-custom");
+
+                    var exceptionThrown = false;
+                    try {
+                        menu.removeMenuItem();
+                    } catch (e) {
+                        exceptionThrown = true;
+                    }
+                    expect(exceptionThrown).toBeTruthy();
+                });
+            });
+        });
 
         describe("Add Menu Items", function () {
 
