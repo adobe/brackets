@@ -23,11 +23,11 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window, brackets  */
+/*global define, $, document, window  */
 
 define(function (require, exports, module) {
     "use strict";
-    
+
     var ProjectManager          = require("project/ProjectManager"),
         WorkingSetView          = require("project/WorkingSetView"),
         CommandManager          = require("command/CommandManager"),
@@ -228,15 +228,12 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
-
-    $(brackets).on("htmlContentLoadComplete", function () {
-        // init
-        WorkingSetView.create($openFilesContainer);
-        _initSidebarResizer();
-    });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
     CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
     
+    WorkingSetView.create($openFilesContainer);
+    _initSidebarResizer();
+
     exports.toggleSidebar = toggleSidebar;
 });
