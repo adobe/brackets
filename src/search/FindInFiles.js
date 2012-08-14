@@ -94,7 +94,9 @@ define(function (require, exports, module) {
     * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function (initialString) {
-        var dialogHTML = "Find in Files: <input type='text' id='findInFilesInput' style='width: 10em'> <span style='color: #888'>(Use /re/ syntax for regexp search)</span>";
+        var dialogHTML = Strings.CMD_FIND_IN_FILES +
+            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span style='color: #888'>(" +
+            Strings.SEARCH_REGEXP_INFO  + ")</span>";
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
         var $searchField = $("input#findInFilesInput");

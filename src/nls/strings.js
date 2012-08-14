@@ -106,6 +106,7 @@ define(function (require, exports, module) {
                                                 + "Do you want to keep your changes?";
     
     exports.OPEN_FILE                         = "Open File";
+    exports.SEARCH_REGEXP_INFO                = "Use /re/ syntax for regexp search";
 
     // Switch language
     exports.LANGUAGE_TITLE                    = "Switch Language";
