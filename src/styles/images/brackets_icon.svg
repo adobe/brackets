@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+	 id="Layer_1" sodipodi:docname="brackets_icon.svg" inkscape:version="0.48.2 r9819" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="120px" height="120px"
+	 viewBox="0 0 120 120" enable-background="new 0 0 120 120" xml:space="preserve">
+<sodipodi:namedview  inkscape:window-width="640" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-x="0" inkscape:current-layer="Layer_1" inkscape:window-maximized="0" inkscape:window-y="572" inkscape:window-height="480" inkscape:cy="60" objecttolerance="10" pagecolor="#ffffff" inkscape:cx="60" gridtolerance="10" inkscape:zoom="1.9666667" guidetolerance="10" borderopacity="1" bordercolor="#666666" showgrid="false" id="namedview3405">
+	</sodipodi:namedview>
+<path id="path3378_6_" opacity="0.02" d="M91.5,7.5h-63c-11.55,0-21,9.45-21,21v8.4v46.2v8.4c0,11.55,9.45,21,21,21h63
+	c11.55,0,21-9.45,21-21v-8.4V36.9v-8.4C112.5,16.95,103.05,7.5,91.5,7.5z"/>
+<path opacity="0.065" d="M91.125,7.625h-62.25c-11.412,0-20.75,9.338-20.75,20.75v8.3v45.649v8.301
+	c0,11.412,9.338,20.75,20.75,20.75h62.25c11.412,0,20.75-9.338,20.75-20.75v-8.301V36.675v-8.3
+	C111.875,16.963,102.537,7.625,91.125,7.625z"/>
+<path opacity="0.11" d="M90.75,7.75h-61.5c-11.275,0-20.5,9.225-20.5,20.5v8.2v45.1v8.2c0,11.275,9.225,20.5,20.5,20.5h61.5
+	c11.275,0,20.5-9.225,20.5-20.5v-8.2v-45.1v-8.2C111.25,16.975,102.025,7.75,90.75,7.75z"/>
+<path opacity="0.155" d="M90.375,7.875h-60.75c-11.138,0-20.25,9.112-20.25,20.25v8.1v44.55v8.1c0,11.138,9.112,20.25,20.25,20.25
+	h60.75c11.138,0,20.25-9.112,20.25-20.25v-8.1v-44.55v-8.1C110.625,16.987,101.513,7.875,90.375,7.875z"/>
+<path id="path3378_4_" opacity="0.2" d="M90,8H30c-11,0-20,9-20,20v8v44v8c0,11,9,20,20,20h60c11,0,20-9,20-20v-8V36v-8
+	C110,17,101,8,90,8z"/>
+<path id="path3378" fill="#115A91" d="M90,8H30c-11,0-20,9-20,20v8v44v8c0,11,9,20,20,20h60c11,0,20-9,20-20v-8V36v-8
+	C110,17,101,8,90,8z"/>
+<linearGradient id="path3393_1_" gradientUnits="userSpaceOnUse" x1="433.5" y1="-185" x2="433.5" y2="-277.0005" gradientTransform="matrix(1 0 0 -1 -373.5 -177)">
+	<stop  offset="0" style="stop-color:#29ABE2"/>
+	<stop  offset="0.4757" style="stop-color:#28A9E1"/>
+	<stop  offset="0.6639" style="stop-color:#23A2DC"/>
+	<stop  offset="0.8012" style="stop-color:#1A96D4"/>
+	<stop  offset="0.913" style="stop-color:#0E85C9"/>
+	<stop  offset="1" style="stop-color:#0071BC"/>
+</linearGradient>
+<path id="path3393" fill="url(#path3393_1_)" d="M110,80c0,11-9,20-20,20H30c-11,0-20-9-20-20V28c0-11,9-20,20-20h60
+	c11,0,20,9,20,20V80z"/>
+<path id="path3395" fill="#FFFFFF" d="M98,78c0,5.5-4.5,10-10,10H32c-5.5,0-10-4.5-10-10V30c0-5.5,4.5-10,10-10h56
+	c5.5,0,10,4.5,10,10V78z"/>
+<g id="g3397_6_" opacity="0.1">
+	<path id="path3399_6_" fill="#4D4D4D" d="M57.675,27.725v12.6h-14.7v27.3h14.7v13.65h-28.35v-53.55H57.675z"/>
+</g>
+<g opacity="0.2">
+	<polygon fill="#4D4D4D" points="57.45,27.816 57.45,40.217 42.983,40.217 42.983,67.083 57.45,67.083 57.45,80.517 29.55,80.517 
+		29.55,27.816 	"/>
+</g>
+<g opacity="0.3">
+	<polygon fill="#4D4D4D" points="57.225,27.908 57.225,40.108 42.992,40.108 42.992,66.541 57.225,66.541 57.225,79.759 
+		29.775,79.759 29.775,27.908 	"/>
+</g>
+<g id="g3397_5_" opacity="0.4">
+	<path id="path3399_5_" fill="#4D4D4D" d="M57,28v12H43v26h14v13H30V28H57z"/>
+</g>
+<g id="g3401_6_" opacity="0.1">
+	<path id="path3403_6_" fill="#4D4D4D" d="M90.675,27.725v53.55h-28.35v-13.65h15.75v-27.3h-15.75v-12.6H90.675z"/>
+</g>
+<g opacity="0.2">
+	<polygon fill="#4D4D4D" points="90.449,27.816 90.449,80.517 62.55,80.517 62.55,67.083 78.05,67.083 78.05,40.217 62.55,40.217 
+		62.55,27.816 	"/>
+</g>
+<g opacity="0.3">
+	<polygon fill="#4D4D4D" points="90.225,27.908 90.225,79.759 62.775,79.759 62.775,66.541 78.025,66.541 78.025,40.108 
+		62.775,40.108 62.775,27.908 	"/>
+</g>
+<g id="g3401_5_" opacity="0.4">
+	<path id="path3403_5_" fill="#4D4D4D" d="M90,28v51H63V66h15V40H63V28H90z"/>
+</g>
+<g id="g3397_1_">
+	<path id="path3399_1_" fill="#4D4D4D" d="M57,28v12H43v26h14v13H30V28H57z"/>
+</g>
+<g id="g3401_1_">
+	<path id="path3403_1_" fill="#4D4D4D" d="M90,28v51H63V66h15V40H63V28H90z"/>
+</g>
+</svg>

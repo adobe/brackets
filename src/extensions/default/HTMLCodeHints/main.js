@@ -112,11 +112,11 @@ define(function (require, exports, module) {
 
     /**
      * Check whether to show hints on a specific key.
-     * @param {number} keyCode -- the key code for the key user just presses.
+     * @param {string} key -- the character for the key user just presses.
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    TagHints.prototype.shouldShowHintsOnKey = function (keyCode) {
-        return keyCode === 188; // keyCode for "<"
+    TagHints.prototype.shouldShowHintsOnKey = function (key) {
+        return key === "<";
     };
 
     /**
@@ -150,7 +150,8 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
-            adjustCursor = false;
+            adjustCursor = false,
+            replaceExistingOne = tagInfo.attr.valueAssigned;
 
         if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
@@ -164,7 +165,8 @@ define(function (require, exports, module) {
 
         // Append an equal sign and two double quotes if the current attr is not an empty attr
         // and then adjust cursor location before the last quote that we just inserted.
-        if (attributes && attributes[completion] && attributes[completion].type !== "flag") {
+        if (!replaceExistingOne && attributes && attributes[completion] &&
+                attributes[completion].type !== "flag") {
             completion += "=\"\"";
             adjustCursor = true;
         }
@@ -200,7 +202,7 @@ define(function (require, exports, module) {
                 query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
             }
 
-            // TODO: Peter -- get existing attributes for the current tag and add them to query.usedAttr
+            // TODO: get existing attributes for the current tag and add them to query.usedAttr
         }
 
         return query;
@@ -224,8 +226,7 @@ define(function (require, exports, module) {
             if (tags && tags[tagName]) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
 
-                // TODO: Peter -- exclude existing attributes from unfiltered array
-
+                // TODO: exclude existing attributes from unfiltered array
             }
 
             if (unfiltered.length) {
@@ -242,15 +243,19 @@ define(function (require, exports, module) {
 
     /**
      * Check whether to show hints on a specific key.
-     * @param {number} keyCode -- the key code for the key user just presses.
+     * @param {string} key -- the character for the key user just presses.
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
-    AttrHints.prototype.shouldShowHintsOnKey = function (keyCode) {
-        return keyCode === 32; // keyCode for space character
+    AttrHints.prototype.shouldShowHintsOnKey = function (key) {
+        return key === " ";
     };
 
     var tagHints = new TagHints();
     var attrHints = new AttrHints();
     CodeHintManager.registerHintProvider(tagHints);
     CodeHintManager.registerHintProvider(attrHints);
+    
+    // For unit testing
+    exports.tagHintProvider = tagHints;
+    exports.attrHintProvider = attrHints;
 });

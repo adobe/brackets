@@ -181,6 +181,7 @@ define(function (require, exports, module) {
 
     // Special commands invoked by the native shell
     exports.CMD_CLOSE_WINDOW                    = "Close Window";
+    exports.CMD_ABORT_QUIT                      = "Abort Quit";
 
     // Strings for main-view.html
     exports.EXPERIMENTAL_BUILD                   = "Experimental Build";
@@ -198,7 +199,7 @@ define(function (require, exports, module) {
     exports.ABOUT                                = "About";
     exports.BRACKETS                             = "Brackets";
     exports.CLOSE                                = "Close";
-    exports.ABOUT_TEXT_LINE1                     = "sprint 12 experimental build ";
+    exports.ABOUT_TEXT_LINE1                     = "sprint 13 experimental build ";
     exports.ABOUT_TEXT_LINE2                     = "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.";
     exports.ABOUT_TEXT_LINE3                     = "Notices; terms and conditions pertaining to third party software are located at ";
     exports.ABOUT_TEXT_LINE4                     = " and incorporated by reference herein.";
