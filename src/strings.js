@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global $, define */
+/*global define */
 
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
