@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, window, navigator */
+/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
 
 require.config({
     paths: {
@@ -57,12 +57,6 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
-    // Load HTML Content
-    // The htmlContentLoad module renders all of html in Bracktes.
-    // If a module depends on the DOM being fulling formed before it is loaded
-    // then the module should listen for the event "htmlContentLoadComplete"
-    require("htmlContent/htmlContentLoad");
-
     // Load LiveDeveopment
     require("LiveDevelopment/main");
     
@@ -87,6 +81,7 @@ define(function (require, exports, module) {
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
+        MainViewHTML            = require("text!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
@@ -346,7 +341,13 @@ define(function (require, exports, module) {
             
     // Main Brackets initialization
     _initGlobalBrackets();
+
+    // Localize MainViewHTML and inject into <BODY> tag
+    $('body').html(Mustache.render(MainViewHTML, Strings));
+    // modules that depend on the HTML DOM should listen to
+    // the htmlContentLoadComplete event.
     $(brackets).trigger("htmlContentLoadComplete");
+
     $(window.document).ready(_onReady);
     
 });

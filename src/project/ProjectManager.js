@@ -59,10 +59,11 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Reference to the tree control container div
+     * Reference to the tree control container div. Initialized by
+     * htmlContentLoadComplete handler
      * @type {jQueryObject}
      */
-    var $projectTreeContainer = $("#project-files-container");
+    var $projectTreeContainer;
     
     /**
      * @private
@@ -927,6 +928,29 @@ define(function (require, exports, module) {
         $(".jstree-rename-input").blur();
     }
 
+
+    // Initialize variables and listeners that depend on the HTML DOM
+    $(brackets).on("htmlContentLoadComplete", function () {
+        $projectTreeContainer = $("#project-files-container");
+
+        $("#open-files-container").on("contentChanged", function () {
+            _redraw(false); // redraw jstree when working set size changes
+        });
+    });
+
+    // Init PreferenceStorage
+    var defaults = {
+        projectPath:      _getDefaultProjectPath()  /* initialize to brackets source */
+    };
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
+
+    // Event Handlers
+    $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
+    $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
+
+    // Commands
+    CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
+
     // Define public API
     exports.getProjectRoot          = getProjectRoot;
     exports.isWithinProject         = isWithinProject;
@@ -937,23 +961,4 @@ define(function (require, exports, module) {
     exports.getInitialProjectPath   = getInitialProjectPath;
     exports.createNewItem           = createNewItem;
     exports.forceFinishRename       = forceFinishRename;
-
-    // Initialize now
-    (function () {
-        var defaults = {
-            projectPath:      _getDefaultProjectPath()  /* initialize to brackets source */
-        };
-
-        // Init PreferenceStorage
-        _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
-
-        // Event Handlers
-        $(FileViewController).on("documentSelectionFocusChange", _documentSelectionFocusChange);
-        $(FileViewController).on("fileViewFocusChange", _fileViewFocusChange);
-        $("#open-files-container").on("contentChanged", function () {
-            _redraw(false); // redraw jstree when working set size changes
-        });
-
-        CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
-    }());
 });
