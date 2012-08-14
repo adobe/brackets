@@ -27,7 +27,7 @@
 
 define(function (require, exports, module) {
     "use strict";
-
+    
     var ProjectManager          = require("project/ProjectManager"),
         WorkingSetView          = require("project/WorkingSetView"),
         CommandManager          = require("command/CommandManager"),
@@ -36,16 +36,35 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
 
-    var $sidebar                = $("#sidebar"),
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span"),
-        $sidebarResizer         = $("#sidebar-resizer"),
-        $openFilesContainer     = $("#open-files-container"),
-        $projectTitle           = $("#project-title"),
-        $projectFilesContainer  = $("#project-files-container"),
-        isSidebarClosed         = false;
-    
+    var isSidebarClosed         = false;
+
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
+
+    // These vars are initialized by the htmlContentLoadComplete handler
+    // below since they refer to DOM elements
+    var $sidebar,
+        $sidebarMenuText,
+        $sidebarResizer,
+        $openFilesContainer,
+        $projectTitle,
+        $projectFilesContainer,
+        isSidebarClosed;
+
+    // Init sidebar resizer and setup working set view after the DOM
+    // is initialized
+    $(brackets).on("htmlContentLoadComplete", function () {
+        $sidebar                = $("#sidebar");
+        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
+        $sidebarResizer         = $("#sidebar-resizer");
+        $openFilesContainer     = $("#open-files-container");
+        $projectTitle           = $("#project-title");
+        $projectFilesContainer  = $("#project-files-container");
+
+        // init
+        WorkingSetView.create($openFilesContainer);
+        _initSidebarResizer();
+    });
     
     
     /**
@@ -228,12 +247,11 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
+
+
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
     CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
     
-    WorkingSetView.create($openFilesContainer);
-    _initSidebarResizer();
-
     exports.toggleSidebar = toggleSidebar;
 });

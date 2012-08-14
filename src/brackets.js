@@ -43,6 +43,10 @@ require.config({
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
+ *
+ * Events:
+ *      htmlContentLoadComplete - sent when the HTML DOM is fully loaded. Modules should not touch
+ *      or modify DOM elements before this event is sent.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -53,10 +57,10 @@ define(function (require, exports, module) {
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/smart-auto-complete/jquery.smart_autocomplete");
 
-    // Note: the htmlContentLoad module renders all of html in Bracktes
+    // Load HTML Content
+    // The htmlContentLoad module renders all of html in Bracktes.
     // If a module depends on the DOM being fulling formed before it is loaded
-    // then the module must require htmlContentLoad so that it is loaded after
-    // htmlContentLoad
+    // then the module should listen for the event "htmlContentLoadComplete"
     require("htmlContent/htmlContentLoad");
 
     // Load LiveDeveopment
@@ -342,6 +346,7 @@ define(function (require, exports, module) {
             
     // Main Brackets initialization
     _initGlobalBrackets();
+    $(brackets).trigger("htmlContentLoadComplete");
     $(window.document).ready(_onReady);
     
 });
