@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window  */
+/*global define, $, document, window, brackets  */
 
 define(function (require, exports, module) {
     "use strict";
@@ -36,17 +36,19 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         EditorManager           = require("editor/EditorManager");
 
-    var $sidebar                = $("#sidebar"),
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span"),
-        $sidebarResizer         = $("#sidebar-resizer"),
-        $openFilesContainer     = $("#open-files-container"),
-        $projectTitle           = $("#project-title"),
-        $projectFilesContainer  = $("#project-files-container"),
-        isSidebarClosed         = false;
-    
+    var isSidebarClosed         = false;
+
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
-    
+
+    // These vars are initialized by the htmlContentLoadComplete handler
+    // below since they refer to DOM elements
+    var $sidebar,
+        $sidebarMenuText,
+        $sidebarResizer,
+        $openFilesContainer,
+        $projectTitle,
+        $projectFilesContainer;
     
     /**
      * @private
@@ -228,17 +230,24 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
-    
-    // init
-    (function () {
-        WorkingSetView.create($openFilesContainer);
-        
-        $(ProjectManager).on("projectOpen", _updateProjectTitle);
 
-        CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
-        
+    // Initialize items dependent on HTML DOM
+    $(brackets).on("htmlContentLoadComplete", function () {
+        $sidebar                = $("#sidebar");
+        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
+        $sidebarResizer         = $("#sidebar-resizer");
+        $openFilesContainer     = $("#open-files-container");
+        $projectTitle           = $("#project-title");
+        $projectFilesContainer  = $("#project-files-container");
+
+        // init
+        WorkingSetView.create($openFilesContainer);
         _initSidebarResizer();
-    }());
+    });
     
+    $(ProjectManager).on("projectOpen", _updateProjectTitle);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
+    
+    // Define public API
     exports.toggleSidebar = toggleSidebar;
 });

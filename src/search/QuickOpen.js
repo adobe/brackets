@@ -525,7 +525,7 @@ define(function (require, exports, module) {
         FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
-                var dialogHTML = "Quick Open: <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
+                var dialogHTML = Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
                 that._createDialogDiv(dialogHTML);
                 that.$searchField = $("input#quickOpenSearch");
 
