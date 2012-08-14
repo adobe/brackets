@@ -194,7 +194,7 @@ define(function (require, exports, module) {
     /**
      * Restore original commands after test and release copy
      */
-    function _testRestore(commands) {
+    function _testRestore() {
         _commands = _commandsOriginal;
         _commandsOriginal = {};
     }
@@ -206,6 +206,14 @@ define(function (require, exports, module) {
      */
     function get(id) {
         return _commands[id];
+    }
+    
+    /**
+     * Returns the ids of all registered commands
+     * @return {Array.<string>}
+     */
+    function getAll() {
+        return Object.keys(_commands);
     }
 
     /**
@@ -227,6 +235,7 @@ define(function (require, exports, module) {
     exports.register        = register;
     exports.execute         = execute;
     exports.get             = get;
+    exports.getAll          = getAll;
     exports._testReset      = _testReset;
     exports._testRestore    = _testRestore;
 });
