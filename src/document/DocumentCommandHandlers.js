@@ -730,7 +730,7 @@ define(function (require, exports, module) {
     /** Does a full reload of the browser window */
     function handleFileReload(commandData) {
         return _handleWindowGoingAway(commandData, function () {
-            window.location.reload();
+            window.location.reload(true);
         });
     }
     
