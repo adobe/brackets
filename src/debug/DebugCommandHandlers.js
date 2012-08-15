@@ -134,91 +134,91 @@ define(function (require, exports, module) {
     }
 
     function _handleSwitchLanguage() {
-          var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
-          NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
-              dirEntry.createReader().readEntries(function (entries) {
+        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
+        NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
+            dirEntry.createReader().readEntries(function (entries) {
 
-                  var $activeLanguage;
-                  var $submit;
-                  function setLanguage(event) {
-                      if ($activeLanguage) {
-                          $activeLanguage.css("font-weight", "normal");
-                      }
-                      $activeLanguage = $(event.currentTarget);
-                      $activeLanguage.css("font-weight", "bold");
-                      $submit.attr("disabled", false);
-                  }
-
-                  var $modal = $("<div class='modal hide' />");
-
-                  var $header = $("<div class='modal-header' />")
-                      .append("<a href='#' class='close'>&times;</a>")
-                      .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
-                      .appendTo($modal);
+                var $activeLanguage;
+                var $submit;
+                function setLanguage(event) {
+                    if ($activeLanguage) {
+                        $activeLanguage.css("font-weight", "normal");
+                    }
+                    $activeLanguage = $(event.currentTarget);
+                    $activeLanguage.css("font-weight", "bold");
+                    $submit.attr("disabled", false);
+                }
+    
+                var $modal = $("<div class='modal hide' />");
+    
+                var $header = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
+                    .appendTo($modal);
                   
-                  var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
-                      .appendTo($modal);
+                var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
+                    .appendTo($modal);
 
-                  var $p = $("<p class='dialog-message'>")
-                      .text(Strings.LANGUAGE_MESSAGE)
-                      .appendTo($body);
+                var $p = $("<p class='dialog-message'>")
+                    .text(Strings.LANGUAGE_MESSAGE)
+                    .appendTo($body);
 
-                  var $ul = $("<ul>")
-                      .on("click", "li", setLanguage)
-                      .appendTo($p);
+                var $ul = $("<ul>")
+                    .on("click", "li", setLanguage)
+                    .appendTo($p);
 
                   // add english
-                  var $li = $("<li>")
-                      .text("en-EN")
-                      .data("locale", "en-EN")
-                      .appendTo($ul);
+                var $li = $("<li>")
+                    .text("en-EN")
+                    .data("locale", "en-EN")
+                    .appendTo($ul);
 
-                  // inspect all children of dirEntry
-                  entries.forEach(function (entry) {
-                      if (entry.isDirectory && entry.name.match(/^[a-z]{2}-[A-Z]{2}$/)) {
-                          var language = entry.name;
-                          var $li = $("<li>")
-                              .text(entry.name)
-                              .data("locale", language)
-                              .appendTo($ul);
-                      }
-                  });
+                // inspect all children of dirEntry
+                entries.forEach(function (entry) {
+                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}-[A-Z]{2}$/)) {
+                        var language = entry.name;
+                        var $li = $("<li>")
+                            .text(entry.name)
+                            .data("locale", language)
+                            .appendTo($ul);
+                    }
+                });
 
-                  var $footer = $("<div class='modal-footer' />")
-                      .appendTo($modal);
+                var $footer = $("<div class='modal-footer' />")
+                    .appendTo($modal);
 
-                  var $cancel = $("<button class='dialog-button btn left'>")
-                      .on("click", function () {
-                          $modal.modal('hide');
-                      })
-                      .text(Strings.LANGUAGE_CANCEL)
-                      .appendTo($footer);
+                var $cancel = $("<button class='dialog-button btn left'>")
+                    .on("click", function () {
+                        $modal.modal('hide');
+                    })
+                    .text(Strings.LANGUAGE_CANCEL)
+                    .appendTo($footer);
 
-                  $submit = $("<button class='dialog-button btn primary'>")
-                      .text(Strings.LANGUAGE_SUBMIT)
-                      .on("click", function () {
-                          if (!$activeLanguage) {
-                              return;
-                          }
-                          var locale = $activeLanguage.data("locale");
-                          window.localStorage.setItem("locale", locale);
-                          CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
-                      })
-                      .attr("disabled", "disabled")
-                      .appendTo($footer);
+                $submit = $("<button class='dialog-button btn primary'>")
+                    .text(Strings.LANGUAGE_SUBMIT)
+                    .on("click", function () {
+                        if (!$activeLanguage) {
+                            return;
+                        }
+                        var locale = $activeLanguage.data("locale");
+                        window.localStorage.setItem("locale", locale);
+                        CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
+                    })
+                    .attr("disabled", "disabled")
+                    .appendTo($footer);
 
-                  $modal
-                      .appendTo(window.document.body)
-                      .modal({
-                          backdrop: "static",
-                          show: true
-                      })
-                      .on("hidden", function () {
-                          $(this).remove();
-                      });
-              });
-          });
-      }
+                $modal
+                    .appendTo(window.document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    })
+                    .on("hidden", function () {
+                        $(this).remove();
+                    });
+            });
+        });
+    }
     
     /* Register all the command handlers */
     
