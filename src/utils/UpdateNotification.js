@@ -34,6 +34,7 @@ define(function (require, exports, module) {
     var Dialogs             = require("widgets/Dialogs"),
         NativeApp           = require("utils/NativeApp"),
         PreferencesManager  = require("preferences/PreferencesManager"),
+        Strings             = require("strings"),
         BuildNumberJSON     = require("text!buildNumber.json");
     
     // Current build number.
@@ -47,8 +48,22 @@ define(function (require, exports, module) {
     // is an update newer than this one. This value is saved in preferences.
     var _lastNotifiedBuildNumber = _prefs.getValue("lastNotifiedBuildNumber");
 
+    // Information on all posted builds of Brackets. This is an Array, where each element is 
+    // an Object with the following fields:
+    //
+    //  {Number} buildNumber Number of the build
+    //  {String} versionString String representation of the build number (ie "Sprint 14")
+    //  {String} releaseNotesURL URL of the release notes for this build
+    //  {String} downloadURL URL to download this build
+    //  {Array} newFeatures Array of new features in this build. Each entry has two fields:
+    //      {String} name Name of the feature
+    //      {String} description Description of the feature
+    //
+    // This array must be sorted by buildNumber
+    var versionInfo;
+    
     // TEMPORARY: structure describing version information. This should be fetched from a server.
-    var versionInfo = [
+    versionInfo = [
         {
             buildNumber: 93,
             versionString: "Sprint 12",
@@ -168,6 +183,7 @@ define(function (require, exports, module) {
         var $dlg = $(".update-dialog.instance");
         var $updateList = $dlg.find(".update-info");
         
+        // TODO: Use a template instead of hand-rolling HTML code
         updates.forEach(function (item, index) {
             var $features = $("<ul>");
             
@@ -176,6 +192,7 @@ define(function (require, exports, module) {
             });
             
             var $item = $("<div>")
+                // TODO: Put "Release Notes" into localizable string
                 .append("<h3>" + item.versionString + " (<a href='#' data-url='" + item.releaseNotesURL + "'>Release Notes</a>)</h3>")
                 .append($features)
                 .appendTo($updateList);
@@ -227,6 +244,13 @@ define(function (require, exports, module) {
                         _lastNotifiedBuildNumber = allUpdates[0].buildNumber;
                         _prefs.setValue("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
                     }
+                } else if (force) {
+                    // No updates are available. If force == true, let the user know.
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
+                        Strings.NO_UPDATE_TITLE,
+                        Strings.NO_UPDATE_MESSAGE
+                    );
                 }
             }
         );

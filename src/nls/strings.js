@@ -107,6 +107,9 @@ define(function (require, exports, module) {
     
     exports.OPEN_FILE                         = "Open File";
     exports.SEARCH_REGEXP_INFO                = "Use /re/ syntax for regexp search";
+    
+    exports.NO_UPDATE_TITLE                   = "You're up to date!";
+    exports.NO_UPDATE_MESSAGE                 = "You are running the latest version of Brackets.";
 
     // Switch language
     exports.LANGUAGE_TITLE                    = "Switch Language";
@@ -175,6 +178,7 @@ define(function (require, exports, module) {
     exports.CMD_NEW_BRACKETS_WINDOW             = "New Brackets Window";
     exports.CMD_USE_TAB_CHARS                   = "Use Tab Characters";
     exports.CMD_SWITCH_LANGUAGE                 = "Switch Language";
+    exports.CMD_CHECK_FOR_UPDATE                = "Check for Updates";
 
     // Help menu commands
     exports.CMD_ABOUT                           = "About";
