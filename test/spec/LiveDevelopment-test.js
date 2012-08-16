@@ -45,6 +45,61 @@ define(function (require, exports, module) {
     function isOpenInBrowser(doc, agents) {
         return (doc && doc.url && agents && agents.network && agents.network.wasURLRequested(doc.url));
     }
+    
+    function doOneTest(htmlFile, cssFile) {
+        var localText,
+            browserText;
+        
+        //verify we aren't currently connected
+        expect(Inspector.connected()).toBeFalsy();
+        
+        runs(function () {
+            waitsForDone(SpecRunnerUtils.openProjectFiles([htmlFile]), "SpecRunnerUtils.openProjectFiles");
+        });
+        
+        //start the connection
+        runs(function () {
+            LiveDevelopment.open();
+        });
+        waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
+        
+        // Wait for the file and its stylesheets to fully load (and be communicated back).
+        waits(1000);
+        
+        runs(function () {
+            waitsForDone(SpecRunnerUtils.openProjectFiles([cssFile]), "SpecRunnerUtils.openProjectFiles");
+        });
+        
+        runs(function () {
+            var curDoc =  DocumentManager.getCurrentDocument();
+            localText = curDoc.getText();
+            localText += "\n .testClass { color:#090; }\n";
+            curDoc.setText(localText);
+        });
+
+        var liveDoc;
+        waitsFor(function () {
+            liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/" + cssFile);
+            return !!liveDoc;
+        }, "Waiting for LiveDevelopment document", 10000);
+        
+        var doneSyncing = false;
+        runs(function () {
+            liveDoc.getSourceFromBrowser().done(function (text) {
+                browserText = text;
+            }).always(function () {
+                doneSyncing = true;
+            });
+        });
+        waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
+        
+        runs(function () {
+            expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
+            
+            var doc = DocumentManager.getOpenDocumentForPath(testPath + "/" + htmlFile);
+            //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
+        });
+    }
 
     describe("Live Development", function () {
         
@@ -142,58 +197,11 @@ define(function (require, exports, module) {
             });
             
             it("should push changes through the browser connection", function () {
-                var localText,
-                    browserText;
-                
-                //verify we aren't currently connected
-                expect(Inspector.connected()).toBeFalsy();
-                
-                runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.html"]), "SpecRunnerUtils.openProjectFiles");
-                });
-                
-                //start the connection
-                runs(function () {
-                    LiveDevelopment.open();
-                });
-                waitsFor(function () { return Inspector.connected(); }, "Waiting for browser", 10000);
-                
-                // Wait for the file and its stylesheets to fully load (and be communicated back).
-                waits(1000);
-                
-                runs(function () {
-                    waitsForDone(SpecRunnerUtils.openProjectFiles(["simple1.css"]), "SpecRunnerUtils.openProjectFiles");
-                });
-                
-                runs(function () {
-                    var curDoc =  DocumentManager.getCurrentDocument();
-                    localText = curDoc.getText();
-                    localText += "\n .testClass { color:#090; }\n";
-                    curDoc.setText(localText);
-                });
-
-                var liveDoc;
-                waitsFor(function () {
-                    liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
-                    return !!liveDoc;
-                }, "Waiting for LiveDevelopment document", 10000);
-                
-                var doneSyncing = false;
-                runs(function () {
-                    liveDoc.getSourceFromBrowser().done(function (text) {
-                        browserText = text;
-                    }).always(function () {
-                        doneSyncing = true;
-                    });
-                });
-                waitsFor(function () { return doneSyncing; }, "Browser to sync changes", 10000);
-                
-                runs(function () {
-                    expect(fixSpaces(browserText)).toBe(fixSpaces(localText));
-                    
-                    var doc = DocumentManager.getOpenDocumentForPath(testPath + "/simple1.html");
-                    //expect(isOpenInBrowser(doc, LiveDevelopment.agents)).toBeTruthy();
-                });
+                doOneTest("simple1.html", "simple1.css");
+            });
+            
+            it("should ignore query strings in linked CSS file hrefs", function () {
+                doOneTest("simple1Query.html", "simple1.css");
             });
             
             it("should push in memory css changes made before the session starts", function () {

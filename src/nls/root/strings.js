@@ -89,6 +89,15 @@ define({
                                                 + "<br /><br />"
                                                 + "Do you want to keep your changes?",
     
+    // Find, Replace, Find in Files
+    "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
+    "WITH"                              : "With",
+    "SEARCHING"                         : "Searching",
+    "BUTTON_YES"                        : "Yes",
+    "BUTTON_NO"                         : "No",
+    "BUTTON_STOP"                       : "Stop",
+    "OPEN_FILE"                         : "Open File",
+
     "OPEN_FILE"                         : "Open File",
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
 
