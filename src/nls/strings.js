@@ -104,9 +104,16 @@ define(function (require, exports, module) {
     exports.EXT_DELETED_MESSAGE               = "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in Brackets."
                                                 + "<br /><br />"
                                                 + "Do you want to keep your changes?";
-    
-    exports.OPEN_FILE                         = "Open File";
+
+    // Find, Replace, Find in Files
     exports.SEARCH_REGEXP_INFO                = "Use /re/ syntax for regexp search";
+    exports.WITH                              = "With";
+    exports.SEARCHING                         = "Searching";
+    exports.BUTTON_YES                        = "Yes";
+    exports.BUTTON_NO                         = "No";
+    exports.BUTTON_STOP                       = "Stop";
+
+    exports.OPEN_FILE                         = "Open File";
 
     // Switch language
     exports.LANGUAGE_TITLE                    = "Switch Language";
