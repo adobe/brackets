@@ -102,15 +102,16 @@ define(function (require, exports, module) {
         });
     }
 
-    var queryDialog =
-        'Search: <input type="text" style="width: 10em"/> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
+    var queryDialog = Strings.CMD_FIND +
+            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span>';
 
     function doSearch(cm, rev) {
         var state = getSearchState(cm);
         if (state.query) {
             return findNext(cm, rev);
         }
-        dialog(cm, queryDialog, "Search for:", function (query) {
+        dialog(cm, queryDialog, Strings.CMD_FIND, function (query) {
             cm.operation(function () {
                 if (!query || state.query) {
                     return;
@@ -119,7 +120,7 @@ define(function (require, exports, module) {
                 if (cm.lineCount() < 2000) { // This is too expensive on big documents.
                     var cursor = getSearchCursor(cm, query);
                     while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
+                        state.marked.push(cm.markText(cursor.from(), cursor.to(), Strings.SEARCHING));
                     }
                 }
                 state.posFrom = state.posTo = cm.getCursor();
@@ -143,18 +144,25 @@ define(function (require, exports, module) {
         });
     }
 
-    var replaceQueryDialog =
-        'Replace: <input type="text" style="width: 10em"/> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
-    var replacementQueryDialog = 'With: <input type="text" style="width: 10em"/>';
-    var doReplaceConfirm = "Replace? <button>Yes</button> <button>No</button> <button>Stop</button>";
+    var replaceQueryDialog = Strings.CMD_REPLACE +
+            ': <input type="text" style="width: 10em"/> <span style="color: #888">(' +
+            Strings.SEARCH_REGEXP_INFO  + ')</span>';
+    var replacementQueryDialog = Strings.WITH +
+            ': <input type="text" style="width: 10em"/>';
+    // style buttons to match height/margins/border-radius of text input boxes
+    var style = ' style="padding:5px 15px;border:1px #999 solid;border-radius:3px;margin:2px 2px 5px;"';
+    var doReplaceConfirm = Strings.CMD_REPLACE +
+            '? <button' + style + '>' + Strings.BUTTON_YES +
+            '</button> <button' + style + '>' + Strings.BUTTON_NO +
+            '</button> <button' + style + '>' + Strings.BUTTON_STOP + '</button>';
 
     function replace(cm, all) {
-        dialog(cm, replaceQueryDialog, "Replace:", function (query) {
+        dialog(cm, replaceQueryDialog, Strings.CMD_REPLACE, function (query) {
             if (!query) {
                 return;
             }
             query = parseQuery(query);
-            dialog(cm, replacementQueryDialog, "Replace with:", function (text) {
+            dialog(cm, replacementQueryDialog, Strings.WITH, function (text) {
                 var match,
                     fnMatch = function (w, i) { return match[i]; };
                 if (all) {
@@ -186,7 +194,7 @@ define(function (require, exports, module) {
                             }
                         }
                         cm.setSelection(cursor.from(), cursor.to());
-                        confirmDialog(cm, doReplaceConfirm, "Replace?",
+                        confirmDialog(cm, doReplaceConfirm, Strings.CMD_REPLACE + "?",
                                                     [function () { doReplace(match); }, advance]);
                     };
                     var doReplace = function (match) {
