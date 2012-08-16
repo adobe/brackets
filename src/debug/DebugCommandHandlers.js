@@ -169,13 +169,13 @@ define(function (require, exports, module) {
 
                   // add english
                   var $li = $("<li>")
-                      .text("en-EN")
-                      .data("locale", "en-EN")
+                      .text("en")
+                      .data("locale", null)
                       .appendTo($ul);
 
                   // inspect all children of dirEntry
                   entries.forEach(function (entry) {
-                      if (entry.isDirectory && entry.name.match(/^[a-z]{2}-[A-Z]{2}$/)) {
+                      if (entry.isDirectory && entry.name.match(/^[a-z]{2}(-[A-Z]{2})?$/)) {
                           var language = entry.name;
                           var $li = $("<li>")
                               .text(entry.name)
@@ -201,7 +201,13 @@ define(function (require, exports, module) {
                               return;
                           }
                           var locale = $activeLanguage.data("locale");
-                          window.localStorage.setItem("locale", locale);
+                          
+                          if (locale) {
+                              window.localStorage.setItem("locale", locale);
+                          } else {
+                              window.localStorage.removeItem("locale");
+                          }
+                          
                           CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
                       })
                       .attr("disabled", "disabled")
