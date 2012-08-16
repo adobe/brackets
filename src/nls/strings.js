@@ -209,6 +209,7 @@ define(function (require, exports, module) {
     exports.ABOUT_TEXT_LINE3                     = "Notices; terms and conditions pertaining to third party software are located at ";
     exports.ABOUT_TEXT_LINE4                     = " and incorporated by reference herein.";
     exports.ABOUT_TEXT_LINE5                     = "Documentation and source at ";
+    exports.UPDATE_NOTIFICATION_TOOLTIP          = "There is a new build of Brackets available! Click here for details.";
     exports.UPDATE_AVAILABLE_TITLE               = "Update Available";
     exports.UPDATE_MESSAGE                       = "Hey, there's a new build of Brackets available. Here are some of the new features:";
     exports.GET_IT_NOW                           = "Get it now!";
