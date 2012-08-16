@@ -29,6 +29,16 @@ define(function (require, exports, module) {
     
     var Async = require("utils/Async");
 
+    /*
+     * Generally NativeFileSystem mimics the File API working draft
+     * http://www.w3.org/TR/file-system-api/. The w3 entry point
+     * requestFileSystem is replaced with our own requestNativeFileSystem.
+     *
+     * The current implementation is incomplete and noteably does not
+     * support the Blob data type and synchronous APIs. DirectoryEntry
+     * and FileEntry read/write capabilities are mostly implemented, but
+     * delete is not. File writing is limited to UTF-8 text.
+     */
     var NativeFileSystem = {
         
         /** 

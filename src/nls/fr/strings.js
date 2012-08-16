@@ -27,20 +27,6 @@
 define(function (require, exports, module) {
     
     'use strict';
-    
-    // This file contains all the user visible strings in English. 
-    // Code that needs to display user strings should call require("strings") to load
-    // src/strings.js. This file will dynically load strings.js for the specified by bracketes.locale.
-    // 
-    // Translations for other locals should be placed in src/nls/localName/strings.js
-    // Localization is provided via the i18n plugin and this file is considered the "master bundle" or root.
-    // All other bundles for languages need to add a prefix to the exports below so i18n can find them.
-    // TODO: dynamically populate the local prefix list below
-    module.exports = {
-        root: exports,
-        "de": true,
-        "fr": true
-    };
         
     // General file io error strings
     exports.GENERIC_ERROR                     = "(error {0})";
@@ -105,16 +91,9 @@ define(function (require, exports, module) {
     exports.EXT_DELETED_MESSAGE               = "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in Brackets."
                                                 + "<br /><br />"
                                                 + "Do you want to keep your changes?";
-
-    // Find, Replace, Find in Files
-    exports.SEARCH_REGEXP_INFO                = "Use /re/ syntax for regexp search";
-    exports.WITH                              = "With";
-    exports.SEARCHING                         = "Searching";
-    exports.BUTTON_YES                        = "Yes";
-    exports.BUTTON_NO                         = "No";
-    exports.BUTTON_STOP                       = "Stop";
-
+    
     exports.OPEN_FILE                         = "Open File";
+    exports.SEARCH_REGEXP_INFO                = "Use /re/ syntax for regexp search";
 
     // Switch language
     exports.LANGUAGE_TITLE                    = "Switch Language";
