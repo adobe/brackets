@@ -41,7 +41,7 @@
 
 
 define(function (require, exports, module) {
-//    "use strict";
+    "use strict";
 
     var CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
@@ -112,13 +112,13 @@ define(function (require, exports, module) {
         }
         dialog(cm, queryDialog, "Search for:", function (query) {
             cm.operation(function () {
-                var cursor;
                 if (!query || state.query) {
                     return;
                 }
                 state.query = parseQuery(query);
                 if (cm.lineCount() < 2000) { // This is too expensive on big documents.
-                    for (cursor = getSearchCursor(cm, query); cursor.findNext();) {
+                    var cursor = getSearchCursor(cm, query);
+                    while (cursor.findNext()) {
                         state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
                     }
                 }
@@ -155,14 +155,16 @@ define(function (require, exports, module) {
             }
             query = parseQuery(query);
             dialog(cm, replacementQueryDialog, "Replace with:", function (text) {
+                var match,
+                    fnMatch = function (w, i) { return match[i]; };
                 if (all) {
                     cm.compoundChange(function () {
                         cm.operation(function () {
-                            var cursor;
-                            for (cursor = getSearchCursor(cm, query); cursor.findNext();) {
+                            var cursor = getSearchCursor(cm, query);
+                            while (cursor.findNext()) {
                                 if (typeof query !== "string") {
-                                    var match = cm.getRange(cursor.from(), cursor.to()).match(query);
-                                    cursor.replace(text.replace(/\$(\d)/, function (w, i) { return match[i]; }));
+                                    match = cm.getRange(cursor.from(), cursor.to()).match(query);
+                                    cursor.replace(text.replace(/\$(\d)/, fnMatch));
                                 } else {
                                     cursor.replace(text);
                                 }
@@ -172,16 +174,13 @@ define(function (require, exports, module) {
                 } else {
                     clearSearch(cm);
                     var cursor = getSearchCursor(cm, query, cm.getCursor());
-                    function doReplace(match) {
-                        cursor.replace(typeof query === "string" ? text :
-                                            text.replace(/\$(\d)/, function (w, i) { return match[i]; }));
-                        advance();
-                    }
-                    function advance() {
-                        var start = cursor.from(), match;
-                        if (!(match = cursor.findNext())) {
+                    var advance = function () {
+                        var start = cursor.from(),
+                            match = cursor.findNext();
+                        if (!match) {
                             cursor = getSearchCursor(cm, query);
-                            if (!(match = cursor.findNext()) ||
+                            match = cursor.findNext();
+                            if (!match ||
                                     (start && cursor.from().line === start.line && cursor.from().ch === start.ch)) {
                                 return;
                             }
@@ -189,7 +188,12 @@ define(function (require, exports, module) {
                         cm.setSelection(cursor.from(), cursor.to());
                         confirmDialog(cm, doReplaceConfirm, "Replace?",
                                                     [function () { doReplace(match); }, advance]);
-                    }
+                    };
+                    var doReplace = function (match) {
+                        cursor.replace(typeof query === "string" ? text :
+                                            text.replace(/\$(\d)/, fnMatch));
+                        advance();
+                    };
                     advance();
                 }
             });
