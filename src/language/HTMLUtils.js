@@ -213,10 +213,19 @@ define(function (require, exports, module) {
     function _getTagInfoStartingFromAttrValue(ctx) {
         // Assume we in the attr value
         // and validate that by going backwards
-        var attrInfo = _extractAttrVal(ctx);
-        var attrVal = attrInfo.val;
-        var offset = attrInfo.offset;
+        var attrInfo = _extractAttrVal(ctx),
+            attrVal = attrInfo.val,
+            offset = attrInfo.offset,
+            strLength = ctx.token.string.length;
         
+        if (ctx.token.className === "string" && ctx.pos.ch === ctx.token.end && strLength > 1) {
+            var firstChar = ctx.token.string[0],
+                lastChar = ctx.token.string[strLength - 1];
+            
+            if (firstChar === lastChar && (firstChar === "'" || firstChar === "\"")) {
+                return createTagInfo();
+            }
+        }
         
         //Move to the prev token, and check if it's "="
         if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.string !== "=") {

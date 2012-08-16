@@ -194,12 +194,19 @@ define(function (require, exports, module) {
      */
     AttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var tagInfo = HTMLUtils.getTagInfo(editor, cursor),
-            query = {queryStr: null};
-
-        if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+            query = {queryStr: null},
+            tokenType = tagInfo.position.tokenType;
+ 
+        if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
             query.tag = tagInfo.tagName;
+            
             if (tagInfo.position.offset >= 0) {
-                query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                if (tokenType === HTMLUtils.ATTR_NAME) {
+                    query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                } else {
+                    query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                    query.attrName = tagInfo.attr.name;
+                }
             }
 
             // TODO: get existing attributes for the current tag and add them to query.usedAttr
@@ -220,10 +227,20 @@ define(function (require, exports, module) {
 
         if (query.tag && query.queryStr !== null) {
             var tagName = query.tag,
+                attrName = query.attrName,
                 filter = query.queryStr,
                 unfiltered = [];
 
-            if (tags && tags[tagName]) {
+            if (attrName) {
+                var tagPlusAttr = tagName + "/" + attrName,
+                    attrInfo = attributes[tagPlusAttr] || attributes[attrName];
+                
+                if (attrInfo && attrInfo.type === "boolean") {
+                    unfiltered = ["false", "true"];
+                } else {
+                    unfiltered = attrInfo.attribOption;
+                }
+            } else if (tags && tags[tagName]) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
 
                 // TODO: exclude existing attributes from unfiltered array
@@ -247,15 +264,11 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     AttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return key === " ";
+        return (key === " " || key === "'" || key === "\"");
     };
 
     var tagHints = new TagHints();
     var attrHints = new AttrHints();
     CodeHintManager.registerHintProvider(tagHints);
     CodeHintManager.registerHintProvider(attrHints);
-    
-    // For unit testing
-    exports.tagHintProvider = tagHints;
-    exports.attrHintProvider = attrHints;
 });
