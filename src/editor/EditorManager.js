@@ -109,7 +109,19 @@ define(function (require, exports, module) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
         var extraKeys = {
-            "Shift-Ctrl-F" : function () {
+            "Ctrl-F" : function () {
+                // No-op, handled in FindReplace.js
+            },
+            "Cmd-F" : function () {
+                // No-op, handled in FindReplace.js
+            },
+            "Ctrl-H": function () {
+                // No-op, handled in FindReplace.js
+            },
+            "Cmd-Alt-F": function () {
+                // No-op, handled in FindReplace.js
+            },
+            "Shift-Ctrl-F": function () {
                 // No-op, handled in FindInFiles.js
             },
             "Shift-Cmd-F" : function () {

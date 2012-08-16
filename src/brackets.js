@@ -104,6 +104,7 @@ define(function (require, exports, module) {
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
+    require("search/FindReplace");
     require("utils/ExtensionUtils");
 
     function _callBracketsReadyHandler(handler) {
