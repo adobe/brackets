@@ -78,7 +78,7 @@ define(function (require, exports, module) {
     var _addedClickHandler = false;
     
     /**
-     * Get a data structure that has information for *all* builds of Brackets.
+     * Get a data structure that has information for all builds of Brackets.
      */
     function _getVersionInformation(force, dontCache) {
         var result = new $.Deferred();
@@ -102,6 +102,7 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
+            // TODO: add language and buildNumber parameters to URL
             $.ajax(_versionInfoURL, {
                 dataType: "text",
                 complete: function (jqXHR, status) {
@@ -137,7 +138,6 @@ define(function (require, exports, module) {
             result.resolve(data);
         }
         
-        // If more than 24 hours have passed since the last fetch, or force is true, load new data
         return result.promise();
     }
     
@@ -202,7 +202,6 @@ define(function (require, exports, module) {
             });
             
             var $item = $("<div>")
-                // TODO: Put "Release Notes" into localizable string
                 .append("<h3>" +
                         _sanitizeString(item.versionString) +
                         " - " +
