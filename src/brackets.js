@@ -229,6 +229,7 @@ define(function (require, exports, module) {
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : require("utils/ExtensionUtils"),
+            UpdateNotification      : require("utils/UpdateNotification"),
             doneLoading             : false
         };
 
@@ -340,7 +341,9 @@ define(function (require, exports, module) {
         });
         
         // Check for updates
-        UpdateNotification.checkForUpdate();
+        if (!params.get("skipUpdateCheck")) {
+            UpdateNotification.checkForUpdate();
+        }
     }
             
     // Main Brackets initialization

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets */
+/*global define, $, brackets, PathUtils */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -47,12 +47,22 @@ define(function (require, exports, module) {
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.
     var _lastNotifiedBuildNumber = _prefs.getValue("lastNotifiedBuildNumber");
+    
+    // Last time the versionInfoURL was fetched
+    var _lastInfoURLFetchTime = _prefs.getValue("lastInfoURLFetchTime");
 
+    // URL to load version info from. By default this is loaded no more than once a day. If 
+    // you force an update check it is always loaded.
+    
+    // TODO: This should point to a file on brackets.io. For now, dummy info is stored in a gist.
+    var _versionInfoURL = "https://raw.github.com/gist/78bfd92c090c9dbab802/6a98fc40968623be63ba74fdb1fea4c7cb9a35b2/gistfile1.json";
+    
     // Information on all posted builds of Brackets. This is an Array, where each element is 
     // an Object with the following fields:
     //
     //  {Number} buildNumber Number of the build
     //  {String} versionString String representation of the build number (ie "Sprint 14")
+    //  {String} dateString Date of the build
     //  {String} releaseNotesURL URL of the release notes for this build
     //  {String} downloadURL URL to download this build
     //  {Array} newFeatures Array of new features in this build. Each entry has two fields:
@@ -60,71 +70,6 @@ define(function (require, exports, module) {
     //      {String} description Description of the feature
     //
     // This array must be sorted by buildNumber
-    var versionInfo;
-    
-    // TEMPORARY: structure describing version information. This should be fetched from a server.
-    versionInfo = [
-        {
-            buildNumber: 93,
-            versionString: "Sprint 12",
-            releaseNotesURL: "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-12",
-            downloadURL: "https://github.com/adobe/brackets/downloads",
-            newFeatures: [
-                {
-                    name: "Code Completion for HTML Attributes",
-                    description: "Basic code hinting for HTML attribute names. Appears when you type Space within a tag (or press Ctrl+Space)."
-                },
-                {
-                    name: "CEF3 Shell Enhancements",
-                    description: "Add support for Live Development and fix a bunch of bugs. All unit tests now pass in the CEF3 shell."
-                },
-                {
-                    name: "Other Enhancements",
-                    description: "Add Move Line(s) Up/Down command. Add Save All command."
-                }
-            ]
-        },
-        {
-            buildNumber: 72,
-            versionString: "Sprint 11",
-            releaseNotesURL: "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-11",
-            downloadURL: "https://github.com/adobe/brackets/downloads",
-            newFeatures: [
-                {
-                    name: "Code Completion for HTML Tags",
-                    description: "Basic code hinting for HTML tag names. Appears when you type \"<\" or Ctrl+Space."
-                },
-                {
-                    name: "CEF3 Shell Enhancements",
-                    description: "Fix bugs and get most unit tests passing in the experimental new shell, based on Chromium Embedding Framework 3 (Brackets currently uses CEF 1)."
-                },
-                {
-                    name: "Performance Improvements",
-                    description: "Improve performance when switching projects."
-                }
-            ]
-        },
-        {
-            buildNumber: 56,
-            versionString: "Sprint 10",
-            releaseNotesURL: "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-10",
-            downloadURL: "https://github.com/adobe/brackets/downloads",
-            newFeatures: [
-                {
-                    name: "JavaScript Quick Edit",
-                    description: "Hitting Cmd/Ctrl-E on a function name opens all function definitions with that name in an inline editor."
-                },
-                {
-                    name: "HTML Context Menus",
-                    description: "This extends the previous menu API to support context menus."
-                },
-                {
-                    name: "Extension Stylesheets",
-                    description: "Extensions may now use the ExtensionUtils.loadStyleSheet() API to load a custom stylesheet for extension UI."
-                }
-            ]
-        }
-    ];
     
     /**
      * @private
@@ -135,10 +80,64 @@ define(function (require, exports, module) {
     /**
      * Get a data structure that has information for *all* builds of Brackets.
      */
-    function _getVersionInformation() {
-        // For now we're just using the hard-coded info. This will come from a server.
-        var result = new $.Deferred().resolve(versionInfo);
+    function _getVersionInformation(force, dontCache) {
+        var result = new $.Deferred();
+        var fetchData = false;
+        var data;
         
+        // If force is true, always fetch
+        if (force) {
+            fetchData = true;
+        }
+        
+        // If we don't have data saved in prefs, fetch
+        data = _prefs.getValue("versionInfo");
+        if (!data) {
+            fetchData = true;
+        }
+        
+        // If more than 24 hours have passed since our last fetch, fetch again
+        if ((new Date()).getTime() > _lastInfoURLFetchTime + (1000 * 60 * 60 * 24)) {
+            fetchData = true;
+        }
+        
+        if (fetchData) {
+            $.ajax(_versionInfoURL, {
+                dataType: "text",
+                complete: function (jqXHR, status) {
+                    if (status === "success") {
+                        try {
+                            data = JSON.parse(jqXHR.responseText);
+                            if (!dontCache) {
+                                _lastInfoURLFetchTime = (new Date()).getTime();
+                                _prefs.setValue("lastInfoURLFetchTime", _lastInfoURLFetchTime);
+                                _prefs.setValue("versionInfo", data);
+                            }
+                            result.resolve(data);
+                        } catch (e) {
+                            console.log("Error parsing version information");
+                            console.log(e);
+                            result.reject();
+                        }
+                    }
+                },
+                error: function (jqXHR, status, error) {
+                    // When loading data for unit tests, the error handler is 
+                    // called but the responseText is valid. Try to use it here,
+                    // but *don't* save the results in prefs.
+                    try {
+                        data = JSON.parse(jqXHR.responseText);
+                        result.resolve(data);
+                    } catch (e) {
+                        result.reject();
+                    }
+                }
+            });
+        } else {
+            result.resolve(data);
+        }
+        
+        // If more than 24 hours have passed since the last fetch, or force is true, load new data
         return result.promise();
     }
     
@@ -167,6 +166,11 @@ define(function (require, exports, module) {
         return null;
     }
     
+    function _sanitizeString(str) {
+        // Simple string sanitize - entity encode angle brackets
+        return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    
     /**
      * Show a dialog that shows the update 
      */
@@ -188,12 +192,24 @@ define(function (require, exports, module) {
             var $features = $("<ul>");
             
             item.newFeatures.forEach(function (feature, index) {
-                $features.append("<li><b>" + feature.name + "</b> - " + feature.description + "</li>");
+                $features.append(
+                    "<li><b>" +
+                        _sanitizeString(feature.name) +
+                        "</b> - " +
+                        _sanitizeString(feature.description) +
+                        "</li>"
+                );
             });
             
             var $item = $("<div>")
                 // TODO: Put "Release Notes" into localizable string
-                .append("<h3>" + item.versionString + " (<a href='#' data-url='" + item.releaseNotesURL + "'>Release Notes</a>)</h3>")
+                .append("<h3>" +
+                        _sanitizeString(item.versionString) +
+                        " - " +
+                        _sanitizeString(item.dateString) +
+                        " (<a href='#' data-url='" + item.releaseNotesURL + "'>" +
+                        Strings.RELEASE_NOTES +
+                        "</a>)</h3>")
                 .append($features)
                 .appendTo($updateList);
         });
@@ -202,7 +218,10 @@ define(function (require, exports, module) {
             var url = $(e.target).attr("data-url");
             
             if (url) {
-                NativeApp.openURLInDefaultBrowser(url);
+                // Make sure the URL has a domain that we know about
+                if (/(brackets\.io|github\.com|adobe\.com)$/i.test(PathUtils.parseUrl(url).hostname)) {
+                    NativeApp.openURLInDefaultBrowser(url);
+                }
             }
         });
     }
@@ -215,26 +234,60 @@ define(function (require, exports, module) {
      * If an update is available, show the "update available" notification icon in the title bar.
      *
      * @param {boolean} force If true, always show the notification dialog.
-     * @return None.
+     * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
      */
     function checkForUpdate(force) {
-        _getVersionInformation().done(
-            function (versionInfo) {
+        // There is a secret second parameter. If the second param is an Object, fields
+        // in the object temporarily override the local values. This should *only* be used for testing.
+        // If any overrides are set, permanent changes are not made (including showing
+        // the update notification icon and saving prefs).
+        var oldValues;
+        var usingOverrides = false;
+        var result = new $.Deferred();
+        
+        if (arguments.length > 1) {
+            var overrides = Array.prototype.slice.call(arguments)[1];
+            
+            oldValues = {};
+            
+            if (overrides.hasOwnProperty("_buildNumber")) {
+                oldValues._buildNumber = _buildNumber;
+                _buildNumber = overrides._buildNumber;
+                usingOverrides = true;
+            }
+
+            if (overrides.hasOwnProperty("_lastNotifiedBuildNumber")) {
+                oldValues._lastNotifiedBuildNumber = _lastNotifiedBuildNumber;
+                _lastNotifiedBuildNumber = overrides._lastNotifiedBuildNumber;
+                usingOverrides = true;
+            }
+
+            if (overrides.hasOwnProperty("_versionInfoURL")) {
+                oldValues._versionInfoURL = _versionInfoURL;
+                _versionInfoURL = overrides._versionInfoURL;
+                usingOverrides = true;
+            }
+        }
+        
+        _getVersionInformation(force || usingOverrides, usingOverrides)
+            .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
                 
                 if (allUpdates) {
                     // Always show the "update available" icon if any updates are available
-                    var $updateNotification = $("#update-notification");
-                    
-                    $updateNotification.show();
-                    if (!_addedClickHandler) {
-                        _addedClickHandler = true;
-                        $updateNotification.on("click", function () {
-                            checkForUpdate(true);
-                        });
+                    if (!usingOverrides) {
+                        var $updateNotification = $("#update-notification");
+                        
+                        $updateNotification.show();
+                        if (!_addedClickHandler) {
+                            _addedClickHandler = true;
+                            $updateNotification.on("click", function () {
+                                checkForUpdate(true);
+                            });
+                        }
                     }
-                    
+                
                     // Only show the update dialog if force = true, or if the user hasn't been 
                     // alerted of this update
                     if (force || _stripOldVersionInfo(allUpdates, _lastNotifiedBuildNumber)) {
@@ -242,7 +295,10 @@ define(function (require, exports, module) {
                         
                         // Update prefs with the last notified build number
                         _lastNotifiedBuildNumber = allUpdates[0].buildNumber;
-                        _prefs.setValue("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
+                        // Don't save prefs is we have overridden values
+                        if (!usingOverrides) {
+                            _prefs.setValue("lastNotifiedBuildNumber", _lastNotifiedBuildNumber);
+                        }
                     }
                 } else if (force) {
                     // No updates are available. If force == true, let the user know.
@@ -252,8 +308,25 @@ define(function (require, exports, module) {
                         Strings.NO_UPDATE_MESSAGE
                     );
                 }
-            }
-        );
+        
+                if (oldValues) {
+                    if (oldValues.hasOwnProperty("_buildNumber")) {
+                        _buildNumber = oldValues._buildNumber;
+                    }
+                    if (oldValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
+                        _lastNotifiedBuildNumber = oldValues._lastNotifiedBuildNumber;
+                    }
+                    if (oldValues.hasOwnProperty("_versionInfoURL")) {
+                        _versionInfoURL = oldValues._versionInfoURL;
+                    }
+                }
+                result.resolve();
+            })
+            .fail(function () {
+                result.reject();
+            });
+        
+        return result.promise();
     }
     
     // Define public API
