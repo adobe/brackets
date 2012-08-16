@@ -48,8 +48,8 @@ The Brackets native shell currently runs on Mac and Windows. Since it's based on
 CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
 been done yet. Stay tuned.
 
-You can download "stable" builds of Brackets from the Download Packages section of the    
-[downloads page](http://github.com/adobe/brackets/downloads).
+You can download "stable" builds of Brackets from the Download Packages section of the 
+[downloads page](http://github.com/adobe/brackets/downloads).    
 If you want to pull the repos directly via git, see 
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
 for instructions on how to get everything. Either way, you can launch Brackets
