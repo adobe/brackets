@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         ViewUtils       = require("utils/ViewUtils");
 
 
-    var hintList,  /// initialized by htmlContentLoadComplete handler
+    var hintList,  // initialized by htmlContentLoadComplete handler
         shouldShowHintsOnKeyUp = false;
 
 
@@ -425,8 +425,8 @@ define(function (require, exports, module) {
 
     // Initialize variables and listeners that depend on the HTML DOM
     $(brackets).on("htmlContentLoadComplete", function () {
-       // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
-       // and different types of hint list when other types of hinting is added.
+        // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
+        // and different types of hint list when other types of hinting is added.
         hintList = new CodeHintList();
     });
     
