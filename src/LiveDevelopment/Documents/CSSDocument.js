@@ -58,7 +58,7 @@ define(function CSSDocumentModule(require, exports, module) {
      */
     var CSSDocument = function CSSDocument(doc, editor, inspector) {
         this.doc = doc;
-        
+
         // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
         // how to deal with different editors pointing at the same document.
 /*
@@ -66,9 +66,9 @@ define(function CSSDocumentModule(require, exports, module) {
         this._highlight = [];
         this.onHighlight = this.onHighlight.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        Inspector.on("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).on("highlight", this.onHighlight);
 */
-        
+
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
         this.onChange = this.onChange.bind(this);
@@ -89,7 +89,7 @@ define(function CSSDocumentModule(require, exports, module) {
             // res = {styleSheet}
             this.rules = res.styleSheet.rules;
         }.bind(this));
-        
+
         // If the CSS document is dirty, push the changes into the browser now
         if (doc.isDirty) {
             CSSAgent.reloadCSSForDocument(this.doc);
@@ -99,7 +99,7 @@ define(function CSSDocumentModule(require, exports, module) {
     /** Get the browser version of the StyleSheet object */
     CSSDocument.prototype.getStyleSheetFromBrowser = function getStyleSheetFromBrowser() {
         var deferred = new $.Deferred();
-        
+
         // WebInspector Command: CSS.getStyleSheet
         Inspector.CSS.getStyleSheet(this.styleSheet.styleSheetId, function callback(res) {
             // res = {styleSheet}
@@ -109,20 +109,20 @@ define(function CSSDocumentModule(require, exports, module) {
                 deferred.reject();
             }
         });
-        
+
         return deferred.promise();
     };
-    
+
     /** Get the browser version of the source */
     CSSDocument.prototype.getSourceFromBrowser = function getSourceFromBrowser() {
         var deferred = new $.Deferred();
-        
+
         this.getStyleSheetFromBrowser().done(function onDone(styleSheet) {
             deferred.resolve(styleSheet.text);
         }).fail(function onFail() {
             deferred.reject();
         });
-        
+
         return deferred.promise();
     };
 
@@ -132,7 +132,7 @@ define(function CSSDocumentModule(require, exports, module) {
         $(this.doc).off("deleted", this.onDeleted);
         this.doc.releaseRef();
 /*
-        Inspector.off("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).off("highlight", this.onHighlight);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
 */
@@ -176,7 +176,7 @@ define(function CSSDocumentModule(require, exports, module) {
     CSSDocument.prototype.onDeleted = function onDeleted(event, editor, change) {
         // clear the CSS
         CSSAgent.clearCSSForDocument(this.doc);
-        
+
         // shut down, since our Document is now dead
         this.close();
         $(this).triggerHandler("deleted", [this]);

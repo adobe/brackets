@@ -177,8 +177,9 @@ define(function (require, exports, module) {
         var keyCode = event.keyCode;
         
         // Up arrow, down arrow and enter key are always handled here
-        if (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
-                keyCode === 33 || keyCode === 34) {
+        if (event.type !== "keypress" &&
+                (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
+                keyCode === 33 || keyCode === 34)) {
 
             if (event.type === "keydown") {
                 if (keyCode === 38) {

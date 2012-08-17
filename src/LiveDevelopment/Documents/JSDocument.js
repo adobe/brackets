@@ -60,7 +60,7 @@ define(function JSDocumentModule(require, exports, module) {
         this.onHighlight = this.onHighlight.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        Inspector.on("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).on("highlight", this.onHighlight);
         $(this.editor).on("change", this.onChange);
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
@@ -68,7 +68,7 @@ define(function JSDocumentModule(require, exports, module) {
 
     /** Close the document */
     JSDocument.prototype.close = function close() {
-        Inspector.off("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).off("highlight", this.onHighlight);
         $(this.editor).off("change", this.onChange);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
