@@ -31,7 +31,7 @@ define(function (require, exports, module) {
     // Code that needs to display user strings should call require("strings") to load
     // src/strings.js. This file will dynically load strings.js for the specified by bracketes.locale.
     // 
-    // Translations for other locals should be placed in src/nls/<locale<optional country code>>/strings.js
+    // Translations for other locales should be placed in src/nls/<locale<optional country code>>/strings.js
     // Localization is provided via the i18n plugin.
     // All other bundles for languages need to add a prefix to the exports below so i18n can find them.
     // TODO: dynamically populate the local prefix list below?

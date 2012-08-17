@@ -25,6 +25,10 @@
 /*global define */
 
 define({
+    /**
+     * Errors
+     */
+
     // General file io error strings
     "GENERIC_ERROR"                     : "(error {0})",
     "NOT_FOUND_ERR"                     : "The file could not be found.",
@@ -106,6 +110,12 @@ define({
     "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
     "LANGUAGE_SUBMIT"                   : "Reload Brackets",
     "LANGUAGE_CANCEL"                   : "Cancel",
+
+    /**
+     * ProjectManager
+     */
+
+     "UNTITLED" : "Untitled",
 
     /**
      * Command Name Constants
