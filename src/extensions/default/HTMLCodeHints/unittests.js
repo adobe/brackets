@@ -366,8 +366,8 @@ define(function (require, exports, module) {
             
             it("should pop up attribute value hints after attribute name has been inserted", function () {
                 testEditor.setCursorPos({ line: 4, ch: 17 });   // cursor between space and >
-                selectHint(HTMLCodeHints.attrHintProvider, "class");
-                expect(testDocument.getLine(4)).toBe("  <h3 id = 'bar' class=\"\">Subheading</h3>");
+                selectHint(HTMLCodeHints.attrHintProvider, "dir");
+                expect(testDocument.getLine(4)).toBe("  <h3 id = 'bar' dir=\"\">Subheading</h3>");
                 expect(CodeHintManager._getCodeHintList()).toBeTruthy();
                 expect(CodeHintManager._getCodeHintList().isOpen()).toBe(true);
             });
