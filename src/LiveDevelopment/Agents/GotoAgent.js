@@ -112,7 +112,7 @@ define(function GotoAgent(require, exports, module) {
     }
 
     /** Gather options where to go to from the given source node */
-    function _onRemoteShowGoto(res) {
+    function _onRemoteShowGoto(event, res) {
         // res = {nodeId, name, value}
         var node = DOMAgent.nodeWithId(res.nodeId);
 
@@ -177,7 +177,7 @@ define(function GotoAgent(require, exports, module) {
     }
 
     /** Go to the given source node */
-    function _onRemoteGoto(res) {
+    function _onRemoteGoto(event, res) {
         // res = {nodeId, name, value}
         var location, url = res.value;
         var matches = /^(.*):([^:]+)$/.exec(url);
@@ -195,14 +195,14 @@ define(function GotoAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.on("RemoteAgent.showgoto", _onRemoteShowGoto);
-        Inspector.on("RemoteAgent.goto", _onRemoteGoto);
+        $(RemoteAgent)
+            .on("showgoto.GotoAgent", _onRemoteShowGoto)
+            .on("goto.GotoAgent", _onRemoteGoto);
     }
 
     /** Initialize the agent */
     function unload() {
-        Inspector.off("RemoteAgent.showgoto", _onRemoteShowGoto);
-        Inspector.off("RemoteAgent.goto", _onRemoteGoto);
+        $(RemoteAgent).off(".GotoAgent");
     }
 
     // Export public functions

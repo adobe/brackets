@@ -55,7 +55,7 @@ define(function NetworkAgent(require, exports, module) {
     }
 
     // WebInspector Event: Network.requestWillBeSent
-    function _onRequestWillBeSent(res) {
+    function _onRequestWillBeSent(event, res) {
         // res = {requestId, frameId, loaderId, documentURL, request, timestamp, initiator, stackTrace, redirectResponse}
         var url = _urlWithoutQueryString(res.request.url);
         _urlRequested[url] = true;
@@ -65,12 +65,12 @@ define(function NetworkAgent(require, exports, module) {
     function load() {
         _urlRequested = {};
         Inspector.Network.enable();
-        Inspector.on("Network.requestWillBeSent", _onRequestWillBeSent);
+        $(Inspector.Network).on("requestWillBeSent.NetworkAgent", _onRequestWillBeSent);
     }
 
     /** Unload the agent */
     function unload() {
-        Inspector.off("Network.requestWillBeSent", _onRequestWillBeSent);
+        $(Inspector.Network).off(".NetworkAgent");
     }
 
     // Export public functions
