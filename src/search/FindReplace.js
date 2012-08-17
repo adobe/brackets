@@ -120,7 +120,7 @@ define(function (require, exports, module) {
                 if (cm.lineCount() < 2000) { // This is too expensive on big documents.
                     var cursor = getSearchCursor(cm, query);
                     while (cursor.findNext()) {
-                        state.marked.push(cm.markText(cursor.from(), cursor.to(), Strings.SEARCHING));
+                        state.marked.push(cm.markText(cursor.from(), cursor.to(), "CodeMirror-searching"));
                     }
                 }
                 state.posFrom = state.posTo = cm.getCursor();

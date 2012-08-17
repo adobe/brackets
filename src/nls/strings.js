@@ -108,7 +108,6 @@ define(function (require, exports, module) {
     // Find, Replace, Find in Files
     exports.SEARCH_REGEXP_INFO                = "Use /re/ syntax for regexp search";
     exports.WITH                              = "With";
-    exports.SEARCHING                         = "Searching";
     exports.BUTTON_YES                        = "Yes";
     exports.BUTTON_NO                         = "No";
     exports.BUTTON_STOP                       = "Stop";
