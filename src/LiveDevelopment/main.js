@@ -63,7 +63,7 @@ define(function main(require, exports, module) {
                           Strings.LIVE_DEV_STATUS_TIP_PROGRESS2, Strings.LIVE_DEV_STATUS_TIP_CONNECTED];  // Status indicator tooltip
     var _statusStyle = ["warning", "", "info", "info", "success"];  // Status indicator's CSS class
     var _allStatusStyles = _statusStyle.join(" ");
-    
+
     var _$btnGoLive; // reference to the GoLive button
     var _$btnHighlight; // reference to the HighlightButton
 
@@ -90,7 +90,7 @@ define(function main(require, exports, module) {
         // Clear text/styles from previous status
         $("span", $btn).remove();
         $btn.removeClass(_allStatusStyles);
-        
+
         // Set text/styles for new status
         if (text && text.length > 0) {
             $("<span class=\"label\">")
@@ -100,7 +100,7 @@ define(function main(require, exports, module) {
         } else {
             $btn.addClass(style);
         }
-        
+
         if (tooltip) {
             $btn.attr("title", tooltip);
         }
@@ -129,7 +129,7 @@ define(function main(require, exports, module) {
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
         });
-        
+
         // Initialize tooltip for 'not connected' state
         _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
     }

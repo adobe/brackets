@@ -113,14 +113,14 @@ define(function LiveDevelopment(require, exports, module) {
         var matches = /^(.*\/)(.+\.([^.]+))$/.exec(doc.file.fullPath);
         if (matches) {
             var prefix = "file://";
-            
+
             // The file.fullPath on Windows starts with a drive letter ("C:").
             // In order to make it a valid file: URL we need to add an 
             // additional slash to the prefix.
             if (brackets.platform === "win") {
                 prefix += "/";
             }
-            
+
             doc.extension = matches[3];
             doc.url = encodeURI(prefix + doc.file.fullPath);
 
@@ -130,7 +130,7 @@ define(function LiveDevelopment(require, exports, module) {
             doc.root = {url: encodeURI(prefix + matches[1] + fileName)};
         }
     }
-      
+
     /** Get the current document from the document manager
      * _adds extension, url and root to the document
      */
@@ -159,10 +159,10 @@ define(function LiveDevelopment(require, exports, module) {
             throw "Invalid document type: " + doc.extension;
         */
         }
-        
+
         return null;
     }
-    
+
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -190,7 +190,7 @@ define(function LiveDevelopment(require, exports, module) {
             _relatedDocuments = undefined;
         }
     }
-    
+
     /** Create a live version of a Brackets document */
     function _createDocument(doc, editor) {
         var DocClass = _classForDocument(doc);
@@ -200,7 +200,7 @@ define(function LiveDevelopment(require, exports, module) {
             return null;
         }
     }
-    
+
     /** Convert a file: URL to a local full file path */
     function _urlToPath(url) {
         var path;
@@ -289,7 +289,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Triggered by Inspector.error */
-    function _onError(error) {
+    function _onError(event, error) {
         var message = error.message;
 
         // Additional information, like exactly which parameter could not be processed.
@@ -301,7 +301,7 @@ define(function LiveDevelopment(require, exports, module) {
         // Show the message, but include the error object for further information (e.g. error code)
         console.error(message, error);
     }
-    
+
     /** Run when all agents are loaded */
     function _onLoad() {
         var doc = _getCurrentDocument();
@@ -313,14 +313,14 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Triggered by Inspector.connect */
-    function _onConnect() {
+    function _onConnect(event) {
         var promises = loadAgents();
         _setStatus(STATUS_LOADING_AGENTS);
         $.when.apply(undefined, promises).then(_onLoad, _onError);
     }
 
     /** Triggered by Inspector.disconnect */
-    function _onDisconnect() {
+    function _onDisconnect(event) {
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
@@ -333,7 +333,7 @@ define(function LiveDevelopment(require, exports, module) {
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
-        
+
         function showWrongDocError() {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
@@ -342,10 +342,10 @@ define(function LiveDevelopment(require, exports, module) {
             );
             result.reject("WRONG_DOC");
         }
-                
+
         if (!doc || !doc.root) {
             showWrongDocError();
-            
+
         } else {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
@@ -354,7 +354,7 @@ define(function LiveDevelopment(require, exports, module) {
                 showWrongDocError();
                 return promise;
             }
-            
+
             _setStatus(STATUS_CONNECTING);
             Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
@@ -391,7 +391,7 @@ define(function LiveDevelopment(require, exports, module) {
                     return;
                 }
                 retryCount++;
-                
+
                 if (!browserStarted && exports.status !== STATUS_ERROR) {
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
@@ -408,14 +408,14 @@ define(function LiveDevelopment(require, exports, module) {
                         })
                         .fail(function (err) {
                             var message;
-                            
+
                             _setStatus(STATUS_ERROR);
                             if (err === FileError.NOT_FOUND_ERR) {
                                 message = Strings.ERROR_CANT_FIND_CHROME;
                             } else {
                                 message = StringUtils.format(Strings.ERROR_LAUNCHING_BROWSER, err);
                             }
-                            
+
                             Dialogs.showModalDialog(
                                 Dialogs.DIALOG_ID_ERROR,
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
@@ -425,7 +425,7 @@ define(function LiveDevelopment(require, exports, module) {
                             result.reject("OPEN_LIVE_BROWSER");
                         });
                 }
-                
+
                 if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
                         Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
@@ -452,7 +452,7 @@ define(function LiveDevelopment(require, exports, module) {
         if (!doc) {
             return;
         }
-        
+
         if (Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 _closeDocument();
@@ -470,7 +470,7 @@ define(function LiveDevelopment(require, exports, module) {
             window.setTimeout(open);
         }
     }
-    
+
     function getLiveDocForPath(path) {
         var docsToSearch = [];
         if (_relatedDocuments) {
@@ -487,7 +487,7 @@ define(function LiveDevelopment(require, exports, module) {
             }
             return false;
         });
-        
+
         return foundDoc;
     }
 
@@ -501,9 +501,9 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
-        Inspector.on("connect", _onConnect);
-        Inspector.on("disconnect", _onDisconnect);
-        Inspector.on("error", _onError);
+        $(Inspector).on("connect", _onConnect)
+            .on("disconnect", _onDisconnect)
+            .on("error", _onError);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange);
     }
 

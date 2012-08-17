@@ -34,12 +34,12 @@ define(function CSSAgent(require, exports, module) {
     "use strict";
 
     require("thirdparty/path-utils/path-utils.min");
-    
+
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     var _load; // {$.Deferred} load promise
     var _urlToStyle; // {url -> loaded} style definition
-    
+
     /** 
      * Create a canonicalized version of the given URL, stripping off query strings and hashes.
      * @param {string} url the URL to canonicalize
@@ -50,7 +50,7 @@ define(function CSSAgent(require, exports, module) {
     }
 
     // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(res) {
+    function _onLoadEventFired(event, res) {
         // res = {timestamp}
         _urlToStyle = {};
         Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
@@ -69,7 +69,7 @@ define(function CSSAgent(require, exports, module) {
     function styleForURL(url) {
         return _urlToStyle[_canonicalize(url)];
     }
-    
+
     /** Get a list of all loaded stylesheet files by URL */
     function getStylesheetURLs() {
         var urls = [], url;
@@ -89,7 +89,7 @@ define(function CSSAgent(require, exports, module) {
         console.assert(style, "Style Sheet for document not loaded: " + doc.url);
         Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
     }
-    
+
     /** Empties a CSS style sheet given a document that has been deleted
      * @param {Document} document
      */
@@ -102,13 +102,13 @@ define(function CSSAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
+        $(Inspector.Page).on("loadEventFired.CSSAgent", _onLoadEventFired);
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
+        $(Inspector.Page).off(".CSSAgent");
     }
 
     // Export public functions
