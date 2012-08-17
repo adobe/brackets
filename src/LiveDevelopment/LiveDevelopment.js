@@ -497,7 +497,6 @@ define(function LiveDevelopment(require, exports, module) {
         Inspector.on("connect", _onConnect);
         Inspector.on("disconnect", _onDisconnect);
         Inspector.on("error", _onError);
-        Inspector.on("load", _onLoad);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange);
     }
 
