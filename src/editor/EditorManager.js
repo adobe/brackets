@@ -108,26 +108,7 @@ define(function (require, exports, module) {
     function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
-        var extraKeys = {
-            "Ctrl-F" : function () {
-                // No-op, handled in FindReplace.js
-            },
-            "Cmd-F" : function () {
-                // No-op, handled in FindReplace.js
-            },
-            "Ctrl-H": function () {
-                // No-op, handled in FindReplace.js
-            },
-            "Cmd-Alt-F": function () {
-                // No-op, handled in FindReplace.js
-            },
-            "Shift-Ctrl-F": function () {
-                // No-op, handled in FindInFiles.js
-            },
-            "Shift-Cmd-F" : function () {
-                // No-op, handled in FindInFiles.js
-            }
-        };
+        var extraKeys = {};
         
         if (additionalKeys) {
             mergeExtraKeys(null, extraKeys, additionalKeys);
