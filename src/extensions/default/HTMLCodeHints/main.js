@@ -150,7 +150,7 @@ define(function (require, exports, module) {
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
-            adjustCursor = false,
+            insertedName = false,
             replaceExistingOne = tagInfo.attr.valueAssigned;
 
         if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
@@ -168,7 +168,7 @@ define(function (require, exports, module) {
         if (!replaceExistingOne && attributes && attributes[completion] &&
                 attributes[completion].type !== "flag") {
             completion += "=\"\"";
-            adjustCursor = true;
+            insertedName = true;
         }
 
         if (start.ch !== end.ch) {
@@ -177,8 +177,12 @@ define(function (require, exports, module) {
             editor.document.replaceRange(completion, start);
         }
 
-        if (adjustCursor) {
+        if (insertedName) {
             editor.setCursorPos(start.line, start.ch + completion.length - 1);
+            
+            // Since we're now inside the double-quotes we just inserted,
+            // mmediately pop up the attribute value hint.
+            CodeHintManager.showHint(editor);
         }
     };
 
@@ -271,4 +275,8 @@ define(function (require, exports, module) {
     var attrHints = new AttrHints();
     CodeHintManager.registerHintProvider(tagHints);
     CodeHintManager.registerHintProvider(attrHints);
+    
+    // For unit testing
+    exports.tagHintProvider = tagHints;
+    exports.attrHintProvider = attrHints;
 });
