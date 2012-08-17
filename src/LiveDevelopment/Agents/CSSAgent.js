@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $ */
+/*global define, $, PathUtils */
 
 /**
  * CSSAgent keeps track of loaded style sheets and allows reloading them
@@ -33,20 +33,31 @@
 define(function CSSAgent(require, exports, module) {
     "use strict";
 
+    require("thirdparty/path-utils/path-utils.min");
+
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     var _load; // {$.Deferred} load promise
     var _urlToStyle; // {url -> loaded} style definition
 
+    /** 
+     * Create a canonicalized version of the given URL, stripping off query strings and hashes.
+     * @param {string} url the URL to canonicalize
+     * @return the canonicalized URL
+     */
+    function _canonicalize(url) {
+        return PathUtils.parseUrl(url).hrefNoSearch;
+    }
+
     // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(res) {
+    function _onLoadEventFired(event, res) {
         // res = {timestamp}
         _urlToStyle = {};
         Inspector.CSS.getAllStyleSheets(function onGetAllStyleSheets(res) {
             var i, header;
             for (i in res.headers) {
                 header = res.headers[i];
-                _urlToStyle[header.sourceURL] = header;
+                _urlToStyle[_canonicalize(header.sourceURL)] = header;
             }
             _load.resolve();
         });
@@ -56,9 +67,9 @@ define(function CSSAgent(require, exports, module) {
      * @param {string} url
      */
     function styleForURL(url) {
-        return _urlToStyle[url];
+        return _urlToStyle[_canonicalize(url)];
     }
-    
+
     /** Get a list of all loaded stylesheet files by URL */
     function getStylesheetURLs() {
         var urls = [], url;
@@ -78,7 +89,7 @@ define(function CSSAgent(require, exports, module) {
         console.assert(style, "Style Sheet for document not loaded: " + doc.url);
         Inspector.CSS.setStyleSheetText(style.styleSheetId, doc.getText());
     }
-    
+
     /** Empties a CSS style sheet given a document that has been deleted
      * @param {Document} document
      */
@@ -91,13 +102,13 @@ define(function CSSAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
+        $(Inspector.Page).on("loadEventFired.CSSAgent", _onLoadEventFired);
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
+        $(Inspector.Page).off(".CSSAgent");
     }
 
     // Export public functions

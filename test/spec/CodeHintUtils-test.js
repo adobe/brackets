@@ -126,7 +126,7 @@ define(function (require, exports, module) {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
-                    '<p class="foo"', '></p>',
+                    '<p class="foo', '"></p>',
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
-                    '<p class = "foo"', '></p>',
+                    '<p class = "foo', '"></p>',
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
