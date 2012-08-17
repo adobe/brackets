@@ -72,7 +72,7 @@ define({
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Development Error",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "A live development connection to Chrome could not be established. or live development to work, Chrome needs to be started with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "A live development connection to Chrome could not be established. For live development to work, Chrome needs to be started with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live File Preview",
