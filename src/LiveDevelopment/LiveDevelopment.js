@@ -321,6 +321,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Open the Connection and go live */
     function open() {
+        var result = new $.Deferred(),
+            promise = result.promise();
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
@@ -331,6 +333,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
+            result.reject("WRONG_DOC");
         }
                 
         if (!doc || !doc.root) {
@@ -342,12 +345,13 @@ define(function LiveDevelopment(require, exports, module) {
             // file types.
             if (!doc.extension || doc.extension.indexOf("htm") !== 0) {
                 showWrongDocError();
-                return;
+                return promise;
             }
             
             _setStatus(1);
-            Inspector.connectToURL(doc.root.url).fail(function onConnectFail(err) {
+            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
+                    result.reject(err);
                     return;
                 }
                 if (retryCount > 6) {
@@ -363,13 +367,18 @@ define(function LiveDevelopment(require, exports, module) {
                             NativeApp.closeLiveBrowser()
                                 .done(function () {
                                     browserStarted = false;
-                                    window.setTimeout(open);
+                                    window.setTimeout(function () {
+                                        open().then(result.resolve, result.reject);
+                                    });
                                 })
                                 .fail(function (err) {
                                     // Report error?
                                     _setStatus(-1);
                                     browserStarted = false;
+                                    result.reject("CLOSE_LIVE_BROWSER");
                                 });
+                        } else {
+                            result.reject("CANCEL");
                         }
                     });
                     return;
@@ -405,16 +414,20 @@ define(function LiveDevelopment(require, exports, module) {
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
                                 message
                             );
+
+                            result.reject("OPEN_LIVE_BROWSER");
                         });
                 }
                 
                 if (exports.status !== -1) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(doc.root.url).fail(onConnectFail);
+                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });
         }
+
+        return promise;
     }
 
     /** Close the Connection */
