@@ -173,7 +173,7 @@ define(function (require, exports, module) {
 
                     // verify list is no longer open
                     var codeHintList = CodeHintManager._getCodeHintList();
-                    expect(codeHintList.isOpen()).toBe(false);
+                    expect(codeHintList).toBeFalsy();
                 });
             });
         });
