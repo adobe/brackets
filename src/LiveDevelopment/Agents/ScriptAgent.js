@@ -49,6 +49,7 @@ define(function ScriptAgent(require, exports, module) {
         node.trace = trace;
     }
 
+    // TODO: should the parameter to this be an ID rather than a URL?
     /** Get the script information for a given url
      * @param {string} url
      */
@@ -56,6 +57,7 @@ define(function ScriptAgent(require, exports, module) {
         return _idToScript[url];
     }
 
+    // TODO: Strip off query/hash strings from URL (see CSSAgent._canonicalize())
     /** Get the script information for a given url
      * @param {string} url
      */
@@ -79,6 +81,7 @@ define(function ScriptAgent(require, exports, module) {
         }
     }
 
+    // TODO: Strip off query/hash strings from URL (see CSSAgent._canonicalize())
     // WebInspector Event: Debugger.scriptParsed
     function _onScriptParsed(res) {
         // res = {scriptId, url, startLine, startColumn, endLine, endColumn, isContentScript, sourceMapURL}
