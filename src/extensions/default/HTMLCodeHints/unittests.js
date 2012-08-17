@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waits, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -365,19 +365,11 @@ define(function (require, exports, module) {
             });
             
             it("should pop up attribute value hints after attribute name has been inserted", function () {
-                runs(function () {
-                    testEditor.setCursorPos({ line: 4, ch: 17 });   // cursor between space and >
-                });
-                waits(2000);
-                runs(function () {
-                    selectHint(HTMLCodeHints.attrHintProvider, "class");
-                });
-                waits(2000);
-                runs(function () {
-                    expect(testDocument.getLine(4)).toBe("  <h3 id = 'bar' class=\"\">Subheading</h3>");
-                    expect(CodeHintManager._getCodeHintList()).toBeTruthy();
-                    expect(CodeHintManager._getCodeHintList().isOpen()).toBe(true);
-                });
+                testEditor.setCursorPos({ line: 4, ch: 17 });   // cursor between space and >
+                selectHint(HTMLCodeHints.attrHintProvider, "class");
+                expect(testDocument.getLine(4)).toBe("  <h3 id = 'bar' class=\"\">Subheading</h3>");
+                expect(CodeHintManager._getCodeHintList()).toBeTruthy();
+                expect(CodeHintManager._getCodeHintList().isOpen()).toBe(true);
             });
             
             it("should NOT insert =\"\" after valueless attribute", function () {
