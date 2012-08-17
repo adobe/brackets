@@ -151,25 +151,31 @@ define(function (require, exports, module) {
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
             charCount = 0,
             insertedName = false,
-            replaceExistingOne = tagInfo.attr.valueAssigned;
+            replaceExistingOne = tagInfo.attr.valueAssigned,
+            endQuote = "";
 
         if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
+            // Append an equal sign and two double quotes if the current attr is not an empty attr
+            // and then adjust cursor location before the last quote that we just inserted.
+            if (!replaceExistingOne && attributes && attributes[completion] &&
+                    attributes[completion].type !== "flag") {
+                completion += '=""';
+                insertedName = true;
+            }
         } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
+            if (!tagInfo.attr.hasEndQuote) {
+                endQuote = tagInfo.attr.quoteChar;
+            }
+            if (endQuote) {
+                completion += endQuote;
+            }
         }
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
-
-        // Append an equal sign and two double quotes if the current attr is not an empty attr
-        // and then adjust cursor location before the last quote that we just inserted.
-        if (!replaceExistingOne && attributes && attributes[completion] &&
-                attributes[completion].type !== "flag") {
-            completion += "=\"\"";
-            insertedName = true;
-        }
 
         if (start.ch !== end.ch) {
             editor.document.replaceRange(completion, start, end);
@@ -183,6 +189,11 @@ define(function (require, exports, module) {
             // Since we're now inside the double-quotes we just inserted,
             // mmediately pop up the attribute value hint.
             CodeHintManager.showHint(editor);
+        }
+        
+        // Move the cursor to the right of the existing end quote after value insertion.
+        if (endQuote && tagInfo.attr.hasEndQuote) {
+            editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
     };
 

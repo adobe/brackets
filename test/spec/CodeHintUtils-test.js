@@ -86,7 +86,7 @@ define(function (require, exports, module) {
                     '<p class="');
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "", true, '"', false));
             });
             
             it("should find an attribute as it's added to a tag", function () {
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id", "", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id", "", true, '"', false));
             });
             
             it("should find an attribute as the value is typed", function () {
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one", true, '"', false));
             });
             
             it("should not find an attribute as text is added", function () {
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
@@ -141,7 +141,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar", true, '"', true));
             });
             
             it("should find the attribute value even when there is space around the =", function () {
@@ -152,7 +152,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the attribute value when the IP is after the =", function () {
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "foo", true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the tagname as it's typed", function () {

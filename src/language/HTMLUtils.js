@@ -146,7 +146,7 @@ define(function (require, exports, module) {
             //strip the quotes and return;
             attrValue = attrValue.substring(1, attrValue.length - 1);
             offset = offset - 1 > attrValue.length ? attrValue.length : offset - 1;
-            return {val: attrValue, offset: offset};
+            return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: true};
         }
         
         //The att value it getting edit in progress. There is possible extra
@@ -162,9 +162,11 @@ define(function (require, exports, module) {
         if (startChar === "'" || startChar === '"') {
             attrValue = attrValue.substring(1);
             offset--;
+        } else {
+            startChar = "";
         }
         
-        return {val: attrValue, offset: offset};
+        return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: false};
     }
     
     /**
@@ -193,12 +195,14 @@ define(function (require, exports, module) {
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.            
      */
-    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned) {
+    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned, quoteChar, hasEndQuote) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
                       value: attrValue || "",
-                      valueAssigned: valueAssigned || false},
+                      valueAssigned: valueAssigned || false,
+                      quoteChar: quoteChar || "",
+                      hasEndQuote: hasEndQuote || false},
                  position:
                     { tokenType: tokenType || "",
                       offset: offset || 0} };
@@ -216,6 +220,8 @@ define(function (require, exports, module) {
         var attrInfo = _extractAttrVal(ctx),
             attrVal = attrInfo.val,
             offset = attrInfo.offset,
+            quoteChar = attrInfo.quoteChar,
+            hasEndQuote = attrInfo.hasEndQuote,
             strLength = ctx.token.string.length;
         
         if (ctx.token.className === "string" && ctx.pos.ch === ctx.token.end && strLength > 1) {
@@ -241,7 +247,7 @@ define(function (require, exports, module) {
         var tagName = _extractTagName(ctx);
  
         //We're good. 
-        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal, true);
+        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal, true, quoteChar, hasEndQuote);
     }
 
     /**
@@ -270,10 +276,12 @@ define(function (require, exports, module) {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
-        var attrInfo = _extractAttrVal(ctx);
-        var attrVal = attrInfo.val;
+        var attrInfo = _extractAttrVal(ctx),
+            attrVal = attrInfo.val,
+            quoteChar = attrInfo.quoteChar,
+            hasEndQuote = attrInfo.hasEndQuote;
         
-        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true);
+        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true, quoteChar, hasEndQuote);
     }
     
     /**
