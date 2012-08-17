@@ -108,7 +108,7 @@ define(function main(require, exports, module) {
 
     /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
     function _handleGoLiveCommand() {
-        if (LiveDevelopment.status > 0) {
+        if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
             // TODO Ty: when checkmark support lands, remove checkmark
         } else {
