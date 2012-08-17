@@ -178,7 +178,7 @@ define(function (require, exports, module) {
         
         // Up arrow, down arrow and enter key are always handled here
         if (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
-                (keyCode >= 33 && keyCode <= 36)) {
+                keyCode === 33 || keyCode === 34) {
 
             if (event.type === "keydown") {
                 if (keyCode === 38) {
@@ -193,12 +193,6 @@ define(function (require, exports, module) {
                 } else if (keyCode === 34) {
                     // Page Down
                     this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
-                } else if (keyCode === 35) {
-                    // End
-                    this.setSelectedIndex(this.options.maxResults);
-                } else if (keyCode === 36) {
-                    // Home
-                    this.setSelectedIndex(0);
                 } else {
                     // Enter/return key
                     // Trigger a click handler to commmit the selected item
