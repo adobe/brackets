@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
+/*global define, $ */
 
 /**
  * HighlightAgent dispatches events for highlight requests from in-browser
