@@ -72,9 +72,7 @@ define({
     "ERROR_LAUNCHING_BROWSER"           : "An error occurred when launching the browser. (error {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Live Development Error",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "A live development connection to Chrome could not be established. "
-                                                + "For live development to work, Chrome needs to be started with remote debugging enabled."
-                                                + "<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "A live development connection to Chrome could not be established. For live development to work, Chrome needs to be started with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live File Preview",
@@ -86,12 +84,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in Brackets."
-                                                + "<br /><br />"
-                                                + "Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in Brackets."
-                                                + "<br /><br />"
-                                                + "Do you want to keep your changes?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in Brackets.<br /><br />Which version do you want to keep?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in Brackets.<br /><br />Do you want to keep your changes?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
