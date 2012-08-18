@@ -1,13 +1,13 @@
 [
     {
         "buildNumber": 93,
-        "versionString": "Sprint 12",
-        "dateString": "8-13-2012",
+        "versionString": "<script>alert('GOTCHA!')</script>Sprint 12",
+        "dateString": "<script>alert('BOOM!')</script>8-13-2012",
         "releaseNotesURL": "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-12",
         "downloadURL": "https://github.com/adobe/brackets/downloads",
         "newFeatures": [
             {
-                "name": "Code Completion for HTML Attributes",
+                "name": "<script>alert('PWNED!')</script>Code Completion for HTML Attributes",
                 "description": "<script>alert('SECURITY BREACH!')</script>Basic code hinting for HTML attribute names. Appears when you type Space within a tag (or press Ctrl+Space)."
             },
             {

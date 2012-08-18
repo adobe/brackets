@@ -28,11 +28,14 @@
 /**
  * RemoteAgent defines and provides an interface for custom remote functions
  * loaded from RemoteFunctions. Remote commands are executed via
- * `call(name, varargs)`. Remote events are dispatched as events on the
- * Inspector named "Remote.EVENT".
+ * `call(name, varargs)`.
+ *
+ * Remote events are dispatched as events on this object.
  */
 define(function RemoteAgent(require, exports, module) {
     "use strict";
+
+    var $exports = $(exports);
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
@@ -40,7 +43,7 @@ define(function RemoteAgent(require, exports, module) {
     var _objectId; // the object id of the remote object
 
     // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(res) {
+    function _onLoadEventFired(event, res) {
         // res = {timestamp}
         var request = new XMLHttpRequest();
         request.open("GET", "LiveDevelopment/Agents/RemoteFunctions.js");
@@ -56,11 +59,11 @@ define(function RemoteAgent(require, exports, module) {
     }
 
     // WebInspector Event: DOM.attributeModified
-    function _onAttributeModified(res) {
+    function _onAttributeModified(event, res) {
         // res = {nodeId, name, value}
         var matches = /^data-ld-(.*)/.exec(res.name);
         if (matches) {
-            Inspector.trigger("RemoteAgent." + matches[1], res);
+            $exports.triggerHandler(matches[1], res);
         }
     }
 
@@ -103,15 +106,15 @@ define(function RemoteAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
-        Inspector.on("DOM.attributeModified", _onAttributeModified);
+        $(Inspector.Page).on("loadEventFired.RemoteAgent", _onLoadEventFired);
+        $(Inspector.DOM).on("attributeModified.RemoteAgent", _onAttributeModified);
         return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
-        Inspector.off("DOM.attributeModified", _onAttributeModified);
+        $(Inspector.Page).off(".RemoteAgent");
+        $(Inspector.DOM).off(".RemoteAgent");
     }
 
     // Export public functions

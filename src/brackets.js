@@ -30,8 +30,8 @@ require.config({
         "text" : "thirdparty/text",
         "i18n" : "thirdparty/i18n"
     },
-    // store the locale in localStorage until CEF sets the correct navigator.language
-    locale: window.localStorage.getItem("locale")
+    // Use custom brackets property until CEF sets the correct navigator.language
+    locale: window.localStorage.getItem("locale") || brackets.app.language
 });
 
 /**

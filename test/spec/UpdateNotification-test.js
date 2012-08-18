@@ -66,7 +66,7 @@ define(function (require, exports, module) {
             });
         });
         
-        it("should show a update information for all available updates", function () {
+        it("should show update information for all available updates", function () {
             var updateInfo = {
                 _buildNumber: 10,
                 _lastNotifiedBuildNumber: 0,
@@ -89,6 +89,24 @@ define(function (require, exports, module) {
             var updateInfo = {
                 _buildNumber: 10,
                 _lastNotifiedBuildNumber: 93,
+                _versionInfoURL: updateInfoURL
+            };
+            
+            runs(function () {
+                var promise = UpdateNotification.checkForUpdate(false, updateInfo);
+                waitsForDone(promise, "Check for updates");
+            });
+            
+            runs(function () {
+                var $doc = $(testWindow.document);
+                expect($doc.find(".update-dialog.instance").length).toBe(0);
+            });
+        });
+        
+        it("should not show dialog if app is up to date", function () {
+            var updateInfo = {
+                _buildNumber: 93,
+                _lastNotifiedBuildNumber: 0,
                 _versionInfoURL: updateInfoURL
             };
             

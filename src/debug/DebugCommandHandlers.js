@@ -139,13 +139,17 @@ define(function (require, exports, module) {
         NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
             dirEntry.createReader().readEntries(function (entries) {
 
-                var $activeLanguage;
-                var $submit;
+                var $activeLanguage,
+                    $submit,
+                    locale;
+                
                 function setLanguage(event) {
                     if ($activeLanguage) {
                         $activeLanguage.css("font-weight", "normal");
                     }
                     $activeLanguage = $(event.currentTarget);
+                    locale = $activeLanguage.data("locale");
+                    
                     $activeLanguage.css("font-weight", "bold");
                     $submit.attr("disabled", false);
                 }
@@ -167,47 +171,34 @@ define(function (require, exports, module) {
                 var $ul = $("<ul>")
                     .on("click", "li", setLanguage)
                     .appendTo($p);
-
-                  // add english
-                var $li = $("<li>")
-                    .text("en-EN")
-                    .data("locale", "en-EN")
-                    .appendTo($ul);
-
-                // inspect all children of dirEntry
-                entries.forEach(function (entry) {
-                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}-[A-Z]{2}$/)) {
-                        var language = entry.name;
-                        var $li = $("<li>")
-                            .text(entry.name)
-                            .data("locale", language)
-                            .appendTo($ul);
-                    }
-                });
-
+                
                 var $footer = $("<div class='modal-footer' />")
                     .appendTo($modal);
-
+                
                 var $cancel = $("<button class='dialog-button btn left'>")
                     .on("click", function () {
                         $modal.modal('hide');
                     })
                     .text(Strings.LANGUAGE_CANCEL)
                     .appendTo($footer);
-
+                
                 $submit = $("<button class='dialog-button btn primary'>")
                     .text(Strings.LANGUAGE_SUBMIT)
                     .on("click", function () {
                         if (!$activeLanguage) {
                             return;
                         }
-                        var locale = $activeLanguage.data("locale");
-                        window.localStorage.setItem("locale", locale);
+                        if (locale) {
+                            window.localStorage.setItem("locale", locale);
+                        } else {
+                            window.localStorage.removeItem("locale");
+                        }
+                        
                         CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
                     })
                     .attr("disabled", "disabled")
                     .appendTo($footer);
-
+                
                 $modal
                     .appendTo(window.document.body)
                     .modal({
@@ -217,6 +208,29 @@ define(function (require, exports, module) {
                     .on("hidden", function () {
                         $(this).remove();
                     });
+
+                // add system default
+                var $li = $("<li>")
+                    .text("system default")
+                    .data("locale", null)
+                    .appendTo($ul);
+                
+                // add english
+                $li = $("<li>")
+                    .text("en")
+                    .data("locale", "en")
+                    .appendTo($ul);
+                
+                // inspect all children of dirEntry
+                entries.forEach(function (entry) {
+                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}(-[A-Z]{2})?$/)) {
+                        var language = entry.name;
+                        var $li = $("<li>")
+                            .text(entry.name)
+                            .data("locale", language)
+                            .appendTo($ul);
+                    }
+                });
             });
         });
     }

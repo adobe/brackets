@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         NativeApp           = require("utils/NativeApp"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         BuildNumberJSON     = require("text!buildNumber.json");
     
     // Current build number.
@@ -69,7 +70,7 @@ define(function (require, exports, module) {
     //      {String} name Name of the feature
     //      {String} description Description of the feature
     //
-    // This array must be sorted by buildNumber
+    // This array must be reverse sorted by buildNumber (newest build info first)
     
     /**
      * @private
@@ -79,8 +80,16 @@ define(function (require, exports, module) {
     
     /**
      * Get a data structure that has information for all builds of Brackets.
+     *
+     * If force is true, the information is always fetched from _versionInfoURL.
+     * If force is false, we try to use cached information. If more than
+     * 24 hours have passed since the last fetch, or if cached data can't be found, 
+     * the data is fetched again.
+     *
+     * If new data is fetched and dontCache is false, the data is saved in preferences
+     * for quick fetching later.
      */
-    function _getVersionInformation(force, dontCache) {
+    function _getUpdateInformation(force, dontCache) {
         var result = new $.Deferred();
         var fetchData = false;
         var data;
@@ -91,7 +100,7 @@ define(function (require, exports, module) {
         }
         
         // If we don't have data saved in prefs, fetch
-        data = _prefs.getValue("versionInfo");
+        data = _prefs.getValue("updateInfo");
         if (!data) {
             fetchData = true;
         }
@@ -112,7 +121,7 @@ define(function (require, exports, module) {
                             if (!dontCache) {
                                 _lastInfoURLFetchTime = (new Date()).getTime();
                                 _prefs.setValue("lastInfoURLFetchTime", _lastInfoURLFetchTime);
-                                _prefs.setValue("versionInfo", data);
+                                _prefs.setValue("updateInfo", data);
                             }
                             result.resolve(data);
                         } catch (e) {
@@ -126,6 +135,13 @@ define(function (require, exports, module) {
                     // When loading data for unit tests, the error handler is 
                     // called but the responseText is valid. Try to use it here,
                     // but *don't* save the results in prefs.
+                    
+                    if (!jqXHR.responseText) {
+                        // Text is NULL or empty string, reject().
+                        result.reject();
+                        return;
+                    }
+                    
                     try {
                         data = JSON.parse(jqXHR.responseText);
                         result.resolve(data);
@@ -166,11 +182,6 @@ define(function (require, exports, module) {
         return null;
     }
     
-    function _sanitizeString(str) {
-        // Simple string sanitize - entity encode angle brackets
-        return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-    
     /**
      * Show a dialog that shows the update 
      */
@@ -194,18 +205,18 @@ define(function (require, exports, module) {
             item.newFeatures.forEach(function (feature, index) {
                 $features.append(
                     "<li><b>" +
-                        _sanitizeString(feature.name) +
+                        StringUtils.htmlEscape(feature.name) +
                         "</b> - " +
-                        _sanitizeString(feature.description) +
+                        StringUtils.htmlEscape(feature.description) +
                         "</li>"
                 );
             });
             
             var $item = $("<div>")
                 .append("<h3>" +
-                        _sanitizeString(item.versionString) +
+                        StringUtils.htmlEscape(item.versionString) +
                         " - " +
-                        _sanitizeString(item.dateString) +
+                        StringUtils.htmlEscape(item.dateString) +
                         " (<a href='#' data-url='" + item.releaseNotesURL + "'>" +
                         Strings.RELEASE_NOTES +
                         "</a>)</h3>")
@@ -233,63 +244,60 @@ define(function (require, exports, module) {
      * If an update is available, show the "update available" notification icon in the title bar.
      *
      * @param {boolean} force If true, always show the notification dialog.
+     * @param {Object} _testValues This should only be used for testing purposes. See comments for details.
      * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
      */
-    function checkForUpdate(force) {
-        // There is a secret second parameter. If the second param is an Object, fields
+    function checkForUpdate(force, _testValues) {
+        // The second param, if non-null, is an Object containing value overrides. Values
         // in the object temporarily override the local values. This should *only* be used for testing.
         // If any overrides are set, permanent changes are not made (including showing
         // the update notification icon and saving prefs).
         var oldValues;
-        var usingOverrides = false;
+        var usingOverrides = false; // true if any of the values are overridden.
         var result = new $.Deferred();
         
-        if (arguments.length > 1) {
-            var overrides = Array.prototype.slice.call(arguments)[1];
-            
+        if (_testValues) {
             oldValues = {};
             
-            if (overrides.hasOwnProperty("_buildNumber")) {
+            if (_testValues.hasOwnProperty("_buildNumber")) {
                 oldValues._buildNumber = _buildNumber;
-                _buildNumber = overrides._buildNumber;
+                _buildNumber = _testValues._buildNumber;
                 usingOverrides = true;
             }
 
-            if (overrides.hasOwnProperty("_lastNotifiedBuildNumber")) {
+            if (_testValues.hasOwnProperty("_lastNotifiedBuildNumber")) {
                 oldValues._lastNotifiedBuildNumber = _lastNotifiedBuildNumber;
-                _lastNotifiedBuildNumber = overrides._lastNotifiedBuildNumber;
+                _lastNotifiedBuildNumber = _testValues._lastNotifiedBuildNumber;
                 usingOverrides = true;
             }
 
-            if (overrides.hasOwnProperty("_versionInfoURL")) {
+            if (_testValues.hasOwnProperty("_versionInfoURL")) {
                 oldValues._versionInfoURL = _versionInfoURL;
-                _versionInfoURL = overrides._versionInfoURL;
+                _versionInfoURL = _testValues._versionInfoURL;
                 usingOverrides = true;
             }
         }
         
-        _getVersionInformation(force || usingOverrides, usingOverrides)
+        _getUpdateInformation(force || usingOverrides, usingOverrides)
             .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
                 
                 if (allUpdates) {
                     // Always show the "update available" icon if any updates are available
-                    if (!usingOverrides) {
-                        var $updateNotification = $("#update-notification");
-                        
-                        $updateNotification.show();
-                        if (!_addedClickHandler) {
-                            _addedClickHandler = true;
-                            $updateNotification.on("click", function () {
-                                checkForUpdate(true);
-                            });
-                        }
+                    var $updateNotification = $("#update-notification");
+                    
+                    $updateNotification.show();
+                    if (!_addedClickHandler) {
+                        _addedClickHandler = true;
+                        $updateNotification.on("click", function () {
+                            checkForUpdate(true);
+                        });
                     }
                 
                     // Only show the update dialog if force = true, or if the user hasn't been 
                     // alerted of this update
-                    if (force || _stripOldVersionInfo(allUpdates, _lastNotifiedBuildNumber)) {
+                    if (force || allUpdates[0].buildNumber >  _lastNotifiedBuildNumber) {
                         _showUpdateNotificationDialog(allUpdates);
                         
                         // Update prefs with the last notified build number
