@@ -145,20 +145,10 @@ define(function (require, exports, module) {
                 (startChar === "'" || startChar === '"') &&
                 endChar === startChar) {
             
-            // Scan backward to find an equal sign before the end quote. If found, 
+            // Find an equal sign before the end quote. If found, 
             // then the user may be entering an attribute value right before 
             // another attribute and we're getting a false balanced string.
-            var i = attrValue.length - 2;
-            while (i > 0) {
-                if (attrValue.charAt(i) === "=") {
-                    foundEqualSign = true;
-                    break;
-                } else if (attrValue.charAt(i) === " ") {
-                    i--;
-                } else {
-                    break;
-                }
-            }
+            foundEqualSign = (attrValue.match(/\=\s*['"]$/) !== null);
             
             if (!foundEqualSign) {
                 //strip the quotes and return;
