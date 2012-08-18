@@ -149,12 +149,13 @@ define(function (require, exports, module) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
+            tokenType = tagInfo.position.tokenType,
             charCount = 0,
             insertedName = false,
             replaceExistingOne = tagInfo.attr.valueAssigned,
             endQuote = "";
 
-        if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+        if (tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
             // Append an equal sign and two double quotes if the current attr is not an empty attr
             // and then adjust cursor location before the last quote that we just inserted.
@@ -163,7 +164,7 @@ define(function (require, exports, module) {
                 completion += '=""';
                 insertedName = true;
             }
-        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
+        } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
@@ -192,7 +193,7 @@ define(function (require, exports, module) {
         }
         
         // Move the cursor to the right of the existing end quote after value insertion.
-        if (endQuote && tagInfo.attr.hasEndQuote) {
+        if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
             editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
     };
