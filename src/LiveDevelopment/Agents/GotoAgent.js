@@ -142,7 +142,7 @@ define(function GotoAgent(require, exports, module) {
         codeMirror.setCursor(location);
         editor.focus();
 
-        if (! noFlash) {
+        if (!noFlash) {
             codeMirror.setLineClass(location.line, "flash");
             window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
         }
