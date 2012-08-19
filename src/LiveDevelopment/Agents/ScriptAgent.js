@@ -116,26 +116,43 @@ define(function ScriptAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
+        _load = new $.Deferred();
         _urlToScript = {};
         _idToScript = {};
-        _load = new $.Deferred();
-        Inspector.Debugger.enable();
-        Inspector.Debugger.setPauseOnExceptions("uncaught");
-        Inspector.on("DOMAgent.getDocument", _onGetDocument);
-        Inspector.on("Debugger.scriptParsed", _onScriptParsed);
-        Inspector.on("Debugger.scriptFailedToParse", _onScriptFailedToParse);
-        Inspector.on("Debugger.paused", _onPaused);
-        Inspector.on("DOM.childNodeInserted", _onChildNodeInserted);
-        return _load;
+        if (Inspector.type === "chrome") {
+            Inspector.Debugger.enable();
+            Inspector.Debugger.setPauseOnExceptions("uncaught");
+            Inspector.on("DOMAgent.getDocument", _onGetDocument);
+            Inspector.on("Debugger.scriptParsed", _onScriptParsed);
+            Inspector.on("Debugger.scriptFailedToParse", _onScriptFailedToParse);
+            Inspector.on("Debugger.paused", _onPaused);
+            Inspector.on("DOM.childNodeInserted", _onChildNodeInserted);
+        } else if (Inspector.type === "V8") {
+            // WebInspector Command: V8.scripts
+            Inspector.V8.scripts(function callback(res) {
+                // res = [{name, id, lineOffset, columnOffset, lineCount, data, source, sourceStart, sourceLength, scriptType, compilationType, evalFromScript, evalFromLocation}]
+                for (var i in res) {
+                    var info = res[i];
+                    if (info.name[0] !== "/") continue; // TODO: this will not work on windows!
+                    info.url = "file://" + info.name;
+                    info.scriptId = info.id;
+                    _onScriptParsed(info);
+                }
+                _load.resolve();
+            });
+        }
+        return _load.promise();
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("DOMAgent.getDocument", _onGetDocument);
-        Inspector.off("Debugger.scriptParsed", _onScriptParsed);
-        Inspector.off("Debugger.scriptFailedToParse", _onScriptFailedToParse);
-        Inspector.off("Debugger.paused", _onPaused);
-        Inspector.off("DOM.childNodeInserted", _onChildNodeInserted);
+        if (Inspector.type === "chrome") {
+            Inspector.off("DOMAgent.getDocument", _onGetDocument);
+            Inspector.off("Debugger.scriptParsed", _onScriptParsed);
+            Inspector.off("Debugger.scriptFailedToParse", _onScriptFailedToParse);
+            Inspector.off("Debugger.paused", _onPaused);
+            Inspector.off("DOM.childNodeInserted", _onChildNodeInserted);
+        }
     }
 
     // Export public functions

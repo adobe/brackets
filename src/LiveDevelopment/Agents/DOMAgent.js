@@ -285,28 +285,33 @@ define(function DOMAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        _load = new $.Deferred();
-        Inspector.on("Page.frameNavigated", _onFrameNavigated);
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
-        Inspector.on("DOM.documentUpdated", _onDocumentUpdated);
-        Inspector.on("DOM.setChildNodes", _onSetChildNodes);
-        Inspector.on("DOM.childNodeCountUpdated", _onChildNodeCountUpdated);
-        Inspector.on("DOM.childNodeInserted", _onChildNodeInserted);
-        Inspector.on("DOM.childNodeRemoved", _onChildNodeRemoved);
-        Inspector.Page.enable();
-        Inspector.Page.reload();
-        return _load.promise();
+        _idToNode = {};
+        if (Inspector.type === "chrome") {
+            _load = new $.Deferred();
+            Inspector.on("Page.frameNavigated", _onFrameNavigated);
+            Inspector.on("Page.loadEventFired", _onLoadEventFired);
+            Inspector.on("DOM.documentUpdated", _onDocumentUpdated);
+            Inspector.on("DOM.setChildNodes", _onSetChildNodes);
+            Inspector.on("DOM.childNodeCountUpdated", _onChildNodeCountUpdated);
+            Inspector.on("DOM.childNodeInserted", _onChildNodeInserted);
+            Inspector.on("DOM.childNodeRemoved", _onChildNodeRemoved);
+            Inspector.Page.enable();
+            Inspector.Page.reload();
+            return _load.promise();
+        }
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.frameNavigated", _onFrameNavigated);
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
-        Inspector.off("DOM.documentUpdated", _onDocumentUpdated);
-        Inspector.off("DOM.setChildNodes", _onSetChildNodes);
-        Inspector.off("DOM.childNodeCountUpdated", _onChildNodeCountUpdated);
-        Inspector.off("DOM.childNodeInserted", _onChildNodeInserted);
-        Inspector.off("DOM.childNodeRemoved", _onChildNodeRemoved);
+        if (Inspector.type === "chrome") {
+            Inspector.off("Page.frameNavigated", _onFrameNavigated);
+            Inspector.off("Page.loadEventFired", _onLoadEventFired);
+            Inspector.off("DOM.documentUpdated", _onDocumentUpdated);
+            Inspector.off("DOM.setChildNodes", _onSetChildNodes);
+            Inspector.off("DOM.childNodeCountUpdated", _onChildNodeCountUpdated);
+            Inspector.off("DOM.childNodeInserted", _onChildNodeInserted);
+            Inspector.off("DOM.childNodeRemoved", _onChildNodeRemoved);
+        }
     }
 
     // Export private functions

@@ -90,14 +90,19 @@ define(function CSSAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        _load = new $.Deferred();
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
-        return _load.promise();
+        _urlToStyle = {};
+        if (Inspector.type === "chrome") {
+            _load = new $.Deferred();
+            Inspector.on("Page.loadEventFired", _onLoadEventFired);
+            return _load.promise();
+        }
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
+        if (Inspector.type === "chrome") {
+            Inspector.off("Page.loadEventFired", _onLoadEventFired);
+        }
     }
 
     // Export public functions

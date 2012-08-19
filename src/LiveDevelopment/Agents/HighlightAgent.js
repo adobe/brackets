@@ -103,12 +103,16 @@ define(function HighlightAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _highlight = {};
-        Inspector.on("RemoteAgent.highlight", _onRemoteHighlight);
+        if (Inspector.type === "chrome") {
+            Inspector.on("RemoteAgent.highlight", _onRemoteHighlight);
+        }
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("RemoteAgent.highlight", _onRemoteHighlight);
+        if (Inspector.type === "chrome") {
+            Inspector.off("RemoteAgent.highlight", _onRemoteHighlight);
+        }
     }
 
     // Export public functions
