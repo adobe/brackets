@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     'use strict';
     
     // Code that needs to display user strings should call require("strings") to load
-    // src/strings.js. This file will dynically load strings.js for the specified by bracketes.locale.
+    // src/strings.js. This file will dynamically load strings.js for the specified by bracketes.locale.
     // 
     // Translations for other locales should be placed in src/nls/<locale<optional country code>>/strings.js
     // Localization is provided via the i18n plugin.
