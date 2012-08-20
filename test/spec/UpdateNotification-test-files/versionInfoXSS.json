@@ -1,0 +1,65 @@
+[
+    {
+        "buildNumber": 93,
+        "versionString": "<script>alert('GOTCHA!')</script>Sprint 12",
+        "dateString": "<script>alert('BOOM!')</script>8-13-2012",
+        "releaseNotesURL": "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-12",
+        "downloadURL": "https://github.com/adobe/brackets/downloads",
+        "newFeatures": [
+            {
+                "name": "<script>alert('PWNED!')</script>Code Completion for HTML Attributes",
+                "description": "<script>alert('SECURITY BREACH!')</script>Basic code hinting for HTML attribute names. Appears when you type Space within a tag (or press Ctrl+Space)."
+            },
+            {
+                "name": "CEF3 Shell Enhancements",
+                "description": "Add support for Live Development and fix a bunch of bugs. All unit tests now pass in the CEF3 shell."
+            },
+            {
+                "name": "Other Enhancements",
+                "description": "Add Move Line(s) Up/Down command. Add Save All command."
+            }
+        ]
+    },
+    {
+        "buildNumber": 72,
+        "versionString": "Sprint 11",
+        "dateString": "7-20-2012",
+        "releaseNotesURL": "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-11",
+        "downloadURL": "https://github.com/adobe/brackets/downloads",
+        "newFeatures": [
+            {
+                "name": "Code Completion for HTML Tags",
+                "description": "Basic code hinting for HTML tag names. Appears when you type \"<\" or Ctrl+Space."
+            },
+            {
+                "name": "CEF3 Shell Enhancements",
+                "description": "Fix bugs and get most unit tests passing in the experimental new shell, based on Chromium Embedding Framework 3 (Brackets currently uses CEF 1)."
+            },
+            {
+                "name": "Performance Improvements",
+                "description": "Improve performance when switching projects."
+            }
+        ]
+    },
+    {
+        "buildNumber": 56,
+        "versionString": "Sprint 10",
+        "dateString": "6-25-2012",
+        "releaseNotesURL": "https://github.com/adobe/brackets/wiki/Release-Notes:-Sprint-10",
+        "downloadURL": "https://github.com/adobe/brackets/downloads",
+        "newFeatures": [
+            {
+                "name": "JavaScript Quick Edit",
+                "description": "Hitting Cmd/Ctrl-E on a function name opens all function definitions with that name in an inline editor."
+            },
+            {
+                "name": "HTML Context Menus",
+                "description": "This extends the previous menu API to support context menus."
+            },
+            {
+                "name": "Extension Stylesheets",
+                "description": "Extensions may now use the ExtensionUtils.loadStyleSheet() API to load a custom stylesheet for extension UI."
+            }
+        ]
+    }
+]

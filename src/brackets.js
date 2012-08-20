@@ -90,6 +90,7 @@ define(function (require, exports, module) {
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
+        UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams;
 
     // Local variables
@@ -232,6 +233,7 @@ define(function (require, exports, module) {
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : require("utils/ExtensionUtils"),
+            UpdateNotification      : require("utils/UpdateNotification"),
             doneLoading             : false
         };
 
@@ -341,6 +343,11 @@ define(function (require, exports, module) {
             _initTest();
             _initExtensions().always(_onBracketsReady);
         });
+        
+        // Check for updates
+        if (!params.get("skipUpdateCheck")) {
+            UpdateNotification.checkForUpdate();
+        }
     }
             
     // Main Brackets initialization

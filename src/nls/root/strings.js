@@ -96,6 +96,10 @@ define({
 
     "OPEN_FILE"                         : "Open File",
 
+    "RELEASE_NOTES"                     : "Release Notes",
+    "NO_UPDATE_TITLE"                   : "You're up to date!",
+    "NO_UPDATE_MESSAGE"                 : "You are running the latest version of Brackets.",
+
     // Switch language
     "LANGUAGE_TITLE"                    : "Switch Language",
     "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
@@ -106,7 +110,7 @@ define({
      * ProjectManager
      */
 
-     "UNTITLED" : "Untitled",
+    "UNTITLED" : "Untitled",
 
     /**
      * Command Name Constants
@@ -169,6 +173,7 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "New Brackets Window",
     "CMD_USE_TAB_CHARS"                   : "Use Tab Characters",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
+    "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 
     // Help menu commands
     "CMD_ABOUT"                           : "About",
@@ -196,5 +201,9 @@ define({
     "ABOUT_TEXT_LINE2"                     : "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.",
     "ABOUT_TEXT_LINE3"                     : "Notices; terms and conditions pertaining to third party software are located at ",
     "ABOUT_TEXT_LINE4"                     : " and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE5"                     : "Documentation and source at "
+    "ABOUT_TEXT_LINE5"                     : "Documentation and source at ",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of Brackets available! Click here for details.",
+    "UPDATE_AVAILABLE_TITLE"               : "Update Available",
+    "UPDATE_MESSAGE"                       : "Hey, there's a new build of Brackets available. Here are some of the new features:",
+    "GET_IT_NOW"                           : "Get it now!"
 });

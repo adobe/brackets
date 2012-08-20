@@ -111,12 +111,19 @@ define(function (require, exports, module) {
         liveBrowserUserDataDir = path;
     }
     
+    /**
+     * Opens a URL in the system default browser
+     */
+    function openURLInDefaultBrowser(url) {
+        brackets.app.openURLInDefaultBrowser(function (err) {}, url);
+    }
     
 
     // Define public API
     exports.openLiveBrowser = openLiveBrowser;
     exports.closeLiveBrowser = closeLiveBrowser;
     exports.closeAllLiveBrowsers = closeAllLiveBrowsers;
+    exports.openURLInDefaultBrowser = openURLInDefaultBrowser;
     //API for Unit Tests
     exports._setLiveBrowserUserDataDir = _setLiveBrowserUserDataDir;
 });

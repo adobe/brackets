@@ -931,6 +931,8 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
         menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.CHECK_FOR_UPDATE);
 
 
         /*

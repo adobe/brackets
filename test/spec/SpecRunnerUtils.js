@@ -136,6 +136,9 @@ define(function (require, exports, module) {
             // setup extension loading in the test window
             params.put("extensions", _doLoadExtensions ? "default,user" : "default");
             
+            // disable update check in test windows
+            params.put("skipUpdateCheck", true);
+            
             _testWindow = window.open(getBracketsSourceRoot() + "/index.html?" + params.toString(), "_blank", optionsStr);
             
             _testWindow.executeCommand = function executeCommand(cmd, args) {
