@@ -148,6 +148,8 @@ define(function (require, exports, module) {
             // Find an equal sign before the end quote. If found, 
             // then the user may be entering an attribute value right before 
             // another attribute and we're getting a false balanced string.
+            // An example of this case is <link rel" href="foo"> where the 
+            // cursor is right after the first double quote.
             foundEqualSign = (attrValue.match(/\=\s*['"]$/) !== null);
             
             if (!foundEqualSign) {

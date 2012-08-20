@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -204,14 +204,6 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 4, ch: 10 });   // cursor between = and space
                 expectNoHints(HTMLCodeHints.attrHintProvider);
                 testEditor.setCursorPos({ line: 4, ch: 11 });   // cursor between space and '
-                expectNoHints(HTMLCodeHints.attrHintProvider);
-            });
-            xit("should NOT list hints within attribute value", function () {
-                testEditor.setCursorPos({ line: 3, ch: 10 });   // cursor between ' and start of value ("f")
-                expectNoHints(HTMLCodeHints.attrHintProvider);
-                testEditor.setCursorPos({ line: 3, ch: 11 });   // cursor in middle of value
-                expectNoHints(HTMLCodeHints.attrHintProvider);
-                testEditor.setCursorPos({ line: 3, ch: 13 });   // cursor between end of value ("o") and '
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             it("should NOT list hints to right of attribute value with no separating space", function () {

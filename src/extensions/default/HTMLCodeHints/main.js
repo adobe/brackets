@@ -161,16 +161,16 @@ define(function (require, exports, module) {
             // and then adjust cursor location before the last quote that we just inserted.
             if (!replaceExistingOne && attributes && attributes[completion] &&
                     attributes[completion].type !== "flag") {
-                completion += '=""';
+                completion += "=\"\"";
                 insertedName = true;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
-            }
-            if (endQuote) {
-                completion += endQuote;
+                if (endQuote) {
+                    completion += endQuote;
+                }
             }
         }
 
@@ -190,10 +190,8 @@ define(function (require, exports, module) {
             // Since we're now inside the double-quotes we just inserted,
             // mmediately pop up the attribute value hint.
             CodeHintManager.showHint(editor);
-        }
-        
-        // Move the cursor to the right of the existing end quote after value insertion.
-        if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
+        } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
+            // Move the cursor to the right of the existing end quote after value insertion.
             editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
     };
@@ -248,6 +246,11 @@ define(function (require, exports, module) {
                 unfiltered = [];
 
             if (attrName) {
+                // We look up attribute values with tagName plus a slash and attrName first.  
+                // If the lookupfails, then we fall back to look up with attrName only. Most 
+                // of the attributes in JSON are using attribute name only as their properties, 
+                // but in some cases like "type" attribute, we have different properties like 
+                // "script/type", "link/type" and "button/type".
                 var tagPlusAttr = tagName + "/" + attrName,
                     attrInfo = attributes[tagPlusAttr] || attributes[attrName];
                 
