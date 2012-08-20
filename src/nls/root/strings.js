@@ -106,7 +106,7 @@ define({
      * ProjectManager
      */
 
-     "UNTITLED" : "Untitled",
+    "UNTITLED" : "Untitled",
 
     /**
      * Command Name Constants
