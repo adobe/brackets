@@ -31,6 +31,9 @@ require.config({
         "i18n" : "thirdparty/i18n"
     },
     // Use custom brackets property until CEF sets the correct navigator.language
+    // NOTE: When we change to navigator.language here, we also should change to
+    // navigator.language in ExtensionLoader (when making require contexts for each
+    // extension).
     locale: window.localStorage.getItem("locale") || brackets.app.language
 });
 

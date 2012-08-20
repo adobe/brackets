@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, brackets */
+/*global define, $, CodeMirror, brackets, window */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it
@@ -63,8 +63,10 @@ define(function (require, exports, module) {
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
                 paths: {
-                    "text" : "../../../thirdparty/text"
-                }
+                    "text" : "../../../thirdparty/text",
+                    "i18n" : "../../../thirdparty/i18n"
+                },
+                locale: window.localStorage.getItem("locale") || brackets.app.language
             });
         contexts[name] = extensionRequire;
 
