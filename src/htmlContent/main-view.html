@@ -72,6 +72,10 @@
                 
                 <!-- Toolbar -->
                 <div class="buttons">
+                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}">
+                        &#9873;
+                    </span>
+
                     <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>
                     
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
@@ -189,6 +193,20 @@
         </div>
         <div class="modal-footer">
             <a href="#" class="dialog-button btn primary" data-button-id="ok">{{CLOSE}}</a>
+        </div>
+    </div>
+    <div class="update-dialog template modal hide">
+        <div class="modal-header">
+            <h1 class="dialog-title">{{UPDATE_AVAILABLE_TITLE}}</h1>
+        </div>
+        <div class="modal-body">
+            <p class="dialog-message">{{UPDATE_MESSAGE}}</p>
+            <div class="update-info">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="dialog-button btn left" data-button-id="cancel">{{CANCEL}}</a>
+            <a href="#" class="dialog-button btn primary" data-button-id="download">{{GET_IT_NOW}}</a>
         </div>
     </div>
     <div id="context-menu-bar">
