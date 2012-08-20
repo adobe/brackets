@@ -38,7 +38,7 @@ define(function (require, exports, module) {
 
 
     var hintProviders = [],
-        hintList,  // initialized by htmlContentLoadComplete handler
+        hintList,
         shouldShowHintsOnKeyUp = false;
 
 
