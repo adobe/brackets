@@ -242,6 +242,9 @@ define(function (require, exports, module) {
             var firstChar = ctx.token.string[0],
                 lastChar = ctx.token.string[strLength - 1];
             
+            // We get here only when the cursor is immediately on the right of the end quote
+            // of an attribute value. So we want to return an empty tag info so that the caller
+            // can dismiss the code hint popup if it is still open.
             if (firstChar === lastChar && (firstChar === "'" || firstChar === "\"")) {
                 return createTagInfo();
             }

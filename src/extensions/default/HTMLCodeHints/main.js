@@ -247,7 +247,7 @@ define(function (require, exports, module) {
 
             if (attrName) {
                 // We look up attribute values with tagName plus a slash and attrName first.  
-                // If the lookupfails, then we fall back to look up with attrName only. Most 
+                // If the lookup fails, then we fall back to look up with attrName only. Most 
                 // of the attributes in JSON are using attribute name only as their properties, 
                 // but in some cases like "type" attribute, we have different properties like 
                 // "script/type", "link/type" and "button/type".
