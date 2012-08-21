@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Editor          = brackets.getModule("editor/Editor").Editor;
     
     // Modules from testWindow
-    var HTMLCodeHints;
+    var HTMLCodeHints, CodeHintManager;
 
     describe("HTML Attribute Hinting", function () {
 
@@ -62,6 +62,7 @@ define(function (require, exports, module) {
                     // Get access to the extension's module, so we can unit-test its APIs directly
                     var extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("HTMLCodeHints");
                     HTMLCodeHints = extensionRequire("main");
+                    CodeHintManager = testWindow.brackets.getModule("editor/CodeHintManager");
                 });
                 
                 // Once entire spec has finished, then close the window
@@ -203,14 +204,6 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 4, ch: 10 });   // cursor between = and space
                 expectNoHints(HTMLCodeHints.attrHintProvider);
                 testEditor.setCursorPos({ line: 4, ch: 11 });   // cursor between space and '
-                expectNoHints(HTMLCodeHints.attrHintProvider);
-            });
-            it("should NOT list hints within attribute value", function () {
-                testEditor.setCursorPos({ line: 3, ch: 10 });   // cursor between ' and start of value ("f")
-                expectNoHints(HTMLCodeHints.attrHintProvider);
-                testEditor.setCursorPos({ line: 3, ch: 11 });   // cursor in middle of value
-                expectNoHints(HTMLCodeHints.attrHintProvider);
-                testEditor.setCursorPos({ line: 3, ch: 13 });   // cursor between end of value ("o") and '
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             it("should NOT list hints to right of attribute value with no separating space", function () {
@@ -361,6 +354,14 @@ define(function (require, exports, module) {
                 selectHint(HTMLCodeHints.attrHintProvider, "class");
                 expect(testDocument.getLine(4)).toBe("  <h3 id = 'bar' class=\"\">Subheading</h3>");
                 expectCursorAt({ line: 4, ch: 24 });            // cursor between the two "s
+            });
+            
+            it("should pop up attribute value hints after attribute name has been inserted", function () {
+                testEditor.setCursorPos({ line: 4, ch: 17 });   // cursor between space and >
+                selectHint(HTMLCodeHints.attrHintProvider, "dir");
+                expect(testDocument.getLine(4)).toBe("  <h3 id = 'bar' dir=\"\">Subheading</h3>");
+                expect(CodeHintManager._getCodeHintList()).toBeTruthy();
+                expect(CodeHintManager._getCodeHintList().isOpen()).toBe(true);
             });
             
             it("should NOT insert =\"\" after valueless attribute", function () {

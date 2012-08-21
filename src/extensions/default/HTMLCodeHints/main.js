@@ -149,27 +149,34 @@ define(function (require, exports, module) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
+            tokenType = tagInfo.position.tokenType,
             charCount = 0,
-            adjustCursor = false,
-            replaceExistingOne = tagInfo.attr.valueAssigned;
+            insertedName = false,
+            replaceExistingOne = tagInfo.attr.valueAssigned,
+            endQuote = "";
 
-        if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+        if (tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
-        } else if (tagInfo.position.tokenType === HTMLUtils.ATTR_VALUE) {
+            // Append an equal sign and two double quotes if the current attr is not an empty attr
+            // and then adjust cursor location before the last quote that we just inserted.
+            if (!replaceExistingOne && attributes && attributes[completion] &&
+                    attributes[completion].type !== "flag") {
+                completion += "=\"\"";
+                insertedName = true;
+            }
+        } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
+            if (!tagInfo.attr.hasEndQuote) {
+                endQuote = tagInfo.attr.quoteChar;
+                if (endQuote) {
+                    completion += endQuote;
+                }
+            }
         }
 
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
-
-        // Append an equal sign and two double quotes if the current attr is not an empty attr
-        // and then adjust cursor location before the last quote that we just inserted.
-        if (!replaceExistingOne && attributes && attributes[completion] &&
-                attributes[completion].type !== "flag") {
-            completion += "=\"\"";
-            adjustCursor = true;
-        }
 
         if (start.ch !== end.ch) {
             editor.document.replaceRange(completion, start, end);
@@ -177,8 +184,15 @@ define(function (require, exports, module) {
             editor.document.replaceRange(completion, start);
         }
 
-        if (adjustCursor) {
+        if (insertedName) {
             editor.setCursorPos(start.line, start.ch + completion.length - 1);
+            
+            // Since we're now inside the double-quotes we just inserted,
+            // mmediately pop up the attribute value hint.
+            CodeHintManager.showHint(editor);
+        } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
+            // Move the cursor to the right of the existing end quote after value insertion.
+            editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }
     };
 
@@ -194,12 +208,19 @@ define(function (require, exports, module) {
      */
     AttrHints.prototype.getQueryInfo = function (editor, cursor) {
         var tagInfo = HTMLUtils.getTagInfo(editor, cursor),
-            query = {queryStr: null};
-
-        if (tagInfo.position.tokenType === HTMLUtils.ATTR_NAME) {
+            query = {queryStr: null},
+            tokenType = tagInfo.position.tokenType;
+ 
+        if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
             query.tag = tagInfo.tagName;
+            
             if (tagInfo.position.offset >= 0) {
-                query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                if (tokenType === HTMLUtils.ATTR_NAME) {
+                    query.queryStr = tagInfo.attr.name.slice(0, tagInfo.position.offset);
+                } else {
+                    query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
+                    query.attrName = tagInfo.attr.name;
+                }
             }
 
             // TODO: get existing attributes for the current tag and add them to query.usedAttr
@@ -220,10 +241,25 @@ define(function (require, exports, module) {
 
         if (query.tag && query.queryStr !== null) {
             var tagName = query.tag,
+                attrName = query.attrName,
                 filter = query.queryStr,
                 unfiltered = [];
 
-            if (tags && tags[tagName]) {
+            if (attrName) {
+                // We look up attribute values with tagName plus a slash and attrName first.  
+                // If the lookup fails, then we fall back to look up with attrName only. Most 
+                // of the attributes in JSON are using attribute name only as their properties, 
+                // but in some cases like "type" attribute, we have different properties like 
+                // "script/type", "link/type" and "button/type".
+                var tagPlusAttr = tagName + "/" + attrName,
+                    attrInfo = attributes[tagPlusAttr] || attributes[attrName];
+                
+                if (attrInfo && attrInfo.type === "boolean") {
+                    unfiltered = ["false", "true"];
+                } else {
+                    unfiltered = attrInfo.attribOption;
+                }
+            } else if (tags && tags[tagName]) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
 
                 // TODO: exclude existing attributes from unfiltered array
@@ -247,7 +283,7 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     AttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return key === " ";
+        return (key === " " || key === "'" || key === "\"");
     };
 
     var tagHints = new TagHints();

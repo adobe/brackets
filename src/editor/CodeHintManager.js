@@ -37,7 +37,8 @@ define(function (require, exports, module) {
         ViewUtils       = require("utils/ViewUtils");
 
 
-    var hintList,  // initialized by htmlContentLoadComplete handler
+    var hintProviders = [],
+        hintList,
         shouldShowHintsOnKeyUp = false;
 
 
@@ -49,7 +50,6 @@ define(function (require, exports, module) {
      * to include: extensibility API, HTML attributes hints, JavaScript hints, CSS hints
      */
     function CodeHintList() {
-        this.hintProviders = [];
         this.currentProvider = null;
         this.query = {queryStr: null};
         this.displayList = [];
@@ -67,9 +67,6 @@ define(function (require, exports, module) {
 
         this.$hintMenu.append($toggle)
             .append("<ul class='dropdown-menu'></ul>");
-
-        $("#codehint-menu-bar > ul").append(this.$hintMenu);
-
     }
 
     /**
@@ -79,6 +76,7 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
         this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos());
+        this.close();
     };
 
     /**
@@ -93,7 +91,10 @@ define(function (require, exports, module) {
         );
 
         var $item = $("<li><a href='#'><span class='codehint-item'>" + displayName + "</span></a></li>")
-            .on("click", function () {
+            .on("click", function (e) {
+                // Don't let the click propagate upward (otherwise it will hit the close handler in
+                // bootstrap-dropdown).
+                e.stopPropagation();
                 self._handleItemClick(name);
             });
 
@@ -197,9 +198,6 @@ define(function (require, exports, module) {
                     // Enter/return key
                     // Trigger a click handler to commmit the selected item
                     $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
-                    
-                    // Close the list
-                    this.close();
                 }
             }
             
@@ -230,7 +228,7 @@ define(function (require, exports, module) {
     CodeHintList.prototype.isOpen = function () {
         // We don't get a notification when the dropdown closes. The best
         // we can do is keep an "opened" flag and check to see if we
-        // still have the "open" class applied.        
+        // still have the "open" class applied.
         if (this.opened && !this.$hintMenu.hasClass("open")) {
             this.opened = false;
         }
@@ -249,7 +247,7 @@ define(function (require, exports, module) {
         Menus.closeAll();
 
         this.currentProvider = null;
-        $.each(this.hintProviders, function (index, item) {
+        $.each(hintProviders, function (index, item) {
             var query = item.getQueryInfo(self.editor, self.editor.getCursorPos());
             if (query.queryStr !== null) {
                 self.query = query;
@@ -264,6 +262,9 @@ define(function (require, exports, module) {
         this.updateList();
     
         if (this.displayList.length) {
+            // Need to add the menu to the DOM before trying to calculate its ideal location.
+            $("#codehint-menu-bar > ul").append(this.$hintMenu);
+            
             var hintPos = this.calcHintListLocation();
             
             this.$hintMenu.addClass("open")
@@ -280,11 +281,19 @@ define(function (require, exports, module) {
      * Closes the hint list
      */
     CodeHintList.prototype.close = function () {
+        // TODO: Due to #1381, this won't get called if the user clicks out of the code hint menu.
+        // That's (sort of) okay right now since it doesn't really matter if a single old invisible
+        // code hint list is lying around (it'll get closed the next time the user pops up a code
+        // hint). Once #1381 is fixed this issue should go away.
         this.$hintMenu.removeClass("open");
         this.opened = false;
         this.currentProvider = null;
         
         PopUpManager.removePopUp(this.$hintMenu);
+        this.$hintMenu.remove();
+        if (hintList === this) {
+            hintList = null;
+        }
     };
         
     /**
@@ -338,13 +347,16 @@ define(function (require, exports, module) {
 
         return itemsPerPage;
     };
-
         
      /**
       * Show the code hint list near the current cursor position for the specified editor
       * @param {Editor}
       */
-    function _showHint(editor) {
+    function showHint(editor) {
+        if (hintList) {
+            hintList.close();
+        }
+        hintList = new CodeHintList();
         hintList.open(editor);
     }
     
@@ -358,11 +370,11 @@ define(function (require, exports, module) {
         
         // Check for Control+Space
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
-            _showHint(editor);
+            showHint(editor);
             event.preventDefault();
         } else if (event.type === "keypress") {
             // Check if any provider wants to show hints on this key.
-            $.each(hintList.hintProviders, function (index, item) {
+            $.each(hintProviders, function (index, item) {
                 if (item.shouldShowHintsOnKey(String.fromCharCode(event.charCode))) {
                     provider = item;
                     return false;
@@ -373,7 +385,7 @@ define(function (require, exports, module) {
         } else if (event.type === "keyup") {
             if (shouldShowHintsOnKeyUp) {
                 shouldShowHintsOnKeyUp = false;
-                _showHint(editor);
+                showHint(editor);
             }
         }
 
@@ -408,7 +420,7 @@ define(function (require, exports, module) {
      * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {
-        hintList.hintProviders.push(providerInfo);
+        hintProviders.push(providerInfo);
     }
 
     /**
@@ -417,16 +429,10 @@ define(function (require, exports, module) {
     function _getCodeHintList() {
         return hintList;
     }
-
-    // Initialize variables and listeners that depend on the HTML DOM
-    $(brackets).on("htmlContentLoadComplete", function () {
-        // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
-        // and different types of hint list when other types of hinting is added.
-        hintList = new CodeHintList();
-    });
     
     // Define public API
     exports.handleKeyEvent          = handleKeyEvent;
+    exports.showHint                = showHint;
     exports._getCodeHintList        = _getCodeHintList;
     exports.registerHintProvider    = registerHintProvider;
 });
