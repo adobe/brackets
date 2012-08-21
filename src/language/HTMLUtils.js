@@ -133,27 +133,41 @@ define(function (require, exports, module) {
      * @return { val:{string}, offset:{number}}
      */
     function _extractAttrVal(ctx) {
-        var attrValue = ctx.token.string;
-        var startChar = attrValue.charAt(0);
-        var endChar = attrValue.charAt(attrValue.length - 1);
-        var offset = _offsetInToken(ctx);
+        var attrValue = ctx.token.string,
+            startChar = attrValue.charAt(0),
+            endChar = attrValue.charAt(attrValue.length - 1),
+            offset = _offsetInToken(ctx),
+            foundEqualSign = false;
         
         //If this is a fully quoted value, return the whole
         //thing regardless of position
         if (attrValue.length > 1 &&
                 (startChar === "'" || startChar === '"') &&
                 endChar === startChar) {
-            //strip the quotes and return;
-            attrValue = attrValue.substring(1, attrValue.length - 1);
-            offset = offset - 1 > attrValue.length ? attrValue.length : offset - 1;
-            return {val: attrValue, offset: offset};
+            
+            // Find an equal sign before the end quote. If found, 
+            // then the user may be entering an attribute value right before 
+            // another attribute and we're getting a false balanced string.
+            // An example of this case is <link rel" href="foo"> where the 
+            // cursor is right after the first double quote.
+            foundEqualSign = (attrValue.match(/\=\s*['"]$/) !== null);
+            
+            if (!foundEqualSign) {
+                //strip the quotes and return;
+                attrValue = attrValue.substring(1, attrValue.length - 1);
+                offset = offset - 1 > attrValue.length ? attrValue.length : offset - 1;
+                return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: true};
+            }
         }
         
-        //The att value it getting edit in progress. There is possible extra
-        //stuff in this token state since the quote isn't closed, so we assume
-        //the stuff from the quote to the current pos is definitely in the attribute 
-        //value.
-        if (offset > 0) {
+        if (foundEqualSign) {
+            var spaceIndex = attrValue.indexOf(" ");
+            attrValue = attrValue.substring(0, (spaceIndex > offset) ? spaceIndex : offset);
+        } else if (offset > 0) {
+            //The att value it getting edit in progress. There is possible extra
+            //stuff in this token state since the quote isn't closed, so we assume
+            //the stuff from the quote to the current pos is definitely in the attribute 
+            //value.
             attrValue = attrValue.substring(0, offset);
         }
         
@@ -162,9 +176,11 @@ define(function (require, exports, module) {
         if (startChar === "'" || startChar === '"') {
             attrValue = attrValue.substring(1);
             offset--;
+        } else {
+            startChar = "";
         }
         
-        return {val: attrValue, offset: offset};
+        return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: false};
     }
     
     /**
@@ -193,15 +209,17 @@ define(function (require, exports, module) {
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.            
      */
-    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned) {
+    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned, quoteChar, hasEndQuote) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
                       value: attrValue || "",
-                      valueAssigned: valueAssigned || false},
+                      valueAssigned: valueAssigned || false,
+                      quoteChar: quoteChar || "",
+                      hasEndQuote: hasEndQuote || false },
                  position:
                     { tokenType: tokenType || "",
-                      offset: offset || 0} };
+                      offset: offset || 0 } };
     }
     
     /**
@@ -213,10 +231,24 @@ define(function (require, exports, module) {
     function _getTagInfoStartingFromAttrValue(ctx) {
         // Assume we in the attr value
         // and validate that by going backwards
-        var attrInfo = _extractAttrVal(ctx);
-        var attrVal = attrInfo.val;
-        var offset = attrInfo.offset;
+        var attrInfo = _extractAttrVal(ctx),
+            attrVal = attrInfo.val,
+            offset = attrInfo.offset,
+            quoteChar = attrInfo.quoteChar,
+            hasEndQuote = attrInfo.hasEndQuote,
+            strLength = ctx.token.string.length;
         
+        if (ctx.token.className === "string" && ctx.pos.ch === ctx.token.end && strLength > 1) {
+            var firstChar = ctx.token.string[0],
+                lastChar = ctx.token.string[strLength - 1];
+            
+            // We get here only when the cursor is immediately on the right of the end quote
+            // of an attribute value. So we want to return an empty tag info so that the caller
+            // can dismiss the code hint popup if it is still open.
+            if (firstChar === lastChar && (firstChar === "'" || firstChar === "\"")) {
+                return createTagInfo();
+            }
+        }
         
         //Move to the prev token, and check if it's "="
         if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.string !== "=") {
@@ -232,7 +264,7 @@ define(function (require, exports, module) {
         var tagName = _extractTagName(ctx);
  
         //We're good. 
-        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal, true);
+        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal, true, quoteChar, hasEndQuote);
     }
 
     /**
@@ -261,10 +293,12 @@ define(function (require, exports, module) {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
-        var attrInfo = _extractAttrVal(ctx);
-        var attrVal = attrInfo.val;
+        var attrInfo = _extractAttrVal(ctx),
+            attrVal = attrInfo.val,
+            quoteChar = attrInfo.quoteChar,
+            hasEndQuote = attrInfo.hasEndQuote;
         
-        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true);
+        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true, quoteChar, hasEndQuote);
     }
     
     /**
@@ -320,6 +354,9 @@ define(function (require, exports, module) {
                 } else if (ctx.token.className === "attribute") {
                     // check to see if the user is going to add a new attr before an existing one
                     return _getTagInfoStartingFromAttrName(ctx, false);
+                } else if (ctx.token.className === "string") {
+                    // we're either before a "=" or an attribute value.
+                    return createTagInfo();
                 }
 
                 ctx.pos = testPos;
@@ -378,15 +415,9 @@ define(function (require, exports, module) {
         }
         
         if (ctx.token.string === "=") {
-            //we could be between the attr and the value
-            //step back and check
-            if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
-                return createTagInfo();
-            }
-            
-            //The "=" is added, time to hint for values
-            tokenType = ATTR_VALUE;
-            offset = 0;
+            // To discourage unquoted attribute value usage we intentionally return an invalid tag info here.
+            // This will also spare us from handling the conversion between quoted and unquoted attribute values.
+            return createTagInfo();
         }
         
         if (ctx.token.className === "attribute") {
