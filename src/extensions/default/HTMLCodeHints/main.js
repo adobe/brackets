@@ -254,12 +254,14 @@ define(function (require, exports, module) {
                 var tagPlusAttr = tagName + "/" + attrName,
                     attrInfo = attributes[tagPlusAttr] || attributes[attrName];
                 
-                if (attrInfo && attrInfo.type === "boolean") {
-                    unfiltered = ["false", "true"];
-                } else {
-                    unfiltered = attrInfo.attribOption;
+                if (attrInfo) {
+                    if (attrInfo.type === "boolean") {
+                        unfiltered = ["false", "true"];
+                    } else if (attrInfo.attribOption) {
+                        unfiltered = attrInfo.attribOption;
+                    }
                 }
-            } else if (tags && tags[tagName]) {
+            } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
 
                 // TODO: exclude existing attributes from unfiltered array
