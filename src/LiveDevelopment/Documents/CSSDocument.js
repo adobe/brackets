@@ -21,6 +21,7 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $ */
 
@@ -148,6 +149,7 @@ define(function CSSDocumentModule(require, exports, module) {
         }
         return null;
     };
+
 
     /** Event Handlers *******************************************************/
 

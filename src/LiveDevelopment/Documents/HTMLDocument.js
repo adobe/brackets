@@ -21,6 +21,7 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $ */
 
@@ -76,6 +77,7 @@ define(function HTMLDocumentModule(require, exports, module) {
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
     };
+
 
     /** Event Handlers *******************************************************/
 
