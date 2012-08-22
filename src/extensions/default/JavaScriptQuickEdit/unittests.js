@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         PerformanceReporter = brackets.getModule("perf/PerformanceReporter");
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
-        testPath = extensionPath + "/unittest-files",
+        testPath = extensionPath + "/unittest-files/syntax",
         testWindow,
         initInlineTest;
 
