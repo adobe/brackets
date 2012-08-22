@@ -162,7 +162,7 @@ define(function GotoAgent(require, exports, module) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
 
         var result = new $.Deferred();
-        
+
         url = _urlWithoutQueryString(url);
         // Extract the path, also strip the third slash when on Windows
         var path = url.slice(brackets.platform === "win" ? 8 : 7);
