@@ -237,7 +237,7 @@ define(function (require, exports, module) {
     
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
-            window.location.href,
+            FileUtils.convertToNativePath(window.location.href),
             function (err) {
                 // Ignore errors
             }
