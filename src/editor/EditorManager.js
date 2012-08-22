@@ -108,20 +108,7 @@ define(function (require, exports, module) {
     function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
-        var extraKeys = {
-            "Shift-Ctrl-F" : function () {
-                // No-op, handled in FindInFiles.js
-            },
-            "Shift-Cmd-F" : function () {
-                // No-op, handled in FindInFiles.js
-            }
-        };
-        
-        if (additionalKeys) {
-            mergeExtraKeys(null, extraKeys, additionalKeys);
-        }
-
-        return new Editor(doc, makeMasterEditor, mode, container, extraKeys, range);
+        return new Editor(doc, makeMasterEditor, mode, container, additionalKeys, range);
     }
     
     /**

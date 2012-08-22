@@ -21,6 +21,7 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global define, $ */
 
@@ -65,7 +66,7 @@ define(function CSSDocumentModule(require, exports, module) {
         this._highlight = [];
         this.onHighlight = this.onHighlight.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        Inspector.on("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).on("highlight", this.onHighlight);
 */
 
         // Add a ref to the doc since we're listening for change events
@@ -131,7 +132,7 @@ define(function CSSDocumentModule(require, exports, module) {
         $(this.doc).off("deleted", this.onDeleted);
         this.doc.releaseRef();
 /*
-        Inspector.off("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).off("highlight", this.onHighlight);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
 */
@@ -148,6 +149,7 @@ define(function CSSDocumentModule(require, exports, module) {
         }
         return null;
     };
+
 
     /** Event Handlers *******************************************************/
 

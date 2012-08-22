@@ -21,6 +21,7 @@
  * 
  */
 
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
 /*global brackets, define, $, less, window, XMLHttpRequest */
 
@@ -45,6 +46,7 @@ define(function main(require, exports, module) {
         Strings = require("strings");
 
     var config = {
+        experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
         autoconnect: false, // go live automatically after startup?
         highlight: false, // enable highlighting?
@@ -107,7 +109,7 @@ define(function main(require, exports, module) {
 
     /** Toggles LiveDevelopment and synchronizes the state of UI elements that reports LiveDevelopment status */
     function _handleGoLiveCommand() {
-        if (LiveDevelopment.status > 0) {
+        if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
             // TODO Ty: when checkmark support lands, remove checkmark
         } else {
@@ -127,7 +129,9 @@ define(function main(require, exports, module) {
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
-            window.sessionStorage.setItem("live.enabled", status === 3);
+            if (config.autoconnect) {
+                window.sessionStorage.setItem("live.enabled", status === 3);
+            }
         });
 
         // Initialize tooltip for 'not connected' state
@@ -153,15 +157,6 @@ define(function main(require, exports, module) {
         }
     }
 
-    /** Setup autostarting of the live development connection */
-    function _setupAutoStart() {
-        brackets.ready(function() {
-            if (DocumentManager.getCurrentDocument()) {
-                _handleGoLiveCommand();
-            }
-        });
-    }
-
     /** Setup window references to useful LiveDevelopment modules */
     function _setupDebugHelpers() {
         window.ld = LiveDevelopment;
@@ -179,8 +174,14 @@ define(function main(require, exports, module) {
         if (config.debug) {
             _setupDebugHelpers();
         }
-        if (window.sessionStorage.getItem("live.enabled") === "true") {
-            _setupAutoStart();
+
+        // trigger autoconnect
+        if (config.autoconnect && window.sessionStorage.getItem("live.enabled") === "true") {
+            brackets.ready(function () {
+                if (DocumentManager.getCurrentDocument()) {
+                    _handleGoLiveCommand();
+                }
+            });
         }
     }
     window.setTimeout(init);
