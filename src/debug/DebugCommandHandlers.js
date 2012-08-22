@@ -33,7 +33,10 @@ define(function (require, exports, module) {
         Editor                  = require("editor/Editor").Editor,
         Strings                 = require("strings"),
         PerfUtils               = require("utils/PerfUtils"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
+        FileUtils               = require("file/FileUtils"),
+        UpdateNotification      = require("utils/UpdateNotification");
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
@@ -51,7 +54,7 @@ define(function (require, exports, module) {
     function _handleRunUnitTests() {
         if (_testWindow) {
             try {
-                _testWindow.location.reload();
+                _testWindow.location.reload(true);
             } catch (e) {
                 _testWindow = null;  // the window was probably closed
             }
@@ -59,7 +62,7 @@ define(function (require, exports, module) {
 
         if (!_testWindow) {
             _testWindow = window.open("../test/SpecRunner.html", "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
-            _testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
+            _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
         }
     }
     
@@ -130,6 +133,111 @@ define(function (require, exports, module) {
     function _handleNewBracketsWindow() {
         window.open(window.location.href);
     }
+
+    function _handleSwitchLanguage() {
+        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
+        NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
+            dirEntry.createReader().readEntries(function (entries) {
+
+                var $activeLanguage,
+                    $submit,
+                    locale;
+                
+                function setLanguage(event) {
+                    if ($activeLanguage) {
+                        $activeLanguage.css("font-weight", "normal");
+                    }
+                    $activeLanguage = $(event.currentTarget);
+                    locale = $activeLanguage.data("locale");
+                    
+                    $activeLanguage.css("font-weight", "bold");
+                    $submit.attr("disabled", false);
+                }
+    
+                var $modal = $("<div class='modal hide' />");
+    
+                var $header = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
+                    .appendTo($modal);
+                  
+                var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
+                    .appendTo($modal);
+
+                var $p = $("<p class='dialog-message'>")
+                    .text(Strings.LANGUAGE_MESSAGE)
+                    .appendTo($body);
+
+                var $ul = $("<ul>")
+                    .on("click", "li", setLanguage)
+                    .appendTo($p);
+                
+                var $footer = $("<div class='modal-footer' />")
+                    .appendTo($modal);
+                
+                var $cancel = $("<button class='dialog-button btn left'>")
+                    .on("click", function () {
+                        $modal.modal('hide');
+                    })
+                    .text(Strings.LANGUAGE_CANCEL)
+                    .appendTo($footer);
+                
+                $submit = $("<button class='dialog-button btn primary'>")
+                    .text(Strings.LANGUAGE_SUBMIT)
+                    .on("click", function () {
+                        if (!$activeLanguage) {
+                            return;
+                        }
+                        if (locale) {
+                            window.localStorage.setItem("locale", locale);
+                        } else {
+                            window.localStorage.removeItem("locale");
+                        }
+                        
+                        CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
+                    })
+                    .attr("disabled", "disabled")
+                    .appendTo($footer);
+                
+                $modal
+                    .appendTo(window.document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    })
+                    .on("hidden", function () {
+                        $(this).remove();
+                    });
+
+                // add system default
+                var $li = $("<li>")
+                    .text("system default")
+                    .data("locale", null)
+                    .appendTo($ul);
+                
+                // add english
+                $li = $("<li>")
+                    .text("en")
+                    .data("locale", "en")
+                    .appendTo($ul);
+                
+                // inspect all children of dirEntry
+                entries.forEach(function (entry) {
+                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}(-[A-Z]{2})?$/)) {
+                        var language = entry.name;
+                        var $li = $("<li>")
+                            .text(entry.name)
+                            .data("locale", language)
+                            .appendTo($ul);
+                    }
+                });
+            });
+        });
+    }
+    
+    function _handleCheckForUpdates() {
+        UpdateNotification.checkForUpdate(true);
+    }
     
     /* Register all the command handlers */
     
@@ -139,7 +247,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests);
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
     CommandManager.register(Strings.CMD_USE_TAB_CHARS,       Commands.TOGGLE_USE_TAB_CHARS,         _handleUseTabChars)
         .setChecked(Editor.getUseTabChar());
+    
+    CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,    Commands.CHECK_FOR_UPDATE,             _handleCheckForUpdates);
 });

@@ -31,7 +31,8 @@ require.config({
         "test": "../test",
         "perf": "../test/perf",
         "spec": "../test/spec",
-        "text": "thirdparty/text"
+        "text": "thirdparty/text",
+        "i18n" : "thirdparty/i18n"
     }
 });
 

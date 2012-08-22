@@ -281,6 +281,8 @@
 .codehint-menu {
     .dropdown-menu {
         .box-shadow(none);
+        max-height: 160px;
+        overflow-y: auto;
 
         padding: 0;
         
@@ -360,6 +362,14 @@
 
     &.primary {
         background-color: @blue;
+    }
+}
+
+/* Update dialog */
+.update-dialog .modal-body {
+    .update-info {
+        max-height: 200px;
+        overflow: auto;
     }
 }
 

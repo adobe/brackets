@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, brackets */
 
 define(function (require, exports, module) {
     "use strict";
@@ -33,9 +33,15 @@ define(function (require, exports, module) {
         Menus           = require("command/Menus"),
         StringUtils     = require("utils/StringUtils"),
         EditorManager   = require("editor/EditorManager"),
-        PopUpManager    = require("widgets/PopUpManager");
-    
-    
+        PopUpManager    = require("widgets/PopUpManager"),
+        ViewUtils       = require("utils/ViewUtils");
+
+
+    var hintProviders = [],
+        hintList,
+        shouldShowHintsOnKeyUp = false;
+
+
     /**
      * @constructor
      *
@@ -44,12 +50,11 @@ define(function (require, exports, module) {
      * to include: extensibility API, HTML attributes hints, JavaScript hints, CSS hints
      */
     function CodeHintList() {
-        this.hintProviders = [];
         this.currentProvider = null;
         this.query = {queryStr: null};
         this.displayList = [];
         this.options = {
-            maxResults: 8
+            maxResults: 999
         };
 
         this.opened = false;
@@ -62,9 +67,6 @@ define(function (require, exports, module) {
 
         this.$hintMenu.append($toggle)
             .append("<ul class='dropdown-menu'></ul>");
-
-        $("#codehint-menu-bar > ul").append(this.$hintMenu);
-
     }
 
     /**
@@ -74,6 +76,7 @@ define(function (require, exports, module) {
      */
     CodeHintList.prototype._handleItemClick = function (completion) {
         this.currentProvider.handleSelect(completion, this.editor, this.editor.getCursorPos());
+        this.close();
     };
 
     /**
@@ -88,7 +91,10 @@ define(function (require, exports, module) {
         );
 
         var $item = $("<li><a href='#'><span class='codehint-item'>" + displayName + "</span></a></li>")
-            .on("click", function () {
+            .on("click", function (e) {
+                // Don't let the click propagate upward (otherwise it will hit the close handler in
+                // bootstrap-dropdown).
+                e.stopPropagation();
                 self._handleItemClick(name);
             });
 
@@ -152,7 +158,14 @@ define(function (require, exports, module) {
         
         // Highlight the new selected item
         this.selectedIndex = index;
-        $(items[this.selectedIndex]).find("a").addClass("highlight");
+
+        if (this.selectedIndex !== -1) {
+            var $item = $(items[this.selectedIndex]);
+            var $view = this.$hintMenu.find("ul.dropdown-menu");
+
+            ViewUtils.scrollElementIntoView($view, $item, false);
+            $item.find("a").addClass("highlight");
+        }
     };
     
     /**
@@ -164,18 +177,27 @@ define(function (require, exports, module) {
         var keyCode = event.keyCode;
         
         // Up arrow, down arrow and enter key are always handled here
-        if (keyCode === 38 || keyCode === 40 || keyCode === 13) {
+        if (event.type !== "keypress" &&
+                (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
+                keyCode === 33 || keyCode === 34)) {
+
             if (event.type === "keydown") {
-                if (keyCode === 38) { // Up arrow
+                if (keyCode === 38) {
+                    // Up arrow
                     this.setSelectedIndex(this.selectedIndex - 1);
-                } else if (keyCode === 40) { // Down arrow 
+                } else if (keyCode === 40) {
+                    // Down arrow
                     this.setSelectedIndex(this.selectedIndex + 1);
-                } else { // Enter/return key
+                } else if (keyCode === 33) {
+                    // Page Up
+                    this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
+                } else if (keyCode === 34) {
+                    // Page Down
+                    this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
+                } else {
+                    // Enter/return key
                     // Trigger a click handler to commmit the selected item
                     $(this.$hintMenu.find("li")[this.selectedIndex]).triggerHandler("click");
-                    
-                    // Close the list
-                    this.close();
                 }
             }
             
@@ -192,7 +214,7 @@ define(function (require, exports, module) {
         this.query = this.currentProvider.getQueryInfo(this.editor, this.editor.getCursorPos());
         this.updateList();
 
-        // Update the CodeHistList location
+        // Update the CodeHintList location
         if (this.displayList.length) {
             var hintPos = this.calcHintListLocation();
             this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top});
@@ -200,13 +222,13 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Return true if the CodeHistList is open. 
+     * Return true if the CodeHintList is open.
      * @return {Boolean}
      */
     CodeHintList.prototype.isOpen = function () {
         // We don't get a notification when the dropdown closes. The best
         // we can do is keep an "opened" flag and check to see if we
-        // still have the "open" class applied.        
+        // still have the "open" class applied.
         if (this.opened && !this.$hintMenu.hasClass("open")) {
             this.opened = false;
         }
@@ -225,7 +247,7 @@ define(function (require, exports, module) {
         Menus.closeAll();
 
         this.currentProvider = null;
-        $.each(this.hintProviders, function (index, item) {
+        $.each(hintProviders, function (index, item) {
             var query = item.getQueryInfo(self.editor, self.editor.getCursorPos());
             if (query.queryStr !== null) {
                 self.query = query;
@@ -240,6 +262,9 @@ define(function (require, exports, module) {
         this.updateList();
     
         if (this.displayList.length) {
+            // Need to add the menu to the DOM before trying to calculate its ideal location.
+            $("#codehint-menu-bar > ul").append(this.$hintMenu);
+            
             var hintPos = this.calcHintListLocation();
             
             this.$hintMenu.addClass("open")
@@ -256,16 +281,24 @@ define(function (require, exports, module) {
      * Closes the hint list
      */
     CodeHintList.prototype.close = function () {
+        // TODO: Due to #1381, this won't get called if the user clicks out of the code hint menu.
+        // That's (sort of) okay right now since it doesn't really matter if a single old invisible
+        // code hint list is lying around (it'll get closed the next time the user pops up a code
+        // hint). Once #1381 is fixed this issue should go away.
         this.$hintMenu.removeClass("open");
         this.opened = false;
         this.currentProvider = null;
         
         PopUpManager.removePopUp(this.$hintMenu);
+        this.$hintMenu.remove();
+        if (hintList === this) {
+            hintList = null;
+        }
     };
         
     /**
      * Computes top left location for hint list so that the list is not clipped by the window
-     * @ return {Object.<left: Number, top: Number> }
+     * @return {Object.<left: Number, top: Number> }
      */
     CodeHintList.prototype.calcHintListLocation = function () {
         var cursor = this.editor._codeMirror.cursorCoords(),
@@ -292,15 +325,38 @@ define(function (require, exports, module) {
         return {left: posLeft, top: posTop};
     };
 
-    // HintList is a singleton for now. Todo: Figure out broader strategy for hint list across editors
-    // and different types of hint list when other types of hinting is added.
-    var hintList = new CodeHintList();
+    /**
+     * @private
+     * Calculate the number of items per scroll page. Used for PageUp and PageDown.
+     * @return {number}
+     */
+    CodeHintList.prototype.getItemsPerPage = function () {
+        var itemsPerPage = 1,
+            $items = this.$hintMenu.find("li"),
+            $view = this.$hintMenu.find("ul.dropdown-menu"),
+            itemHeight;
+
+        if ($items.length !== 0) {
+            itemHeight = $($items[0]).height();
+            if (itemHeight) {
+                // round down to integer value
+                itemsPerPage = Math.floor($view.height() / itemHeight);
+                itemsPerPage = Math.max(1, Math.min(itemsPerPage, $items.length));
+            }
+        }
+
+        return itemsPerPage;
+    };
         
      /**
       * Show the code hint list near the current cursor position for the specified editor
       * @param {Editor}
       */
-    function _showHint(editor) {
+    function showHint(editor) {
+        if (hintList) {
+            hintList.close();
+        }
+        hintList = new CodeHintList();
         hintList.open(editor);
     }
     
@@ -310,18 +366,32 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      */
     function handleKeyEvent(editor, event) {
-        // Check for Control+Space or "<"
+        var provider = null;
+        
+        // Check for Control+Space
         if (event.type === "keydown" && event.keyCode === 32 && event.ctrlKey) {
-            _showHint(editor);
+            showHint(editor);
             event.preventDefault();
-        } else if (event.type === "keyup" &&
-                   (event.keyCode === 188 ||    // keyCode for "<"
-                    event.keyCode === 32)) {    // keyCode for space character
-            _showHint(editor);
+        } else if (event.type === "keypress") {
+            // Check if any provider wants to show hints on this key.
+            $.each(hintProviders, function (index, item) {
+                if (item.shouldShowHintsOnKey(String.fromCharCode(event.charCode))) {
+                    provider = item;
+                    return false;
+                }
+            });
+            
+            shouldShowHintsOnKeyUp = !!provider;
+        } else if (event.type === "keyup") {
+            if (shouldShowHintsOnKeyUp) {
+                shouldShowHintsOnKeyUp = false;
+                showHint(editor);
+            }
         }
 
         // Pass to the hint list, if it's open
         if (hintList && hintList.isOpen()) {
+            shouldShowHintsOnKeyUp = false;
             hintList.handleKeyEvent(editor, event);
         }
     }
@@ -336,7 +406,8 @@ define(function (require, exports, module) {
      *
      * @param {Object.< getQueryInfo: function(editor, cursor),
      *                  search: function(string),
-     *                  handleSelect: function(string, Editor, cursor)>}
+     *                  handleSelect: function(string, Editor, cursor),
+     *                  shouldShowHintsOnKey: function(string)>}
      *
      * Parameter Details:
      * - getQueryInfo - examines cursor location of editor and returns an object representing
@@ -346,9 +417,10 @@ define(function (require, exports, module) {
      *      of the query object.
      * - handleSelect - takes a completion string and inserts it into the editor near the cursor
      *      position
+     * - shouldShowHintsOnKey - inspects the char code and returns true if it wants to show code hints on that key.
      */
     function registerHintProvider(providerInfo) {
-        hintList.hintProviders.push(providerInfo);
+        hintProviders.push(providerInfo);
     }
 
     /**
@@ -360,6 +432,7 @@ define(function (require, exports, module) {
     
     // Define public API
     exports.handleKeyEvent          = handleKeyEvent;
+    exports.showHint                = showHint;
     exports._getCodeHintList        = _getCodeHintList;
     exports.registerHintProvider    = registerHintProvider;
 });

@@ -123,6 +123,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#CSS.CSSMedia'>CSS.CSSMedia</a>: CSS media query descriptor.</li>
 <li><a href='#CSS.SelectorProfileEntry'>CSS.SelectorProfileEntry</a>: CSS selector profile entry.</li>
 <li><a href='#CSS.SelectorProfile'>CSS.SelectorProfile</a></li>
+<li><a href='#CSS.Region'>CSS.Region</a>: This object represents a region that flows from a Named Flow.</li>
 <li><a href='#CSS.NamedFlow'>CSS.NamedFlow</a>: This object represents a Named Flow.</li>
 </ul>
 <span class='label label-success'>Command</span>
@@ -141,6 +142,7 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#CSS.setRuleSelector'>CSS.setRuleSelector</a>: Modifies the rule selector.</li>
 <li><a href='#CSS.addRule'>CSS.addRule</a>: Creates a new empty rule with the given selector in a special "inspector" stylesheet in the owner document of the context node.</li>
 <li><a href='#CSS.getSupportedCSSProperties'>CSS.getSupportedCSSProperties</a>: Returns all supported CSS property names.</li>
+<li><a href='#CSS.forcePseudoState'>CSS.forcePseudoState</a>: Ensures that the given node will have specified pseudo-classes whenever its style is computed by the browser.</li>
 <li><a href='#CSS.startSelectorProfiler'>CSS.startSelectorProfiler</a></li>
 <li><a href='#CSS.stopSelectorProfiler'>CSS.stopSelectorProfiler</a></li>
 <li><a href='#CSS.getNamedFlowCollection'>CSS.getNamedFlowCollection</a>: Returns the Named Flows from the document.</li>
@@ -150,6 +152,8 @@ footer p {text-align: center; margin: 0;}
 <ul>
 <li><a href='#CSS.mediaQueryResultChanged'>CSS.mediaQueryResultChanged</a>: Fires whenever a MediaQuery result changes (for example, after a browser window has been resized.) The current implementation considers only viewport-dependent media features.</li>
 <li><a href='#CSS.styleSheetChanged'>CSS.styleSheetChanged</a>: Fired whenever a stylesheet is changed as a result of the client operation.</li>
+<li><a href='#CSS.namedFlowCreated'>CSS.namedFlowCreated</a>: Fires when a Named Flow is created.</li>
+<li><a href='#CSS.namedFlowRemoved'>CSS.namedFlowRemoved</a>: Fires when a Named Flow is removed: has no associated content nodes and regions.</li>
 </ul>
 <h3><a href="#Console">Console</a></h3>
 <span class='label'>Type</span>
@@ -210,7 +214,6 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#DOM.resolveNode'>DOM.resolveNode</a>: Resolves JavaScript node object for given node id.</li>
 <li><a href='#DOM.getAttributes'>DOM.getAttributes</a>: Returns attributes for the specified node.</li>
 <li><a href='#DOM.moveTo'>DOM.moveTo</a>: Moves node into the new container, places it before the given anchor.</li>
-<li><a href='#DOM.setTouchEmulationEnabled'>DOM.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
 <li><a href='#DOM.undo'>DOM.undo</a>: Undoes the last performed action.</li>
 <li><a href='#DOM.redo'>DOM.redo</a>: Re-does the last undone action.</li>
 <li><a href='#DOM.markUndoableState'>DOM.markUndoableState</a>: Marks last undoable state.</li>
@@ -489,6 +492,10 @@ footer p {text-align: center; margin: 0;}
 <li><a href='#Page.setGeolocationOverride'>Page.setGeolocationOverride</a>: Overrides the Geolocation Position or Error.</li>
 <li><a href='#Page.clearGeolocationOverride'>Page.clearGeolocationOverride</a>: Clears the overriden Geolocation Position and Error.</li>
 <li><a href='#Page.canOverrideGeolocation'>Page.canOverrideGeolocation</a>: Checks if Geolocation can be overridden.</li>
+<li><a href='#Page.setDeviceOrientationOverride'>Page.setDeviceOrientationOverride</a>: Overrides the Device Orientation.</li>
+<li><a href='#Page.clearDeviceOrientationOverride'>Page.clearDeviceOrientationOverride</a>: Clears the overridden Device Orientation.</li>
+<li><a href='#Page.canOverrideDeviceOrientation'>Page.canOverrideDeviceOrientation</a>: Check the backend if Web Inspector can override the device orientation.</li>
+<li><a href='#Page.setTouchEmulationEnabled'>Page.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -536,6 +543,8 @@ footer p {text-align: center; margin: 0;}
 <ul>
 <li><a href='#Runtime.RemoteObjectId'>Runtime.RemoteObjectId</a>: Unique object identifier.</li>
 <li><a href='#Runtime.RemoteObject'>Runtime.RemoteObject</a>: Mirror object referencing original JavaScript object.</li>
+<li><a href='#Runtime.ObjectPreview'>Runtime.ObjectPreview</a>: Object containing abbreviated remote object value.</li>
+<li><a href='#Runtime.PropertyPreview'>Runtime.PropertyPreview</a></li>
 <li><a href='#Runtime.PropertyDescriptor'>Runtime.PropertyDescriptor</a>: Object property descriptor.</li>
 <li><a href='#Runtime.CallArgument'>Runtime.CallArgument</a>: Represents function call argument. Either remote object id objectId or primitive value or neither of (for undefined) them should be specified.</li>
 <li><a href='#Runtime.ExecutionContextId'>Runtime.ExecutionContextId</a>: Id of an execution context.</li>
@@ -580,7 +589,8 @@ footer p {text-align: center; margin: 0;}
 <h3><a href="#Worker">Worker</a></h3>
 <span class='label label-success'>Command</span>
 <ul>
-<li><a href='#Worker.setWorkerInspectionEnabled'>Worker.setWorkerInspectionEnabled</a></li>
+<li><a href='#Worker.enable'>Worker.enable</a></li>
+<li><a href='#Worker.disable'>Worker.disable</a></li>
 <li><a href='#Worker.sendMessageToWorker'>Worker.sendMessageToWorker</a></li>
 <li><a href='#Worker.connectToWorker'>Worker.connectToWorker</a></li>
 <li><a href='#Worker.disconnectFromWorker'>Worker.disconnectFromWorker</a></li>
@@ -777,6 +787,7 @@ function onNetworkStateUpdated(res) {
 <li><a href='#CSS.CSSMedia'>CSS.CSSMedia</a>: CSS media query descriptor.</li>
 <li><a href='#CSS.SelectorProfileEntry'>CSS.SelectorProfileEntry</a>: CSS selector profile entry.</li>
 <li><a href='#CSS.SelectorProfile'>CSS.SelectorProfile</a></li>
+<li><a href='#CSS.Region'>CSS.Region</a>: This object represents a region that flows from a Named Flow.</li>
 <li><a href='#CSS.NamedFlow'>CSS.NamedFlow</a>: This object represents a Named Flow.</li>
 </ul>
 <span class='label label-success'>Command</span>
@@ -795,6 +806,7 @@ function onNetworkStateUpdated(res) {
 <li><a href='#CSS.setRuleSelector'>CSS.setRuleSelector</a>: Modifies the rule selector.</li>
 <li><a href='#CSS.addRule'>CSS.addRule</a>: Creates a new empty rule with the given selector in a special "inspector" stylesheet in the owner document of the context node.</li>
 <li><a href='#CSS.getSupportedCSSProperties'>CSS.getSupportedCSSProperties</a>: Returns all supported CSS property names.</li>
+<li><a href='#CSS.forcePseudoState'>CSS.forcePseudoState</a>: Ensures that the given node will have specified pseudo-classes whenever its style is computed by the browser.</li>
 <li><a href='#CSS.startSelectorProfiler'>CSS.startSelectorProfiler</a></li>
 <li><a href='#CSS.stopSelectorProfiler'>CSS.stopSelectorProfiler</a></li>
 <li><a href='#CSS.getNamedFlowCollection'>CSS.getNamedFlowCollection</a>: Returns the Named Flows from the document.</li>
@@ -804,6 +816,8 @@ function onNetworkStateUpdated(res) {
 <ul>
 <li><a href='#CSS.mediaQueryResultChanged'>CSS.mediaQueryResultChanged</a>: Fires whenever a MediaQuery result changes (for example, after a browser window has been resized.) The current implementation considers only viewport-dependent media features.</li>
 <li><a href='#CSS.styleSheetChanged'>CSS.styleSheetChanged</a>: Fired whenever a stylesheet is changed as a result of the client operation.</li>
+<li><a href='#CSS.namedFlowCreated'>CSS.namedFlowCreated</a>: Fires when a Named Flow is created.</li>
+<li><a href='#CSS.namedFlowRemoved'>CSS.namedFlowRemoved</a>: Fires when a Named Flow is removed: has no associated content nodes and regions.</li>
 </ul>
 <div id='CSS_StyleSheetId' class='type'>
 <h3>CSS.StyleSheetId <span class='label'>Type</span></h3>
@@ -1034,16 +1048,30 @@ function onNetworkStateUpdated(res) {
 <dd>[<a href='#CSS.SelectorProfileEntry'>CSS.SelectorProfileEntry</a>] <span class='text'>CSS selector profile entries.</span></dd>
 </dl>
 </div>
+<div id='CSS_Region' class='type'>
+<h3>CSS.Region <span class='label'>Type</span></h3>
+<p>This object represents a region that flows from a Named Flow.</p>
+<dl>
+<dt>regionOverset</dt>
+<dd>( overset | fit | empty ) <span class='text'>The "overset" attribute of a Named Flow.</span></dd>
+<dt>nodeId</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The corresponding DOM node id.</span></dd>
+</dl>
+</div>
 <div id='CSS_NamedFlow' class='type'>
 <h3>CSS.NamedFlow <span class='label'>Type</span></h3>
 <p>This object represents a Named Flow.</p>
 <dl>
-<dt>nodeId</dt>
+<dt>documentNodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
 <dt>name</dt>
 <dd>String <span class='text'>Named Flow identifier.</span></dd>
 <dt>overset</dt>
 <dd>Boolean <span class='text'>The "overset" attribute of a Named Flow.</span></dd>
+<dt>content</dt>
+<dd>[<a href='#DOM.NodeId'>DOM.NodeId</a>] <span class='text'>An array of nodes that flow into the Named Flow.</span></dd>
+<dt>regions</dt>
+<dd>[<a href='#CSS.Region'>CSS.Region</a>] <span class='text'>An array of regions associated with the Named Flow.</span></dd>
 </dl>
 </div>
 <div id='CSS_enable' class='command'>
@@ -1070,8 +1098,6 @@ CSS.disable();
 <dl>
 <dt>nodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a></dd>
-<dt>forcedPseudoClasses (optional)</dt>
-<dd>[( active | focus | hover | visited )] <span class='text'>Element pseudo classes to force when computing applicable style rules.</span></dd>
 <dt>includePseudo (optional)</dt>
 <dd>Boolean <span class='text'>Whether to include pseudo styles (default: true).</span></dd>
 <dt>includeInherited (optional)</dt>
@@ -1089,7 +1115,7 @@ CSS.disable();
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: CSS.getMatchedStylesForNode
-CSS.getMatchedStylesForNode(nodeId, forcedPseudoClasses, includePseudo, includeInherited, function callback(res) {
+CSS.getMatchedStylesForNode(nodeId, includePseudo, includeInherited, function callback(res) {
 	// res = {matchedCSSRules, pseudoElements, inherited}
 });
 </pre>
@@ -1122,8 +1148,6 @@ CSS.getInlineStylesForNode(nodeId, function callback(res) {
 <dl>
 <dt>nodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a></dd>
-<dt>forcedPseudoClasses (optional)</dt>
-<dd>[( active | focus | hover | visited )] <span class='text'>Element pseudo classes to force when computing applicable style rules.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
@@ -1133,7 +1157,7 @@ CSS.getInlineStylesForNode(nodeId, function callback(res) {
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: CSS.getComputedStyleForNode
-CSS.getComputedStyleForNode(nodeId, forcedPseudoClasses, function callback(res) {
+CSS.getComputedStyleForNode(nodeId, function callback(res) {
 	// res = {computedStyle}
 });
 </pre>
@@ -1319,6 +1343,21 @@ CSS.getSupportedCSSProperties(function callback(res) {
 });
 </pre>
 </div>
+<div id='CSS_forcePseudoState' class='command'>
+<h3>CSS.forcePseudoState <span class='label label-success'>Command</span></h3>
+<p>Ensures that the given node will have specified pseudo-classes whenever its style is computed by the browser.</p>
+<dl>
+<dt>nodeId</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The element id for which to force the pseudo state.</span></dd>
+<dt>forcedPseudoClasses</dt>
+<dd>[( active | focus | hover | visited )] <span class='text'>Element pseudo classes to force when computing the element's style.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: CSS.forcePseudoState
+CSS.forcePseudoState(nodeId, forcedPseudoClasses);
+</pre>
+</div>
 <div id='CSS_startSelectorProfiler' class='command'>
 <h3>CSS.startSelectorProfiler <span class='label label-success'>Command</span></h3>
 <h4>Code Example:</h4>
@@ -1346,18 +1385,18 @@ CSS.stopSelectorProfiler(function callback(res) {
 <h3>CSS.getNamedFlowCollection <span class='label label-success'>Command</span></h3>
 <p>Returns the Named Flows from the document.</p>
 <dl>
-<dt>nodeId</dt>
+<dt>documentNodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id for which to get the Named Flow Collection.</span></dd>
 </dl>
 <h4>Callback Parameters:</h4>
 <dl>
 <dt>namedFlows</dt>
-<dd>[String] <span class='text'>An array containing the Named Flows in the document.</span></dd>
+<dd>[<a href='#CSS.NamedFlow'>CSS.NamedFlow</a>] <span class='text'>An array containing the Named Flows in the document.</span></dd>
 </dl>
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: CSS.getNamedFlowCollection
-CSS.getNamedFlowCollection(nodeId, function callback(res) {
+CSS.getNamedFlowCollection(documentNodeId, function callback(res) {
 	// res = {namedFlows}
 });
 </pre>
@@ -1366,7 +1405,7 @@ CSS.getNamedFlowCollection(nodeId, function callback(res) {
 <h3>CSS.getFlowByName <span class='label label-success'>Command</span></h3>
 <p>Returns the Named Flow identified by the given name</p>
 <dl>
-<dt>nodeId</dt>
+<dt>documentNodeId</dt>
 <dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
 <dt>name</dt>
 <dd>String <span class='text'>Named Flow identifier.</span></dd>
@@ -1379,7 +1418,7 @@ CSS.getNamedFlowCollection(nodeId, function callback(res) {
 <h4>Code Example:</h4>
 <pre>
 // WebInspector Command: CSS.getFlowByName
-CSS.getFlowByName(nodeId, name, function callback(res) {
+CSS.getFlowByName(documentNodeId, name, function callback(res) {
 	// res = {namedFlow}
 });
 </pre>
@@ -1407,6 +1446,40 @@ function onMediaQueryResultChanged(res) {
 // WebInspector Event: CSS.styleSheetChanged
 function onStyleSheetChanged(res) {
 	// res = {styleSheetId}
+}
+</pre>
+</div>
+<div id='CSS_namedFlowCreated' class='command'>
+<h3>CSS.namedFlowCreated <span class='label label-info'>Event</span></h3>
+<p>Fires when a Named Flow is created.</p>
+<dl>
+<dt>documentNodeId</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
+<dt>namedFlow</dt>
+<dd>String <span class='text'>Identifier of the new Named Flow.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: CSS.namedFlowCreated
+function onNamedFlowCreated(res) {
+	// res = {documentNodeId, namedFlow}
+}
+</pre>
+</div>
+<div id='CSS_namedFlowRemoved' class='command'>
+<h3>CSS.namedFlowRemoved <span class='label label-info'>Event</span></h3>
+<p>Fires when a Named Flow is removed: has no associated content nodes and regions.</p>
+<dl>
+<dt>documentNodeId</dt>
+<dd><a href='#DOM.NodeId'>DOM.NodeId</a> <span class='text'>The document node id.</span></dd>
+<dt>namedFlow</dt>
+<dd>String <span class='text'>Identifier of the removed Named Flow.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Event: CSS.namedFlowRemoved
+function onNamedFlowRemoved(res) {
+	// res = {documentNodeId, namedFlow}
 }
 </pre>
 </div>
@@ -1628,7 +1701,6 @@ function onMessagesCleared(res) {
 <li><a href='#DOM.resolveNode'>DOM.resolveNode</a>: Resolves JavaScript node object for given node id.</li>
 <li><a href='#DOM.getAttributes'>DOM.getAttributes</a>: Returns attributes for the specified node.</li>
 <li><a href='#DOM.moveTo'>DOM.moveTo</a>: Moves node into the new container, places it before the given anchor.</li>
-<li><a href='#DOM.setTouchEmulationEnabled'>DOM.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
 <li><a href='#DOM.undo'>DOM.undo</a>: Undoes the last performed action.</li>
 <li><a href='#DOM.redo'>DOM.redo</a>: Re-does the last undone action.</li>
 <li><a href='#DOM.markUndoableState'>DOM.markUndoableState</a>: Marks last undoable state.</li>
@@ -2213,19 +2285,6 @@ DOM.moveTo(nodeId, targetNodeId, insertBeforeNodeId, function callback(res) {
 });
 </pre>
 </div>
-<div id='DOM_setTouchEmulationEnabled' class='command'>
-<h3>DOM.setTouchEmulationEnabled <span class='label label-success'>Command</span></h3>
-<p>Toggles mouse event-based touch event emulation.</p>
-<dl>
-<dt>enabled</dt>
-<dd>Boolean <span class='text'>Whether the touch event emulation should be enabled.</span></dd>
-</dl>
-<h4>Code Example:</h4>
-<pre>
-// WebInspector Command: DOM.setTouchEmulationEnabled
-DOM.setTouchEmulationEnabled(enabled);
-</pre>
-</div>
 <div id='DOM_undo' class='command'>
 <h3>DOM.undo <span class='label label-success'>Command</span></h3>
 <p>Undoes the last performed action.</p>
@@ -2604,8 +2663,8 @@ DOMDebugger.removeXHRBreakpoint(url);
 <h3>DOMStorage.Entry <span class='label'>Type</span></h3>
 <p>DOM Storage entry.</p>
 <dl>
-<dt>host</dt>
-<dd>String <span class='text'>Domain name.</span></dd>
+<dt>origin</dt>
+<dd>String <span class='text'>Document origin.</span></dd>
 <dt>isLocalStorage</dt>
 <dd>Boolean <span class='text'>True for local storage.</span></dd>
 <dt>id</dt>
@@ -4915,6 +4974,10 @@ function onWebSocketFrameSent(res) {
 <li><a href='#Page.setGeolocationOverride'>Page.setGeolocationOverride</a>: Overrides the Geolocation Position or Error.</li>
 <li><a href='#Page.clearGeolocationOverride'>Page.clearGeolocationOverride</a>: Clears the overriden Geolocation Position and Error.</li>
 <li><a href='#Page.canOverrideGeolocation'>Page.canOverrideGeolocation</a>: Checks if Geolocation can be overridden.</li>
+<li><a href='#Page.setDeviceOrientationOverride'>Page.setDeviceOrientationOverride</a>: Overrides the Device Orientation.</li>
+<li><a href='#Page.clearDeviceOrientationOverride'>Page.clearDeviceOrientationOverride</a>: Clears the overridden Device Orientation.</li>
+<li><a href='#Page.canOverrideDeviceOrientation'>Page.canOverrideDeviceOrientation</a>: Check the backend if Web Inspector can override the device orientation.</li>
+<li><a href='#Page.setTouchEmulationEnabled'>Page.setTouchEmulationEnabled</a>: Toggles mouse event-based touch event emulation.</li>
 </ul>
 <span class='label label-info'>Event</span>
 <ul>
@@ -5351,6 +5414,61 @@ Page.canOverrideGeolocation(function callback(res) {
 });
 </pre>
 </div>
+<div id='Page_setDeviceOrientationOverride' class='command'>
+<h3>Page.setDeviceOrientationOverride <span class='label label-success'>Command</span></h3>
+<p>Overrides the Device Orientation.</p>
+<dl>
+<dt>alpha</dt>
+<dd>Number <span class='text'>Mock alpha</span></dd>
+<dt>beta</dt>
+<dd>Number <span class='text'>Mock beta</span></dd>
+<dt>gamma</dt>
+<dd>Number <span class='text'>Mock gamma</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setDeviceOrientationOverride
+Page.setDeviceOrientationOverride(alpha, beta, gamma);
+</pre>
+</div>
+<div id='Page_clearDeviceOrientationOverride' class='command'>
+<h3>Page.clearDeviceOrientationOverride <span class='label label-success'>Command</span></h3>
+<p>Clears the overridden Device Orientation.</p>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.clearDeviceOrientationOverride
+Page.clearDeviceOrientationOverride();
+</pre>
+</div>
+<div id='Page_canOverrideDeviceOrientation' class='command'>
+<h3>Page.canOverrideDeviceOrientation <span class='label label-success'>Command</span></h3>
+<p>Check the backend if Web Inspector can override the device orientation.</p>
+<h4>Callback Parameters:</h4>
+<dl>
+<dt>result</dt>
+<dd>Boolean <span class='text'>If true, <code>setDeviceOrientationOverride</code> can safely be invoked on the agent.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.canOverrideDeviceOrientation
+Page.canOverrideDeviceOrientation(function callback(res) {
+	// res = {result}
+});
+</pre>
+</div>
+<div id='Page_setTouchEmulationEnabled' class='command'>
+<h3>Page.setTouchEmulationEnabled <span class='label label-success'>Command</span></h3>
+<p>Toggles mouse event-based touch event emulation.</p>
+<dl>
+<dt>enabled</dt>
+<dd>Boolean <span class='text'>Whether the touch event emulation should be enabled.</span></dd>
+</dl>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Page.setTouchEmulationEnabled
+Page.setTouchEmulationEnabled(enabled);
+</pre>
+</div>
 <div id='Page_domContentEventFired' class='command'>
 <h3>Page.domContentEventFired <span class='label label-info'>Event</span></h3>
 <dl>
@@ -5760,6 +5878,8 @@ function onReportHeapSnapshotProgress(res) {
 <ul>
 <li><a href='#Runtime.RemoteObjectId'>Runtime.RemoteObjectId</a>: Unique object identifier.</li>
 <li><a href='#Runtime.RemoteObject'>Runtime.RemoteObject</a>: Mirror object referencing original JavaScript object.</li>
+<li><a href='#Runtime.ObjectPreview'>Runtime.ObjectPreview</a>: Object containing abbreviated remote object value.</li>
+<li><a href='#Runtime.PropertyPreview'>Runtime.PropertyPreview</a></li>
 <li><a href='#Runtime.PropertyDescriptor'>Runtime.PropertyDescriptor</a>: Object property descriptor.</li>
 <li><a href='#Runtime.CallArgument'>Runtime.CallArgument</a>: Represents function call argument. Either remote object id objectId or primitive value or neither of (for undefined) them should be specified.</li>
 <li><a href='#Runtime.ExecutionContextId'>Runtime.ExecutionContextId</a>: Id of an execution context.</li>
@@ -5802,6 +5922,33 @@ function onReportHeapSnapshotProgress(res) {
 <dd>String <span class='text'>String representation of the object.</span></dd>
 <dt>objectId (optional)</dt>
 <dd><a href='#Runtime.RemoteObjectId'>Runtime.RemoteObjectId</a> <span class='text'>Unique object identifier (for non-primitive values).</span></dd>
+<dt>preview (optional)</dt>
+<dd><a href='#Runtime.ObjectPreview'>Runtime.ObjectPreview</a> <span class='text'>Preview containsing abbreviated property values.</span></dd>
+</dl>
+</div>
+<div id='Runtime_ObjectPreview' class='type'>
+<h3>Runtime.ObjectPreview <span class='label'>Type</span></h3>
+<p>Object containing abbreviated remote object value.</p>
+<dl>
+<dt>lossless</dt>
+<dd>Boolean <span class='text'>Determines whether preview is lossless (contains all information of the original object).</span></dd>
+<dt>overflow</dt>
+<dd>Boolean <span class='text'>True iff some of the properties of the original did not fit.</span></dd>
+<dt>properties</dt>
+<dd>[<a href='#Runtime.PropertyPreview'>Runtime.PropertyPreview</a>] <span class='text'>List of the properties.</span></dd>
+</dl>
+</div>
+<div id='Runtime_PropertyPreview' class='type'>
+<h3>Runtime.PropertyPreview <span class='label'>Type</span></h3>
+<dl>
+<dt>name</dt>
+<dd>String <span class='text'>Property name.</span></dd>
+<dt>type</dt>
+<dd>( object | function | undefined | string | number | boolean ) <span class='text'>Object type.</span></dd>
+<dt>value (optional)</dt>
+<dd>String <span class='text'>User-friendly property value string.</span></dd>
+<dt>subtype (optional)</dt>
+<dd>( array | null | node | regexp | date ) <span class='text'>Object subtype hint. Specified for <code>object</code> type values only.</span></dd>
 </dl>
 </div>
 <div id='Runtime_PropertyDescriptor' class='type'>
@@ -6134,7 +6281,8 @@ WebGL.disable();
 <p></p>
 <span class='label label-success'>Command</span>
 <ul>
-<li><a href='#Worker.setWorkerInspectionEnabled'>Worker.setWorkerInspectionEnabled</a></li>
+<li><a href='#Worker.enable'>Worker.enable</a></li>
+<li><a href='#Worker.disable'>Worker.disable</a></li>
 <li><a href='#Worker.sendMessageToWorker'>Worker.sendMessageToWorker</a></li>
 <li><a href='#Worker.connectToWorker'>Worker.connectToWorker</a></li>
 <li><a href='#Worker.disconnectFromWorker'>Worker.disconnectFromWorker</a></li>
@@ -6147,16 +6295,20 @@ WebGL.disable();
 <li><a href='#Worker.dispatchMessageFromWorker'>Worker.dispatchMessageFromWorker</a></li>
 <li><a href='#Worker.disconnectedFromWorker'>Worker.disconnectedFromWorker</a></li>
 </ul>
-<div id='Worker_setWorkerInspectionEnabled' class='command'>
-<h3>Worker.setWorkerInspectionEnabled <span class='label label-success'>Command</span></h3>
-<dl>
-<dt>value</dt>
-<dd>Boolean</dd>
-</dl>
+<div id='Worker_enable' class='command'>
+<h3>Worker.enable <span class='label label-success'>Command</span></h3>
 <h4>Code Example:</h4>
 <pre>
-// WebInspector Command: Worker.setWorkerInspectionEnabled
-Worker.setWorkerInspectionEnabled(value);
+// WebInspector Command: Worker.enable
+Worker.enable();
+</pre>
+</div>
+<div id='Worker_disable' class='command'>
+<h3>Worker.disable <span class='label label-success'>Command</span></h3>
+<h4>Code Example:</h4>
+<pre>
+// WebInspector Command: Worker.disable
+Worker.disable();
 </pre>
 </div>
 <div id='Worker_sendMessageToWorker' class='command'>
@@ -6270,7 +6422,7 @@ function onDisconnectedFromWorker(res) {
 </section>
 </div>
 <footer>
-<p>Generated from Inspector.json v1.0 on 2012-07-31 17:15:22+0200</p>
+<p>Generated from Inspector.json v1.0 on 2012-08-17 16:44:25+0200</p>
 <p>Implementation by <a href='mailto:jdiehl@adobe.com'>Jonathan Diehl</a></p>
 </footer>
 </body>

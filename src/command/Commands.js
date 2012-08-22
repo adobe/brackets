@@ -37,6 +37,7 @@ define(function (require, exports, module) {
     exports.FILE_OPEN                   = "file.open";
     exports.FILE_OPEN_FOLDER            = "file.openFolder";
     exports.FILE_SAVE                   = "file.save";
+    exports.FILE_SAVE_ALL               = "file.saveAll";
     exports.FILE_CLOSE                  = "file.close";
     exports.FILE_CLOSE_ALL              = "file.close_all";
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
@@ -87,9 +88,14 @@ define(function (require, exports, module) {
     exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
     exports.DEBUG_SHOW_PERF_DATA        = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
+    exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
+    exports.CHECK_FOR_UPDATE            = "app.checkForUpdate";
 
 	// Command that does nothing. Can be used for place holder menuItems
     
     exports.HELP_ABOUT                  = "help.about";
+
+    // File shell callbacks
+    exports.APP_ABORT_QUIT              = "app.abort_quit"; // string must MATCH string in native code (appshell_extensions)
 });
 

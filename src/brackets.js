@@ -23,12 +23,18 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global require, define, brackets: true, $, PathUtils, window, navigator */
+/*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
 
 require.config({
     paths: {
-        "text" : "thirdparty/text"
-    }
+        "text" : "thirdparty/text",
+        "i18n" : "thirdparty/i18n"
+    },
+    // Use custom brackets property until CEF sets the correct navigator.language
+    // NOTE: When we change to navigator.language here, we also should change to
+    // navigator.language in ExtensionLoader (when making require contexts for each
+    // extension).
+    locale: window.localStorage.getItem("locale") || brackets.app.language
 });
 
 /**
@@ -40,6 +46,10 @@ require.config({
  *
  * Unlike other modules, this one can be accessed without an explicit require() because it exposes
  * a global object, window.brackets.
+ *
+ * Events:
+ *      htmlContentLoadComplete - sent when the HTML DOM is fully loaded. Modules should not touch
+ *      or modify DOM elements before this event is sent.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -74,11 +84,13 @@ define(function (require, exports, module) {
         QuickOpen               = require("search/QuickOpen"),
         Menus                   = require("command/Menus"),
         FileUtils               = require("file/FileUtils"),
+        MainViewHTML            = require("text!htmlContent/main-view.html"),
         Strings                 = require("strings"),
         Dialogs                 = require("widgets/Dialogs"),
         ExtensionLoader         = require("utils/ExtensionLoader"),
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
+        UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams;
 
     // Local variables
@@ -95,6 +107,7 @@ define(function (require, exports, module) {
     require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
     require("search/FindInFiles");
+    require("search/FindReplace");
     require("utils/ExtensionUtils");
 
     function _callBracketsReadyHandler(handler) {
@@ -220,6 +233,7 @@ define(function (require, exports, module) {
             Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             NativeApp               : require("utils/NativeApp"),
             ExtensionUtils          : require("utils/ExtensionUtils"),
+            UpdateNotification      : require("utils/UpdateNotification"),
             doneLoading             : false
         };
 
@@ -329,10 +343,22 @@ define(function (require, exports, module) {
             _initTest();
             _initExtensions().always(_onBracketsReady);
         });
+        
+        // Check for updates
+        if (!params.get("skipUpdateCheck")) {
+            UpdateNotification.checkForUpdate();
+        }
     }
             
     // Main Brackets initialization
     _initGlobalBrackets();
+
+    // Localize MainViewHTML and inject into <BODY> tag
+    $('body').html(Mustache.render(MainViewHTML, Strings));
+    // modules that depend on the HTML DOM should listen to
+    // the htmlContentLoadComplete event.
+    $(brackets).trigger("htmlContentLoadComplete");
+
     $(window.document).ready(_onReady);
     
 });

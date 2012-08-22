@@ -53,6 +53,13 @@
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
 
+    // Status Codes
+    var STATUS_ERROR          = exports.STATUS_ERROR = -1;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE = 0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING = 1;
+    var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS = 2;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE = 3;
+
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
     var NativeApp = require("utils/NativeApp");
@@ -150,7 +157,6 @@ define(function LiveDevelopment(require, exports, module) {
         default:
             return null;
         }
-
     }
 
     /**
@@ -279,7 +285,7 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Triggered by Inspector.error */
-    function _onError(error) {
+    function _onError(event, error) {
         var message = error.message;
 
         // Additional information, like exactly which parameter could not be processed.
@@ -299,25 +305,27 @@ define(function LiveDevelopment(require, exports, module) {
             var editor = EditorManager.getCurrentFullEditor();
             _openDocument(doc, editor);
         }
-        _setStatus(3);
+        _setStatus(STATUS_ACTIVE);
     }
 
     /** Triggered by Inspector.connect */
-    function _onConnect() {
+    function _onConnect(event) {
         var promises = loadAgents();
-        _setStatus(2);
+        _setStatus(STATUS_LOADING_AGENTS);
         $.when.apply(undefined, promises).then(_onLoad, _onError);
     }
 
     /** Triggered by Inspector.disconnect */
-    function _onDisconnect() {
+    function _onDisconnect(event) {
         unloadAgents();
         _closeDocument();
-        _setStatus(0);
+        _setStatus(STATUS_INACTIVE);
     }
 
     /** Open the Connection and go live */
     function open() {
+        var result = new $.Deferred(),
+            promise = result.promise();
         var doc = _getCurrentDocument();
         var browserStarted = false;
         var retryCount = 0;
@@ -328,6 +336,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
                 Strings.LIVE_DEV_NEED_HTML_MESSAGE
             );
+            result.reject("WRONG_DOC");
         }
 
         if (!doc || !doc.root) {
@@ -340,17 +349,18 @@ define(function LiveDevelopment(require, exports, module) {
             /*
             if (!doc.extension || doc.extension.indexOf('htm') !== 0) {
                 showWrongDocError();
-                return;
+                return promise;
             }
             */
 
-            _setStatus(1);
-            Inspector.connectToURL(doc.root.url).fail(function onConnectFail(err) {
+            _setStatus(STATUS_CONNECTING);
+            Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
                 if (err === "CANCEL") {
+                    result.reject(err);
                     return;
                 }
                 if (retryCount > 6) {
-                    _setStatus(-1);
+                    _setStatus(STATUS_ERROR);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
                         Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
@@ -358,24 +368,29 @@ define(function LiveDevelopment(require, exports, module) {
                     ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {
                             // User has chosen to reload Chrome, quit the running instance
-                            _setStatus(0);
+                            _setStatus(STATUS_INACTIVE);
                             NativeApp.closeLiveBrowser()
                                 .done(function () {
                                     browserStarted = false;
-                                    window.setTimeout(open);
+                                    window.setTimeout(function () {
+                                        open().then(result.resolve, result.reject);
+                                    });
                                 })
                                 .fail(function (err) {
                                     // Report error?
-                                    _setStatus(-1);
+                                    _setStatus(STATUS_ERROR);
                                     browserStarted = false;
+                                    result.reject("CLOSE_LIVE_BROWSER");
                                 });
+                        } else {
+                            result.reject("CANCEL");
                         }
                     });
                     return;
                 }
                 retryCount++;
 
-                if (!browserStarted && exports.status !== -1) {
+                if (!browserStarted && exports.status !== STATUS_ERROR) {
                     // If err === FileError.ERR_NOT_FOUND, it means a remote debugger connection
                     // is available, but the requested URL is not loaded in the browser. In that
                     // case we want to launch the live browser (to open the url in a new tab)
@@ -392,7 +407,7 @@ define(function LiveDevelopment(require, exports, module) {
                         .fail(function (err) {
                             var message;
 
-                            _setStatus(-1);
+                            _setStatus(STATUS_ERROR);
                             if (err === FileError.NOT_FOUND_ERR) {
                                 message = Strings.ERROR_CANT_FIND_CHROME;
                             } else {
@@ -404,16 +419,20 @@ define(function LiveDevelopment(require, exports, module) {
                                 Strings.ERROR_LAUNCHING_BROWSER_TITLE,
                                 message
                             );
+
+                            result.reject("OPEN_LIVE_BROWSER");
                         });
                 }
 
-                if (exports.status !== -1) {
+                if (exports.status !== STATUS_ERROR) {
                     window.setTimeout(function retryConnect() {
-                        Inspector.connectToURL(doc.root.url).fail(onConnectFail);
+                        Inspector.connectToURL(doc.root.url).then(result.resolve, onConnectFail);
                     }, 500);
                 }
             });
         }
+
+        return promise;
     }
 
     /** Close the Connection */
@@ -422,7 +441,7 @@ define(function LiveDevelopment(require, exports, module) {
             Inspector.Runtime.evaluate("window.close()");
         }
         Inspector.disconnect();
-        _setStatus(0);
+        _setStatus(STATUS_INACTIVE);
     }
 
     /** Triggered by a document change from the DocumentManager */
@@ -480,10 +499,9 @@ define(function LiveDevelopment(require, exports, module) {
     /** Initialize the LiveDevelopment Session */
     function init(theConfig) {
         exports.config = theConfig;
-        Inspector.on("connect", _onConnect);
-        Inspector.on("disconnect", _onDisconnect);
-        Inspector.on("error", _onError);
-        Inspector.on("load", _onLoad);
+        $(Inspector).on("connect", _onConnect)
+            .on("disconnect", _onDisconnect)
+            .on("error", _onError);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange);
     }
 
