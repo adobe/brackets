@@ -281,7 +281,7 @@ define(function (require, exports, module) {
             
             this.category = "performance";
             
-            var testPath = SpecRunnerUtils.getTestPath("/../../../brackets-scenario/jquery-ui/");
+            var testPath = extensionPath + "/unittest-files/jquery-ui";
 
             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {

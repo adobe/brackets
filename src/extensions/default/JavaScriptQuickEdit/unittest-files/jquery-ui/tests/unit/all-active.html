@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Test Suite</title>
+
+	<script src="../../jquery-1.7.2.js"></script>
+
+	<link rel="stylesheet" href="../../external/qunit.css">
+	<link rel="stylesheet" href="qunit-composite.css">
+	<script src="../../external/qunit.js"></script>
+	<script src="qunit-composite.js"></script>
+
+	<script>
+	(function() {
+
+	var params = [],
+		suites = [
+			"accordion/accordion.html",
+			"accordion/accordion_deprecated.html",
+			"autocomplete/autocomplete.html",
+			"button/button.html",
+			"core/core.html",
+			//"datepicker/datepicker.html",
+			//"dialog/dialog.html",
+			//"draggable/draggable.html",
+			//"droppable/droppable.html",
+			"effects/effects.html",
+			"menu/menu.html",
+			"position/position.html",
+			"position/position_deprecated.html",
+			"progressbar/progressbar.html",
+			//"resizable/resizable.html",
+			//"selectable/selectable.html",
+			//"slider/slider.html",
+			//"sortable/sortable.html",
+			"spinner/spinner.html",
+			"tabs/tabs.html",
+			"tabs/tabs_deprecated.html",
+			"tooltip/tooltip.html",
+			"widget/widget.html"
+		];
+
+	$.each( QUnit.urlParams, function( key, value ) {
+		if ( key === "filter" ) {
+			return;
+		}
+		params.push( encodeURIComponent( key ) + "=" + encodeURIComponent( value ) );
+	});
+	if ( params.length ) {
+		params = "?" + params.join( "&" );
+		suites = $.map( suites, function( suite ) {
+			return suite + params;
+		});
+	}
+	QUnit.testSuites( suites );
+
+	}());
+	</script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+</div>
+</body>
+</html>

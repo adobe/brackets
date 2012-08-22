@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Position - Default functionality</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+    <style>
+   	html, body {
+   		margin: 0;
+		padding: 0
+   	}
+    </style>
+	<script>
+	$(function() {
+		// TODO refactor into a widget and get rid of these plugin methods
+		$.fn.position2 = function( options ) {
+			return this.position( $.extend({
+				of: window,
+				using: function( to ) {
+					$( this ).css({
+						top: to.top,
+						left: to.left
+					})
+				},
+				collision: "none"
+			}, options));
+		}
+
+		$.fn.left = function( using ) {
+			return this.position2({
+				my: "right middle",
+				at: "left+25 middle",
+				using: using
+			});
+		}
+		$.fn.right = function( using ) {
+			return this.position2({
+				my: "left middle",
+				at: "right-25 middle",
+				using: using
+			});
+		}
+		$.fn.center = function( using ) {
+			return this.position2({
+				my: "center middle",
+				at: "center middle",
+				using: using
+			});
+		};
+
+		$( "body" ).css({
+			overflow: "hidden"
+		})
+		$( ".demo" ).css({
+			position: "relative",
+		});
+		$( ".demo img" ).css({
+			position: "absolute",
+		});
+
+		$( "img:eq(0)" ).left();
+		$( "img:eq(1)" ).center();
+		$( "img:eq(2)" ).right();
+
+		function animate( to ) {
+			$(this).stop( true, false ).animate( to );
+		}
+		function next( event ) {
+			event.preventDefault();
+			$( "img:eq(2)" ).center( animate );
+			$( "img:eq(1)" ).left( animate )
+			$( "img:eq(0)" ).right().appendTo( ".demo" );
+		}
+		function previous( event ) {
+			event.preventDefault();
+			$( "img:eq(0)" ).center( animate );
+			$( "img:eq(1)" ).right( animate );
+			$( "img:eq(2)" ).left().prependTo( ".demo" );
+		}
+		$( "#previous" ).click( previous );
+		$( "#next" ).click( next );
+
+		$( ".demo img" ).click(function( event ) {
+			$( ".demo img" ).index( this ) === 0 ? previous( event ) : next( event );
+		});
+
+		$( window ).resize(function() {
+			$( "img:eq(0)" ).left( animate );
+			$( "img:eq(1)" ).center( animate );
+			$( "img:eq(2)" ).right( animate );
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<img src="images/earth.jpg" width="458" height="308" alt="earth" />
+<img src="images/flight.jpg" width="512" height="307" alt="flight" />
+<img src="images/rocket.jpg" width="300" height="353" alt="rocket" />
+
+<a id="previous" href="#">Previous</a>
+<a id="next" href="#">Next</a>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>A prototype for the <a href="http://wiki.jqueryui.com/Photoviewer">Photoviewer</a> using Position to place images at the center, left and right and cycle them.
+<br/>Use the links at the top to cycle, or click on the images on the left and right.
+<br/>Note how the images are repositioned when resizing the window.
+<br/>Warning: Doesn't currently work inside the demo viewer; open in a new window instead!</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>
