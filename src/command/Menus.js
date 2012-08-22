@@ -926,6 +926,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
                                                          {key: "Cmd-R", platform:  "mac"}]);
         menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
+        menu.addMenuItem(Commands.DEBUG_SHOW_EXT_FOLDER);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
         menu.addMenuDivider();
