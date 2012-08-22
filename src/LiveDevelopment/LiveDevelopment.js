@@ -288,6 +288,11 @@ define(function LiveDevelopment(require, exports, module) {
     function _onError(event, error) {
         var message = error.message;
 
+        // Remove "Uncaught" from the beginning to avoid the inspector popping up
+        if (message.substr(0, 8) === "Uncaught") {
+            message = message.substr(9);
+        }
+
         // Additional information, like exactly which parameter could not be processed.
         var data = error.data;
         if (Array.isArray(data)) {
