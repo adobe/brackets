@@ -235,6 +235,15 @@ define(function (require, exports, module) {
         });
     }
     
+    function _handleShowExtensionsFolder() {
+        brackets.app.showExtensionsFolder(
+            FileUtils.convertToNativePath(window.location.href),
+            function (err) {
+                // Ignore errors
+            }
+        );
+    }
+    
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }
@@ -245,6 +254,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
+    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.DEBUG_SHOW_EXT_FOLDER,     _handleShowExtensionsFolder);
     CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests);
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
