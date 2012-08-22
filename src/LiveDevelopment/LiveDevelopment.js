@@ -150,10 +150,10 @@ define(function LiveDevelopment(require, exports, module) {
         case "css":
             return CSSDocument;
         case "js":
-            return JSDocument;
+            return exports.config.experimental ? JSDocument : null;
         case "html":
         case "htm":
-            return HTMLDocument;
+            return exports.config.experimental ? HTMLDocument : null;
         default:
             return null;
         }
@@ -245,6 +245,10 @@ define(function LiveDevelopment(require, exports, module) {
     /** Load the agents */
     function loadAgents() {
         var name, promises = [];
+        if (exports.config.experimental) {
+            // load all agents
+            _enabledAgentNames = agents;
+        }
         for (name in _enabledAgentNames) {
             if (_enabledAgentNames.hasOwnProperty(name) && agents[name].load) {
                 promises.push(agents[name].load());
@@ -351,12 +355,11 @@ define(function LiveDevelopment(require, exports, module) {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            /*
-            if (!doc.extension || doc.extension.indexOf('htm') !== 0) {
+
+            if (!exports.config.experimental && (!doc.extension || doc.extension.indexOf('htm') !== 0)) {
                 showWrongDocError();
                 return promise;
             }
-            */
 
             _setStatus(STATUS_CONNECTING);
             Inspector.connectToURL(doc.root.url).then(result.resolve, function onConnectFail(err) {
