@@ -88,6 +88,7 @@ define(function (require, exports, module) {
     exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
     exports.DEBUG_SHOW_PERF_DATA        = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
+    exports.DEBUG_SHOW_EXT_FOLDER       = "debug.showExtensionsFolder";
     exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
     exports.CHECK_FOR_UPDATE            = "app.checkForUpdate";
 
