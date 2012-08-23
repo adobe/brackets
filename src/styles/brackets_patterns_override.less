@@ -367,9 +367,20 @@
 
 /* Update dialog */
 .update-dialog .modal-body {
-    .update-info {
-        max-height: 200px;
-        overflow: auto;
+    position: relative;
+    .update-icon {
+        position: absolute;
+        left: 10px; // relative to border of modal-body
+        top: 11px;
+    }
+    .update-text {
+        // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
+        margin: 0 10px 0 123px;
+
+        .update-info {
+            max-height: 200px;
+            overflow: auto;
+        }
     }
 }
 
