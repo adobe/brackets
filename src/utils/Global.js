@@ -23,10 +23,18 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets */
+/*global define */
 
 /**
- * Defines 'ready' on the global brackets object 
+ * Initializes the global 'brackets' variable and it's properties.
+ *
+ * This module dispatches these events:
+ *    - htmlContentLoadComplete - When the main application template is rendered
+ *    - ready - When Brackets completes loading all modules and extensions
+ *
+ * These are *not* jQuery events. Each event has it's own event registration.
+ * Each event is similar to $(document).ready in that it will call the handler
+ * immediately if brackets is already done loading
  */
 define(function (require, exports, module) {
     "use strict";
@@ -55,7 +63,7 @@ define(function (require, exports, module) {
         }
     }
 
-    function dispatchEvent(type) {
+    function _dispatchEvent(type) {
         var i,
             eventTypeHandlers = handlers[type];
 
@@ -80,10 +88,21 @@ define(function (require, exports, module) {
         }
     }
 
+    /**
+     * Adds an event handler for the ready event. Handlers are called after
+     * htmlContentLoadComplete, the initial project is loaded, and all
+     * extensions are loaded.
+     * @param {function} handler
+     */
     function ready(handler) {
         _addListener(READY, handler);
     }
 
+    /**
+     * Adds an event handler for the htmlContentLoadComplete event. Handlers
+      * are called after the main application html template is rendered.
+     * @param {function} handler
+     */
     function htmlContentLoadComplete(handler) {
         _addListener(HTML_CONTENT_LOAD_COMPLETE, handler);
     }
@@ -109,37 +128,35 @@ define(function (require, exports, module) {
 
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: (issue #266) load conditionally
-    brackets.shellAPI = require("utils/ShellAPI");
+    global.brackets.shellAPI = require("utils/ShellAPI");
     
-    brackets.inBrowser = !brackets.hasOwnProperty("fs");
+    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
     
-    brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
+    global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
     
     // Loading extensions requires creating new require.js contexts, which
     // requires access to the global 'require' object that always gets hidden
     // by the 'require' in the AMD wrapper. We store this in the brackets
     // object here so that the ExtensionLoader doesn't have to have access to
     // the global object.
-    brackets.libRequire = global.require;
+    global.brackets.libRequire = global.require;
 
     // Also store our current require.js context (the one that loads brackets
     // core modules) so that extensions can use it.
     // Note: we change the name to "getModule" because this won't do exactly
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
-    brackets.getModule = require;
+    global.brackets.getModule = require;
 
     // Provide a way for anyone (including code not using require) to register
     // a handler for the brackets 'ready' and 'htmlContentLoadComplete' events
-    // This event is like $(document).ready in that it will call the handler
-    // immediately if brackets is already done loading
-    brackets.ready = ready;
-    brackets.htmlContentLoadComplete = htmlContentLoadComplete;
+    global.brackets.ready = ready;
+    global.brackets.htmlContentLoadComplete = htmlContentLoadComplete;
 
     exports.global = global;
     exports.HTML_CONTENT_LOAD_COMPLETE = HTML_CONTENT_LOAD_COMPLETE;
     exports.READY = READY;
 
     // internal use only
-    exports.dispatchEvent = dispatchEvent;
+    exports._dispatchEvent = _dispatchEvent;
 });

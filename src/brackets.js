@@ -60,7 +60,8 @@ define(function (require, exports, module) {
     require("LiveDevelopment/main");
     
     // Load dependent modules
-    var ProjectManager          = require("project/ProjectManager"),
+    var Global                  = require("utils/Global"),
+        ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
         CSSInlineEditor         = require("editor/CSSInlineEditor"),
@@ -87,8 +88,7 @@ define(function (require, exports, module) {
         SidebarView             = require("project/SidebarView"),
         Async                   = require("utils/Async"),
         UpdateNotification      = require("utils/UpdateNotification"),
-        UrlParams               = require("utils/UrlParams").UrlParams,
-        Global                  = require("utils/Global");
+        UrlParams               = require("utils/UrlParams").UrlParams;
 
     // Local variables
     var params                  = new UrlParams();
@@ -260,7 +260,7 @@ define(function (require, exports, module) {
             // WARNING: brackets.ready won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(Global.dispatchEvent(Global.READY));
+            _initExtensions().always(Global._dispatchEvent(Global.READY));
         });
         
         // Check for updates
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
 
     // Localize MainViewHTML and inject into <BODY> tag
     $('body').html(Mustache.render(MainViewHTML, Strings));
-    Global.dispatchEvent(Global.HTML_CONTENT_LOAD_COMPLETE);
+    Global._dispatchEvent(Global.HTML_CONTENT_LOAD_COMPLETE);
 
     $(window.document).ready(_onReady);
     
