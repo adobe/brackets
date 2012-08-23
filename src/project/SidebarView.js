@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         Commands                = require("command/Commands"),
         Strings                 = require("strings"),
         PreferencesManager      = require("preferences/PreferencesManager"),
-        EditorManager           = require("editor/EditorManager");
+        EditorManager           = require("editor/EditorManager"),
+        Global                  = require("utils/Global");
 
     var isSidebarClosed         = false;
 
@@ -232,7 +233,7 @@ define(function (require, exports, module) {
     }
 
     // Initialize items dependent on HTML DOM
-    $(brackets).on("htmlContentLoadComplete", function () {
+    brackets.htmlContentLoadComplete(function () {
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $sidebarResizer         = $("#sidebar-resizer");

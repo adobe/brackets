@@ -55,7 +55,8 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        Global              = require("utils/Global");
     
     /**
      * @private
@@ -930,7 +931,7 @@ define(function (require, exports, module) {
 
 
     // Initialize variables and listeners that depend on the HTML DOM
-    $(brackets).on("htmlContentLoadComplete", function () {
+    brackets.htmlContentLoadComplete(function () {
         $projectTreeContainer = $("#project-files-container");
 
         $("#open-files-container").on("contentChanged", function () {
