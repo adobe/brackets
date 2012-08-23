@@ -171,6 +171,7 @@ define({
     "CMD_JSLINT"                          : "Enable JSLint",
     "CMD_SHOW_PERF_DATA"                  : "Show Performance Data",
     "CMD_NEW_BRACKETS_WINDOW"             : "New Brackets Window",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_USE_TAB_CHARS"                   : "Use Tab Characters",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
