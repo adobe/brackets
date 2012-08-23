@@ -882,9 +882,9 @@ define(function (require, exports, module) {
                                                           platform: "win"},
                                                          {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
                                                           platform: "mac"}]);
-        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2191",
+        menu.addMenuItem(Commands.EDIT_LINE_DOWN,       [{key: "Ctrl-Shift-Down", displayKey: "Ctrl-Shift-\u2193",
                                                           platform: "win"},
-                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2191",
+                                                         {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
                                                           platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
