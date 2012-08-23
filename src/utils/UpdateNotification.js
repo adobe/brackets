@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, PathUtils */
+/*global define, $, brackets, PathUtils, window */
 
 /**
  *  Utilities functions for displaying update notifications
@@ -55,8 +55,8 @@ define(function (require, exports, module) {
     // URL to load version info from. By default this is loaded no more than once a day. If 
     // you force an update check it is always loaded.
     
-    // TODO: This should point to a file on brackets.io. For now, dummy info is stored in a gist.
-    var _versionInfoURL = "https://raw.github.com/gist/78bfd92c090c9dbab802/6a98fc40968623be63ba74fdb1fea4c7cb9a35b2/gistfile1.json";
+    // URL to fetch the version information.
+    var _versionInfoURL = "http://dev.brackets.io/updates/stable/"; // {locale}.json will be appended
     
     // Information on all posted builds of Brackets. This is an Array, where each element is 
     // an Object with the following fields:
@@ -111,7 +111,6 @@ define(function (require, exports, module) {
         }
         
         if (fetchData) {
-            // TODO: add language and buildNumber parameters to URL
             $.ajax(_versionInfoURL, {
                 dataType: "text",
                 complete: function (jqXHR, status) {
@@ -287,7 +286,7 @@ define(function (require, exports, module) {
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
                     
-                    $updateNotification.show();
+                    $updateNotification.css("display", "inline-block");
                     if (!_addedClickHandler) {
                         _addedClickHandler = true;
                         $updateNotification.on("click", function () {
@@ -335,6 +334,9 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+    
+    // Append locale to version info URL
+    _versionInfoURL += (window.localStorage.getItem("locale") || brackets.app.language) + ".json";
     
     // Define public API
     exports.checkForUpdate = checkForUpdate;
