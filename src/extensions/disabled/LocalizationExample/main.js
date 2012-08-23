@@ -48,28 +48,28 @@ define(function (require, exports, module) {
     
     // Load the string module for this plugin. Not this references to the strings.js
     // file next to the main.js fiel for this plugin. To access core brackets strings
-    // you would call brackets.getModule("strings") instead
+    // you would call brackets.getModule("strings") instead of require("strings")
     var Strings             = require("strings");
 
 
     // This sample command first shows an alert passing in a localized
     // string in JavaScript then it shows a localized HTML dialog.
-    function TestCommand() {
+    function testCommand() {
         alert(Strings.ALERT_MESSAGE);
 
-        Dialogs.showModalDialog("sampleLocalizedDialog");
+        Dialogs.showModalDialog("sample-localized-dialog");
     }
 
 
     // Register the command
     // A localized command name is used by passing in Strings.COMMAND_NAME
     var myCommandID = "localizationExample.command";
-    var command = CommandManager.register(Strings.COMMAND_NAME, myCommandID, TestCommand);
+    var command = CommandManager.register(Strings.COMMAND_NAME, myCommandID, testCommand);
 
     var menu = Menus.getMenu(Menus.AppMenuBar.EDIT_MENU);
     menu.addMenuItem(myCommandID, null, Menus.AFTER, myCommandID);
    
     // Localize the dialog using Strings as the datasource and insert it into the DOM
-    var d = $(Mustache.render(browserWrapperHtml, Strings));
-    $('body').append(d);
+    var localizedHTML = $(Mustache.render(browserWrapperHtml, Strings));
+    $('body').append(localizedHTML);
 });
