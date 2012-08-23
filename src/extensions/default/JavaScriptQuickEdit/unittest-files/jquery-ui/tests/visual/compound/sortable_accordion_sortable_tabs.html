@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Compound Visual Test : Accordion in Tabs</title>
+	<link rel="stylesheet" href="../visual.css">
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../../ui/jquery.ui.sortable.js"></script>
+	<script src="../../../ui/jquery.ui.accordion.js"></script>
+	<script src="../../../ui/jquery.ui.tabs.js"></script>
+	<script>
+	$(function() {
+		$( "#accordion-1, #accordion-2" )
+			.accordion({
+				header: "> div > h3"
+			})
+			.sortable();
+
+		$( "#tabs" )
+			.tabs()
+			.find( ".ui-tabs-nav" )
+				.sortable();
+	});
+	</script>
+</head>
+<body>
+
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1">1 - Accordion</a></li>
+		<li><a href="#tabs-2">2 - Empty</a></li>
+		<li><a href="#tabs-3">3 - Empty</a></li>
+		<li><a href="#tabs-4">4 - Accordion</a></li>
+	</ul>
+	<div id="tabs-1">
+		<div id="accordion-1">
+			<div>
+				<h3>Accordion Header 1</h3>
+				<div>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+				</div>
+			</div>
+			<div>
+				<h3>Accordion Header 2</h3>
+				<div>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+				</div>
+			</div>
+			<div>
+				<h3>Accordion Header 3</h3>
+				<div>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="tabs-2">
+		<p>Nothing to look at here...</p>
+	</div>
+	<div id="tabs-3">
+		<p>Nothing to look at here...</p>
+	</div>
+	<div id="tabs-4">
+		<div id="accordion-2">
+			<div>
+				<h3>Accordion Header 1</h3>
+				<div>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+					<p>Accordion Content 1</p>
+				</div>
+			</div>
+			<div>
+				<h3>Accordion Header 2</h3>
+				<div>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+					<p>Accordion Content 2</p>
+				</div>
+			</div>
+			<div>
+				<h3>Accordion Header 3</h3>
+				<div>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+					<p>Accordion Content 3</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>

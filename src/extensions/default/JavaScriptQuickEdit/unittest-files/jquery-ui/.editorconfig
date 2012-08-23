@@ -1,0 +1,13 @@
+; This file is for unifying the coding style for different editors and IDEs.
+; More information at http://EditorConfig.org
+
+root = true
+
+[grunt.js]
+indent_style = tab
+
+[ui/**.js]
+indent_style = tab
+
+[tests/unit/**.js]
+indent_style = tab

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Effects Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<script>
+	$.uiBackCompat = false;
+	</script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		js: [
+			"ui/jquery.effects.core.js",
+			"ui/jquery.effects.blind.js",
+			"ui/jquery.effects.bounce.js",
+			"ui/jquery.effects.clip.js",
+			"ui/jquery.effects.drop.js",
+			"ui/jquery.effects.explode.js",
+			"ui/jquery.effects.fade.js",
+			"ui/jquery.effects.fold.js",
+			"ui/jquery.effects.highlight.js",
+			"ui/jquery.effects.pulsate.js",
+			"ui/jquery.effects.scale.js",
+			"ui/jquery.effects.shake.js",
+			"ui/jquery.effects.slide.js",
+			"ui/jquery.effects.transfer.js"
+		]
+	});
+	</script>
+
+	<script src="effects_core.js"></script>
+	<script src="effects_scale.js"></script>
+
+	<script src="../swarminject.js"></script>
+	<style>
+	#qunit-fixture {
+		width: 1000px;
+		height: 1000px;
+	}
+	.hidden {
+		display: none;
+	}
+	.test {
+		background: #000;
+		border: 0;
+		width: 100px;
+		height: 100px;
+	}
+	.testAddBorder {
+		border: 10px solid #000;
+	}
+	.testChildren,
+	.testChangeBackground {
+		background: #fff;
+	}
+	.test h2 {
+		font-size: 10px;
+	}
+	.testChildren h2 {
+		font-size: 20px;
+	}
+
+	.relWidth {
+		width: 50%;
+	}
+
+	.relHeight {
+		height: 50%;
+	}
+
+	.testScale {
+		border: 5px solid #000;
+		padding: 5px;
+		margin: 5px;
+		width: 50px;
+		height: 50px;
+	}
+
+	.ticket7106 {
+		width: 50px;
+		height: 50px;
+	}
+	.ticket7106.animate {
+		width: 100px;
+	}
+
+	</style>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Effects Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+<div class="hidden test"></div>
+<div class="animateClass test">
+	<h2>Child Element Test</h2>
+</div>
+<div class="relWidth relHeight testAddBorder">
+	<h2>Slide with relative width</h2>
+</div>
+<div class="testScale">
+</div>
+<div class="ticket7106">
+</div>
+
+</div>
+</body>
+</html>

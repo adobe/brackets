@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Effects - switchClass Demo</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.effects.core.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	.toggler { width: 500px; height: 200px; position: relative; }
+	#button { padding: .5em 1em; text-decoration: none; }
+	#effect {position: relative;   }
+	.newClass { width: 240px;  padding: 1em; letter-spacing: 0; font-size: 1.2em; margin: 0; }
+	.anotherNewClass { text-indent: 40px; letter-spacing: .4em; width: 410px; height: 100px; padding: 30px; margin: 10px; font-size: 1.6em; }
+	</style>
+	<script>
+	$(function() {
+		$( "#button" ).click(function(){
+			$( ".newClass" ).switchClass( "newClass", "anotherNewClass", 1000 );
+			$( ".anotherNewClass" ).switchClass( "anotherNewClass", "newClass", 1000 );
+			return false;	
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<div class="toggler">
+	<div id="effect" class="newClass ui-corner-all">
+			Etiam libero neque, luctus a, eleifend nec, semper at, lorem. Sed pede. 
+	</div>
+</div>
+<a href="#" id="button" class="ui-state-default ui-corner-all">Run Effect</a>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Click the button above to preview the effect.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

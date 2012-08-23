@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Tooltip Visual Test: Animations</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.position.js"></script>
+	<script src="../../../ui/jquery.ui.tooltip.js"></script>
+	<script src="../../../ui/jquery.effects.core.js"></script>
+	<script src="../../../ui/jquery.effects.blind.js"></script>
+	<script src="../../../ui/jquery.effects.bounce.js"></script>
+	<script src="../../../ui/jquery.effects.drop.js"></script>
+	<script src="../../../ui/jquery.effects.explode.js"></script>
+	<style>
+	pre {
+		width: 250px;
+		border: 1px solid #000;
+		padding: .5em;
+	}
+	</style>
+	<script>
+	$(function() {
+		$( "pre" ).each(function( index, elem ) {
+			$( elem )
+				.attr( "title", "animated tooltips" )
+				.tooltip( $.parseJSON( $( elem ).text() ) );
+		});
+	});
+	</script>
+</head>
+<body>
+
+<pre>{}</pre>
+<pre>{
+  "show": {
+    "effect": "slideDown"
+  },
+  "hide": {
+    "effect": "slideUp"
+  }
+}</pre>
+<pre>{
+  "show": {
+    "effect": "explode"
+  },
+  "hide": {
+    "effect": "explode"
+  }
+}</pre>
+<pre>{
+  "show": {
+    "effect": "bounce"
+  },
+  "hide": {
+    "effect": "blind"
+  }
+}</pre>
+<pre>{
+  "show": {
+    "effect": "drop",
+    "direction": "right"
+  },
+  "hide": {
+    "effect": "drop",
+    "direction": "right"
+  }
+}</pre>
+
+</body>
+</html>

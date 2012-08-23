@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Spinner - Map</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../external/jquery.mousewheel-3.0.4.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.button.js"></script>
+	<script src="../../ui/jquery.ui.spinner.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		function latlong() {
+			return new google.maps.LatLng( $("#lat").val(), $("#lng").val() );
+		}
+		function position() {
+			map.setCenter( latlong() );
+		}
+		$( "#lat, #lng" ).spinner({
+			step: .001,
+			change: position,
+			stop: position
+		});
+
+		var map = new google.maps.Map( $("#map")[0], {
+			zoom: 8,
+			center: latlong(),
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+		});
+	});
+	</script>
+	<style>
+	#map {
+		width:500px;
+		height:500px;
+	}
+	</style>
+</head>
+<body>
+
+<div class="demo">
+
+<label for="lat">Latitude</label>
+<input id="lat" name="lat" value="44.797">
+<br>
+<label for="lng">Longitude</label>
+<input id="lng" name="lng" value="-93.278">
+
+<div id="map"></div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Google Maps integration, using spinners to change latidude and longitude.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>
