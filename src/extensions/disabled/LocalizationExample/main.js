@@ -23,7 +23,8 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, require, navigator, Mustache */
+/*global define, brackets, $, require, Mustache, navigator  */
+
 
 require.config({
     paths: {
