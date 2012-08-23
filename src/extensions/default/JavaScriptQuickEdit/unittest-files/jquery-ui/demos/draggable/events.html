@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Draggable - Events</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.draggable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#draggable { width: 16em; padding: 0 1em; }
+	#draggable ul li { margin: 1em 0; padding: 0.5em 0; } * html #draggable ul li { height: 1%; }
+	#draggable ul li span.ui-icon { float: left; }
+	#draggable ul li span.count { font-weight: bold; }
+	</style>
+	<script>
+	$(function() {
+		var $start_counter = $( "#event-start" ),
+			$drag_counter = $( "#event-drag" ),
+			$stop_counter = $( "#event-stop" ),
+			counts = [ 0, 0, 0 ];
+
+		$( "#draggable" ).draggable({
+			start: function() {
+				counts[ 0 ]++;
+				updateCounterStatus( $start_counter, counts[ 0 ] );
+			},
+			drag: function() {
+				counts[ 1 ]++;
+				updateCounterStatus( $drag_counter, counts[ 1 ] );
+			},
+			stop: function() {
+				counts[ 2 ]++;
+				updateCounterStatus( $stop_counter, counts[ 2 ] );
+			}
+		});
+
+		function updateCounterStatus( $event_counter, new_count ) {
+			// first update the status visually...
+			if ( !$event_counter.hasClass( "ui-state-hover" ) ) {
+				$event_counter.addClass( "ui-state-hover" )
+					.siblings().removeClass( "ui-state-hover" );
+			}
+			// ...then update the numbers
+			$( "span.count", $event_counter ).text( new_count );
+		}
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<div id="draggable" class="ui-widget ui-widget-content">
+
+	<p>Drag me to trigger the chain of events.</p>
+
+	<ul class="ui-helper-reset">
+		<li id="event-start" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-play"></span>"start" invoked <span class="count">0</span>x</li>
+		<li id="event-drag" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-arrow-4"></span>"drag" invoked <span class="count">0</span>x</li>
+		<li id="event-stop" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-stop"></span>"stop" invoked <span class="count">0</span>x</li>
+	</ul>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Layer functionality onto the draggable using the <code>start</code>, <code>drag</code>, and <code>stop</code> events.  Start is fired at the start of the drag; drag during the drag; and stop when dragging stops.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

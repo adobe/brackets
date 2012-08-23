@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Selectable - Serialize</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.selectable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	
+	<style>
+	#feedback { font-size: 1.4em; }
+	#selectable .ui-selecting { background: #FECA40; }
+	#selectable .ui-selected { background: #F39814; color: white; }
+	#selectable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+	#selectable li { margin: 3px; padding: 0.4em; font-size: 1.4em; height: 18px; }
+	</style>
+	<script>
+	$(function() {
+		$( "#selectable" ).selectable({
+			stop: function() {
+				var result = $( "#select-result" ).empty();
+				$( ".ui-selected", this ).each(function() {
+					var index = $( "#selectable li" ).index( this );
+					result.append( " #" + ( index + 1 ) );
+				});
+			}
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<p id="feedback">
+<span>You've selected:</span> <span id="select-result">none</span>.
+</p>
+
+<ol id="selectable">
+	<li class="ui-widget-content">Item 1</li>
+	<li class="ui-widget-content">Item 2</li>
+	<li class="ui-widget-content">Item 3</li>
+	<li class="ui-widget-content">Item 4</li>
+	<li class="ui-widget-content">Item 5</li>
+	<li class="ui-widget-content">Item 6</li>
+</ol>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Write a function that fires on the <code>stop</code> event to collect the index values of selected items.  Present values as feedback, or pass as a data string.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

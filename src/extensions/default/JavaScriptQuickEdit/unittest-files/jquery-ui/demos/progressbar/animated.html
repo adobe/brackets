@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Progressbar - Animated</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.progressbar.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	.ui-progressbar .ui-progressbar-value { background-image: url(images/pbar-ani.gif); }
+	</style>
+	<script>
+	$(function() {
+		$( "#progressbar" ).progressbar({
+			value: 59
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<div id="progressbar"></div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>
+This progressbar has an animated fill by setting the
+<code>background-image</code>
+on the
+<code>.ui-progressbar-value</code>
+element, using css.
+</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

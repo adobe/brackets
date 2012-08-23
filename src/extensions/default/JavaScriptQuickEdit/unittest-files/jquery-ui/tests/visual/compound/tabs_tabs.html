@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Compound Visual Test : Tabs in Tabs</title>
+	<link rel="stylesheet" href="../visual.css">
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.accordion.js"></script>
+	<script src="../../../ui/jquery.ui.tabs.js"></script>
+	<script>
+	$(function() {
+		$( "#tabs, #tabs-a, #tabs-b" ).tabs();
+	});
+	</script>
+</head>
+<body>
+
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-1">First</a></li>
+		<li><a href="#tabs-2">Second</a></li>
+	</ul>
+	<div id="tabs-1">
+		<div id="tabs-a">
+			<ul>
+				<li><a href="#tabs-a-1">First</a></li>
+				<li><a href="#tabs-a-2">Second</a></li>
+			</ul>
+			<div id="tabs-a-1">
+				<p>nested tabs a-1</p>
+				<p>nested tabs a-1</p>
+				<p>nested tabs a-1</p>
+				<p>nested tabs a-1</p>
+				<p>nested tabs a-1</p>
+			</div>
+			<div id="tabs-a-2">
+				<p>nested tabs a-2</p>
+				<p>nested tabs a-2</p>
+				<p>nested tabs a-2</p>
+				<p>nested tabs a-2</p>
+				<p>nested tabs a-2</p>
+			</div>
+		</div>
+	</div>
+	<div id="tabs-2">
+		<div id="tabs-b">
+			<ul>
+				<li><a href="#tabs-b-1">First</a></li>
+				<li><a href="#tabs-b-2">Second</a></li>
+			</ul>
+			<div id="tabs-b-1">
+				<p>nested tabs b-1</p>
+				<p>nested tabs b-1</p>
+				<p>nested tabs b-1</p>
+				<p>nested tabs b-1</p>
+				<p>nested tabs b-1</p>
+			</div>
+			<div id="tabs-b-2">
+				<p>nested tabs b-2</p>
+				<p>nested tabs b-2</p>
+				<p>nested tabs b-2</p>
+				<p>nested tabs b-2</p>
+				<p>nested tabs b-2</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>
