@@ -43,7 +43,8 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
+    var LoadEvents          = require("utils/LoadEvents"),
+        NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
         CommandManager      = require("command/CommandManager"),
@@ -55,8 +56,7 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        FileUtils           = require("file/FileUtils"),
-        Global              = require("utils/Global");
+        FileUtils           = require("file/FileUtils");
     
     /**
      * @private
@@ -931,7 +931,7 @@ define(function (require, exports, module) {
 
 
     // Initialize variables and listeners that depend on the HTML DOM
-    brackets.htmlContentLoadComplete(function () {
+    LoadEvents.htmlContentLoadComplete(function () {
         $projectTreeContainer = $("#project-files-container");
 
         $("#open-files-container").on("contentChanged", function () {

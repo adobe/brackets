@@ -61,6 +61,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
+        LoadEvents              = require("utils/LoadEvents"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -260,7 +261,7 @@ define(function (require, exports, module) {
             // WARNING: brackets.ready won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(Global._dispatchEvent(Global.READY));
+            _initExtensions().always(LoadEvents._dispatchEvent(LoadEvents.READY));
         });
         
         // Check for updates
@@ -271,7 +272,7 @@ define(function (require, exports, module) {
 
     // Localize MainViewHTML and inject into <BODY> tag
     $('body').html(Mustache.render(MainViewHTML, Strings));
-    Global._dispatchEvent(Global.HTML_CONTENT_LOAD_COMPLETE);
+    LoadEvents._dispatchEvent(LoadEvents.HTML_CONTENT_LOAD_COMPLETE);
 
     $(window.document).ready(_onReady);
     

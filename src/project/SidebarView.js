@@ -28,14 +28,15 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var ProjectManager          = require("project/ProjectManager"),
-        WorkingSetView          = require("project/WorkingSetView"),
-        CommandManager          = require("command/CommandManager"),
-        Commands                = require("command/Commands"),
-        Strings                 = require("strings"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        EditorManager           = require("editor/EditorManager"),
-        Global                  = require("utils/Global");
+    var LoadEvents          = require("utils/LoadEvents"),
+        ProjectManager      = require("project/ProjectManager"),
+        WorkingSetView      = require("project/WorkingSetView"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Strings             = require("strings"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Global              = require("utils/Global");
 
     var isSidebarClosed         = false;
 
@@ -233,7 +234,7 @@ define(function (require, exports, module) {
     }
 
     // Initialize items dependent on HTML DOM
-    brackets.htmlContentLoadComplete(function () {
+    LoadEvents.htmlContentLoadComplete(function () {
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $sidebarResizer         = $("#sidebar-resizer");

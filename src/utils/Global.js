@@ -26,86 +26,13 @@
 /*global define */
 
 /**
- * Initializes the global 'brackets' variable and it's properties.
- *
- * This module dispatches these events:
- *    - htmlContentLoadComplete - When the main application template is rendered
- *    - ready - When Brackets completes loading all modules and extensions
- *
- * These are *not* jQuery events. Each event has it's own event registration.
- * Each event is similar to $(document).ready in that it will call the handler
- * immediately if brackets is already done loading
+ * Initializes the global "brackets" variable and it's properties.
+ * Modules should not access the global.brackets object until either
+ * (a) the module requires this module, i.e. require("utils/Global") or
+ * (b) the module receives a "ready" event from the utils/LoadEvents module.
  */
 define(function (require, exports, module) {
     "use strict";
-    
-    // Fires when the base htmlContent/main-view.html is loaded
-    var HTML_CONTENT_LOAD_COMPLETE  = "htmlContentLoadComplete";
-
-    // Fires when all extensions are loaded
-    var READY                       = "ready";
-
-    var eventStatus                 = { HTML_CONTENT_LOAD_COMPLETE : false, READY : false },
-        handlers                    = {};
-
-    handlers[HTML_CONTENT_LOAD_COMPLETE] = [];
-    handlers[READY] = [];
-
-    function _callEventHandler(handler) {
-        try {
-            // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
-            // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
-            // add callbacks to this, we need to be robust to exceptions
-            handler();
-        } catch (e) {
-            console.log("Exception when calling a 'brackets done loading' handler");
-            console.log(e);
-        }
-    }
-
-    function _dispatchEvent(type) {
-        var i,
-            eventTypeHandlers = handlers[type];
-
-        // mark this event type as fired
-        eventStatus[type] = true;
-
-        for (i = 0; i < eventTypeHandlers.length; i++) {
-            _callEventHandler(eventTypeHandlers[i]);
-        }
-
-        // clear all handlers after being called
-        eventTypeHandlers = [];
-    }
-
-    // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
-    // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
-    function _addListener(type, handler) {
-        if (eventStatus[type]) {
-            _callEventHandler(handler);
-        } else {
-            handlers[type].push(handler);
-        }
-    }
-
-    /**
-     * Adds an event handler for the ready event. Handlers are called after
-     * htmlContentLoadComplete, the initial project is loaded, and all
-     * extensions are loaded.
-     * @param {function} handler
-     */
-    function ready(handler) {
-        _addListener(READY, handler);
-    }
-
-    /**
-     * Adds an event handler for the htmlContentLoadComplete event. Handlers
-      * are called after the main application html template is rendered.
-     * @param {function} handler
-     */
-    function htmlContentLoadComplete(handler) {
-        _addListener(HTML_CONTENT_LOAD_COMPLETE, handler);
-    }
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -147,16 +74,6 @@ define(function (require, exports, module) {
     // the same thing as 'require' in AMD-wrapped modules. The extension will
     // only be able to load modules that have already been loaded once.
     global.brackets.getModule = require;
-
-    // Provide a way for anyone (including code not using require) to register
-    // a handler for the brackets 'ready' and 'htmlContentLoadComplete' events
-    global.brackets.ready = ready;
-    global.brackets.htmlContentLoadComplete = htmlContentLoadComplete;
-
+    
     exports.global = global;
-    exports.HTML_CONTENT_LOAD_COMPLETE = HTML_CONTENT_LOAD_COMPLETE;
-    exports.READY = READY;
-
-    // internal use only
-    exports._dispatchEvent = _dispatchEvent;
 });
