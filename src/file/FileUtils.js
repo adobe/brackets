@@ -30,6 +30,8 @@
  */
 define(function (require, exports, module) {
     "use strict";
+
+    require("utils/Global");
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PerfUtils           = require("utils/PerfUtils"),
