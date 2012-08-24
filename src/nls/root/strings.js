@@ -100,6 +100,9 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of Brackets.",
 
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    
     // Switch language
     "LANGUAGE_TITLE"                    : "Switch Language",
     "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
