@@ -58,10 +58,10 @@
 
     <!-- HTML content is dynamically loaded and rendered by brackets.js.
          Any modules that depend on or modify HTML during load should 
-         require the "utils/LoadEvents" modules and install an event handler
-         for "htmlContentLoadComplete" (e.g. LoadEvents.htmlContentLoadComplete(handler))
-         before touching the DOM. -->
-   
+         require the "utils/Ready" modules and install a callback for
+         "htmlReady" (e.g. Ready.htmlReady(handler)) before touching the DOM.
+    -->
+    
     <!-- All other scripts are loaded through require. -->
     <script src="thirdparty/require.js" data-main="brackets"></script>
 

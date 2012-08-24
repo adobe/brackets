@@ -26,32 +26,32 @@
 /*global define */
 
 /**
- * Defines events to assist with module initialization.
+ * Defines hooks to assist with module initialization.
  *
- * This module dispatches these events:
- *    - htmlContentLoadComplete - When the main application template is rendered
+ * This module defines 2 methods for client modules to attach callbacks:
+ *    - htmlReady - When the main application template is rendered
  *    - ready - When Brackets completes loading all modules and extensions
  *
- * These are *not* jQuery events. Each event has it's own event registration.
- * Each event is similar to $(document).ready in that it will call the handler
- * immediately if brackets is already done loading
+ * These are *not* jQuery events. Each method is similar to $(document).ready
+ * in that it will call the handler immediately if brackets is already done
+ * loading.
  */
 define(function (require, exports, module) {
     "use strict";
     
     // Fires when the base htmlContent/main-view.html is loaded
-    var HTML_CONTENT_LOAD_COMPLETE  = "htmlContentLoadComplete";
+    var HTML_READY  = "htmlReady";
 
     // Fires when all extensions are loaded
-    var READY                       = "ready";
+    var READY       = "ready";
 
-    var eventStatus                 = { HTML_CONTENT_LOAD_COMPLETE : false, READY : false },
-        handlers                    = {};
+    var status      = { HTML_READY : false, READY : false },
+        callbacks   = {};
 
-    handlers[HTML_CONTENT_LOAD_COMPLETE] = [];
-    handlers[READY] = [];
+    callbacks[HTML_READY] = [];
+    callbacks[READY] = [];
 
-    function _callEventHandler(handler) {
+    function _callHandler(handler) {
         try {
             // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
             // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
@@ -63,56 +63,57 @@ define(function (require, exports, module) {
         }
     }
 
-    function _dispatchEvent(type) {
+    function _dispatchReady(type) {
         var i,
-            eventTypeHandlers = handlers[type];
+            myHandlers = callbacks[type];
 
-        // mark this event type as fired
-        eventStatus[type] = true;
+        // mark this status complete
+        status[type] = true;
 
-        for (i = 0; i < eventTypeHandlers.length; i++) {
-            _callEventHandler(eventTypeHandlers[i]);
+        for (i = 0; i < myHandlers.length; i++) {
+            _callHandler(myHandlers[i]);
         }
 
-        // clear all handlers after being called
-        eventTypeHandlers = [];
+        // clear all callbacks after being called
+        callbacks[type] = [];
     }
 
-    // WARNING: This event won't fire if ANY extension fails to load or throws an error during init.
-    // To fix this, we need to make a change to _initExtensions (filed as issue 1029)
-    function _addListener(type, handler) {
-        if (eventStatus[type]) {
-            _callEventHandler(handler);
+    function _addListener(type, callback) {
+        if (status[type]) {
+            _callHandler(callback);
         } else {
-            handlers[type].push(handler);
+            callbacks[type].push(callback);
         }
     }
 
     /**
-     * Adds an event handler for the ready event. Handlers are called after
-     * htmlContentLoadComplete, the initial project is loaded, and all
-     * extensions are loaded.
+     * Adds a callback for the ready hook. Handlers are called after
+     * htmlReady is done, the initial project is loaded, and all extensions are
+     * loaded.
      * @param {function} handler
      */
-    function ready(handler) {
-        _addListener(READY, handler);
+    function ready(callback) {
+        // WARNING: "ready" won't fire if ANY extension fails to load or
+        // throws an error during init. To fix this, we need to make a change
+        // to _initExtensions (filed as issue 1029)
+        _addListener(READY, callback);
     }
 
     /**
-     * Adds an event handler for the htmlContentLoadComplete event. Handlers
-      * are called after the main application html template is rendered.
+     * Adds a callback for the htmlReady hook. Handlers are called after the
+     * main application html template is rendered.
      * @param {function} handler
      */
-    function htmlContentLoadComplete(handler) {
-        _addListener(HTML_CONTENT_LOAD_COMPLETE, handler);
+    function htmlReady(callback) {
+        _addListener(HTML_READY, callback);
     }
 
     exports.ready = ready;
-    exports.htmlContentLoadComplete = htmlContentLoadComplete;
+    exports.htmlReady = htmlReady;
     
-    exports.HTML_CONTENT_LOAD_COMPLETE = HTML_CONTENT_LOAD_COMPLETE;
+    exports.HTML_READY = HTML_READY;
     exports.READY = READY;
 
     // internal use only
-    exports._dispatchEvent = _dispatchEvent;
+    exports._dispatchReady = _dispatchReady;
 });

@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
-        LoadEvents              = require("utils/LoadEvents"),
+        Ready                   = require("utils/Ready"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
         EditorManager           = require("editor/EditorManager"),
@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             doneLoading             : false
         };
 
-        LoadEvents.ready(function () {
+        Ready.ready(function () {
             brackets.test.doneLoading = true;
         });
     }
@@ -258,10 +258,10 @@ define(function (require, exports, module) {
         ProjectManager.openProject(initialProjectPath).done(function () {
             _initTest();
 
-            // WARNING: LoadEvents.ready won't fire if ANY extension fails to
+            // WARNING: Ready.ready won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
-            _initExtensions().always(LoadEvents._dispatchEvent(LoadEvents.READY));
+            _initExtensions().always(Ready._dispatchReady(Ready.READY));
         });
         
         // Check for updates
@@ -272,7 +272,7 @@ define(function (require, exports, module) {
 
     // Localize MainViewHTML and inject into <BODY> tag
     $('body').html(Mustache.render(MainViewHTML, Strings));
-    LoadEvents._dispatchEvent(LoadEvents.HTML_CONTENT_LOAD_COMPLETE);
+    Ready._dispatchReady(Ready.HTML_READY);
 
     $(window.document).ready(_onReady);
     

@@ -29,7 +29,7 @@
  * Initializes the global "brackets" variable and it's properties.
  * Modules should not access the global.brackets object until either
  * (a) the module requires this module, i.e. require("utils/Global") or
- * (b) the module receives a "ready" event from the utils/LoadEvents module.
+ * (b) the module receives a "ready" event from the utils/Ready module.
  */
 define(function (require, exports, module) {
     "use strict";
