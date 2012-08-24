@@ -163,8 +163,8 @@ define(function (require, exports, module) {
         if (foundEqualSign) {
             var spaceIndex = attrValue.indexOf(" ");
             attrValue = attrValue.substring(0, (spaceIndex > offset) ? spaceIndex : offset);
-        } else if (offset > 0) {
-            //The att value it getting edit in progress. There is possible extra
+        } else if (offset > 0 && (startChar === "'" || startChar === '"')) {
+            //The att value is getting edit in progress. There is possible extra
             //stuff in this token state since the quote isn't closed, so we assume
             //the stuff from the quote to the current pos is definitely in the attribute 
             //value.
@@ -316,11 +316,12 @@ define(function (require, exports, module) {
      *              A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, constPos) {
-        //we're going to changing pos a lot, but we don't want to mess up
-        //the pos the caller passed in so we use extend to make a safe copy of it.	
-        //This is what pass by value in c++ would do.	
+        // We're going to changing pos a lot, but we don't want to mess up
+        // the pos the caller passed in so we use extend to make a safe copy of it.	
+        // This is what pass by value in c++ would do.	
         var pos = $.extend({}, constPos),
             ctx = _getInitialContext(editor._codeMirror, pos),
+            tempCtx = null,
             offset = _offsetInToken(ctx),
             tagInfo,
             tokenType;
@@ -347,46 +348,54 @@ define(function (require, exports, module) {
                 ctx.token = testToken;
 
                 if (ctx.token.className === "tag") {
-                    // check to see if the cursor is just before a "<" but not in any tag.
+                    // Check to see if the cursor is just before a "<" but not in any tag.
                     if (ctx.token.string.charAt(0) === "<") {
                         return createTagInfo();
                     }
                 } else if (ctx.token.className === "attribute") {
-                    // check to see if the user is going to add a new attr before an existing one
+                    // Check to see if the user is going to add a new attr before an existing one
                     return _getTagInfoStartingFromAttrName(ctx, false);
-                } else if (ctx.token.className === "string") {
-                    // we're either before a "=" or an attribute value.
+                } else if (ctx.token.string === "=") {
+                    // We're between a whitespace and  "=", so return an empty tag info.
                     return createTagInfo();
                 }
-
-                ctx.pos = testPos;
-                // Get the new offset from test token and subtract one for testPos adjustment
-                offset = _offsetInToken(ctx) - 1;
             } else {
                 // We get here if ">" or white spaces after testPos.
+                // Check if there is an equal sign after testPos by creating a new ctx
+                // with the original pos. We can't use the current ctx since we need to 
+                // use it to scan backwards if we don't find an equal sign here.
+                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
+                    tempCtx = _getInitialContext(editor._codeMirror, pos);
+                    if (_moveSkippingWhitespace(_moveNextToken, tempCtx) && tempCtx.token.string === "=") {
+                        // Return an empty tag info since we're between an atribute name and the equal sign.
+                        return createTagInfo();
+                    }
+                }
+
                 // next, see what's before pos
                 if (!_movePrevToken(ctx)) {
                     return createTagInfo();
                 }
             
-                if (ctx.token.className !== "tag") {
-                    //if wasn't the tag name, assume it was an attr value
+                if (ctx.token.className !== "tag" && ctx.token.string !== "=") {
+                    // If it wasn't the tag name, assume it was an attr value
+                    // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 
-                    //if it wasn't an attr value, assume it was an empty attr (ie. attr with no value)
+                    // If it wasn't an attr value, assume it was an empty attr (ie. attr with no value)
                     if (!tagInfo.tagName) {
                         tagInfo = _getTagInfoStartingFromAttrName(ctx, true);
                     }
 
-                    //We don't want to give context for the previous attr
-                    //and we want it to look like the user is going to add a new attr
+                    // We don't want to give context for the previous attr
+                    // and we want it to look like the user is going to add a new attr
                     if (tagInfo.tagName) {
                         return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
                     }
                     return createTagInfo();
                 }
                 
-                //we know the tag was here, so they user is adding an attr name
+                // We know the tag was here, so the user is adding an attr name
                 tokenType = ATTR_NAME;
                 offset = 0;
             }
@@ -398,7 +407,7 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
             
-            //check to see if this is the closing of a tag (either the start or end)
+            // Check to see if this is the closing of a tag (either the start or end)
             if (ctx.token.string === ">" ||
                     (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
                 return createTagInfo();
@@ -409,19 +418,39 @@ define(function (require, exports, module) {
                 offset--; //need to take off 1 for the leading "<"
             }
             
-            //we're actually in the tag, just return that as we have no relevant 
-            //info about what attr is selected
+            // We're actually in the tag, just return that as we have no relevant 
+            // info about what attr is selected
             return createTagInfo(tokenType, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
-            // To discourage unquoted attribute value usage we intentionally return an invalid tag info here.
-            // This will also spare us from handling the conversion between quoted and unquoted attribute values.
-            return createTagInfo();
+            // We could be between the attr and the value
+            // Step back and check
+            if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
+                return createTagInfo();
+            }
+            
+            // The "=" is added, time to hint for values
+            tokenType = ATTR_VALUE;
+            offset = 0;
         }
         
         if (ctx.token.className === "attribute") {
             tagInfo = _getTagInfoStartingFromAttrName(ctx, false);
+            
+            // If we're in attr value, then we may need to calculate the correct offset
+            // from the beginning of the attribute value. If the cursor position is to 
+            // the left of attr value, then the offset is negative.
+            // e.g. if the cursor is just to the right of the "=" in <a rel= "rtl", then
+            // the offset will be -2.
+            if (tagInfo.attr.quoteChar) {
+                offset = constPos.ch - ctx.pos.ch;
+            } else if (tokenType === ATTR_VALUE && (constPos.ch + 1) < ctx.pos.ch) {
+                // The cursor may be right before an unquoted attribute or another attribute name.
+                // Since we can't distinguish between them, we will empty the value so that the 
+                // caller can just insert a new attribute value.
+                tagInfo.attr.value = "";
+            }
         } else {
             // if we're not at a tag, "=", or attribute name, assume we're in the value
             tagInfo = _getTagInfoStartingFromAttrValue(ctx);
