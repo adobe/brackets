@@ -31,6 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
 
+    require("utils/Global");
+
     var CommandManager = require("command/CommandManager");
 
     /**
