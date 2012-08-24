@@ -93,8 +93,7 @@ define(function (require, exports, module) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
-            charCount = 0,
-            adjustment = 0;
+            charCount = 0;
 
         if (tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
             charCount = tagInfo.tagName.length;
@@ -103,18 +102,12 @@ define(function (require, exports, module) {
         end.line = start.line = cursor.line;
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
-        
-        adjustment = completion.length;
-        completion += " >" + "</" + completion + ">"; // add closing tag
 
         if (start.ch !== end.ch) {
             editor.document.replaceRange(completion, start, end);
         } else {
             editor.document.replaceRange(completion, start);
         }
-        
-        editor.setCursorPos(start.line, start.ch + adjustment + 1); // adjust the cursor 
-        CodeHintManager.showHint(editor); // pop up attributes hints
     };
 
     /**
