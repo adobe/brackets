@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             doneLoading             : false
         };
 
-        brackets.ready(function () {
+        LoadEvents.ready(function () {
             brackets.test.doneLoading = true;
         });
     }
