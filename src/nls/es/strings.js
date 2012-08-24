@@ -206,5 +206,5 @@ define({
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versi\u00F3n de Brackets disponible! Haz click aqu\u00ED para m\u00E1s detalles.",
     "UPDATE_AVAILABLE_TITLE"               : "Actualizaci\u00F3n disponible",
     "UPDATE_MESSAGE"                       : "Oye, hay una nueva versi\u00F3n de Brackets disponible. \u00C9stas son algunas de las nuevas caracter\u00EDsticas:",
-    "GET_IT_NOW"                           : "Get it now!"
+    "GET_IT_NOW"                           : "¡Cons\u00EDguelo ahora!"
 });
