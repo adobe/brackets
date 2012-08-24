@@ -258,7 +258,7 @@ define(function (require, exports, module) {
         ProjectManager.openProject(initialProjectPath).done(function () {
             _initTest();
 
-            // WARNING: brackets.ready won't fire if ANY extension fails to
+            // WARNING: LoadEvents.ready won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
             _initExtensions().always(LoadEvents._dispatchEvent(LoadEvents.READY));

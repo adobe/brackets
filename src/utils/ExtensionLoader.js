@@ -32,6 +32,8 @@
 define(function (require, exports, module) {
     "use strict";
 
+    require("utils/Global");
+
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),

@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     'use strict';
     
+    require("utils/Global");
+
     // Load dependent modules
     var CommandManager      = require("command/CommandManager"),
         KeyBindingManager   = require("command/KeyBindingManager");

@@ -31,6 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    require("utils/Global");
+
     var KeyBindingManager = require("command/KeyBindingManager");
 
     var DIALOG_BTN_CANCEL = "cancel",
