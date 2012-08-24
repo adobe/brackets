@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Button Visual Test: Initialization Performance</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.button.js"></script>
+	<script>
+	$(function() {
+		var start,
+			html = new Array( 500 ).join( "<button>button</button>" );
+		$( html ).appendTo( "body" );
+
+		start = $.now();
+		$( "button" ).button();
+		$( "<p>" ).text( "Time to initialize: " + ($.now() - start)  + "ms" ).prependTo( "body" );
+	});
+	</script>
+</head>
+<body>
+
+</body>
+</html>

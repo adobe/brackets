@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Sortable - Connect lists</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.sortable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#sortable1, #sortable2 { list-style-type: none; margin: 0; padding: 0 0 2.5em; float: left; margin-right: 10px; }
+	#sortable1 li, #sortable2 li { margin: 0 5px 5px 5px; padding: 5px; font-size: 1.2em; width: 120px; }
+	</style>
+	<script>
+	$(function() {
+		$( "#sortable1, #sortable2" ).sortable({
+			connectWith: ".connectedSortable"
+		}).disableSelection();
+	});
+	</script>
+</head>
+<body>
+<div class="demo">
+
+<ul id="sortable1" class="connectedSortable">
+	<li class="ui-state-default">Item 1</li>
+	<li class="ui-state-default">Item 2</li>
+	<li class="ui-state-default">Item 3</li>
+	<li class="ui-state-default">Item 4</li>
+	<li class="ui-state-default">Item 5</li>
+</ul>
+
+<ul id="sortable2" class="connectedSortable">
+	<li class="ui-state-highlight">Item 1</li>
+	<li class="ui-state-highlight">Item 2</li>
+	<li class="ui-state-highlight">Item 3</li>
+	<li class="ui-state-highlight">Item 4</li>
+	<li class="ui-state-highlight">Item 5</li>
+</ul>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>
+	Sort items from one list into another and vice versa, by passing a selector into
+	the <code>connectWith</code> option. The simplest way to do this is to
+	group all related lists with a CSS class, and then pass that class into the
+	sortable function (i.e., <code>connectWith: '.myclass'</code>).
+</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

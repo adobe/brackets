@@ -40,7 +40,7 @@ define(function (require, exports, module) {
         PerformanceReporter = brackets.getModule("perf/PerformanceReporter");
 
     var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
-        testPath = extensionPath + "/unittest-files",
+        testPath = extensionPath + "/unittest-files/syntax",
         testWindow,
         initInlineTest;
 
@@ -281,7 +281,7 @@ define(function (require, exports, module) {
             
             this.category = "performance";
             
-            var testPath = SpecRunnerUtils.getTestPath("/../../../brackets-scenario/jquery-ui/");
+            var testPath = extensionPath + "/unittest-files/jquery-ui";
 
             beforeEach(function () {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {

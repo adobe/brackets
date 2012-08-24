@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Position Visual Test</title>
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../../ui/jquery.ui.draggable.js"></script>
+	<script src="../../../ui/jquery.ui.position.js"></script>
+	<style>
+		.demo {
+			position: relative;
+			height: 500px;
+			width: 80%;
+			margin: 20px auto;
+			background: #eee;
+		}
+		#target {
+			width: 60%;
+			margin: 0 auto;
+			border: 1px solid #777;
+			background-color: #fbca93;
+			text-align: center;
+			cursor: move;
+		}
+		.positionable {
+			position: absolute;
+			background-color: #bcd5e6;
+			text-align: center;
+		}
+		.extra-margin {
+			margin: 0 15px 15px 0;
+		}
+	</style>
+	<script>
+		$(function() {
+			var within = $( ".demo" ),
+				positionable = $( ".positionable" );
+			function position() {
+				positionable.position({
+					of: $( "#target" ),
+					my: $( "#my_horizontal" ).val() + " " + $( "#my_vertical" ).val(),
+					at: $( "#at_horizontal" ).val() + " " + $( "#at_vertical" ).val(),
+					within: within,
+					collision: $( "#collision_horizontal" ).val() + " " + $( "#collision_vertical" ).val()
+				});
+			}
+
+			positionable.css( "opacity", 0.5 );
+
+			$( "#target" ).draggable({
+				drag: function() { position(); }
+			});
+
+			$( "#within" ).click(function() {
+				within = within.is( ".demo" ) ? $( window ) : $( ".demo" );
+				position();
+			});
+
+			$( "#margin" ).click(function() {
+				positionable.toggleClass( "extra-margin" );
+				position();
+			});
+
+			$( "select, input" ).bind( "click keyup change", function() { position(); } );
+
+			position();
+		});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	<div id="target">
+		<p>This is the position target element.</p>
+	</div>
+
+	<div class="positionable" style="width: 75px; height: 75px;">
+		<p>to position</p>
+	</div>
+
+	<div class="positionable" style="width:120px; height: 40px;">
+		<p>to position 2</p>
+	</div>
+
+	<form style="padding: 20px; margin-top: 75px;">
+		<h2>Position configuration:</h2>
+		<div style="padding-bottom: 20px;">
+			<b>my:</b>
+			<select id="my_horizontal">
+				<option value="left">left</option>
+				<option value="center">center</option>
+				<option value="right" selected="selected">right</option>
+			</select>
+			<select id="my_vertical">
+				<option value="top">top</option>
+				<option value="middle">center</option>
+				<option value="bottom">bottom</option>
+			</select>
+		</div>
+		<div style="padding-bottom: 20px;">
+			<b>at:</b>
+			<select id="at_horizontal">
+				<option value="left">left</option>
+				<option value="center">center</option>
+				<option value="right" selected="selected">right</option>
+			</select>
+			<select id="at_vertical">
+				<option value="top">top</option>
+				<option value="middle">center</option>
+				<option value="bottom">bottom</option>
+			</select>
+		</div>
+		<div style="padding-bottom: 20px;">
+			<b>collision:</b>
+			<select id="collision_horizontal">
+				<option value="flip">flip</option>
+				<option value="fit">fit</option>
+				<option value="flipfit">flipfit</option>
+				<option value="none">none</option>
+			</select>
+			<select id="collision_vertical">
+				<option value="flip">flip</option>
+				<option value="fit">fit</option>
+				<option value="flipfit">flipfit</option>
+				<option value="none">none</option>
+			</select>
+		</div>
+		<div>
+			<label for="within">within:</label>
+			<input id="within" type="checkbox" checked="checked">
+		</div>
+		<div>
+			<label for="margin">extra margin:</label>
+			<input id="margin" type="checkbox">
+		</div>
+	</form>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Progressbar Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.progressbar" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.progressbar.js"
+		]
+	});
+	</script>
+
+	<script src="progressbar_common.js"></script>
+	<script src="progressbar_core.js"></script>
+	<script src="progressbar_events.js"></script>
+	<script src="progressbar_methods.js"></script>
+	<script src="progressbar_options.js"></script>
+
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Progressbar Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div id="progressbar"></div>
+
+</div>
+</body>
+</html>

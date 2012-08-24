@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Sortable - Delay start</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.sortable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#sortable1, #sortable2 { list-style-type: none; margin: 0; padding: 0; margin-bottom: 15px;zoom: 1; }
+	#sortable1 li, #sortable2 li { margin: 0 5px 5px 5px; padding: 5px; font-size: 1.2em; width: 95%; }
+	</style>
+	<script>
+	$(function() {
+		$( "#sortable1" ).sortable({
+			delay: 300
+		});
+		
+		$( "#sortable2" ).sortable({
+			distance: 15
+		});
+
+		$( "li" ).disableSelection();
+	});
+	</script>
+</head>
+<body>
+<div class="demo">
+
+<h3 class="docs">Time delay of 300ms:</h3>
+
+<ul id="sortable1">
+	<li class="ui-state-default">Item 1</li>
+	<li class="ui-state-default">Item 2</li>
+	<li class="ui-state-default">Item 3</li>
+	<li class="ui-state-default">Item 4</li>
+</ul>
+
+<h3 class="docs">Distance delay of 15px:</h3>
+
+<ul id="sortable2">
+	<li class="ui-state-default">Item 1</li>
+	<li class="ui-state-default">Item 2</li>
+	<li class="ui-state-default">Item 3</li>
+	<li class="ui-state-default">Item 4</li>
+</ul>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>
+	Prevent accidental sorting either by delay (time) or distance. Set a number of
+	milliseconds the element needs to be dragged before sorting starts
+	with the <code>delay</code> option. Set a distance in pixels the element
+	needs to be dragged before sorting starts with the <code>distance</code>
+	option.
+</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

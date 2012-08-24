@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Compound Visual Test : Draggable in Accordion</title>
+	<link rel="stylesheet" href="../visual.css">
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../../ui/jquery.ui.accordion.js"></script>
+	<script src="../../../ui/jquery.ui.draggable.js"></script>
+	<style>
+	.draggable {
+		width: 10em;
+		margin: 0.5em;
+	}
+	</style>
+	<script>
+	$(function() {
+		$( ".draggable" ).addClass( "ui-widget ui-widget-content ui-corner-all" )
+		$( "#first .draggable" ).draggable();
+		$( "#second .draggable" ).draggable({
+			appendTo: "body"
+		});
+		$( "#third .draggable" ).draggable({
+			helper: "clone",
+			appendTo: "body"
+		});
+		$( "#accordion" ).accordion();
+	});
+	</script>
+</head>
+<body>
+
+<div id="accordion">
+	<h3>.draggable()</h3>
+	<div id="first">
+		<div class="draggable">Draggable 1-1</div>
+		<div class="draggable">Draggable 1-2</div>
+		<div class="draggable">Draggable 1-3</div>
+		<div class="draggable">Draggable 1-4</div>
+		<div class="draggable">Draggable 1-5</div>
+	</div>
+	<h3>.draggable({ appendTo: "body" })</h3>
+	<div id="second">
+		<div class="draggable">Draggable 2-1</div>
+		<div class="draggable">Draggable 2-2</div>
+		<div class="draggable">Draggable 2-3</div>
+		<div class="draggable">Draggable 2-4</div>
+		<div class="draggable">Draggable 2-5</div>
+	</div>
+	<h3>.draggable({ helper: "clone", appendTo: "body" })</h3>
+	<div id="third">
+		<div class="draggable">Draggable 3-1</div>
+		<div class="draggable">Draggable 3-2</div>
+		<div class="draggable">Draggable 3-3</div>
+		<div class="draggable">Draggable 3-4</div>
+		<div class="draggable">Draggable 3-5</div>
+	</div>
+</div>
+
+</body>
+</html>

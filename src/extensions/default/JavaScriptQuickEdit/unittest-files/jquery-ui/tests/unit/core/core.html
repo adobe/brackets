@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Core Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		js: [ "ui/jquery.ui.core.js" ]
+	});
+	</script>
+
+	<script src="core.js"></script>
+	<script src="selector.js"></script>
+
+	<script src="../swarminject.js"></script>
+	<style>
+	.zindex {
+		z-index: 100;
+	}
+	.absolute {
+		position: absolute;
+	}
+	</style>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Core Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<img src="../images/jqueryui_32x32.png" usemap="#mymap" width="10" height="10" alt="">
+<map name="mymap">
+	<area shape="rect" coords="1,1,2,2" href="foo.html" id="areaCoordsHref" alt="">
+	<area href="foo.html" id="areaNoCoordsHref" alt="">
+</map>
+<map name="mymap2">
+	<area shape="rect" coords="1,1,2,2" href="foo.html" id="areaNoImg" alt="">
+</map>
+
+<form id="formNoTabindex"></form>
+<form id="formTabindex" tabindex="1"></form>
+
+<div>
+	<input id="visibleAncestor-inputTypeNone">
+	<input type="text" id="visibleAncestor-inputTypeText">
+	<input type="checkbox" id="visibleAncestor-inputTypeCheckbox">
+	<input type="radio" id="visibleAncestor-inputTypeRadio">
+	<input type="button" id="visibleAncestor-inputTypeButton" value="visibleAncestor-inputTypeButton">
+	<input type="hidden" id="visibleAncestor-inputTypeHidden">
+	<button id="visibleAncestor-button">x</button>
+	<select id="visibleAncestor-select">
+		<option>option</option>
+	</select>
+	<textarea id="visibleAncestor-textarea">x</textarea>
+	<object id="visibleAncestor-object" codebase="about:blank">xxx</object>
+	<a href="#" id="visibleAncestor-anchorWithHref">anchor</a>
+	<a id="visibleAncestor-anchorWithoutHref">anchor</a>
+	<span id="visibleAncestor-span">x</span>
+	<div id="visibleAncestor-div">x</div>
+	<span id="visibleAncestor-spanWithTabindex" tabindex="1">x</span>
+	<div id="visibleAncestor-divWithNegativeTabindex" tabindex="-1">x</div>
+</div>
+
+<div>
+	<input id="disabledElement-inputTypeNone" disabled="disabled">
+	<input type="text" id="disabledElement-inputTypeText" disabled="disabled">
+	<input type="checkbox" id="disabledElement-inputTypeCheckbox" disabled="disabled">
+	<input type="radio" id="disabledElement-inputTypeRadio" disabled="disabled">
+	<input type="button" id="disabledElement-inputTypeButton" disabled="disabled" value="disabledElement-inputTypeButton">
+	<input type="hidden" id="disabledElement-inputTypeHidden" disabled="disabled">
+	<button id="disabledElement-button" disabled="disabled"></button>
+	<select id="disabledElement-select" disabled="disabled"></select>
+	<textarea id="disabledElement-textarea" disabled="disabled"></textarea>
+</div>
+
+<div>
+	<div id="displayNoneAncestor" style="display: none;">
+		<input id="displayNoneAncestor-input">
+		<span tabindex="1" id="displayNoneAncestor-span">.</span>
+	</div>
+
+	<div id="visibilityHiddenAncestor" style="visibility: hidden;">
+		<input id="visibilityHiddenAncestor-input">
+		<span tabindex="1" id="visibilityHiddenAncestor-span">.</span>
+	</div>
+
+	<span tabindex="1" id="displayNone-span" style="display: none;">.</span>
+	<span tabindex="1" id="visibilityHidden-span" style="visibility: hidden;">.</span>
+
+	<input id="displayNone-input" style="display: none;">
+	<input id="visibilityHidden-input" style="visibility: hidden;">
+</div>
+
+<div>
+	<input id="inputTabindex0" tabindex="0">
+	<input id="inputTabindex10" tabindex="10">
+	<input id="inputTabindex-1" tabindex="-1">
+	<input id="inputTabindex-50" tabindex="-50">
+
+	<span id="spanTabindex0" tabindex="0">.</span>
+	<span id="spanTabindex10" tabindex="10">.</span>
+	<span id="spanTabindex-1" tabindex="-1">.</span>
+	<span id="spanTabindex-50" tabindex="-50">.</span>
+</div>
+
+<div id="zIndex100" style="z-index: 100; position: absolute">
+	<div id="zIndexAutoWithParent">.</div>
+</div>
+<div id="zIndex100ViaCSS" class="zindex">
+	<div id="zIndexAutoWithParentViaCSS">.</div>
+</div>
+<div id="zIndex100ViaCSSPositioned" class="zindex absolute">
+	<div id="zIndexAutoWithParentViaCSSPositioned">.</div>
+</div>
+<div id="zIndexAutoNoParent"></div>
+
+<div id="dimensions" style="float: left; height: 50px; width: 100px; margin: 1px 12px 11px 2px; border-style: solid; border-width: 3px 14px 13px 4px; padding: 5px 16px 15px 6px;"></div>
+
+</div>
+</body>
+</html>
