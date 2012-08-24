@@ -113,6 +113,7 @@ define(function (require, exports, module) {
         if (fetchData) {
             $.ajax(_versionInfoURL, {
                 dataType: "text",
+                cache: false,
                 complete: function (jqXHR, status) {
                     if (status === "success") {
                         try {
