@@ -293,6 +293,7 @@ define(function (require, exports, module) {
         this.$hintMenu.remove();
         if (hintList === this) {
             hintList = null;
+            shouldShowHintsOnKeyUp = false;
         }
     };
         
@@ -391,7 +392,6 @@ define(function (require, exports, module) {
 
         // Pass to the hint list, if it's open
         if (hintList && hintList.isOpen()) {
-            shouldShowHintsOnKeyUp = false;
             hintList.handleKeyEvent(editor, event);
         }
     }
