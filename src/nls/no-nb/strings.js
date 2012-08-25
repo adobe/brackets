@@ -203,7 +203,7 @@ define({
     "ABOUT_TEXT_LINE2" : "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.",
     "ABOUT_TEXT_LINE3" : "Notices; terms and conditions pertaining to third party software are located at ",
     "ABOUT_TEXT_LINE4" : " and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE5" : "Documentation and source at "
+    "ABOUT_TEXT_LINE5" : "Documentation and source at ",
     "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for Brackets er tilgjengelig! Klikk her for mer informasjon.",
     "UPDATE_AVAILABLE_TITLE" : "Oppdatering er tilgjengelig",
     "UPDATE_MESSAGE" : "Hei, en ny bygg for Brackets er tilgjengelig. Her er noen av de nye funksjonene:",
