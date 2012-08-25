@@ -100,6 +100,9 @@ define({
 	"NO_UPDATE_TITLE": "[B+] !é=You're up to date!=!",
 	"NO_UPDATE_MESSAGE": "[B9] !é=You are running the latest version of Brackets.=!",
 
+	"ERROR_FETCHING_UPDATE_INFO_TITLE": "[CF] !é=Error getting update info=!",
+	"ERROR_FETCHING_UPDATE_INFO_MSG": "[CE] !é=There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.=!",
+    
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
@@ -171,6 +174,7 @@ define({
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
 	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre Brackets",
+	"CMD_SHOW_EXTENSIONS_FOLDER": "[CD] !é=Show Extensions Folder=!",
 	"CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_CHECK_FOR_UPDATE": "[B7] !é=Check for Updates=!",
