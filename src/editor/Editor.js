@@ -225,6 +225,15 @@ define(function (require, exports, module) {
         }
     }
     
+    function _handleSelectLine() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            var cursor = editor.getCursorPos(),
+                from = {line: cursor.line, ch: 0},
+                to   = {line: cursor.line, ch: editor.document.getLine(cursor.line).length};
+            editor.setSelection(from, to);
+        }
+    }
     
     /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
@@ -1056,7 +1065,7 @@ define(function (require, exports, module) {
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
-
+    CommandManager.register("Select Line",    Commands.EDIT_SELECT_LINE, _handleSelectLine);
     // Define public API
     exports.Editor = Editor;
 });
