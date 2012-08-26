@@ -360,40 +360,100 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentClick);
     };
     
+    var FILENAME_BOOST = 3;
+    var MATCH_BOOST = 5;
+    var PATH_SEGMENT_START_MATCH_BOOST = 5;
+    
+    /**
+     * Returns a file list that contains only the files that contain
+     * the characters in query. The search is case insensitive.
+     *
+     * The result is sorted to steer the user toward the likeliest files.
+     * Specifically, preference is given to:
+     * * matches within the filename (these are most specific)
+     * * matches at the beginning of a path segment (these likely come to mind)
+     * * sequential matches (people will likely enter chunks of the name)
+     */
     function filterFileList(query) {
+        var queryChars = query.toLowerCase().split("");
         var filteredList = $.map(fileList, function (fileInfo) {
-            // match query against filename only (not the full path)
-            var path = fileInfo.fullPath;
-            var filename = _filenameFromPath(path, true);
-            if (filename.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return path;
-            } else {
-                return null;
-            }
-        }).sort(function (a, b) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-            //first,  sort by filename without extension
-            var filenameA = _filenameFromPath(a, false);
-            var filenameB = _filenameFromPath(b, false);
-            if (filenameA < filenameB) {
-                return -1;
-            } else if (filenameA > filenameB) {
-                return 1;
-            } else {
-                // filename is the same, compare including extension
-                filenameA = _filenameFromPath(a, true);
-                filenameB = _filenameFromPath(b, true);
-                if (filenameA < filenameB) {
-                    return -1;
-                } else if (filenameA > filenameB) {
-                    return 1;
+            var path = fileInfo.fullPath.toLowerCase();
+
+            var score = 0;
+            var sequentialMatches = 0;
+            var segmentCounter = 0;
+            
+            // start at the end and work backward, because we give preference
+            // to matches in the filename segment
+            var pathCounter = path.length - 1;
+            var queryCounter = queryChars.length - 1;
+            while (pathCounter >= 0 && queryCounter >= 0) {
+                var curChar = path.charAt(pathCounter);
+                if (curChar === '/') {
+                    // Beginning of path segment, apply boost for a matching
+                    // string of characters, if there is one
+                    if (sequentialMatches) {
+                        score += sequentialMatches * sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
+                    }
+                    
+                    // if this is the filename segment, add the boost
+                    if (segmentCounter === 0) {
+                        score = score * FILENAME_BOOST;
+                    }
+                    segmentCounter++;
+                }
+                
+                if (queryChars[queryCounter] === curChar) {
+                    // matched character, chaulk up another match
+                    // and move both counters back a character
+                    sequentialMatches++;
+                    queryCounter--;
+                    pathCounter--;
                 } else {
-                    return 0;
+                    // character didn't match, apply sequential matches
+                    // to score and keep looking
+                    pathCounter--;
+                    score += sequentialMatches * sequentialMatches * MATCH_BOOST;
+                    sequentialMatches = 0;
                 }
             }
+            
+            // if there are still query characters left, we don't
+            // have a match
+            if (queryCounter >= 0) {
+                return null;
+            }
+            
+            // now, we need to apply any score we've accumulated
+            // before we ran out of query characters
+            score += sequentialMatches * sequentialMatches * MATCH_BOOST;
+            
+            if (sequentialMatches && pathCounter >= 0) {
+                if (path.charAt(pathCounter) === '/') {
+                    score += sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
+                }
+            }
+            if (segmentCounter === 0) {
+                score = score * FILENAME_BOOST;
+            }
+            
+            // return score, fullPath tuple for sorting
+            // the extra Array is there because jQuery.map flattens Arrays
+            return [[score, fileInfo.fullPath]];
+        }).sort(function (a, b) {
+            // sorting by score, which is the first element
+            if (a[0] > b[0]) {
+                return -1;
+            } else if (a[0] < b[0]) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }).map(function (item) {
+            // we want to end up with just the fullPath, now that we have a good ordering
+            return item[1];
         });
-
+        
         return filteredList;
     }
 
