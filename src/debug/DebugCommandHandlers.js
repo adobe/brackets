@@ -223,12 +223,22 @@ define(function (require, exports, module) {
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
-                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}(-[A-Z]{2})?$/)) {
-                        var language = entry.name;
-                        var $li = $("<li>")
-                            .text(entry.name)
-                            .data("locale", language)
-                            .appendTo($ul);
+                    if (entry.isDirectory) {
+                        var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
+                        
+                        if (match) {
+                            var language = entry.name,
+                                label = match[1];
+                            
+                            if (match[2]) {
+                                label += match[2].toUpperCase();
+                            }
+                            
+                            var $li = $("<li>")
+                                .text(label)
+                                .data("locale", language)
+                                .appendTo($ul);
+                        }
                     }
                 });
             });
