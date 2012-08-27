@@ -313,7 +313,22 @@ define(function (require, exports, module) {
             },
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste"
+            "Shift-Insert": "paste",
+            "'\"'": function (instance) {
+                instance.closeElement(instance, "\"");
+            },
+            "'\''": function (instance) {
+                instance.closeElement(instance, "'");
+            },
+            "'('": function (instance) {
+                instance.closeElement(instance, "(");
+            },
+            "'['": function (instance) {
+                instance.closeElement(instance, "[");
+            },
+            "'{'": function (instance) {
+                instance.closeElement(instance, "{");
+            }
         };
         
         EditorManager.mergeExtraKeys(self, codeMirrorKeyMap, additionalKeys);
