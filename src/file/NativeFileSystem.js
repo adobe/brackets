@@ -584,7 +584,7 @@ define(function (require, exports, module) {
                         } else {
                             createDirectoryEntry();
                         }
-                    });                    
+                    });
                     return;
                 }
 

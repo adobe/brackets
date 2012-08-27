@@ -95,9 +95,9 @@ define(function (require, exports, module) {
         }
     }
     
-    function handleCurrentDocumentChange() {
+    function resetDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
-        var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+//        var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
@@ -113,7 +113,7 @@ define(function (require, exports, module) {
         // Update title text & "dirty dot" display
         updateTitle();
 
-        PerfUtils.addMeasurement(perfTimerName);
+//        PerfUtils.addMeasurement(perfTimerName);
     }
     
     function handleDirtyChange(event, changedDoc) {
@@ -297,17 +297,11 @@ define(function (require, exports, module) {
      * file creation call is outstanding
      */
     var fileNewInProgress = false;
-
-    function handleFileNewInProject() {
-        handleNewItemInProject(false);
-    }
     
-    function handleNewFolderInProject() {
-        handleNewItemInProject(true);
-    }
-    
-    function handleNewItemInProject(isFolder)
-    {
+    /**
+     * Bottleneck function for creating new files and folders in the project tree.
+     */
+    function _handleNewItemInProject(isFolder) {
         if (fileNewInProgress) {
             ProjectManager.forceFinishRename();
             return;
@@ -343,6 +337,20 @@ define(function (require, exports, module) {
         deferred.done(createWithSuggestedName);
         deferred.fail(function createWithDefault() { createWithSuggestedName(isFolder ? "Untitled" : "Untitled.js"); });
         return deferred;
+    }
+
+    /**
+     * Create a new file in the project tree.
+     */
+    function handleFileNewInProject() {
+        _handleNewItemInProject(false);
+    }
+    
+    /**
+     * Create a new folder in the project tree.
+     */
+    function handleNewFolderInProject() {
+        _handleNewItemInProject(true);
     }
 
     function showSaveFileError(code, path) {
@@ -721,6 +729,10 @@ define(function (require, exports, module) {
         );
     }
     
+    function handleFileRename() {
+        ProjectManager.renameSelectedItem();
+    }
+
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
         return _handleWindowGoingAway(
@@ -807,6 +819,7 @@ define(function (require, exports, module) {
 
         CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
         CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
         CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
@@ -816,7 +829,7 @@ define(function (require, exports, module) {
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
+        $(DocumentManager).on("currentDocumentChange fileNameChange", resetDocumentTitle);
     }
 
     // Define public API

@@ -964,6 +964,7 @@ define(function (require, exports, module) {
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);

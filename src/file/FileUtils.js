@@ -261,6 +261,31 @@ define(function (require, exports, module) {
         }
         return path;
     }
+    
+    /**
+     * Update a file entry path after a file/folder name change.
+     * @param {FileEntry} entry The FileEntry or DirectoryEntry to update
+     * @param {string} oldName The full path of the old name
+     * @param {string} newName The full path of the new name
+     */
+    function updateFileEntryPath(entry, oldName, newName) {
+        if (entry.fullPath.indexOf(oldName) === 0) {
+            var fullPath = entry.fullPath.replace(oldName, newName);
+            
+            entry.fullPath = fullPath;
+            
+            // TODO: Should this be a method on Entry instead?
+            entry.name = null; // default if extraction fails
+            if (fullPath) {
+                var pathParts = fullPath.split("/");
+                
+                // Extract name from the end of the fullPath (account for trailing slash(es))
+                while (!entry.name && pathParts.length) {
+                    entry.name = pathParts.pop();
+                }
+            }
+        }
+    }
 
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
@@ -276,4 +301,5 @@ define(function (require, exports, module) {
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
     exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
     exports.canonicalizeFolderPath         = canonicalizeFolderPath;
+    exports.updateFileEntryPath            = updateFileEntryPath;
 });

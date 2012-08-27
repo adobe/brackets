@@ -44,6 +44,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
+    exports.FILE_RENAME                 = "file.rename";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
