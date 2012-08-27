@@ -376,10 +376,18 @@ define(function (require, exports, module) {
                 if (!_movePrevToken(ctx)) {
                     return createTagInfo();
                 }
+<<<<<<< .merge_file_a05716
             
                 if (ctx.token.className !== "tag" && ctx.token.string !== "=") {
                     // If it wasn't the tag name, assume it was an attr value
                     // Also we don't handle the "=" here.
+=======
+
+                if (ctx.token.className === "comment") {
+                    return createTagInfo();
+                } else if (ctx.token.className !== "tag") {
+                    //if wasn't the tag name, assume it was an attr value
+>>>>>>> .merge_file_a07104
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 
                     // If it wasn't an attr value, assume it was an empty attr (ie. attr with no value)

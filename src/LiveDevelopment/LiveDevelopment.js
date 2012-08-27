@@ -53,6 +53,8 @@
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
 
+    require("utils/Global");
+
     // Status Codes
     var STATUS_ERROR          = exports.STATUS_ERROR = -1;
     var STATUS_INACTIVE       = exports.STATUS_INACTIVE = 0;

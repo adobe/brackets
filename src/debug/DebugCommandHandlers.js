@@ -248,6 +248,25 @@ define(function (require, exports, module) {
         UpdateNotification.checkForUpdate(true);
     }
     
+    function _enableRunTestsMenuItem() {
+        // Check for the SpecRunner.html file
+        var fileEntry = new NativeFileSystem.FileEntry(
+            FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
+        );
+        
+        fileEntry.getMetadata(
+            function (metadata) {
+                // If we sucessfully got the metadata for the SpecRunner.html file, 
+                // enable the menu item
+                CommandManager.get(Commands.DEBUG_RUN_UNIT_TESTS).setEnabled(true);
+            },
+            function (error) {
+                // Error getting metadata. 
+                // The menu item is already disabled, so there is nothing to do here.
+            }
+        );
+    }
+    
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -255,7 +274,11 @@ define(function (require, exports, module) {
         .setEnabled(!!brackets.app.showDeveloperTools);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.DEBUG_SHOW_EXT_FOLDER,     _handleShowExtensionsFolder);
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests);
+    
+    // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests)
+        .setEnabled(false);
+    
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
@@ -263,4 +286,6 @@ define(function (require, exports, module) {
         .setChecked(Editor.getUseTabChar());
     
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,    Commands.CHECK_FOR_UPDATE,             _handleCheckForUpdates);
+    
+    _enableRunTestsMenuItem();
 });

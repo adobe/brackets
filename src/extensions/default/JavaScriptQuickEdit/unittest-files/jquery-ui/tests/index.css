@@ -1,0 +1,21 @@
+body {
+	font-size: 62.5%;
+}
+.ui-widget-header {
+	padding: 0.2em 0.5em;
+	margin: 0;
+}
+.ui-widget-content {
+	padding: 1em;
+	margin-bottom: 1em;
+}
+p {
+	margin: 0;
+}
+ul {
+	margin: 0;
+	list-style: none;
+}
+li {
+	line-height: 2em;
+}

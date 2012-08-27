@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Button Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.button" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.button.js"
+		]
+	});
+	</script>
+
+	<script src="button_common.js"></script>
+	<script src="button_core.js"></script>
+	<script src="button_events.js"></script>
+	<script src="button_methods.js"></script>
+	<script src="button_options.js"></script>
+	<script src="button_tickets.js"></script>
+
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Button Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div><button id="button" class="foo">Label</button></div>
+
+<div id="radio0" style="margin-top: 2em;">
+	<input type="radio" id="radio01" name="radio" checked="checked"><label for="radio01">Choice 1</label>
+	<input type="radio" id="radio02" name="radio"><label for="radio02">Choice 2</label>
+	<input type="radio" id="radio03" name="radio"><label for="radio03">Choice 3</label>
+</div>
+<form>
+	<div id="radio1" style="margin-top: 2em;">
+		<input type="radio" id="radio11" name="radio"><label for="radio11">Choice 1</label>
+		<input type="radio" id="radio12" name="radio" checked="checked"><label for="radio12">Choice 2</label>
+		<input type="radio" id="radio13" name="radio"><label for="radio13">Choice 3</label>
+	</div>
+</form>
+<form>
+	<div id="radio2" style="margin-top: 2em;">
+		<input type="radio" id="radio21" name="radio"><label for="radio21">Choice 1</label>
+		<input type="radio" id="radio22" name="radio"><label for="radio22">Choice 2</label>
+		<input type="radio" id="radio23" name="radio" checked="checked"><label for="radio23">Choice 3</label>
+	</div>
+</form>
+
+<input type="checkbox" id="check"><label for="check">Toggle</label>
+
+<div><input id="submit" type="submit" value="Label"></div>
+
+</div>
+</body>
+</html>
