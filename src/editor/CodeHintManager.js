@@ -124,7 +124,7 @@ define(function (require, exports, module) {
         this.clearList();
         var self = this;
         var count = 0;
-        $.each(this.displayList, function (index, item) {
+        this.displayList.forEach(function (item) {
             if (count > self.options.maxResults) {
                 return false;
             }
