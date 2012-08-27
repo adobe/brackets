@@ -1,38 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1"
-	 id="Layer_1" sodipodi:docname="close_btn.svg" inkscape:version="0.48.2 r9819" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="45px" height="16px"
-	 viewBox="0 0 45 16" enable-background="new 0 0 45 16" xml:space="preserve">
-<polygon id="polygon3057_6_" opacity="0.1" points="12.678,4.878 11.122,3.322 7.5,6.944 3.878,3.322 2.322,4.878 5.944,8.5 
-	2.322,12.122 3.878,13.678 7.5,10.056 11.122,13.678 12.678,12.122 9.056,8.5 "/>
-<polygon opacity="0.2333" points="12.521,4.654 11.012,3.146 7.5,6.658 3.987,3.146 2.479,4.654 5.991,8.167 2.479,11.679 
-	3.987,13.188 7.5,9.675 11.012,13.188 12.521,11.679 9.008,8.167 "/>
-<polygon opacity="0.3667" points="12.364,4.431 10.902,2.97 7.5,6.372 4.097,2.97 2.636,4.431 6.039,7.833 2.636,11.236 
-	4.097,12.697 7.5,9.295 10.902,12.697 12.364,11.236 8.961,7.833 "/>
-<polygon id="polygon3057_5_" opacity="0.5" points="12.207,4.207 10.793,2.793 7.5,6.086 4.207,2.793 2.793,4.207 6.086,7.5 
-	2.793,10.793 4.207,12.207 7.5,8.914 10.793,12.207 12.207,10.793 8.914,7.5 "/>
-<polygon id="polygon3059_6_" opacity="0.1" points="27.678,4.878 26.122,3.322 22.5,6.944 18.878,3.322 17.322,4.878 20.944,8.5 
-	17.322,12.122 18.878,13.678 22.5,10.056 26.122,13.678 27.678,12.122 24.056,8.5 "/>
-<polygon opacity="0.2333" points="27.521,4.654 26.012,3.146 22.5,6.658 18.987,3.146 17.479,4.654 20.991,8.167 17.479,11.679 
-	18.987,13.188 22.5,9.675 26.012,13.188 27.521,11.679 24.008,8.167 "/>
-<polygon opacity="0.3667" points="27.364,4.431 25.902,2.97 22.5,6.372 19.097,2.97 17.636,4.431 21.039,7.833 17.636,11.236 
-	19.097,12.697 22.5,9.295 25.902,12.697 27.364,11.236 23.961,7.833 "/>
-<polygon id="polygon3059_5_" opacity="0.5" points="27.207,4.207 25.793,2.793 22.5,6.086 19.207,2.793 17.793,4.207 21.086,7.5 
-	17.793,10.793 19.207,12.207 22.5,8.914 25.793,12.207 27.207,10.793 23.914,7.5 "/>
-<circle id="circle3061_6_" sodipodi:cx="37" sodipodi:ry="3" sodipodi:rx="3" sodipodi:cy="8" opacity="0.1" cx="37" cy="8" r="3.3">
-</circle>
-<circle opacity="0.2333" cx="37" cy="7.667" r="3.2"/>
-<circle opacity="0.3667" cx="37" cy="7.333" r="3.1"/>
-<circle id="circle3061_5_" sodipodi:cx="37" sodipodi:ry="3" sodipodi:rx="3" sodipodi:cy="8" opacity="0.5" cx="37" cy="7" r="3">
-</circle>
-<sodipodi:namedview  inkscape:window-width="1680" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-x="0" inkscape:current-layer="Layer_1" inkscape:window-maximized="1" inkscape:window-y="572" inkscape:window-height="1002" inkscape:cy="10.793573" objecttolerance="10" pagecolor="#ffffff" inkscape:cx="21.992402" gridtolerance="10" inkscape:zoom="47.737564" guidetolerance="10" borderopacity="1" bordercolor="#666666" showgrid="false" id="namedview3063">
-	</sodipodi:namedview>
-<polygon id="polygon3057" fill="#868686" points="12.207,4.207 10.793,2.793 7.5,6.086 4.207,2.793 2.793,4.207 6.086,7.5 
-	2.793,10.793 4.207,12.207 7.5,8.914 10.793,12.207 12.207,10.793 8.914,7.5 "/>
-<polygon id="polygon3059" fill="#9F9F9F" points="27.207,4.207 25.793,2.793 22.5,6.086 19.207,2.793 17.793,4.207 21.086,7.5 
-	17.793,10.793 19.207,12.207 22.5,8.914 25.793,12.207 27.207,10.793 23.914,7.5 "/>
-<circle id="circle3061" sodipodi:cx="37" sodipodi:ry="3" sodipodi:rx="3" sodipodi:cy="8" fill="#868686" cx="37" cy="7" r="3">
-</circle>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="45px" height="16px">
+	<g id="shadow">
+		<polygon opacity="0.1" points="12.678,4.878 11.122,3.322 7.5,6.944 3.878,3.322 2.322,4.878 5.944,8.5 2.322,12.122 3.878,13.678 7.5,10.056 11.122,13.678 12.678,12.122 9.056,8.5"/>
+		<polygon opacity="0.2333" points="12.521,4.654 11.012,3.146 7.5,6.658 3.987,3.146 2.479,4.654 5.991,8.167 2.479,11.679 3.987,13.188 7.5,9.675 11.012,13.188 12.521,11.679 9.008,8.167"/>
+		<polygon opacity="0.3667" points="12.364,4.431 10.902,2.97 7.5,6.372 4.097,2.97 2.636,4.431 6.039,7.833 2.636,11.236 4.097,12.697 7.5,9.295 10.902,12.697 12.364,11.236 8.961,7.833"/>
+	</g>
+	<use xlink:href="#shadow" x="15"/>
+	<circle opacity="0.1" cx="37" cy="8" r="3.3"/>
+	<circle opacity="0.2333" cx="37" cy="7.667" r="3.2"/>
+	<circle opacity="0.3667" cx="37" cy="7.333" r="3.1"/>
+
+	<polygon fill="#868686" points="12.207,4.207 10.793,2.793 7.5,6.086 4.207,2.793 2.793,4.207 6.086,7.5 2.793,10.793 4.207,12.207 7.5,8.914 10.793,12.207 12.207,10.793 8.914,7.5"/>
+	<polygon fill="#9F9F9F" points="27.207,4.207 25.793,2.793 22.5,6.086 19.207,2.793 17.793,4.207 21.086,7.5 17.793,10.793 19.207,12.207 22.5,8.914 25.793,12.207 27.207,10.793 23.914,7.5"/>
+	<circle fill="#868686" cx="37" cy="7" r="3"/>
 </svg>
