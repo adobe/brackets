@@ -262,6 +262,16 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
+
+    function selectLine() {
+        var editor = EditorManager.getFocusedEditor();
+        if (editor) {
+            var cursor = editor.getCursorPos(),
+                from = editor.getSelectedText === "" ? {line: cursor.line, ch: 0} : {line: editor.getSelection().start.line, ch: 0},
+                to   = {line: cursor.line + 1, ch: 0};
+            editor.setSelection(from, to);
+        }
+    }
         
     // Register commands
     CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,       indentText);
@@ -270,4 +280,5 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,    duplicateText);
     CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,      moveLineUp);
     CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,    moveLineDown);
+    CommandManager.register("Select Line",              Commands.EDIT_SELECT_LINE,  selectLine);
 });
