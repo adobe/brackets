@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var Ready               = require("utils/Ready"),
+    var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
         WorkingSetView      = require("project/WorkingSetView"),
         CommandManager      = require("command/CommandManager"),
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
     }
 
     // Initialize items dependent on HTML DOM
-    Ready.htmlReady(function () {
+    AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $sidebarResizer         = $("#sidebar-resizer");

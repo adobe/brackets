@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var Ready               = require("utils/Ready"),
+    var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -933,7 +933,7 @@ define(function (require, exports, module) {
 
 
     // Initialize variables and listeners that depend on the HTML DOM
-    Ready.htmlReady(function () {
+    AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
 
         $("#open-files-container").on("contentChanged", function () {

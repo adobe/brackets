@@ -43,13 +43,13 @@ define(function (require, exports, module) {
     var HTML_READY  = "htmlReady";
 
     // Fires when all extensions are loaded
-    var READY       = "ready";
+    var APP_READY   = "appReady";
 
-    var status      = { HTML_READY : false, READY : false },
+    var status      = { HTML_READY : false, APP_READY : false },
         callbacks   = {};
 
     callbacks[HTML_READY] = [];
-    callbacks[READY] = [];
+    callbacks[APP_READY] = [];
 
     function _callHandler(handler) {
         try {
@@ -96,7 +96,7 @@ define(function (require, exports, module) {
         // WARNING: "ready" won't fire if ANY extension fails to load or
         // throws an error during init. To fix this, we need to make a change
         // to _initExtensions (filed as issue 1029)
-        _addListener(READY, callback);
+        _addListener(APP_READY, callback);
     }
 
     /**
@@ -112,7 +112,7 @@ define(function (require, exports, module) {
     exports.htmlReady = htmlReady;
     
     exports.HTML_READY = HTML_READY;
-    exports.READY = READY;
+    exports.APP_READY = APP_READY;
 
     // internal use only
     exports._dispatchReady = _dispatchReady;
