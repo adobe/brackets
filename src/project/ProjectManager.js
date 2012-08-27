@@ -824,11 +824,12 @@ define(function (require, exports, module) {
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
+     * @param isFolder {boolean} If true, create a folder instead of a file
      * @return {$.Promise} A promise object that will be resolved with the FileEntry
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
-    function createNewItem(baseDir, initialName, skipRename) {
+    function createNewItem(baseDir, initialName, skipRename, isFolder) {
         var node                = null,
             selection           = _projectTree.jstree("get_selected"),
             selectionEntry      = null,
@@ -908,43 +909,64 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                // Use getFile() to create the new file
-                selectionEntry.getFile(
-                    data.rslt.name,
-                    {create: true, exclusive: true},
-                    function (entry) {
-                        data.rslt.obj.data("entry", entry);
-                        _projectTree.jstree("select_node", data.rslt.obj, true);
-                        result.resolve(entry);
-                    },
-                    function (error) {
-                        if ((error.code === FileError.PATH_EXISTS_ERR)
-                                || (error.code === FileError.TYPE_MISMATCH_ERR)) {
-                            Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
-                                Strings.INVALID_FILENAME_TITLE,
-                                StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                    StringUtils.htmlEscape(data.rslt.name))
-                            );
-                        } else {
-                            var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
-                                             Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                             StringUtils.format(String.GENERIC_ERROR, error.code);
-
-                            var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
-                                            StringUtils.htmlEscape(data.rslt.name),
-                                            errString);
-                          
-                            Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_CREATING_FILE_TITLE,
-                                errMsg
-                            );
-                        }
-
-                        errorCleanup();
+                var successCallback = function (entry) {
+                    data.rslt.obj.data("entry", entry);
+                    if (isFolder) {
+                        // If the new item is a folder, remove the leaf and folder related
+                        // classes and add "jstree-closed". Selecting the item will open
+                        // the folder.
+                        data.rslt.obj.removeClass("jstree-leaf jstree-closed jstree-open")
+                            .addClass("jstree-closed");
                     }
-                );
+                    _projectTree.jstree("select_node", data.rslt.obj, true);
+                    result.resolve(entry);
+                };
+                
+                var errorCallback = function (err) {
+                    if ((error.code === FileError.PATH_EXISTS_ERR)
+                            || (error.code === FileError.TYPE_MISMATCH_ERR)) {
+                        Dialogs.showModalDialog(
+                            Dialogs.DIALOG_ID_ERROR,
+                            Strings.INVALID_FILENAME_TITLE,
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
+                                StringUtils.htmlEscape(data.rslt.name))
+                        );
+                    } else {
+                        var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
+                                         Strings.NO_MODIFICATION_ALLOWED_ERR :
+                                         StringUtils.format(String.GENERIC_ERROR, error.code);
+
+                        var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
+                                        StringUtils.htmlEscape(data.rslt.name),
+                                        errString);
+                      
+                        Dialogs.showModalDialog(
+                            Dialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_CREATING_FILE_TITLE,
+                            errMsg
+                        );
+                    }
+
+                    errorCleanup();
+                };
+                
+                if (isFolder) {
+                    // Use getDirectory() to create the new folder
+                    selectionEntry.getDirectory(
+                        data.rslt.name,
+                        {create: true, exclusive: true},
+                        successCallback,
+                        errorCallback
+                    );
+                } else {
+                    // Use getFile() to create the new file
+                    selectionEntry.getFile(
+                        data.rslt.name,
+                        {create: true, exclusive: true},
+                        successCallback,
+                        errorCallback
+                    );
+                }
             } else { //escapeKeyPressed
                 errorCleanup();
             }

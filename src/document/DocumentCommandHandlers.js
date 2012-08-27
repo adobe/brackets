@@ -299,7 +299,15 @@ define(function (require, exports, module) {
     var fileNewInProgress = false;
 
     function handleFileNewInProject() {
-
+        handleNewItemInProject(false);
+    }
+    
+    function handleNewFolderInProject() {
+        handleNewItemInProject(true);
+    }
+    
+    function handleNewItemInProject(isFolder)
+    {
         if (fileNewInProgress) {
             ProjectManager.forceFinishRename();
             return;
@@ -320,21 +328,23 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, ".js");
+        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js");
         var createWithSuggestedName = function (suggestedName) {
-            ProjectManager.createNewItem(baseDir, suggestedName, false)
+            ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
                 .always(function () { fileNewInProgress = false; })
                 .done(function (entry) {
-                    FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                    if (!isFolder) {
+                        FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                    }
                 });
         };
 
         deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled.js"); });
+        deferred.fail(function createWithDefault() { createWithSuggestedName(isFolder ? "Untitled" : "Untitled.js"); });
         return deferred;
     }
-    
+
     function showSaveFileError(code, path) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
@@ -791,6 +801,7 @@ define(function (require, exports, module) {
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+        CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
         CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
 
