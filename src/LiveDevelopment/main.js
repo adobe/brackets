@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, less, window, XMLHttpRequest */
+/*global brackets, define, $, less, window, XMLHttpRequest */
 
 /**
  * main integrates LiveDevelopment into Brackets
@@ -40,12 +40,14 @@ define(function main(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         Commands        = require("command/Commands"),
+        AppInit         = require("utils/AppInit"),
         LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager  = require("command/CommandManager"),
         Strings = require("strings");
 
     var config = {
+        experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
         autoconnect: false, // go live automatically after startup?
         highlight: false, // enable highlighting?
@@ -128,6 +130,9 @@ define(function main(require, exports, module) {
             // See the comments at the top of LiveDevelopment.js for details on the 
             // various status codes.
             _setLabel(_$btnGoLive, null, _statusStyle[status + 1], _statusTooltip[status + 1]);
+            if (config.autoconnect) {
+                window.sessionStorage.setItem("live.enabled", status === 3);
+            }
         });
 
         // Initialize tooltip for 'not connected' state
@@ -169,6 +174,15 @@ define(function main(require, exports, module) {
         /* _setupHighlightButton(); FUTURE - Highlight button */
         if (config.debug) {
             _setupDebugHelpers();
+        }
+
+        // trigger autoconnect
+        if (config.autoconnect && window.sessionStorage.getItem("live.enabled") === "true") {
+            AppInit.appReady(function () {
+                if (DocumentManager.getCurrentDocument()) {
+                    _handleGoLiveCommand();
+                }
+            });
         }
     }
     window.setTimeout(init);
