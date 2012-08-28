@@ -1,11 +1,12 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="108px" height="72px">
-	<polyline opacity="0.1" points="25.5,15.3 29.35,8.7 21.65,8.7 25.5,15.3"/>
-	<polyline opacity="0.2" points="25.5,14.533 29.233,8.133 21.767,8.133 25.5,14.533"/>
-	<polyline opacity="0.3" points="25.5,13.767 29.117,7.567 21.884,7.567 25.5,13.767"/>
-	<polyline opacity="0.1" points="11.3,12.5 4.7,8.65 4.7,16.35 11.3,12.5"/>
-	<polyline opacity="0.2" points="11.199,11.833 4.8,8.1 4.8,15.566 11.199,11.833"/>
-	<polyline opacity="0.3" points="11.1,11.167 4.9,7.55 4.9,14.783 11.1,11.167"/>
+	<defs>
+		<filter id="blur" x="-10" y="-10" width="12" height="12">
+			<feGaussianBlur in="SourceGraphic" stdDeviation=".25"/>
+		</filter>
+	</defs>
 
+	<polyline points="11,10.5 5,7 5,14 11,10.5" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
+	<polyline points="25.5,13 29,7 22,7 25.5,13" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
 	<polyline fill="#878787" points="11,10.5 5,7 5,14 11,10.5"/>
 	<polyline fill="#fff" points="25.5,13 29,7 22,7 25.5,13"/>
 </svg>
