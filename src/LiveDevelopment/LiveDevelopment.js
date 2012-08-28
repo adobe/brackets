@@ -151,18 +151,14 @@ define(function LiveDevelopment(require, exports, module) {
         switch (doc.extension) {
         case "css":
             return CSSDocument;
-        /* FUTURE:
         case "js":
-            return JSDocument;
+            return exports.config.experimental ? JSDocument : null;
         case "html":
         case "htm":
-            return HTMLDocument;
+            return exports.config.experimental ? HTMLDocument : null;
         default:
-            throw "Invalid document type: " + doc.extension;
-        */
+            return null;
         }
-
-        return null;
     }
 
     /**
@@ -251,8 +247,16 @@ define(function LiveDevelopment(require, exports, module) {
     /** Load the agents */
     function loadAgents() {
         var name, promises = [];
-        for (name in _enabledAgentNames) {
-            if (_enabledAgentNames.hasOwnProperty(name) && agents[name].load) {
+        var agentsToLoad;
+        if (exports.config.experimental) {
+            // load all agents
+            agentsToLoad = agents;
+        } else {
+            // load only enabled agents
+            agentsToLoad = _enabledAgentNames;
+        }
+        for (name in agentsToLoad) {
+            if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
                 promises.push(agents[name].load());
                 _loadedAgentNames.push(name);
             }
@@ -293,6 +297,11 @@ define(function LiveDevelopment(require, exports, module) {
     /** Triggered by Inspector.error */
     function _onError(event, error) {
         var message = error.message;
+
+        // Remove "Uncaught" from the beginning to avoid the inspector popping up
+        if (message.substr(0, 8) === "Uncaught") {
+            message = message.substr(9);
+        }
 
         // Additional information, like exactly which parameter could not be processed.
         var data = error.data;
@@ -352,7 +361,8 @@ define(function LiveDevelopment(require, exports, module) {
             // For Sprint 6, we only open live development connections for HTML files
             // FUTURE: Remove this test when we support opening connections for different
             // file types.
-            if (!doc.extension || doc.extension.indexOf("htm") !== 0) {
+
+            if (!exports.config.experimental && (!doc.extension || doc.extension.indexOf('htm') !== 0)) {
                 showWrongDocError();
                 return promise;
             }
