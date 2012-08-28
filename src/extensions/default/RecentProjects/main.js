@@ -24,25 +24,26 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global define, brackets, window, $ */
 
-// TODO: remember working set for each project
-
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var PREFERENCES_KEY = "com.adobe.brackets.brackets-recent-projects";
     
     // Brackets modules
-    var DocumentManager         = brackets.getModule("document/DocumentManager"),
-        ProjectManager          = brackets.getModule("project/ProjectManager"),
+    var ProjectManager          = brackets.getModule("project/ProjectManager"),
         PreferencesManager      = brackets.getModule("preferences/PreferencesManager"),
         Commands                = brackets.getModule("command/Commands"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
-        strings                 = brackets.getModule("strings");
+        Strings                 = brackets.getModule("strings");
     
     var $dropdownToggle;
+    var MAX_PROJECTS = 20;
     
+    /**
+     * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
+     */
     function add() {
         var root = ProjectManager.getProjectRoot().fullPath,
             prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
@@ -52,12 +53,16 @@ define(function (require, exports, module) {
             recentProjects.splice(index, 1);
         }
         recentProjects.unshift(root);
-        if (recentProjects.length > 20) {
-            recentProjects = recentProjects.slice(0, 20);
+        if (recentProjects.length > MAX_PROJECTS) {
+            recentProjects = recentProjects.slice(0, MAX_PROJECTS);
         }
         prefs.setValue("recentProjects", recentProjects);
     }
     
+    /**
+     * Create the DOM node for a single recent folder path in the dropdown menu.
+     * @param {string} path The full path to the folder.
+     */
     function renderPath(path) {
         if (path.length && path[path.length - 1] === "/") {
             path = path.slice(0, path.length - 1);
@@ -80,6 +85,10 @@ define(function (require, exports, module) {
         return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan);
     }
     
+    /**
+     * Show or hide the recent projects dropdown.
+     * @param {object} e The event object that triggered the toggling.
+     */
     function toggle(e) {
         // If the dropdown is already visible, just return (so the root click handler on html
         // will close it).
@@ -87,7 +96,8 @@ define(function (require, exports, module) {
             return;
         }
         
-        // TODO: Can't just use Bootstrap 1.4 dropdowns for this since they're hard-coded to <li>s.
+        // TODO: Can't just use Bootstrap 1.4 dropdowns for this since they're hard-coded to
+        // assume that the dropdown is inside a top-level menubar created using <li>s.
         // Have to do this stopProp to avoid the html click handler from firing when this returns.
         e.stopPropagation();
         
@@ -120,7 +130,7 @@ define(function (require, exports, module) {
         if (hasProject) {
             $("<li class='divider'>").appendTo($dropdown);
         }
-        $("<li><a id='open-folder-link'>" + strings.CMD_OPEN_FOLDER + "</a></li>")
+        $("<li><a id='open-folder-link'>" + Strings.CMD_OPEN_FOLDER + "</a></li>")
             .click(function () {
                 CommandManager.execute(Commands.FILE_OPEN_FOLDER);
             })
@@ -138,6 +148,9 @@ define(function (require, exports, module) {
         
         // Hide the menu if the user scrolls in the project tree. Otherwise the Lion scrollbar
         // overlaps it.
+        // TODO: This duplicates logic that's already in ProjectManager (which calls Menus.close()).
+        // We should fix this when the popup handling is centralized in PopupManager, as well
+        // as making Esc close the dropdown. See issue #1381.
         $("#project-files-container").on("scroll", closeDropdown);
     }
     
