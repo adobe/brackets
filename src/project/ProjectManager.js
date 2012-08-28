@@ -58,7 +58,8 @@ define(function (require, exports, module) {
         FileViewController  = require("project/FileViewController"),
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        FileUtils           = require("file/FileUtils");
+        FileUtils           = require("file/FileUtils"),
+        Urls                = require("i18n!nls/urls");
     
     /**
      * @private
@@ -223,7 +224,7 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Initial project path is stored in prefs, which defaults to brackets/src
+     * Initial project path is stored in prefs, which defaults to the getting started project
      */
     function getInitialProjectPath() {
         return _prefs.getValue("projectPath");
@@ -608,18 +609,21 @@ define(function (require, exports, module) {
     }
     
     /** Returns the full path to the default project folder. The path is currently the brackets src folder.
-     * TODO: (issue #267): Brackets does not yet support operating when there is no project folder. This code will likely
-     * not be needed when this support is added.
      * @private
      * @return {!string} fullPath reference
      */
     function _getDefaultProjectPath() {
-        var loadedPath = decodeURI(window.location.pathname);
-        var bracketsSrc = loadedPath.substr(0, loadedPath.lastIndexOf("/"));
-        
-        bracketsSrc = FileUtils.convertToNativePath(bracketsSrc);
+        var srcPath = decodeURI(window.location.pathname),
+            initialPath = srcPath.substr(0, srcPath.lastIndexOf("/")),
+            sampleUrl = Urls.GETTING_STARTED;
+        if (sampleUrl) {
+            // Back up one more folder. The samples folder is assumed to be at the same level as
+            // the src folder, and the sampleUrl is relative to the samples folder.
+            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
+        }
 
-        return bracketsSrc;
+        initialPath = FileUtils.convertToNativePath(initialPath);
+        return initialPath;
     }
     
     /**
