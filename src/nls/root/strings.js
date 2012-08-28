@@ -95,6 +95,7 @@ define({
     "BUTTON_STOP"                       : "Stop",
 
     "OPEN_FILE"                         : "Open File",
+    "CHOOSE_FOLDER"                     : "Choose a folder",
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
