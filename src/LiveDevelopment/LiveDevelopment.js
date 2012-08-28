@@ -247,12 +247,16 @@ define(function LiveDevelopment(require, exports, module) {
     /** Load the agents */
     function loadAgents() {
         var name, promises = [];
+        var agentsToLoad;
         if (exports.config.experimental) {
             // load all agents
-            _enabledAgentNames = agents;
+            agentsToLoad = agents;
+        } else {
+            // load only enabled agents
+            agentsToLoad = _enabledAgentNames;
         }
-        for (name in _enabledAgentNames) {
-            if (_enabledAgentNames.hasOwnProperty(name) && agents[name].load) {
+        for (name in agentsToLoad) {
+            if (agentsToLoad.hasOwnProperty(name) && agents[name] && agents[name].load) {
                 promises.push(agents[name].load());
                 _loadedAgentNames.push(name);
             }
