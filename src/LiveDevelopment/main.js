@@ -40,15 +40,16 @@ define(function main(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         Commands        = require("command/Commands"),
+        AppInit         = require("utils/AppInit"),
         LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager  = require("command/CommandManager"),
         Strings = require("strings");
 
     var config = {
-        experimental: false, // enable experimental features
+        experimental: true, // enable experimental features
         debug: true, // enable debug output and helpers
-        autoconnect: false, // go live automatically after startup?
+        autoconnect: true, // go live automatically after startup?
         highlight: false, // enable highlighting?
         highlightConfig: { // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
@@ -177,7 +178,7 @@ define(function main(require, exports, module) {
 
         // trigger autoconnect
         if (config.autoconnect && window.sessionStorage.getItem("live.enabled") === "true") {
-            brackets.ready(function () {
+            AppInit.appReady(function () {
                 if (DocumentManager.getCurrentDocument()) {
                     _handleGoLiveCommand();
                 }
