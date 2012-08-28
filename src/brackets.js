@@ -153,7 +153,7 @@ define(function (require, exports, module) {
             doneLoading             : false
         };
 
-        AppInit.ready(function () {
+        AppInit.appReady(function () {
             brackets.test.doneLoading = true;
         });
     }
@@ -258,7 +258,7 @@ define(function (require, exports, module) {
         ProjectManager.openProject(initialProjectPath).done(function () {
             _initTest();
 
-            // WARNING: AppInit.ready won't fire if ANY extension fails to
+            // WARNING: AppInit.appReady won't fire if ANY extension fails to
             // load or throws an error during init. To fix this, we need to
             // make a change to _initExtensions (filed as issue 1029)
             _initExtensions().always(AppInit._dispatchReady(AppInit.APP_READY));

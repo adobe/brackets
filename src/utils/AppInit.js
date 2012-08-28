@@ -30,7 +30,7 @@
  *
  * This module defines 2 methods for client modules to attach callbacks:
  *    - htmlReady - When the main application template is rendered
- *    - ready - When Brackets completes loading all modules and extensions
+ *    - appReady - When Brackets completes loading all modules and extensions
  *
  * These are *not* jQuery events. Each method is similar to $(document).ready
  * in that it will call the handler immediately if brackets is already done
@@ -92,7 +92,7 @@ define(function (require, exports, module) {
      * loaded.
      * @param {function} handler
      */
-    function ready(callback) {
+    function appReady(callback) {
         // WARNING: "ready" won't fire if ANY extension fails to load or
         // throws an error during init. To fix this, we need to make a change
         // to _initExtensions (filed as issue 1029)
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
         _addListener(HTML_READY, callback);
     }
 
-    exports.ready = ready;
+    exports.appReady = appReady;
     exports.htmlReady = htmlReady;
     
     exports.HTML_READY = HTML_READY;
