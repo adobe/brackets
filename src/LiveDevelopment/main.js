@@ -47,9 +47,9 @@ define(function main(require, exports, module) {
         Strings = require("strings");
 
     var config = {
-        experimental: true, // enable experimental features
+        experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
-        autoconnect: true, // go live automatically after startup?
+        autoconnect: false, // go live automatically after startup?
         highlight: false, // enable highlighting?
         highlightConfig: { // the highlight configuration for the Inspector
             borderColor:  {r: 255, g: 229, b: 153, a: 0.66},
