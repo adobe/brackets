@@ -738,7 +738,7 @@ define(function (require, exports, module) {
                     _loadProject(path).pipe(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
-                    NativeFileSystem.showOpenDialog(false, true, "Choose a folder", _projectRoot.fullPath, null,
+                    NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
                         function (files) {
                             // If length == 0, user canceled the dialog; length should never be > 1
                             if (files.length > 0) {

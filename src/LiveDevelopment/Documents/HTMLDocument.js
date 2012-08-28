@@ -53,6 +53,9 @@ define(function HTMLDocumentModule(require, exports, module) {
      * @param Document the source document from Brackets
      */
     var HTMLDocument = function HTMLDocument(doc, editor) {
+        if (!editor) {
+            return;
+        }
         this.doc = doc;
         this.editor = editor;
         this.onHighlight = this.onHighlight.bind(this);
@@ -66,6 +69,9 @@ define(function HTMLDocumentModule(require, exports, module) {
 
     /** Close the document */
     HTMLDocument.prototype.close = function close() {
+        if (!this.editor) {
+            return;
+        }
         $(HighlightAgent).off("highlight", this.onHighlight);
         $(this.editor).off("change", this.onChange);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
