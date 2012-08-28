@@ -26,7 +26,7 @@
 
 define(function (require, exports, module) {
     
-    'use strict';
+    "use strict";
     
     // Registry for languages that have specific per-language URLs or file paths that we use
     // elsewhere in Brackets.
