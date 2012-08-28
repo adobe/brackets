@@ -28,7 +28,7 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var LoadEvents          = require("utils/LoadEvents"),
+    var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
         WorkingSetView      = require("project/WorkingSetView"),
         CommandManager      = require("command/CommandManager"),
@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
 
-    // These vars are initialized by the htmlContentLoadComplete handler
+    // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
     var $sidebar,
         $sidebarMenuText,
@@ -234,7 +234,7 @@ define(function (require, exports, module) {
     }
 
     // Initialize items dependent on HTML DOM
-    LoadEvents.htmlContentLoadComplete(function () {
+    AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $sidebarResizer         = $("#sidebar-resizer");
