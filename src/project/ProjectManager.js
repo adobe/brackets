@@ -45,7 +45,7 @@ define(function (require, exports, module) {
     require("thirdparty/jstree_pre1.0_fix_1/jquery.jstree");
 
     // Load dependent modules
-    var LoadEvents          = require("utils/LoadEvents"),
+    var AppInit             = require("utils/AppInit"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager  = require("preferences/PreferencesManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -63,7 +63,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Reference to the tree control container div. Initialized by
-     * htmlContentLoadComplete handler
+     * htmlReady handler
      * @type {jQueryObject}
      */
     var $projectTreeContainer;
@@ -933,7 +933,7 @@ define(function (require, exports, module) {
 
 
     // Initialize variables and listeners that depend on the HTML DOM
-    LoadEvents.htmlContentLoadComplete(function () {
+    AppInit.htmlReady(function () {
         $projectTreeContainer = $("#project-files-container");
 
         $("#open-files-container").on("contentChanged", function () {
