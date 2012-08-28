@@ -368,8 +368,10 @@ define(function (require, exports, module) {
                 if (!_movePrevToken(ctx)) {
                     return createTagInfo();
                 }
-            
-                if (ctx.token.className !== "tag") {
+
+                if (ctx.token.className === "comment") {
+                    return createTagInfo();
+                } else if (ctx.token.className !== "tag") {
                     //if wasn't the tag name, assume it was an attr value
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 

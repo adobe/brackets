@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Effects Test Suite</title>
+	<link rel="stylesheet" href="effects.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.effects.core.js"></script>
+	<script src="../../../ui/jquery.effects.scale.js"></script>
+	<script>
+	$(function() {
+		var test = $( "#testBox" ),
+			opts = $( ".arg" ),
+			optsRev = $( opts.get().reverse() ),
+			doer = $( "#doAnim" ),
+			current = $( "#current" ),
+			cleanStyle = test[0].style,
+			total = 1;
+
+		opts.each(function() {
+			total *= this.options.length;
+		});
+
+		opts.change( doAnim );
+		doer.click( doAnim );
+		$( "#cyclePrev" ).click(function() {
+			cycle( -1 );
+		});
+		$( "#cycleNext" ).click(function() {
+			cycle( 1 );
+		});
+
+		function cycle( direction ) {
+			optsRev.each(function() {
+				var cur = this.selectedIndex,
+					next = cur + direction,
+					len = this.options.length;
+
+				this.selectedIndex = ( next + len ) % len;
+
+				if ( ( next+len ) % len === next ) return false;
+			});
+			doAnim();
+		}
+
+
+		function doAnim() {
+			var cur = 0;
+			opts.each(function() {
+				cur *= this.options.length
+				cur += this.selectedIndex;
+			});
+			cur++;
+			current.text( "Configuration: " + cur + " of " + total );
+			run.apply(test, opts.map(function() {
+				return $(this).val();
+			}).get());
+		}
+
+		function run( position, v, h, vo, ho ) {
+			var el = this,
+				style = el[0].style,
+				effect = {
+					effect: "scale",
+					mode: "effect",
+					percent: 200,
+					origin: [ vo, ho ],
+					duration: 500
+				};
+			el.stop(true, true);
+			if ( typeof style === "object" ) {
+				style.cssText = "";
+			} else {
+				el[0].style = "";
+			}
+			el.css( "position", position )
+				.css( h, 5 )
+				.css( v, 5 )
+				.delay( 100 )
+				.effect( effect );
+		}
+	});
+	</script>
+	<style>
+	#testArea {
+		width: 200px;
+		height: 200px;
+		position: relative;
+	}
+	#testBox {
+		width: 50px;
+		height: 50px;
+		background-color: #bada55;
+		color: black;
+		border: 10px solid #fff;
+		margin: 10px;
+		padding: 10px;
+	}
+	label {
+		display: block;
+	}
+	#controls {
+		position: absolute;
+		z-index: 300;
+		left: 50%;
+		top: 50%;
+		margin-left: -200px;
+		width: 400px;
+		opacity: 0.8;
+	}
+	</style>
+</head>
+<body>
+	<div id="testArea">
+		<div id="testBox">
+		</div>
+	</div>
+	<div id="controls">
+		<label for="pos">Positioning
+			<select id="pos" class="arg">
+				<option value="absolute">absolute</option>
+				<option value="relative">relative</option>
+				<option value="fixed">fixed</option>
+			</select>
+		</label>
+		<label for="vertPos">Vertical Positioning
+			<select id="vertPos" class="arg">
+				<option value="top">top</option>
+				<option value="bottom">bottom</option>
+			</select>
+		</label>
+		<label for="horizPos">Horizontal Positioning
+			<select id="horizPos" class="arg">
+				<option value="left">left</option>
+				<option value="right">right</option>
+			</select>
+		</label>
+		<label for="vertOrigin">Vertical Origin
+			<select id="vertOrigin" class="arg">
+				<option value="top">top</option>
+				<option value="middle">middle</option>
+				<option value="bottom">bottom</option>
+			</select>
+		</label>
+		<label for="horizOrigin">Horizontal Origin
+			<select id="horizOrigin" class="arg">
+				<option value="left">left</option>
+				<option value="center">center</option>
+				<option value="right">right</option>
+			</select>
+		</label><br />
+		<label id="current">jQuery UI Scale Animation Test</label>
+		<button id="cyclePrev">Back</button>
+		<button id="doAnim">Run Animation</button>
+		<button id="cycleNext">Forward</button>
+	</div>
+</body>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Slider Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.slider" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.mouse.js",
+			"ui/jquery.ui.slider.js"
+		]
+	});
+	</script>
+
+	<script src="slider_common.js"></script>
+	<script src="slider_core.js"></script>
+	<script src="slider_events.js"></script>
+	<script src="slider_methods.js"></script>
+	<script src="slider_options.js"></script>
+
+	<script>
+	// disable this stale testsuite for testswarm only
+	var url = window.location.search;
+	url = decodeURIComponent( url.slice( url.indexOf("swarmURL=") + 9 ) );
+	if ( url && url.indexOf("http") == 0 ) {
+		// reset config to kill previous tests; make sure testsuite.js is loaded afterwards to init the testswarm script
+		QUnit.init();
+		test("slider", function() { ok(true, "disabled slider testsuite"); });
+	}
+	</script>
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Slider Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div id="slider1"></div>
+<div id="slider3" style="position: relative; margin: 40px; width: 217px; height: 28px;">
+	<div class="ui-slider-handle" style="position: absolute; height: 21px; left: 0px; bottom: 0px; width: 17px;"></div>
+</div>
+
+</div>
+</body>
+</html>

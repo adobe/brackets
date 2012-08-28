@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Accordion - Fill space</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.resizable.js"></script>
+	<script src="../../ui/jquery.ui.accordion.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#accordion" ).accordion({
+			heightStyle: "fill"
+		});
+	});
+	$(function() {
+		$( "#accordionResizer" ).resizable({
+			minHeight: 140,
+			minWidth: 200,
+			resize: function() {
+				$( "#accordion" ).accordion( "refresh" );
+			}
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<h3 class="docs">Resize the outer container:</h3>
+ 
+<div id="accordionResizer" style="padding:10px; width:350px; height:220px;" class="ui-widget-content">
+
+<div id="accordion">
+	<h3>Section 1</h3>
+	<div>
+		<p>Mauris mauris ante, blandit et, ultrices a, suscipit eget, quam. Integer ut neque. Vivamus nisi metus, molestie vel, gravida in, condimentum sit amet, nunc. Nam a nibh. Donec suscipit eros. Nam mi. Proin viverra leo ut odio. Curabitur malesuada. Vestibulum a velit eu ante scelerisque vulputate.</p>
+	</div>
+	<h3>Section 2</h3>
+	<div>
+		<p>Sed non urna. Donec et ante. Phasellus eu ligula. Vestibulum sit amet purus. Vivamus hendrerit, dolor at aliquet laoreet, mauris turpis porttitor velit, faucibus interdum tellus libero ac justo. Vivamus non quam. In suscipit faucibus urna. </p>
+	</div>
+	<h3>Section 3</h3>
+	<div>
+		<p>Nam enim risus, molestie et, porta ac, aliquam ac, risus. Quisque lobortis. Phasellus pellentesque purus in massa. Aenean in pede. Phasellus ac libero ac tellus pellentesque semper. Sed ac felis. Sed commodo, magna quis lacinia ornare, quam ante aliquam nisi, eu iaculis leo purus venenatis dui. </p>
+		<ul>
+			<li>List item one</li>
+			<li>List item two</li>
+			<li>List item three</li>
+		</ul>
+	</div>
+	<h3>Section 4</h3>
+	<div>
+		<p>Cras dictum. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aenean lacinia mauris vel est. </p><p>Suspendisse eu nisl. Nullam ut libero. Integer dignissim consequat lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. </p>
+	</div>
+</div>
+
+<span class="ui-icon ui-icon-grip-dotted-horizontal" style="margin:2px auto;"></span>
+</div><!-- End accordionResizer -->
+
+<div style="margin-top:7px; padding:10px; width:350px; height:50px;" class="ui-widget-content">I'm another panel</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Because the accordion is comprised of block-level elements, by default its width fills the available horizontal space. To fill the vertical space allocated by its container, set the <code>heightStyle</code> option to <code>"fill"</code>, and the script will automatically set the dimensions of the accordion to the height of its parent container.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

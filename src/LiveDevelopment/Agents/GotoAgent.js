@@ -31,6 +31,8 @@
 define(function GotoAgent(require, exports, module) {
     "use strict";
 
+    require("utils/Global");
+
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
     var ScriptAgent = require("LiveDevelopment/Agents/ScriptAgent");

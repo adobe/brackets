@@ -27,6 +27,8 @@
 
 define(function (require, exports, module) {
     'use strict';
+
+    require("utils/Global");
     
     // Load dependent modules
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
