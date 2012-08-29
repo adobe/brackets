@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>GUIDE DE DEMARRAGE DE BRACKETS</title>
+        <meta name="description" content="Un guide de démarrage interactif pour découvrir Brackets.">
+        <link rel="stylesheet" href="main.css">
+    </head>
+    <body>
+
+<h1>GUIDE DE DEMARRAGE DE BRACKETS</h1>
+<h2>Ceci est votre guide!</h2>
+
+<!--
+    Conçu avec <3 et du JavaScript
+-->
+
+<p>
+    Bienvenue dans cette version super alpha de Brackets, un nouvel éditeur imaginé pour la prochaine
+    génération du web. Nous sommes de grands fans des standards du web et nous souhaitons créer de 
+    meilleurs outils pour JavaScript,  HTML, CSS et les technologies ouvertes du web en général. Ceci 
+    est notre modeste première contribution.
+</p>
+
+<!--
+    BRACKETS, C'EST QUOI?
+-->
+<p>
+    <em>Vous avez sous les yeux une des premières versions de Brackets.</em>
+    A bien des égards, Brackets est un type d'éditeur différent. Une différence notable est que cet 
+    éditeur est écrit en JavaScript. Si Brackets n'est probablement pas encore prêt pour votre usage de
+    développement au quotidien, nous l'utilisons déjà tous les jours pour développer Brackets.
+</p>
+
+<h2>Nous expérimentons quelques nouveautés</h2> 
+<!--
+    LES RELATIONS ENTRE HTML, CSS ET JAVASCRIPT
+-->
+<h3>Quick Edit: éditer rapidement les CSS et le JavaScript</h3>
+<p>
+    Lorsque vous éditez du HTML, utilisez le raccourci clavier <kbd>Cmd/Ctrl + E</kbd>  pour ouvrir un
+    éditeur rapide qui affiche, dans le contexte, toutes les CSS. Modifiez une propriété CSS, appuyez
+    sur la touche échap <kbd>ESC</kbd> et vous êtes de retour dans votre document HTML. Autrement, vous
+    pouvez aussi laisser ouvert l'éditeur rapide de CSS qui deviendra partie intégrante de votre éditeur
+    HTML. Si vous appuyez sur la touche échap <kbd>ESC</kbd> en dehors de l'éditeur rapide (quick editor), 
+    alors, ils se refermeront tous. Vous n'aurez plus besoin de passer d'un document à l'autre en perdant
+    constamment votre contexte de développement. 
+</p>
+
+<samp>
+    Vous souhaitez le voir en action? Placez votre curseur sur le tag <!-- <samp> --> ci-dessus et
+    appuyez sur les touches <kbd>Cmd/Ctrl + E</kbd>. L'éditeur rapide de CSS devrait alors apparaître.
+    Notez que s'affiche sur la droite une liste de règles CSS qui sont liées à ce tag. Faites simplement
+    défiler ces règles avec les touches <kbd>Alt + Haut/Bas</kbd> pour trouver celle que vous souhaitez
+    modifier.
+</samp>
+
+<a href="screenshots/brackets-quick-edit.png">
+    <img alt="A screenshot showing CSS Quick Edit" src="screenshots/brackets-quick-edit.png" />
+</a>
+
+<!--
+    APERCU EN DIRECT
+-->
+<h3>Live Preview: un aperçu en direct des modifications CSS dans le navigateur</h3>
+<p>
+    Vous connaissez tous la danse du "enregistrer et rafraîchir" que nous pratiquons depuis des années?
+    Cette danse qui vous fait faire une modification dans le code, appuyez sur "Enregistrer", activer
+    la fenêtre du navigateur et rafraîchir la page pour admirer le résultat? Avec Brackets, vous n'aurez
+    plus à pratiquer cette chorégraphie. 
+</p>
+<p>
+    Brackets va ouvrir une <em>connexion directe</em> avec votre navigateur en local et envoyer vos
+    modifications CSS au fur et à mesure que vous tapez sur le clavier! Vous faites déjà sûrement ce type
+    d'exercice avec les outils intégrés aux navigateurs modernes, mais avec Brackets, vous n'avez pas
+    besoin de copier-coller le résultat final de votre CSS dans l'éditeur. Le code s'exécute dans le
+    navigateur, mais est déjà présent dans votre éditeur!
+</p>
+
+<samp>
+    Si vous avez Google Chrome, vous pouvez facilement le tester. Cliquez sur l'icône en forme d'éclair
+    en haut à droite de l'interface, ou appuyez sur les touches <kbd>Cmd/Ctrl + Alt + P</kbd>. Quand
+    l'aperçu en direct (Live Preview) est activé dans un document HTML, tous les documents CSS liés
+    à ce document peuvent être édité en temps réel.
+    
+    Désormais, placez le curseur sur le tag <!-- <img> --> ci-dessous et appuyez sur les touches 
+    <kbd>Cmd/Ctrl + E</kbd> pour ouvrir les règles CSS appliquées. Essayez de modifier l'épaisseur de la
+    bordure d'1px en 10px, ou modifier la couleur de fond en "hotpink" (rose) plutôt que "dimgray"(gris).
+    Si vous avez placé Edge Code et votre navigateur côte à côte, vous devriez voir vos modifications
+    être prises en compte en temps réel dans le navigateur. Pas mal, non?
+</samp>
+
+<p class="note">
+    Aujourd'hui, Brackets ne supporte l'aperçu en direct que pour les CSS. Nous ajouterons le support
+    de l'aperçu en direct pour le HTML et le JavaScript dans une version future. L'aperçu en direct
+    ne fonctionne qu'avec Google Chrome aujourd'hui. Nous souhaitons qu'elle fonctionne avec tous les
+    grands navigateurs du marché, et espérons pour cela travailler rapidement avec les éditeurs de ces
+    navigateurs.
+</p>
+
+<!--
+    DITES NOUS CE QUE VOUS EN PENSEZ
+-->
+<h2>Participez au projet</h2>
+<p>
+    Brackets est un projet open-source. Des développeurs web du monde entier contribuent à ce projet pour
+    bâtir un meilleur éditeur de code. Dîtes nous ce que vous en pensez, soumettez vos idées ou contribuez
+    directement au projet.
+</p>
+<ul>
+    <li><a href="http://brackets.io">Brackets.io</a></li>
+    <li><a href="http://blog.brackets.io">Blog de l'équipe de Brackets</a></li>
+    <li><a href="http://github.com/adobe/brackets">Brackets sur GitHub</a></li>
+    <li><a href="http://github.com/adobe/brackets/wiki">Wiki de Brackets</a></li>
+    <li><a href="http://groups.google.com/group/brackets-dev">Liste de diffusion des développeurs de
+        Brackets</a></li>
+    <li><a href="https://twitter.com/#!/brackets">@Brackets sur Twitter</a></li>
+    <li>Chattez avec les développeurs de Brackets sur IRC dans #brackets sur Freenode</li>
+</ul> 
+
+    </body>
+</html>
+<!--
+
+    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+    [::::::::::::::     ::::::::::::::]
+    [::::::::::::::     ::::::::::::::]
+    [::::::[[[[[[[:     :]]]]]]]::::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[    CODE THE WEB     ]:::::]
+    [:::::[  http://brackets.io ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [:::::[                     ]:::::]
+    [::::::[[[[[[[:     :]]]]]]]::::::]
+    [::::::::::::::     ::::::::::::::]
+    [::::::::::::::     ::::::::::::::]
+    [[[[[[[[[[[[[[[     ]]]]]]]]]]]]]]]
+
+-->
