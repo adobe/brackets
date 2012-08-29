@@ -25,6 +25,12 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, document, window, brackets  */
 
+/**
+ * The view that controls the showing and hiding of the sidebar. Dispatches the following events:
+ *    hide -- when the sidebar is hidden
+ *    show -- when the sidebar is shown
+ */
+
 define(function (require, exports, module) {
     "use strict";
     
@@ -112,8 +118,10 @@ define(function (require, exports, module) {
     function toggleSidebar(width) {
         if (isSidebarClosed) {
             $sidebar.show();
+            $(exports).triggerHandler("show");
         } else {
             $sidebar.hide();
+            $(exports).triggerHandler("hide");
         }
         
         isSidebarClosed = !isSidebarClosed;

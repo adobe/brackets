@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
-        Strings                 = brackets.getModule("strings");
+        Strings                 = brackets.getModule("strings"),
+        SidebarView             = brackets.getModule("project/SidebarView");
     
     var $dropdownToggle;
     var MAX_PROJECTS = 20;
@@ -81,7 +82,7 @@ define(function (require, exports, module) {
         }
         
         var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
-            restSpan = $("<span></span>").addClass("recent-folder-path").text(" in " + rest);
+            restSpan = $("<span></span>").addClass("recent-folder-path").text(" - " + rest);
         return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan);
     }
     
@@ -109,6 +110,7 @@ define(function (require, exports, module) {
         function closeDropdown() {
             $("html").off("click", closeDropdown);
             $("#project-files-container").off("scroll", closeDropdown);
+            $(SidebarView).off("hide", closeDropdown);
             $dropdown.remove();
         }
         
@@ -118,7 +120,14 @@ define(function (require, exports, module) {
             if (root !== currentProject) {
                 var $link = renderPath(root)
                     .click(function () {
-                        ProjectManager.openProject(root);
+                        ProjectManager.openProject(root)
+                            .fail(function () {
+                                // Remove the project from the list.
+                                var index = recentProjects.indexOf(root);
+                                if (index !== -1) {
+                                    recentProjects.splice(index, 1);
+                                }
+                            });
                         closeDropdown();
                     });
                 $("<li></li>")
@@ -152,6 +161,10 @@ define(function (require, exports, module) {
         // We should fix this when the popup handling is centralized in PopupManager, as well
         // as making Esc close the dropdown. See issue #1381.
         $("#project-files-container").on("scroll", closeDropdown);
+        
+        // Hide the menu if the sidebar is hidden.
+        // TODO: Is there some more general way we could handle this for dropdowns?
+        $(SidebarView).on("hide", closeDropdown);
     }
     
     // Initialize extension
