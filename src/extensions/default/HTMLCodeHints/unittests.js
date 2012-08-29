@@ -30,10 +30,9 @@ define(function (require, exports, module) {
 
     // Modules from the SpecRunner window
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        Editor          = brackets.getModule("editor/Editor").Editor;
-    
-    // Modules from testWindow
-    var HTMLCodeHints, CodeHintManager;
+        Editor          = brackets.getModule("editor/Editor").Editor,
+        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
+        HTMLCodeHints   = require("main");
 
     describe("HTML Attribute Hinting", function () {
 
@@ -52,34 +51,12 @@ define(function (require, exports, module) {
         var testDocument, testEditor;
         
         beforeEach(function () {
-            // Create a new window that will be shared by ALL tests in this spec.
-            // (We need the tests to run in a real Brackets window since HTMLCodeHints requires various core modules (it can't
-            // run 100% in isolation), but popping a new window per testcase is unneeded overhead).
-            if (!testWindow) {
-                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                    testWindow = w;
-                    
-                    // Get access to the extension's module, so we can unit-test its APIs directly
-                    var extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("HTMLCodeHints");
-                    HTMLCodeHints = extensionRequire("main");
-                    CodeHintManager = testWindow.brackets.getModule("editor/CodeHintManager");
-                });
-                
-                // Once entire spec has finished, then close the window
-                this.after(function () {
-                    SpecRunnerUtils.closeTestWindow();
-                });
-            }
+            // create dummy Document for the Editor
+            testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
             
-            // Create a new, clean-slate Editor for each test
-            runs(function () {
-                // create dummy Document for the Editor
-                testDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-                
-                // create Editor instance (containing a CodeMirror instance)
-                $("body").append("<div id='editor'/>");
-                testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0), {});
-            });
+            // create Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            testEditor = new Editor(testDocument, true, "htmlmixed", $("#editor").get(0), {});
         });
         
         afterEach(function () {
