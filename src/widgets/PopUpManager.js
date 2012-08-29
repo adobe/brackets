@@ -61,22 +61,23 @@ define(function (require, exports, module) {
      * @param {!jQuery} $popUp
      */
     function removePopUp($popUp) {
+        // check visible first to help protect against recursive calls
+        // via removeHandler
+        if ($popUp.find(":visible").length > 0) {
+            var removeHandler = $popUp.data("PopUpManager-removeHandler");
+            if (removeHandler) {
+                removeHandler();
+            }
+        }
+
+        // check index after removeHandler is done processing to protect
+        // against recursive calls
         var index = _popUps.indexOf($popUp[0]);
         if (index >= 0) {
-            var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove"),
-                removeHandler = $popUp.data("PopUpManager-removeHandler");
-
-            // check visible first to protects against recursive calls
-            // via removeHandler
-            if ($popUp.find(":visible").length > 0) {
-                if (removeHandler) {
-                    removeHandler();
-                }
-    
-                if (autoAddRemove) {
-                    $popUp.remove();
-                    _popUps.splice(index, 1);
-                }
+            var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove");
+            if (autoAddRemove) {
+                $popUp.remove();
+                _popUps.splice(index, 1);
             }
         }
     }
