@@ -267,14 +267,18 @@ define(function (require, exports, module) {
             _initExtensions().always(AppInit._dispatchReady(AppInit.APP_READY));
             
             // If this is the first launch, and we have an index.html file in the project folder (which should be
-            // the samples folder on first launch), open it automatically.
+            // the samples folder on first launch), open it automatically. (We explicitly check for the
+            // samples folder in case this is the first time we're launching Brackets after upgrading from
+            // an old version that might not have set the "afterFirstLaunch" pref.)
             var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
             if (!prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
-                var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
-                dirEntry.getFile("index.html", {}, function (fileEntry) {
-                    CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
-                });
+                if (ProjectManager.isDefaultProjectPath(initialProjectPath)) {
+                    var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
+                    dirEntry.getFile("index.html", {}, function (fileEntry) {
+                        CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
+                    });
+                }
             }
         });
         

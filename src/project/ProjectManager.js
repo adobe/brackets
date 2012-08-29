@@ -627,6 +627,13 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns true if the given path is the same as the one for the initial startup project.
+     */
+    function isDefaultProjectPath(path) {
+        return path === _getDefaultProjectPath();
+    }
+    
+    /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
@@ -964,6 +971,7 @@ define(function (require, exports, module) {
     exports.openProject             = openProject;
     exports.getSelectedItem         = getSelectedItem;
     exports.getInitialProjectPath   = getInitialProjectPath;
+    exports.isDefaultProjectPath    = isDefaultProjectPath;
     exports.createNewItem           = createNewItem;
     exports.forceFinishRename       = forceFinishRename;
 });
