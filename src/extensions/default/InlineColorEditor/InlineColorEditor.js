@@ -22,11 +22,13 @@
         this._colorUpdateHandler = __bind(this._colorUpdateHandler, this);
 
         InlineWidget.call(this);
+        this.currentColorString = this.initialColor;
       }
 
-      InlineColorEditor.prototype.load = function(hostEditor) {
+      InlineColorEditor.prototype.load = function(hostEditor, linePos) {
         this.hostEditor = hostEditor;
-        this.parentClass.load.call(this, hostEditor);
+        this.linePos = linePos;
+        this.parentClass.load.call(this, this.hostEditor);
         this.$wrapperDiv = $(inlineEditorTemplate);
         this.$htmlContent.append(this.$wrapperDiv);
         return this.colorEditor = new ColorEditor(this.$wrapperDiv, this.initialColor, this._colorUpdateHandler);
@@ -46,7 +48,25 @@
       };
 
       InlineColorEditor.prototype._colorUpdateHandler = function(colorLabel) {
-        return this.hostEditor._codeMirror.replaceSelection(colorLabel);
+        var end, lineString, start;
+        lineString = this.hostEditor._codeMirror.getLine(this.hostEditor.getSelection(false).start.line);
+        start = lineString.indexOf(this.currentColorString);
+        end = start + this.currentColorString.length;
+        this.hostEditor._codeMirror.replaceRange(colorLabel, {
+          line: this.linePos,
+          ch: start
+        }, {
+          line: this.linePos,
+          ch: end
+        });
+        this.hostEditor._codeMirror.setSelection({
+          line: this.linePos,
+          ch: start
+        }, {
+          line: this.linePos,
+          ch: start + colorLabel.length
+        });
+        return this.currentColorString = colorLabel;
       };
 
       return InlineColorEditor;

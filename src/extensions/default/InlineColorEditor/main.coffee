@@ -46,7 +46,7 @@ define (require, exports, module) ->
 		result = new $.Deferred()
 
 		inlineColorEditor = new InlineColorEditor(match[0])
-		inlineColorEditor.load(hostEditor)
+		inlineColorEditor.load(hostEditor, cursorPos.line)
 		
 		result.resolve(inlineColorEditor)
 		

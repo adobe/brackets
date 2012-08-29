@@ -15,9 +15,10 @@ define (require, exports, module) ->
 
 		constructor: (@initialColor) ->
 			InlineWidget.call(this)
+			@currentColorString = @initialColor
 	
-		load: (@hostEditor) ->
-			@parentClass.load.call(this, hostEditor)
+		load: (@hostEditor, @linePos) ->
+			@parentClass.load.call(this, @hostEditor)
 			@$wrapperDiv = $(inlineEditorTemplate)
 			@.$htmlContent.append @$wrapperDiv
 			@colorEditor = new ColorEditor(@$wrapperDiv, @initialColor, @_colorUpdateHandler)
@@ -33,8 +34,11 @@ define (require, exports, module) ->
 			@hostEditor.setInlineWidgetHeight(@, @$wrapperDiv.outerHeight(), true)
 
 		_colorUpdateHandler: (colorLabel) =>
-			@hostEditor._codeMirror.replaceSelection(colorLabel)
-			# replaceSelection
-			# console.log colorLabel
+			lineString = @hostEditor._codeMirror.getLine(@hostEditor.getSelection(false).start.line)
+			start = lineString.indexOf(@currentColorString)
+			end = start+@currentColorString.length
+			@hostEditor._codeMirror.replaceRange(colorLabel, {line: @linePos, ch:start}, {line: @linePos, ch:end})
+			@hostEditor._codeMirror.setSelection({line: @linePos, ch: start}, {line: @linePos, ch: start+colorLabel.length})
+			@currentColorString = colorLabel
 
 	module.exports = InlineColorEditor

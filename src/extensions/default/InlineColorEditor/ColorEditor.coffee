@@ -140,6 +140,8 @@ define ['helper/colors'], (colors) ->
 		opacityMousedownHandler: (e) =>
 			@color.SetHSVA( @color.Hue(), @color.Saturation(), @color.Value(), (1 - e.offsetY/150) )
 			@updateColor()
+			if @outputStringType is @hexTypeIndex
+				@setOutputType(@rgbTypeIndex)
 			$(document).bind 'mouseup', @opacityMouseupHandler
 			$(document).bind 'mousemove', @opacityMousemoveHandler
 		opacityMousemoveHandler: (e) =>
