@@ -271,7 +271,7 @@ define(function (require, exports, module) {
             // samples folder in case this is the first time we're launching Brackets after upgrading from
             // an old version that might not have set the "afterFirstLaunch" pref.)
             var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-            if (!prefs.getValue("afterFirstLaunch")) {
+            if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
                 if (ProjectManager.isDefaultProjectPath(initialProjectPath)) {
                     var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
