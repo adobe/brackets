@@ -41,9 +41,8 @@ define(function (require, exports, module) {
      * @param {!jQuery} $popUp jQuery object for the DOM element pop-up
      * @param {function} removeHandler Pop-up specific remove (e.g. display:none or DOM removal)
      * @param {?Boolean} autoRemove - Specify true to indicate the PopUpManager should 
-     *      add/remove the popup from the DOM when the popup is open/closed. Specify false
-     *      when the popup is either always persistant in the DOM or the add/remove is handled 
-     *      external to the PopupManager 
+     *      remove the popup from the _popUps array when the popup is closed. Specify false
+     *      when the popup is always persistant in the _popUps array.
      *      
      */
     function addPopUp($popUp, removeHandler, autoRemove) {
