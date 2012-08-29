@@ -48,14 +48,10 @@ define(function (require, exports, module) {
      */
     function addPopUp($popUp, removeHandler, autoAddRemove) {
         autoAddRemove = autoAddRemove || false;
-        
+
         _popUps.push($popUp[0]);
         $popUp.data("PopUpManager-autoAddRemove", autoAddRemove);
         $popUp.data("PopUpManager-removeHandler", removeHandler);
-        
-        if (autoAddRemove) {
-            $(window.document.body).append($popUp);
-        }
     }
     
     /**
@@ -69,14 +65,18 @@ define(function (require, exports, module) {
         if (index >= 0) {
             var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove"),
                 removeHandler = $popUp.data("PopUpManager-removeHandler");
-            
-            if (removeHandler && $popUp.find(":visible").length > 0) {
-                removeHandler();
-            }
-            
-            if (autoAddRemove) {
-                $popUp.remove();
-                _popUps = _popUps.slice(index);
+
+            // check visible first to protects against recursive calls
+            // via removeHandler
+            if ($popUp.find(":visible").length > 0) {
+                if (removeHandler) {
+                    removeHandler();
+                }
+    
+                if (autoAddRemove) {
+                    $popUp.remove();
+                    _popUps.splice(index, 1);
+                }
             }
         }
     }
