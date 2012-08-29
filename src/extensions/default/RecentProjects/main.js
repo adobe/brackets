@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         }
         
         var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
-            restSpan = $("<span></span>").addClass("recent-folder-path").text(" in " + rest);
+            restSpan = $("<span></span>").addClass("recent-folder-path").text(" - " + rest);
         return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan);
     }
     
