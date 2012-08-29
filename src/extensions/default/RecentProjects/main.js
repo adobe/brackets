@@ -120,7 +120,14 @@ define(function (require, exports, module) {
             if (root !== currentProject) {
                 var $link = renderPath(root)
                     .click(function () {
-                        ProjectManager.openProject(root);
+                        ProjectManager.openProject(root)
+                            .fail(function () {
+                                // Remove the project from the list.
+                                var index = recentProjects.indexOf(root);
+                                if (index !== -1) {
+                                    recentProjects.splice(index, 1);
+                                }
+                            });
                         closeDropdown();
                     });
                 $("<li></li>")
