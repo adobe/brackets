@@ -41,8 +41,7 @@ Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
-[adobe/brackets-app](https://github.com/adobe/brackets-app/), which includes 
-this repo as a submodule.
+[adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
 
 The Brackets native shell currently runs on Mac and Windows. Since it's based on 
 CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
@@ -50,10 +49,9 @@ been done yet. Stay tuned.
 
 You can download "stable" builds of Brackets from the Download Packages section of the 
 [downloads page](http://github.com/adobe/brackets/downloads).    
-If you want to pull the repos directly via git, see 
+If you want to pull the repo directly via git, see 
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
-for instructions on how to get everything. Either way, you can launch Brackets
-from the `bin/win` or `bin/mac` folder.
+for instructions on how to get everything. 
 
 By default, Brackets shows its own source code (MIND BLOWN). You can choose
 a different folder to edit from *File > Open Folder*.

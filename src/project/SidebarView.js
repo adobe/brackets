@@ -25,10 +25,16 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global define, $, document, window, brackets  */
 
+/**
+ * The view that controls the showing and hiding of the sidebar. Dispatches the following events:
+ *    hide -- when the sidebar is hidden
+ *    show -- when the sidebar is shown
+ */
+
 define(function (require, exports, module) {
     "use strict";
     
-    var LoadEvents          = require("utils/LoadEvents"),
+    var AppInit             = require("utils/AppInit"),
         ProjectManager      = require("project/ProjectManager"),
         WorkingSetView      = require("project/WorkingSetView"),
         CommandManager      = require("command/CommandManager"),
@@ -43,7 +49,7 @@ define(function (require, exports, module) {
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
 
-    // These vars are initialized by the htmlContentLoadComplete handler
+    // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
     var $sidebar,
         $sidebarMenuText,
@@ -112,8 +118,10 @@ define(function (require, exports, module) {
     function toggleSidebar(width) {
         if (isSidebarClosed) {
             $sidebar.show();
+            $(exports).triggerHandler("show");
         } else {
             $sidebar.hide();
+            $(exports).triggerHandler("hide");
         }
         
         isSidebarClosed = !isSidebarClosed;
@@ -234,7 +242,7 @@ define(function (require, exports, module) {
     }
 
     // Initialize items dependent on HTML DOM
-    LoadEvents.htmlContentLoadComplete(function () {
+    AppInit.htmlReady(function () {
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $sidebarResizer         = $("#sidebar-resizer");
