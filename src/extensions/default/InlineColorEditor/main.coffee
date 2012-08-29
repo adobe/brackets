@@ -1,11 +1,3 @@
-link = document.createElement('link')
-link.type = "text/css"
-link.rel = "stylesheet"
-link.href = 'extensions/default/InlineColorEditor/css/main.css'
-document.getElementsByTagName("head")[0].appendChild(link);
-
-
-
 define (require, exports, module) ->
 	"use strict"
 
@@ -17,11 +9,24 @@ define (require, exports, module) ->
 	InlineColorEditor = require("InlineColorEditor")
 
 
+	link = document.createElement('link')
+	link.type = "text/css"
+	link.rel = "stylesheet"
+	link.href = require.toUrl("css/main.css")
+	document.getElementsByTagName("head")[0].appendChild(link);
+
+
 	hexRegEx = /#([a-f0-9]{6}|[a-f0-9]{3})/i
 	hslRegEx = /hsla?\((\d|,|%| |.)*\)/i
 	rgbRegEx = /rgba?\((\d|,|%| |.)*\)/i
 
+	_colorPickers = {}
+
+	onClose = (colorPicker) ->
+		delete _colorPickers[colorPicker.pos.line]
+
 	inlineColorEditorProvider = (hostEditor, pos) ->
+
 		# Only provide color editor if the selection is within a single line
 		sel = hostEditor.getSelection(false)
 		if (sel.start.line != sel.end.line)
@@ -30,23 +35,30 @@ define (require, exports, module) ->
 		colorRegEx = /#[a-f0-9]{6}|#[a-f0-9]{3}|rgb\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?\)|rgba\( ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b([0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b ?, ?\b(1|0|0\.[0-9]{1,3}) ?\)|hsl\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?\)|hsla\( ?\b([0-9]{1,2}|[12][0-9]{2}|3[0-5][0-9]|360)\b ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b([0-9]{1,2}|100)\b% ?, ?\b(1|0|0\.[0-9]{1,3}) ?\)/i
 
 		# check if current line contains a color
-		cursorPos = hostEditor._codeMirror.getCursor()
-		cursorLine = hostEditor._codeMirror.getLine(hostEditor.getSelection(false).start.line)
+		cursorLine = hostEditor._codeMirror.getLine(pos.line)
 		match = cursorLine.match(colorRegEx)
 		if !match
 			return null
 		else
 			start = match.index
 			end = start + match[0].length
-			if cursorPos.ch < start or cursorPos.ch > end
+			if pos.ch < start or pos.ch > end
 				return null
 
+		colorPicker = _colorPickers[pos.line]
+		if (colorPicker)
+			colorPicker.close()
+			if (match[0] == colorPicker.currentColorString)
+				return null;
+
 		# console.log start
-		hostEditor._codeMirror.setSelection({line: cursorPos.line, ch: start}, {line: cursorPos.line, ch: end})
+		hostEditor._codeMirror.setSelection({line: pos.line, ch: start}, {line: pos.line, ch: end})
 		result = new $.Deferred()
 
-		inlineColorEditor = new InlineColorEditor(match[0])
-		inlineColorEditor.load(hostEditor, cursorPos.line)
+		inlineColorEditor = new InlineColorEditor(match[0], pos)
+		inlineColorEditor.onClose = onClose
+		inlineColorEditor.load(hostEditor, pos.line)
+		_colorPickers[pos.line] = inlineColorEditor
 		
 		result.resolve(inlineColorEditor)
 		

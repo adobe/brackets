@@ -87,13 +87,13 @@ define ['helper/colors'], (colors) ->
 				when @hexTypeIndex
 					colorLabel = @color.HexString()
 				when @rgbTypeIndex
-					colorLabel = "#{@color.Red()}, #{@color.Green()}, #{@color.Blue()}"
+					colorLabel = "#{@color.Red()},#{@color.Green()},#{@color.Blue()}"
 					if @color.Alpha() < 1 and @color.Alpha() >= 0
-						colorLabel = "rgba(#{colorLabel}, #{Math.round(@color.Alpha() * 100)/100})"
+						colorLabel = "rgba(#{colorLabel},#{Math.round(@color.Alpha() * 100)/100})"
 					else
 						colorLabel = "rgb(#{colorLabel})"
 				when @hslTypeIndex
-					colorLabel = "hsla(#{Math.round(@color.Hue())}, #{Math.round(@color.Saturation()*100)}%, #{Math.round(@color.Value()*100)}%, #{Math.round(@color.Alpha() * 100)/100})"
+					colorLabel = "hsla(#{Math.round(@color.Hue())},#{Math.round(@color.Saturation()*100)}%,#{Math.round(@color.Value()*100)}%,#{Math.round(@color.Alpha() * 100)/100})"
 
 
 			if (@callback)

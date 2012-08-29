@@ -13,7 +13,7 @@ define (require, exports, module) ->
 
 		parentClass: InlineWidget::
 
-		constructor: (@initialColor) ->
+		constructor: (@initialColor, @pos) ->
 			InlineWidget.call(this)
 			@currentColorString = @initialColor
 	
@@ -24,8 +24,9 @@ define (require, exports, module) ->
 			@colorEditor = new ColorEditor(@$wrapperDiv, @initialColor, @_colorUpdateHandler)
 
 		close: () ->
-			console.log 'closing'
 			this.hostEditor.removeInlineWidget this
+			if (this.onClose)
+				this.onClose(this)
 	
 		onAdded: () ->
 			window.setTimeout(@_sizeEditorToContent.bind(@))

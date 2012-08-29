@@ -17,8 +17,9 @@
 
       InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
 
-      function InlineColorEditor(initialColor) {
+      function InlineColorEditor(initialColor, pos) {
         this.initialColor = initialColor;
+        this.pos = pos;
         this._colorUpdateHandler = __bind(this._colorUpdateHandler, this);
 
         InlineWidget.call(this);
@@ -35,8 +36,10 @@
       };
 
       InlineColorEditor.prototype.close = function() {
-        console.log('closing');
-        return this.hostEditor.removeInlineWidget(this);
+        this.hostEditor.removeInlineWidget(this);
+        if (this.onClose) {
+          return this.onClose(this);
+        }
       };
 
       InlineColorEditor.prototype.onAdded = function() {
