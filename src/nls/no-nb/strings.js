@@ -95,11 +95,21 @@ define({
     "BUTTON_STOP" : "Stop",
 
     "OPEN_FILE" : "Åpne fil",
+    "CHOOSE_FOLDER" : "Velg katalog",
 
     "RELEASE_NOTES" : "Versjonsmerknader",
     "NO_UPDATE_TITLE" : "Brackets er oppdatert!",
     "NO_UPDATE_MESSAGE" : "Du kjører den nyeste versjonen av Brackets.",
 
+    "FIND_IN_FILES_TITLE" : "- {0} {1} i {2} {3}",
+    "FIND_IN_FILES_FILE" : "fil",
+    "FIND_IN_FILES_FILES" : "filer",
+    "FIND_IN_FILES_MATCH" : "treff",
+    "FIND_IN_FILES_MATCHES" : "treff",
+    "FIND_IN_FILES_MAX" : " (viser kun første {0} treff)",
+    "FIND_IN_FILES_FILE_PATH" : "Fil: <b>{0}</b>",
+    "FIND_IN_FILES_LINE" : "linje:&nbsp;{0}",
+    
     "ERROR_FETCHING_UPDATE_INFO_TITLE" : "Feil ved henting av oppdatering info",
     "ERROR_FETCHING_UPDATE_INFO_MSG" : "Det oppstod et problem ved å få informasjon fra serveren. Vennligst sørg for at du er koblet til internett og prøv på nytt.",
 
@@ -199,16 +209,13 @@ define({
     "CLOSE_DONT_SAVE" : "Lukk (ikke lagre)",
     "RELAUNCH_CHROME" : "Start Chrome på nytt",
     "ABOUT" : "Om",
-    "BRACKETS" : "Brackets",
+    "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
     "ABOUT_TEXT_LINE1" : "sprint 13 experimental build ",
-    "ABOUT_TEXT_LINE2" : "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.",
-    "ABOUT_TEXT_LINE3" : "Notices; terms and conditions pertaining to third party software are located at ",
-    "ABOUT_TEXT_LINE4" : " and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE5" : "Documentation and source at ",
+    "ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4" : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for Brackets er tilgjengelig! Klikk her for mer informasjon.",
     "UPDATE_AVAILABLE_TITLE" : "Oppdatering er tilgjengelig",
     "UPDATE_MESSAGE" : "Hei, en ny bygg for Brackets er tilgjengelig. Her er noen av de nye funksjonene:",
     "GET_IT_NOW" : "Hent den nå!"
-
 });
