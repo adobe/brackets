@@ -38,8 +38,9 @@ define (require, exports, module) ->
 			lineString = @hostEditor._codeMirror.getLine(@hostEditor.getSelection(false).start.line)
 			start = lineString.indexOf(@currentColorString)
 			end = start+@currentColorString.length
-			@hostEditor._codeMirror.replaceRange(colorLabel, {line: @linePos, ch:start}, {line: @linePos, ch:end})
-			@hostEditor._codeMirror.setSelection({line: @linePos, ch: start}, {line: @linePos, ch: start+colorLabel.length})
 			@currentColorString = colorLabel
+			if(colorLabel != @initialColor)
+				# @hostEditor.document.replaceRange(colorLabel, {line: @linePos, ch:start}, {line: @linePos, ch:end})
+				@hostEditor._codeMirror.setSelection({line: @linePos, ch: start}, {line: @linePos, ch: start+colorLabel.length})
 
 	module.exports = InlineColorEditor

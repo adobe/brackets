@@ -55,21 +55,16 @@
         lineString = this.hostEditor._codeMirror.getLine(this.hostEditor.getSelection(false).start.line);
         start = lineString.indexOf(this.currentColorString);
         end = start + this.currentColorString.length;
-        this.hostEditor._codeMirror.replaceRange(colorLabel, {
-          line: this.linePos,
-          ch: start
-        }, {
-          line: this.linePos,
-          ch: end
-        });
-        this.hostEditor._codeMirror.setSelection({
-          line: this.linePos,
-          ch: start
-        }, {
-          line: this.linePos,
-          ch: start + colorLabel.length
-        });
-        return this.currentColorString = colorLabel;
+        this.currentColorString = colorLabel;
+        if (colorLabel !== this.initialColor) {
+          return this.hostEditor._codeMirror.setSelection({
+            line: this.linePos,
+            ch: start
+          }, {
+            line: this.linePos,
+            ch: start + colorLabel.length
+          });
+        }
       };
 
       return InlineColorEditor;
