@@ -73,7 +73,9 @@ define(function (require, exports, module) {
         var selectorStartChar = -1, selectorStartLine = -1;
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var declListStartLine = -1, declListStartChar = -1;
-
+        var escapePattern = /\\[^\\]+/g;
+        var validationPattern = /\\([a-fA-F0-9]{6}|[a-fA-F0-9]{4}(\s|\\|$)|[a-fA-F0-9]{2}(\s|\\|$)|.)/;
+        
         // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
         
@@ -183,7 +185,19 @@ define(function (require, exports, module) {
                     break;
                 }
             }
-
+            
+            // Is faster regexp.test() than a replace with no hits? 
+            //if(/\\/.test(currentSelector))
+            //{
+                // Double replace in case of pattern overlapping (regex improvement?)
+                currentSelector = currentSelector.replace(escapePattern,function(escapedToken){
+                    return escapedToken.replace(validationPattern,function(unicodeChar){
+                        unicodeChar = unicodeChar.substr(1);
+                        if (unicodeChar.length==1) return unicodeChar;
+                        else return parseInt(unicodeChar,16)<0x10FFFF?String.fromCharCode(parseInt(unicodeChar,16)):"�";
+                    });
+                });
+            //}
             currentSelector = currentSelector.trim();
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
