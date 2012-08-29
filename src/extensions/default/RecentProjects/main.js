@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         CommandManager          = brackets.getModule("command/CommandManager"),
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
-        Strings                 = brackets.getModule("strings");
+        Strings                 = brackets.getModule("strings"),
+        SidebarView             = brackets.getModule("project/SidebarView");
     
     var $dropdownToggle;
     var MAX_PROJECTS = 20;
@@ -109,6 +110,7 @@ define(function (require, exports, module) {
         function closeDropdown() {
             $("html").off("click", closeDropdown);
             $("#project-files-container").off("scroll", closeDropdown);
+            $(SidebarView).off("hide", closeDropdown);
             $dropdown.remove();
         }
         
@@ -152,6 +154,10 @@ define(function (require, exports, module) {
         // We should fix this when the popup handling is centralized in PopupManager, as well
         // as making Esc close the dropdown. See issue #1381.
         $("#project-files-container").on("scroll", closeDropdown);
+        
+        // Hide the menu if the sidebar is hidden.
+        // TODO: Is there some more general way we could handle this for dropdowns?
+        $(SidebarView).on("hide", closeDropdown);
     }
     
     // Initialize extension
