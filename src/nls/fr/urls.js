@@ -26,5 +26,5 @@
 
 define({
     // Relative to the samples folder
-    "GETTING_STARTED"   : "fr/Guide de démarrage"
+    "GETTING_STARTED"   : "fr/Premiers pas"
 });
