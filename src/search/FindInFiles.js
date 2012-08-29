@@ -89,7 +89,7 @@ define(function (require, exports, module) {
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
-        
+    
     /**
     * Shows the search dialog 
     * @param {?string} initialString Default text to prepopulate the search field with
