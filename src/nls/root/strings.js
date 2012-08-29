@@ -100,6 +100,15 @@ define({
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of Brackets.",
+    
+    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_FILE"                : "file",
+    "FIND_IN_FILES_FILES"               : "files",
+    "FIND_IN_FILES_MATCH"               : "match",
+    "FIND_IN_FILES_MATCHES"             : "matches",
+    "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
+    "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
+    "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
 
     "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
     "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
