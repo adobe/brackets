@@ -57,6 +57,13 @@
         end = start + this.currentColorString.length;
         this.currentColorString = colorLabel;
         if (colorLabel !== this.initialColor) {
+          this.hostEditor.document.replaceRange(colorLabel, {
+            line: this.linePos,
+            ch: start
+          }, {
+            line: this.linePos,
+            ch: end
+          });
           return this.hostEditor._codeMirror.setSelection({
             line: this.linePos,
             ch: start

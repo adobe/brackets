@@ -40,7 +40,7 @@ define (require, exports, module) ->
 			end = start+@currentColorString.length
 			@currentColorString = colorLabel
 			if(colorLabel != @initialColor)
-				# @hostEditor.document.replaceRange(colorLabel, {line: @linePos, ch:start}, {line: @linePos, ch:end})
+				@hostEditor.document.replaceRange(colorLabel, {line: @linePos, ch:start}, {line: @linePos, ch:end})
 				@hostEditor._codeMirror.setSelection({line: @linePos, ch: start}, {line: @linePos, ch: start+colorLabel.length})
 
 	module.exports = InlineColorEditor
