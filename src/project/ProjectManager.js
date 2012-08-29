@@ -694,16 +694,14 @@ define(function (require, exports, module) {
                         StringUtils.format(
                             Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR,
                             StringUtils.htmlEscape(rootPath),
-                            error.code,
-                            function () {
-                                result.reject();
-                            }
+                            error.code
                         )
                     ).done(function () {
                         // The project folder stored in preference doesn't exist, so load the default 
                         // project directory.
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
+                        result.reject();
                         return _loadProject(_getDefaultProjectPath());
                     });
                 }
