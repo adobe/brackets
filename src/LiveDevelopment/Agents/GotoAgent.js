@@ -125,7 +125,13 @@ define(function GotoAgent(require, exports, module) {
             for (i in node.trace) {
                 _makeJSTarget(targets, node.trace[i]);
             }
-            for (i in res.matchedCSSRules) {
+            for (i in node.events) {
+                var trace = node.events[i];
+                if (trace.children.length > 0) {
+                    _makeJSTarget(targets, trace.children[0].callFrames[0]);
+                }
+            }
+            for (i in res.matchedCSSRules.reverse()) {
                 _makeCSSTarget(targets, res.matchedCSSRules[i]);
             }
             RemoteAgent.call("showGoto", targets);
@@ -158,7 +164,7 @@ define(function GotoAgent(require, exports, module) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
 
         var result = new $.Deferred();
-        
+
         url = _urlWithoutQueryString(url);
         // Extract the path, also strip the third slash when on Windows
         var path = url.slice(brackets.platform === "win" ? 8 : 7);

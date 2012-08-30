@@ -1,27 +1,21 @@
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="120px" height="120px">
 	<defs>
-		<linearGradient id="frame" gradientUnits="userSpaceOnUse" x1="433.5" y1="-185" x2="433.5" y2="-277.0005" gradientTransform="matrix(1 0 0 -1 -373.5 -177)">
-			<stop  offset="0" style="stop-color:#29ABE2"/>
-			<stop  offset="0.4757" style="stop-color:#28A9E1"/>
-			<stop  offset="0.6639" style="stop-color:#23A2DC"/>
-			<stop  offset="0.8012" style="stop-color:#1A96D4"/>
-			<stop  offset="0.913" style="stop-color:#0E85C9"/>
-			<stop  offset="1" style="stop-color:#0071BC"/>
+		<linearGradient id="frame" gradientUnits="userSpaceOnUse" x1="433.5" y1="-185" x2="433.5" y2="-277" gradientTransform="matrix(1 0 0 -1 -373.5 -177)">
+			<stop offset="0" stop-color="#29ABE2"/>
+			<stop offset="0.4757" stop-color="#28A9E1"/>
+			<stop offset="0.6639" stop-color="#23A2DC"/>
+			<stop offset="0.8012" stop-color="#1A96D4"/>
+			<stop offset="0.913" stop-color="#0E85C9"/>
+			<stop offset="1" stop-color="#0071BC"/>
 		</linearGradient>
+		<filter id="blur" x="-10" y="-10" width="12" height="12">
+			<feGaussianBlur in="SourceGraphic" stdDeviation="1"/>
+		</filter>
 	</defs>
-	<path opacity="0.02" d="M91.5,7.5h-63c-11.55,0-21,9.45-21,21v8.4v46.2v8.4c0,11.55,9.45,21,21,21h63c11.55,0,21-9.45,21-21v-8.4V36.9v-8.4C112.5,16.95,103.05,7.5,91.5,7.5z"/>
-	<path opacity="0.065" d="M91.125,7.625h-62.25c-11.412,0-20.75,9.338-20.75,20.75v8.3v45.649v8.301c0,11.412,9.338,20.75,20.75,20.75h62.25c11.412,0,20.75-9.338,20.75-20.75v-8.301V36.675v-8.3C111.875,16.963,102.537,7.625,91.125,7.625z"/>
-	<path opacity="0.11" d="M90.75,7.75h-61.5c-11.275,0-20.5,9.225-20.5,20.5v8.2v45.1v8.2c0,11.275,9.225,20.5,20.5,20.5h61.5c11.275,0,20.5-9.225,20.5-20.5v-8.2v-45.1v-8.2C111.25,16.975,102.025,7.75,90.75,7.75z"/>
-	<path opacity="0.155" d="M90.375,7.875h-60.75c-11.138,0-20.25,9.112-20.25,20.25v8.1v44.55v8.1c0,11.138,9.112,20.25,20.25,20.25h60.75c11.138,0,20.25-9.112,20.25-20.25v-8.1v-44.55v-8.1C110.625,16.987,101.513,7.875,90.375,7.875z"/>
-	<path opacity="0.2" d="M90,8H30c-11,0-20,9-20,20v8v44v8c0,11,9,20,20,20h60c11,0,20-9,20-20v-8V36v-8C110,17,101,8,90,8z"/>
+	<rect id="shadow" x="10" y="9" width="100" height="100" rx="20" ry="20" opacity=".5" filter="url(#blur)"/>
 	<rect x="10" y="58" width="100" height="50" rx="20" ry="20" fill="#115A91"/>
 	<rect x="10" y="8" width="100" height="92" rx="20" ry="20" fill="url(#frame)"/>
 	<rect x="22" y="20" width="76" height="68" rx="10" ry="10" fill="#fff"/>
-	<g id="shadow2">
-		<path opacity="0.1" fill="#4D4D4D" d="M57.675,27.725v12.6h-14.7v27.3h14.7v13.65h-28.35v-53.55H57.675zM90.675,27.725v53.55h-28.35v-13.65h15.75v-27.3h-15.75v-12.6H90.675z"/>
-		<path fill="#4D4D4D" opacity="0.2" d="M57.45,27.816 57.45,40.217 42.983,40.217 42.983,67.083 57.45,67.083 57.45,80.517 29.55,80.517 29.55,27.816zM90.449,27.816 90.449,80.517 62.55,80.517 62.55,67.083 78.05,67.083 78.05,40.217 62.55,40.217 62.55,27.816z"/>
-		<path opacity="0.3" fill="#4D4D4D" d="M57.225,27.908 57.225,40.108 42.992,40.108 42.992,66.541 57.225,66.541 57.225,79.759 29.775,79.759 29.775,27.908zM90.225,27.908 90.225,79.759 62.775,79.759 62.775,66.541 78.025,66.541 78.025,40.108 62.775,40.108 62.775,27.908z"/>
-		<path opacity="0.4" fill="#4D4D4D" d="M57,28v12H43v26h14v13H30V28H57zM90,28v51H63V66h15V40H63V28H90z"/>
-	</g>
+	<path id="shadow2" opacity=".5" transform="translate(0, 1)" filter="url(#blur)" d="M57,28v12H43v26h14v13H30V28H57zM90,28v51H63V66h15V40H63V28H90z"/>
 	<path id="brackets" fill="#4D4D4D" d="M57,28v12H43v26h14v13H30V28H57zM90,28v51H63V66h15V40H63V28H90z"/>
 </svg>

@@ -103,10 +103,12 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (start.ch !== end.ch) {
-            editor.document.replaceRange(completion, start, end);
-        } else {
-            editor.document.replaceRange(completion, start);
+        if (completion !== tagInfo.tagName) {
+            if (start.ch !== end.ch) {
+                editor.document.replaceRange(completion, start, end);
+            } else {
+                editor.document.replaceRange(completion, start);
+            }
         }
     };
 
@@ -153,7 +155,8 @@ define(function (require, exports, module) {
             charCount = 0,
             insertedName = false,
             replaceExistingOne = tagInfo.attr.valueAssigned,
-            endQuote = "";
+            endQuote = "",
+            shouldReplace = true;
 
         if (tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
@@ -163,6 +166,8 @@ define(function (require, exports, module) {
                     attributes[completion].type !== "flag") {
                 completion += "=\"\"";
                 insertedName = true;
+            } else if (completion === tagInfo.attr.name) {
+                shouldReplace = false;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
@@ -171,6 +176,8 @@ define(function (require, exports, module) {
                 if (endQuote) {
                     completion += endQuote;
                 }
+            } else if (completion === tagInfo.attr.value) {
+                shouldReplace = false;
             }
         }
 
@@ -178,10 +185,12 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (start.ch !== end.ch) {
-            editor.document.replaceRange(completion, start, end);
-        } else {
-            editor.document.replaceRange(completion, start);
+        if (shouldReplace) {
+            if (start.ch !== end.ch) {
+                editor.document.replaceRange(completion, start, end);
+            } else {
+                editor.document.replaceRange(completion, start);
+            }
         }
 
         if (insertedName) {
