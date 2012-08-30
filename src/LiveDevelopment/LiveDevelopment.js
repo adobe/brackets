@@ -478,8 +478,6 @@ define(function LiveDevelopment(require, exports, module) {
                     _htmlDocumentPath = doc.file.fullPath;
                 }
             }
-        } else if (exports.config.autoconnect) {
-            window.setTimeout(open);
         }
     }
 
