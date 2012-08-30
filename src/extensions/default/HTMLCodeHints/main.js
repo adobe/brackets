@@ -103,10 +103,12 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (start.ch !== end.ch) {
-            editor.document.replaceRange(completion, start, end);
-        } else {
-            editor.document.replaceRange(completion, start);
+        if (completion !== tagInfo.tagName) {
+            if (start.ch !== end.ch) {
+                editor.document.replaceRange(completion, start, end);
+            } else {
+                editor.document.replaceRange(completion, start);
+            }
         }
     };
 
@@ -153,7 +155,8 @@ define(function (require, exports, module) {
             charCount = 0,
             insertedName = false,
             replaceExistingOne = tagInfo.attr.valueAssigned,
-            endQuote = "";
+            endQuote = "",
+            shouldReplace = true;
 
         if (tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
@@ -163,6 +166,8 @@ define(function (require, exports, module) {
                     attributes[completion].type !== "flag") {
                 completion += "=\"\"";
                 insertedName = true;
+            } else if (completion === tagInfo.attr.name) {
+                shouldReplace = false;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
@@ -171,6 +176,8 @@ define(function (require, exports, module) {
                 if (endQuote) {
                     completion += endQuote;
                 }
+            } else if (completion === tagInfo.attr.value) {
+                shouldReplace = false;
             }
         }
 
@@ -178,10 +185,12 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (start.ch !== end.ch) {
-            editor.document.replaceRange(completion, start, end);
-        } else {
-            editor.document.replaceRange(completion, start);
+        if (shouldReplace) {
+            if (start.ch !== end.ch) {
+                editor.document.replaceRange(completion, start, end);
+            } else {
+                editor.document.replaceRange(completion, start);
+            }
         }
 
         if (insertedName) {
@@ -221,6 +230,12 @@ define(function (require, exports, module) {
                     query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
                     query.attrName = tagInfo.attr.name;
                 }
+            } else if (tokenType === HTMLUtils.ATTR_VALUE) {
+                // We get negative offset for a quoted attribute value with some leading whitespaces 
+                // as in <a rel= "rtl" where the cursor is just to the right of the "=".
+                // So just set the queryStr to an empty string. 
+                query.queryStr = "";
+                query.attrName = tagInfo.attr.name;
             }
 
             // TODO: get existing attributes for the current tag and add them to query.usedAttr
@@ -254,12 +269,14 @@ define(function (require, exports, module) {
                 var tagPlusAttr = tagName + "/" + attrName,
                     attrInfo = attributes[tagPlusAttr] || attributes[attrName];
                 
-                if (attrInfo && attrInfo.type === "boolean") {
-                    unfiltered = ["false", "true"];
-                } else {
-                    unfiltered = attrInfo.attribOption;
+                if (attrInfo) {
+                    if (attrInfo.type === "boolean") {
+                        unfiltered = ["false", "true"];
+                    } else if (attrInfo.attribOption) {
+                        unfiltered = attrInfo.attribOption;
+                    }
                 }
-            } else if (tags && tags[tagName]) {
+            } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
 
                 // TODO: exclude existing attributes from unfiltered array

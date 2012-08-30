@@ -43,6 +43,7 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror2/mode/clojure/clojure");
     require("thirdparty/CodeMirror2/mode/perl/perl");
     require("thirdparty/CodeMirror2/mode/ruby/ruby");
+    require("thirdparty/CodeMirror2/mode/lua/lua");
     require("thirdparty/CodeMirror2/mode/mysql/mysql");
     require("thirdparty/CodeMirror2/mode/diff/diff");
     require("thirdparty/CodeMirror2/mode/markdown/markdown");
@@ -62,6 +63,9 @@ define(function (require, exports, module) {
         if (ext.charAt(0) === ".") {
             ext = ext.substr(1);
         }
+        
+        // Make checks below case-INsensitive
+        ext = ext.toLowerCase();
 
         switch (ext) {
 
@@ -85,6 +89,8 @@ define(function (require, exports, module) {
             return "htmlmixed";
 
         case "xml":
+        case "wxs":  // Wix XML extensions - used in Brackets installer
+        case "wxl":
             return "xml";
 
         case "php":
@@ -129,6 +135,9 @@ define(function (require, exports, module) {
 
         case "rb":
             return "ruby";
+        
+        case "lua":
+            return "lua";
 
         case "sql":
             return "mysql";

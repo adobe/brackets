@@ -271,9 +271,11 @@ define(function (require, exports, module) {
                        .css({"left": hintPos.left, "top": hintPos.top});
             this.opened = true;
             
-            PopUpManager.addPopUp(this.$hintMenu, function () {
-                self.close();
-            });
+            PopUpManager.addPopUp(this.$hintMenu,
+                function () {
+                    self.close();
+                },
+                true);
         }
     };
 
@@ -293,6 +295,7 @@ define(function (require, exports, module) {
         this.$hintMenu.remove();
         if (hintList === this) {
             hintList = null;
+            shouldShowHintsOnKeyUp = false;
         }
     };
         
@@ -391,7 +394,6 @@ define(function (require, exports, module) {
 
         // Pass to the hint list, if it's open
         if (hintList && hintList.isOpen()) {
-            shouldShowHintsOnKeyUp = false;
             hintList.handleKeyEvent(editor, event);
         }
     }

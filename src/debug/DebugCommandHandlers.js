@@ -223,20 +223,58 @@ define(function (require, exports, module) {
                 
                 // inspect all children of dirEntry
                 entries.forEach(function (entry) {
-                    if (entry.isDirectory && entry.name.match(/^[a-z]{2}(-[A-Z]{2})?$/)) {
-                        var language = entry.name;
-                        var $li = $("<li>")
-                            .text(entry.name)
-                            .data("locale", language)
-                            .appendTo($ul);
+                    if (entry.isDirectory) {
+                        var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
+                        
+                        if (match) {
+                            var language = entry.name,
+                                label = match[1];
+                            
+                            if (match[2]) {
+                                label += match[2].toUpperCase();
+                            }
+                            
+                            var $li = $("<li>")
+                                .text(label)
+                                .data("locale", language)
+                                .appendTo($ul);
+                        }
                     }
                 });
             });
         });
     }
     
+    function _handleShowExtensionsFolder() {
+        brackets.app.showExtensionsFolder(
+            FileUtils.convertToNativePath(window.location.href),
+            function (err) {
+                // Ignore errors
+            }
+        );
+    }
+    
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
+    }
+    
+    function _enableRunTestsMenuItem() {
+        // Check for the SpecRunner.html file
+        var fileEntry = new NativeFileSystem.FileEntry(
+            FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
+        );
+        
+        fileEntry.getMetadata(
+            function (metadata) {
+                // If we sucessfully got the metadata for the SpecRunner.html file, 
+                // enable the menu item
+                CommandManager.get(Commands.DEBUG_RUN_UNIT_TESTS).setEnabled(true);
+            },
+            function (error) {
+                // Error getting metadata. 
+                // The menu item is already disabled, so there is nothing to do here.
+            }
+        );
     }
     
     /* Register all the command handlers */
@@ -245,7 +283,12 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
         .setEnabled(!!brackets.app.showDeveloperTools);
     CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests);
+    CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.DEBUG_SHOW_EXT_FOLDER,     _handleShowExtensionsFolder);
+    
+    // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests)
+        .setEnabled(false);
+    
     CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
     CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
     
@@ -253,4 +296,6 @@ define(function (require, exports, module) {
         .setChecked(Editor.getUseTabChar());
     
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,    Commands.CHECK_FOR_UPDATE,             _handleCheckForUpdates);
+    
+    _enableRunTestsMenuItem();
 });

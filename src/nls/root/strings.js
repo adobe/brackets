@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
  * to deal in the Software without restriction, including without limitation 
@@ -95,11 +95,24 @@ define({
     "BUTTON_STOP"                       : "Stop",
 
     "OPEN_FILE"                         : "Open File",
+    "CHOOSE_FOLDER"                     : "Choose a folder",
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of Brackets.",
+    
+    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_FILE"                : "file",
+    "FIND_IN_FILES_FILES"               : "files",
+    "FIND_IN_FILES_MATCH"               : "match",
+    "FIND_IN_FILES_MATCHES"             : "matches",
+    "FIND_IN_FILES_MAX"                 : " (showing the first {0} matches)",
+    "FIND_IN_FILES_FILE_PATH"           : "File: <b>{0}</b>",
+    "FIND_IN_FILES_LINE"                : "line:&nbsp;{0}",
 
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Error getting update info",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.",
+    
     // Switch language
     "LANGUAGE_TITLE"                    : "Switch Language",
     "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
@@ -171,6 +184,7 @@ define({
     "CMD_JSLINT"                          : "Enable JSLint",
     "CMD_SHOW_PERF_DATA"                  : "Show Performance Data",
     "CMD_NEW_BRACKETS_WINDOW"             : "New Brackets Window",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_USE_TAB_CHARS"                   : "Use Tab Characters",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
@@ -195,13 +209,11 @@ define({
     "CLOSE_DONT_SAVE"                      : "Close (Don't Save)",
     "RELAUNCH_CHROME"                      : "Relaunch Chrome",
     "ABOUT"                                : "About",
-    "BRACKETS"                             : "Brackets",
+    "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint 13 experimental build ",
-    "ABOUT_TEXT_LINE2"                     : "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.",
-    "ABOUT_TEXT_LINE3"                     : "Notices; terms and conditions pertaining to third party software are located at ",
-    "ABOUT_TEXT_LINE4"                     : " and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE5"                     : "Documentation and source at ",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of Brackets available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of Brackets available. Here are some of the new features:",

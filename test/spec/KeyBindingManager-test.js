@@ -28,6 +28,8 @@
 define(function (require, exports, module) {
     'use strict';
     
+    require("utils/Global");
+
     // Load dependent modules
     var CommandManager      = require("command/CommandManager"),
         KeyBindingManager   = require("command/KeyBindingManager");
@@ -57,6 +59,10 @@ define(function (require, exports, module) {
         
         var platform = brackets.platform;
         
+        beforeEach(function () {
+            brackets.platform = "test";
+        });
+        
         afterEach(function () {
             KeyBindingManager._reset();
             brackets.platform = platform;
@@ -80,9 +86,6 @@ define(function (require, exports, module) {
             });
             
             it("should add single bindings to the keymap", function () {
-                // use a fake platform
-                brackets.platform = "test";
-                
                 var result = KeyBindingManager.addBinding("test.foo", "Ctrl-A");
                 expect(result).toEqual(key("Ctrl-A"));
                 expect(KeyBindingManager.getKeyBindings("test.foo")).toEqual([key("Ctrl-A")]);

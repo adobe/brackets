@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Compound Visual Test : Draggable in Accordion</title>
+	<link rel="stylesheet" href="../visual.css">
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../../ui/jquery.ui.accordion.js"></script>
+	<script src="../../../ui/jquery.ui.draggable.js"></script>
+	<script src="../../../ui/jquery.ui.tabs.js"></script>
+	<style>
+	#main-draggable {
+		width: 300px;
+		position: absolute;
+		right: 100px;
+	}
+	#main-draggable-handle {
+		padding: 1em;
+		margin: 0;
+	}
+	.draggable {
+		width: 10em;
+		margin: 0.5em;
+	}
+	</style>
+	<script>
+	$(function() {
+		$( ".draggable" )
+			.addClass( "ui-widget ui-widget-content ui-corner-all" )
+			.draggable({
+				helper: "clone",
+				appendTo: "body"
+			});
+
+		$( "#accordion > div" ).accordion();
+		$( "#accordion" ).accordion();
+
+		$( "#tabs" ).tabs();
+
+		$( "#main-draggable" ).draggable({
+			handle: "#main-draggable-handle"
+		});
+	});
+	</script>
+</head>
+<body>
+<div id="main-draggable" class="ui-widget ui-widget-content ui-corner-all">
+	<p id="main-draggable-handle" class="ui-widget-header ui-corner-all">Drag me around!</p>
+	<div id="tabs">
+		<ul>
+			<li><a href="#tabs-1">First Tab</a></li>
+			<li><a href="#tabs-2">Second Tab</a></li>
+		</ul>
+		<div id="tabs-1">
+			<p>Click the other tab!</p>
+		</div>
+		<div id="tabs-2">
+			<div id="accordion">
+				<h3>Accordion Group 1</h3>
+				<div id="accordion-1-1">
+					<h3>Header 1-1</h3>
+					<div>
+						<div class="draggable">Draggable 1-1</div>
+						<div class="draggable">Draggable 1-2</div>
+						<div class="draggable">Draggable 1-3</div>
+						<div class="draggable">Draggable 1-4</div>
+						<div class="draggable">Draggable 1-5</div>
+					</div>
+					<h3>Header 1-2</h3>
+					<div>
+						<div class="draggable">Draggable 2-1</div>
+						<div class="draggable">Draggable 2-2</div>
+						<div class="draggable">Draggable 2-3</div>
+						<div class="draggable">Draggable 2-4</div>
+						<div class="draggable">Draggable 2-5</div>
+					</div>
+				</div>
+				<h3>Accordion Group 2</h3>
+				<div id="accordion-1-2">
+					<h3>Header 2-1</h3>
+					<div>
+						<div class="draggable">Draggable 1-1</div>
+						<div class="draggable">Draggable 1-2</div>
+						<div class="draggable">Draggable 1-3</div>
+						<div class="draggable">Draggable 1-4</div>
+						<div class="draggable">Draggable 1-5</div>
+					</div>
+					<h3>Header 2-2</h3>
+					<div>
+						<div class="draggable">Draggable 2-1</div>
+						<div class="draggable">Draggable 2-2</div>
+						<div class="draggable">Draggable 2-3</div>
+						<div class="draggable">Draggable 2-4</div>
+						<div class="draggable">Draggable 2-5</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>

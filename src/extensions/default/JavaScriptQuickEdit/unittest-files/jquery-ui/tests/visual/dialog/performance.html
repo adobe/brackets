@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Dialog Visual Test - Modal Dialog in Large DOM</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../external/jquery.bgiframe-2.1.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.position.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../../ui/jquery.ui.draggable.js"></script>
+	<script src="../../../ui/jquery.ui.resizable.js"></script>
+	<script src="../../../ui/jquery.ui.dialog.js"></script>
+	<script>
+	$(function() {
+		var start,
+			html = new Array( 500 ).join( $( "#template" ).html() );
+		$( html ).appendTo( "body" );
+
+		start = $.now();
+		$( "#dialog" ).dialog({
+			modal: true,
+			autoOpen: false
+		});
+		$( "<li>Create: " + ($.now() - start) + "ms</li>" ).appendTo( "#log" );
+
+		$( "#opener" ).click(function() {
+			start = $.now();
+			$( "#dialog" ).dialog( "open" );
+			$( "<li>Open: " + ($.now() - start) + "ms</li>" ).appendTo( "#log" );
+		});
+	});
+	</script>
+</head>
+<body>
+
+<p>WHAT: A single dialog is created on a page with a large DOM.</p>
+<p>EXPECTED: Creating and opening the dialog should be fast, regardless of page size.</p>
+
+<button id="opener">open dialog</button>
+<div id="dialog" title="Dialog Title">
+	<p> Dialog Content </p>
+	<input type="text">
+</div>
+
+<ul id="log"></ul>
+
+<script type="text/html" id="template">
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><div><div><div><div><div><div><div>
+<div><div><div><div><div><div><div><div><div><div>
+<div><p>This <span>is</span> <span>a</span> <strong>large</strong> <abbr>DOM</abbr>.</p></div>
+<input>
+<select>
+	<option>option 1</option>
+	<option>option 2</option>
+	<option>option 3</option>
+	<option>option 4</option>
+	<option>option 5</option>
+</select>
+</div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>
+</div></div></div></div></div></div></div></div></div></div>
+</script>
+
+</body>
+</html>

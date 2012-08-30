@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Progressbar - Resizable</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.progressbar.js"></script>
+	<script src="../../ui/jquery.ui.resizable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#progressbar" ).progressbar({
+			value: 37
+		});
+		$( "#progressbarWrapper" ).resizable();
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<div id="progressbarWrapper" style="height:30px; " class="ui-widget-default">
+	<div id="progressbar" style="height:100%;"></div>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>The progress bar's widths are specified in percentages for flexible sizing so it will resize to fit its container. Try resizing the height and width of this bar to see how it maintains the correct proportions. (This is not necessarily a real-world example, but it's a good illustration of how flexibly all the plugins are coded.)</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

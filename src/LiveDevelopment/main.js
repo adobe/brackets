@@ -40,6 +40,7 @@ define(function main(require, exports, module) {
 
     var DocumentManager = require("document/DocumentManager"),
         Commands        = require("command/Commands"),
+        AppInit         = require("utils/AppInit"),
         LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
         Inspector       = require("LiveDevelopment/Inspector/Inspector"),
         CommandManager  = require("command/CommandManager"),
@@ -177,7 +178,7 @@ define(function main(require, exports, module) {
 
         // trigger autoconnect
         if (config.autoconnect && window.sessionStorage.getItem("live.enabled") === "true") {
-            brackets.ready(function () {
+            AppInit.appReady(function () {
                 if (DocumentManager.getCurrentDocument()) {
                     _handleGoLiveCommand();
                 }

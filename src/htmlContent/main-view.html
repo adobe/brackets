@@ -22,8 +22,8 @@
 
 
 <!--
-    This is the HTML for the body tag of index.html. It is loaded dynamically by the 
-    htmlContentLoad module and localized using a combination of mustache.js and i18n.js.
+    HTML template for the body tag of index.html. It is rendered dynamically in
+    brackets.js with Mustache and localized with the i18n RequireJS plugin.
 
     LOCALIZATION NOTE:
     All display text for this file must use templating so the text can be localized.
@@ -72,9 +72,7 @@
                 
                 <!-- Toolbar -->
                 <div class="buttons">
-                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}">
-                        &#9873;
-                    </span>
+                    <span id="update-notification" title="{{UPDATE_NOTIFICATION_TOOLTIP}}"></span>
 
                     <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>
                     
@@ -184,11 +182,11 @@
         <div class="modal-body">
             <img class="about-icon" src="styles/images/brackets_icon.svg">
             <div class="about-text">
-                <h2>{{BRACKETS}}</h2>
+                <h2>{{APP_NAME}}</h2>
                 <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>
-                <p class="dialog-message">{{ABOUT_TEXT_LINE2}}</p>
-                <p class="dialog-message">{{ABOUT_TEXT_LINE3}}<span class="non-clickble-link">http://www.adobe.com/go/thirdparty/</span>{{ABOUT_TEXT_LINE4}}</p>
-                <p class="dialog-message">{{ABOUT_TEXT_LINE5}}<span class="non-clickble-link">https://github.com/adobe/brackets/</span></p>
+                <p class="dialog-message"><!-- $NON-NLS$ -->Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
+                <p class="dialog-message">{{{ABOUT_TEXT_LINE3}}}</p>
+                <p class="dialog-message">{{{ABOUT_TEXT_LINE4}}}</p>
             </div>
         </div>
         <div class="modal-footer">
@@ -200,8 +198,11 @@
             <h1 class="dialog-title">{{UPDATE_AVAILABLE_TITLE}}</h1>
         </div>
         <div class="modal-body">
-            <p class="dialog-message">{{UPDATE_MESSAGE}}</p>
-            <div class="update-info">
+            <img class="update-icon" src="styles/images/update_large_icon.svg">
+            <div class="update-text">
+                <p class="dialog-message">{{UPDATE_MESSAGE}}</p>
+                <div class="update-info">
+                </div>
             </div>
         </div>
         <div class="modal-footer">
