@@ -30,7 +30,7 @@
  * modules should define a single function that returns an object of all
  * exported functions.
  */
-function RemoteFunctions() {
+function RemoteFunctions(experimental) {
     "use strict";
 
     // determine the color for a type
@@ -75,10 +75,12 @@ function RemoteFunctions() {
         this.element = element;
         _trigger(this.element, "showgoto", 1, true);
         window.setTimeout(window.remoteShowGoto);
+        this.remove = this.remove.bind(this);
     }
 
     Menu.prototype = {
         onClick: function (url, event) {
+            event.preventDefault();
             _trigger(this.element, "goto", url, true);
             this.remove();
         },
@@ -136,12 +138,14 @@ function RemoteFunctions() {
             if (!this.body.parentNode) {
                 document.body.appendChild(this.body);
             }
+            document.addEventListener("click", this.remove);
         },
 
         remove: function () {
             if (this.body && this.body.parentNode) {
                 document.body.removeChild(this.body);
             }
+            document.removeEventListener("click", this.remove);
         }
 
     };
@@ -157,6 +161,8 @@ function RemoteFunctions() {
         this.element.addEventListener("keypress", this.onKeyPress);
 
         this.revertText = this.element.innerHTML;
+
+        _trigger(this.element, "edit", 1);
     }
 
     Editor.prototype = {
@@ -164,7 +170,7 @@ function RemoteFunctions() {
             this.element.removeAttribute("contenteditable");
             this.element.removeEventListener("blur", this.onBlur);
             this.element.removeEventListener("keypress", this.onKeyPress);
-            _trigger(this.element, "edit");
+            _trigger(this.element, "edit", 0, true);
         },
 
         onKeyPress: function (event) {
@@ -173,20 +179,16 @@ function RemoteFunctions() {
                 this.element.blur();
                 break;
             case 27: // esc
-                _trigger(this.element, "edit", this.revertText, true);
+                this.element.innerHTML = this.revertText;
                 this.element.blur();
                 break;
             }
-        },
-
-        onChange: function (event) {
-            window.setTimeout(_trigger.bind(undefined, this.element, "edit", this.element.innerHTML));
         }
     };
 
-    function Highlight(color, autoclear) {
+    function Highlight(color, trigger) {
         this.color = color;
-        this.autoclear = !!autoclear;
+        this.trigger = !!trigger;
         this.elements = [];
         this.orgColors = [];
     }
@@ -206,8 +208,8 @@ function RemoteFunctions() {
             if (this._elementExists(element) || element === document) {
                 return;
             }
-            if (this.autoclear) {
-                this.clear();
+            if (this.trigger) {
+                _trigger(element, "highlight", 1);
             }
             this.elements.push(element);
             this.orgColors.push(element.style.getPropertyValue("background-color"));
@@ -219,6 +221,7 @@ function RemoteFunctions() {
             for (i in this.elements) {
                 var e = this.elements[i];
                 e.style.setProperty("background-color", this.orgColors[i]);
+                _trigger(e, "highlight", 0, true);
             }
             this.elements = [];
             this.orgColors = [];
@@ -297,7 +300,7 @@ function RemoteFunctions() {
             document.addEventListener("mouseout", onMouseOut);
             document.addEventListener("mousemove", onMouseMove);
             document.addEventListener("click", onClick);
-            _localHighlight = new Highlight("#ecc");
+            _localHighlight = new Highlight("#ecc", true);
             _setup = true;
         }
     }
@@ -345,10 +348,10 @@ function RemoteFunctions() {
         }
     }
 
-    // install event listeners
-    /* FUTURE
-    window.document.addEventListener("keydown", onKeyDown);
-    */
+    // init
+    if (experimental) {
+        window.document.addEventListener("keydown", onKeyDown);
+    }
 
     return {
         "showGoto": showGoto,
