@@ -37,6 +37,7 @@ define(function RemoteAgent(require, exports, module) {
 
     var $exports = $(exports);
 
+    var LiveDevelopment = require("LiveDevelopment/LiveDevelopment");
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
 
     var _load; // deferred load
@@ -48,7 +49,7 @@ define(function RemoteAgent(require, exports, module) {
         var request = new XMLHttpRequest();
         request.open("GET", "LiveDevelopment/Agents/RemoteFunctions.js");
         request.onload = function onLoad() {
-            var run = "window._LD=" + request.response + "()";
+            var run = "window._LD=" + request.response + "(" + LiveDevelopment.config.experimental + ")";
             Inspector.Runtime.evaluate(run, function onEvaluate(res) {
                 console.assert(!res.wasThrown, res.result.description);
                 _objectId = res.result.objectId;
