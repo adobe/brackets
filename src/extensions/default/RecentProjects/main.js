@@ -37,7 +37,9 @@ define(function (require, exports, module) {
         ExtensionUtils          = brackets.getModule("utils/ExtensionUtils"),
         AppInit                 = brackets.getModule("utils/AppInit"),
         Strings                 = brackets.getModule("strings"),
-        SidebarView             = brackets.getModule("project/SidebarView");
+        SidebarView             = brackets.getModule("project/SidebarView"),
+        Menus                   = brackets.getModule("command/Menus"),
+        PopUpManager            = brackets.getModule("widgets/PopUpManager");
     
     var $dropdownToggle;
     var MAX_PROJECTS = 20;
@@ -97,6 +99,8 @@ define(function (require, exports, module) {
             return;
         }
         
+        Menus.closeAll();
+        
         // TODO: Can't just use Bootstrap 1.4 dropdowns for this since they're hard-coded to
         // assume that the dropdown is inside a top-level menubar created using <li>s.
         // Have to do this stopProp to avoid the html click handler from firing when this returns.
@@ -106,12 +110,16 @@ define(function (require, exports, module) {
             recentProjects = prefs.getValue("recentProjects") || [],
             $dropdown = $("<ul id='project-dropdown' class='dropdown-menu'></ul>"),
             toggleOffset = $dropdownToggle.offset();
-        
-        function closeDropdown() {
+
+        function cleanupDropdown() {
             $("html").off("click", closeDropdown);
             $("#project-files-container").off("scroll", closeDropdown);
             $(SidebarView).off("hide", closeDropdown);
-            $dropdown.remove();
+            $("#main-toolbar .nav").off("click", closeDropdown);
+        }
+        
+        function closeDropdown() {
+            PopUpManager.removePopUp($dropdown);
         }
         
         var currentProject = ProjectManager.getProjectRoot().fullPath,
@@ -149,7 +157,7 @@ define(function (require, exports, module) {
             left: toggleOffset.left,
             top: toggleOffset.top + $dropdownToggle.outerHeight()
         })
-            .appendTo($("body"));
+        PopUpManager.addPopUp($dropdown, cleanupDropdown, true);
         
         // TODO: should use capture, otherwise clicking on the menus doesn't close it. More fallout
         // from the fact that we can't use the Boostrap (1.4) dropdowns.
@@ -165,6 +173,10 @@ define(function (require, exports, module) {
         // Hide the menu if the sidebar is hidden.
         // TODO: Is there some more general way we could handle this for dropdowns?
         $(SidebarView).on("hide", closeDropdown);
+        
+        // Hacky: if we detect a click in the menubar, close ourselves.
+        // TODO: again, we should have centralized popup management.
+        $("#main-toolbar .nav").on("click", closeDropdown);
     }
     
     // Initialize extension
