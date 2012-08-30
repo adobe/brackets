@@ -181,6 +181,11 @@ define(function main(require, exports, module) {
             AppInit.appReady(function () {
                 if (DocumentManager.getCurrentDocument()) {
                     _handleGoLiveCommand();
+                } else {
+                    $(DocumentManager).on("currentDocumentChange", _handleGoLiveCommand);
+                    window.setTimeout(function () {
+                        $(DocumentManager).off("currentDocumentChange", _handleGoLiveCommand);
+                    }, 200);
                 }
             });
         }
