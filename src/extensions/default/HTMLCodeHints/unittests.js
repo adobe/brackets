@@ -257,6 +257,22 @@ define(function (require, exports, module) {
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             
+            it("should NOT list hints between two tags", function () {  // (bug #1510)
+                // replace line 9 with a complete div tag and insert a blank line and the closing div tag.
+                testDocument.replaceRange("<div>\n   \n</div>", { line: 9, ch: 2 });
+                
+                testEditor.setCursorPos({ line: 10, ch: 2 });   // cursor between whitespaces on the newly inserted blank line
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
+
+            it("should NOT list hints after an HTML comment", function () {  // (bug #1440)
+                // replace line 9 with an HTML comment and some spaces
+                testDocument.replaceRange("<!-- some comments -->    ", { line: 9, ch: 2 });
+                
+                testEditor.setCursorPos({ line: 9, ch: 25 });   // cursor between whitespaces at the end of line 9
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
+
             it("should list hints on incomplete tag, after tag name", function () {
                 testEditor.setCursorPos({ line: 9, ch: 7 });
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
