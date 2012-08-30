@@ -204,6 +204,7 @@ define({
 	"ABOUT_TEXT_LINE1": "version expérimentale sprint 13 ",
 	"ABOUT_TEXT_LINE3": "[E] !é=Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.=!",
 	"ABOUT_TEXT_LINE4": "[F] !é=Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>=!",
+    "UPDATE_NOTIFICATION_TOOLTIP": "[CC] !é=There's a new build of Brackets available! Click here for details.=!",
 	"UPDATE_AVAILABLE_TITLE": "[CA] !é=Update Available=!",
 	"UPDATE_MESSAGE": "[CB] !é=Hey, there's a new build of Brackets available. Here are some of the new features:=!",
 	"GET_IT_NOW": "[B8] !é=Get it now!=!"
