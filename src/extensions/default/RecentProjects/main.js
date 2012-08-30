@@ -111,15 +111,15 @@ define(function (require, exports, module) {
             $dropdown = $("<ul id='project-dropdown' class='dropdown-menu'></ul>"),
             toggleOffset = $dropdownToggle.offset();
 
+        function closeDropdown() {
+            PopUpManager.removePopUp($dropdown);
+        }
+        
         function cleanupDropdown() {
             $("html").off("click", closeDropdown);
             $("#project-files-container").off("scroll", closeDropdown);
             $(SidebarView).off("hide", closeDropdown);
             $("#main-toolbar .nav").off("click", closeDropdown);
-        }
-        
-        function closeDropdown() {
-            PopUpManager.removePopUp($dropdown);
         }
         
         var currentProject = ProjectManager.getProjectRoot().fullPath,
@@ -156,7 +156,7 @@ define(function (require, exports, module) {
         $dropdown.css({
             left: toggleOffset.left,
             top: toggleOffset.top + $dropdownToggle.outerHeight()
-        })
+        });
         PopUpManager.addPopUp($dropdown, cleanupDropdown, true);
         
         // TODO: should use capture, otherwise clicking on the menus doesn't close it. More fallout
