@@ -230,6 +230,12 @@ define(function (require, exports, module) {
                     query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
                     query.attrName = tagInfo.attr.name;
                 }
+            } else if (tokenType === HTMLUtils.ATTR_VALUE) {
+                // We get negative offset for a quoted attribute value with some leading whitespaces 
+                // as in <a rel= "rtl" where the cursor is just to the right of the "=".
+                // So just set the queryStr to an empty string. 
+                query.queryStr = "";
+                query.attrName = tagInfo.attr.name;
             }
 
             // TODO: get existing attributes for the current tag and add them to query.usedAttr
