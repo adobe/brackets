@@ -473,7 +473,7 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 9, ch: 16 });            // cursor between the two "s
             });
  
-            it("should insert the selected attribute value with the closing quote", function () {
+            it("should insert the selected attribute value with the closing (single) quote", function () {
                 testDocument.replaceRange("dir='", { line: 9, ch: 7 });  // insert dir=' after <div tag
                 testEditor.setCursorPos({ line: 9, ch: 12 });
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
@@ -481,8 +481,16 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
             });
             
-            it("should insert the selected attribute value with the closing quote", function () {
+            it("should insert the selected attribute value with the closing (double) quote", function () {
                 testDocument.replaceRange("dir=\"", { line: 9, ch: 7 });  // insert dir=" after <div tag
+                testEditor.setCursorPos({ line: 9, ch: 12 });
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(9)).toBe("  <div dir=\"rtl\"");
+                expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
+            });
+            
+            it("should insert the selected attribute value inside the existing quotes", function () {
+                testDocument.replaceRange("dir=\"\"", { line: 9, ch: 7 });  // insert dir="" after <div tag
                 testEditor.setCursorPos({ line: 9, ch: 12 });
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
                 expect(testDocument.getLine(9)).toBe("  <div dir=\"rtl\"");
