@@ -46,7 +46,7 @@ define(function HighlightAgent(require, exports, module) {
         if (res.value === "1") {
             node = DOMAgent.nodeWithId(res.nodeId);
         }
-        $(exports).triggerHandler("highlight", node);
+        $(exports).triggerHandler("highlight", [node]);
     }
 
     /** Hide in-browser highlighting */

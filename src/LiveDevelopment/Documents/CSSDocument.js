@@ -59,15 +59,16 @@ define(function CSSDocumentModule(require, exports, module) {
     var CSSDocument = function CSSDocument(doc, editor, inspector) {
         this.doc = doc;
 
-        // FUTURE: Highlighting is currently disabled, since this code doesn't yet know
-        // how to deal with different editors pointing at the same document.
-/*
+        // only enable highlighting if this document is attached to the main editor
         this.editor = editor;
         this._highlight = [];
-        this.onHighlight = this.onHighlight.bind(this);
-        this.onCursorActivity = this.onCursorActivity.bind(this);
-        $(HighlightAgent).on("highlight", this.onHighlight);
-*/
+        if (this.editor) {
+            this.onHighlight = this.onHighlight.bind(this);
+            this.onCursorActivity = this.onCursorActivity.bind(this);
+            $(HighlightAgent).on("highlight", this.onHighlight);
+            $(this.editor).on("cursorActivity", this.onCursorActivity);
+            this.onCursorActivity();
+        }
 
         // Add a ref to the doc since we're listening for change events
         this.doc.addRef();
@@ -75,11 +76,6 @@ define(function CSSDocumentModule(require, exports, module) {
         this.onDeleted = this.onDeleted.bind(this);
         $(this.doc).on("change", this.onChange);
         $(this.doc).on("deleted", this.onDeleted);
-
-/*
-        $(this.editor).on("cursorActivity", this.onCursorActivity);
-        this.onCursorActivity();
-*/
 
         // get the style sheet
         this.styleSheet = CSSAgent.styleForURL(this.doc.url);
@@ -131,11 +127,12 @@ define(function CSSDocumentModule(require, exports, module) {
         $(this.doc).off("change", this.onChange);
         $(this.doc).off("deleted", this.onDeleted);
         this.doc.releaseRef();
-/*
-        $(HighlightAgent).off("highlight", this.onHighlight);
-        $(this.editor).off("cursorActivity", this.onCursorActivity);
-        this.onHighlight();
-*/
+
+        if (this.editor) {
+            $(HighlightAgent).off("highlight", this.onHighlight);
+            $(this.editor).off("cursorActivity", this.onCursorActivity);
+            this.onHighlight();
+        }
     };
 
     // find a rule in the given rules
@@ -183,7 +180,7 @@ define(function CSSDocumentModule(require, exports, module) {
     };
 
     /** Triggered by the HighlightAgent to highlight a node in the editor */
-    CSSDocument.prototype.onHighlight = function onHighlight(node) {
+    CSSDocument.prototype.onHighlight = function onHighlight(event, node) {
         // clear an existing highlight
         var i;
         for (i in this._highlight) {
