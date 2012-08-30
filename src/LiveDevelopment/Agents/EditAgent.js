@@ -39,6 +39,8 @@ define(function EditAgent(require, exports, module) {
 
     var EditorManager = require("editor/EditorManager");
 
+    var _editedNode;
+
     /** Find changed characters
      * @param {string} old value
      * @param {string} changed value
@@ -74,26 +76,49 @@ define(function EditAgent(require, exports, module) {
         return { from: index, to: index + length, text: value };
     }
 
+    // WebInspector Event: DOM.characterDataModified
+    function _onCharacterDataModified(event, res) {
+        // res = {nodeId, characterData}
+        if (_editedNode.nodeId !== res.nodeId) {
+            return;
+        }
+
+        GotoAgent.open(DOMAgent.url);
+        var editor = EditorManager.getCurrentFullEditor();
+        var codeMirror = editor._codeMirror;
+        var change = _findChangedCharacters(_editedNode.value, res.characterData);
+        if (change) {
+            var from = codeMirror.posFromIndex(_editedNode.location + change.from);
+            var to = codeMirror.posFromIndex(_editedNode.location + change.to);
+            exports.isEditing = true;
+            editor.document.replaceRange(change.text, from, to);
+            exports.isEditing = false;
+
+            var newPos = codeMirror.posFromIndex(_editedNode.location + change.from + change.text.length);
+            editor.setCursorPos(newPos.line, newPos.ch);
+        }
+    }
+
     // Remote Event: Go to the given source node
     function _onRemoteEdit(event, res) {
         // res = {nodeId, name, value}
+
+        // detach from DOM change events
+        if (res.value === "0") {
+            $(Inspector.DOM).off(".EditAgent");
+            return;
+        }
+
+        // find and store the edited node
         var node = DOMAgent.nodeWithId(res.nodeId);
         node = node.children[0];
         if (!node.location) {
             return;
         }
-        GotoAgent.open(DOMAgent.url);
-        var editor = EditorManager.getCurrentFullEditor();
-        var codeMirror = editor._codeMirror;
-        var change = _findChangedCharacters(node.value, res.value);
-        if (change) {
-            var from = codeMirror.posFromIndex(node.location + change.from);
-            var to = codeMirror.posFromIndex(node.location + change.to);
-            editor.document.replaceRange(change.text, from, to);
+        _editedNode = node;
 
-            var newPos = codeMirror.posFromIndex(node.location + change.from + change.text.length);
-            editor.setCursorPos(newPos.line, newPos.ch);
-        }
+        // attach to character data modified events
+        $(Inspector.DOM).on("characterDataModified.EditAgent", _onCharacterDataModified);
     }
 
     /** Initialize the agent */
