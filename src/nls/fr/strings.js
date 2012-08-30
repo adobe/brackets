@@ -199,7 +199,7 @@ define({
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
 	"ABOUT": "A propos",
-	"APP_NAME": "[CG] !é=Brackets=!",
+	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
 	"ABOUT_TEXT_LINE1": "version expérimentale sprint 13 ",
 	"ABOUT_TEXT_LINE3": "[E] !é=Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.=!",
