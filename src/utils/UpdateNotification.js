@@ -331,11 +331,13 @@ define(function (require, exports, module) {
             })
             .fail(function () {
                 // Error fetching the update data. If this is a forced check, alert the user
-                Dialogs.showModalDialog(
-                    Dialogs.DIALOG_ID_ERROR,
-                    Strings.ERROR_FETCHING_UPDATE_INFO_TITLE,
-                    Strings.ERROR_FETCHING_UPDATE_INFO_MSG
-                );
+                if (force) {
+                    Dialogs.showModalDialog(
+                        Dialogs.DIALOG_ID_ERROR,
+                        Strings.ERROR_FETCHING_UPDATE_INFO_TITLE,
+                        Strings.ERROR_FETCHING_UPDATE_INFO_MSG
+                    );
+                }
                 result.reject();
             });
         
