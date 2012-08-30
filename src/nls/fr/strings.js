@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
  * to deal in the Software without restriction, including without limitation 
@@ -95,10 +95,20 @@ define({
 	"BUTTON_STOP": "Arrêter",
 
 	"OPEN_FILE": "Ouvrir le fichier",
+	"CHOOSE_FOLDER": "Choisissez un dossier",
 
 	"RELEASE_NOTES": "[B/] !é=Release Notes=!",
 	"NO_UPDATE_TITLE": "[B+] !é=You're up to date!=!",
 	"NO_UPDATE_MESSAGE": "[B9] !é=You are running the latest version of Brackets.=!",
+    
+	"FIND_IN_FILES_TITLE": "[CP] !é=- {0} {1} in {2} {3}=!",
+	"FIND_IN_FILES_FILE": "fichier",
+	"FIND_IN_FILES_FILES": "fichiers",
+	"FIND_IN_FILES_MATCH": "[CM] !é=match=!",
+	"FIND_IN_FILES_MATCHES": "[CN] !é=matches=!",
+	"FIND_IN_FILES_MAX": "[CO] !é= (showing the first {0} matches)=!",
+	"FIND_IN_FILES_FILE_PATH": "[CK] !é=File: <b>{0}</b>=!",
+	"FIND_IN_FILES_LINE": "[CL] !é=line:&nbsp;{0}=!",
 
 	"ERROR_FETCHING_UPDATE_INFO_TITLE": "[CF] !é=Error getting update info=!",
 	"ERROR_FETCHING_UPDATE_INFO_MSG": "[CE] !é=There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.=!",
@@ -204,7 +214,7 @@ define({
 	"ABOUT_TEXT_LINE1": "version expérimentale sprint 13 ",
 	"ABOUT_TEXT_LINE3": "[E] !é=Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.=!",
 	"ABOUT_TEXT_LINE4": "[F] !é=Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>=!",
-    "UPDATE_NOTIFICATION_TOOLTIP": "[CC] !é=There's a new build of Brackets available! Click here for details.=!",
+	"UPDATE_NOTIFICATION_TOOLTIP": "[CC] !é=There's a new build of Brackets available! Click here for details.=!",
 	"UPDATE_AVAILABLE_TITLE": "[CA] !é=Update Available=!",
 	"UPDATE_MESSAGE": "[CB] !é=Hey, there's a new build of Brackets available. Here are some of the new features:=!",
 	"GET_IT_NOW": "[B8] !é=Get it now!=!"
