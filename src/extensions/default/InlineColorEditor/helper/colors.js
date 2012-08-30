@@ -104,6 +104,15 @@ var Colors = new function()
     
     this.Value = function()
     { return value; } 
+
+    this.HSL = function ()
+    {
+      ll = (2 - saturation) * value;
+      ss = saturation * value;
+      ss /= (ll <= 1) ? (ll) : 2 - (ll);
+      ll /= 2;
+      return Math.round(hue)+','+Math.round(ss * 100)+'%,'+Math.round(ll * 100)+'%';
+    }
     
     this.Alpha = function()
     { return alpha; }
