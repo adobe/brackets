@@ -224,8 +224,8 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
-                Strings.ERROR_BRACKETS_IN_BROWSER
+                Strings.ERROR_IN_BROWSER_TITLE,
+                Strings.ERROR_IN_BROWSER
             );
         }
 

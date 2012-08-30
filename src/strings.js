@@ -32,7 +32,18 @@
  */
 define(function (require, exports, module) {
     "use strict";
+    
+    var strings     = require("i18n!nls/strings"),
+        StringUtils = require("utils/StringUtils");
+    
+    // Convert {APP_NAME}
+    var str;
+    
+    Object.keys(strings).forEach(function (key) {
+        str = strings[key];
+        strings[key] = str.replace(/\{APP_NAME\}/g, strings.APP_NAME);
+    });
 
-    module.exports = require("i18n!nls/strings");
+    module.exports = strings;
 
 });
