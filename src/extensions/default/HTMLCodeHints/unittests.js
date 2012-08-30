@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
+/*global define, describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, $, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     "use strict";
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
             });
         });
         
-        describe("Attribute hint provider", function () {
+        describe("Attribute name hint provider", function () {
             
             it("should list hints at start of existing attribute", function () {
                 testEditor.setCursorPos({ line: 5, ch: 6 });
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 5, ch: 9 });
                 expectHints(HTMLCodeHints.attrHintProvider);
             });
-            it("should NOT list hints to left of '=' sign with whitespace", function () {
+            xit("should NOT list hints to left of '=' sign with whitespace", function () {
                 testEditor.setCursorPos({ line: 6, ch: 9 });    // cursor between two spaces before =
                 expectNoHints(HTMLCodeHints.attrHintProvider);
                 testEditor.setCursorPos({ line: 6, ch: 10 });    // cursor between space and =
@@ -282,6 +282,9 @@ define(function (require, exports, module) {
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
                 verifyAttrHints(hintList, "id");  // filtered on "i"
             });
+        });
+            
+        describe("Attribute value hint provider", function () {
             
             it("should list attribute value hints for a single quote after the equal sign", function () {
                 testDocument.replaceRange(" dir='", { line: 7, ch: 4 });  // insert dir=' between <p and >
@@ -290,6 +293,21 @@ define(function (require, exports, module) {
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
                 expect(hintList.indexOf("ltr")).not.toBe(-1);       // additional sanity check
             });
+            it("should list attribute value hints within an existing attribute value", function () {
+                testDocument.replaceRange(" dir=\"ltr\"", { line: 7, ch: 4 });  // insert dir="ltr" between <p and >
+                
+                testEditor.setCursorPos({ line: 7, ch: 11 });       // set cursor right after dir="l
+                var hintList = expectHints(HTMLCodeHints.attrHintProvider);
+                expect(hintList.indexOf("ltr")).not.toBe(-1);       // additional sanity check
+            });
+            it("should list attribute value hints within an unquoted attribute value", function () {
+                testDocument.replaceRange(" dir=ltr", { line: 7, ch: 4 });  // insert dir=ltr between <p and >
+                
+                testEditor.setCursorPos({ line: 7, ch: 10 });       // set cursor right after dir=l
+                var hintList = expectHints(HTMLCodeHints.attrHintProvider);
+                expect(hintList.indexOf("ltr")).not.toBe(-1);       // additional sanity check
+            });
+
             it("should list sorted boolean attribute value hints", function () {
                 testDocument.replaceRange(" spellcheck=\"", { line: 7, ch: 4 });  // insert spellcheck=" between <p and >
                 
@@ -297,6 +315,7 @@ define(function (require, exports, module) {
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
                 expect(hintList.indexOf("false")).toBe(0);
                 expect(hintList.indexOf("true")).toBe(1);
+                expect(hintList.length).toBe(2);
             });
             
             it("should NOT list attribute value hints to the right of a closing double quote", function () {
@@ -312,7 +331,7 @@ define(function (require, exports, module) {
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             
-            it("should list attribute value hints for type attribute of script tag", function () {
+            it("should list attribute value hints for type attribute of style tag", function () {
                 // set cursor to the right of type attribute but before the closing quote
                 testEditor.setCursorPos({ line: 2, ch: 21 });
                 var hintList = expectHints(HTMLCodeHints.attrHintProvider);
@@ -444,12 +463,36 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
             });
             
+            it("should insert the selected attribute value with the closing quote", function () {
+                testDocument.replaceRange("dir=\"", { line: 9, ch: 7 });  // insert dir=" after <div tag
+                testEditor.setCursorPos({ line: 9, ch: 12 });
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(9)).toBe("  <div dir=\"rtl\"");
+                expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
+            });
+            
+            it("should insert the selected attribute value with the closing quote", function () {
+                testDocument.replaceRange("dir=", { line: 9, ch: 7 });  // insert dir= after <div tag
+                testEditor.setCursorPos({ line: 9, ch: 11 });
+                selectHint(HTMLCodeHints.attrHintProvider, "rtl");
+                expect(testDocument.getLine(9)).toBe("  <div dir=rtl");
+                expectCursorAt({ line: 9, ch: 14 });            // cursor after the closing quote
+            });
+            
             it("should replace the partially typed attribute value with the selected attribute value", function () {
                 testDocument.replaceRange("dir=\"lt", { line: 9, ch: 7 });  // insert dir="lt after <div tag
                 testEditor.setCursorPos({ line: 9, ch: 14 });
                 selectHint(HTMLCodeHints.attrHintProvider, "ltr");
                 expect(testDocument.getLine(9)).toBe("  <div dir=\"ltr\"");
                 expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
+            });
+
+            it("should replace the partially typed attribute value with the selected attribute value", function () {
+                testDocument.replaceRange("dir=lt", { line: 9, ch: 7 });  // insert dir="lt after <div tag
+                testEditor.setCursorPos({ line: 9, ch: 13 });
+                selectHint(HTMLCodeHints.attrHintProvider, "ltr");
+                expect(testDocument.getLine(9)).toBe("  <div dir=ltr");
+                expectCursorAt({ line: 9, ch: 14 });            // cursor after the closing quote
             });
 
             it("should replace an existing attribute value with the selected attribute value", function () {
@@ -492,7 +535,7 @@ define(function (require, exports, module) {
                 // Insert an unquoted attribute between <div and id on line 5.
                 // intentionally have an invalid attribute lttr here
                 testDocument.replaceRange("dir= lttr ", { line: 5, ch: 6 });
-                testEditor.setCursorPos({ line: 5, ch: 12 }); // Set cursor between = and the space
+                testEditor.setCursorPos({ line: 5, ch: 12 });   // Set cursor after l in the invalid attribute value
                 selectHint(HTMLCodeHints.attrHintProvider, "ltr");
                 expect(testDocument.getLine(5)).toBe("  <h1 dir= ltr id='foo'>Heading</h1>");
                 expectCursorAt({ line: 5, ch: 14 });            // cursor after the inserted value

@@ -316,7 +316,7 @@ define(function (require, exports, module) {
      *              A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, constPos) {
-        // We're going to changing pos a lot, but we don't want to mess up
+        // We're going to be changing pos a lot, but we don't want to mess up
         // the pos the caller passed in so we use extend to make a safe copy of it.	
         // This is what pass by value in c++ would do.	
         var pos = $.extend({}, constPos),
@@ -364,13 +364,14 @@ define(function (require, exports, module) {
                 // Check if there is an equal sign after testPos by creating a new ctx
                 // with the original pos. We can't use the current ctx since we need to 
                 // use it to scan backwards if we don't find an equal sign here.
-                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
-                    tempCtx = _getInitialContext(editor._codeMirror, pos);
-                    if (_moveSkippingWhitespace(_moveNextToken, tempCtx) && tempCtx.token.string === "=") {
-                        // Return an empty tag info since we're between an atribute name and the equal sign.
-                        return createTagInfo();
-                    }
-                }
+                // Comment out this block to fix issue #1510.
+//                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
+//                    tempCtx = _getInitialContext(editor._codeMirror, pos);
+//                    if (_moveSkippingWhitespace(_moveNextToken, tempCtx) && tempCtx.token.string === "=") {
+//                        // Return an empty tag info since we're between an atribute name and the equal sign.
+//                        return createTagInfo();
+//                    }
+//                }
 
                 // next, see what's before pos
                 if (!_movePrevToken(ctx)) {
