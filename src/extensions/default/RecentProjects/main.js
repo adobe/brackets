@@ -112,6 +112,8 @@ define(function (require, exports, module) {
             toggleOffset = $dropdownToggle.offset();
 
         function closeDropdown() {
+            // Since we passed "true" for autoRemove to addPopUp(), this will
+            // automatically remove the dropdown from the DOM.
             PopUpManager.removePopUp($dropdown);
         }
         
@@ -156,7 +158,8 @@ define(function (require, exports, module) {
         $dropdown.css({
             left: toggleOffset.left,
             top: toggleOffset.top + $dropdownToggle.outerHeight()
-        });
+        })
+            .appendTo($("body"));
         PopUpManager.addPopUp($dropdown, cleanupDropdown, true);
         
         // TODO: should use capture, otherwise clicking on the menus doesn't close it. More fallout
