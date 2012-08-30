@@ -2,7 +2,7 @@ body {
   background: #eaeaea;
 }
 .coloreditor {
-  padding: 20px 0 10px;
+  padding: 20px 0;
   margin-left: 20px;
   -webkit-user-select: none;
 }
@@ -84,19 +84,25 @@ body {
   box-shadow: inset 0 1px 1px rgba(0,0,0,0.4);
 }
 .coloreditor .opacity-slider .opacity-background {
-  background: url("../img/transparent_bg.svg");
+  background-color: #fff;
+  background-image: -webkit-linear-gradient(45deg, #cdcdcd 25%, transparent 25%, transparent 75%, #cdcdcd 75%, #cdcdcd), -webkit-linear-gradient(45deg, #cdcdcd 25%, transparent 25%, transparent 75%, #cdcdcd 75%, #cdcdcd);
+  -webkit-background-size: 8px 8px;
+  background-position: 4px 4px, 0 0;
 }
 .coloreditor .lower-controls {
   position: relative;
 }
 .coloreditor .lower-controls .button-bar {
   position: relative;
-  top: -7px;
+  top: -8px;
 }
 .coloreditor .lower-controls .color-indicator {
-  width: 80px;
+  width: 74px;
   height: 25px;
-  background: url("../img/transparent_bg.svg");
+  background-color: #fff;
+  background-image: -webkit-linear-gradient(45deg, #cdcdcd 25%, transparent 25%, transparent 75%, #cdcdcd 75%, #cdcdcd), -webkit-linear-gradient(45deg, #cdcdcd 25%, transparent 25%, transparent 75%, #cdcdcd 75%, #cdcdcd);
+  -webkit-background-size: 8px 8px;
+  background-position: 4px 4px, 0 0;
   position: relative;
   border-radius: 3px;
   display: inline-block;

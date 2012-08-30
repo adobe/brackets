@@ -1,11 +1,16 @@
 corner-radius = 3px
 white-shadow = 0 1px 0px #FFF
 dark-top-border = inset 0 1px 1px rgba(0,0,0,0.4)
+checkerboard()
+	background-color #FFF
+	background-image -webkit-linear-gradient(45deg, #CDCDCD 25%, transparent 25%, transparent 75%, #CDCDCD 75%, #CDCDCD), -webkit-linear-gradient(45deg, #CDCDCD 25%, transparent 25%, transparent 75%, #CDCDCD 75%, #CDCDCD)
+	-webkit-background-size 8px 8px
+	background-position 4px 4px, 0 0
 body
 	background #EAEAEA
 
 .coloreditor
-	padding 20px 0 10px
+	padding 20px 0
 	margin-left 20px
 	-webkit-user-select none
 	.saturation-luminosity-block
@@ -70,21 +75,16 @@ body
 		.opacity-gradient
 			box-shadow dark-top-border
 		.opacity-background
-			background url(../img/transparent_bg.svg)
-			// background-color: #999;
-			// background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), 
-			// linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc);
-			// background-size:60px 60px;
-			// background-position:0 0, 30px 30px
+			checkerboard()
 	.lower-controls
 		position relative
 		.button-bar
 			position relative
-			top -7px
+			top -8px
 		.color-indicator
-			width 80px
+			width 74px
 			height 25px
-			background url(../img/transparent_bg.svg)
+			checkerboard()
 			position relative
 			border-radius corner-radius
 			display inline-block
