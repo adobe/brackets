@@ -175,6 +175,8 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 5, ch: 9 });
                 expectHints(HTMLCodeHints.attrHintProvider);
             });
+            
+            // TODO: Uncomment this after fixing issue #1521
             xit("should NOT list hints to left of '=' sign with whitespace", function () {
                 testEditor.setCursorPos({ line: 6, ch: 9 });    // cursor between two spaces before =
                 expectNoHints(HTMLCodeHints.attrHintProvider);
