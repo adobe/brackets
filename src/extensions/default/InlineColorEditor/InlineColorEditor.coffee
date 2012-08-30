@@ -5,42 +5,56 @@ define (require, exports, module) ->
 	InlineWidget = brackets.getModule("editor/InlineWidget").InlineWidget
 
 	ColorEditor = require('ColorEditor')
-	
+
 	# Load tempalte
-	inlineEditorTemplate = require("text!InlineColorEditorTemplate.html")
+	InlineEditorTemplate = require("text!InlineColorEditorTemplate.html")
 
 	class InlineColorEditor extends InlineWidget
 
 		parentClass: InlineWidget::
+		$wrapperDiv: null
 
-		constructor: (@initialColor, @pos) ->
-			InlineWidget.call(this)
-			@currentColorString = @initialColor
-	
-		load: (@hostEditor, @linePos) ->
-			@parentClass.load.call(this, @hostEditor)
-			@$wrapperDiv = $(inlineEditorTemplate)
-			@.$htmlContent.append @$wrapperDiv
-			@colorEditor = new ColorEditor(@$wrapperDiv, @initialColor, @_colorUpdateHandler)
+		constructor: (@color, @pos) ->
+			@initialColorString = @color
+			InlineWidget.call(@)
+
+		setColor: (colorLabel) =>
+			if(colorLabel != @initialColorString)
+				end = { line: @pos.line, ch: @pos.ch + @color.length }
+				@editor.document.replaceRange(colorLabel, @pos, end)
+				@editor._codeMirror.setSelection(@pos, { line: @pos.line, ch: @pos.ch + colorLabel.length })
+				@color = colorLabel
+
+		load: (hostEditor) ->
+			self = @
+			@editor = hostEditor
+			@parentClass.load.call(@, hostEditor)
+
+			@$wrapperDiv = $(InlineEditorTemplate)
+			@colorEditor = new ColorEditor(@$wrapperDiv, @color, @setColor)
+
+			@$htmlContent.append(@$wrapperDiv);
+			# @$wrapperDiv.on("mousedown", @onWrapperClick.bind(@));
+
+	 	# Close the color picker when clicking on the wrapper outside the picker
+		# onWrapperClick: (event) ->
+		# 	if (event.target == @$wrapperDiv[0])
+		# 		@close()
+		# 	else
+		# 		event.preventDefault()
 
 		close: () ->
-			this.hostEditor.removeInlineWidget this
-			if (this.onClose)
-				this.onClose(this)
-	
+			if (@closed)
+				return
+			@closed = true
+			@hostEditor.removeInlineWidget(@)
+			if (@onClose)
+				@onClose(@)
+		
 		onAdded: () ->
-			window.setTimeout(@_sizeEditorToContent.bind(@))
-
+			window.setTimeout(@._sizeEditorToContent.bind(@));
+		
 		_sizeEditorToContent: () ->
 			@hostEditor.setInlineWidgetHeight(@, @$wrapperDiv.outerHeight(), true)
-
-		_colorUpdateHandler: (colorLabel) =>
-			lineString = @hostEditor._codeMirror.getLine(@hostEditor.getSelection(false).start.line)
-			start = lineString.indexOf(@currentColorString)
-			end = start+@currentColorString.length
-			@currentColorString = colorLabel
-			if(colorLabel != @initialColor)
-				@hostEditor.document.replaceRange(colorLabel, {line: @linePos, ch:start}, {line: @linePos, ch:end})
-				@hostEditor._codeMirror.setSelection({line: @linePos, ch: start}, {line: @linePos, ch: start+colorLabel.length})
 
 	module.exports = InlineColorEditor

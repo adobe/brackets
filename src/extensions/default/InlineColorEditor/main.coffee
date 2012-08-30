@@ -44,20 +44,19 @@ define (require, exports, module) ->
 			end = start + match[0].length
 			if pos.ch < start or pos.ch > end
 				return null
-
+		pos.ch = start
 		colorPicker = _colorPickers[pos.line]
 		if (colorPicker)
 			colorPicker.close()
-			if (match[0] == colorPicker.currentColorString)
+			if (match[0] == colorPicker.color)
 				return null;
 
-		# console.log start
 		hostEditor._codeMirror.setSelection({line: pos.line, ch: start}, {line: pos.line, ch: end})
 		result = new $.Deferred()
 
 		inlineColorEditor = new InlineColorEditor(match[0], pos)
 		inlineColorEditor.onClose = onClose
-		inlineColorEditor.load(hostEditor, pos.line)
+		inlineColorEditor.load(hostEditor, pos)
 		_colorPickers[pos.line] = inlineColorEditor
 		
 		result.resolve(inlineColorEditor)

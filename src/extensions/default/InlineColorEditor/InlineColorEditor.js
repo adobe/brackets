@@ -7,35 +7,58 @@
   define(function(require, exports, module) {
     'use strict';
 
-    var ColorEditor, InlineColorEditor, InlineWidget, inlineEditorTemplate;
+    var ColorEditor, InlineColorEditor, InlineEditorTemplate, InlineWidget;
     InlineWidget = brackets.getModule("editor/InlineWidget").InlineWidget;
     ColorEditor = require('ColorEditor');
-    inlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
+    InlineEditorTemplate = require("text!InlineColorEditorTemplate.html");
     InlineColorEditor = (function(_super) {
 
       __extends(InlineColorEditor, _super);
 
       InlineColorEditor.prototype.parentClass = InlineWidget.prototype;
 
-      function InlineColorEditor(initialColor, pos) {
-        this.initialColor = initialColor;
-        this.pos = pos;
-        this._colorUpdateHandler = __bind(this._colorUpdateHandler, this);
+      InlineColorEditor.prototype.$wrapperDiv = null;
 
+      function InlineColorEditor(color, pos) {
+        this.color = color;
+        this.pos = pos;
+        this.setColor = __bind(this.setColor, this);
+
+        this.initialColorString = this.color;
         InlineWidget.call(this);
-        this.currentColorString = this.initialColor;
       }
 
-      InlineColorEditor.prototype.load = function(hostEditor, linePos) {
-        this.hostEditor = hostEditor;
-        this.linePos = linePos;
-        this.parentClass.load.call(this, this.hostEditor);
-        this.$wrapperDiv = $(inlineEditorTemplate);
-        this.$htmlContent.append(this.$wrapperDiv);
-        return this.colorEditor = new ColorEditor(this.$wrapperDiv, this.initialColor, this._colorUpdateHandler);
+      InlineColorEditor.prototype.setColor = function(colorLabel) {
+        var end;
+        if (colorLabel !== this.initialColorString) {
+          end = {
+            line: this.pos.line,
+            ch: this.pos.ch + this.color.length
+          };
+          this.editor.document.replaceRange(colorLabel, this.pos, end);
+          this.editor._codeMirror.setSelection(this.pos, {
+            line: this.pos.line,
+            ch: this.pos.ch + colorLabel.length
+          });
+          return this.color = colorLabel;
+        }
+      };
+
+      InlineColorEditor.prototype.load = function(hostEditor) {
+        var self;
+        self = this;
+        this.editor = hostEditor;
+        this.parentClass.load.call(this, hostEditor);
+        this.$wrapperDiv = $(InlineEditorTemplate);
+        this.colorEditor = new ColorEditor(this.$wrapperDiv, this.color, this.setColor);
+        return this.$htmlContent.append(this.$wrapperDiv);
       };
 
       InlineColorEditor.prototype.close = function() {
+        if (this.closed) {
+          return;
+        }
+        this.closed = true;
         this.hostEditor.removeInlineWidget(this);
         if (this.onClose) {
           return this.onClose(this);
@@ -48,30 +71,6 @@
 
       InlineColorEditor.prototype._sizeEditorToContent = function() {
         return this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.outerHeight(), true);
-      };
-
-      InlineColorEditor.prototype._colorUpdateHandler = function(colorLabel) {
-        var end, lineString, start;
-        lineString = this.hostEditor._codeMirror.getLine(this.hostEditor.getSelection(false).start.line);
-        start = lineString.indexOf(this.currentColorString);
-        end = start + this.currentColorString.length;
-        this.currentColorString = colorLabel;
-        if (colorLabel !== this.initialColor) {
-          this.hostEditor.document.replaceRange(colorLabel, {
-            line: this.linePos,
-            ch: start
-          }, {
-            line: this.linePos,
-            ch: end
-          });
-          return this.hostEditor._codeMirror.setSelection({
-            line: this.linePos,
-            ch: start
-          }, {
-            line: this.linePos,
-            ch: start + colorLabel.length
-          });
-        }
       };
 
       return InlineColorEditor;

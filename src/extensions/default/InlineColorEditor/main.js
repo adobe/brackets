@@ -38,10 +38,11 @@
           return null;
         }
       }
+      pos.ch = start;
       colorPicker = _colorPickers[pos.line];
       if (colorPicker) {
         colorPicker.close();
-        if (match[0] === colorPicker.currentColorString) {
+        if (match[0] === colorPicker.color) {
           return null;
         }
       }
@@ -55,7 +56,7 @@
       result = new $.Deferred();
       inlineColorEditor = new InlineColorEditor(match[0], pos);
       inlineColorEditor.onClose = onClose;
-      inlineColorEditor.load(hostEditor, pos.line);
+      inlineColorEditor.load(hostEditor, pos);
       _colorPickers[pos.line] = inlineColorEditor;
       result.resolve(inlineColorEditor);
       return result.promise();
