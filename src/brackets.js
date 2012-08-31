@@ -274,10 +274,12 @@ define(function (require, exports, module) {
 
     // Localize MainViewHTML and inject into <BODY> tag
     $("body").html(Mustache.render(MainViewHTML, Strings));
-    AppInit._dispatchReady(AppInit.HTML_READY);
     
     // Update title
     $("title").text(Strings.APP_NAME);
+
+    // Dispatch htmlReady callbacks
+    AppInit._dispatchReady(AppInit.HTML_READY);
 
     $(window.document).ready(_onReady);
     

@@ -205,7 +205,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: brackets.config.enable_jslint || false});
+    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: !!brackets.config.enable_jslint });
     _setEnabled(_prefs.getValue("enabled"));
     
     // Define public API
