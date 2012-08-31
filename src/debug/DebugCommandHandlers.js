@@ -277,6 +277,13 @@ define(function (require, exports, module) {
         );
     }
     
+    var _hardwareAccelerated = false;
+    function _handleEnableHardwareCompositing() {
+        $("#main-toolbar").toggleClass("hardware");
+        _hardwareAccelerated = !_hardwareAccelerated;
+        CommandManager.get(Commands.TOGGLE_HARDWARE_ACCELERATION).setChecked(_hardwareAccelerated);
+    }
+    
     /* Register all the command handlers */
     
     // Show Developer Tools (optionally enabled)
@@ -295,7 +302,8 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_USE_TAB_CHARS,       Commands.TOGGLE_USE_TAB_CHARS,         _handleUseTabChars)
         .setChecked(Editor.getUseTabChar());
     
+    CommandManager.register(Strings.CMD_HARDWARE_ACCELERATION, Commands.TOGGLE_HARDWARE_ACCELERATION, _handleEnableHardwareCompositing).setChecked(false);
+
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,    Commands.CHECK_FOR_UPDATE,             _handleCheckForUpdates);
-    
     _enableRunTestsMenuItem();
 });
