@@ -141,6 +141,16 @@ define(function (require, exports, module) {
                 expect(hintList.indexOf("div")).toBe(-1);
                 expect(hintList.indexOf("span")).not.toBe(-1);
             });
+
+            it("should list hints between '<' and some trailing spaces", function () {  // (bug #1515)
+                // Replace line 9 with a complete div tag and insert a blank line and the closing div tag.
+                testDocument.replaceRange("<div>\n   \n</div>", { line: 9, ch: 2 });
+                // Insert a < on line 10
+                testDocument.replaceRange("<", { line: 10, ch: 0 });
+                testEditor.setCursorPos({ line: 10, ch: 1 });   // cursor between < and some trailing whitespaces
+                var hintList = expectHints(HTMLCodeHints.tagHintProvider);
+                verifyTagHints(hintList);
+            });
         });
         
         describe("Attribute name hint provider", function () {
@@ -259,11 +269,38 @@ define(function (require, exports, module) {
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             
-            it("should NOT list hints between two tags", function () {  // (bug #1510)
+            it("should NOT list hints between begin 'div' and end 'div' tag", function () {  // (bug #1510)
                 // replace line 9 with a complete div tag and insert a blank line and the closing div tag.
                 testDocument.replaceRange("<div>\n   \n</div>", { line: 9, ch: 2 });
                 
                 testEditor.setCursorPos({ line: 10, ch: 2 });   // cursor between whitespaces on the newly inserted blank line
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
+
+            it("should NOT list hints between an empty tag and 'body' end tag", function () {  // (bug #1519)
+                // replace line 9 with an input tag and insert two extra blank lines with some whitespaces.
+                testDocument.replaceRange("<input type='button' />\n  \n   ", { line: 9, ch: 2 }, { line: 9, ch: 7 });
+                
+                // Set cursor between whitespaces on one of the newly inserted blank lines.
+                testEditor.setCursorPos({ line: 11, ch: 2 });
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
+
+            it("should NOT list hints between the 'body' begin tag and 'h1' begin tag", function () {  // (bug #1519)
+                // Insert two blank lines with some whitespaces before line 5.
+                testDocument.replaceRange("\n  \n   ", { line: 5, ch: 0 });
+                
+                // Set cursor between whitespaces on one of the newly inserted blank lines.
+                testEditor.setCursorPos({ line: 7, ch: 2 });
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+            });
+
+            it("should NOT list hints between the 'h1' end tag and 'h3' begin tag", function () {  // (bug #1519)
+                // Insert two blank lines with some whitespaces before line 5.
+                testDocument.replaceRange("\n  \n   ", { line: 6, ch: 0 });
+                
+                // Set cursor between whitespaces on one of the newly inserted blank lines.
+                testEditor.setCursorPos({ line: 8, ch: 2 });
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
 
@@ -497,7 +534,7 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
             });
             
-            it("should insert the selected attribute value with the closing quote", function () {
+            it("should insert the selected attribute value WITHOUT begin or end quote", function () {
                 testDocument.replaceRange("dir=", { line: 9, ch: 7 });  // insert dir= after <div tag
                 testEditor.setCursorPos({ line: 9, ch: 11 });
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
