@@ -190,7 +190,9 @@ define({
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 
     // Help menu commands
+    "HELP_MENU"                           : "Help",
     "CMD_ABOUT"                           : "About",
+    "CMD_FORUM"                           : "{APP_NAME} Forum",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",

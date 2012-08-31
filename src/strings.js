@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, brackets */
 
 /**
  * This file provides the interface to user visible strings in Brackets. Code that needs
@@ -34,7 +34,10 @@ define(function (require, exports, module) {
     "use strict";
     
     var strings     = require("i18n!nls/strings"),
+        Global      = require("utils/Global"),
         StringUtils = require("utils/StringUtils");
+    
+    strings.APP_NAME = brackets.config.app_name || strings.APP_NAME;
     
     // Convert {APP_NAME}
     Object.keys(strings).forEach(function (key) {
