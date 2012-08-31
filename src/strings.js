@@ -40,8 +40,7 @@ define(function (require, exports, module) {
     var str;
     
     Object.keys(strings).forEach(function (key) {
-        str = strings[key];
-        strings[key] = str.replace(/\{APP_NAME\}/g, strings.APP_NAME);
+        strings[key] = strings[key].replace(/\{APP_NAME\}/g, strings.APP_NAME);
     });
 
     module.exports = strings;
