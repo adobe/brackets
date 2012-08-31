@@ -91,7 +91,7 @@ define({
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
 	"WITH": "Avec",
 	"BUTTON_YES": "Oui",
-	"BUTTON_NO": "Non",
+	"BUTTON_NO": "None",
 	"BUTTON_STOP": "Arrêter",
 
 	"OPEN_FILE": "Ouvrir le fichier",
