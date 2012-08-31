@@ -37,8 +37,6 @@ define(function (require, exports, module) {
         StringUtils = require("utils/StringUtils");
     
     // Convert {APP_NAME}
-    var str;
-    
     Object.keys(strings).forEach(function (key) {
         strings[key] = strings[key].replace(/\{APP_NAME\}/g, strings.APP_NAME);
     });
