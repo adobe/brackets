@@ -145,10 +145,18 @@ define(function (require, exports, module) {
             it("should list hints between '<' and some trailing spaces", function () {  // (bug #1515)
                 // Replace line 9 with a complete div tag and insert a blank line and the closing div tag.
                 testDocument.replaceRange("<div>\n   \n</div>", { line: 9, ch: 2 });
+                expect(testDocument.getLine(10)).toBe("   ");
+
                 // Insert a < on line 10
                 testDocument.replaceRange("<", { line: 10, ch: 0 });
                 testEditor.setCursorPos({ line: 10, ch: 1 });   // cursor between < and some trailing whitespaces
                 var hintList = expectHints(HTMLCodeHints.tagHintProvider);
+                verifyTagHints(hintList);
+
+                // Replace '< ' on line 10 with '<\t'
+                testDocument.replaceRange("<\t", { line: 10, ch: 0 }, { line: 10, ch: 2 });
+                testEditor.setCursorPos({ line: 10, ch: 1 });   // cursor between < and some trailing whitespaces
+                hintList = expectHints(HTMLCodeHints.tagHintProvider);
                 verifyTagHints(hintList);
             });
         });
@@ -271,9 +279,15 @@ define(function (require, exports, module) {
             
             it("should NOT list hints between begin 'div' and end 'div' tag", function () {  // (bug #1510)
                 // replace line 9 with a complete div tag and insert a blank line and the closing div tag.
-                testDocument.replaceRange("<div>\n   \n</div>", { line: 9, ch: 2 });
+                testDocument.replaceRange("<div>\n   \n  </div>", { line: 9, ch: 2 });
                 
                 testEditor.setCursorPos({ line: 10, ch: 2 });   // cursor between whitespaces on the newly inserted blank line
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+
+                testEditor.setCursorPos({ line: 9, ch: 7 });   // cursor to the right of <div>
+                expectNoHints(HTMLCodeHints.attrHintProvider);
+
+                testEditor.setCursorPos({ line: 11, ch: 2 });   // cursor to the left of </div>
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
 
