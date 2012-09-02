@@ -188,7 +188,6 @@ define({
 	"CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_CHECK_FOR_UPDATE": "[B7] !é=Check for Updates=!",
-    "CMD_HARDWARE_ACCELERATION": "Activer l'accélération matérielle",
 
     // Help menu commands
 	"CMD_ABOUT": "A propos",
