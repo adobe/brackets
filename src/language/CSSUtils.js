@@ -73,10 +73,8 @@ define(function (require, exports, module) {
         var selectorStartChar = -1, selectorStartLine = -1;
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var declListStartLine = -1, declListStartChar = -1;
-        //var escapePattern = /\\[^\\]+/g;
-        var escapePattern = new RegExp('\\\\[^\\\\]+', "g");
-        //var validationPattern = /\\([a-f0-9]{6}|[a-f0-9]{4}(\s|\\|$)|[a-f0-9]{2}(\s|\\|$)|.)/i;
-        var validationPattern = new RegExp('\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)', "i");
+        var escapePattern = new RegExp("\\\\[^\\\\]+", "g");
+        var validationPattern = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i");
         
         // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
@@ -188,7 +186,7 @@ define(function (require, exports, module) {
                 }
             }
             
-            // Unicode character replacement
+            // Unicode character replacement as defined in http://www.w3.org/TR/CSS21/syndata.html#characters
             if (/\\/.test(currentSelector)) {
                 // Double replace in case of pattern overlapping (regex improvement?)
                 currentSelector = currentSelector.replace(escapePattern, function (escapedToken) {
@@ -204,6 +202,7 @@ define(function (require, exports, module) {
                     });
                 });
             }
+            
             currentSelector = currentSelector.trim();
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
