@@ -56,8 +56,8 @@ define({
     "ERROR_CREATING_FILE"               : "An error occurred when trying to create the file <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_BRACKETS_IN_BROWSER_TITLE"   : "Oops! Brackets doesn't run in browsers yet.",
-    "ERROR_BRACKETS_IN_BROWSER"         : "Brackets is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-app</b> repo to run Brackets.",
+    "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
@@ -84,8 +84,8 @@ define({
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"          : "Do you want to save your changes to the following files?",
     "EXT_MODIFIED_TITLE"                : "External Changes",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in Brackets.<br /><br />Which version do you want to keep?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in Brackets.<br /><br />Do you want to keep your changes?",
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?",
     
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO"                : "Use /re/ syntax for regexp search",
@@ -99,7 +99,7 @@ define({
 
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "You're up to date!",
-    "NO_UPDATE_MESSAGE"                 : "You are running the latest version of Brackets.",
+    "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
     "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "file",
@@ -116,7 +116,7 @@ define({
     // Switch language
     "LANGUAGE_TITLE"                    : "Switch Language",
     "LANGUAGE_MESSAGE"                  : "Please select the desired language from the list below:",
-    "LANGUAGE_SUBMIT"                   : "Reload Brackets",
+    "LANGUAGE_SUBMIT"                   : "Reload {APP_NAME}",
     "LANGUAGE_CANCEL"                   : "Cancel",
 
     /**
@@ -178,19 +178,21 @@ define({
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Reload Brackets",
+    "CMD_REFRESH_WINDOW"                  : "Reload {APP_NAME}",
     "CMD_SHOW_DEV_TOOLS"                  : "Show Developer Tools",
     "CMD_RUN_UNIT_TESTS"                  : "Run Tests",
     "CMD_JSLINT"                          : "Enable JSLint",
     "CMD_SHOW_PERF_DATA"                  : "Show Performance Data",
-    "CMD_NEW_BRACKETS_WINDOW"             : "New Brackets Window",
+    "CMD_NEW_BRACKETS_WINDOW"             : "New {APP_NAME} Window",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_USE_TAB_CHARS"                   : "Use Tab Characters",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 
     // Help menu commands
+    "HELP_MENU"                           : "Help",
     "CMD_ABOUT"                           : "About",
+    "CMD_FORUM"                           : "{APP_NAME} Forum",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Close Window",
@@ -211,11 +213,11 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint 13 experimental build ",
+    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of Brackets available! Click here for details.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
-    "UPDATE_MESSAGE"                       : "Hey, there's a new build of Brackets available. Here are some of the new features:",
+    "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
     "GET_IT_NOW"                           : "Get it now!"
 });
