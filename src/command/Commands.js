@@ -90,6 +90,7 @@ define(function (require, exports, module) {
     exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
     exports.DEBUG_SHOW_EXT_FOLDER       = "debug.showExtensionsFolder";
     exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
+    exports.TOGGLE_HARDWARE_ACCELERATION = "debug.hardware";
     exports.CHECK_FOR_UPDATE            = "app.checkForUpdate";
 
 	// Command that does nothing. Can be used for place holder menuItems

@@ -187,6 +187,7 @@ define({
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Show Extensions Folder",
     "CMD_USE_TAB_CHARS"                   : "Use Tab Characters",
     "CMD_SWITCH_LANGUAGE"                 : "Switch Language",
+    "CMD_HARDWARE_ACCELERATION"           : "Enable Hardware Compositing",
     "CMD_CHECK_FOR_UPDATE"                : "Check for Updates",
 
     // Help menu commands
