@@ -52,6 +52,7 @@ define(function (require, exports, module) {
     exports.EDIT_COPY                   = "edit.copy";
     exports.EDIT_PASTE                  = "edit.paste";
     exports.EDIT_SELECT_ALL             = "edit.selectAll";
+    exports.EDIT_SELECT_LINE            = "edit.selectLine";
     exports.EDIT_FIND                   = "edit.find";
     exports.EDIT_FIND_IN_FILES          = "edit.findInFiles";
     exports.EDIT_FIND_NEXT              = "edit.findNext";
