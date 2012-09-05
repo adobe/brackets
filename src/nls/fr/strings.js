@@ -56,8 +56,8 @@ define({
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-	"ERROR_IN_BROWSER_TITLE": "[CS] !é=Oops! {APP_NAME} doesn't run in browsers yet.=!",
-	"ERROR_IN_BROWSER": "[CR] !é={APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.=!",
+	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
+	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
 
     // FileIndexManager error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
@@ -84,8 +84,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"EXT_MODIFIED_MESSAGE": "[BS] !é=<span class='dialog-filename'>{0}</span> has been modified on disk, but also has unsaved changes in {APP_NAME}.<br /><br />Which version do you want to keep?=!",
-	"EXT_DELETED_MESSAGE": "[BR] !é=<span class='dialog-filename'>{0}</span> has been deleted on disk, but has unsaved changes in {APP_NAME}.<br /><br />Do you want to keep your changes?=!",
+	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
+	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
@@ -99,7 +99,7 @@ define({
 
 	"RELEASE_NOTES": "Notes de mise à jour",
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
-	"NO_UPDATE_MESSAGE": "[B9] !é=You are running the latest version of {APP_NAME}.=!",
+	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
     
 	"FIND_IN_FILES_TITLE": "- {0} {1} sur {2} {3}",
 	"FIND_IN_FILES_FILE": "fichier",
@@ -116,7 +116,7 @@ define({
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
-	"LANGUAGE_SUBMIT": "[Bd] !é=Reload {APP_NAME}=!",
+	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 
     /**
@@ -178,12 +178,12 @@ define({
     
     // Debug menu commands
 	"DEBUG_MENU": "Déboguer",
-	"CMD_REFRESH_WINDOW": "[w] !é=Reload {APP_NAME}=!",
+	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
-	"CMD_NEW_BRACKETS_WINDOW": "[o] !é=New {APP_NAME} Window=!",
+	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
@@ -192,7 +192,7 @@ define({
     // Help menu commands
 	"HELP_MENU": "Aide",
 	"CMD_ABOUT": "A propos",
-	"CMD_FORUM": "[CQ] !é={APP_NAME} Forum=!",
+	"CMD_FORUM": "Forum {APP_NAME}",
 
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
@@ -213,11 +213,11 @@ define({
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "[C] !é=sprint 14 experimental build =!",
+	"ABOUT_TEXT_LINE1": "version expérimentale sprint 14 ",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles (en anglais) à l’adresse <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty_fr/</span> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
-	"UPDATE_NOTIFICATION_TOOLTIP": "[CC] !é=There's a new build of {APP_NAME} available! Click here for details.=!",
+	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
-	"UPDATE_MESSAGE": "[CB] !é=Hey, there's a new build of {APP_NAME} available. Here are some of the new features:=!",
+	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
 	"GET_IT_NOW": "Obtenir maintenant !"
 });
