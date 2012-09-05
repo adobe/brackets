@@ -68,6 +68,7 @@ define(function (require, exports, module) {
             extensionRequire = brackets.libRequire.config({
                 context: name,
                 baseUrl: config.baseUrl,
+                urlArgs: "nocache=" + (new Date()).getTime(),
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
                 paths: globalConfig,
                 locale: window.localStorage.getItem("locale") || brackets.app.language
