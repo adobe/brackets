@@ -23,13 +23,15 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define, $, window */
+/*global define, brackets, $, window */
 
 /**
  * GotoAgent constructs and responds to the in-browser goto dialog.
  */
 define(function GotoAgent(require, exports, module) {
-    'use strict';
+    "use strict";
+
+    require("utils/Global");
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
@@ -54,7 +56,7 @@ define(function GotoAgent(require, exports, module) {
      * @param {string} URL
      */
     function _fileFromURL(url) {
-        var comp = url.split('/');
+        var comp = url.split("/");
         return comp[comp.length - 1];
     }
 
@@ -112,7 +114,7 @@ define(function GotoAgent(require, exports, module) {
     }
 
     /** Gather options where to go to from the given source node */
-    function _onRemoteShowGoto(res) {
+    function _onRemoteShowGoto(event, res) {
         // res = {nodeId, name, value}
         var node = DOMAgent.nodeWithId(res.nodeId);
 
@@ -123,7 +125,13 @@ define(function GotoAgent(require, exports, module) {
             for (i in node.trace) {
                 _makeJSTarget(targets, node.trace[i]);
             }
-            for (i in res.matchedCSSRules) {
+            for (i in node.events) {
+                var trace = node.events[i];
+                if (trace.children.length > 0) {
+                    _makeJSTarget(targets, trace.children[0].callFrames[0]);
+                }
+            }
+            for (i in res.matchedCSSRules.reverse()) {
                 _makeCSSTarget(targets, res.matchedCSSRules[i]);
             }
             RemoteAgent.call("showGoto", targets);
@@ -133,45 +141,57 @@ define(function GotoAgent(require, exports, module) {
     /** Point the master editor to the given location
      * @param {integer} location in file
      */
-    function openLocation(location) {
+    function openLocation(location, noFlash) {
         var editor = EditorManager.getCurrentFullEditor();
         var codeMirror = editor._codeMirror;
         if (typeof location === "number") {
             location = codeMirror.posFromIndex(location);
         }
         codeMirror.setCursor(location);
-        codeMirror.setLineClass(location.line, "flash");
-        window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+        editor.focus();
+
+        if (!noFlash) {
+            codeMirror.setLineClass(location.line, "flash");
+            window.setTimeout(codeMirror.setLineClass.bind(codeMirror, location.line), 1000);
+        }
     }
 
     /** Open the editor at the given url and editor location
      * @param {string} url
      * @param {integer} optional location in file
      */
-    function open(url, location) {
+    function open(url, location, noFlash) {
         console.assert(url.substr(0, 7) === "file://", "Cannot open non-file URLs");
+
+        var result = new $.Deferred();
+
         url = _urlWithoutQueryString(url);
-        var path = url.substr(7);
+        // Extract the path, also strip the third slash when on Windows
+        var path = url.slice(brackets.platform === "win" ? 8 : 7);
         var promise = DocumentManager.getDocumentForPath(path);
         promise.done(function onDone(doc) {
             DocumentManager.setCurrentDocument(doc);
             if (location) {
-                openLocation(location);
+                openLocation(location, noFlash);
             }
+            result.resolve();
         });
         promise.fail(function onErr(err) {
             console.error(err);
+            result.reject(err);
         });
+
+        return result.promise();
     }
 
     /** Go to the given source node */
-    function _onRemoteGoto(res) {
+    function _onRemoteGoto(event, res) {
         // res = {nodeId, name, value}
         var location, url = res.value;
         var matches = /^(.*):([^:]+)$/.exec(url);
         if (matches) {
             url = matches[1];
-            location = matches[2].split(',');
+            location = matches[2].split(",");
             if (location.length === 1) {
                 location = parseInt(location[0], 10);
             } else {
@@ -183,14 +203,14 @@ define(function GotoAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.on("RemoteAgent.showgoto", _onRemoteShowGoto);
-        Inspector.on("RemoteAgent.goto", _onRemoteGoto);
+        $(RemoteAgent)
+            .on("showgoto.GotoAgent", _onRemoteShowGoto)
+            .on("goto.GotoAgent", _onRemoteGoto);
     }
 
     /** Initialize the agent */
     function unload() {
-        Inspector.off("RemoteAgent.showgoto", _onRemoteShowGoto);
-        Inspector.off("RemoteAgent.goto", _onRemoteGoto);
+        $(RemoteAgent).off(".GotoAgent");
     }
 
     // Export public functions

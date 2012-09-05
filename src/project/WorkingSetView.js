@@ -28,9 +28,10 @@
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
  * The UI allows the user to see what files are open/dirty and allows them to close files and specify the current editor.
+ *
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var DocumentManager       = require("document/DocumentManager"),
@@ -63,6 +64,20 @@ define(function (require, exports, module) {
 
     /**
      * @private
+     * adds the style 'vertical-scroll' if a vertical scroll bar is present
+     */
+    function _adjustForScrollbars() {
+        if ($openFilesContainer[0].scrollHeight > $openFilesContainer[0].clientHeight) {
+            if (!$openFilesContainer.hasClass("vertical-scroll")) {
+                $openFilesContainer.addClass("vertical-scroll");
+            }
+        } else {
+            $openFilesContainer.removeClass("vertical-scroll");
+        }
+    }
+    
+    /**
+     * @private
      * Shows/Hides open files list based on working set content.
      */
     function _redraw() {
@@ -71,7 +86,7 @@ define(function (require, exports, module) {
         } else {
             $openFilesContainer.show();
         }
-        
+        _adjustForScrollbars();
         _fireSelectionChanged();
     }
     
@@ -96,6 +111,12 @@ define(function (require, exports, module) {
             
             $fileStatusIcon = $("<div class='file-status-icon'></div>")
                 .prependTo(listElement)
+                .mousedown(function (e) {
+                    // stopPropagation of mousedown for fileStatusIcon so the parent <LI> item, which
+                    // selects documents on mousedown, doesn't select the document in the case 
+                    // when the click is on fileStatusIcon
+                    e.stopPropagation();
+                })
                 .click(function () {
                     // Clicking the "X" button is equivalent to File > Close; it doesn't merely
                     // remove a file from the working set
@@ -153,8 +174,9 @@ define(function (require, exports, module) {
         _updateFileStatusIcon($newItem, isOpenAndDirty(file), false);
         _updateListItemSelection($newItem, curDoc);
 
-        $newItem.click(function () {
+        $newItem.mousedown(function (e) {
             FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
+            e.preventDefault();
         });
 
         $newItem.hover(
@@ -180,42 +202,8 @@ define(function (require, exports, module) {
 
         _redraw();
     }
-    
-    /** 
-     * @private
-     */
-    function _updateListSelection() {
-        var doc;
-        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
-            doc = DocumentManager.getCurrentDocument();
-        } else {
-            doc = null;
-        }
-            
-        // Iterate through working set list and update the selection on each
-        var items = $openFilesContainer.find("ul").children().each(function () {
-            _updateListItemSelection(this, doc);
-        });
-        
-        _fireSelectionChanged();
-    }
 
-    /** 
-     * @private
-     */
-    function _handleFileAdded(file) {
-        _createNewListItem(file);
-        _redraw();
-    }
-    
-    /** 
-     * @private
-     */
-    function _handleDocumentSelectionChange() {
-        _updateListSelection();
-    }
-
-    /** 
+    /**
      * Finds the listItem item assocated with the file. Returns null if not found.
      * @private
      * @param {!FileEntry} file
@@ -239,6 +227,75 @@ define(function (require, exports, module) {
         return result;
     }
 
+    /**
+     * @private
+     */
+    function _scrollSelectedDocIntoView() {
+        if (FileViewController.getFileSelectionFocus() !== FileViewController.WORKING_SET_VIEW) {
+            return;
+        }
+
+        var doc = DocumentManager.getCurrentDocument();
+        if (!doc) {
+            return;
+        }
+
+        var $selectedDoc = _findListItemFromFile(doc.file);
+        if (!$selectedDoc) {
+            return;
+        }
+
+        ViewUtils.scrollElementIntoView($openFilesContainer, $selectedDoc, false);
+    }
+
+    /** 
+     * @private
+     */
+    function _updateListSelection() {
+        var doc;
+        if (FileViewController.getFileSelectionFocus() === FileViewController.WORKING_SET_VIEW) {
+            doc = DocumentManager.getCurrentDocument();
+        } else {
+            doc = null;
+        }
+            
+        // Iterate through working set list and update the selection on each
+        var items = $openFilesContainer.find("ul").children().each(function () {
+            _updateListItemSelection(this, doc);
+        });
+
+        // Make sure selection is in view
+        _scrollSelectedDocIntoView();
+
+        _fireSelectionChanged();
+    }
+
+    /** 
+     * @private
+     */
+    function _handleFileAdded(file) {
+        _createNewListItem(file);
+        _redraw();
+    }
+
+    /**
+     * @private
+     */
+    function _handleFileListAdded(files) {
+        files.forEach(function (file) {
+            _createNewListItem(file);
+        });
+        _redraw();
+    }
+
+    /** 
+     * @private
+     */
+    function _handleDocumentSelectionChange() {
+        _updateListSelection();
+        _fireSelectionChanged();
+    }
+
     /** 
      * @private
      * @param {FileEntry} file 
@@ -252,6 +309,17 @@ define(function (require, exports, module) {
         _redraw();
     }
 
+    function _handleRemoveList(removedFiles) {
+        removedFiles.forEach(function (file) {
+            var $listItem = _findListItemFromFile(file);
+            if ($listItem) {
+                $listItem.remove();
+            }
+        });
+
+        _redraw();
+    }
+
     /** 
      * @private
      * @param {Document} doc 
@@ -259,7 +327,7 @@ define(function (require, exports, module) {
     function _handleDirtyFlagChanged(doc) {
         var listItem = _findListItemFromFile(doc.file);
         if (listItem) {
-            var canClose = $(listItem).find("can-close").length === 1;
+            var canClose = $(listItem).find(".can-close").length === 1;
             _updateFileStatusIcon(listItem, doc.isDirty, canClose);
         }
 
@@ -274,19 +342,24 @@ define(function (require, exports, module) {
         $(DocumentManager).on("workingSetAdd", function (event, addedFile) {
             _handleFileAdded(addedFile);
         });
-    
+
+        $(DocumentManager).on("workingSetAddList", function (event, addedFiles) {
+            _handleFileListAdded(addedFiles);
+        });
+
         $(DocumentManager).on("workingSetRemove", function (event, removedFile) {
             _handleFileRemoved(removedFile);
         });
-    
+
+        $(DocumentManager).on("workingSetRemoveList", function (event, removedFiles) {
+            _handleRemoveList(removedFiles);
+        });
+
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
             _handleDirtyFlagChanged(doc);
         });
     
-        $(FileViewController).on("documentSelectionFocusChange", function (event, eventTarget) {
-            _handleDocumentSelectionChange();
-            _fireSelectionChanged();
-        });
+        $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
         
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);

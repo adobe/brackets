@@ -30,14 +30,21 @@
   * of the application.
   */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     /**
      * Map of all registered global commands
      * @type Object.<commandID: string, Command>
      */
     var _commands = {};
-
+    
+    /**
+     * Temporary copy of commands map for restoring after testing
+     * TODO (issue #1039): implement separate require contexts for unit tests
+     * @type Object.<commandID: string, Command>
+     */
+    var _commandsOriginal = {};
+    
     /**
      * @constructor
      * @private
@@ -50,6 +57,8 @@ define(function (require, exports, module) {
      * Events:
      *      enabledStateChange
      *      checkedStateChange
+     *      keyBindingAdded
+     *      keyBindingRemoved
      */
     function Command(name, id, commandFn) {
         this._name = name;
@@ -70,6 +79,10 @@ define(function (require, exports, module) {
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
     Command.prototype.execute = function () {
+        if (!this._enabled) {
+            return;
+        }
+        
         var result = this._commandFn.apply(this, arguments);
         if (!result) {
             return (new $.Deferred()).resolve().promise();
@@ -93,7 +106,7 @@ define(function (require, exports, module) {
         this._enabled = enabled;
 
         if (changed) {
-            $(this).triggerHandler("enabledStateChange", this);
+            $(this).triggerHandler("enabledStateChange");
         }
     };
 
@@ -107,7 +120,7 @@ define(function (require, exports, module) {
         this._checked = checked;
 
         if (changed) {
-            $(this).triggerHandler("checkedStateChange", this);
+            $(this).triggerHandler("checkedStateChange");
         }
     };
 
@@ -119,6 +132,11 @@ define(function (require, exports, module) {
     /**
      * Sets the name of the Command and dispatches "nameChange" so that
      * UI that reflects the command name can update.
+     * 
+     * Note, a Command name can appear in either HTML or native UI
+     * so HTML tags should not be used. To add a Unicode character,
+     * use \uXXXX instead of an HTML entity.
+     * 
      * @param {string} name
      */
     Command.prototype.setName = function (name) {
@@ -126,7 +144,7 @@ define(function (require, exports, module) {
         this._name = name;
 
         if (changed) {
-            $(this).triggerHandler("nameChange", this);
+            $(this).triggerHandler("nameChange");
         }
     };
 
@@ -148,11 +166,12 @@ define(function (require, exports, module) {
      *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
      *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
      *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
-     * @return {Command}
+     * @return {?Command}
      */
     function register(name, id, commandFn) {
         if (_commands[id]) {
-            throw new Error("Attempting to register an already-registered command: " + id);
+            console.log("Attempting to register an already-registered command: " + id);
+            return null;
         }
         if (!name || !id || !commandFn) {
             throw new Error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
@@ -164,12 +183,37 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Clear all commands for unit testing, but first make copy of commands so that
+     * they can be restored afterward
+     */
+    function _testReset() {
+        _commandsOriginal = _commands;
+        _commands = {};
+    }
+
+    /**
+     * Restore original commands after test and release copy
+     */
+    function _testRestore() {
+        _commands = _commandsOriginal;
+        _commandsOriginal = {};
+    }
+    
+    /**
      * Retrieves a Command object by id
      * @param {string} id
      * @return {Command}
      */
     function get(id) {
         return _commands[id];
+    }
+    
+    /**
+     * Returns the ids of all registered commands
+     * @return {Array.<string>}
+     */
+    function getAll() {
+        return Object.keys(_commands);
     }
 
     /**
@@ -188,7 +232,10 @@ define(function (require, exports, module) {
     }
 
     // Define public API
-    exports.register = register;
-    exports.execute = execute;
-    exports.get = get;
+    exports.register        = register;
+    exports.execute         = execute;
+    exports.get             = get;
+    exports.getAll          = getAll;
+    exports._testReset      = _testReset;
+    exports._testRestore    = _testRestore;
 });

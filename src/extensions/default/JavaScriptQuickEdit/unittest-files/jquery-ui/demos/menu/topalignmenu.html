@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Menu Demo: Top-aligned Menu</title>
+	<link type="text/css" href="../demos.css" rel="stylesheet" />
+	<link type="text/css" href="../../themes/base/jquery.ui.all.css" rel="stylesheet" />
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.menu.js"></script>
+	<script>
+	$(function() {
+		$("#topMenu").menu({
+			position: { of: "ul:has(a.ui-state-focus):last" }
+		});
+	});
+	</script>
+	<style>
+		.ui-menu { width: 200px; margin-bottom: 2em; }
+	</style>
+</head>
+<body>
+
+<ul id="topMenu">
+	<li><a href="#">Aberdeen</a></li>
+	<li><a href="#">Ada</a></li>
+	<li><a href="#">Adamsville</a></li>
+	<li><a href="#">Addyston</a></li>
+	<li>
+		<a href="#">Delphi</a>
+		<ul>
+			<li><a href="#">Ada</a></li>
+			<li><a href="#">Saarland</a></li>
+			<li><a href="#">Salzburg</a></li>
+		</ul>
+	</li>
+	<li><a href="#">Saarland</a></li>
+	<li>
+		<a href="#">Salzburg</a>
+		<ul>
+			<li>
+				<a href="#">Delphi</a>
+				<ul>
+					<li><a href="#">Ada</a></li>
+					<li><a href="#">Saarland</a></li>
+					<li><a href="#">Salzburg</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">Adamsville</a>
+				<ul>
+					<li><a href="#">Aberdeen</a></li>
+					<li><a href="#">Ada</a></li>
+					<li><a href="#">Adamsville</a></li>
+					<li><a href="#">Addyston</a></li>
+					<li>
+						<a href="#">Delphi</a>
+						<ul>
+							<li><a href="#">Ada</a></li>
+							<li><a href="#">Saarland</a></li>
+							<li><a href="#">Salzburg</a></li>
+						</ul>
+					</li>
+					<li><a href="#">Saarland</a></li>
+				</ul>
+			</li>
+			<li><a href="#">Perch</a>
+				<ul>
+					<li><a href="#">Addyston</a></li>
+					<li><a href="#">Delphi</a></li>
+					<li><a href="#">Perch</a></li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+</ul>
+
+</body>
+</html>

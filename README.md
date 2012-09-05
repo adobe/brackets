@@ -41,32 +41,35 @@ Although Brackets is built in HTML/CSS/JS, it currently runs as a desktop
 application in a thin native shell, so that it can access your local files.
 (If you just try to open the index.html file in a browser, it won't work yet.)
 The native shell for Brackets lives in a separate repo, 
-[adobe/brackets-app](https://github.com/adobe/brackets-app/), which includes 
-this repo as a submodule.
+[adobe/brackets-shell](https://github.com/adobe/brackets-shell/).
 
 The Brackets native shell currently runs on Mac and Windows. Since it's based on 
 CEF/Chromium, it could be ported to Linux relatively easily, but that work hasn't 
 been done yet. Stay tuned.
 
-You can download "stable" builds of Brackets from the
-[downloads page](http://github.com/adobe/brackets/downloads).
-If you want to pull the repos directly via git, see 
+You can download "stable" builds of Brackets from the Download Packages section of the 
+[downloads page](http://github.com/adobe/brackets/downloads).    
+If you want to pull the repo directly via git, see 
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
-for instructions on how to get everything. Either way, you can launch Brackets
-from the `bin/win` or `bin/mac` folder.
+for instructions on how to get everything. 
 
-By default, Brackets shows its own source code (MIND BLOWN). You can choose
-a different folder to edit from *File > Open Folder*.
+By default, Brackets opens a folder containing some simple "Getting Started" content.
+You can choose a different folder to edit from *File > Open Folder*. (Might we
+suggest editing the Brackets source code and submitting some pull requests?)
 
 Most of Brackets should be pretty self-explanatory, but for information on how
 to use its unique features, like Quick Edit and Live Development, please read
-[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets).
+[How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
+The [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions) 
+has a list of extensions that have been contributed. 
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
 
 I found a bug/missing feature!
 ------------------------------
-
+     
+Issues starting Brackets the first time? Please review [Troubleshooting] (https://github.com/adobe/brackets/wiki/Troubleshooting).         
+       
 Brackets bugs are tracked in [the Brackets github issue tracker](https://github.com/adobe/brackets/issues). 
 When filing a new bug, please remember to include:
 
@@ -74,12 +77,13 @@ When filing a new bug, please remember to include:
 * platform/OS version
 * repro steps, actual and expected results
 * link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
-if that's convenient)
-
+  if that's convenient)       
+       
+More details on how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
 For feature requests, go ahead and file them in the issue tracker; they'll be converted
 to user stories on the [public Brackets backlog*](http://bit.ly/BracketsBacklog).
 
-\* Please excuse the mess in the public backlog ("Backlog Archive To Be Sorted"). We're still importing data from our internal system.
+\* Please excuse the mess in the "Icebox (To Be Reviewed)" list. We're still importing data from our internal system.
 
 I want to help!
 ---------------

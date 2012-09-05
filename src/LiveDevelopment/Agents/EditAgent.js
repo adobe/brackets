@@ -30,7 +30,7 @@
  * document.
  */
 define(function EditAgent(require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var DOMAgent = require("LiveDevelopment/Agents/DOMAgent");
@@ -75,7 +75,7 @@ define(function EditAgent(require, exports, module) {
     }
 
     // Remote Event: Go to the given source node
-    function _onRemoteEdit(res) {
+    function _onRemoteEdit(event, res) {
         // res = {nodeId, name, value}
         var node = DOMAgent.nodeWithId(res.nodeId);
         node = node.children[0];
@@ -89,19 +89,21 @@ define(function EditAgent(require, exports, module) {
         if (change) {
             var from = codeMirror.posFromIndex(node.location + change.from);
             var to = codeMirror.posFromIndex(node.location + change.to);
-            codeMirror.replaceRange(change.text, from, to);
-            codeMirror.setCursor(codeMirror.posFromIndex(node.location + change.from + change.text.length));
+            editor.document.replaceRange(change.text, from, to);
+
+            var newPos = codeMirror.posFromIndex(node.location + change.from + change.text.length);
+            editor.setCursorPos(newPos.line, newPos.ch);
         }
     }
 
     /** Initialize the agent */
     function load() {
-        Inspector.on("RemoteAgent.edit", _onRemoteEdit);
+        $(RemoteAgent).on("edit.EditAgent", _onRemoteEdit);
     }
 
     /** Initialize the agent */
     function unload() {
-        Inspector.off("RemoteAgent.edit", _onRemoteEdit);
+        $(RemoteAgent).off(".EditAgent");
     }
 
     // Export public functions

@@ -59,17 +59,22 @@
  *    $(editorInstance).on("eventname", handler);
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    var EditorManager   = require("editor/EditorManager"),
-        Commands        = require("command/Commands"),
-        CommandManager  = require("command/CommandManager"),
-        PerfUtils       = require("utils/PerfUtils"),
-        Strings          = require("strings"),
-        TextRange       = require("document/TextRange").TextRange,
-        ViewUtils       = require("utils/ViewUtils");
+    var EditorManager      = require("editor/EditorManager"),
+        CodeHintManager    = require("editor/CodeHintManager"),
+        Commands           = require("command/Commands"),
+        CommandManager     = require("command/CommandManager"),
+        Menus              = require("command/Menus"),
+        PerfUtils          = require("utils/PerfUtils"),
+        PreferencesManager = require("preferences/PreferencesManager"),
+        Strings            = require("strings"),
+        TextRange          = require("document/TextRange").TextRange,
+        ViewUtils          = require("utils/ViewUtils");
     
-
+    var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
+        defaultPrefs = { useTabChar: false };
+    
     /**
      * @private
      * Handle Tab key press.
@@ -209,6 +214,13 @@ define(function (require, exports, module) {
         }
     }
 
+    function _handleKeyEvents(jqEvent, editor, event) {
+        _checkElectricChars(jqEvent, editor, event);
+
+        // Pass the key event to the code hint manager. It may call preventDefault() on the event.
+        CodeHintManager.handleKeyEvent(editor, event);
+    }
+
     function _handleSelectAll() {
         var editor = EditorManager.getFocusedEditor();
         if (editor) {
@@ -216,44 +228,8 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Launches CodeMirror's basic Find-within-single-editor feature */
-    function _launchFind() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            var codeMirror = editor._codeMirror;
-
-            // Bring up CodeMirror's existing search bar UI
-            codeMirror.execCommand("find");
-
-            // Prepopulate the search field with the current selection, if any
-            $(".CodeMirror-dialog input[type='text']")
-                .attr("value", codeMirror.getSelection())
-                .get(0).select();
-        }
-    }
-
-    function _findNext() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            editor._codeMirror.execCommand("findNext");
-        }
-    }
-
-    function _findPrevious() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            editor._codeMirror.execCommand("findPrev");
-        }
-    }
-
-    function _replace() {
-        var editor = EditorManager.getFocusedEditor();
-        if (editor) {
-            editor._codeMirror.execCommand("replace");
-        }
-    }
-    
-    
+    /** Editor preferences */
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
     
     /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
@@ -263,7 +239,7 @@ define(function (require, exports, module) {
     var _instances = [];
     
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = false;
+    var _useTabChar = _prefs.getValue("useTabChar");
     
     
     
@@ -285,7 +261,7 @@ define(function (require, exports, module) {
      *          See {@link EditorUtils#getModeFromFileExtension()}.
      * @param {!jQueryObject} container  Container to add the editor to.
      * @param {!Object<string, function(Editor)>} additionalKeys  Mapping of keyboard shortcuts to
-     *          custom handler functions. Mapping is in CodeMirror format, NOT in our KeyMap format.
+     *          custom handler functions. Mapping is in CodeMirror format
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      */
@@ -314,27 +290,31 @@ define(function (require, exports, module) {
         
         // Editor supplies some standard keyboard behavior extensions of its own
         var codeMirrorKeyMap = {
-            "Tab" : _handleTabKey,
+            "Tab": _handleTabKey,
+            "Shift-Tab": "indentLess",
 
-            "Left" : function (instance) {
+            "Left": function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "moveH")) {
                     CodeMirror.commands.goCharLeft(instance);
                 }
             },
-            "Right" : function (instance) {
+            "Right": function (instance) {
                 if (!_handleSoftTabNavigation(instance, 1, "moveH")) {
                     CodeMirror.commands.goCharRight(instance);
                 }
             },
-            "Backspace" : function (instance) {
+            "Backspace": function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
                     CodeMirror.commands.delCharLeft(instance);
                 }
             },
-            "Delete" : function (instance) {
+            "Delete": function (instance) {
                 if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
                     CodeMirror.commands.delCharRight(instance);
                 }
+            },
+            "Esc": function (instance) {
+                self.removeAllInlineWidgets();
             },
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
@@ -358,13 +338,14 @@ define(function (require, exports, module) {
             indentWithTabs: _useTabChar,
             lineNumbers: true,
             matchBrackets: true,
+            dragDrop: false,    // work around issue #1123
             extraKeys: codeMirrorKeyMap
         });
         
         this._installEditorListeners();
         
         $(this)
-            .on("keyEvent", _checkElectricChars)
+            .on("keyEvent", _handleKeyEvents)
             .on("change", this._handleEditorChange.bind(this));
         
         // Set code-coloring mode BEFORE populating with text, to avoid a flash of uncolored text
@@ -400,7 +381,7 @@ define(function (require, exports, module) {
         // Add scrollTop property to this object for the scroll shadow code to use
         Object.defineProperty(this, "scrollTop", {
             get: function () {
-                return this._codeMirror.scrollPos().y;
+                return this._codeMirror.getScrollInfo().y;
             }
         });
     }
@@ -447,7 +428,7 @@ define(function (require, exports, module) {
         var startLine = this.getFirstVisibleLine(),
             endLine = this.getLastVisibleLine();
         this.setSelection({line: startLine, ch: 0},
-                          {line: endLine, ch: this.getLineText(endLine).length});
+                          {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
     Editor.prototype._applyChanges = function (changeList) {
@@ -513,9 +494,7 @@ define(function (require, exports, module) {
         }
         
         // Secondary editor: force creation of "master" editor backing the model, if doesn't exist yet
-        if (!this.document._masterEditor) {
-            EditorManager._createFullEditorForDocument(this.document);
-        }
+        this.document._ensureMasterEditor();
         
         if (this.document._masterEditor !== this) {
             // Secondary editor:
@@ -598,12 +577,15 @@ define(function (require, exports, module) {
         });
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
-            return false;   // false tells CodeMirror we didn't eat the event
+            return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         });
         this._codeMirror.setOption("onCursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
         });
         this._codeMirror.setOption("onScroll", function (instance) {
+            // close all dropdowns on scroll
+            Menus.closeAll();
+
             $(self).triggerHandler("scroll", [self]);
         
             // notify all inline widgets of a position change
@@ -612,27 +594,8 @@ define(function (require, exports, module) {
     };
     
     /**
-     * @return {string} The editor's current contents
-     * Semi-private: only Document/EditableDocumentModel should call this.
-     */
-    Editor.prototype._getText = function () {
-        return this._codeMirror.getValue();
-    };
-    
-    /**
-     * Sets the contents of the editor. Treated as an edit: adds an undo step and dispatches a
-     * change event.
-     * Note: all line endings will be changed to LFs.
-     * Semi-private: only Document/EditableDocumentModel should call this.
-     * @param {!string} text
-     */
-    Editor.prototype._setText = function (text) {
-        this._codeMirror.setValue(text);
-    };
-    
-    /**
      * Sets the contents of the editor and clears the undo/redo history. Dispatches a change event.
-     * Semi-private: only Document/EditableDocumentModel should call this.
+     * Semi-private: only Document should call this.
      * @param {!string} text
      */
     Editor.prototype._resetText = function (text) {
@@ -672,16 +635,47 @@ define(function (require, exports, module) {
     Editor.prototype.setCursorPos = function (line, ch) {
         this._codeMirror.setCursor(line, ch);
     };
+
+    /**
+     * Given a position, returns its index within the text (assuming \n newlines)
+     * @param {!{line:number, ch:number}}
+     * @return {number}
+     */
+    Editor.prototype.indexFromPos = function (coords) {
+        return this._codeMirror.indexFromPos(coords);
+    };
+
+    /**
+     * Returns true if pos is between start and end (inclusive at both ends)
+     * @param {{line:number, ch:number}} pos
+     * @param {{line:number, ch:number}} start
+     * @param {{line:number, ch:number}} end
+     *
+     */
+    Editor.prototype.posWithinRange = function (pos, start, end) {
+        var startIndex = this.indexFromPos(start),
+            endIndex = this.indexFromPos(end),
+            posIndex = this.indexFromPos(pos);
+
+        return posIndex >= startIndex && posIndex <= endIndex;
+    };
+    
+    /**
+     * @return {boolean} True if there's a text selection; false if there's just an insertion point
+     */
+    Editor.prototype.hasSelection = function () {
+        return this._codeMirror.somethingSelected();
+    };
     
     /**
      * Gets the current selection. Start is inclusive, end is exclusive. If there is no selection,
      * returns the current cursor position as both the start and end of the range (i.e. a selection
      * of length zero).
-     * @return !{start:{line:number, ch:number}, end:{line:number, ch:number}}
+     * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}}
      */
     Editor.prototype.getSelection = function () {
         var selStart = this._codeMirror.getCursor(true),
-            selEnd = this._codeMirror.getCursor(false);
+            selEnd   = this._codeMirror.getCursor(false);
         return { start: selStart, end: selEnd };
     };
     
@@ -703,6 +697,15 @@ define(function (require, exports, module) {
         this._codeMirror.setSelection(start, end);
     };
 
+    /**
+     * Selects word that the given pos lies within or adjacent to. If pos isn't touching a word
+     * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
+     * @param {!{line:number, ch:number}}
+     */
+    Editor.prototype.selectWordAt = function (pos) {
+        this._codeMirror.selectWordAt(pos);
+    };
+    
 
     /**
      * Gets the total number of lines in the the document (includes lines not visible in the viewport)
@@ -778,16 +781,16 @@ define(function (require, exports, module) {
     
     /**
      * Returns the current scroll position of the editor.
-     * @returns {{x:number, y:number}} The x,y scroll position.
+     * @returns {{x:number, y:number}} The x,y scroll position in pixels
      */
     Editor.prototype.getScrollPos = function () {
-        return this._codeMirror.scrollPos();
+        return this._codeMirror.getScrollInfo();
     };
     
     /**
      * Sets the current scroll position of the editor.
-     * @param {number} x scrollLeft position
-     * @param {number} y scrollTop position
+     * @param {number} x scrollLeft position in pixels
+     * @param {number} y scrollTop position in pixels
      */
     Editor.prototype.setScrollPos = function (x, y) {
         this._codeMirror.scrollTo(x, y);
@@ -810,6 +813,18 @@ define(function (require, exports, module) {
         
         // once this widget is added, notify all following inline widgets of a position change
         this._fireWidgetOffsetTopChanged(pos.line);
+    };
+    
+    /**
+     * Removes all inline widgets
+     */
+    Editor.prototype.removeAllInlineWidgets = function () {
+        // copy the array because _removeInlineWidgetInternal will modifying the original
+        var widgets = [].concat(this.getInlineWidgets());
+        
+        widgets.forEach(function (widget) {
+            this.removeInlineWidget(widget);
+        }, this);
     };
     
     /**
@@ -907,7 +922,7 @@ define(function (require, exports, module) {
     /** Returns true if the editor has focus */
     Editor.prototype.hasFocus = function () {
         // The CodeMirror instance wrapper has a "CodeMirror-focused" class set when focused
-        return $(this.getRootElement()).hasClass("CodeMirror-focused");
+        return $(this.getScrollerElement()).hasClass("CodeMirror-focused");
     };
     
     /**
@@ -952,15 +967,6 @@ define(function (require, exports, module) {
      */
     Editor.prototype.isFullyVisible = function () {
         return $(this.getRootElement()).is(":visible");
-    };
-    
-    /**
-     * Returns the text of the given line.
-     * @param {number} The zero-based number of the line to retrieve.
-     * @return {string} The contents of the line.
-     */
-    Editor.prototype.getLineText = function (num) {
-        return this._codeMirror.getLine(num);
     };
     
     /**
@@ -1045,6 +1051,9 @@ define(function (require, exports, module) {
         _instances.forEach(function (editor) {
             editor._codeMirror.setOption("indentWithTabs", _useTabChar);
         });
+        
+        // Remember the setting across launches
+        _prefs.setValue("useTabChar", Boolean(_useTabChar));
     };
     
     /** @type {boolean}  Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
@@ -1054,10 +1063,6 @@ define(function (require, exports, module) {
 
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
-    CommandManager.register(Strings.CMD_FIND,           Commands.EDIT_FIND, _launchFind);
-    CommandManager.register(Strings.CMD_FIND_NEXT,      Commands.EDIT_FIND_NEXT, _findNext);
-    CommandManager.register(Strings.CMD_REPLACE,        Commands.EDIT_REPLACE, _replace);
-    CommandManager.register(Strings.CMD_FIND_PREVIOUS,  Commands.EDIT_FIND_PREVIOUS, _findPrevious);
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
 
     // Define public API

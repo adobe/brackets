@@ -1,0 +1,79 @@
+
+This file contains a shell for the changelog, followed by a list of every commit for this release.
+
+Choose the appropriate line for the Summary section.
+
+Move all commit notes to the appropriate section.
+- Each line should be in the following format:
+  [Fixed|Added]: The ticket description. ([Ticket link], [Commit link])
+- If the commit is not related to a bug or feature, e.g., whitepsace cleanup, remove it.
+- If there is no ticket number, search Trac for the relevant ticket.
+  - If there is no ticket, create one (if needed), or leave just the commit link.
+
+Double check that "XXXX" does not appear anywhere in the changelog.
+
+Post this changelog at: CHANGELOG_URL
+
+
+
+DELETE EVERYTHING ABOVE THE FOLLOWING LINE
+------------------------------------------
+
+= Summary =
+This is the final release of jQuery UI 1.8.
+-- OR --
+This is the second maintenance release for [[UI/Changelog/1.8|jQuery UI 1.8]].
+
+= Build =
+
+= Core &amp; Utilities =
+
+=== UI Core ===
+
+=== Mouse ===
+
+=== Widget Factory ===
+
+=== Position ===
+
+= Interactions =
+
+=== Draggable ===
+
+=== Droppable ===
+
+=== Resizable ===
+
+=== Selectable ===
+
+=== Sortable ===
+
+= Widgets =
+
+=== Accordion ===
+
+=== Autocomplete ===
+
+=== Button ===
+
+=== Datepicker ===
+
+=== Dialog ===
+
+=== Progressbar ===
+
+=== Slider ===
+
+=== Tabs ===
+
+= Effects =
+
+=== Individual effects ===
+
+= CSS Framework =
+
+= Demos =
+
+= Website =
+
+=== Download Builder ===

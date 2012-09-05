@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, it: false, xit: false, expect: false, beforeEach: false, afterEach: false, waitsFor: false, runs: false, $: false, brackets: false */
+/*global define, describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, $, brackets */
 
 define(function (require, exports, module) {
     'use strict';
@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         Dialogs          = require("widgets/Dialogs"),
         NativeFileSystem = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils        = require("file/FileUtils"),
-        SpecRunnerUtils  = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("InlineEditorProviders", function () {
 
@@ -134,13 +134,13 @@ define(function (require, exports, module) {
                 var editor = EditorManager.getCurrentFullEditor();
                 
                 // open inline editor at specified offset index
-                var inlineEditorResult = SpecRunnerUtils.openInlineEditorAtOffset(
+                var inlineEditorResult = SpecRunnerUtils.toggleQuickEditAtOffset(
                     editor,
                     spec.infos[openFile].offsets[openOffset]
                 );
                 
-                inlineEditorResult.done(function () {
-                    inlineOpened = true;
+                inlineEditorResult.done(function (isOpened) {
+                    inlineOpened = isOpened;
                 }).fail(function () {
                     inlineOpened = false;
                 });
@@ -150,6 +150,18 @@ define(function (require, exports, module) {
                 return (inlineOpened !== null) && (inlineOpened === expectInline);
             }, "inline editor timeout", 1000);
         };
+        
+        
+        // Utilities for testing Editor state
+        function expectText(editor) {
+            return expect(editor._codeMirror.getValue());
+        }
+        
+        function expectTextToBeEqual(editor1, editor2) {
+            expect(editor1._codeMirror.getValue()).toBe(editor2._codeMirror.getValue());
+        }
+        
+
 
         /*
          * Note that the bulk of selector matching tests are in CSSutils-test.js.
@@ -313,6 +325,28 @@ define(function (require, exports, module) {
                 });
             });
 
+            it("should close inline widget on Esc Key", function () {
+                initInlineTest("test1.html", 0);
+
+                runs(function () {
+                    var hostEditor = EditorManager.getCurrentFullEditor(),
+                        inlineWidget = hostEditor.getInlineWidgets()[0],
+                        inlinePos = inlineWidget.editors[0].getCursorPos();
+
+                    // verify inline widget
+                    expect(hostEditor.getInlineWidgets().length).toBe(1);
+
+                    // close the editor by simulating Esc key
+                    var key = 27,   // Esc key
+                        doc = testWindow.document,
+                        element = doc.getElementsByClassName("inline-widget")[0];
+                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
+
+                    // verify no inline widgets
+                    expect(hostEditor.getInlineWidgets().length).toBe(0);
+                });
+            });
+
             it("should not open an inline editor when positioned on textContent", function () {
                 initInlineTest("test1.html", 3, false);
                 
@@ -402,7 +436,9 @@ define(function (require, exports, module) {
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newText, inlineEditor.getCursorPos());
-                    newText = inlineEditor.document.getText();
+                    
+                    // we're going to compare this to disk later, so pass true to get non-normalized line endings
+                    newText = inlineEditor.document.getText(true);
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeTruthy();
@@ -427,7 +463,7 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedText).toEqual(newText);
@@ -456,12 +492,13 @@ define(function (require, exports, module) {
                     
                     // insert text at the host editor's cursor position
                     hostEditor._codeMirror.replaceRange(newHostText, hostEditor.getCursorPos());
-                    newHostText = hostEditor.document.getText();
                     
                     // insert text at the inline editor's cursor position
                     // can't mutate document directly at this point
                     inlineEditor._codeMirror.replaceRange(newInlineText, inlineEditor.getCursorPos());
-                    newInlineText = inlineEditor.document.getText();
+                    
+                    // we're going to compare this to disk later, so pass true to get non-normalized line endings
+                    newInlineText = inlineEditor.document.getText(true);
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeTruthy();
@@ -493,11 +530,11 @@ define(function (require, exports, module) {
                     });
                 });
                 
-                waitsFor(function () { return savedInlineText !== null && savedHostText !== null; }, "readAsText timeout", 1000);
+                waitsFor(function () { return savedInlineText !== undefined && savedHostText !== undefined; }, "readAsText timeout", 1000);
                 
                 runs(function () {
                     expect(savedInlineText).toEqual(newInlineText);
-                    expect(savedHostText).toEqual(this.infos["test1.html"].text);
+                    expect(savedHostText).toEqual(this.infos["test1.html"].text); // i.e, should be unchanged
                     
                     // verify isDirty flag
                     expect(inlineEditor.document.isDirty).toBeFalsy();
@@ -566,7 +603,8 @@ define(function (require, exports, module) {
                     
                     var newText = "\n/* jasmine was here */",
                         hostEditor,
-                        inlineEditor;
+                        inlineEditor,
+                        promise;
                     
                     runs(function () {
                         hostEditor = EditorManager.getCurrentFullEditor();
@@ -582,11 +620,20 @@ define(function (require, exports, module) {
                         expect(inlineEditor.document.isDirty).toBe(true);
                         
                         // close the main editor / working set entry for the inline's file
-                        testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
+                        promise = testWindow.executeCommand(Commands.FILE_CLOSE, {file: inlineEditor.document.file});
                         
+                        // synchronously click the don't save button,
+                        // asynchronously wait for the dialog to close and the Dialog's
+                        // promise to resolve. 
                         SpecRunnerUtils.clickDialogButton(Dialogs.DIALOG_BTN_DONTSAVE);
                     });
-                    // clickDialogButton() inserts a wait automatically, so must end runs() block here
+
+                    // Wait on the command's promise also since the command performs
+                    // asynchronous tasks after the Dialog is resolved. If the command
+                    // could complete synchronously, this wait would be unnecessary.
+                    runs(function () {
+                        waitsForDone(promise);
+                    });
                     
                     runs(function () {
                         // verify inline is closed
@@ -657,17 +704,17 @@ define(function (require, exports, module) {
                         expect(fullEditor._codeMirror).not.toBe(inlineEditor._codeMirror);
                         
                         // compare inline editor to full editor
-                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expectTextToBeEqual(inlineEditor, fullEditor);
                         
                         // make sure the text was inserted
-                        expect(fullEditor._getText().indexOf(newInlineText)).toBeGreaterThan(0);
+                        expect(fullEditor._codeMirror.getValue().indexOf(newInlineText)).toBeGreaterThan(0);
                         
                         // edit in the full editor and compare
                         fullEditor._codeMirror.replaceRange(
                             newInlineText,
                             inlineEditor.getCursorPos()
                         );
-                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expectTextToBeEqual(inlineEditor, fullEditor);
                     });
                 });
             });
@@ -963,7 +1010,7 @@ define(function (require, exports, module) {
                             text,
                             editor.getCursorPos()
                         );
-                        expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                        expectTextToBeEqual(inlineEditor, fullEditor);
                     }
                 });
             
@@ -974,7 +1021,7 @@ define(function (require, exports, module) {
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
                     
                     // delete all text via full editor
-                    fullEditor._setText("");
+                    fullEditor._codeMirror.setValue("");
                     
                     // verify inline is closed
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
@@ -996,27 +1043,27 @@ define(function (require, exports, module) {
                     editedText = inlineEditor._codeMirror.getValue();
                     
                     // compare inline editor to full editor
-                    expect(inlineEditor._getText()).toBe(fullEditor._getText());
+                    expectTextToBeEqual(inlineEditor, fullEditor);
                     
                     // undo the inline editor
                     inlineEditor._codeMirror.undo();
-                    expect(inlineEditor._getText()).toBe(fullEditor._getText());
-                    expect(inlineEditor._getText()).toBe(originalText);
+                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectText(inlineEditor).toBe(originalText);
                     
                     // redo the inline editor
                     inlineEditor._codeMirror.redo();
-                    expect(inlineEditor._getText()).toBe(fullEditor._getText());
-                    expect(inlineEditor._getText()).toBe(editedText);
+                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectText(inlineEditor).toBe(editedText);
                     
                     // undo the full editor
                     fullEditor._codeMirror.undo();
-                    expect(inlineEditor._getText()).toBe(fullEditor._getText());
-                    expect(fullEditor._getText()).toBe(originalText);
+                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectText(fullEditor).toBe(originalText);
                     
                     // redo the full editor
                     fullEditor._codeMirror.redo();
-                    expect(inlineEditor._getText()).toBe(fullEditor._getText());
-                    expect(fullEditor._getText()).toBe(editedText);
+                    expectTextToBeEqual(inlineEditor, fullEditor);
+                    expectText(fullEditor).toBe(editedText);
                 });
             });
             

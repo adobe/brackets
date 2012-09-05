@@ -36,20 +36,22 @@
  *  - Search files in working set that are *not* in the project
  *  - Handle matches that span mulitple lines
  *  - Refactor UI from functionality to enable unit testing
- *  - Cache result of getLine()
  */
 
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async               = require("utils/Async"),
         CommandManager      = require("command/CommandManager"),
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager");
+    
+    var FIND_IN_FILES_MAX = 100;
 
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -68,11 +70,10 @@ define(function (require, exports, module) {
     * Creates a dialog div floating on top of the current code mirror editor
     */
     FindInFilesDialog.prototype._createDialogDiv = function (template) {
-        // FUTURE: consider using jQuery for all the DOM manipulation here
-        var wrap = $("#editor-holder")[0];
-        this.dialog = wrap.insertBefore(window.document.createElement("div"), wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div>' + template + '</div>';
+        this.dialog = $("<div />")
+                          .attr("class", "CodeMirror-dialog")
+                          .html("<div>" + template + "</div>")
+                          .prependTo($("#editor-holder"));
     };
     
     /**
@@ -84,21 +85,23 @@ define(function (require, exports, module) {
         }
         
         this.closed = true;
-        this.dialog.parentNode.removeChild(this.dialog);
+        this.dialog.remove();
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
-        
+    
     /**
     * Shows the search dialog 
     * @param {?string} initialString Default text to prepopulate the search field with
     * @returns {$.Promise} that is resolved with the string to search for
     */
     FindInFilesDialog.prototype.showDialog = function (initialString) {
-        var dialogHTML = 'Find in Files: <input type="text" id="findInFilesInput" style="width: 10em"> <span style="color: #888">(Use /re/ syntax for regexp search)</span>';
+        var dialogHTML = Strings.CMD_FIND_IN_FILES +
+            ": <input type='text' id='findInFilesInput' style='width: 10em'> <span style='color: #888'>(" +
+            Strings.SEARCH_REGEXP_INFO  + ")</span>";
         this.result = new $.Deferred();
         this._createDialogDiv(dialogHTML);
-        var $searchField = $('input#findInFilesInput');
+        var $searchField = $("input#findInFilesInput");
         var that = this;
         
         $searchField.attr("value", initialString || "");
@@ -138,19 +141,12 @@ define(function (require, exports, module) {
         var matchStart;
         var matches = [];
         
-        function getLineNum(offset) {
-            return contents.substr(0, offset).split("\n").length - 1; // 0 based linenum
-        }
-        
-        function getLine(lineNum) {
-            // Future: cache result 
-            return contents.split("\n")[lineNum];
-        }
         
         var match;
+        var lines = StringUtils.getLines(contents);
         while ((match = queryExpr.exec(contents)) !== null) {
-            var lineNum = getLineNum(match.index);
-            var line = getLine(lineNum);
+            var lineNum = StringUtils.offsetToLineNum(lines, match.index);
+            var line = lines[lineNum];
             var ch = match.index - contents.lastIndexOf("\n", match.index) - 1;  // 0-based index
             var matchLength = match[0].length;
             
@@ -171,7 +167,7 @@ define(function (require, exports, module) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
-            var $resultTable = $("<table class='zebra-striped condensed-table'>")
+            var $resultTable = $("<table class='zebra-striped condensed-table' />")
                                 .append("<tbody>");
             
             // Count the total number of matches
@@ -181,15 +177,23 @@ define(function (require, exports, module) {
             });
             
             // Show result summary in header
+            var summary = StringUtils.format(
+                Strings.FIND_IN_FILES_TITLE,
+                numMatches,
+                (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                searchResults.length,
+                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+            );
+            
             $("#search-result-summary")
-                .text(" - " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
-                      " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : "") +
-                     (numMatches > 100 ? " (showing the first 100 matches)" : ""));
+                .text(summary +
+                     (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
+                .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
             searchResults.forEach(function (item) {
-                if (item && resultsDisplayed < 100) {
+                if (item && resultsDisplayed < FIND_IN_FILES_MAX) {
                     var makeCell = function (content) {
                         return $("<td/>").html(content);
                     };
@@ -205,16 +209,21 @@ define(function (require, exports, module) {
                     };
                     
                     // Add row for file name
-                    $("<tr/>")
-                        .append("<td colspan='3'>File: <b>" + item.fullPath + "</b></td>")
+                    $("<tr class='file-section' />")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, item.fullPath) + "</td>")
+                        .click(function () {
+                            // Clicking file section header collapses/expands result rows for that file
+                            var $fileHeader = $(this);
+                            $fileHeader.nextUntil(".file-section").toggle();
+                        })
                         .appendTo($resultTable);
                     
                     // Add row for each match in file
                     item.matches.forEach(function (match) {
-                        if (resultsDisplayed < 100) {
+                        if (resultsDisplayed < FIND_IN_FILES_MAX) {
                             var $row = $("<tr/>")
                                 .append(makeCell(" "))      // Indent
-                                .append(makeCell("line: " + (match.start.line + 1)))
+                                .append(makeCell(StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1))))
                                 .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
                                 .appendTo($resultTable);
                             
@@ -265,7 +274,7 @@ define(function (require, exports, module) {
         // Query is a string. Turn it into a case-insensitive regexp
         
         // Escape regex special chars
-        query = query.replace(/(\(|\)|\{|\}|\[|\]|\.|\^|\$|\||\?|\+|\*)/g, "\\$1");
+        query = query.replace(/([(){}\[\].\^$|?+*\\])/g, "\\$1");
         return new RegExp(query, "gi");
     }
     
@@ -312,7 +321,6 @@ define(function (require, exports, module) {
                                 return result.promise();
                             })
                                 .done(function () {
-                                    console.dir(searchResults);
                                     _showSearchResults(searchResults);
                                 })
                                 .fail(function () {

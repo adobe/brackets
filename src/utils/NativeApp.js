@@ -25,7 +25,7 @@
 /*global $, define, brackets, FileError */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async = require("utils/Async");
 
@@ -94,12 +94,13 @@ define(function (require, exports, module) {
     
     /** closeAllLiveBrowsers
      * Closes all the browsers that were tracked on open
+     * TODO: does not seem to work on Windows
      * @return {$.Promise}
      */
     function closeAllLiveBrowsers() {
         //make a copy incase the array is edited as we iterate
         var closeIDs = liveBrowserOpenedPIDs.concat();
-        return Async.doInParallel(closeIDs, closeLiveBrowser, false);
+        return Async.doSequentially(closeIDs, closeLiveBrowser, false);
     }
     
     /** _setLiveBrowserUserDataDir
@@ -110,12 +111,19 @@ define(function (require, exports, module) {
         liveBrowserUserDataDir = path;
     }
     
+    /**
+     * Opens a URL in the system default browser
+     */
+    function openURLInDefaultBrowser(url) {
+        brackets.app.openURLInDefaultBrowser(function (err) {}, url);
+    }
     
 
     // Define public API
     exports.openLiveBrowser = openLiveBrowser;
     exports.closeLiveBrowser = closeLiveBrowser;
     exports.closeAllLiveBrowsers = closeAllLiveBrowsers;
+    exports.openURLInDefaultBrowser = openURLInDefaultBrowser;
     //API for Unit Tests
     exports._setLiveBrowserUserDataDir = _setLiveBrowserUserDataDir;
 });

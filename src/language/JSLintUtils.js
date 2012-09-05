@@ -23,26 +23,28 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils */
+/*global define, $, brackets, JSLINT, PathUtils */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
  *
- * jQuery Events:
- *    - enabledChanged -- When JSLint is enabled or disabled
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent non-module scripts
     require("thirdparty/path-utils/path-utils.min");
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var DocumentManager         = require("document/DocumentManager"),
+    var Global                  = require("utils/Global"),
+        Commands                = require("command/Commands"),
+        CommandManager          = require("command/CommandManager"),
+        DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        EditorManager           = require("editor/EditorManager");
+        Strings                 = require("strings");
     
     /**
      * @private
@@ -98,7 +100,7 @@ define(function (require, exports, module) {
             perfTimerDOM = PerfUtils.markStart("JSLint DOM:\t" + (!currentDoc || currentDoc.file.fullPath));
             
             if (!result) {
-                var $errorTable = $("<table class='zebra-striped condensed-table'>")
+                var $errorTable = $("<table class='zebra-striped condensed-table' />")
                                    .append("<tbody>");
                 var $selectedRow;
                 
@@ -138,6 +140,9 @@ define(function (require, exports, module) {
                 $lintResults.hide();
                 $goldStar.show();
             }
+
+            PerfUtils.addMeasurement(perfTimerDOM);
+
         } else {
             // JSLint is disabled or does not apply to the current file, hide
             // both the results and the gold star
@@ -146,8 +151,6 @@ define(function (require, exports, module) {
         }
         
         EditorManager.resizeEditor();
-
-        PerfUtils.addMeasurement(perfTimerDOM);
     }
     
     /**
@@ -174,10 +177,8 @@ define(function (require, exports, module) {
     function _setEnabled(enabled) {
         _enabled = enabled;
         
-        $(exports).triggerHandler("enabledChanged", _enabled);
-        
+        CommandManager.get(Commands.TOGGLE_JSLINT).setChecked(_enabled);
         _updateListeners();
-        
         _prefs.setValue("enabled", _enabled);
     
         // run immediately
@@ -194,8 +195,17 @@ define(function (require, exports, module) {
         }
     }
     
+    /** Command to toggle enablement */
+    function _handleToggleJSLint() {
+        setEnabled(!getEnabled());
+    }
+    
+    
+    // Register command handlers
+    CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
+    
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });
+    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: !!brackets.config.enable_jslint });
     _setEnabled(_prefs.getValue("enabled"));
     
     // Define public API

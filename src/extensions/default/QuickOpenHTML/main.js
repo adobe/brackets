@@ -27,7 +27,7 @@
 
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var EditorManager       = brackets.getModule("editor/EditorManager"),
         QuickOpen           = brackets.getModule("search/QuickOpen"),

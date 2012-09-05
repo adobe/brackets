@@ -29,7 +29,7 @@ define(function (require, exports, module) {
     'use strict';
     
     var Editor          = require("editor/Editor").Editor,
-        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         EditorUtils     = require("editor/EditorUtils");
 
     describe("Editor", function () {
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
             
             it("should initialize with content", function () {
                 // verify editor content
-                expect(myEditor._getText()).toEqual(defaultContent);
+                expect(myEditor._codeMirror.getValue()).toEqual(defaultContent);
             });
             
             // FUTURE: this should really be in a Document unit test, but there's no "official"
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
                     expect(changeList.next).toBe(undefined);
                 }
                 $(myDocument).on("change", changeHandler);
-                myEditor._setText("new content");
+                myEditor._codeMirror.setValue("new content");
                 expect(changeFired).toBe(true);
             });
 

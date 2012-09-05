@@ -29,14 +29,17 @@
  * Utilities for creating and managing standard modal dialogs.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
+    require("utils/Global");
+
     var KeyBindingManager = require("command/KeyBindingManager");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
         DIALOG_BTN_DONTSAVE = "dontsave",
-        DIALOG_CANCELED = "_canceled";
+        DIALOG_CANCELED = "_canceled",
+        DIALOG_BTN_DOWNLOAD = "download";
     
     // TODO: (issue #258) In future, we should templatize the HTML for the dialogs rather than having 
     // it live directly in the HTML.
@@ -45,7 +48,8 @@ define(function (require, exports, module) {
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
         DIALOG_ID_LIVE_DEVELOPMENT = "live-development-error-dialog",
-        DIALOG_ID_ABOUT = "about-dialog";
+        DIALOG_ID_ABOUT = "about-dialog",
+        DIALOG_ID_UPDATE = "update-dialog";
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
@@ -71,7 +75,7 @@ define(function (require, exports, module) {
             this.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
             // CMD+D Don't Save
-            if (e.metaKey && (which === 'D')) {
+            if (e.metaKey && (which === "D")) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -81,7 +85,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === 'N') {
+            if (which === "N") {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -91,7 +95,7 @@ define(function (require, exports, module) {
         if (buttonId) {
             _dismissDialog(this, buttonId);
         } else if (!($.contains(this.get(0), e.target)) ||
-                  (this.filter(":input").length === 0)) {
+                  ($(e.target).filter(":input").length === 0)) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
@@ -117,7 +121,8 @@ define(function (require, exports, module) {
      *     is dismissed. Never rejected.
      */
     function showModalDialog(dlgClass, title, message) {
-        var result = $.Deferred();
+        var result = $.Deferred(),
+            promise = result.promise();
         
         // We clone the HTML rather than using it directly so that if two dialogs of the same
         // type happen to show up, they can appear at the same time. (This is an edge case that
@@ -132,6 +137,9 @@ define(function (require, exports, module) {
         if ($dlg.length === 0) {
             throw new Error("Dialog id " + dlgClass + " does not exist");
         }
+
+        // Save the dialog promise for unit tests
+        $dlg.data("promise", promise);
 
         // Set title and message
         if (title) {
@@ -187,7 +195,8 @@ define(function (require, exports, module) {
             show: true,
             keyboard: true
         });
-        return result.promise();
+
+        return promise;
     }
     
     /**
@@ -206,6 +215,7 @@ define(function (require, exports, module) {
     exports.DIALOG_BTN_OK = DIALOG_BTN_OK;
     exports.DIALOG_BTN_DONTSAVE = DIALOG_BTN_DONTSAVE;
     exports.DIALOG_CANCELED = DIALOG_CANCELED;
+    exports.DIALOG_BTN_DOWNLOAD = DIALOG_BTN_DOWNLOAD;
     
     exports.DIALOG_ID_ERROR = DIALOG_ID_ERROR;
     exports.DIALOG_ID_SAVE_CLOSE = DIALOG_ID_SAVE_CLOSE;
@@ -213,6 +223,7 @@ define(function (require, exports, module) {
     exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
     exports.DIALOG_ID_LIVE_DEVELOPMENT = DIALOG_ID_LIVE_DEVELOPMENT;
     exports.DIALOG_ID_ABOUT = DIALOG_ID_ABOUT;
+    exports.DIALOG_ID_UPDATE = DIALOG_ID_UPDATE;
     
     exports.showModalDialog = showModalDialog;
     exports.cancelModalDialogIfOpen = cancelModalDialogIfOpen;

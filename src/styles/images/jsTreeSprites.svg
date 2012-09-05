@@ -1,0 +1,12 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="108px" height="72px">
+	<defs>
+		<filter id="blur" x="-10" y="-10" width="12" height="12">
+			<feGaussianBlur in="SourceGraphic" stdDeviation=".25"/>
+		</filter>
+	</defs>
+
+	<polyline points="11,10.5 5,7 5,14 11,10.5" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
+	<polyline points="25.5,13 29,7 22,7 25.5,13" filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
+	<polyline fill="#878787" points="11,10.5 5,7 5,14 11,10.5"/>
+	<polyline fill="#fff" points="25.5,13 29,7 22,7 25.5,13"/>
+</svg>

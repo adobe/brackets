@@ -26,22 +26,19 @@
 /*global define, $, brackets, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         Editor                  = require("editor/Editor").Editor,
+        FileUtils               = require("file/FileUtils"),
         Strings                 = require("strings"),
-        JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
-        NativeApp               = require("utils/NativeApp");
+        NativeApp               = require("utils/NativeApp"),
+        NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem;
     
     function handleShowDeveloperTools(commandData) {
         brackets.app.showDeveloperTools();
-    }
-    
-    function _handleEnableJSLint() {
-        JSLintUtils.setEnabled(!JSLintUtils.getEnabled());
     }
     
     // Implements the 'Run Tests' menu to bring up the Jasmine unit test window
@@ -49,15 +46,15 @@ define(function (require, exports, module) {
     function _handleRunUnitTests() {
         if (_testWindow) {
             try {
-                _testWindow.location.reload();
+                _testWindow.location.reload(true);
             } catch (e) {
                 _testWindow = null;  // the window was probably closed
             }
         }
 
         if (!_testWindow) {
-            _testWindow = window.open("../test/SpecRunner.html");
-            _testWindow.location.reload(); // if it was opened before, we need to reload because it will be cached
+            _testWindow = window.open("../test/SpecRunner.html", "brackets-test", "width=" + $(window).width() + ",height=" + $(window).height());
+            _testWindow.location.reload(true); // if it was opened before, we need to reload because it will be cached
         }
     }
     
@@ -98,7 +95,7 @@ define(function (require, exports, module) {
         };
             
         var testName;
-        var perfData = PerfUtils.perfData;
+        var perfData = PerfUtils.getData();
         for (testName in perfData) {
             if (perfData.hasOwnProperty(testName)) {
                 // Add row to error table
@@ -128,39 +125,150 @@ define(function (require, exports, module) {
     function _handleNewBracketsWindow() {
         window.open(window.location.href);
     }
+
+    function _handleSwitchLanguage() {
+        var stringsPath = FileUtils.getNativeBracketsDirectoryPath() + "/nls";
+        NativeFileSystem.requestNativeFileSystem(stringsPath, function (dirEntry) {
+            dirEntry.createReader().readEntries(function (entries) {
+
+                var $activeLanguage,
+                    $submit,
+                    locale;
+                
+                function setLanguage(event) {
+                    if ($activeLanguage) {
+                        $activeLanguage.css("font-weight", "normal");
+                    }
+                    $activeLanguage = $(event.currentTarget);
+                    locale = $activeLanguage.data("locale");
+                    
+                    $activeLanguage.css("font-weight", "bold");
+                    $submit.attr("disabled", false);
+                }
     
-    function _handleCloseAllLiveBrowsers() {
-        NativeApp.closeAllLiveBrowsers().always(function () {
-            console.log("all live browsers closed");
+                var $modal = $("<div class='modal hide' />");
+    
+                var $header = $("<div class='modal-header' />")
+                    .append("<a href='#' class='close'>&times;</a>")
+                    .append("<h1 class='dialog-title'>" + Strings.LANGUAGE_TITLE + "</h1>")
+                    .appendTo($modal);
+                  
+                var $body = $("<div class='modal-body' style='max-height: 500px; overflow: auto;' />")
+                    .appendTo($modal);
+
+                var $p = $("<p class='dialog-message'>")
+                    .text(Strings.LANGUAGE_MESSAGE)
+                    .appendTo($body);
+
+                var $ul = $("<ul>")
+                    .on("click", "li", setLanguage)
+                    .appendTo($p);
+                
+                var $footer = $("<div class='modal-footer' />")
+                    .appendTo($modal);
+                
+                var $cancel = $("<button class='dialog-button btn left'>")
+                    .on("click", function () {
+                        $modal.modal('hide');
+                    })
+                    .text(Strings.LANGUAGE_CANCEL)
+                    .appendTo($footer);
+                
+                $submit = $("<button class='dialog-button btn primary'>")
+                    .text(Strings.LANGUAGE_SUBMIT)
+                    .on("click", function () {
+                        if (!$activeLanguage) {
+                            return;
+                        }
+                        if (locale) {
+                            window.localStorage.setItem("locale", locale);
+                        } else {
+                            window.localStorage.removeItem("locale");
+                        }
+                        
+                        CommandManager.execute(Commands.DEBUG_REFRESH_WINDOW);
+                    })
+                    .attr("disabled", "disabled")
+                    .appendTo($footer);
+                
+                $modal
+                    .appendTo(window.document.body)
+                    .modal({
+                        backdrop: "static",
+                        show: true
+                    })
+                    .on("hidden", function () {
+                        $(this).remove();
+                    });
+
+                // add system default
+                var $li = $("<li>")
+                    .text("system default")
+                    .data("locale", null)
+                    .appendTo($ul);
+                
+                // add english
+                $li = $("<li>")
+                    .text("en")
+                    .data("locale", "en")
+                    .appendTo($ul);
+                
+                // inspect all children of dirEntry
+                entries.forEach(function (entry) {
+                    if (entry.isDirectory) {
+                        var match = entry.name.match(/^([a-z]{2})(-[a-z]{2})?$/);
+                        
+                        if (match) {
+                            var language = entry.name,
+                                label = match[1];
+                            
+                            if (match[2]) {
+                                label += match[2].toUpperCase();
+                            }
+                            
+                            var $li = $("<li>")
+                                .text(label)
+                                .data("locale", language)
+                                .appendTo($ul);
+                        }
+                    }
+                });
+            });
         });
     }
     
-    function _handleUseTabChars() {
-        Editor.setUseTabChar(!Editor.getUseTabChar());
-        $("#menu-experimental-usetab").toggleClass("selected", Editor.getUseTabChar());
+    function _enableRunTestsMenuItem() {
+        // Check for the SpecRunner.html file
+        var fileEntry = new NativeFileSystem.FileEntry(
+            FileUtils.getNativeBracketsDirectoryPath() + "/../test/SpecRunner.html"
+        );
+        
+        fileEntry.getMetadata(
+            function (metadata) {
+                // If we sucessfully got the metadata for the SpecRunner.html file, 
+                // enable the menu item
+                CommandManager.get(Commands.DEBUG_RUN_UNIT_TESTS).setEnabled(true);
+            },
+            function (error) {
+                // Error getting metadata. 
+                // The menu item is already disabled, so there is nothing to do here.
+            }
+        );
     }
     
-    function _updateJSLintMenuItem(enabled) {
-        $("#menu-debug-jslint").toggleClass("selected", enabled);
-    }
+    /* Register all the command handlers */
     
-    // update menu item when enabled state changes
-    $(JSLintUtils).on("enabledChanged", function (event, enabled) {
-        _updateJSLintMenuItem(enabled);
-    });
+    // Show Developer Tools (optionally enabled)
+    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS,      Commands.DEBUG_SHOW_DEVELOPER_TOOLS,   handleShowDeveloperTools)
+        .setEnabled(!!brackets.app.showDeveloperTools);
+    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW, Commands.DEBUG_NEW_BRACKETS_WINDOW,    _handleNewBracketsWindow);
     
-    // initialize menu immediately
-    _updateJSLintMenuItem(JSLintUtils.getEnabled());
+    // Start with the "Run Tests" item disabled. It will be enabled later if the test file can be found.
+    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS,      Commands.DEBUG_RUN_UNIT_TESTS,         _handleRunUnitTests)
+        .setEnabled(false);
     
-    // Register all the command handlers
-    CommandManager.register(Strings.CMD_SHOW_DEV_TOOLS, Commands.DEBUG_SHOW_DEVELOPER_TOOLS, handleShowDeveloperTools);
-    CommandManager.register(Strings.CMD_JSLINT,         Commands.DEBUG_JSLINT,              _handleEnableJSLint);
-    CommandManager.register(Strings.CMD_RUN_UNIT_TESTS, Commands.DEBUG_RUN_UNIT_TESTS,      _handleRunUnitTests);
-    CommandManager.register(Strings.CMD_SHOW_PERF_DATA, Commands.DEBUG_SHOW_PERF_DATA,      _handleShowPerfData);
-    CommandManager.register(Strings.CMD_EXPERIMENTAL,   Commands.DEBUG_EXPERIMENTAL,        function () {});
-    CommandManager.register(Strings.CMD_NEW_BRACKETS_WINDOW,
-                                                        Commands.DEBUG_NEW_BRACKETS_WINDOW, _handleNewBracketsWindow);
-    CommandManager.register(Strings.CMD_CLOSE_ALL_LIVE_BROWSERS,
-                                                        Commands.DEBUG_CLOSE_ALL_LIVE_BROWSERS, _handleCloseAllLiveBrowsers);
-    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.DEBUG_USE_TAB_CHARS,       _handleUseTabChars);
+    CommandManager.register(Strings.CMD_SHOW_PERF_DATA,      Commands.DEBUG_SHOW_PERF_DATA,         _handleShowPerfData);
+    CommandManager.register(Strings.CMD_SWITCH_LANGUAGE,     Commands.DEBUG_SWITCH_LANGUAGE,        _handleSwitchLanguage);
+    
+    _enableRunTestsMenuItem();
 });

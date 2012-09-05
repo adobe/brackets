@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Sortable - Include / exclude items</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.sortable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#sortable1, #sortable2 { list-style-type: none; margin: 0; padding: 0; zoom: 1; }
+	#sortable1 li, #sortable2 li { margin: 0 5px 5px 5px; padding: 3px; width: 90%; }
+	</style>
+	<script>
+	$(function() {
+		$( "#sortable1" ).sortable({
+			items: "li:not(.ui-state-disabled)"
+		});
+
+		$( "#sortable2" ).sortable({
+			cancel: ".ui-state-disabled"
+		});
+
+		$( "#sortable1 li, #sortable2 li" ).disableSelection();		
+	});
+	</script>
+</head>
+<body>
+<div class="demo">
+
+<h3 class="docs">Specify which items are sortable:</h3>
+
+<ul id="sortable1">
+	<li class="ui-state-default">Item 1</li>
+	<li class="ui-state-default ui-state-disabled">(I'm not sortable or a drop target)</li>
+	<li class="ui-state-default ui-state-disabled">(I'm not sortable or a drop target)</li>
+	<li class="ui-state-default">Item 4</li>
+</ul>
+
+<h3 class="docs">Cancel sorting (but keep as drop targets):</h3>
+
+<ul id="sortable2">
+	<li class="ui-state-default">Item 1</li>
+	<li class="ui-state-default ui-state-disabled">(I'm not sortable)</li>
+	<li class="ui-state-default ui-state-disabled">(I'm not sortable)</li>
+	<li class="ui-state-default">Item 4</li>
+</ul>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>
+	Specify which items are eligible to sort by passing a jQuery selector into
+	the <code>items</code> option. Items excluded from this option are not
+	sortable, nor are they valid targets for sortable items.
+</p>
+<p>
+	To only prevent sorting on certain items, pass a jQuery selector into the
+	<code>cancel</code> option. Cancelled items remain valid sort targets for
+	others.
+</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

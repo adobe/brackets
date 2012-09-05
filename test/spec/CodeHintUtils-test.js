@@ -30,41 +30,41 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var HTMLUtils       = require("language/HTMLUtils"),
-        SpecRunnerUtils = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         Editor          = require("editor/Editor").Editor;
     
-    //Use a clean version of the editor each time
-    var myDocument;
-    var myEditor;
-    beforeEach(function () {
-        // init Editor instance (containing a CodeMirror instance)
-        $("body").append("<div id='editor'/>");
-        myDocument = SpecRunnerUtils.createMockDocument("");
-        myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
-    });
-
-    afterEach(function () {
-        myEditor.destroy();
-        myEditor = null;
-        $("#editor").remove();
-        myDocument = null;
-    });
-    
-    function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
-        pos.line = linesBefore.length;
-        pos.ch = hintLineBefore.length;
-        var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
-        var finalLines = linesBefore.concat([finalHintLine]);
-        if (linesAfter) {
-            finalLines = finalLines.concat(linesAfter);
-        }
-        
-        var content = finalLines.join("\n");
-        myEditor._setText(content);
-    }
-    
-    
     describe("HTMLUtils", function () {
+    
+        //Use a clean version of the editor each time
+        var myDocument,
+            myEditor;
+
+        beforeEach(function () {
+            // init Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            myDocument = SpecRunnerUtils.createMockDocument("");
+            myEditor = new Editor(myDocument, true, "", $("#editor").get(0), {});
+        });
+
+        afterEach(function () {
+            myEditor.destroy();
+            myEditor = null;
+            $("#editor").remove();
+            myDocument = null;
+        });
+    
+        function setContentAndUpdatePos(pos, linesBefore, hintLineBefore, hintLineAfter, linesAfter) {
+            pos.line = linesBefore.length;
+            pos.ch = hintLineBefore.length;
+            var finalHintLine = (hintLineAfter ? hintLineBefore + hintLineAfter : hintLineBefore);
+            var finalLines = linesBefore.concat([finalHintLine]);
+            if (linesAfter) {
+                finalLines = finalLines.concat(linesAfter);
+            }
+            
+            var content = finalLines.join("\n");
+            myDocument.setText(content);
+        }
         
         describe("Html Hinting", function () {
             beforeEach(function () {
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
                     '<p class="');
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "", true, '"', false));
             });
             
             it("should find an attribute as it's added to a tag", function () {
@@ -97,7 +97,7 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "id", "", true, '"', false));
             });
             
             it("should find an attribute as the value is typed", function () {
@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                     [ '</div>', '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "id", "one", true, '"', false));
             });
             
             it("should not find an attribute as text is added", function () {
@@ -126,11 +126,11 @@ define(function (require, exports, module) {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
-                    '<p class="foo"', '></p>',
+                    '<p class="foo', '"></p>',
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the full attribute as an existing value is changed", function () {
@@ -141,18 +141,18 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo bar", true, '"', true));
             });
             
             it("should find the attribute value even when there is space around the =", function () {
                 var pos = {"ch": 0, "line": 0};
                 setContentAndUpdatePos(pos,
                     ['<html>', '<body>'],
-                    '<p class = "foo"', '></p>',
+                    '<p class = "foo', '"></p>',
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 3, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the attribute value when the IP is after the =", function () {
@@ -163,7 +163,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "foo"));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, -1, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the tagname as it's typed", function () {

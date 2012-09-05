@@ -37,7 +37,7 @@
  * DocumentManager directly. DocumentManager, the tree UI, etc. then all listen to that model for changes.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var ProjectManager      = require("project/ProjectManager"),
@@ -212,7 +212,7 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_RELOADING_FILE_TITLE,
-            Strings.format(
+            StringUtils.format(
                 Strings.ERROR_RELOADING_FILE,
                 StringUtils.htmlEscape(doc.file.fullPath),
                 FileUtils.getFileErrorString(error.code)
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
             if (i < editConflicts.length) {
                 toClose = false;
                 dialogId = Dialogs.DIALOG_ID_EXT_CHANGED;
-                message = Strings.format(
+                message = StringUtils.format(
                     Strings.EXT_MODIFIED_MESSAGE,
                     StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
                 );
@@ -269,7 +269,7 @@ define(function (require, exports, module) {
             } else {
                 toClose = true;
                 dialogId = Dialogs.DIALOG_ID_EXT_DELETED;
-                message = Strings.format(
+                message = StringUtils.format(
                     Strings.EXT_DELETED_MESSAGE,
                     StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(doc.file.fullPath))
                 );

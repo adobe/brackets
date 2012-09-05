@@ -33,7 +33,7 @@ define(function (require, exports, module) {
         Commands,
         DocumentManager,
         FileViewController,
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js");
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
     describe("WorkingSetView", function () {
     
@@ -160,7 +160,7 @@ define(function (require, exports, module) {
                 function () {
                     // check working set UI list content
                     $listItems = testWindow.$("#open-files-container > ul").children();
-                    return $listItems.length > 0;
+                    return ($listItems.length === 2) && $($listItems[1]).hasClass("selected");
                 },
                 1000
             );

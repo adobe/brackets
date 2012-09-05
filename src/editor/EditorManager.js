@@ -38,7 +38,7 @@
  *    - focusedEditorChange -- When the focused editor (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     // Load dependent modules
     var FileUtils           = require("file/FileUtils"),
@@ -101,29 +101,14 @@ define(function (require, exports, module) {
      * @param {!boolean} makeMasterEditor  If true, the Editor will set itself as the private "master"
      *          Editor for the Document. If false, the Editor will attach to the Document as a "slave."
      * @param {!jQueryObject} container  Container to add the editor to.
-     * @param {!function} onInlineGesture  Handler for Ctrl+E command (open/close inline, depending
-     *          on context)
      * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
      *          to display in this editor. Inclusive.
      * @return {Editor} the newly created editor.
      */
-    function _createEditorForDocument(doc, makeMasterEditor, container, onInlineGesture, range, additionalKeys) {
+    function _createEditorForDocument(doc, makeMasterEditor, container, range, additionalKeys) {
         var mode = EditorUtils.getModeFromFileExtension(doc.file.fullPath);
         
-        var extraKeys = {
-            "Shift-Ctrl-F" : function () {
-                // No-op, handled in FindInFiles.js
-            },
-            "Shift-Cmd-F" : function () {
-                // No-op, handled in FindInFiles.js
-            }
-        };
-        
-        if (additionalKeys) {
-            mergeExtraKeys(null, extraKeys, additionalKeys);
-        }
-
-        return new Editor(doc, makeMasterEditor, mode, container, extraKeys, range);
+        return new Editor(doc, makeMasterEditor, mode, container, additionalKeys, range);
     }
     
     /**
@@ -134,6 +119,8 @@ define(function (require, exports, module) {
      *      is created or rejected when no inline editors are available.
      */
     function _openInlineWidget(editor) {
+        PerfUtils.markStart(PerfUtils.INLINE_EDITOR_OPEN);
+        
         // Run through inline-editor providers until one responds
         var pos = editor.getCursorPos(),
             inlinePromise,
@@ -149,11 +136,16 @@ define(function (require, exports, module) {
         if (inlinePromise) {
             inlinePromise.done(function (inlineWidget) {
                 editor.addInlineWidget(pos, inlineWidget);
+                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
                 result.resolve();
             }).fail(function () {
+                // terminate timer that was started above
+                PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
                 result.reject();
             });
         } else {
+            // terminate timer that was started above
+            PerfUtils.finalizeMeasurement(PerfUtils.INLINE_EDITOR_OPEN);
             result.reject();
         }
         
@@ -225,13 +217,13 @@ define(function (require, exports, module) {
      * Creates a new "full-size" (not inline) Editor for the given Document, and sets it as the
      * Document's master backing editor. The editor is not yet visible; to show it, use
      * DocumentManager.setCurrentDocument().
-     * Semi-private: should not be called outside this module other than by Editor.
+     * Semi-private: should only be called within this module or by Document.
      * @param {!Document} document  Document whose main/full Editor to create
      */
     function _createFullEditorForDocument(document) {
         // Create editor; make it initially invisible
         var container = _editorHolder.get(0);
-        var editor = _createEditorForDocument(document, true, container, _openInlineWidget);
+        var editor = _createEditorForDocument(document, true, container);
         editor.setVisible(false);
     }
     
@@ -253,9 +245,9 @@ define(function (require, exports, module) {
      *
      * @return {{content:DOMElement, editor:Editor}}
      */
-    function createInlineEditorForDocument(doc, range, inlineContent, closeThisInline, additionalKeys) {
+    function createInlineEditorForDocument(doc, range, inlineContent, additionalKeys) {
         // Create the Editor
-        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, closeThisInline, range, additionalKeys);
+        var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range, additionalKeys);
         
         $(exports).triggerHandler("focusedEditorChange", inlineEditor);
         
@@ -272,6 +264,8 @@ define(function (require, exports, module) {
      * DocumentManager's standpoint. However, destroying the full-size editor does remove the backing
      * "master" editor from the Document, rendering it immutable until either inline-editor edits or
      * currentDocument change triggers _createFullEditorForDocument() full-size editor again.
+     *
+     * In certain edge cases, this is called directly by DocumentManager; see _gcDocuments() for details.
      *
      * @param {!Document} document Document whose "master" editor we may destroy
      */
@@ -423,6 +417,13 @@ define(function (require, exports, module) {
         }
         // else, file was listed in working set but never shown in the editor - ignore
     }
+
+    function _onWorkingSetRemoveList(event, removedFiles) {
+        removedFiles.forEach(function (removedFile) {
+            _onWorkingSetRemove(event, removedFile);
+        });
+    }
+
     // Note: there are several paths that can lead to an editor getting destroyed
     //  - file was in working set, but not in current editor; then closed (via working set "X" button)
     //      --> handled by _onWorkingSetRemove()
@@ -494,32 +495,53 @@ define(function (require, exports, module) {
     }
  
     /**
-     * Show Inline Editor command handler
+     * Toggle Quick Edit command handler
+     * @return {!Promise} A promise resolved with true if an inline editor
+     *   is opened or false when closed. The promise is rejected if there
+     *   is no current editor or an inline editor is not created.
      */
-    function _showInlineEditor() {
+    function _toggleQuickEdit() {
+        var result = new $.Deferred();
+        
         if (_currentEditor) {
             var inlineWidget = null,
-                result = getFocusedInlineWidget();
+                focusedWidgetResult = getFocusedInlineWidget();
             
-            if (result) {
-                inlineWidget = result.widget;
+            if (focusedWidgetResult) {
+                inlineWidget = focusedWidgetResult.widget;
             }
             
             if (inlineWidget) {
                 // an inline widget's editor has focus, so close it
+                PerfUtils.markStart(PerfUtils.INLINE_EDITOR_CLOSE);
                 inlineWidget.close();
+                PerfUtils.addMeasurement(PerfUtils.INLINE_EDITOR_CLOSE);
+        
+                // return a resolved promise to CommandManager
+                result.resolve(false);
             } else {
                 // main editor has focus, so create an inline editor
-                _openInlineWidget(_currentEditor);
+                _openInlineWidget(_currentEditor).done(function () {
+                    result.resolve(true);
+                }).fail(function () {
+                    result.reject();
+                });
             }
+        } else {
+            // Can not open an inline editor without a host editor
+            result.reject();
         }
+        
+        return result.promise();
     }
 
-    CommandManager.register(Strings.CMD_SHOW_INLINE_EDITOR,     Commands.SHOW_INLINE_EDITOR, _showInlineEditor);
+    CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
     // Initialize: register listeners
     $(DocumentManager).on("currentDocumentChange", _onCurrentDocumentChange);
     $(DocumentManager).on("workingSetRemove", _onWorkingSetRemove);
+    $(DocumentManager).on("workingSetRemoveList", _onWorkingSetRemoveList);
+
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);
@@ -532,6 +554,7 @@ define(function (require, exports, module) {
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;

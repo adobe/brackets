@@ -29,7 +29,9 @@
  * Set of utilites for working with files and text content.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
+
+    require("utils/Global");
     
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         PerfUtils           = require("utils/PerfUtils"),
@@ -166,7 +168,7 @@ define(function (require, exports, module) {
         } else if (code === FileError.NO_MODIFICATION_ALLOWED_ERR) {
             result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
         } else {
-            result = Strings.format(Strings.GENERIC_ERROR, code);
+            result = StringUtils.format(Strings.GENERIC_ERROR, code);
         }
 
         return result;
@@ -176,7 +178,7 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
             Strings.ERROR_OPENING_FILE_TITLE,
-            Strings.format(
+            StringUtils.format(
                 Strings.ERROR_OPENING_FILE,
                 StringUtils.htmlEscape(path),
                 getFileErrorString(code)
@@ -203,14 +205,50 @@ define(function (require, exports, module) {
 
     /**
      * Returns a native absolute path to the 'brackets' source directory.
+     * Note that this only works when run in brackets/src/index.html, so it does
+     * not work for unit tests (which is run from brackets/test/SpecRunner.html)
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
-        var pathname = window.location.pathname;
+        var pathname = decodeURI(window.location.pathname);
         var directory = pathname.substr(0, pathname.lastIndexOf("/"));
         return convertToNativePath(directory);
     }
     
+    /**
+     * Given the module object passed to JS module define function,
+     * convert the path (which is relative to the current window)
+     * to a native absolute path.
+     * Returns a native absolute path to the module folder.
+     * @return {string}
+     */
+    function getNativeModuleDirectoryPath(module) {
+        var path, relPath, index, pathname;
+
+        if (module && module.uri) {
+
+            // Remove window name from base path. Maintain trailing slash.
+            pathname = decodeURI(window.location.pathname);
+            path = convertToNativePath(pathname.substr(0, pathname.lastIndexOf("/") + 1));
+
+            // Remove module name from relative path. Remove trailing slash.
+            pathname = decodeURI(module.uri);
+            relPath = pathname.substr(0, pathname.lastIndexOf("/"));
+
+            // handle leading "../" in relative directory
+            while (relPath.substr(0, 3) === "../") {
+                path = path.substr(0, path.length - 1); // strip trailing slash from base path
+                index = path.lastIndexOf("/");          // find next slash from end
+                if (index !== -1) {
+                    path = path.substr(0, index + 1);   // remove last dir while maintaining slash
+                }
+                relPath = relPath.substr(3);            // remove leading "../" from relative path
+            }
+            path += relPath;
+        }
+        return path;
+    }
+
     // Define public API
     exports.LINE_ENDINGS_CRLF              = LINE_ENDINGS_CRLF;
     exports.LINE_ENDINGS_LF                = LINE_ENDINGS_LF;
@@ -223,4 +261,5 @@ define(function (require, exports, module) {
     exports.writeText                      = writeText;
     exports.convertToNativePath            = convertToNativePath;
     exports.getNativeBracketsDirectoryPath = getNativeBracketsDirectoryPath;
+    exports.getNativeModuleDirectoryPath   = getNativeModuleDirectoryPath;
 });

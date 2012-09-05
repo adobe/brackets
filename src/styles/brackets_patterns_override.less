@@ -160,15 +160,17 @@
 
 
 /* Menu-related styles */
-.toolbar .nav {
-    @menubar-top-padding: 8px;
-    @menubar-bottom-padding: 6px;
-    @menubar-h-padding: 9px;
-    @item-highlight-color: #e0f0fa;
+
+@menubar-top-padding: 8px;
+@menubar-bottom-padding: 6px;
+@menubar-h-padding: 9px;
+@item-highlight-color: #e0f0fa;
+
+.toolbar .nav, .context-menu, .codehint-menu {
     
     // The 1px adjustments here are to account for the border around the top-level menu items.
     margin: (@toolbar-top-gap-px - @menubar-top-padding - 1) 0 (-@menubar-bottom-padding + 1) (-@menubar-h-padding + 4);
-    
+
     // General item appearance
     a {
         color: @bc-black;
@@ -221,9 +223,17 @@
                 white-space: nowrap;
                 .box-shadow(none);
 
-                &:hover {
+                &:hover, &.highlight {
                     color: @bc-black;
                     background: @item-highlight-color;
+                }
+
+                &.disabled {
+                    color: @bc-gray;
+
+                    &:hover {
+                        background: @bc-white;
+                    }
                 }
 
                 /* hidden checkmark for all list item content ensures consistent left spacing */
@@ -232,7 +242,7 @@
                     visibility: hidden;
                 }
                 /* toggle checkmark visibility */
-                &.selected::before {
+                &.checked::before {
                     visibility: visible;
                 }
             }
@@ -250,7 +260,74 @@
     }
 }
 
+
+/* Context menu styles */
+
+
+.context-menu, .codehint-menu {
+    position: absolute;
+    z-index: @z-index-brackets-context-menu-base;
+    list-style-type: none;
+
+    .dropdown-menu {
+        .border-radius(3px);
+    }
+    
+    .menu-shortcut {
+        float: right;
+    }
+}
+
+.codehint-menu {
+    .dropdown-menu {
+        .box-shadow(none);
+        max-height: 160px;
+        overflow-y: auto;
+
+        padding: 0;
+        
+        li {
+            a {
+                // Less padding than on menus. More padding on top than bottom
+                // to center font within its bg highlight better.
+                padding: 2px 0px 0px 0px;
+
+                // Don't show highlighting on hover for code hints...
+                &:hover {
+                    color: @bc-black;
+                    background-color: @bc-white;
+                }
+
+				// ...except for selected item
+                &.highlight:hover {
+                    color: @bc-black;
+                    background-color: @item-highlight-color;
+                }
+            }
+        }
+    }
+}
+
+#context-menu-bar {
+    margin: 0;
+}
+
 /* Dialog-related styles */
+
+.modal {
+    width: auto;
+}
+
+.modal-body, .modal-header {
+    /* See styles/bootstrap/patterns.less .modal class.
+       Pushing this value down to .modal-header and .modal-body
+       to allow the overall modal to take the width of the footer */
+    width: 560px;
+}
+
+.modal-footer {
+    white-space: nowrap;
+}
 
 .modal-footer .btn.left {
     float: left;
@@ -284,7 +361,6 @@
 
 .dialog-filename {
     font-weight: @font-weight-semibold;
-    white-space: nowrap;
 }
 
 .btn {
@@ -301,6 +377,27 @@
 
     &.primary {
         background-color: @blue;
+    }
+}
+
+/* Update dialog */
+.update-dialog .modal-body {
+    position: relative;
+    .update-icon {
+        position: absolute;
+        left: 30px; // relative to border of modal-body
+        top: 20px;
+        width: 80px;
+        height: 80px;
+    }
+    .update-text {
+        // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
+        margin: 0 10px 0 123px;
+
+        .update-info {
+            max-height: 200px;
+            overflow: auto;
+        }
     }
 }
 

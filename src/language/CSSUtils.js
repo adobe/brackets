@@ -32,7 +32,7 @@
  * Set of utilities for simple parsing of CSS text.
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var Async               = require("utils/Async"),
         DocumentManager     = require("document/DocumentManager"),
@@ -73,7 +73,9 @@ define(function (require, exports, module) {
         var selectorStartChar = -1, selectorStartLine = -1;
         var selectorGroupStartLine = -1, selectorGroupStartChar = -1;
         var declListStartLine = -1, declListStartChar = -1;
-
+        var escapePattern = new RegExp("\\\\[^\\\\]+", "g");
+        var validationPattern = new RegExp("\\\\([a-f0-9]{6}|[a-f0-9]{4}(\\s|\\\\|$)|[a-f0-9]{2}(\\s|\\\\|$)|.)", "i");
+        
         // implement _firstToken()/_nextToken() methods to
         // provide a single stream of tokens
         
@@ -183,7 +185,24 @@ define(function (require, exports, module) {
                     break;
                 }
             }
-
+            
+            // Unicode character replacement as defined in http://www.w3.org/TR/CSS21/syndata.html#characters
+            if (/\\/.test(currentSelector)) {
+                // Double replace in case of pattern overlapping (regex improvement?)
+                currentSelector = currentSelector.replace(escapePattern, function (escapedToken) {
+                    return escapedToken.replace(validationPattern, function (unicodeChar) {
+                        unicodeChar = unicodeChar.substr(1);
+                        if (unicodeChar.length === 1) {
+                            return unicodeChar;
+                        } else {
+                            if (parseInt(unicodeChar, 16) < 0x10FFFF) {
+                                return String.fromCharCode(parseInt(unicodeChar, 16));
+                            } else { return String.fromCharCode(0xFFFD); }
+                        }
+                    });
+                });
+            }
+            
             currentSelector = currentSelector.trim();
             if (currentSelector !== "") {
                 selectors.push({selector: currentSelector,
@@ -255,7 +274,7 @@ define(function (require, exports, module) {
             if (ruleStartChar !== -1) {
                 return false;       // already included
             }
-            if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf('}') !== -1) {
+            if (stream.start > 0 && lines[line].substr(0, stream.start).indexOf("}") !== -1) {
                 return false;       // on same line as '}', so it's for previous rule
             }
             return true;
@@ -530,7 +549,6 @@ define(function (require, exports, module) {
      */
     function findMatchingRules(selector, htmlDocument) {
         var result          = new $.Deferred(),
-            cssFilesResult  = FileIndexManager.getFileInfoList("css"),
             resultSelectors = [];
         
         // Synchronously search for matches in <style> blocks

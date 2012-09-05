@@ -29,7 +29,7 @@
   * This is JavaScript API exposed to the native shell when Brackets is run in a native shell rather than a browser.
   */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var CommandManager     = require("command/CommandManager");

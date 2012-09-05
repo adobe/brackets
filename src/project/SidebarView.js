@@ -23,30 +23,40 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document  */
+/*global define, $, document, window, brackets  */
+
+/**
+ * The view that controls the showing and hiding of the sidebar. Dispatches the following events:
+ *    hide -- when the sidebar is hidden
+ *    show -- when the sidebar is shown
+ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
-    var ProjectManager          = require("project/ProjectManager"),
-        WorkingSetView          = require("project/WorkingSetView"),
-        CommandManager          = require("command/CommandManager"),
-        Commands                = require("command/Commands"),
-        Strings                 = require("strings"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        EditorManager           = require("editor/EditorManager");
+    var AppInit             = require("utils/AppInit"),
+        ProjectManager      = require("project/ProjectManager"),
+        WorkingSetView      = require("project/WorkingSetView"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Strings             = require("strings"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Global              = require("utils/Global");
 
-    var $sidebar                = $("#sidebar"),
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span"),
-        $sidebarResizer         = $("#sidebar-resizer"),
-        $openFilesContainer     = $("#open-files-container"),
-        $projectTitle           = $("#project-title"),
-        $projectFilesContainer  = $("#project-files-container"),
-        isSidebarClosed         = false;
-    
+    var isSidebarClosed         = false;
+
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
-    
+
+    // These vars are initialized by the htmlReady handler
+    // below since they refer to DOM elements
+    var $sidebar,
+        $sidebarMenuText,
+        $sidebarResizer,
+        $openFilesContainer,
+        $projectTitle,
+        $projectFilesContainer;
     
     /**
      * @private
@@ -75,7 +85,7 @@ define(function (require, exports, module) {
         
         if (typeof displayTriangle === "boolean") {
             var display = (displayTriangle) ? "block" : "none";
-            $sidebar.find(".triangle-visible").css("display", display);
+            $sidebar.find(".sidebar-selection-triangle").css("display", display);
         }
         
         if (isSidebarClosed) {
@@ -89,8 +99,6 @@ define(function (require, exports, module) {
             // event that we can just call from anywhere instead of hard-coding it.
             // waiting on a ProjectManager refactor to add that. 
             $sidebar.find(".sidebar-selection").width(width);
-            $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
             
             if (width > 10) {
                 prefs.setValue("sidebarWidth", width);
@@ -101,7 +109,6 @@ define(function (require, exports, module) {
             var text = (isSidebarClosed) ? Strings.CMD_SHOW_SIDEBAR : Strings.CMD_HIDE_SIDEBAR;
             CommandManager.get(Commands.VIEW_HIDE_SIDEBAR).setName(text);
         }
-        
         EditorManager.resizeEditor();
     }
     
@@ -111,15 +118,16 @@ define(function (require, exports, module) {
     function toggleSidebar(width) {
         if (isSidebarClosed) {
             $sidebar.show();
+            $(exports).triggerHandler("show");
         } else {
             $sidebar.hide();
+            $(exports).triggerHandler("hide");
         }
         
         isSidebarClosed = !isSidebarClosed;
         
         var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
         prefs.setValue("sidebarClosed", isSidebarClosed);
-        
         _setWidth(width, true, !isSidebarClosed);
     }
     
@@ -132,7 +140,9 @@ define(function (require, exports, module) {
             $body                   = $(document.body),
             prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
             sidebarWidth            = prefs.getValue("sidebarWidth"),
-            startingSidebarPosition = sidebarWidth;
+            startingSidebarPosition = sidebarWidth,
+            animationRequest        = null,
+            isMouseDown             = false;
         
         $sidebarResizer.css("left", sidebarWidth - 1);
         
@@ -143,59 +153,85 @@ define(function (require, exports, module) {
         }
         
         $sidebarResizer.on("dblclick", function () {
-            if ($sidebar.width() === 1) {
-                // mousedown is fired first. Sidebar is already toggeled open to 1px.
+            if ($sidebar.width() < 10) {
+                //mousedown is fired first. Sidebar is already toggeled open to at least 10px.
                 _setWidth(null, true, true);
+                $projectFilesContainer.triggerHandler("scroll");
+                $openFilesContainer.triggerHandler("scroll");
             } else {
-                toggleSidebar();
+                toggleSidebar(sidebarWidth);
             }
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
-            var startX = e.clientX;
+            var startX = e.clientX,
+                newWidth = Math.max(e.clientX, 0),
+                doResize = true;
+            
+            isMouseDown = true;
+
+            // take away the shadows (for performance reasons during sidebarmovement)
+            $sidebar.find(".scroller-shadow").css("display", "none");
+            
             $body.toggleClass("resizing");
+            
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
                 toggleSidebar(1);
             }
+                        
             
-            $mainView.on("mousemove.sidebar", function (e) {
-                var doResize = true,
-                    newWidth = Math.max(e.clientX, 0);
-                
+            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+                // only run this if the mouse is down so we don't constantly loop even 
+                // after we're done resizing.
+                if (!isMouseDown) {
+                    return;
+                }
+                    
                 // if we've gone below 10 pixels on a mouse move, and the
                 // sidebar is shrinking, hide the sidebar automatically an
                 // unbind the mouse event. 
                 if ((startX > 10) && (newWidth < 10)) {
                     toggleSidebar(startingSidebarPosition);
                     $mainView.off("mousemove.sidebar");
+                        
+                    // turn off the mouseup event so that it doesn't fire twice and retoggle the 
+                    // resizing class
+                    $mainView.off("mouseup.sidebar");
                     $body.toggleClass("resizing");
                     doResize = false;
-                } else if (startX < 10) {
-                    // reset startX if we're going from a snapped closed position to open
-                    startX = startingSidebarPosition;
+                    startX = 0;
+                        
+                    // force isMouseDown so that we don't keep calling requestAnimationFrame
+                    // this keeps the sidebar from stuttering
+                    isMouseDown = false;
+                        
                 }
                 
                 if (doResize) {
-                    // if we've moving past 10 pixels, make the triangle visible again
-                    // and register that the sidebar is no longer snapped closed. 
-                    var forceTriangle = null;
-                    
-                    if (newWidth > 10) {
-                        forceTriangle = true;
-                    }
-                    
-                    _setWidth(newWidth, false, forceTriangle);
+                    // for right now, displayTriangle is always going to be false for _setWidth
+                    // because we want to hide it when we move, and _setWidth only gets called
+                    // on mousemove now.
+                    _setWidth(newWidth, false, false);
                 }
                 
-                if (newWidth === 0) {
-                    $mainView.off("mousemove.sidebar");
-                    $("body").toggleClass("resizing");
-                }
-                    
+                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+            });
+            
+            $mainView.on("mousemove.sidebar", function (e) {
+                newWidth = Math.max(e.clientX, 0);
+                
                 e.preventDefault();
             });
                 
             $mainView.one("mouseup.sidebar", function (e) {
+                isMouseDown = false;
+                
+                // replace shadows and triangle
+                $sidebar.find(".sidebar-selection-triangle").css("display", "block");
+                $sidebar.find(".scroller-shadow").css("display", "block");
+                
+                $projectFilesContainer.triggerHandler("scroll");
+                $openFilesContainer.triggerHandler("scroll");
                 $mainView.off("mousemove.sidebar");
                 $body.toggleClass("resizing");
                 startingSidebarPosition = $sidebar.width();
@@ -204,17 +240,24 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
-    
-    // init
-    (function () {
-        WorkingSetView.create($openFilesContainer);
-        
-        $(ProjectManager).on("projectRootChanged", _updateProjectTitle);
 
-        CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
-        
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        $sidebar                = $("#sidebar");
+        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
+        $sidebarResizer         = $("#sidebar-resizer");
+        $openFilesContainer     = $("#open-files-container");
+        $projectTitle           = $("#project-title");
+        $projectFilesContainer  = $("#project-files-container");
+
+        // init
+        WorkingSetView.create($openFilesContainer);
         _initSidebarResizer();
-    }());
+    });
     
+    $(ProjectManager).on("projectOpen", _updateProjectTitle);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
+    
+    // Define public API
     exports.toggleSidebar = toggleSidebar;
 });

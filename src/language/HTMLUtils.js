@@ -26,7 +26,7 @@
 /*global define, $ */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     //constants
     var TAG_NAME = "tagName",
@@ -133,27 +133,41 @@ define(function (require, exports, module) {
      * @return { val:{string}, offset:{number}}
      */
     function _extractAttrVal(ctx) {
-        var attrValue = ctx.token.string;
-        var startChar = attrValue.charAt(0);
-        var endChar = attrValue.charAt(attrValue.length - 1);
-        var offset = _offsetInToken(ctx);
+        var attrValue = ctx.token.string,
+            startChar = attrValue.charAt(0),
+            endChar = attrValue.charAt(attrValue.length - 1),
+            offset = _offsetInToken(ctx),
+            foundEqualSign = false;
         
         //If this is a fully quoted value, return the whole
         //thing regardless of position
         if (attrValue.length > 1 &&
                 (startChar === "'" || startChar === '"') &&
                 endChar === startChar) {
-            //strip the quotes and return;
-            attrValue = attrValue.substring(1, attrValue.length - 1);
-            offset = offset - 1 > attrValue.length ? attrValue.length : offset - 1;
-            return {val: attrValue, offset: offset};
+            
+            // Find an equal sign before the end quote. If found, 
+            // then the user may be entering an attribute value right before 
+            // another attribute and we're getting a false balanced string.
+            // An example of this case is <link rel" href="foo"> where the 
+            // cursor is right after the first double quote.
+            foundEqualSign = (attrValue.match(/\=\s*['"]$/) !== null);
+            
+            if (!foundEqualSign) {
+                //strip the quotes and return;
+                attrValue = attrValue.substring(1, attrValue.length - 1);
+                offset = offset - 1 > attrValue.length ? attrValue.length : offset - 1;
+                return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: true};
+            }
         }
         
-        //The att value it getting edit in progress. There is possible extra
-        //stuff in this token state since the quote isn't closed, so we assume
-        //the stuff from the quote to the current pos is definitely in the attribute 
-        //value.
-        if (offset > 0) {
+        if (foundEqualSign) {
+            var spaceIndex = attrValue.indexOf(" ");
+            attrValue = attrValue.substring(0, (spaceIndex > offset) ? spaceIndex : offset);
+        } else if (offset > 0 && (startChar === "'" || startChar === '"')) {
+            //The att value is getting edit in progress. There is possible extra
+            //stuff in this token state since the quote isn't closed, so we assume
+            //the stuff from the quote to the current pos is definitely in the attribute 
+            //value.
             attrValue = attrValue.substring(0, offset);
         }
         
@@ -162,9 +176,11 @@ define(function (require, exports, module) {
         if (startChar === "'" || startChar === '"') {
             attrValue = attrValue.substring(1);
             offset--;
+        } else {
+            startChar = "";
         }
         
-        return {val: attrValue, offset: offset};
+        return {val: attrValue, offset: offset, quoteChar: startChar, hasEndQuote: false};
     }
     
     /**
@@ -193,14 +209,17 @@ define(function (require, exports, module) {
      * @return {{tagName:string, attr{name:string, value:string}, hint:{type:{string}, offset{number}}}}
      *              A tagInfo object with some context about the current tag hint.            
      */
-    function createTagInfo(tokenType, offset, tagName, attrName, attrValue) {
+    function createTagInfo(tokenType, offset, tagName, attrName, attrValue, valueAssigned, quoteChar, hasEndQuote) {
         return { tagName: tagName || "",
                  attr:
                     { name: attrName || "",
-                      value: attrValue || ""},
+                      value: attrValue || "",
+                      valueAssigned: valueAssigned || false,
+                      quoteChar: quoteChar || "",
+                      hasEndQuote: hasEndQuote || false },
                  position:
                     { tokenType: tokenType || "",
-                      offset: offset || 0} };
+                      offset: offset || 0 } };
     }
     
     /**
@@ -212,10 +231,24 @@ define(function (require, exports, module) {
     function _getTagInfoStartingFromAttrValue(ctx) {
         // Assume we in the attr value
         // and validate that by going backwards
-        var attrInfo = _extractAttrVal(ctx);
-        var attrVal = attrInfo.val;
-        var offset = attrInfo.offset;
+        var attrInfo = _extractAttrVal(ctx),
+            attrVal = attrInfo.val,
+            offset = attrInfo.offset,
+            quoteChar = attrInfo.quoteChar,
+            hasEndQuote = attrInfo.hasEndQuote,
+            strLength = ctx.token.string.length;
         
+        if (ctx.token.className === "string" && ctx.pos.ch === ctx.token.end && strLength > 1) {
+            var firstChar = ctx.token.string[0],
+                lastChar = ctx.token.string[strLength - 1];
+            
+            // We get here only when the cursor is immediately on the right of the end quote
+            // of an attribute value. So we want to return an empty tag info so that the caller
+            // can dismiss the code hint popup if it is still open.
+            if (firstChar === lastChar && (firstChar === "'" || firstChar === "\"")) {
+                return createTagInfo();
+            }
+        }
         
         //Move to the prev token, and check if it's "="
         if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.string !== "=") {
@@ -231,19 +264,20 @@ define(function (require, exports, module) {
         var tagName = _extractTagName(ctx);
  
         //We're good. 
-        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal);
+        return createTagInfo(ATTR_VALUE, offset, tagName, attrName, attrVal, true, quoteChar, hasEndQuote);
     }
 
     /**
      * @private
      * Gets the taginfo starting from the attribute name and moving forwards
      * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
+     * @param {boolean} isPriorAttr indicates whether we're getting info for a prior attribute
      * @return {string}
      */
-    function _getTagInfoStartingFromAttrName(ctx) {
+    function _getTagInfoStartingFromAttrName(ctx, isPriorAttr) {
         //Verify We're in the attribute name, move forward and try to extract the rest of
         //the info. If the user it typing the attr the rest might not be here
-        if (ctx.token.className !== "attribute") {
+        if (isPriorAttr === false && ctx.token.className !== "attribute") {
             return createTagInfo();
         }
         
@@ -259,10 +293,12 @@ define(function (require, exports, module) {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
-        var attrInfo = _extractAttrVal(ctx);
-        var attrVal = attrInfo.val;
+        var attrInfo = _extractAttrVal(ctx),
+            attrVal = attrInfo.val,
+            quoteChar = attrInfo.quoteChar,
+            hasEndQuote = attrInfo.hasEndQuote;
         
-        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal);
+        return createTagInfo(ATTR_NAME, offset, tagName, attrName, attrVal, true, quoteChar, hasEndQuote);
     }
     
     /**
@@ -280,14 +316,20 @@ define(function (require, exports, module) {
      *              A tagInfo object with some context about the current tag hint.
      */
     function getTagInfo(editor, constPos) {
-        //we're going to changing pos a lot, but we don't want to mess up
-        //the pos the caller passed in so we use extend to make a safe copy of it.	
-        //This is what pass by value in c++ would do.	
+        // We're going to be changing pos a lot, but we don't want to mess up
+        // the pos the caller passed in so we use extend to make a safe copy of it.	
+        // This is what pass by value in c++ would do.	
         var pos = $.extend({}, constPos),
             ctx = _getInitialContext(editor._codeMirror, pos),
+            tempCtx = null,
             offset = _offsetInToken(ctx),
             tagInfo,
             tokenType;
+        
+        // check if this is inside a style block.
+        if (editor.getModeForSelection() !== "html") {
+            return createTagInfo();
+        }
         
         //check and see where we are in the tag
         if (ctx.token.string.length > 0 && ctx.token.string.trim().length === 0) {
@@ -300,37 +342,84 @@ define(function (require, exports, module) {
             var testPos = {ch: ctx.pos.ch + 1, line: ctx.pos.line},
                 testToken = editor._codeMirror.getTokenAt(testPos);
 
-            if (testToken.string.length > 0 && testToken.string.trim().length > 0) {
+            if (testToken.string.length > 0 && testToken.string.trim().length > 0 &&
+                    testToken.string.charAt(0) !== ">") {
                 // pos has whitespace before it and non-whitespace after it, so use token after
-                ctx.pos = testPos;
                 ctx.token = testToken;
+
+                if (ctx.token.className === "tag") {
+                    // Check to see if the cursor is just before a "<" but not in any tag.
+                    if (ctx.token.string.charAt(0) === "<") {
+                        return createTagInfo();
+                    }
+                } else if (ctx.token.className === "attribute") {
+                    // Check to see if the user is going to add a new attr before an existing one
+                    return _getTagInfoStartingFromAttrName(ctx, false);
+                } else if (ctx.token.string === "=") {
+                    // We're between a whitespace and  "=", so return an empty tag info.
+                    return createTagInfo();
+                }
             } else {
+                // We get here if ">" or white spaces after testPos.
+                // Check if there is an equal sign after testPos by creating a new ctx
+                // with the original pos. We can't use the current ctx since we need to 
+                // use it to scan backwards if we don't find an equal sign here.
+                // Comment out this block to fix issue #1510.
+//                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
+//                    tempCtx = _getInitialContext(editor._codeMirror, pos);
+//                    if (_moveSkippingWhitespace(_moveNextToken, tempCtx) && tempCtx.token.string === "=") {
+//                        // Return an empty tag info since we're between an atribute name and the equal sign.
+//                        return createTagInfo();
+//                    }
+//                }
+
                 // next, see what's before pos
                 if (!_movePrevToken(ctx)) {
                     return createTagInfo();
                 }
-            
-                if (ctx.token.className !== "tag") {
-                    //if wasn't the tag name, assume it was an attr value
+
+                if (ctx.token.className === "comment") {
+                    return createTagInfo();
+                } else if (ctx.token.className !== "tag" && ctx.token.string !== "=") {
+                    // If it wasn't the tag name, assume it was an attr value
+                    // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
-                    //We don't want to give context for the previous attr
-                    //and we want it to look like the user is going to add a new attr
+
+                    // Check to see if this is the closing of a tag (either the start or end)
+                    if (ctx.token.className === "tag" &&
+                            (ctx.token.string === ">" || ctx.token.string === "/>" ||
+                            (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/"))) {
+                        return createTagInfo();
+                    }
+                    
+                    // If it wasn't an attr value, assume it was an empty attr (ie. attr with no value)
+                    if (!tagInfo.tagName) {
+                        tagInfo = _getTagInfoStartingFromAttrName(ctx, true);
+                    }
+
+                    // We don't want to give context for the previous attr
+                    // and we want it to look like the user is going to add a new attr
                     if (tagInfo.tagName) {
                         return createTagInfo(ATTR_NAME, 0, tagInfo.tagName);
                     }
                     return createTagInfo();
                 }
                 
-                //we know the tag was here, so they user is adding an attr name
+                // We know the tag was here, so the user is adding an attr name
                 tokenType = ATTR_NAME;
                 offset = 0;
             }
         }
         
         if (ctx.token.className === "tag") {
-            //check to see if this is the closing of a tag (either the start or end)
-            if (ctx.token.string === ">" ||
-                    (ctx.token.string.charAt(0) === '<' && ctx.token.string.charAt(1) === '/')) {
+            // Check if the user just typed a white space after "<" that made an existing tag invalid.
+            if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
+                return createTagInfo();
+            }
+            
+            // Check to see if this is the closing of a tag (either the start or end)
+            if (ctx.token.string === ">" || ctx.token.string === "/>" ||
+                    (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
                 return createTagInfo();
             }
             
@@ -339,25 +428,39 @@ define(function (require, exports, module) {
                 offset--; //need to take off 1 for the leading "<"
             }
             
-            //we're actually in the tag, just return that as we have no relevant 
-            //info about what attr is selected
+            // We're actually in the tag, just return that as we have no relevant 
+            // info about what attr is selected
             return createTagInfo(tokenType, offset, _extractTagName(ctx));
         }
         
         if (ctx.token.string === "=") {
-            //we could be between the attr and the value
-            //step back and check
+            // We could be between the attr and the value
+            // Step back and check
             if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
                 return createTagInfo();
             }
             
-            //The "=" is added, time to hint for values
+            // The "=" is added, time to hint for values
             tokenType = ATTR_VALUE;
             offset = 0;
         }
         
         if (ctx.token.className === "attribute") {
-            tagInfo = _getTagInfoStartingFromAttrName(ctx);
+            tagInfo = _getTagInfoStartingFromAttrName(ctx, false);
+            
+            // If we're in attr value, then we may need to calculate the correct offset
+            // from the beginning of the attribute value. If the cursor position is to 
+            // the left of attr value, then the offset is negative.
+            // e.g. if the cursor is just to the right of the "=" in <a rel= "rtl", then
+            // the offset will be -2.
+            if (tagInfo.attr.quoteChar) {
+                offset = constPos.ch - ctx.pos.ch;
+            } else if (tokenType === ATTR_VALUE && (constPos.ch + 1) < ctx.pos.ch) {
+                // The cursor may be right before an unquoted attribute or another attribute name.
+                // Since we can't distinguish between them, we will empty the value so that the 
+                // caller can just insert a new attribute value.
+                tagInfo.attr.value = "";
+            }
         } else {
             // if we're not at a tag, "=", or attribute name, assume we're in the value
             tagInfo = _getTagInfoStartingFromAttrValue(ctx);
@@ -389,7 +492,7 @@ define(function (require, exports, module) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
                 if (ctx.token.state.mode !== "css") {
-                    currentStyleBlock.text = editor._codeMirror.getRange(currentStyleBlock.start, currentStyleBlock.end);
+                    currentStyleBlock.text = editor.document.getRange(currentStyleBlock.start, currentStyleBlock.end);
                     inStyleBlock = false;
                 } else {
                     currentStyleBlock.end = { line: ctx.pos.line, ch: ctx.pos.ch };

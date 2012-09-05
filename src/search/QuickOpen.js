@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, window */
+/*global define, $, window, setTimeout */
 
 /*
 * Displays an auto suggest pop-up list of files to allow the user to quickly navigate to a file and lines
@@ -39,7 +39,7 @@
 
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var FileIndexManager    = require("project/FileIndexManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -157,10 +157,10 @@ define(function (require, exports, module) {
      * Creates a dialog div floating on top of the current code mirror editor
      */
     QuickNavigateDialog.prototype._createDialogDiv = function (template) {
-        var $wrap = $("#editor-holder")[0];
-        this.dialog = $wrap.insertBefore(window.document.createElement("div"), $wrap.firstChild);
-        this.dialog.className = "CodeMirror-dialog";
-        this.dialog.innerHTML = '<div align="right">' + template + '</div>';
+        this.dialog = $("<div />")
+                          .attr("class", "CodeMirror-dialog")
+                          .html("<div align='right'>" + template + "</div>")
+                          .prependTo($("#editor-holder"));
     };
 
     function _filenameFromPath(path, includeExtension) {
@@ -291,7 +291,6 @@ define(function (require, exports, module) {
 
     /**
      * KeyUp is for cases that handle AFTER a character has been committed to $searchField
-     *
      */
     QuickNavigateDialog.prototype._handleKeyUp = function (e) {
         var query = this.$searchField.val();
@@ -374,15 +373,27 @@ define(function (require, exports, module) {
 
         // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
         //JSLintUtils.setEnabled(true);
+        
+        // Make sure Smart Autocomplete knows its popup is getting closed (in cases where there's no
+        // editor to give focus to below, it won't notice otherwise).
+        this.$searchField.trigger("lostFocus");
 
         EditorManager.focusEditor();
-
-        // for some odd reason I need to remove the dialog like this through the parent
-        // If I do it more directly listeners are not removed by the smart auto complete plug-in
-        this.dialog.parentNode.removeChild(this.dialog);
+        
+        // Closing the dialog is a little tricky (see #1384): some Smart Autocomplete code may run later (e.g.
+        // (because it's a later handler of the event that just triggered _close()), and that code expects to
+        // find metadata that it stuffed onto the DOM node earlier. But $.remove() strips that metadata.
+        // So, to hide the dialog immediately it's only safe to remove using raw DOM APIs:
+        this.dialog[0].parentNode.removeChild(this.dialog[0]);
+        var self = this;
+        setTimeout(function () {
+            // Now that it's safe, call the real jQuery API to clear the metadata & prevent a memory leak
+            self.dialog.remove();
+        }, 0);
+        
         $(".smart_autocomplete_container").remove();
 
-        $(window.document).off("mousedown", this.handleDocumentClick);
+        $(window.document).off("mousedown", this.handleDocumentMouseDown);
     };
     
     
@@ -516,18 +527,18 @@ define(function (require, exports, module) {
         var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath));
 
         if (query.length > 0) {
-            // make the users query bold within the item's text
+            // make the user's query bold within the item's text
             displayName = displayName.replace(
                 new RegExp(StringUtils.regexEscape(query), "gi"),
                 "<strong>$&</strong>"
             );
         }
 
-        return "<li>" + displayName + "<br><span class='quick-open-path'>" + displayPath + "</span></li>";
+        return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }
 
     function _handleResultsFormatter(item) {
-        var query = $('input#quickOpenSearch').val();
+        var query = $("input#quickOpenSearch").val();
         
         var formatter;
 
@@ -547,7 +558,7 @@ define(function (require, exports, module) {
         initialString = prefix + initialString;
 
         
-        var $field = $('input#quickOpenSearch');
+        var $field = $("input#quickOpenSearch");
         if ($field) {
             $field.val(initialString);
             $field.get(0).setSelectionRange(prefix.length, initialString.length);
@@ -555,10 +566,11 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Close the dialog when the user clicks outside of it. Note, auto smart complete has a "lostFocus" event that is
-     * supposed to capture this event, but it also gets triggered on keyUp which doesn't work for quick find.
+     * Close the dialog when the user clicks outside of it. Smart-autocomplete listens for this and automatically closes its popup,
+     * but we want to close the whole search "dialog." (And we can't just piggyback on the popup closing event, since there are cases
+     * where the popup closes that we want the dialog to remain open (e.g. deleting search term via backspace).
      */
-    QuickNavigateDialog.prototype.handleDocumentClick = function (e) {
+    QuickNavigateDialog.prototype.handleDocumentMouseDown = function (e) {
         if ($(this.dialog).find(e.target).length === 0 && $(".smart_autocomplete_container").find(e.target).length === 0) {
             this._close();
         }
@@ -575,8 +587,8 @@ define(function (require, exports, module) {
         }
         dialogOpen = true;
 
-        this.handleDocumentClick = this.handleDocumentClick.bind(this);
-        $(window.document).on("mousedown", this.handleDocumentClick);
+        this.handleDocumentMouseDown = this.handleDocumentMouseDown.bind(this);
+        $(window.document).on("mousedown", this.handleDocumentMouseDown);
 
 
         // Ty TODO: disabled for now while file switching is disabled in _handleItemFocus
@@ -595,9 +607,9 @@ define(function (require, exports, module) {
         FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
-                var dialogHTML = 'Quick Open: <input type="text" autocomplete="off" id="quickOpenSearch" style="width: 30em">';
+                var dialogHTML = Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
                 that._createDialogDiv(dialogHTML);
-                that.$searchField = $('input#quickOpenSearch');
+                that.$searchField = $("input#quickOpenSearch");
 
 
                 that.$searchField.smartAutoComplete({

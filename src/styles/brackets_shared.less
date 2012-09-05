@@ -34,7 +34,8 @@
 /* CSS imports */
 
 // CodeMirror
-@import url(../thirdparty/CodeMirror2/lib/codemirror.css);
+// Must wrap in quotes to avoid issue #1015 (true for all relative URLs to non-LESS files)
+@import url("../thirdparty/CodeMirror2/lib/codemirror.css");
 
 /* LESS imports */
 

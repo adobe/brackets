@@ -26,7 +26,7 @@
 /*global define, $, window */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
     
     var SCROLL_SHADOW_HEIGHT = 5;
     
@@ -277,13 +277,55 @@ define(function (require, exports, module) {
             f.apply();
         });
     }
+
+    /**
+     * Within a scrolling DOMElement, if necessary, scroll element into viewport.
+     *
+     * To Perform the minimum amount of scrolling necessary, cases should be handled as follows:
+     * - element already completely in view : no scrolling
+     * - element above    viewport          : scroll view so element is at top
+     * - element left of  viewport          : scroll view so element is at left
+     * - element below    viewport          : scroll view so element is at bottom
+     * - element right of viewport          : scroll view so element is at right
+     *
+     * Assumptions:
+     * - $view is a scrolling container
+     *
+     * @param {!DOMElement} $view - A jQuery scrolling container
+     * @param {!DOMElement} $element - A jQuery element
+     * @param {?boolean} scrollHorizontal - whether to also scroll horizonally
+     */
+    function scrollElementIntoView($view, $element, scrollHorizontal) {
+        var viewOffset = $view.offset(),
+            viewScroller = $view.get(0),
+            element = $element.get(0),
+            elementOffset = $element.offset();
+
+        // scroll minimum amount
+        if (elementOffset.top + $element.height() >= (viewOffset.top + $view.height())) {
+            // below viewport
+            element.scrollIntoView(false);
+        } else if (elementOffset.top <= viewOffset.top) {
+            // above viewport
+            element.scrollIntoView(true);
+        }
+
+        if (scrollHorizontal) {
+            if (elementOffset.left < 0) {
+                $view.scrollLeft($view.scrollLeft() + elementOffset.left);
+            } else if (elementOffset.left + $element.width() >= viewOffset.left + $view.width()) {
+                $view.scrollLeft(elementOffset.left - viewOffset.left);
+            }
+        }
+    }
     
     // handle all resize handlers in a single listener
     $(window).resize(_handleResize);
 
     // Define public API
-    exports.SCROLL_SHADOW_HEIGHT = SCROLL_SHADOW_HEIGHT;
-    exports.addScrollerShadow = addScrollerShadow;
-    exports.removeScrollerShadow = removeScrollerShadow;
-    exports.sidebarList = sidebarList;
+    exports.SCROLL_SHADOW_HEIGHT    = SCROLL_SHADOW_HEIGHT;
+    exports.addScrollerShadow       = addScrollerShadow;
+    exports.removeScrollerShadow    = removeScrollerShadow;
+    exports.sidebarList             = sidebarList;
+    exports.scrollElementIntoView   = scrollElementIntoView;
 });

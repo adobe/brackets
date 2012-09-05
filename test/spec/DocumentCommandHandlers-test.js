@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, browser: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define: false, describe: false, beforeEach: false, afterEach: false, it: false, runs: false, waitsFor: false, expect: false, brackets: false */
+/*global define, $, describe, beforeEach, afterEach, it, runs, waitsFor, expect, brackets, waitsForDone */
 
 define(function (require, exports, module) {
     'use strict';
@@ -33,9 +33,9 @@ define(function (require, exports, module) {
         Commands,            // loaded from brackets.test
         DocumentCommandHandlers, // loaded from brackets.test
         DocumentManager,     // loaded from brackets.test
-        SpecRunnerUtils     = require("./SpecRunnerUtils.js"),
+        SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
-        _FSEncodings        = NativeFileSystem._FSEncodings;
+        FileUtils           = require("file/FileUtils");
     
     
     describe("DocumentCommandHandlers", function () {
@@ -68,39 +68,28 @@ define(function (require, exports, module) {
 
         describe("Close File", function () {
             it("should complete without error if no files are open", function () {
-                var didClose = false, gotError = false;
+                var promise;
 
                 runs(function () {
-                    CommandManager.execute(Commands.FILE_CLOSE)
-                        .done(function () { didClose = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "FILE_CLOSE");
                 });
-
-                waitsFor(function () { return didClose && !gotError; }, 1000);
-
                 runs(function () {
                     expect(testWindow.$("#main-toolbar .title").text()).toBe("");
                 });
             });
 
             it("should close a file in the editor", function () {
-                var didOpen = false, didClose = false, gotError = false;
+                var promise;
 
                 runs(function () {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "FILE_OPEN");
                 });
-                waitsFor(function () { return didOpen && !gotError; }, 1000);
-
                 runs(function () {
-                    gotError = false;
-                    CommandManager.execute(Commands.FILE_CLOSE)
-                        .done(function () { didClose = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_CLOSE);
+                    waitsForDone(promise, "FILE_CLOSE");
                 });
-                waitsFor(function () { return didClose && !gotError; }, 1000);
-
                 runs(function () {
                     expect(testWindow.$("#main-toolbar .title").text()).toBe("");
                 });
@@ -109,15 +98,12 @@ define(function (require, exports, module) {
 
         describe("Open File", function () {
             it("should open a file in the editor", function () {
-                var didOpen = false, gotError = false;
+                var promise;
 
                 runs(function () {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "FILE_OPEN");
                 });
-                waitsFor(function () { return didOpen && !gotError; }, 1000);
-
                 runs(function () {
                     expect(DocumentManager.getCurrentDocument().getText()).toBe(TEST_JS_CONTENT);
                 });
@@ -126,46 +112,106 @@ define(function (require, exports, module) {
 
         describe("Save File", function () {
             it("should save changes", function () {
-                var didOpen     = false,
-                    didSave     = false,
-                    gotError    = false,
-                    filePath    = testPath + "/test.js";
+                var filePath    = testPath + "/test.js",
+                    promise;
 
                 runs(function () {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath})
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+                    waitsForDone(promise, "FILE_OPEN");
                 });
-                waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
 
                 // modify and save
                 runs(function () {
                     DocumentManager.getCurrentDocument().setText(TEST_JS_NEW_CONTENT);
 
-                    CommandManager.execute(Commands.FILE_SAVE)
-                        .done(function () { didSave = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    waitsForDone(promise, "FILE_SAVE");
                 });
-                waitsFor(function () { return didSave && !gotError; }, "FILE_SAVE timeout", 1000);
 
                 // confirm file contents
                 var actualContent = null, error = -1;
                 runs(function () {
-                    brackets.fs.readFile(filePath, _FSEncodings.UTF8, function (err, contents) {
-                        error = err;
-                        actualContent = contents;
-                    });
-                });
-                waitsFor(function () { return error >= 0; }, "readFile timeout", 1000);
-
-                runs(function () {
-                    expect(error).toBe(brackets.fs.NO_ERROR);
-                    expect(actualContent).toBe(TEST_JS_NEW_CONTENT);
+                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(filePath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(TEST_JS_NEW_CONTENT);
+                        });
+                    waitsForDone(promise, "Read test file");
                 });
 
                 // reset file contents
                 runs(function () {
-                    brackets.fs.writeFile(filePath, TEST_JS_CONTENT, _FSEncodings.UTF8);
+                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(filePath), TEST_JS_CONTENT);
+                    waitsForDone(promise, "Revert test file");
+                });
+            });
+            
+            // Regardless of platform, files with CRLF should be saved with CRLF and files with LF should be saved with LF
+            it("should preserve line endings when saving changes", function () {
+                var crlfText = "line1\r\nline2\r\nline3",
+                    lfText   = "line1\nline2\nline3",
+                    crlfPath = testPath + "/crlfTest.js",
+                    lfPath   = testPath + "/lfTest.js",
+                    promise;
+                
+                // create test files (Git rewrites line endings, so these can't be kept in src control)
+                runs(function () {
+                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(crlfPath), crlfText);
+                    waitsForDone(promise, "Create CRLF test file");
+                });
+                runs(function () {
+                    promise = FileUtils.writeText(new NativeFileSystem.FileEntry(lfPath), lfText);
+                    waitsForDone(promise, "Create LF test file");
+                });
+                
+                // open, modify, and save file (CRLF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: crlfPath});
+                    waitsForDone(promise, "Open CRLF test file");
+                });
+                
+                runs(function () {
+                    DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    waitsForDone(promise, "Save modified file");
+                });
+                
+                // open, modify, and save file (LF case)
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: lfPath});
+                    waitsForDone(promise, "Open LF test file");
+                });
+                
+                runs(function () {
+                    DocumentManager.getCurrentDocument().replaceRange("line2a\nline2b", {line: 1, ch: 0}, {line: 1, ch: 5});
+                    promise = CommandManager.execute(Commands.FILE_SAVE);
+                    waitsForDone(promise, "Save modified file");
+                });
+                
+                // verify file contents
+                runs(function () {
+                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(crlfPath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(crlfText.replace("line2", "line2a\r\nline2b"));
+                        });
+                    waitsForDone(promise, "Read CRLF test file");
+                });
+                
+                runs(function () {
+                    promise = FileUtils.readAsText(new NativeFileSystem.FileEntry(lfPath))
+                        .done(function (actualText) {
+                            expect(actualText).toBe(lfText.replace("line2", "line2a\nline2b"));
+                        });
+                    waitsForDone(promise, "Read LF test file");
+                });
+                
+                // clean up
+                runs(function () {
+                    promise = SpecRunnerUtils.deleteFile(crlfPath);
+                    waitsForDone(promise, "Remove CRLF test file");
+                });
+                runs(function () {
+                    promise = SpecRunnerUtils.deleteFile(lfPath);
+                    waitsForDone(promise, "Remove LF test file");
                 });
             });
         });
@@ -173,14 +219,12 @@ define(function (require, exports, module) {
         describe("Dirty File Handling", function () {
 
             beforeEach(function () {
-                var didOpen = false, gotError = false;
+                var promise;
 
                 runs(function () {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"})
-                        .done(function () { didOpen = true; })
-                        .fail(function () { gotError = true; });
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: testPath + "/test.js"});
+                    waitsForDone(promise, "FILE_OPEN");
                 });
-                waitsFor(function () { return didOpen && !gotError; }, "FILE_OPEN timeout", 1000);
             });
 
             it("should report clean immediately after opening a file", function () {
@@ -232,14 +276,14 @@ define(function (require, exports, module) {
             // This test is not currently valid. For issue 152, we have temporarily decided to make it so
             // the file is always dirty as soon as you make a change, regardless of whether you undo back to
             // its last saved state. In the future, we might restore this behavior.
-/*
-            it("should report not dirty after undo", function() {
-                runs(function() {
+
+            it("should report not dirty after undo", function () {
+                runs(function () {
                     // change editor content, followed by undo
                     var doc = DocumentManager.getCurrentDocument();
                     var editor = doc._masterEditor._codeMirror;
                     
-                    doc.getText(TEST_JS_NEW_CONTENT);
+                    doc.setText(TEST_JS_NEW_CONTENT);
                     editor.undo();
                     
                     // verify Document dirty status
@@ -247,7 +291,7 @@ define(function (require, exports, module) {
                     expect(DocumentManager.getCurrentDocument().isDirty).toBe(false);
                 });
             });
-*/
+
         });
     });
 });
