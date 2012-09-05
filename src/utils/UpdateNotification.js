@@ -35,11 +35,10 @@ define(function (require, exports, module) {
         NativeApp           = require("utils/NativeApp"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        BuildNumberJSON     = require("text!buildNumber.json");
+        StringUtils         = require("utils/StringUtils");
     
-    // Current build number.
-    var _buildNumber = JSON.parse(BuildNumberJSON).buildNumber;
+    // Extract current build number from package.json version field 0.0.0-0
+    var _buildNumber = /-([0-9]+)/.exec(brackets.metadata.version)[1];
     
     // PreferenceStorage
     var _prefs = PreferencesManager.getPreferenceStorage(module.id, {lastNotifiedBuildNumber: 0});
