@@ -78,10 +78,10 @@ define({
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS code</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)",
     
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live File Preview",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live File Preview: Connecting...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live File Preview: Initializing...",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live File Preview",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing...",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
     
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
@@ -142,7 +142,7 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Close All",
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
-    "CMD_LIVE_FILE_PREVIEW"               : "Live File Preview",
+    "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands
