@@ -922,7 +922,7 @@ define(function (require, exports, module) {
         /*
          * Debug menu
          */
-        if (brackets.packageJSON.config.show_debug_menu) {
+        if (brackets.config.show_debug_menu) {
             menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
             menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
                                                                    {key: "Cmd-Opt-I", platform: "mac"}]);
@@ -943,7 +943,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
         menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
 
-        if (brackets.packageJSON.config.forum_url) {
+        if (brackets.config.forum_url) {
             menu.addMenuDivider();
             menu.addMenuItem(Commands.HELP_FORUM);
         }

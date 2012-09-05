@@ -38,7 +38,7 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils");
     
     // Extract current build number from package.json version field 0.0.0-0
-    var _buildNumber = /-([0-9]+)/.exec(brackets.packageJSON.version)[1];
+    var _buildNumber = /-([0-9]+)/.exec(brackets.metadata.version)[1];
     
     // PreferenceStorage
     var _prefs = PreferencesManager.getPreferenceStorage(module.id, {lastNotifiedBuildNumber: 0});

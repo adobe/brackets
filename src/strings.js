@@ -37,7 +37,7 @@ define(function (require, exports, module) {
         Global      = require("utils/Global"),
         StringUtils = require("utils/StringUtils");
     
-    strings.APP_NAME = brackets.packageJSON.name || strings.APP_NAME;
+    strings.APP_NAME = brackets.metadata.name || strings.APP_NAME;
     
     // Convert {APP_NAME}
     Object.keys(strings).forEach(function (key) {

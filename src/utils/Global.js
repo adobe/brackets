@@ -52,7 +52,8 @@ define(function (require, exports, module) {
     
     // Parse src/config.json
     try {
-        global.brackets.packageJSON = JSON.parse(packageJSON);
+        global.brackets.metadata = JSON.parse(packageJSON);
+        global.brackets.config = global.brackets.metadata.config;
     } catch (err) {
         console.log(err);
     }
