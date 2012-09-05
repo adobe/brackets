@@ -163,7 +163,7 @@ a, img {
 #update-notification {
     padding-right: 5px;
     margin-bottom: -1px;
-    .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");
+    .sprite-icon(0,0, 14px,14px, @img-update-sprites);
     &:hover {
         .sprite-swap(0,14px);
     }
@@ -181,7 +181,7 @@ a, img {
     
     // Default icon is for the 'disconnected' state
     // The 'connecting failed' (.warning) state also maps here
-    .sprite-icon(0,0, 22px,11px, "images/live_development_sprites.svg");
+    .sprite-icon(0,0, 22px,11px, @img-live-dev-sprites);
     &:hover {
         .sprite-swap(0,11px);
     }
@@ -275,13 +275,13 @@ a, img {
 }
 
 .sidebar-selection {
-    background: url("images/active_back.png") no-repeat top right;
+    background: @img-active-back no-repeat top right;
     height: 22px;
     position: absolute;
 }
 
 .sidebar-selection-triangle {
-    background: url("images/active_back.png");
+    background: @img-active-back;
     width: 10px;
     height: 22px;
     position: fixed;
@@ -352,7 +352,7 @@ a, img {
 /** Classes for icons from jsTreeSprites.svg 
 */
 .jstree-sprite {
-    background-image: url("images/jsTreeSprites.svg");
+    background-image: @img-js-tree-sprites;
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
@@ -378,7 +378,7 @@ ins.jstree-icon {
 */
 
 .bracket-sprite {
-    background-image: url("images/close_btn.svg");
+    background-image: @img-close-btn;
     background-repeat: no-repeat;
     background-color: transparent;
     vertical-align: middle;
