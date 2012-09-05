@@ -53,15 +53,9 @@ define(function (require, exports, module) {
 
     /** @type Array.<QuickOpenPlugin> */
     var plugins = [];
-    
-    /** The default filename search plugin. See below */
-    //var defaultPlugin; - TODO
 
     /** @type {QuickOpenPlugin} */
     var currentPlugin = null;
-    
-    /** @type {Array.<SearchResult|string>} */
-    var lastFilterResult = null;
 
     /** @type Array.<FileInfo>*/
     var fileList;
@@ -83,10 +77,9 @@ define(function (require, exports, module) {
 
     var dialogOpen = false;
 
-    /** Object representing a search result with associated metadata */
-    function SearchResult(label, extraProps) {
+    /** Object representing a search result with associated metadata (added as extra ad hoc fields) */
+    function SearchResult(label) {
         this.label = label;
-        $.extend(this, extraProps);
     }
     
     /**
@@ -112,25 +105,29 @@ define(function (require, exports, module) {
      *          done: function(),
      *          search: function(string):Array.<SearchResult|string>,
      *          match: function(string):boolean,
-     *          itemFocus: function(SearchResult|string),
-     *          itemSelect: funciton(SearchResult|string),
-     *          resultsFormatter: ?function(SearchResult|string, string):string } pluginDef
+     *          itemFocus: function(?SearchResult|string),
+     *          itemSelect: funciton(?SearchResult|string),
+     *          resultsFormatter: ?function(SearchResult|string, string):string
+     *        } pluginDef
      *
      * Parameter Documentation:
      *
      * name - plug-in name
-     * filetypes - file types array. Example: ["js", "css", "txt"]. An empty array
+     * fileTypes - file types array. Example: ["js", "css", "txt"]. An empty array
      *      indicates all file types.
      * done - called when quick open is complete. Plug-in should clear its internal state.
      * search - takes a query string and returns an array of strings that match the query.
      * match - takes a query string and returns true if this plug-in wants to provide
      *      results for this query.
-     * itemFocus - performs an action when a result has focus. 
-     *      The focused search result item (as returned by search()) is passed as an argument.
+     * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
+     *      The highlighted search result item (as returned by search()) is passed as an argument.
      * itemSelect - performs an action when a result is chosen.
      *      The selected search result item (as returned by search()) is passed as an argument.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     *
+     * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
+     * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
         plugins.push(new QuickOpenPlugin(
@@ -200,13 +197,18 @@ define(function (require, exports, module) {
         return result;
     }
     
+    /**
+     * Converts from list item DOM node to search provider list object
+     * @param {jQueryObject} domItem
+     * @return {SearchResult|string} value returned from search()
+     */
     function domItemToSearchResult(domItem) {
         if (domItem) {
-            // smart autocomplete uses this assumption internally: index of DOM node in results list container
+            // Smart Autocomplete uses this assumption internally: index of DOM node in results list container
             // exactly matches index of search result in list returned by _handleFilter()
             var index = $(domItem).index();
             
-            // this is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
+            // This is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
             var lastFilterResult = $('input#quickOpenSearch').data("smart-autocomplete").rawResults;
             return lastFilterResult[index];
         }
@@ -281,7 +283,6 @@ define(function (require, exports, module) {
         else {
             var fullPath = selectedItem.fullPath;
             if (fullPath) {
-                fullPath = decodeURIComponent(fullPath);
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
         }
@@ -354,6 +355,7 @@ define(function (require, exports, module) {
         }
     };
     
+    
     /**
     * Closes the search dialog and notifies all quick open plugins that
     * searching is done. 
@@ -397,82 +399,105 @@ define(function (require, exports, module) {
     };
     
     
-    function filterFileList(query) {
+    /**
+     * Performs basic filtering of a string based on a filter query, and ranks how close the match
+     * is. Use basicMatchSort() to sort the filtered results taking this ranking into account. The
+     * label of the SearchResult is set to 'str'.
+     * @param {!string} str
+     * @param {!string} query
+     * @return {?SearchResult}
+     */
+    function stringMatch(str, query) {
+        // is it a match at all?
+        var matchIndex = str.toLowerCase().indexOf(query.toLowerCase());
+        if (matchIndex !== -1) {
+            var searchResult = new SearchResult(str);
+            
+            // Rough heuristic to decide how good the match is: if query very closely matches str,
+            // rank it highly. Divides the search results into three broad buckets (0-2)
+            if (matchIndex === 0) {
+                if (str.length === query.length) {
+                    searchResult.matchGoodness = 0;
+                } else {
+                    searchResult.matchGoodness = 1;
+                }
+            } else {
+                searchResult.matchGoodness = 2;
+            }
+            
+            return searchResult;
+        }
+    }
+    
+    /**
+     * Sorts an array of SearchResult objects on a primary field, followed by secondary fields
+     * in case of ties. 'fields' maps field name to priority, where 0 is the primary field. E.g.:
+     *      multiFieldSort(bugList, { milestone: 0, severity: 1 });
+     * Would sort a bug list by milestone, and within each milestone sort bugs by severity.
+     *
+     * Any fields that have a string value are compared case-insensitively. Fields used should be
+     * present on all SearchResult objects (no optional/undefined fields).
+     *
+     * @param {!Array.<SearchResult>} searchResults
+     * @param {!Object.<string, number>} fields
+     */
+    function multiFieldSort(searchResults, fields) {
+        // Move field names into an array, with primary field first
+        var fieldNames = [];
+        $.each(fields, function (key, priority) {
+            fieldNames[priority] = key;
+        });
+        
+        searchResults.sort(function (a, b) {
+            var priority;
+            for (priority = 0; priority < fieldNames.length; priority++) {
+                var fieldName = fieldNames[priority];
+                var valueA = a[fieldName];
+                var valueB = b[fieldName];
+                if (typeof valueA === "string") {
+                    valueA = valueA.toLowerCase();
+                    valueB = valueB.toLowerCase();
+                }
+                
+                if (valueA < valueB) {
+                    return -1;
+                } else if (valueA > valueB) {
+                    return 1;
+                }
+                // otherwise, move on to next sort priority
+            }
+            return 0; // all sort fields are equal
+        });
+    }
+    
+    /**
+     * Sorts search results generated by stringMatch(): results are sorted into several
+     * tiers based on how well they matched the search query, then sorted alphabetically
+     * within each tier.
+     */
+    function basicMatchSort(searchResults) {
+        multiFieldSort(searchResults, { matchGoodness: 0, label: 2 });
+    }
+    
+    
+    function searchFileList(query) {
         // First pass: filter based on search string; convert to SearchResults containing extra info
         // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
+            // Is it a match at all?
             // match query against filename only (not the full path)
-            var path = fileInfo.fullPath;
-            var filename = fileInfo.name;
-            
-            // is it a match at all?
-            var matchIndex = fileInfo.name.toLowerCase().indexOf(query.toLowerCase());
-            if (matchIndex !== -1) {
-                // Rough hueristics to decide how good the match is: if query very closely matches
-                // filename, rank it highly. Divides the search results into four broad buckets (0-3)
-                var filenameWithoutExtension = _filenameFromPath(filename, false);
-                var matchGoodness;
-                if (matchIndex === 0) {
-                    if (filename.length === query.length) {
-                        matchGoodness = 0;
-                    } else if (filenameWithoutExtension.length === query.length) {
-                        matchGoodness = 1;
-                    } else {
-                        matchGoodness = 2;
-                    }
-                } else {
-                    matchGoodness = 3;
-                }
-                
-                return new SearchResult(filename, {
-                    fullPath: path,
-                    filenameWithoutExtension: filenameWithoutExtension,
-                    matchGoodness: matchGoodness
-                });
-            } else {
-                return null;
+            var searchResult = stringMatch(fileInfo.name, query);
+            if (searchResult) {
+                searchResult.fullPath = fileInfo.fullPath;
+                searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.name, false);
             }
-            
-        }).sort(function (a, b) {
-            // Results in better buckets will *always* be listed above lesser buckets
-            if (a.matchGoodness < b.matchGoodness) {
-                return -1;
-            } else if (a.matchGoodness > b.matchGoodness) {
-                return 1;
-                
-            } else {
-                // Within a "goodness" bucket, sort alphabetically
-                
-                // First sort by filename without extension (so that "abc.js" comes before "abc-d.js")
-                var filenameA = a.filenameWithoutExtension.toLowerCase();
-                var filenameB = b.filenameWithoutExtension.toLowerCase();
-                if (filenameA < filenameB) {
-                    return -1;
-                } else if (filenameA > filenameB) {
-                    return 1;
-                } else {
-                    // If filenames identical, include extension too
-                    filenameA = a.label.toLowerCase();
-                    filenameB = b.label.toLowerCase();
-                    if (filenameA < filenameB) {
-                        return -1;
-                    } else if (filenameA > filenameB) {
-                        return 1;
-                    } else {
-                        // If full filenames identical, then sort by path
-                        var pathA = a.fullPath.toLowerCase();
-                        var pathB = b.fullPath.toLowerCase();
-                        if (pathA < pathB) {
-                            return -1;
-                        } else if (pathA > pathB) {
-                            return 1;
-                        } else {
-                            return 0;
-                        }
-                    }
-                }
-            }
+            return searchResult;
         });
+        
+        // Sort by "match goodness" tier first, then within each tier sort alphabetically - first by filename
+        // sans extension, (so that "abc.js" comes before "abc-d.js"), then by filename, and finally (for
+        // identically-named files) by full path
+        multiFieldSort(filteredList, { matchGoodness: 0, filenameWithoutExtension: 1, label: 2, fullPath: 3 });
 
         return filteredList;
     }
@@ -489,15 +514,14 @@ define(function (require, exports, module) {
                 var extensionMatch = plugin.fileTypes.indexOf(extension) !== -1 || plugin.fileTypes.length === 0;
                 if (extensionMatch &&  plugin.match && plugin.match(query)) {
                     currentPlugin = plugin;
-                    lastFilterResult = plugin.search(query);
-                    return lastFilterResult;
+                    return plugin.search(query);
                 }
             }
         }
-
+        
+        // No plugin: use default file search mode
         currentPlugin = null;
-        lastFilterResult = filterFileList(query);
-        return lastFilterResult;
+        return searchFileList(query);
     }
 
 
@@ -546,6 +570,7 @@ define(function (require, exports, module) {
             // Plugins use their own formatter or the default formatter
             formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
         } else {
+            // No plugin: default file search mode uses a special formatter
             formatter = _filenameResultsFormatter;
         }
         return formatter(item, query);
@@ -642,7 +667,13 @@ define(function (require, exports, module) {
         return (currentEditor && currentEditor.getSelectedText()) || "";
     }
 
-    function doSearch(prefix, initialString) {
+    /**
+     * Opens the Quick Open bar prepopulated with the given prefix (to select a mode) and optionally
+     * with the given query text too. Updates text field contents if Quick Open already open.
+     * @param {?string} prefix
+     * @param {?string} initialString
+     */
+    function beginSearch(prefix, initialString) {
         if (dialogOpen) {
             setSearchFieldValue(prefix, initialString);
         } else {
@@ -652,14 +683,14 @@ define(function (require, exports, module) {
     }
 
     function doFileSearch() {
-        doSearch("", getCurrentEditorSelectedText());
+        beginSearch("", getCurrentEditorSelectedText());
     }
 
     function doGotoLine() {
         // TODO: Brackets doesn't support disabled menu items right now, when it does goto line and
         // goto definition should be disabled when there is not a current document
         if (DocumentManager.getCurrentDocument()) {
-            doSearch(":", "");
+            beginSearch(":", "");
         }
     }
 
@@ -667,7 +698,7 @@ define(function (require, exports, module) {
     // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plug-in
     function doDefinitionSearch() {
         if (DocumentManager.getCurrentDocument()) {
-            doSearch("@", getCurrentEditorSelectedText());
+            beginSearch("@", getCurrentEditorSelectedText());
         }
     }
 
@@ -678,6 +709,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
+    exports.beginSearch = beginSearch;
     exports.addQuickOpenPlugin = addQuickOpenPlugin;
     exports.SearchResult = SearchResult;
+    exports.stringMatch = stringMatch;
+    exports.basicMatchSort = basicMatchSort;
+    exports.multiFieldSort = multiFieldSort;
 });
