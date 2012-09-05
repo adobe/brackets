@@ -273,7 +273,8 @@ define(function (require, exports, module) {
     }
 
     // Localize MainViewHTML and inject into <BODY> tag
-    $("body").html(Mustache.render(MainViewHTML, Strings));
+    var templateVars = $.extend({ ABOUT_ICON: brackets.config.about_icon }, Strings);
+    $("body").html(Mustache.render(MainViewHTML, templateVars));
     
     // Update title
     $("title").text(Strings.APP_NAME);
