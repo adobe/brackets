@@ -68,11 +68,11 @@ define(function (require, exports, module) {
     }
 
     function _handleForum() {
-        if (!brackets.config.forum_url) {
+        if (!brackets.packageJSON.config.forum_url) {
             return;
         }
 
-        NativeApp.openURLInDefaultBrowser(brackets.config.forum_url);
+        NativeApp.openURLInDefaultBrowser(brackets.packageJSON.config.forum_url);
     }
     
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);

@@ -52,9 +52,7 @@ define(function (require, exports, module) {
     
     // Parse src/config.json
     try {
-        packageJSON = JSON.parse(packageJSON);
-        global.brackets.config = packageJSON.config;
-        global.brackets.config.name = packageJSON.name;
+        global.brackets.packageJSON = JSON.parse(packageJSON);
     } catch (err) {
         console.log(err);
     }
