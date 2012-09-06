@@ -129,6 +129,14 @@ define({
     "UNTITLED" : "Untitled",
 
     /**
+     * Keyboard modifier names
+     */
+
+     "KEYBOARD_CTRL"   : "Ctrl",
+     "KEYBOARD_SHIFT"  : "Shift",
+     "KEYBOARD_SPACE"  : "Space",
+
+    /**
      * Command Name Constants
      */
 

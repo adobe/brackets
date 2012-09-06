@@ -134,6 +134,14 @@ define({
     "UNTITLED" : "Unbenannt",
 
     /**
+     * Keyboard modifier names
+     */
+
+     "KEYBOARD_CTRL"   : "Strg",
+     "KEYBOARD_SHIFT"  : "Umschalt",
+     "KEYBOARD_SPACE"  : "Leer",
+
+    /**
      * Command Name Constants
      */
 
