@@ -56,8 +56,8 @@ define({
     "ERROR_CREATING_FILE"               : "Beim Erstellen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
 
     // Application error strings
-    "ERROR_BRACKETS_IN_BROWSER_TITLE"   : "Ups! Brackets läuft derzeit leider nocht nicht im Browser.",
-    "ERROR_BRACKETS_IN_BROWSER"         : "Brackets wurde in HTML programmiert aber derzeit läuft es nur als Desktop Anwendung, um damit lokale Dateien zu bearbeiten. Bitte benutzen Sie die Anwendung von <b>github.com/adobe/brackets-app</b>.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} läuft derzeit leider nocht nicht im Browser.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert aber derzeit läuft es nur als Desktop Anwendung, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
