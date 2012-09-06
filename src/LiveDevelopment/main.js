@@ -46,10 +46,12 @@ define(function main(require, exports, module) {
         CommandManager      = require("command/CommandManager"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Dialogs             = require("widgets/Dialogs"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
         Strings             = require("strings");
 
     var PREFERENCES_KEY = "com.adobe.brackets.live-development";
     var prefs;
+    var params = new UrlParams();
     var config = {
         experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
@@ -118,7 +120,7 @@ define(function main(require, exports, module) {
             LiveDevelopment.close();
             // TODO Ty: when checkmark support lands, remove checkmark
         } else {
-            if (!prefs.getValue("afterFirstLaunch")) {
+            if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
                 Dialogs.showModalDialog(
                     Dialogs.DIALOG_ID_INFO,
@@ -183,6 +185,7 @@ define(function main(require, exports, module) {
     /** Initialize LiveDevelopment */
     function init() {
         prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY);
+        params.parse();
 
         Inspector.init(config);
         LiveDevelopment.init(config);
