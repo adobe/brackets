@@ -206,6 +206,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
     "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
     "SEARCH_RESULTS"                       : "Suchergebnisse",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Nicht speichern",
