@@ -44,6 +44,7 @@ define(function (require, exports, module) {
     // TODO: (issue #258) In future, we should templatize the HTML for the dialogs rather than having 
     // it live directly in the HTML.
     var DIALOG_ID_ERROR = "error-dialog",
+        DIALOG_ID_INFO = "error-dialog", // uses the same template for now--could be different in future
         DIALOG_ID_SAVE_CLOSE = "save-close-dialog",
         DIALOG_ID_EXT_CHANGED = "ext-changed-dialog",
         DIALOG_ID_EXT_DELETED = "ext-deleted-dialog",
@@ -218,6 +219,7 @@ define(function (require, exports, module) {
     exports.DIALOG_BTN_DOWNLOAD = DIALOG_BTN_DOWNLOAD;
     
     exports.DIALOG_ID_ERROR = DIALOG_ID_ERROR;
+    exports.DIALOG_ID_INFO = DIALOG_ID_INFO;
     exports.DIALOG_ID_SAVE_CLOSE = DIALOG_ID_SAVE_CLOSE;
     exports.DIALOG_ID_EXT_CHANGED = DIALOG_ID_EXT_CHANGED;
     exports.DIALOG_ID_EXT_DELETED = DIALOG_ID_EXT_DELETED;
