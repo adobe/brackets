@@ -67,40 +67,71 @@ define({
     "ERROR_PARSE_TITLE"                 : "Fehler beim Interpretieren der CSS Datei(en):",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Webbrowsers",
-    "ERROR_CANT_FIND_CHROME"            : "Google Chrome konnte nicht gefunden werden. Bitte laden Sie den Browser unter <b>google.de/chrome</b>.",
-    "ERROR_LAUNCHING_BROWSER"           : "Beim Starten des Webbrowsers ist ein Fehler aufgetreten: (Fehler {0})",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Browsers",
+    "ERROR_CANT_FIND_CHROME"            : "Der Browser Google Chrome konnte nicht gefunden werden. Bitte stellen Sie sicher, dass er installiert ist.",
+    "ERROR_LAUNCHING_BROWSER"           : "Beim Starten des Browsers ist ein Fehler aufgetreten. (Fehler {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live Entwicklung",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Beim Aufbauen einer Live Verbindung zu Chrome ist ein Fehler aufgetreten. "
-                                                + "Für die Live Entwicklung muss das Remote Debugger Protokoll von Chrome aktiviert sein."
-                                                + "<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie erst eine HTML Datei und aktivieren Sie dann die Live Verbindung.",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Damit die Live-Vorschau sich verbinden kann, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Entwicklung",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Entwicklung: Verbinden...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Entwicklung: Initialisieren...",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Trennen der Live Verbindung",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren...",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
     
-    "SAVE_CLOSE_TITLE"                  : "Ungespeicherte Änderungen",
+    "SAVE_CLOSE_TITLE"                  : "Änderungen speichern",
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie die Änderungen in den folgenden Dateien speichern?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in Brackets."
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}."
                                                 + "<br /><br />"
                                                 + "Welche Version wollen Sie erhalten?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in Brackets."
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}."
                                                 + "<br /><br />"
                                                 + "Wollen Sie die Änderungen erhalten?",
     
-    "OPEN_FILE"                         : "Datei öffnen",
+    // Find, Replace, Find in Files
+    "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
+    "WITH"                              : "Mit",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nein",
+    "BUTTON_STOP"                       : "Stopp",
 
+    "OPEN_FILE"                         : "Datei öffnen",
+    "CHOOSE_FOLDER"                     : "Ordner wählen",
+
+    "RELEASE_NOTES"                     : "Release-Notes",
+    "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
+    "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
+    
+    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_FILE"                : "Datei",
+    "FIND_IN_FILES_FILES"               : "Dateien",
+    "FIND_IN_FILES_MATCH"               : "Treffer",
+    "FIND_IN_FILES_MATCHES"             : "Treffer",
+    "FIND_IN_FILES_MAX"                 : " (die ersten {0} Treffer werden angezeigt)",
+    "FIND_IN_FILES_FILE_PATH"           : "Datei: <b>{0}</b>",
+    "FIND_IN_FILES_LINE"                : "Zeile:&nbsp;{0}",
+
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
+    
     // Switch language
     "LANGUAGE_TITLE"                    : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
-    "LANGUAGE_SUBMIT"                   : "Brackets neu starten",
+    "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
 
+
+    /**
+     * ProjectManager
+     */
+
+    "UNTITLED" : "Unbenannt",
 
     /**
      * Command Name Constants
@@ -115,7 +146,7 @@ define({
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
-    "CMD_LIVE_FILE_PREVIEW"               : "Live Entwicklung",
+    "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
     "CMD_QUIT"                            : "Beenden",
 
     // Edit menu commands
@@ -154,19 +185,44 @@ define({
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Brackets neu laden",
+    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} neu laden",
     "CMD_SHOW_DEV_TOOLS"                  : "Entwicklungswerkzeuge zeigen",
     "CMD_RUN_UNIT_TESTS"                  : "Tests durchführen",
     "CMD_JSLINT"                          : "JSLint aktivieren",
-    "CMD_SHOW_PERF_DATA"                  : "Performance Analyse",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Neues Brackets Fenster",
+    "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
+    "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
     "CMD_USE_TAB_CHARS"                   : "Mit Tabs einrücken",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
 
     // Help menu commands
+    "HELP_MENU"                           : "Hilfe",
     "CMD_ABOUT"                           : "Über",
+    "CMD_FORUM"                           : "{APP_NAME}-Forum",
 
     // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Fenster schließen"
+    "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
+    "CMD_ABORT_QUIT"                      : "Abort Quit",
 
+    // Strings for main-view.html
+    "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
+    "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "SEARCH_RESULTS"                       : "Suchergebnisse",
+    "OK"                                   : "OK",
+    "DONT_SAVE"                            : "Nicht speichern",
+    "SAVE"                                 : "Speichern",
+    "CANCEL"                               : "Abbrechen",
+    "RELOAD_FROM_DISK"                     : "Von Festplatte neu laden",
+    "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
+    "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
+    "RELAUNCH_CHROME"                      : "Chrome neu starten",
+    "ABOUT"                                : "Über",
+    "APP_NAME"                             : "Brackets",
+    "CLOSE"                                : "Schließen",
+    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimenteller Build ",
+    "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> und sind hier durch Bezugnahme eingeschlossen.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Ein neuer Build von {APP_NAME} ist verfügbar! Für Details hier klicken.",
+    "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
+    "UPDATE_MESSAGE"                       : "Hey, ein neuer Build von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
+    "GET_IT_NOW"                           : "Jetzt updaten!"
 });
