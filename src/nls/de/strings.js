@@ -146,6 +146,7 @@ define({
     "CMD_FILE_CLOSE"                      : "Schließen",
     "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
+    "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
     "CMD_QUIT"                            : "Beenden",
 
@@ -191,8 +192,10 @@ define({
     "CMD_JSLINT"                          : "JSLint aktivieren",
     "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
     "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
     "CMD_USE_TAB_CHARS"                   : "Mit Tabs einrücken",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
+    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
