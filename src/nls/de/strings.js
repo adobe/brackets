@@ -27,7 +27,7 @@
 define({
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
-    "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Öffnen Dialogs. (Fehler {0})",
+    "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Öffnen-Dialogs. (Fehler {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Fehler beim Lesen des Verzeichnisses <span class='dialog-filename'>{0}</span>. (Fehler {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Fehler beim Lesen der Verzeichnisinhalte von <span class='dialog-filename'>{0}</span>. (Fehler {1})",
 
@@ -39,21 +39,21 @@ define({
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger Dateiname",
-    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgenden Zeichen nicht enthalten: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Die Datei <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen der Datei",
     "ERROR_CREATING_FILE"               : "Beim Erstellen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
 
     // Application error strings
     "ERROR_BRACKETS_IN_BROWSER_TITLE"   : "Ups! Brackets läuft derzeit leider nocht nicht im Browser.",
-    "ERROR_BRACKETS_IN_BROWSER"         : "Brackets wurde in HTML programmiert aber derzeite läuft es nur als Desktop Anwendung um damit lokale Dateien zu bearbeiten. Bitte benutzen Sie die Anwendung von <b>github.com/adobe/brackets-app</b>.",
+    "ERROR_BRACKETS_IN_BROWSER"         : "Brackets wurde in HTML programmiert aber derzeit läuft es nur als Desktop Anwendung, um damit lokale Dateien zu bearbeiten. Bitte benutzen Sie die Anwendung von <b>github.com/adobe/brackets-app</b>.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
-    "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl inidizierbarer Datein wurde überschritten. Funktionen die auf dem Index beruhen werden möglicherweise nicht korrekt funktionieren.",
+    "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Datein wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt funktionieren.",
     
     // CSSManager error strings
-    "ERROR_PARSE_TITLE"                 : "Fehler beim interpretieren der CSS Datei(en):",
+    "ERROR_PARSE_TITLE"                 : "Fehler beim Interpretieren der CSS Datei(en):",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Webbrowsers",
@@ -63,7 +63,7 @@ define({
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live Entwicklung",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Beim Aufbauen einer Live Verbindung zu Chrome ist ein Fehler aufgetreten. "
                                                 + "Für die Live Entwicklung muss das Remote Debugger Protokoll von Chrome aktiviert sein."
-                                                + "<br /><br />Soll Chrome neu gestartet werden um das Remote Debugger Protokoll zu aktivieren?",
+                                                + "<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie erst eine HTML Datei und aktivieren Sie dann die Live Verbindung.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Entwicklung",
@@ -82,10 +82,10 @@ define({
                                                 + "<br /><br />"
                                                 + "Wollen Sie die Änderungen erhalten?",
     
-    "OPEN_FILE"                         : "Datei Öffnen",
+    "OPEN_FILE"                         : "Datei öffnen",
 
     // Switch language
-    "LANGUAGE_TITLE"                    : "Sprache Wechseln",
+    "LANGUAGE_TITLE"                    : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
     "LANGUAGE_SUBMIT"                   : "Brackets neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
@@ -102,7 +102,7 @@ define({
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
-    "CMD_FILE_CLOSE_ALL"                  : "Alles schlieen",
+    "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Entwicklung",
     "CMD_QUIT"                            : "Beenden",
@@ -132,10 +132,10 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
-    "CMD_QUICK_OPEN"                      : "Schnell Öffnen",
+    "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zu Zeile",
     "CMD_GOTO_DEFINITION"                 : "Gehe zu Definition",
-    "CMD_TOGGLE_QUICK_EDIT"               : "Schnell Bearbeiten",
+    "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
