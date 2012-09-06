@@ -25,6 +25,17 @@
 /*global define */
 
 define({
+    /**
+     * Errors
+     */
+
+    // General file io error strings
+    "GENERIC_ERROR"                     : "(Fehler {0})",
+    "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
+    "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
+
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
     "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Öffnen-Dialogs. (Fehler {0})",
