@@ -103,8 +103,9 @@ define(function (require, exports, module) {
     //Load modules that self-register and just need to get included in the main project
     require("document/ChangedDocumentTracker");
     require("editor/EditorCommandHandlers");
-    require("debug/DebugCommandHandlers");
     require("view/ViewCommandHandlers");
+    require("debug/DebugCommandHandlers");
+    require("help/HelpCommandHandlers");
     require("search/FindInFiles");
     require("search/FindReplace");
     require("utils/ExtensionUtils");
@@ -186,23 +187,6 @@ define(function (require, exports, module) {
         // that self-register" above for some). A few commands need an extra kick here though:
         
         DocumentCommandHandlers.init($("#main-toolbar"));
-        
-        // About dialog
-        CommandManager.register(Strings.CMD_ABOUT,  Commands.HELP_ABOUT, function () {
-            // If we've successfully determined a "build number" via .git metadata, add it to dialog
-            var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
-                bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
-                versionLabel = "";
-            if (bracketsSHA) {
-                versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
-            }
-            if (bracketsAppSHA) {
-                versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
-            }
-            $("#about-build-number").text(versionLabel);
-            
-            Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
-        });
     }
     
     function _initWindowListeners() {
@@ -224,8 +208,8 @@ define(function (require, exports, module) {
         if (brackets.inBrowser) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_BRACKETS_IN_BROWSER_TITLE,
-                Strings.ERROR_BRACKETS_IN_BROWSER
+                Strings.ERROR_IN_BROWSER_TITLE,
+                Strings.ERROR_IN_BROWSER
             );
         }
 
@@ -289,7 +273,13 @@ define(function (require, exports, module) {
     }
 
     // Localize MainViewHTML and inject into <BODY> tag
-    $('body').html(Mustache.render(MainViewHTML, Strings));
+    var templateVars = $.extend({ ABOUT_ICON: brackets.config.about_icon }, Strings);
+    $("body").html(Mustache.render(MainViewHTML, templateVars));
+    
+    // Update title
+    $("title").text(Strings.APP_NAME);
+
+    // Dispatch htmlReady callbacks
     AppInit._dispatchReady(AppInit.HTML_READY);
 
     $(window.document).ready(_onReady);

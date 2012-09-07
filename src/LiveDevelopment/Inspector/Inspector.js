@@ -272,7 +272,7 @@ define(function Inspector(require, exports, module) {
             var i, page;
             for (i in response) {
                 page = response[i];
-                if (page.webSocketDebuggerUrl && page.url.search(url) === 0) {
+                if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
                     connect(page.webSocketDebuggerUrl);
                     deferred.resolve();
                     return;

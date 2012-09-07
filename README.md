@@ -53,17 +53,17 @@ If you want to pull the repo directly via git, see
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets)
 for instructions on how to get everything. 
 
-By default, Brackets shows its own source code (MIND BLOWN). You can choose
-a different folder to edit from *File > Open Folder*.
+By default, Brackets opens a folder containing some simple "Getting Started" content.
+You can choose a different folder to edit from *File > Open Folder*. (Might we
+suggest editing the Brackets source code and submitting some pull requests?)
 
 Most of Brackets should be pretty self-explanatory, but for information on how
 to use its unique features, like Quick Edit and Live Development, please read
 [How to Use Brackets](http://github.com/adobe/brackets/wiki/How-to-Use-Brackets). 
-The [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions) has a list of extensions that have been contributed. 
+The [extensions wiki page](https://github.com/adobe/brackets/wiki/Brackets-Extensions) 
+has a list of extensions that have been contributed. 
 Also, see the [release notes](http://github.com/adobe/brackets/wiki/Release-Notes)
 for a list of new features and known issues in each build.
-
-
 
 I found a bug/missing feature!
 ------------------------------
@@ -77,9 +77,9 @@ When filing a new bug, please remember to include:
 * platform/OS version
 * repro steps, actual and expected results
 * link to test files (you can create a gist on [gist.github.com](https://gist.github.com/) 
-if that's convenient)       
+  if that's convenient)       
        
-More details how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
+More details on how to file an issue can be found [here](https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue).     
 For feature requests, go ahead and file them in the issue tracker; they'll be converted
 to user stories on the [public Brackets backlog*](http://bit.ly/BracketsBacklog).
 

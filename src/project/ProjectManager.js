@@ -319,6 +319,11 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             suppressToggleOpen = false;
 
+        // For #1542, make sure the tree is scrolled to the top before refreshing.
+        // If we try to do this later (e.g. after the tree has been refreshed), it 
+        // doesn't seem to work properly. 
+        $projectTreeContainer.scrollTop(0);
+        
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
         $projectTreeContainer.hide();

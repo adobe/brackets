@@ -29,7 +29,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var Commands                = require("command/Commands"),
+    var Global                  = require("utils/Global"),
+        Commands                = require("command/Commands"),
         KeyBindingManager       = require("command/KeyBindingManager"),
         EditorManager           = require("editor/EditorManager"),
         Strings                 = require("strings"),
@@ -42,11 +43,12 @@ define(function (require, exports, module) {
      * @enum {string}
      */
     var AppMenuBar = {
-        FILE_MENU:     "file-menu",
-        EDIT_MENU:     "edit-menu",
-        VIEW_MENU :    "view-menu",
-        NAVIGATE_MENU: "navigate-menu",
-        DEBUG_MENU:    "debug-menu"
+        FILE_MENU       : "file-menu",
+        EDIT_MENU       : "edit-menu",
+        VIEW_MENU       : "view-menu",
+        NAVIGATE_MENU   : "navigate-menu",
+        DEBUG_MENU      : "debug-menu",
+        HELP_MENU       : "help-menu"
     };
 
     /**
@@ -920,20 +922,34 @@ define(function (require, exports, module) {
         /*
          * Debug menu
          */
-        menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
-        menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
-                                                               {key: "Cmd-Opt-I", platform: "mac"}]);
-        menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
-                                                         {key: "Cmd-R", platform:  "mac"}]);
-        menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
-        menu.addMenuItem(Commands.DEBUG_SHOW_EXT_FOLDER);
+        if (brackets.config.show_debug_menu) {
+            menu = addMenu(Strings.DEBUG_MENU, AppMenuBar.DEBUG_MENU);
+            menu.addMenuItem(Commands.DEBUG_SHOW_DEVELOPER_TOOLS, [{key: "F12",        platform: "win"},
+                                                                   {key: "Cmd-Opt-I", platform: "mac"}]);
+            menu.addMenuItem(Commands.DEBUG_REFRESH_WINDOW, [{key: "F5",     platform: "win"},
+                                                             {key: "Cmd-R", platform:  "mac"}]);
+            menu.addMenuItem(Commands.DEBUG_NEW_BRACKETS_WINDOW);
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
+            menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
+        }
+
+        /*
+         * Help menu
+         */
+        menu = addMenu(Strings.HELP_MENU, AppMenuBar.HELP_MENU);
+        menu.addMenuItem(Commands.HELP_SHOW_EXT_FOLDER);
+        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
+
+        if (brackets.config.forum_url) {
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.HELP_FORUM);
+        }
+
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.DEBUG_SWITCH_LANGUAGE);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.DEBUG_RUN_UNIT_TESTS);
-        menu.addMenuItem(Commands.DEBUG_SHOW_PERF_DATA);
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.CHECK_FOR_UPDATE);
+        menu.addMenuItem(Commands.HELP_ABOUT);
 
 
         /*

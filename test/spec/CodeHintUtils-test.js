@@ -163,7 +163,7 @@ define(function (require, exports, module) {
                     [ '</body>', '</html>']);
                 
                 var tag = HTMLUtils.getTagInfo(myEditor, pos);
-                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, 0, "p", "class", "foo", true, '"', true));
+                expect(tag).toEqual(HTMLUtils.createTagInfo(HTMLUtils.ATTR_VALUE, -1, "p", "class", "foo", true, '"', true));
             });
             
             it("should find the tagname as it's typed", function () {
