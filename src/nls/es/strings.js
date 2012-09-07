@@ -75,7 +75,7 @@ define({
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando con el navegador",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para poder iniciar el modo de Desarrollo en Vivo, Chrome debe ser iniciado habilitando la depuración remota.<br /><br />¿Quieres reiniciar Chrome y habilitar la depuración remota?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abre un archivo HTML para poder iniciar el modo de Desarrollo en Vivo.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Bienvenido a Desarrollo en Vivo!",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "¡Bienvenido a Desarrollo en Vivo!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Desarrollo en Vivo conecta {APP_NAME} con tu navegador. Lanza una vista previa de tu archivo HTML en el navegador y la actualiza a medida que modificas tu código.<br /><br />En esta versión preliminar de {APP_NAME}, Desarollo en Vivo sólo funciona para cambios de <strong>archivos CSS</strong> y únicamente con <strong>Google Chrome</strong>. ¡Pronto estará disponible también para HTML y JavaScript!<br /><br />(No volverás a ver este mensaje.)",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Desarrollo en Vivo",
