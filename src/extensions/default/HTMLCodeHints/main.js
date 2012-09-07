@@ -175,6 +175,9 @@ define(function (require, exports, module) {
                 endQuote = tagInfo.attr.quoteChar;
                 if (endQuote) {
                     completion += endQuote;
+                } else if (tagInfo.position.offset === 0) {
+                    endQuote = "\"";
+                    completion = endQuote + completion + endQuote;
                 }
             } else if (completion === tagInfo.attr.value) {
                 shouldReplace = false;
@@ -300,7 +303,7 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     AttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return (key === " " || key === "'" || key === "\"");
+        return (key === " " || key === "'" || key === "\"" || key === "=");
     };
 
     var tagHints = new TagHints();
