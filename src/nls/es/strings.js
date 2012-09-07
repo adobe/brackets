@@ -62,9 +62,6 @@ define({
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error indexando archivos",
     "ERROR_MAX_FILES"                   : "Se ha alcanzado el número máximo de archivos indexables. Puede que algunas de las acciones que utilizan archivos del índice no funcionen correctamente.",
-    
-    // CSSManager error strings
-    "ERROR_PARSE_TITLE"                 : "Error parseando fichero(s) CSS:",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando navegador",
