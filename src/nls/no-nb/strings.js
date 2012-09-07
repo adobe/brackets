@@ -57,7 +57,7 @@ define({
 
     // Application error strings
     "ERROR_BRACKETS_IN_BROWSER_TITLE" : "Oops! Brackets kjører ikke i nettlesere ennå.",
-    "ERROR_BRACKETS_IN_BROWSER" : "Brackets er bygd med HTML, men akkurat nå kjører den som en skrivebords-app slik at du kan bruke den til å redigere lokale filer. Vennligst bruk applikasjonsskallet <b>github.com/adobe/brackets-app</b> repo'et for å kjøre Brackets",
+    "ERROR_BRACKETS_IN_BROWSER" : "{APP_NAME} er bygd med HTML, men akkurat nå kjører den som en skrivebords-app slik at du kan bruke den til å redigere lokale filer. Vennligst bruk applikasjonsskallet <b>github.com/adobe/brackets-app</b> repo'et for å kjøre Brackets",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE" : "Feil ved indeksering av filer",
@@ -148,7 +148,7 @@ define({
     "CMD_FIND" : "Finn",
     "CMD_FIND_IN_FILES" : "Finn i filer",
     "CMD_FIND_NEXT" : "Finn neste",
-    "CMD_FIND_PREVIOUS" : "Finn forige",
+    "CMD_FIND_PREVIOUS" : "Finn forrige",
     "CMD_REPLACE" : "Erstatt",
     "CMD_INDENT" : "Lag innrykk",
     "CMD_UNINDENT" : "Ta bort innrykk",
@@ -171,10 +171,10 @@ define({
     "CMD_GOTO_LINE" : "Gå til linje",
     "CMD_GOTO_DEFINITION" : "Gå til definisjon",
     "CMD_TOGGLE_QUICK_EDIT" : "Hurigrediger",
-    "CMD_QUICK_EDIT_PREV_MATCH" : "Forige match",
+    "CMD_QUICK_EDIT_PREV_MATCH" : "Forrige match",
     "CMD_QUICK_EDIT_NEXT_MATCH" : "Neste match",
     "CMD_NEXT_DOC" : "Neste dokument",
-    "CMD_PREV_DOC" : "Forige dokument",
+    "CMD_PREV_DOC" : "Forrige dokument",
 
     // Debug menu commands
     "DEBUG_MENU" : "Debug",
