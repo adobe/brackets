@@ -118,7 +118,7 @@ define({
 
     // Switch language
     "LANGUAGE_TITLE" : "Bytt språk",
-    "LANGUAGE_MESSAGE" : "Vennligst velg ønsket språk fra listen under:",
+    "LANGUAGE_MESSAGE" : "Velg ønsket språk fra listen under:",
     "LANGUAGE_SUBMIT" : "Gjenåpne {APP_NAME}",
     "LANGUAGE_CANCEL" : "Avbryt",
 
@@ -153,12 +153,12 @@ define({
     "CMD_FIND_NEXT" : "Finn neste",
     "CMD_FIND_PREVIOUS" : "Finn forrige",
     "CMD_REPLACE" : "Erstatt",
-    "CMD_INDENT" : "Lag innrykk",
-    "CMD_UNINDENT" : "Ta bort innrykk",
+    "CMD_INDENT" : "Øk innrykk",
+    "CMD_UNINDENT" : "Reduser innrykk",
     "CMD_DUPLICATE" : "Dupliker",
     "CMD_COMMENT" : "Kommenter/utkommenter linjer",
-    "CMD_LINE_UP" : "Flytt Linje(r) opp",
-    "CMD_LINE_DOWN" : "Move Linje(r) ned",
+    "CMD_LINE_UP" : "Flytt linje(r) opp",
+    "CMD_LINE_DOWN" : "Move linje(r) ned",
 
     // View menu commands
     "VIEW_MENU" : "Vis",
@@ -170,10 +170,10 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU" : "Naviger",
-    "CMD_QUICK_OPEN" : "Hurigåpne",
+    "CMD_QUICK_OPEN" : "Hurtigåpne",
     "CMD_GOTO_LINE" : "Gå til linje",
     "CMD_GOTO_DEFINITION" : "Gå til definisjon",
-    "CMD_TOGGLE_QUICK_EDIT" : "Hurigrediger",
+    "CMD_TOGGLE_QUICK_EDIT" : "Hurtigrediger",
     "CMD_QUICK_EDIT_PREV_MATCH" : "Forrige match",
     "CMD_QUICK_EDIT_NEXT_MATCH" : "Neste match",
     "CMD_NEXT_DOC" : "Neste dokument",
@@ -202,7 +202,7 @@ define({
     "CMD_ABORT_QUIT" : "Abort lukk",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD" : "Eksperimentell bygg",
+    "EXPERIMENTAL_BUILD" : "Experimental build",
     "JSLINT_ERRORS" : "JSLint feil",
     "SEARCH_RESULTS" : "Søkeresultater",
     "OK" : "OK",
@@ -213,7 +213,7 @@ define({
     "KEEP_CHANGES_IN_EDITOR" : "Behold endringer i editor",
     "CLOSE_DONT_SAVE" : "Lukk (ikke lagre)",
     "RELAUNCH_CHROME" : "Start Chrome på nytt",
-    "ABOUT" : "Om",
+    "ABOUT" : "About",
     "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
     "ABOUT_TEXT_LINE1" : "sprint 14 experimental build ",
