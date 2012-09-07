@@ -2,7 +2,11 @@
 
 # Make sure the appname was passed in and is valid
 if [[ ${1} == "" ]]; then
-  echo "Usage: restore_installed_build.sh /path/to/Brackets.app"
+  echo "Usage: restore_installed_build.sh <application>"
+  echo "Restore Brackets to use the installed HTML/CSS/JS files."
+  echo ""
+  echo "Parameters: application - full path to the Brackets application"
+  echo "Example: ./restore_installed_build.sh \"/Applications/Brackets Sprint 14.app\""
   exit;
 fi
 

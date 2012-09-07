@@ -2,7 +2,11 @@
 
 # Make sure the appname was passed in and is valid
 if [[ ${1} == "" ]]; then
-  echo "Usage: setup_for_hacking.sh /path/to/Brackets.app"
+  echo "Usage: setup_for_hacking.sh <application>"
+  echo "Setup Brackets to use the HTML/CSS/JS files pulled from GitHub."
+  echo ""
+  echo "Parameters: application - full path to the Brackets application"
+  echo "Example: ./setup_for_hacking.sh \"/Applications/Brackets Sprint 14.app\""
   exit;
 fi
 
