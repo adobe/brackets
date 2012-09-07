@@ -56,8 +56,8 @@ define({
     "ERROR_CREATING_FILE" : "Det oppstod en feil ved forsøk på å opprette filen <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-    "ERROR_BRACKETS_IN_BROWSER_TITLE" : "Oops! Brackets kjører ikke i nettlesere ennå.",
-    "ERROR_BRACKETS_IN_BROWSER" : "{APP_NAME} er bygd med HTML, men akkurat nå kjører den som en skrivebords-app slik at du kan bruke den til å redigere lokale filer. Vennligst bruk applikasjonsskallet <b>github.com/adobe/brackets-app</b> repo'et for å kjøre Brackets",
+    "ERROR_IN_BROWSER_TITLE" : "Oops! {APP_NAME} kjører ikke i nettlesere ennå.",
+    "ERROR_IN_BROWSER" : "{APP_NAME} er bygd med HTML, men akkurat nå kjører den som en skrivebords-app slik at du kan bruke den til å redigere lokale filer. Vennligst bruk applikasjonsskallet <b>github.com/adobe/brackets-app</b> repo'et for å kjøre {APP_NAME}",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE" : "Feil ved indeksering av filer",
@@ -71,9 +71,12 @@ define({
     "ERROR_CANT_FIND_CHROME" : "Nettleseren Google Chrome ble ikke funnet. Vennligst sørg for at den er installert.",
     "ERROR_LAUNCHING_BROWSER" : "En feil skjedde ved åpning av Nettleseren. (feil {0})",
 
-    "LIVE_DEVELOPMENT_ERROR_TITLE" : "Live development Feil",
+    "LIVE_DEVELOPMENT_ERROR_TITLE" : "Live Preview feil",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Kobler til nettleser",
     "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En live development kobling til Chrome kunne ikke bli etablert. For at live development ska fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
     "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live forhåndsvisning.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live Preview!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Ptrview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live File forhåndsvisning",
     "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live File forhåndsvisning: Kobler...",
@@ -84,8 +87,8 @@ define({
     "SAVE_CLOSE_MESSAGE" : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE" : "Ønsker du å lagre enderinger i følgende filer?",
     "EXT_MODIFIED_TITLE" : "Eksterne endringer",
-    "EXT_MODIFIED_MESSAGE" : "<span class='dialog-filename'>{0}</span> er blitt endret på disk, men har samtidig ulagrede endringer i Brackets.<br /><br />Hvilken versjon ønsker du å beholde?",
-    "EXT_DELETED_MESSAGE" : "<span class='dialog-filename'>{0}</span> er blitt slettet på disken, men har ulagrede endringer i Brackets.<br /><br />Ønsker du å beholde endringene?",
+    "EXT_MODIFIED_MESSAGE" : "<span class='dialog-filename'>{0}</span> er blitt endret på disk, men har samtidig ulagrede endringer i {APP_NAME}.<br /><br />Hvilken versjon ønsker du å beholde?",
+    "EXT_DELETED_MESSAGE" : "<span class='dialog-filename'>{0}</span> er blitt slettet på disken, men har ulagrede endringer i {APP_NAME}.<br /><br />Ønsker du å beholde endringene?",
 
     // Find, Replace, Find in Files
     "SEARCH_REGEXP_INFO" : "Bruk /re/ syntaks for søk med regulære utrykk",
@@ -98,8 +101,8 @@ define({
     "CHOOSE_FOLDER" : "Velg katalog",
 
     "RELEASE_NOTES" : "Versjonsmerknader",
-    "NO_UPDATE_TITLE" : "Brackets er oppdatert!",
-    "NO_UPDATE_MESSAGE" : "Du kjører den nyeste versjonen av Brackets.",
+    "NO_UPDATE_TITLE" : "Du er oppdatert!",
+    "NO_UPDATE_MESSAGE" : "Du kjører den nyeste versjonen av {APP_NAME}.",
 
     "FIND_IN_FILES_TITLE" : "- {0} {1} i {2} {3}",
     "FIND_IN_FILES_FILE" : "fil",
@@ -109,14 +112,14 @@ define({
     "FIND_IN_FILES_MAX" : " (viser kun første {0} treff)",
     "FIND_IN_FILES_FILE_PATH" : "Fil: <b>{0}</b>",
     "FIND_IN_FILES_LINE" : "linje:&nbsp;{0}",
-    
+
     "ERROR_FETCHING_UPDATE_INFO_TITLE" : "Feil ved henting av oppdatering info",
     "ERROR_FETCHING_UPDATE_INFO_MSG" : "Det oppstod et problem ved å få informasjon fra serveren. Vennligst sørg for at du er koblet til internett og prøv på nytt.",
 
     // Switch language
     "LANGUAGE_TITLE" : "Bytt språk",
     "LANGUAGE_MESSAGE" : "Vennligst velg ønsket språk fra listen under:",
-    "LANGUAGE_SUBMIT" : "Gjenåpne Brackets",
+    "LANGUAGE_SUBMIT" : "Gjenåpne {APP_NAME}",
     "LANGUAGE_CANCEL" : "Avbryt",
 
     /**
@@ -178,19 +181,21 @@ define({
 
     // Debug menu commands
     "DEBUG_MENU" : "Debug",
-    "CMD_REFRESH_WINDOW" : "Oppdater Brackets",
+    "CMD_REFRESH_WINDOW" : "Oppdater {APP_NAME}",
     "CMD_SHOW_DEV_TOOLS" : "Vis utviklerverktøy",
     "CMD_RUN_UNIT_TESTS" : "Kjør tester",
     "CMD_JSLINT" : "Aktiver JSLint",
     "CMD_SHOW_PERF_DATA" : "Vis ytelsesdata",
-    "CMD_NEW_BRACKETS_WINDOW" : "Nytt Brackets vindu",
+    "CMD_NEW_BRACKETS_WINDOW" : "Nytt {APP_NAME} vindu",
     "CMD_SHOW_EXTENSIONS_FOLDER" : "Vis ekstensjoner",
     "CMD_USE_TAB_CHARS" : "Bruk tab karakterer",
     "CMD_SWITCH_LANGUAGE" : "Bytt språk",
     "CMD_CHECK_FOR_UPDATE" : "Se etter oppdateringer",
 
     // Help menu commands
+    "HELP_MENU" : "Hjelp",
     "CMD_ABOUT" : "Om",
+    "CMD_FORUM" : "{APP_NAME} forum",
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW" : "Lukk vindu",
@@ -211,11 +216,11 @@ define({
     "ABOUT" : "Om",
     "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
-    "ABOUT_TEXT_LINE1" : "sprint 13 experimental build ",
+    "ABOUT_TEXT_LINE1" : "sprint 14 experimental build ",
     "ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4" : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
-    "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for Brackets er tilgjengelig! Klikk her for mer informasjon.",
+    "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for {APP_NAME} er tilgjengelig! Klikk her for mer informasjon.",
     "UPDATE_AVAILABLE_TITLE" : "Oppdatering er tilgjengelig",
-    "UPDATE_MESSAGE" : "Hei, en ny bygg for Brackets er tilgjengelig. Her er noen av de nye funksjonene:",
+    "UPDATE_MESSAGE" : "Hei, en ny bygg for {APP_NAME} er tilgjengelig. Her er noen av de nye funksjonene:",
     "GET_IT_NOW" : "Hent den nå!"
 });
