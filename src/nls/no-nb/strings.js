@@ -158,7 +158,7 @@ define({
     "CMD_DUPLICATE" : "Dupliker",
     "CMD_COMMENT" : "Kommenter/utkommenter linjer",
     "CMD_LINE_UP" : "Flytt linje(r) opp",
-    "CMD_LINE_DOWN" : "Move linje(r) ned",
+    "CMD_LINE_DOWN" : "Flytt linje(r) ned",
 
     // View menu commands
     "VIEW_MENU" : "Vis",
