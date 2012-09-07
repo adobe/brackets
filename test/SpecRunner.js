@@ -81,7 +81,7 @@ define(function (require, exports, module) {
         }
 
         // This returns path to test folder, so convert to src
-        bracketsPath = bracketsPath.replace("brackets/test", "brackets/src");
+        bracketsPath = bracketsPath.replace("/test", "/src");
 
         return Async.doInParallel(paths, function (dir) {
             return ExtensionLoader.testAllExtensionsInNativeDirectory(
