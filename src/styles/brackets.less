@@ -67,6 +67,12 @@ body {
     &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
         cursor: col-resize;   
     }
+    
+    /* This appears to be necessary in Firefox when body is set to display: box. */
+    height: 100%;
+    &.hor-resizing a, &.hor-resizing #projects a, &.hor-resizing .main-view, &.hor-resizing .CodeMirror-lines {
+        cursor: row-resize;   
+    }
 }
 
 
@@ -125,6 +131,15 @@ a, img {
     border-width: 1px;
     border-color: lighten(@bc-grey, @bc-color-step-size*4);
 
+    .h-resizer {
+        position: absolute;
+        height: 6px;
+        width: 100%;
+        z-index: @z-index-brackets-bottom-resizer;
+        opacity: 0;
+        cursor: row-resize;
+    }
+    
     .toolbar {
         height: auto;
         padding-top: @base-padding / 2;

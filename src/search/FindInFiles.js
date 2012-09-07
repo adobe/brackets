@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window */
+/*global define, $, PathUtils, window, document */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -49,10 +49,24 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileIndexManager    = require("project/FileIndexManager");
+        FileIndexManager    = require("project/FileIndexManager"),
+        AppInit             = require("utils/AppInit"),
+        PreferencesManager  = require("preferences/PreferencesManager");
     
     var FIND_IN_FILES_MAX = 100;
 
+    var EDITOR_MIN_HEIGHT = 400,
+        MIN_HEIGHT = 100;
+    
+    var PREFERENCES_CLIENT_ID = module.id,
+        defaultPrefs = { height: 200 };
+    
+    // These vars are initialized by the htmlReady handler
+    // below since they refer to DOM elements
+    var $searchResults,
+        $searchContent,
+        $searchResizer;
+    
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
     
@@ -330,6 +344,108 @@ define(function (require, exports, module) {
                 }
             });
     }
+    
+    /**
+     * @private
+     * Sets sidebar width and resizes editor. Does not change internal sidebar open/closed state.
+     * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
+     */
+    function _setHeight(height) {
+        // if we specify a width with the handler call, use that. Otherwise use
+        // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
+        
+        var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+        //    sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10);
+        
+        //width = width || Math.max($sidebar.width(), sidebarWidth);
+        
+        $searchResults.height(height);
+        $searchContent.height(height - 30);
+        //$jslintResizer.css("bottom", height - 1);
+        
+        // the following three lines help resize things when the sidebar shows
+        // but ultimately these should go into ProjectManager.js with a "notify" 
+        // event that we can just call from anywhere instead of hard-coding it.
+        // waiting on a ProjectManager refactor to add that. 
+        // $sidebar.find(".sidebar-selection").width(width);
+        
+        prefs.setValue("height", height);
+        EditorManager.resizeEditor();
+    }
+    
+    /**
+     * @private
+     * Install sidebar resize handling.
+     */
+    function _initSearchResizer() {
+        var $mainView               = $(".main-view"),
+            $body                   = $(document.body),
+            prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
+            animationRequest        = null,
+            isMouseDown             = false;
+        
+        $searchResizer.on("mousedown.search", function (e) {
+            var startY = e.clientY,
+                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT),
+                doResize = true;
+            
+            newHeight = Math.max(newHeight, MIN_HEIGHT);
+            isMouseDown = true;
+
+            // take away the shadows (for performance reasons during sidebarmovement)
+            //$sidebar.find(".scroller-shadow").css("display", "none");
+            
+            $body.toggleClass("hor-resizing");
+            
+            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+                // only run this if the mouse is down so we don't constantly loop even 
+                // after we're done resizing.
+                if (!isMouseDown) {
+                    return;
+                }
+                
+                if (doResize) {
+                    // for right now, displayTriangle is always going to be false for _setWidth
+                    // because we want to hide it when we move, and _setWidth only gets called
+                    // on mousemove now.
+                    _setHeight(newHeight);
+                }
+                
+                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+            });
+            
+            $mainView.on("mousemove.search", function (e) {
+                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT);
+                newHeight = Math.max(newHeight, MIN_HEIGHT);
+                e.preventDefault();
+            });
+                
+            $mainView.one("mouseup.search", function (e) {
+                isMouseDown = false;
+                
+                // replace shadows and triangle
+                //$sidebar.find(".scroller-shadow").css("display", "block");
+                
+                //$projectFilesContainer.triggerHandler("scroll");
+                //$openFilesContainer.triggerHandler("scroll");
+                $mainView.off("mousemove.search");
+                $body.toggleClass("hor-resizing");
+                //startingSidebarPosition = $sidebar.width();
+            });
+            
+            e.preventDefault();
+        });
+    }
 
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
+    
+        // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        $searchResults  = $("#search-results");
+        $searchResizer  = $("#search-resizer");
+        $searchContent  = $("#search-results .table-container");
+
+        // init
+        _initSearchResizer();
+    });
 });

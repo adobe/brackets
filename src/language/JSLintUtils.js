@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils */
+/*global define, $, JSLINT, PathUtils, document, window */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -43,7 +43,21 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
         Strings                 = require("strings"),
-        EditorManager           = require("editor/EditorManager");
+        EditorManager           = require("editor/EditorManager"),
+        AppInit                 = require("utils/AppInit");
+    
+    var EDITOR_MIN_HEIGHT = 400,
+        MIN_HEIGHT = 100;
+    
+    var PREFERENCES_CLIENT_ID = module.id,
+        defaultPrefs = { height: 200, enabled: true };
+    
+    // These vars are initialized by the htmlReady handler
+    // below since they refer to DOM elements
+    var $mainView,
+        $jslintResults,
+        $jslintContent,
+        $jslintResizer;
     
     /**
      * @private
@@ -199,13 +213,119 @@ define(function (require, exports, module) {
         setEnabled(!getEnabled());
     }
     
+    /**
+     * @private
+     * Sets sidebar width and resizes editor. Does not change internal sidebar open/closed state.
+     * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
+     */
+    function _setHeight(height) {
+        // if we specify a width with the handler call, use that. Otherwise use
+        // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
+        
+        //var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
+        //    sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10);
+        
+        //width = width || Math.max($sidebar.width(), sidebarWidth);
+        
+        $jslintResults.height(height);
+        $jslintContent.height(height - 30);
+        //$jslintResizer.css("bottom", height - 1);
+        
+        // the following three lines help resize things when the sidebar shows
+        // but ultimately these should go into ProjectManager.js with a "notify" 
+        // event that we can just call from anywhere instead of hard-coding it.
+        // waiting on a ProjectManager refactor to add that. 
+        // $sidebar.find(".sidebar-selection").width(width);
+        
+        _prefs.setValue("height", height);
+        EditorManager.resizeEditor();
+    }
+    
+    /**
+     * @private
+     * Install sidebar resize handling.
+     */
+    function _initJSLintResizer() {
+        var $body                   = $(document.body),
+            animationRequest        = null,
+            isMouseDown             = false;
+        
+        console.log("_________8");
+        
+        if (_enabled) {
+            _setHeight(_prefs.getValue("height"));
+        }
+        
+        $jslintResizer.on("mousedown.jslint", function (e) {
+            var startY = e.clientY,
+                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT),
+                doResize = true;
+            
+            newHeight = Math.max(newHeight, MIN_HEIGHT);
+            isMouseDown = true;
+
+            // take away the shadows (for performance reasons during sidebarmovement)
+            //$sidebar.find(".scroller-shadow").css("display", "none");
+            
+            $body.toggleClass("hor-resizing");
+            
+            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+                // only run this if the mouse is down so we don't constantly loop even 
+                // after we're done resizing.
+                if (!isMouseDown) {
+                    return;
+                }
+                
+                if (doResize) {
+                    // for right now, displayTriangle is always going to be false for _setWidth
+                    // because we want to hide it when we move, and _setWidth only gets called
+                    // on mousemove now.
+                    _setHeight(newHeight);
+                }
+                
+                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
+            });
+            
+            $mainView.on("mousemove.jslint", function (e) {
+                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT);
+                newHeight = Math.max(newHeight, MIN_HEIGHT);
+                e.preventDefault();
+            });
+                
+            $mainView.one("mouseup.jslint", function (e) {
+                isMouseDown = false;
+                
+                // replace shadows and triangle
+                //$sidebar.find(".scroller-shadow").css("display", "block");
+                
+                //$projectFilesContainer.triggerHandler("scroll");
+                //$openFilesContainer.triggerHandler("scroll");
+                $mainView.off("mousemove.jslint");
+                $body.toggleClass("hor-resizing");
+                //startingSidebarPosition = $sidebar.width();
+            });
+            
+            e.preventDefault();
+        });
+    }
     
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
     _setEnabled(_prefs.getValue("enabled"));
+    
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        $mainView       = $(".main-view");
+        $jslintResults  = $("#jslint-results");
+        $jslintResizer  = $("#jslint-resizer");
+        $jslintContent  = $("#jslint-results .table-container");
+
+        // init
+        _initJSLintResizer();
+    });
     
     // Define public API
     exports.run = run;
