@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager = require("editor/EditorManager");
+    var EditorManager = require("editor/EditorManager"),
+        KeyEvent            = require("utils/KeyEvent");
     
     var _popUps = [];
         
@@ -82,7 +83,7 @@ define(function (require, exports, module) {
     }
     
     function _keydownCaptureListener(keyEvent) {
-        if (keyEvent.keyCode !== 27) { // escape key
+        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE) { // escape key
             return;
         }
         
