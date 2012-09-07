@@ -176,8 +176,7 @@ define(function (require, exports, module) {
                 if (endQuote) {
                     completion += endQuote;
                 } else if (tagInfo.position.offset === 0) {
-                    endQuote = "\"";
-                    completion = endQuote + completion + endQuote;
+                    completion = "\"" + completion + "\"";
                 }
             } else if (completion === tagInfo.attr.value) {
                 shouldReplace = false;
