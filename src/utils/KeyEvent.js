@@ -26,7 +26,7 @@
 /*global define, $, window */
 
 /**
- * Utilities for working with Deferred, Promise, and other asynchronous processes.
+ * Utilities module to provide constants for keyCodes
  */
 define({
     DOM_VK_CANCEL: 3,
@@ -134,7 +134,7 @@ define({
     DOM_VK_NUM_LOCK: 144,
     DOM_VK_SCROLL_LOCK: 145,
     DOM_VK_SEMICOLON: 186,
-	DOM_VK_EQUALS: 187, 
+    DOM_VK_EQUALS: 187, 
     DOM_VK_COMMA: 188,
     DOM_VK_DASH: 189,
     DOM_VK_PERIOD: 190,

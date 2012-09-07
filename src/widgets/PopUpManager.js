@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, brackets */
 
 /**
  * Utilities for managing pop-ups.
@@ -32,7 +32,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var EditorManager = require("editor/EditorManager"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent      = require("utils/KeyEvent");
     
     var _popUps = [];
         

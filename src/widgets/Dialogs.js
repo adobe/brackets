@@ -33,7 +33,8 @@ define(function (require, exports, module) {
     
     require("utils/Global");
 
-    var KeyBindingManager = require("command/KeyBindingManager");
+    var KeyBindingManager = require("command/KeyBindingManager"),
+        KeyEvent          = require("utils/KeyEvent");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -66,12 +67,12 @@ define(function (require, exports, module) {
             buttonId = null,
             which = String.fromCharCode(e.which);
         
-        if (e.which === 13) {
+        if (e.which === KeyEvent.DOM_VK_RETURN) {
             // Click primary button
             if (primaryBtn) {
                 buttonId = primaryBtn.attr("data-button-id");
             }
-        } else if (e.which === 32) {
+        } else if (e.which === KeyEvent.DOM_VK_SPACE) {
             // Space bar on focused button
             this.find(".dialog-button:focus").click();
         } else if (brackets.platform === "mac") {
@@ -81,7 +82,7 @@ define(function (require, exports, module) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
             // FIXME (issue #418) CMD+. Cancel swallowed by native shell
-            } else if (e.metaKey && (e.which === 190)) {
+            } else if (e.metaKey && (e.which === KeyEventDOM_VK_PERIOD)) {
                 buttonId = DIALOG_BTN_CANCEL;
             }
         } else { // if (brackets.platform === "win") {
