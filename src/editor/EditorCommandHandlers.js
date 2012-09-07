@@ -35,7 +35,8 @@ define(function (require, exports, module) {
     var Commands           = require("command/Commands"),
         Strings            = require("strings"),
         CommandManager     = require("command/CommandManager"),
-        EditorManager      = require("editor/EditorManager");
+        EditorManager      = require("editor/EditorManager"),
+        Editor             = require("editor/Editor").Editor;
     
     
     /**
@@ -262,12 +263,23 @@ define(function (require, exports, module) {
         
         editor._codeMirror.execCommand("indentLess");
     }
+    
+    /**
+     * Toggles tabs/spaces preferences
+     */
+    function toggleUseTabChars() {
+        var useTabs = !Editor.getUseTabChar();
+        Editor.setUseTabChar(useTabs);
+        CommandManager.get(Commands.TOGGLE_USE_TAB_CHARS).setChecked(useTabs);
+    }
         
     // Register commands
-    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,       indentText);
-    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,     unidentText);
-    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT, lineComment);
-    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,    duplicateText);
-    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,      moveLineUp);
-    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,    moveLineDown);
+    CommandManager.register(Strings.CMD_INDENT,         Commands.EDIT_INDENT,           indentText);
+    CommandManager.register(Strings.CMD_UNINDENT,       Commands.EDIT_UNINDENT,         unidentText);
+    CommandManager.register(Strings.CMD_COMMENT,        Commands.EDIT_LINE_COMMENT,     lineComment);
+    CommandManager.register(Strings.CMD_DUPLICATE,      Commands.EDIT_DUPLICATE,        duplicateText);
+    CommandManager.register(Strings.CMD_LINE_UP,        Commands.EDIT_LINE_UP,          moveLineUp);
+    CommandManager.register(Strings.CMD_LINE_DOWN,      Commands.EDIT_LINE_DOWN,        moveLineDown);
+    CommandManager.register(Strings.CMD_USE_TAB_CHARS,  Commands.TOGGLE_USE_TAB_CHARS,  toggleUseTabChars)
+        .setChecked(Editor.getUseTabChar());
 });

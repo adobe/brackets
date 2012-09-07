@@ -314,6 +314,21 @@
 
 /* Dialog-related styles */
 
+.modal {
+    width: auto;
+}
+
+.modal-body, .modal-header {
+    /* See styles/bootstrap/patterns.less .modal class.
+       Pushing this value down to .modal-header and .modal-body
+       to allow the overall modal to take the width of the footer */
+    width: 560px;
+}
+
+.modal-footer {
+    white-space: nowrap;
+}
+
 .modal-footer .btn.left {
     float: left;
 }
@@ -407,7 +422,7 @@
     h2 {
         font-weight: normal;
         font-size: 25px;
-        margin-bottom: -8px;
+        margin-bottom: -4px;
         margin-top: 3px;
     }
     .dialog-message {

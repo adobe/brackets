@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
- *  
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"), 
  * to deal in the Software without restriction, including without limitation 
@@ -56,8 +56,8 @@ define({
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-	"ERROR_BRACKETS_IN_BROWSER_TITLE": "Malheureusement, Brackets ne s’exécute pas encore dans les navigateurs.",
-	"ERROR_BRACKETS_IN_BROWSER": "Brackets est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-app</b> afin d’exécuter Brackets.",
+	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
+	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
 
     // FileIndexManager error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
@@ -84,8 +84,8 @@ define({
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans Brackets.<br /><br />Quelle version souhaitez-vous conserver ?",
-	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans Brackets.<br /><br />Souhaitez-vous conserver vos modifications ?",
+	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
+	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
@@ -95,18 +95,28 @@ define({
 	"BUTTON_STOP": "Arrêter",
 
 	"OPEN_FILE": "Ouvrir le fichier",
+	"CHOOSE_FOLDER": "Choisir un dossier",
 
-	"RELEASE_NOTES": "[B/] !é=Release Notes=!",
-	"NO_UPDATE_TITLE": "[B+] !é=You're up to date!=!",
-	"NO_UPDATE_MESSAGE": "[B9] !é=You are running the latest version of Brackets.=!",
+	"RELEASE_NOTES": "Notes de mise à jour",
+	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
+	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
+    
+	"FIND_IN_FILES_TITLE": "- {0} {1} sur {2} {3}",
+	"FIND_IN_FILES_FILE": "fichier",
+	"FIND_IN_FILES_FILES": "fichiers",
+	"FIND_IN_FILES_MATCH": "résultat",
+	"FIND_IN_FILES_MATCHES": "résultats",
+	"FIND_IN_FILES_MAX": " (affichage des {0} premiers résultats)",
+	"FIND_IN_FILES_FILE_PATH": "Fichier : <b>{0}</b>",
+	"FIND_IN_FILES_LINE": "Ligne :&nbsp;{0}",
 
-	"ERROR_FETCHING_UPDATE_INFO_TITLE": "[CF] !é=Error getting update info=!",
-	"ERROR_FETCHING_UPDATE_INFO_MSG": "[CE] !é=There was a problem getting the latest update information from the server. Please make sure you are connected to the internet and try again.=!",
+	"ERROR_FETCHING_UPDATE_INFO_TITLE": "Erreur de récupération des informations de mise à jour",
+	"ERROR_FETCHING_UPDATE_INFO_MSG": "Un problème est survenu lors de la récupération des dernières informations de mise à jour sur le serveur. Vérifiez que vous êtes connecté à Internet et réessayez.",
     
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
-	"LANGUAGE_SUBMIT": "Recharger Brackets",
+	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 
     /**
@@ -168,19 +178,21 @@ define({
     
     // Debug menu commands
 	"DEBUG_MENU": "Déboguer",
-	"CMD_REFRESH_WINDOW": "Recharger Brackets",
+	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
-	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre Brackets",
-	"CMD_SHOW_EXTENSIONS_FOLDER": "[CD] !é=Show Extensions Folder=!",
+	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
+	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
-	"CMD_CHECK_FOR_UPDATE": "[B7] !é=Check for Updates=!",
+	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 
     // Help menu commands
+	"HELP_MENU": "Aide",
 	"CMD_ABOUT": "A propos",
+	"CMD_FORUM": "Forum {APP_NAME}",
 
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
@@ -199,15 +211,13 @@ define({
 	"CLOSE_DONT_SAVE": "Fermer (sans enregistrer)",
 	"RELAUNCH_CHROME": "Relancer Chrome",
 	"ABOUT": "A propos",
-	"BRACKETS": "Brackets",
+	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "version expérimentale sprint 13 ",
-	"ABOUT_TEXT_LINE2": "Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.",
-	"ABOUT_TEXT_LINE3": "Notices; terms and conditions pertaining to third party software are located at ",
-	"ABOUT_TEXT_LINE4": " and incorporated by reference herein.",
-	"ABOUT_TEXT_LINE5": "Documentation and source at ",
-	"UPDATE_NOTIFICATION_TOOLTIP": "[CC] !é=There's a new build of Brackets available! Click here for details.=!",
-	"UPDATE_AVAILABLE_TITLE": "[CA] !é=Update Available=!",
-	"UPDATE_MESSAGE": "[CB] !é=Hey, there's a new build of Brackets available. Here are some of the new features:=!",
-	"GET_IT_NOW": "[B8] !é=Get it now!=!"
+	"ABOUT_TEXT_LINE1": "version expérimentale sprint 14 ",
+	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles (en anglais) à l’adresse <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty_fr/</span> et sont incluses dans le présent document à titre de référence.",
+	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
+	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
+	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
+	"GET_IT_NOW": "Obtenir maintenant !"
 });
