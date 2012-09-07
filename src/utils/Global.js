@@ -34,6 +34,8 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var packageJSON = require("text!package.json");
+    
     // Define core brackets namespace if it isn't already defined
     //
     // We can't simply do 'brackets = {}' to define it in the global namespace because
@@ -46,6 +48,14 @@ define(function (require, exports, module) {
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
         global.brackets = {};
+    }
+    
+    // Parse src/config.json
+    try {
+        global.brackets.metadata = JSON.parse(packageJSON);
+        global.brackets.config = global.brackets.metadata.config;
+    } catch (err) {
+        console.log(err);
     }
         
     // Uncomment the following line to force all low level file i/o routines to complete

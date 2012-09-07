@@ -302,6 +302,9 @@ define(function (require, exports, module) {
                 var extensionRequire,
                     JavaScriptQuickEdit,
                     i,
+                    perfMeasurements;
+                
+                runs(function () {
                     perfMeasurements = [
                         {
                             measure: PerfUtils.JAVASCRIPT_INLINE_CREATE,
@@ -335,6 +338,7 @@ define(function (require, exports, module) {
                             ]
                         }
                     ];
+                });
                 
                 runs(function () {
                     extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").getRequireContextForExtension("JavaScriptQuickEdit");
