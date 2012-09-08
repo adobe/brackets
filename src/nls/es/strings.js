@@ -57,11 +57,11 @@ define({
 
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Vaya... parece que {APP_NAME} todavía no funciona en navegadores.",
-    "ERROR_IN_BROWSER"                  : "{APP_NAME} está desarrollado en HTML, pero por ahora funciona como una aplicación de escritorio para que puedas editar archivos en local. Por favor, utiliza la aplicación del repositorio <b>github.com/adobe/brackets-app</b> para ejecutar {APP_NAME}.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} está desarrollado en HTML, pero por ahora funciona como una aplicación de escritorio para que puedas editar archivos en local. Por favor, utiliza la aplicación del repositorio <b>github.com/adobe/brackets-shell</b> para ejecutar {APP_NAME}.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error indexando archivos",
-    "ERROR_MAX_FILES"                   : "Se ha alcanzado el número máximo de archivos indexables. Puede que algunas de las acciones que utilizan archivos del índice no funcionen correctamente.",
+    "ERROR_MAX_FILES"                   : "Se ha alcanzado el número máximo de archivos indexables. Puede que las acciones que buscan archivos en el índice funcionen de manera incorrecta.",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error iniciando navegador",
@@ -106,7 +106,7 @@ define({
     "FIND_IN_FILES_FILES"               : "archivos",
     "FIND_IN_FILES_MATCH"               : "coincidencia",
     "FIND_IN_FILES_MATCHES"             : "coincidencias",
-    "FIND_IN_FILES_MAX"                 : " (mostrando las premeras {0} coincidencias)",
+    "FIND_IN_FILES_MAX"                 : " (mostrando las primeras {0} coincidencias)",
     "FIND_IN_FILES_FILE_PATH"           : "Archivo: <b>{0}</b>",
     "FIND_IN_FILES_LINE"                : "línea:&nbsp;{0}",
 
@@ -123,7 +123,7 @@ define({
      * ProjectManager
      */
 
-    "UNTITLED" : "Sin titulo",
+    "UNTITLED" : "Sin título",
 
     /**
      * Command Name Constants
@@ -139,11 +139,11 @@ define({
     "CMD_FILE_CLOSE_ALL"                  : "Cerrar todo",
     "CMD_FILE_SAVE"                       : "Guardar",
     "CMD_FILE_SAVE_ALL"                   : "Guardar todo",
-    "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en vivo",
+    "CMD_LIVE_FILE_PREVIEW"               : "Desarrollo en Vivo",
     "CMD_QUIT"                            : "Salir",
 
     // Edit menu commands
-    "EDIT_MENU"                           : "Editar",
+    "EDIT_MENU"                           : "Edición",
     "CMD_SELECT_ALL"                      : "Seleccionar todo",
     "CMD_FIND"                            : "Buscar",
     "CMD_FIND_IN_FILES"                   : "Buscar en archivos",
@@ -158,7 +158,7 @@ define({
     "CMD_LINE_DOWN"                       : "Bajar línea(s)",
      
     // View menu commands
-    "VIEW_MENU"                           : "Ver",
+    "VIEW_MENU"                           : "Visualización",
     "CMD_HIDE_SIDEBAR"                    : "Ocultar menú lateral",
     "CMD_SHOW_SIDEBAR"                    : "Mostrar menú lateral",
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar tamaño de fuente",
@@ -166,7 +166,7 @@ define({
     "CMD_RESTORE_FONT_SIZE"               : "Restablecer tamaño de fuente",
 
     // Navigate menu Commands
-    "NAVIGATE_MENU"                       : "Navegar",
+    "NAVIGATE_MENU"                       : "Navegación",
     "CMD_QUICK_OPEN"                      : "Apertura rápida",
     "CMD_GOTO_LINE"                       : "Ir a línea",
     "CMD_GOTO_DEFINITION"                 : "Ir a definición",
@@ -199,7 +199,7 @@ define({
     "CMD_ABORT_QUIT"                      : "Cancelar salida",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Versión experimental",
+    "EXPERIMENTAL_BUILD"                   : "Versión Experimental",
     "JSLINT_ERRORS"                        : "Errores de JSLint",
     "SEARCH_RESULTS"                       : "Resultados de búsqueda",
     "OK"                                   : "Aceptar",
