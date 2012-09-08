@@ -163,7 +163,7 @@ define(function (require, exports, module) {
         return matches;
     }
         
-    function _showSearchResults(searchResults) {
+    function _showSearchResults(searchResults, query) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
@@ -188,7 +188,7 @@ define(function (require, exports, module) {
             $("#search-result-summary")
                 .text(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
-                .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
+                .prepend("&nbsp;" + "for: " + query + "&nbsp;");  // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
                                 return result.promise();
                             })
                                 .done(function () {
-                                    _showSearchResults(searchResults);
+                                    _showSearchResults(searchResults, query);
                                 })
                                 .fail(function () {
                                     console.log("find in files failed.");
