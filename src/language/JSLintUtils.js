@@ -57,7 +57,8 @@ define(function (require, exports, module) {
     var $mainView,
         $jslintResults,
         $jslintContent,
-        $jslintResizer;
+        $jslintResizer,
+        $searchResults;
     
     /**
      * @private
@@ -225,7 +226,13 @@ define(function (require, exports, module) {
         //var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
         //    sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10);
         
-        //width = width || Math.max($sidebar.width(), sidebarWidth);
+        var availableHeight = $mainView.height() - EDITOR_MIN_HEIGHT;
+        if ($searchResults.is(':visible')) {
+            availableHeight -= $searchResults.height();
+        }
+        
+        height = Math.min(height, availableHeight);
+        height = Math.max(height, MIN_HEIGHT);
         
         $jslintResults.height(height);
         $jslintContent.height(height - 30);
@@ -249,19 +256,20 @@ define(function (require, exports, module) {
         var $body                   = $(document.body),
             animationRequest        = null,
             isMouseDown             = false;
-        
-        console.log("_________8");
-        
+                
         if (_enabled) {
             _setHeight(_prefs.getValue("height"));
         }
         
         $jslintResizer.on("mousedown.jslint", function (e) {
             var startY = e.clientY,
-                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT),
+                newHeight = $mainView.height() - e.clientY,
                 doResize = true;
+
+            if ($searchResults.is(':visible')) {
+                newHeight -= $searchResults.height();
+            }
             
-            newHeight = Math.max(newHeight, MIN_HEIGHT);
             isMouseDown = true;
 
             // take away the shadows (for performance reasons during sidebarmovement)
@@ -287,8 +295,10 @@ define(function (require, exports, module) {
             });
             
             $mainView.on("mousemove.jslint", function (e) {
-                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT);
-                newHeight = Math.max(newHeight, MIN_HEIGHT);
+                newHeight = $mainView.height() - e.clientY;
+                if ($searchResults.is(':visible')) {
+                    newHeight -= $searchResults.height();
+                }
                 e.preventDefault();
             });
                 
@@ -322,6 +332,7 @@ define(function (require, exports, module) {
         $jslintResults  = $("#jslint-results");
         $jslintResizer  = $("#jslint-resizer");
         $jslintContent  = $("#jslint-results .table-container");
+        $searchResults  = $("#search-results");
 
         // init
         _initJSLintResizer();

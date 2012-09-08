@@ -63,9 +63,11 @@ define(function (require, exports, module) {
     
     // These vars are initialized by the htmlReady handler
     // below since they refer to DOM elements
-    var $searchResults,
+    var $mainView,
+        $searchResults,
         $searchContent,
-        $searchResizer;
+        $searchResizer,
+        $jslintResults;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -357,7 +359,13 @@ define(function (require, exports, module) {
         var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
         //    sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10);
         
-        //width = width || Math.max($sidebar.width(), sidebarWidth);
+        var availableHeight = $mainView.height() - EDITOR_MIN_HEIGHT;
+        if ($jslintResults.is(':visible')) {
+            availableHeight -= $jslintResults.height();
+        }
+        
+        height = Math.min(height, availableHeight);
+        height = Math.max(height, MIN_HEIGHT);
         
         $searchResults.height(height);
         $searchContent.height(height - 30);
@@ -378,18 +386,16 @@ define(function (require, exports, module) {
      * Install sidebar resize handling.
      */
     function _initSearchResizer() {
-        var $mainView               = $(".main-view"),
-            $body                   = $(document.body),
+        var $body                   = $(document.body),
             prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
             animationRequest        = null,
             isMouseDown             = false;
         
         $searchResizer.on("mousedown.search", function (e) {
             var startY = e.clientY,
-                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT),
+                newHeight = $mainView.height() - e.clientY,
                 doResize = true;
             
-            newHeight = Math.max(newHeight, MIN_HEIGHT);
             isMouseDown = true;
 
             // take away the shadows (for performance reasons during sidebarmovement)
@@ -415,8 +421,7 @@ define(function (require, exports, module) {
             });
             
             $mainView.on("mousemove.search", function (e) {
-                newHeight = Math.min($mainView.height() - e.clientY, $mainView.height() - EDITOR_MIN_HEIGHT);
-                newHeight = Math.max(newHeight, MIN_HEIGHT);
+                newHeight = $mainView.height() - e.clientY;
                 e.preventDefault();
             });
                 
@@ -441,9 +446,11 @@ define(function (require, exports, module) {
     
         // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
+        $mainView       = $(".main-view");
         $searchResults  = $("#search-results");
         $searchResizer  = $("#search-resizer");
         $searchContent  = $("#search-results .table-container");
+        $jslintResults  = $("#jslint-results");
 
         // init
         _initSearchResizer();
