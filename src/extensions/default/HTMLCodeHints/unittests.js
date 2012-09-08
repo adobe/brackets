@@ -548,12 +548,12 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
             });
             
-            it("should insert the selected attribute value WITHOUT begin or end quote", function () {
+            it("should insert the selected attribute value wrapped in double quotes", function () {
                 testDocument.replaceRange("dir=", { line: 9, ch: 7 });  // insert dir= after <div tag
                 testEditor.setCursorPos({ line: 9, ch: 11 });
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
-                expect(testDocument.getLine(9)).toBe("  <div dir=rtl");
-                expectCursorAt({ line: 9, ch: 14 });            // cursor after the closing quote
+                expect(testDocument.getLine(9)).toBe("  <div dir=\"rtl\"");
+                expectCursorAt({ line: 9, ch: 16 });            // cursor after the closing quote
             });
             
             it("should replace the partially typed attribute value with the selected attribute value", function () {
@@ -598,14 +598,14 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 5, ch: 16 });            // cursor after the closing quote
             });
 
-            it("should replace the unquoted attribute value with the selected attribute value", function () {
+            it("should replace the unquoted attribute value with the selected attribute value in quotes", function () {
                 // Insert an unquoted attribute between <div and id on line 5.
                 testDocument.replaceRange("dir=ltr ", { line: 5, ch: 6 });
                 testEditor.setCursorPos({ line: 5, ch: 10 });
                 // Select "rtl" to replace "ltr"
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
-                expect(testDocument.getLine(5)).toBe("  <h1 dir=rtl id='foo'>Heading</h1>");
-                expectCursorAt({ line: 5, ch: 13 });            // cursor after the inserted value
+                expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" id='foo'>Heading</h1>");
+                expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
             });
 
             it("should replace an unquoted attribute value when the cursor is inside that value", function () {
@@ -618,22 +618,22 @@ define(function (require, exports, module) {
                 expectCursorAt({ line: 5, ch: 14 });            // cursor after the inserted value
             });
 
-            it("should insert an unquoted attribute value before an existing unquoted attribute value with preceding space character", function () {
+            it("should insert a quoted attribute value before an existing unquoted attribute value with preceding space character", function () {
                 // Insert an unquoted attribute between <div and id on line 5.
                 testDocument.replaceRange("dir= ltr ", { line: 5, ch: 6 });
                 testEditor.setCursorPos({ line: 5, ch: 10 }); // Set cursor between = and the space
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
-                expect(testDocument.getLine(5)).toBe("  <h1 dir=rtl ltr id='foo'>Heading</h1>");
-                expectCursorAt({ line: 5, ch: 13 });            // cursor after the inserted value
+                expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" ltr id='foo'>Heading</h1>");
+                expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
             });
 
-            it("should insert an unquoted attribute value before an existing id attribute", function () {
+            it("should insert a quoted attribute value before an existing id attribute", function () {
                 // Insert an unquoted attribute between <div and id on line 5.
                 testDocument.replaceRange("dir= ", { line: 5, ch: 6 });
                 testEditor.setCursorPos({ line: 5, ch: 10 }); // Set cursor between = and the space
                 selectHint(HTMLCodeHints.attrHintProvider, "rtl");
-                expect(testDocument.getLine(5)).toBe("  <h1 dir=rtl id='foo'>Heading</h1>");
-                expectCursorAt({ line: 5, ch: 13 });            // cursor after the inserted value
+                expect(testDocument.getLine(5)).toBe("  <h1 dir=\"rtl\" id='foo'>Heading</h1>");
+                expectCursorAt({ line: 5, ch: 15 });            // cursor after the inserted value
             });
         });
         

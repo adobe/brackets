@@ -409,14 +409,21 @@ define(function (require, exports, module) {
             
             // Switch editor to next document (or blank it out)
             if (nextFile) {
-                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath });
+                CommandManager.execute(Commands.FILE_OPEN, { fullPath: nextFile.fullPath })
+                    .done(function () {
+                        // (Now we're guaranteed that the current document is not the one we're closing)
+                        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
+                    })
+                    .fail(function () {
+                        // File chosen to be switched to could not be opened, and the original file
+                        // is still in editor. Close it again so code will try to open the next file,
+                        // or empty the editor if there are no other files. 
+                        closeFullEditor(file);
+                    });
             } else {
                 _clearCurrentDocument();
             }
         }
-        
-        // (Now we're guaranteed that the current document is not the one we're closing)
-        console.assert(!(_currentDocument && _currentDocument.file.fullPath === file.fullPath));
         
         // Remove closed doc from working set, if it was in there
         // This happens regardless of whether the document being closed was the current one or not
