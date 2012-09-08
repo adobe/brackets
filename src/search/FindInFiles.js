@@ -188,7 +188,7 @@ define(function (require, exports, module) {
             $("#search-result-summary")
                 .text(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
-                .prepend("&nbsp;" + "for: " + query + "&nbsp;");  // putting a normal space before the "-" is not enough
+                .prepend("&nbsp;" + "for: \"" + query + "\"&nbsp;");  // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
