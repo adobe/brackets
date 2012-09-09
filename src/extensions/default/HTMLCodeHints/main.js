@@ -108,8 +108,6 @@ define(function (require, exports, module) {
         } else {
             editor.document.replaceRange(completion, start);
         }
-        
-        editor._codeMirror.closeTag(editor._codeMirror, ">");
     };
 
     /**
