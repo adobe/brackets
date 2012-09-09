@@ -203,16 +203,17 @@ define(function (require, exports, module) {
      * @return {SearchResult|string} value returned from search()
      */
     function domItemToSearchResult(domItem) {
-        if (domItem) {
-            // Smart Autocomplete uses this assumption internally: index of DOM node in results list container
-            // exactly matches index of search result in list returned by _handleFilter()
-            var index = $(domItem).index();
-            
-            // This is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
-            var lastFilterResult = $('input#quickOpenSearch').data("smart-autocomplete").rawResults;
-            return lastFilterResult[index];
+        if (!domItem) {
+            return null;
         }
-        return null;
+        
+        // Smart Autocomplete uses this assumption internally: index of DOM node in results list container
+        // exactly matches index of search result in list returned by _handleFilter()
+        var index = $(domItem).index();
+        
+        // This is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
+        var lastFilterResult = $('input#quickOpenSearch').data("smart-autocomplete").rawResults;
+        return lastFilterResult[index];
     }
     
     /**
@@ -709,10 +710,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
-    exports.beginSearch = beginSearch;
-    exports.addQuickOpenPlugin = addQuickOpenPlugin;
-    exports.SearchResult = SearchResult;
-    exports.stringMatch = stringMatch;
-    exports.basicMatchSort = basicMatchSort;
-    exports.multiFieldSort = multiFieldSort;
+    exports.beginSearch         = beginSearch;
+    exports.addQuickOpenPlugin  = addQuickOpenPlugin;
+    exports.SearchResult        = SearchResult;
+    exports.stringMatch         = stringMatch;
+    exports.basicMatchSort      = basicMatchSort;
+    exports.multiFieldSort      = multiFieldSort;
 });

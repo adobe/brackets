@@ -75,7 +75,6 @@ define(function (require, exports, module) {
             var docText = doc.getText();
             var lines = docText.split("\n");
 
-
             var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
