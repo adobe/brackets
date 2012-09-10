@@ -126,6 +126,12 @@ define({
 	"UNTITLED": "Sans titre",
 
     /**
+     * Keyboard modifier names
+     */
+
+     "KEYBOARD_SPACE"  : "Espace",
+
+    /**
      * Command Name Constants
      */
 
