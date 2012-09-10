@@ -319,7 +319,11 @@ a, img {
 }
 
 .scroller-shadow {
-    background-size: 100% 5px;
+    // TODO: background-size should really be 100%, but due to a bug in WebKit,
+    // that makes the drop shadows look bad on retina displays. This value
+    // should be changed to 100% once we've upgraded to a newer CEF that includes
+    // the WebKit fix.
+    background-size: 99.99%;
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
