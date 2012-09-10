@@ -62,23 +62,23 @@ define({
     // FileIndexManager error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
-    
-    // CSSManager error strings
-	"ERROR_PARSE_TITLE": "Erreur lors de l’analyse des fichiers CSS :",
 
     // Live Development error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "Erreur lors du lancement du navigateur",
 	"ERROR_CANT_FIND_CHROME": "Le navigateur Google Chrome est introuvable. Assurez-vous qu’il est installé.",
 	"ERROR_LAUNCHING_BROWSER": "Une erreur s’est produite lors du lancement du navigateur. (Erreur {0})",
     
-	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur au niveau du développement en direct",
-	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Une connexion de développement en direct n’a pas pu être établie avec Chrome. Pour que le développement en direct puisse fonctionner, Chrome doit être démarré avec la fonction de débogage distant activée.<br /><br />Souhaitez-vous relancer Chrome et activer le débogage distant ?",
+	"LIVE_DEVELOPMENT_ERROR_TITLE": "[Bg] !é=Live Preview Error=!",
+	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "[CW] !é=Connecting to Browser=!",
+	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "[Bf] !é=In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?=!",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
+	"LIVE_DEVELOPMENT_INFO_TITLE": "[CV] !é=Welcome to Live Preview!=!",
+	"LIVE_DEVELOPMENT_INFO_MESSAGE": "[CU] !é=Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)=!",
     
-	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu du fichier en direct",
-	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu du fichier en direct : Connexion...",
-	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu du fichier en direct : Initialisation...",
-	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter l’aperçu du fichier en direct",
+	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
+	"LIVE_DEV_STATUS_TIP_PROGRESS1": "[Bk] !é=Live Preview: Connecting...=!",
+	"LIVE_DEV_STATUS_TIP_PROGRESS2": "[Bl] !é=Live Preview: Initializing...=!",
+	"LIVE_DEV_STATUS_TIP_CONNECTED": "[Bi] !é=Disconnect Live Preview=!",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -145,7 +145,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
-	"CMD_LIVE_FILE_PREVIEW": "Aperçu du fichier en direct",
+	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
 	"CMD_QUIT": "Quitter",
 
     // Edit menu commands
