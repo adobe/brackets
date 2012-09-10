@@ -9,7 +9,9 @@
     "repository"            :
     {
         "type"              : "git",
-        "url"               : "https://github.com/adobe/brackets.git"
+        "url"               : "https://github.com/adobe/brackets.git",
+        "branch"            : "",
+        "SHA"               : ""
     },
     "config"                :
     {
