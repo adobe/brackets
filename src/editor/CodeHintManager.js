@@ -34,7 +34,8 @@ define(function (require, exports, module) {
         StringUtils     = require("utils/StringUtils"),
         EditorManager   = require("editor/EditorManager"),
         PopUpManager    = require("widgets/PopUpManager"),
-        ViewUtils       = require("utils/ViewUtils");
+        ViewUtils       = require("utils/ViewUtils"),
+        KeyEvent        = require("utils/KeyEvent");
 
 
     var hintProviders = [],
@@ -178,20 +179,20 @@ define(function (require, exports, module) {
         
         // Up arrow, down arrow and enter key are always handled here
         if (event.type !== "keypress" &&
-                (keyCode === 38 || keyCode === 40 || keyCode === 13 ||
-                keyCode === 33 || keyCode === 34)) {
+                (keyCode === KeyEvent.DOM_VK_UP || keyCode === KeyEvent.DOM_VK_DOWN || keyCode === KeyEvent.DOM_VK_RETURN ||
+                keyCode === KeyEvent.DOM_VK_PAGE_UP || keyCode === KeyEvent.DOM_VK_PAGE_DOWN)) {
 
             if (event.type === "keydown") {
-                if (keyCode === 38) {
+                if (keyCode === KeyEvent.DOM_VK_UP) {
                     // Up arrow
                     this.setSelectedIndex(this.selectedIndex - 1);
-                } else if (keyCode === 40) {
+                } else if (keyCode === KeyEvent.DOM_VK_DOWN) {
                     // Down arrow
                     this.setSelectedIndex(this.selectedIndex + 1);
-                } else if (keyCode === 33) {
+                } else if (keyCode === KeyEvent.DOM_VK_PAGE_UP) {
                     // Page Up
                     this.setSelectedIndex(this.selectedIndex - this.getItemsPerPage());
-                } else if (keyCode === 34) {
+                } else if (keyCode === KeyEvent.DOM_VK_PAGE_DOWN) {
                     // Page Down
                     this.setSelectedIndex(this.selectedIndex + this.getItemsPerPage());
                 } else {

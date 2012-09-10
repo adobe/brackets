@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var CommandManager = require("command/CommandManager");
+    var CommandManager = require("command/CommandManager"),
+        KeyEvent       = require("utils/KeyEvent");
 
     /**
      * Maps normalized shortcut descriptor to key binding info.
@@ -181,27 +182,27 @@ define(function (require, exports, module) {
      **/
     function _mapKeycodeToKey(keycode, key) {
         switch (keycode) {
-        case 186:
+        case KeyEvent.DOM_VK_SEMICOLON:
             return ";";
-        case 187:
+        case KeyEvent.DOM_VK_EQUALS:
             return "=";
-        case 188:
+        case KeyEvent.DOM_VK_COMMA:
             return ",";
-        case 189:
+        case KeyEvent.DOM_VK_DASH:
             return "-";
-        case 190:
+        case KeyEvent.DOM_VK_PERIOD:
             return ".";
-        case 191:
+        case KeyEvent.DOM_VK_SLASH:
             return "/";
-        case 192:
+        case KeyEvent.DOM_VK_BACK_QUOTE:
             return "`";
-        case 219:
+        case KeyEvent.DOM_VK_OPEN_BRACKET:
             return "[";
-        case 220:
+        case KeyEvent.DOM_VK_BACK_SLASH:
             return "\\";
-        case 221:
+        case KeyEvent.DOM_VK_CLOSE_BRACKET:
             return "]";
-        case 222:
+        case KeyEvent.DOM_VK_QUOTE:
             return "'";
         default:
             return key;
