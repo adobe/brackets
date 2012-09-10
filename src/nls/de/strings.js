@@ -89,7 +89,7 @@ define({
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
     "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}."
                                                 + "<br /><br />"
-                                                + "Welche Version wollen Sie erhalten?",
+                                                + "Welche Version wollen Sie weiter verwenden?",
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}."
                                                 + "<br /><br />"
                                                 + "Wollen Sie die Änderungen beibehalten?",
@@ -223,18 +223,18 @@ define({
     "DONT_SAVE"                            : "Nicht speichern",
     "SAVE"                                 : "Speichern",
     "CANCEL"                               : "Abbrechen",
-    "RELOAD_FROM_DISK"                     : "Von Festplatte neu laden",
+    "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
     "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
     "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
     "RELAUNCH_CHROME"                      : "Chrome neu starten",
     "ABOUT"                                : "Über",
-    "APP_NAME"                             : "Brackets",
+    "APP_NAME"                             : "xBrackets",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimenteller Build ",
+    "ABOUT_TEXT_LINE1"                     : "Sprint 14 experimenteller Build ",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "Ein neuer Build von {APP_NAME} ist verfügbar! Für Details hier klicken.",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
     "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
-    "UPDATE_MESSAGE"                       : "Hey, ein neuer Build von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
+    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
     "GET_IT_NOW"                           : "Jetzt updaten!"
 });
