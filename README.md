@@ -24,7 +24,7 @@ incomplete or not as useful as you'd want. But if you like the direction
 it's going, please contribute!
 
 The text editor inside Brackets is based on 
-[CodeMirror](http://github.com/marijnh/CodeMirror2)&mdash;thanks to Marijn for
+[CodeMirror](http://github.com/marijnh/CodeMirror)&mdash;thanks to Marijn for
 taking our pull requests :) See 
 [Notes on CodeMirror](https://github.com/adobe/brackets/wiki/Notes-on-CodeMirror)
 for info on upcoming things we're planning to contribute to CodeMirror.
