@@ -75,8 +75,7 @@ define(function (require, exports, module) {
             var docText = doc.getText();
             var lines = docText.split("\n");
 
-
-            var regex = new RegExp(/\s*id\s*?=\s*?["'](.*?)["']/gi);
+            var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
             var id, chFrom, chTo, i, line;
             for (i = 0; i < lines.length; i++) {
                 line = lines[i];
@@ -113,17 +112,19 @@ define(function (require, exports, module) {
 
     /**
      * @param {string} query what the user is searching for
-     * @returns {Array.<string>} sorted and filtered results that match the query
+     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query) {
         createIDList();
-
         query = query.slice(query.indexOf("@") + 1, query.length);
+        
+        // Filter and rank how good each match is
         var filteredList = $.map(idList, function (itemInfo) {
-            if (itemInfo.id.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return itemInfo.id;
-            }
-        }).sort();
+            return QuickOpen.stringMatch(itemInfo.id, query);
+        });
+        
+        // Sort based on ranking & basic alphabetical order
+        QuickOpen.basicMatchSort(filteredList);
 
         return filteredList;
     }
@@ -144,10 +145,13 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {HTMLLIElement} selectedItem
+     * @param {?SearchResult} selectedItem
      */
     function itemFocus(selectedItem) {
-        var fileLocation = getLocationFromID($(selectedItem).text());
+        if (!selectedItem) {
+            return;
+        }
+        var fileLocation = getLocationFromID(selectedItem.label);
         if (fileLocation) {
             var from = {line: fileLocation.line, ch: fileLocation.chFrom};
             var to = {line: fileLocation.line, ch: fileLocation.chTo};
@@ -155,9 +159,6 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
-     */
     function itemSelect(selectedItem) {
         itemFocus(selectedItem);
     }
