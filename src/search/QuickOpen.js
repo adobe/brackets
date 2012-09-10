@@ -77,6 +77,11 @@ define(function (require, exports, module) {
 
     var dialogOpen = false;
 
+    /** Object representing a search result with associated metadata (added as extra ad hoc fields) */
+    function SearchResult(label) {
+        this.label = label;
+    }
+    
     /**
      * Defines API for new QuickOpen plug-ins
      */
@@ -96,31 +101,33 @@ define(function (require, exports, module) {
      * Creates and registers a new QuickOpenPlugin
      *
      * @param { name: string, 
-     *          fileTypes:Array.<string>} plugin,
+     *          fileTypes:Array.<string>,
      *          done: function(),
-     *          search: function(string):Array.<string>,
+     *          search: function(string):Array.<SearchResult|string>,
      *          match: function(string):boolean,
-     *          itemFocus: functon(HTMLLIElement),
-     *          itemSelect: functon(HTMLLIElement),
-     *          resultsFormatter: ?Functon(string, string):string }
-     *
-     * @returns {QuickOpenPlugin} plugin
+     *          itemFocus: function(?SearchResult|string),
+     *          itemSelect: funciton(?SearchResult|string),
+     *          resultsFormatter: ?function(SearchResult|string, string):string
+     *        } pluginDef
      *
      * Parameter Documentation:
      *
      * name - plug-in name
-     * filetypes - file types array. Example: ["js", "css", "txt"]. An empty array
+     * fileTypes - file types array. Example: ["js", "css", "txt"]. An empty array
      *      indicates all file types.
      * done - called when quick open is complete. Plug-in should clear its internal state.
      * search - takes a query string and returns an array of strings that match the query.
      * match - takes a query string and returns true if this plug-in wants to provide
      *      results for this query.
-     * itemFocus - performs an action when a result has focus. 
-     *      The focused HTMLLIElement is passed as an argument.
+     * itemFocus - performs an action when a result has been highlighted (via arrow keys, mouseover, etc.).
+     *      The highlighted search result item (as returned by search()) is passed as an argument.
      * itemSelect - performs an action when a result is chosen.
-     *      The selected HTMLLIElement is passed as an argument.
+     *      The selected search result item (as returned by search()) is passed as an argument.
      * resultFormatter - takes a query string and an item string and returns 
      *      a <LI> item to insert into the displayed search results. If null, default is provided.
+     *
+     * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
+     * cancels Quick Open (via Esc), those changes are automatically reverted.
      */
     function addQuickOpenPlugin(pluginDef) {
         plugins.push(new QuickOpenPlugin(
@@ -159,10 +166,13 @@ define(function (require, exports, module) {
             end = path.length;
         } else {
             end = path.lastIndexOf(".");
+            if (end === -1) {
+                end = path.length;
+            }
         }
         return path.slice(path.lastIndexOf("/") + 1, end);
     }
-
+    
     /**
      * Attempts to extract a line number from the query where the line number
      * is followed by a colon. Callers should explicitly test result with isNaN()
@@ -188,29 +198,49 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Converts from list item DOM node to search provider list object
+     * @param {jQueryObject} domItem
+     * @return {SearchResult|string} value returned from search()
+     */
+    function domItemToSearchResult(domItem) {
+        if (!domItem) {
+            return null;
+        }
+        
+        // Smart Autocomplete uses this assumption internally: index of DOM node in results list container
+        // exactly matches index of search result in list returned by _handleFilter()
+        var index = $(domItem).index();
+        
+        // This is just the last return value of _handleFilter(), which smart autocomplete helpfully caches
+        var lastFilterResult = $('input#quickOpenSearch').data("smart-autocomplete").rawResults;
+        return lastFilterResult[index];
+    }
+    
+    /**
      * Navigates to the appropriate file and file location given the selected item 
      * and closes the dialog.
      *
      * Note, if selectedItem is null quick search should inspect $searchField for text
      * that may have not matched anything in in the list, but may have information
-     * for carrying out an action.
+     * for carrying out an action (e.g. go to line).
      */
-    QuickNavigateDialog.prototype._handleItemSelect = function (selectedItem) {
+    QuickNavigateDialog.prototype._handleItemSelect = function (selectedDOMItem) {
 
         // This is a work-around to select first item when a selection event occurs
         // (usually from pressing the enter key) and no item is selected in the list.
         // This is a work-around since  Smart auto complete doesn't select the first item
-        if (!selectedItem) {
-            selectedItem = $(".smart_autocomplete_container > li:first-child").get(0);
+        if (!selectedDOMItem) {
+            selectedDOMItem = $(".smart_autocomplete_container > li:first-child").get(0);
         }
-
+        
+        var selectedItem = domItemToSearchResult(selectedDOMItem);
 
         // Delegate to current plugin
         if (currentPlugin) {
             currentPlugin.itemSelect(selectedItem);
         } else {
 
-            // extract line number
+            // extract line number, if any
             var cursor,
                 query = this.$searchField.val(),
                 gotoLine = extractLineNumber(query);
@@ -218,13 +248,8 @@ define(function (require, exports, module) {
                 cursor = {line: gotoLine, ch: 0};
             }
 
-            // Extract file path
-            var fullPath;
-            if (selectedItem) {
-                fullPath = decodeURIComponent($(selectedItem).attr("data-fullpath"));
-            }
-
-            // Nagivate to file and line number
+            // Navigate to file and line number
+            var fullPath = selectedItem && selectedItem.fullPath;
             if (fullPath) {
                 CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, {fullPath: fullPath})
                     .done(function () {
@@ -246,7 +271,9 @@ define(function (require, exports, module) {
      * Opens the file specified by selected item if there is no current plug-in, otherwise defers handling
      * to the currentPlugin
      */
-    QuickNavigateDialog.prototype._handleItemFocus = function (selectedItem) {
+    QuickNavigateDialog.prototype._handleItemFocus = function (selectedDOMItem) {
+        var selectedItem = domItemToSearchResult(selectedDOMItem);
+        
         if (currentPlugin) {
             currentPlugin.itemFocus(selectedItem);
         }
@@ -255,9 +282,8 @@ define(function (require, exports, module) {
         // Also, see related code in _handleItemFocus
         /*
         else {
-            var fullPath = $(selectedItem).attr("data-fullpath");
+            var fullPath = selectedItem.fullPath;
             if (fullPath) {
-                fullPath = decodeURIComponent(fullPath);
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath, focusEditor: false});
             }
         }
@@ -286,7 +312,7 @@ define(function (require, exports, module) {
         }
 
         if ($(".smart_autocomplete_highlight").length === 0) {
-            this._handleItemFocus($(".smart_autocomplete_container > li:first-child"));
+            this._handleItemFocus($(".smart_autocomplete_container > li:first-child").get(0));
         }
     };
 
@@ -329,8 +355,8 @@ define(function (require, exports, module) {
             
         }
     };
-
-
+    
+    
     /**
     * Closes the search dialog and notifies all quick open plugins that
     * searching is done. 
@@ -373,39 +399,106 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentMouseDown);
     };
     
-    function filterFileList(query) {
-        var filteredList = $.map(fileList, function (fileInfo) {
-            // match query against filename only (not the full path)
-            var path = fileInfo.fullPath;
-            var filename = _filenameFromPath(path, true);
-            if (filename.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return path;
-            } else {
-                return null;
-            }
-        }).sort(function (a, b) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-            //first,  sort by filename without extension
-            var filenameA = _filenameFromPath(a, false);
-            var filenameB = _filenameFromPath(b, false);
-            if (filenameA < filenameB) {
-                return -1;
-            } else if (filenameA > filenameB) {
-                return 1;
-            } else {
-                // filename is the same, compare including extension
-                filenameA = _filenameFromPath(a, true);
-                filenameB = _filenameFromPath(b, true);
-                if (filenameA < filenameB) {
-                    return -1;
-                } else if (filenameA > filenameB) {
-                    return 1;
+    
+    /**
+     * Performs basic filtering of a string based on a filter query, and ranks how close the match
+     * is. Use basicMatchSort() to sort the filtered results taking this ranking into account. The
+     * label of the SearchResult is set to 'str'.
+     * @param {!string} str
+     * @param {!string} query
+     * @return {?SearchResult}
+     */
+    function stringMatch(str, query) {
+        // is it a match at all?
+        var matchIndex = str.toLowerCase().indexOf(query.toLowerCase());
+        if (matchIndex !== -1) {
+            var searchResult = new SearchResult(str);
+            
+            // Rough heuristic to decide how good the match is: if query very closely matches str,
+            // rank it highly. Divides the search results into three broad buckets (0-2)
+            if (matchIndex === 0) {
+                if (str.length === query.length) {
+                    searchResult.matchGoodness = 0;
                 } else {
-                    return 0;
+                    searchResult.matchGoodness = 1;
                 }
+            } else {
+                searchResult.matchGoodness = 2;
             }
+            
+            return searchResult;
+        }
+    }
+    
+    /**
+     * Sorts an array of SearchResult objects on a primary field, followed by secondary fields
+     * in case of ties. 'fields' maps field name to priority, where 0 is the primary field. E.g.:
+     *      multiFieldSort(bugList, { milestone: 0, severity: 1 });
+     * Would sort a bug list by milestone, and within each milestone sort bugs by severity.
+     *
+     * Any fields that have a string value are compared case-insensitively. Fields used should be
+     * present on all SearchResult objects (no optional/undefined fields).
+     *
+     * @param {!Array.<SearchResult>} searchResults
+     * @param {!Object.<string, number>} fields
+     */
+    function multiFieldSort(searchResults, fields) {
+        // Move field names into an array, with primary field first
+        var fieldNames = [];
+        $.each(fields, function (key, priority) {
+            fieldNames[priority] = key;
         });
+        
+        searchResults.sort(function (a, b) {
+            var priority;
+            for (priority = 0; priority < fieldNames.length; priority++) {
+                var fieldName = fieldNames[priority];
+                var valueA = a[fieldName];
+                var valueB = b[fieldName];
+                if (typeof valueA === "string") {
+                    valueA = valueA.toLowerCase();
+                    valueB = valueB.toLowerCase();
+                }
+                
+                if (valueA < valueB) {
+                    return -1;
+                } else if (valueA > valueB) {
+                    return 1;
+                }
+                // otherwise, move on to next sort priority
+            }
+            return 0; // all sort fields are equal
+        });
+    }
+    
+    /**
+     * Sorts search results generated by stringMatch(): results are sorted into several
+     * tiers based on how well they matched the search query, then sorted alphabetically
+     * within each tier.
+     */
+    function basicMatchSort(searchResults) {
+        multiFieldSort(searchResults, { matchGoodness: 0, label: 2 });
+    }
+    
+    
+    function searchFileList(query) {
+        // First pass: filter based on search string; convert to SearchResults containing extra info
+        // for sorting & display
+        var filteredList = $.map(fileList, function (fileInfo) {
+            // Is it a match at all?
+            // match query against filename only (not the full path)
+            var searchResult = stringMatch(fileInfo.name, query);
+            if (searchResult) {
+                searchResult.fullPath = fileInfo.fullPath;
+                searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.name, false);
+            }
+            return searchResult;
+        });
+        
+        // Sort by "match goodness" tier first, then within each tier sort alphabetically - first by filename
+        // sans extension, (so that "abc.js" comes before "abc-d.js"), then by filename, and finally (for
+        // identically-named files) by full path
+        multiFieldSort(filteredList, { matchGoodness: 0, filenameWithoutExtension: 1, label: 2, fullPath: 3 });
 
         return filteredList;
     }
@@ -426,61 +519,62 @@ define(function (require, exports, module) {
                 }
             }
         }
-
+        
+        // No plugin: use default file search mode
         currentPlugin = null;
-        return filterFileList(query);
+        return searchFileList(query);
     }
+
 
     function defaultResultsFormatter(item, query) {
         query = query.slice(query.indexOf("@") + 1, query.length);
 
         // Escape both query and item so the replace works properly below
         query = StringUtils.htmlEscape(query);
-        item = StringUtils.htmlEscape(item);
+        var label = item.label || item;
+        var displayName = StringUtils.htmlEscape(label);
 
-        var displayName;
         if (query.length > 0) {
-            // make the users query bold within the item's text
-            displayName = item.replace(
+            // make the user's query bold within the item's text
+            displayName = displayName.replace(
                 new RegExp(StringUtils.regexEscape(query), "gi"),
                 "<strong>$&</strong>"
             );
-        } else {
-            displayName = item;
         }
 
         return "<li>" + displayName + "</li>";
     }
+    
+    function _filenameResultsFormatter(item, query) {
+        // Use the filename formatter
+        query = StringUtils.htmlEscape(query);
+        var displayName = StringUtils.htmlEscape(item.label);
+        var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath));
 
+        if (query.length > 0) {
+            // make the user's query bold within the item's text
+            displayName = displayName.replace(
+                new RegExp(StringUtils.regexEscape(query), "gi"),
+                "<strong>$&</strong>"
+            );
+        }
 
+        return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
+    }
 
     function _handleResultsFormatter(item) {
         var query = $("input#quickOpenSearch").val();
+        
+        var formatter;
 
         if (currentPlugin) {
             // Plugins use their own formatter or the default formatter
-            var formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
-            return formatter(item, query);
+            formatter = currentPlugin.resultsFormatter || defaultResultsFormatter;
         } else {
-            // Use the filename formatter
-            query = StringUtils.htmlEscape(query);
-            var filename = StringUtils.htmlEscape(_filenameFromPath(item, true));
-            var rPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item));
-
-            var displayName;
-            if (query.length > 0) {
-                // make the users query bold within the item's text
-                displayName = filename.replace(
-                    new RegExp(StringUtils.regexEscape(query), "gi"),
-                    "<strong>$&</strong>"
-                );
-            } else {
-                displayName = filename;
-            }
-
-            return "<li data-fullpath='" + encodeURIComponent(item) + "'>" + displayName +
-                "<br /><span class='quick-open-path'>" + rPath + "</span></li>";
+            // No plugin: default file search mode uses a special formatter
+            formatter = _filenameResultsFormatter;
         }
+        return formatter(item, query);
     }
 
 
@@ -574,7 +668,13 @@ define(function (require, exports, module) {
         return (currentEditor && currentEditor.getSelectedText()) || "";
     }
 
-    function doSearch(prefix, initialString) {
+    /**
+     * Opens the Quick Open bar prepopulated with the given prefix (to select a mode) and optionally
+     * with the given query text too. Updates text field contents if Quick Open already open.
+     * @param {?string} prefix
+     * @param {?string} initialString
+     */
+    function beginSearch(prefix, initialString) {
         if (dialogOpen) {
             setSearchFieldValue(prefix, initialString);
         } else {
@@ -584,14 +684,14 @@ define(function (require, exports, module) {
     }
 
     function doFileSearch() {
-        doSearch("", getCurrentEditorSelectedText());
+        beginSearch("", getCurrentEditorSelectedText());
     }
 
     function doGotoLine() {
         // TODO: Brackets doesn't support disabled menu items right now, when it does goto line and
         // goto definition should be disabled when there is not a current document
         if (DocumentManager.getCurrentDocument()) {
-            doSearch(":", "");
+            beginSearch(":", "");
         }
     }
 
@@ -599,7 +699,7 @@ define(function (require, exports, module) {
     // TODO: should provide a way for QuickOpenJSSymbol to create this function as a plug-in
     function doDefinitionSearch() {
         if (DocumentManager.getCurrentDocument()) {
-            doSearch("@", getCurrentEditorSelectedText());
+            beginSearch("@", getCurrentEditorSelectedText());
         }
     }
 
@@ -610,5 +710,10 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_GOTO_DEFINITION,    Commands.NAVIGATE_GOTO_DEFINITION,  doDefinitionSearch);
     CommandManager.register(Strings.CMD_GOTO_LINE,          Commands.NAVIGATE_GOTO_LINE,        doGotoLine);
 
-    exports.addQuickOpenPlugin = addQuickOpenPlugin;
+    exports.beginSearch         = beginSearch;
+    exports.addQuickOpenPlugin  = addQuickOpenPlugin;
+    exports.SearchResult        = SearchResult;
+    exports.stringMatch         = stringMatch;
+    exports.basicMatchSort      = basicMatchSort;
+    exports.multiFieldSort      = multiFieldSort;
 });
