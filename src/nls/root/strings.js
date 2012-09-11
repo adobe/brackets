@@ -104,7 +104,7 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
