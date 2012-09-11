@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         // to a file in /refs which in turn contains the SHA
         FileUtils.readAsText(fileEntry).done(function (text) {
             if (text.indexOf("ref: ") === 0) {
-                // e.g. "ref: refs/heads/myuser/mybranch"
+                // e.g. "ref: refs/heads/branchname"
                 var basePath    = path.substr(0, path.lastIndexOf("/")),
                     refRelPath  = text.substr(5).trim(),
                     branch      = text.substr(16).trim();
@@ -83,6 +83,9 @@ define(function (require, exports, module) {
         // loaded at startup (the src on disk may be updated to a different version later).
         // Git metadata may be missing (e.g. in the per-sprint ZIP builds) - silently ignore if so.
         var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
+        
+        // Assumes Brackets is a standalone repo and not a submodule (prior to brackets-shell,
+        // brackets-app was setup this way)
         var bracketsGitRoot = bracketsSrc.substr(0, bracketsSrc.lastIndexOf("/")) + "/.git/HEAD";
         
         _loadSHA(bracketsGitRoot).done(function (data) {
