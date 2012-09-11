@@ -389,7 +389,6 @@ define(function (require, exports, module) {
 
         // Pass to the hint list, if it's open
         if (hintList && hintList.isOpen()) {
-            shouldShowHintsOnChange = false;
             hintList.handleKeyEvent(editor, event);
         }
     }
