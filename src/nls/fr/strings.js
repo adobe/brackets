@@ -126,6 +126,14 @@ define({
 	"UNTITLED": "Sans titre",
 
     /**
+     * Keyboard modifier names
+     */
+
+	"KEYBOARD_CTRL": "Ctrl",
+	"KEYBOARD_SHIFT": "Maj",
+	"KEYBOARD_SPACE": "Espace",
+
+    /**
      * Command Name Constants
      */
 
@@ -201,6 +209,7 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "Version expérimentale",
 	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_NO_ERRORS": "[CX] !é=No JSLint errors - good job!=!",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
