@@ -73,7 +73,7 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE" : "Live Preview feil",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Kobler til nettleser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En live development kobling til Chrome kunne ikke bli etablert. For at live development ska fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En Live Development kobling til Chrome kunne ikke bli etablert. For at Live Development skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
     "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live forhåndsvisning.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Ptrview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
@@ -158,7 +158,7 @@ define({
     "CMD_DUPLICATE" : "Dupliker",
     "CMD_COMMENT" : "Kommenter/utkommenter linjer",
     "CMD_LINE_UP" : "Flytt linje(r) opp",
-    "CMD_LINE_DOWN" : "Move linje(r) ned",
+    "CMD_LINE_DOWN" : "Flytt linje(r) ned",
 
     // View menu commands
     "VIEW_MENU" : "Vis",

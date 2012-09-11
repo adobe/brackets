@@ -126,6 +126,14 @@ define({
     "UNTITLED" : "Untitled",
 
     /**
+     * Keyboard modifier names
+     */
+
+     "KEYBOARD_CTRL"   : "Ctrl",
+     "KEYBOARD_SHIFT"  : "Shift",
+     "KEYBOARD_SPACE"  : "Space",
+
+    /**
      * Command Name Constants
      */
 
@@ -201,6 +209,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
     "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",

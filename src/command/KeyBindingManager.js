@@ -33,7 +33,8 @@ define(function (require, exports, module) {
 
     require("utils/Global");
 
-    var CommandManager = require("command/CommandManager");
+    var CommandManager = require("command/CommandManager"),
+        Strings        = require("strings");
 
     /**
      * Maps normalized shortcut descriptor to key binding info.
@@ -260,7 +261,10 @@ define(function (require, exports, module) {
             displayStr = displayStr.replace("Shift", "\u21E7"); // Shift > shift symbol
             displayStr = displayStr.replace("Alt", "\u2325");   // Alt > option symbol
         } else {
-            displayStr = descriptor.replace(/-/g, "+");
+            displayStr = descriptor.replace("Ctrl", Strings.KEYBOARD_CTRL);   // Ctrl
+            displayStr = displayStr.replace("Shift", Strings.KEYBOARD_SHIFT); // Shift > shift symbol
+            displayStr = displayStr.replace("Space", Strings.KEYBOARD_SPACE); // Alt > option symbol
+            displayStr = displayStr.replace(/-/g, "+");
         }
 
         return displayStr;

@@ -110,29 +110,19 @@ define(function (require, exports, module) {
 
     /**
      * @param {string} query what the user is searching for
-     * @returns {Array.<string>} sorted and filtered results that match the query
+     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query) {
         createFunctionList();
-
         query = query.slice(query.indexOf("@") + 1, query.length);
+        
+        // Filter and rank how good each match is
         var filteredList = $.map(functionList, function (itemInfo) {
-
-            var functionName = itemInfo.functionName;
-            if (functionName.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return functionName;
-            }
-        }).sort(function (a, b) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-            if (a > b) {
-                return -1;
-            } else if (a < b) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return QuickOpen.stringMatch(itemInfo.functionName, query);
         });
+        
+        // Sort based on ranking & basic alphabetical order
+        QuickOpen.basicMatchSort(filteredList);
 
         return filteredList;
     }
@@ -153,10 +143,13 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {HTMLLIElement} selectedItem
+     * @param {?SearchResult} selectedItem
      */
     function itemFocus(selectedItem) {
-        var fileLocation = getLocationFromFunctionName($(selectedItem).text());
+        if (!selectedItem) {
+            return;
+        }
+        var fileLocation = getLocationFromFunctionName(selectedItem.label);
 
         if (fileLocation) {
             var from = {line: fileLocation.line, ch: fileLocation.chFrom};
@@ -165,9 +158,6 @@ define(function (require, exports, module) {
         }
     }
 
-    /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
-     */
     function itemSelect(selectedItem) {
         itemFocus(selectedItem);
     }
