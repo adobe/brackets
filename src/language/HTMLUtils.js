@@ -386,9 +386,11 @@ define(function (require, exports, module) {
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 
                     // Check to see if this is the closing of a tag (either the start or end)
-                    if (ctx.token.className === "tag" &&
+                    // or a comment tag.
+                    if (ctx.token.className === "comment" ||
+                            (ctx.token.className === "tag" &&
                             (ctx.token.string === ">" || ctx.token.string === "/>" ||
-                            (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/"))) {
+                                (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")))) {
                         return createTagInfo();
                     }
                     
