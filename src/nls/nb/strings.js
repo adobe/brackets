@@ -63,9 +63,6 @@ define({
     "ERROR_MAX_FILES_TITLE" : "Feil ved indeksering av filer",
     "ERROR_MAX_FILES" : "Maksimalt antall filer har blitt indeksert. Handlinger som slår opp filer i indeksen kan feile.",
 
-    // CSSManager error strings
-    "ERROR_PARSE_TITLE" : "Feil ved analysering av fil(er):",
-
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE" : "Feil ved åpning av nettleser",
     "ERROR_CANT_FIND_CHROME" : "Nettleseren Google Chrome ble ikke funnet. Vennligst sørg for at den er installert.",
@@ -127,6 +124,14 @@ define({
      */
 
     "UNTITLED" : "Uten Tittel",
+
+    /**
+     * Keyboard modifier names
+     */
+
+     "KEYBOARD_CTRL"   : "Ctrl",
+     "KEYBOARD_SHIFT"  : "Shift",
+     "KEYBOARD_SPACE"  : "Space",
 
     /**
      * Command Name Constants
