@@ -50,12 +50,18 @@ define(function (require, exports, module) {
         // to a file in /refs which in turn contains the SHA
         FileUtils.readAsText(fileEntry).done(function (text) {
             if (text.indexOf("ref: ") === 0) {
-                var basePath = path.substr(0, path.lastIndexOf("/"));
-                var refRelPath = text.substr(5).trim();
-                _loadSHA(basePath + "/" + refRelPath, callback)
-                    .pipe(result.resolve, result.reject);
+                // e.g. "ref: refs/heads/myuser/mybranch"
+                var basePath    = path.substr(0, path.lastIndexOf("/")),
+                    refRelPath  = text.substr(5).trim(),
+                    branch      = text.substr(16).trim();
+                
+                _loadSHA(basePath + "/" + refRelPath, callback).done(function (data) {
+                    result.resolve({ branch: branch, sha: data.sha });
+                }).fail(function () {
+                    result.resolve({ branch: branch });
+                });
             } else {
-                result.resolve(text);
+                result.resolve({ sha: text });
             }
         }).fail(function () {
             result.reject();
@@ -65,8 +71,9 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @return {$.Promise} A promise resolved with the git repository SHA or the SHA
-     *                     defined in the package.json repository metadata.
+     * @return {$.Promise} A promise resolved with the git branch and SHA
+     *     of a local copy of a repository or the branch and SHA
+     *     embedded at build-time in the package.json repository metadata.
      */
     function getBracketsSHA() {
         var result = new $.Deferred();
@@ -78,12 +85,12 @@ define(function (require, exports, module) {
         var bracketsSrc = FileUtils.getNativeBracketsDirectoryPath();
         var bracketsGitRoot = bracketsSrc.substr(0, bracketsSrc.lastIndexOf("/")) + "/.git/HEAD";
         
-        _loadSHA(bracketsGitRoot).done(function (sha) {
+        _loadSHA(bracketsGitRoot).done(function (data) {
             // Found a repository
-            result.resolve(sha);
+            result.resolve(data.branch, data.sha, true);
         }).fail(function () {
-            // If package.json has a SHA, Brackets is running from the installed /www folder
-            result.resolve(brackets.metadata.repository.SHA);
+            // If package.json has repository data, Brackets is running from the installed /www folder
+            result.resolve(brackets.metadata.repository.branch, brackets.metadata.repository.SHA, false);
         });
         
         return result.promise();
