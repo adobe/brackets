@@ -38,6 +38,8 @@ define(function (require, exports, module) {
         FileUtils               = require("file/FileUtils"),
         NativeApp               = require("utils/NativeApp");
     
+    var bracketsSHA;
+    
     function _handleShowExtensionsFolder() {
         brackets.app.showExtensionsFolder(
             FileUtils.convertToNativePath(window.location.href),
@@ -53,15 +55,12 @@ define(function (require, exports, module) {
 
     function _handleAboutDialog() {
         // If we've successfully determined a "build number" via .git metadata, add it to dialog
-        var bracketsSHA = BuildInfoUtils.getBracketsSHA(),
-            bracketsAppSHA = BuildInfoUtils.getBracketsAppSHA(),
-            versionLabel = "";
+        var versionLabel = "";
+        
         if (bracketsSHA) {
             versionLabel += " (" + bracketsSHA.substr(0, 7) + ")";
         }
-        if (bracketsAppSHA) {
-            versionLabel += " (shell " + bracketsAppSHA.substr(0, 7) + ")";
-        }
+        
         $("#about-build-number").text(versionLabel);
         
         Dialogs.showModalDialog(Dialogs.DIALOG_ID_ABOUT);
@@ -74,6 +73,12 @@ define(function (require, exports, module) {
 
         NativeApp.openURLInDefaultBrowser(brackets.config.forum_url);
     }
+    
+    // Read "build number" SHAs off disk immediately at load time, instead
+    // of later, when they may have been updated to a different version
+    BuildInfoUtils.getBracketsSHA().done(function (sha) {
+        bracketsSHA = sha;
+    });
     
     CommandManager.register(Strings.CMD_SHOW_EXTENSIONS_FOLDER, Commands.HELP_SHOW_EXT_FOLDER,      _handleShowExtensionsFolder);
     CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
