@@ -69,16 +69,16 @@ define({
     "ERROR_LAUNCHING_BROWSER" : "En feil skjedde ved åpning av Nettleseren. (feil {0})",
 
     "LIVE_DEVELOPMENT_ERROR_TITLE" : "Live Preview feil",
-    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Kobler til nettleser",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En Live Development kobling til Chrome kunne ikke bli etablert. For at Live Development skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
-    "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live forhåndsvisning.",
-    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Velkommen til Live Preview!",
-    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Ptrview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE" : "Kobler til nettleser",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE" : "En Live Preview kobling til Chrome kunne ikke bli etablert. For at Live Preview skal fungere må Chrome startes med remote debugging på.<br /><br />Ønsker du å start Chrome på nytt med remote debugging slått på?",
+    "LIVE_DEV_NEED_HTML_MESSAGE" : "Åpne en HTML-fil for å åpne live Preview.",
+    "LIVE_DEVELOPMENT_INFO_TITLE" : "Velkommen til Live Preview!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE" : "Live Preview kobler {APP_NAME} til din nettleser. Den åpner en forhåndsvisning av HTML-filen i nettleseren. Forhåndsvisningen oppdateres umiddelbart når du redigerer koden.<br /><br />I denne tidlige versjonen av {APP_NAME} fungerer Live Preview bare for endringer av <strong>CSS-filer</strong> og bare med <strong>Google Chrome</strong>. Vi ønsker å implementere det for HTML og JavaScript også snart!<br /><br /> (Du ser bare denne meldingen en gang).",
 
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live File forhåndsvisning",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live File forhåndsvisning: Kobler...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live File forhåndsvisning: Initaliserer...",
-    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live File forhåndsvisning",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live Preview: Kobler til...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live Preview: Initaliserer...",
+    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live File Preview",
 
     "SAVE_CLOSE_TITLE" : "Lagre endringer",
     "SAVE_CLOSE_MESSAGE" : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
@@ -147,7 +147,7 @@ define({
     "CMD_FILE_CLOSE_ALL" : "Lukk alle",
     "CMD_FILE_SAVE" : "Lagre",
     "CMD_FILE_SAVE_ALL" : "Lagre alle",
-    "CMD_LIVE_FILE_PREVIEW" : "Live File forhåndsvisning",
+    "CMD_LIVE_FILE_PREVIEW" : "Live Preview",
     "CMD_QUIT" : "Avslutt",
 
     // Edit menu commands
