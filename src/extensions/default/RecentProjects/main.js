@@ -45,17 +45,51 @@ define(function (require, exports, module) {
     var MAX_PROJECTS = 20;
     
     /**
+     * Get the list of recent projects from preferences. If one of them is the welcome
+     * project, make sure to update it to the current path.
+     */
+    function getRecentProjects() {
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+            recentProjects = prefs.getValue("recentProjects") || [],
+            i;
+        for (i = 0; i < recentProjects.length; i++) {
+            // Handle older versions (where only the path was stored)
+            if (typeof recentProjects[i] === "string") {
+                recentProjects[i] = {root: recentProjects[i], type: ProjectManager.TYPE_LOCAL_FOLDER};
+            }
+            if (recentProjects[i].type === ProjectManager.TYPE_WELCOME) {
+                recentProjects[i].root = ProjectManager.getWelcomeProjectPath();
+            }
+        }
+        return recentProjects;
+    }
+    
+    /**
+     * Canonicalize a folder path to have no trailing slash.
+     */
+    function canonicalize(path) {
+        if (path.length > 0 && path[path.length - 1] === "/") {
+            return path.slice(0, -1);
+        } else {
+            return path;
+        }
+    }
+    
+    /**
      * Add a project to the stored list of recent projects, up to MAX_PROJECTS.
      */
-    function add() {
-        var root = ProjectManager.getProjectRoot().fullPath,
-            prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
-            recentProjects = prefs.getValue("recentProjects") || [],
-            index = recentProjects.indexOf(root);
-        if (index !== -1) {
-            recentProjects.splice(index, 1);
+    function add(e, info) {
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+            recentProjects = getRecentProjects(),
+            canonRoot = canonicalize(info.root),
+            i;
+        for (i = 0; i < recentProjects.length; i++) {
+            if (canonicalize(recentProjects[i].root) === canonRoot) {
+                recentProjects.splice(i, 1);
+                break;
+            }
         }
-        recentProjects.unshift(root);
+        recentProjects.unshift(info);
         if (recentProjects.length > MAX_PROJECTS) {
             recentProjects = recentProjects.slice(0, MAX_PROJECTS);
         }
@@ -67,9 +101,7 @@ define(function (require, exports, module) {
      * @param {string} path The full path to the folder.
      */
     function renderPath(path) {
-        if (path.length && path[path.length - 1] === "/") {
-            path = path.slice(0, path.length - 1);
-        }
+        path = canonicalize(path);
         
         var lastSlash = path.lastIndexOf("/"), folder, rest;
         if (lastSlash === path.length - 1) {
@@ -107,7 +139,7 @@ define(function (require, exports, module) {
         e.stopPropagation();
         
         var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
-            recentProjects = prefs.getValue("recentProjects") || [],
+            recentProjects = getRecentProjects(),
             $dropdown = $("<ul id='project-dropdown' class='dropdown-menu'></ul>"),
             toggleOffset = $dropdownToggle.offset();
 
@@ -126,11 +158,12 @@ define(function (require, exports, module) {
         
         var currentProject = ProjectManager.getProjectRoot().fullPath,
             hasProject = false;
-        recentProjects.forEach(function (root) {
-            if (root !== currentProject) {
+        recentProjects.forEach(function (projectInfo) {
+            var root = projectInfo.root;
+            if (canonicalize(root) !== canonicalize(currentProject)) {
                 var $link = renderPath(root)
                     .click(function () {
-                        ProjectManager.openProject(root)
+                        ProjectManager.openProject(root, projectInfo.type)
                             .fail(function () {
                                 // Remove the project from the list.
                                 var index = recentProjects.indexOf(root);

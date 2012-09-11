@@ -62,6 +62,9 @@ define(function (require, exports, module) {
         Urls                = require("i18n!nls/urls"),
         KeyEvent            = require("utils/KeyEvent");
     
+    var TYPE_LOCAL_FOLDER   = "localFolder",
+        TYPE_WELCOME        = "welcome";
+    
     /**
      * @private
      * Reference to the tree control container div. Initialized by
@@ -104,6 +107,12 @@ define(function (require, exports, module) {
      * @see getProjectRoot()
      */
     var _projectRoot = null;
+    
+    /**
+     * @private
+     * The current project's metadata.
+     */
+    var _projectInfo = null;
 
     /**
      * Unique PreferencesManager clientID
@@ -206,6 +215,15 @@ define(function (require, exports, module) {
     }
     
     /**
+     * Returns the current project info, which has two fields:
+     *      root -- the path to the root of the project
+     *      type -- the type of project (one of the TYPE_* constants)
+     */
+    function getProjectInfo() {
+        return _projectInfo;
+    }
+    
+    /**
      * Returns true if absPath lies within the project, false otherwise.
      * Does not support paths containing ".."
      */
@@ -224,11 +242,42 @@ define(function (require, exports, module) {
         return absPath;
     }
 
-    /**
-     * Initial project path is stored in prefs, which defaults to the getting started project
+    /** Returns the full path to the welcome project, which is the default startup project.
+     * @private
+     * @return {!string} fullPath reference
      */
-    function getInitialProjectPath() {
-        return _prefs.getValue("projectPath");
+    function getWelcomeProjectPath() {
+        var srcPath = decodeURI(window.location.pathname),
+            initialPath = srcPath.substr(0, srcPath.lastIndexOf("/")),
+            sampleUrl = Urls.GETTING_STARTED;
+        if (sampleUrl) {
+            // Back up one more folder. The samples folder is assumed to be at the same level as
+            // the src folder, and the sampleUrl is relative to the samples folder.
+            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
+        }
+
+        initialPath = FileUtils.convertToNativePath(initialPath);
+        return initialPath;
+    }
+    
+    /**
+     * Initial project path is stored in prefs. However, if we're reopening the welcome project,
+     * make sure we open the one for the current version, instead of one associated with an older
+     * install.
+     */
+    function getInitialProjectInfo() {
+        var info = _prefs.getValue("projectInfo");
+        if (!info) {
+            // Handle the pre-Sprint 14 prefs key, which was just a path
+            info = _prefs.getValue("projectPath");
+            if (info) {
+                info = { root: info, type: TYPE_LOCAL_FOLDER };
+            }
+        }
+        if (info && info.type === TYPE_WELCOME) {
+            info.root = getWelcomeProjectPath();
+        }
+        return info;
     }
 
     /**
@@ -253,7 +302,7 @@ define(function (require, exports, module) {
     function _savePreferences() {
         
         // save the current project
-        _prefs.setValue("projectPath", _projectRoot.fullPath);
+        _prefs.setValue("projectInfo", _projectInfo);
 
         // save jstree state
         var openNodes = [],
@@ -614,45 +663,21 @@ define(function (require, exports, module) {
 
     }
     
-    /** Returns the full path to the default project folder. The path is currently the brackets src folder.
-     * @private
-     * @return {!string} fullPath reference
-     */
-    function _getDefaultProjectPath() {
-        var srcPath = decodeURI(window.location.pathname),
-            initialPath = srcPath.substr(0, srcPath.lastIndexOf("/")),
-            sampleUrl = Urls.GETTING_STARTED;
-        if (sampleUrl) {
-            // Back up one more folder. The samples folder is assumed to be at the same level as
-            // the src folder, and the sampleUrl is relative to the samples folder.
-            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
-        }
-
-        initialPath = FileUtils.convertToNativePath(initialPath);
-        return initialPath;
-    }
-    
-    /**
-     * Returns true if the given path is the same as the one for the initial startup project.
-     */
-    function isDefaultProjectPath(path) {
-        return path === _getDefaultProjectPath();
-    }
-    
     /**
      * Loads the given folder as a project. Normally, you would call openProject() instead to let the
      * user choose a folder.
      *
      * @param {string} rootPath  Absolute path to the root folder of the project. 
      *  If rootPath is undefined or null, the last open project will be restored.
+     * @param {string=} type Type of project. Defaults to local folder.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-    function _loadProject(rootPath) {
+    function _loadProject(rootPath, type) {
         if (_projectRoot) {
             // close current project
-            $(exports).triggerHandler("beforeProjectClose", _projectRoot);
+            $(exports).triggerHandler("beforeProjectClose", _projectInfo);
         }
 
         // close all the old files
@@ -679,6 +704,10 @@ define(function (require, exports, module) {
                     var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
 
                     _projectRoot = rootEntry;
+                    _projectInfo = {
+                        root: _projectRoot.fullPath,
+                        type: type || TYPE_LOCAL_FOLDER
+                    };
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -687,7 +716,7 @@ define(function (require, exports, module) {
 
                     resultRenderTree.done(function () {
                         if (projectRootChanged) {
-                            $(exports).triggerHandler("projectOpen", _projectRoot);
+                            $(exports).triggerHandler("projectOpen", _projectInfo);
                         }
                         
                         result.resolve();
@@ -715,7 +744,7 @@ define(function (require, exports, module) {
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
                         result.reject();
-                        return _loadProject(_getDefaultProjectPath());
+                        return _loadProject(getWelcomeProjectPath());
                     });
                 }
                 );
@@ -731,11 +760,13 @@ define(function (require, exports, module) {
      * @param {string=} path Optional absolute path to the root folder of the project. 
      *  If path is undefined or null, displays a  dialog where the user can choose a
      *  folder to load. If the user cancels the dialog, nothing more happens.
+     * @param {string=} type Type of project. Only valid if path is specified. 
+     *  Defaults to local folder.
      * @return {$.Promise} A promise object that will be resolved when the
      *  project is loaded and tree is rendered, or rejected if the project path
      *  fails to load.
      */
-    function openProject(path) {
+    function openProject(path, type) {
 
         var result = new $.Deferred();
 
@@ -746,7 +777,7 @@ define(function (require, exports, module) {
             .done(function () {
                 if (path) {
                     // use specified path
-                    _loadProject(path).pipe(result.resolve, result.reject);
+                    _loadProject(path, type).pipe(result.resolve, result.reject);
                 } else {
                     // Pop up a folder browse dialog
                     NativeFileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, _projectRoot.fullPath, null,
@@ -959,7 +990,10 @@ define(function (require, exports, module) {
 
     // Init PreferenceStorage
     var defaults = {
-        projectPath:      _getDefaultProjectPath()  /* initialize to brackets source */
+        projectInfo: {
+            root: getWelcomeProjectPath(),  /* initialize to brackets source */
+            type: TYPE_WELCOME
+        }
     };
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
 
@@ -977,8 +1011,11 @@ define(function (require, exports, module) {
     exports.shouldShow              = shouldShow;
     exports.openProject             = openProject;
     exports.getSelectedItem         = getSelectedItem;
-    exports.getInitialProjectPath   = getInitialProjectPath;
-    exports.isDefaultProjectPath    = isDefaultProjectPath;
+    exports.getInitialProjectInfo   = getInitialProjectInfo;
+    exports.getWelcomeProjectPath   = getWelcomeProjectPath;
     exports.createNewItem           = createNewItem;
     exports.forceFinishRename       = forceFinishRename;
+    
+    exports.TYPE_LOCAL_FOLDER       = TYPE_LOCAL_FOLDER;
+    exports.TYPE_WELCOME            = TYPE_WELCOME;
 });
