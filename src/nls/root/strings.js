@@ -62,9 +62,6 @@ define({
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
     "ERROR_MAX_FILES"                   : "The maximum number of files have been indexed. Actions that look up files in the index may function incorrectly.",
-    
-    // CSSManager error strings
-    "ERROR_PARSE_TITLE"                 : "Error parsing CSS file(s):",
 
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Error launching browser",
@@ -127,6 +124,14 @@ define({
      */
 
     "UNTITLED" : "Untitled",
+
+    /**
+     * Keyboard modifier names
+     */
+
+     "KEYBOARD_CTRL"   : "Ctrl",
+     "KEYBOARD_SHIFT"  : "Shift",
+     "KEYBOARD_SPACE"  : "Space",
 
     /**
      * Command Name Constants
@@ -204,6 +209,7 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
     "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",

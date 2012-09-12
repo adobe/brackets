@@ -521,6 +521,8 @@ define(function (require, exports, module) {
                 throw new Error("ERROR: Typing in Editor should not destroy its own _visibleRange");
             }
         }
+        
+        CodeHintManager.handleChange(this);
     };
     
     /**
