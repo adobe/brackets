@@ -59,7 +59,8 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         FileUtils           = require("file/FileUtils"),
-        Urls                = require("i18n!nls/urls");
+        Urls                = require("i18n!nls/urls"),
+        KeyEvent            = require("utils/KeyEvent");
     
     /**
      * @private
@@ -926,7 +927,8 @@ define(function (require, exports, module) {
 
             $renameInput.on("keydown", function (event) {
                 // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-                if (event.keyCode === 27) {
+                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+
                     escapeKeyPressed = true;
                 }
             });
