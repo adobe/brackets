@@ -59,7 +59,7 @@ define(function (require, exports, module) {
     var fileList;
     
     /** @type $.Promise */
-    var pendingFileList;
+    var fileListPromise;
 
     /**
      * Remembers the current document that was displayed when showDialog() was called
@@ -487,7 +487,7 @@ define(function (require, exports, module) {
         if (!fileList) {
             // Smart Autocomplete allows us to return a Deferred instead
             var asyncResult = new $.Deferred();
-            pendingFileList.done(function () {
+            fileListPromise.done(function () {
                 // Make sure filter text hasn't changed while we were waiting
                 var currentQuery = $("input#quickOpenSearch").val();
                 if (currentQuery === query) {
@@ -681,10 +681,10 @@ define(function (require, exports, module) {
         // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
         // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
         fileList = null;
-        pendingFileList = FileIndexManager.getFileInfoList("all")
+        fileListPromise = FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
-                pendingFileList = null;
+                fileListPromise = null;
             });
     };
 
