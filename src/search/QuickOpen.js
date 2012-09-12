@@ -31,8 +31,6 @@
 * 
 * TODO (issue 333) - currently jquery smart auto complete is used for the pop-up list. While it mostly works
 * it has several issues, so it should be replace with an alternative. Issues:
-* - only accepts an array of strings. A list of objects is preferred to avoid some workarounds to display 
-*   both the path and filename.
 * - the pop-up position logic has flaws that require CSS workarounds
 * - the pop-up properties cannot be modified once the object is constructed
 */
@@ -59,6 +57,9 @@ define(function (require, exports, module) {
 
     /** @type Array.<FileInfo>*/
     var fileList;
+    
+    /** @type $.Promise */
+    var fileListPromise;
 
     /**
      * Remembers the current document that was displayed when showDialog() was called
@@ -482,6 +483,25 @@ define(function (require, exports, module) {
     
     
     function searchFileList(query) {
+        // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
+        if (!fileList) {
+            // Smart Autocomplete allows us to return a Promise instead...
+            var asyncResult = new $.Deferred();
+            fileListPromise.done(function () {
+                // ...but it's not very robust. If a previous Promise is obsoleted by the query string changing, it
+                // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
+                // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
+                var currentQuery = $("input#quickOpenSearch").val();
+                if (currentQuery === query) {
+                    // We're still the current query. Synchronously re-run the search call and resolve with its results
+                    asyncResult.resolve(searchFileList(query));
+                } else {
+                    asyncResult.reject();
+                }
+            });
+            return asyncResult.promise();
+        }
+        
         // First pass: filter based on search string; convert to SearchResults containing extra info
         // for sorting & display
         var filteredList = $.map(fileList, function (fileInfo) {
@@ -613,6 +633,7 @@ define(function (require, exports, module) {
         }
         dialogOpen = true;
 
+        // Global listener to hide search bar & popup
         this.handleDocumentMouseDown = this.handleDocumentMouseDown.bind(this);
         $(window.document).on("mousedown", this.handleDocumentMouseDown);
 
@@ -621,6 +642,7 @@ define(function (require, exports, module) {
         // To improve performance during list selection disable JSLint until a document is chosen or dialog is closed
         //JSLintUtils.setEnabled(false);
 
+        // Record current document & cursor pos so we can restore it if search is canceled
         var curDoc = DocumentManager.getCurrentDocument();
         origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
@@ -628,38 +650,43 @@ define(function (require, exports, module) {
         } else {
             origSelection = null;
         }
+        
+        // Show the search bar ("dialog")
+        var dialogHTML = Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
+        that._createDialogDiv(dialogHTML);
+        that.$searchField = $("input#quickOpenSearch");
 
-        // Get the file list and initialize the smart auto completes
-        FileIndexManager.getFileInfoList("all")
+
+        that.$searchField.smartAutoComplete({
+            source: [],
+            maxResults: 20,
+            minCharLimit: 0,
+            autocompleteFocused: true,
+            forceSelect: false,
+            typeAhead: false,   // won't work right now because smart auto complete 
+                                // using internal raw results instead of filtered results for matching
+            filter: _handleFilter,
+            resultFormatter: _handleResultsFormatter
+        });
+
+        that.$searchField.bind({
+            itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
+            itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
+            keydown: function (e) { that._handleKeyDown(e); },
+            keyup: function (e, query) { that._handleKeyUp(e); }
+            // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
+            // triggers lostFocus
+        });
+
+        setSearchFieldValue(prefix, initialString);
+        
+        // Start fetching the file list, which will be needed the first time the user enters an un-prefixed query. If FileIndexManager's
+        // caches are out of date, this list might take some time to asynchronously build. See searchFileList() for how this is handled.
+        fileList = null;
+        fileListPromise = FileIndexManager.getFileInfoList("all")
             .done(function (files) {
                 fileList = files;
-                var dialogHTML = Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
-                that._createDialogDiv(dialogHTML);
-                that.$searchField = $("input#quickOpenSearch");
-
-
-                that.$searchField.smartAutoComplete({
-                    source: files,
-                    maxResults: 20,
-                    minCharLimit: 0,
-                    autocompleteFocused: true,
-                    forceSelect: false,
-                    typeAhead: false,   // won't work right now because smart auto complete 
-                                        // using internal raw results instead of filtered results for matching
-                    filter: _handleFilter,
-                    resultFormatter: _handleResultsFormatter
-                });
-        
-                that.$searchField.bind({
-                    itemSelect: function (e, selectedItem) { that._handleItemSelect(selectedItem); },
-                    itemFocus: function (e, selectedItem) { that._handleItemFocus(selectedItem); },
-                    keydown: function (e) { that._handleKeyDown(e); },
-                    keyup: function (e, query) { that._handleKeyUp(e); }
-                    // Note: lostFocus event DOESN'T work because auto smart complete catches the key up from shift-command-o and immediately
-                    // triggers lostFocus
-                });
-        
-                setSearchFieldValue(prefix, initialString);
+                fileListPromise = null;
             });
     };
 
