@@ -49,7 +49,9 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileIndexManager    = require("project/FileIndexManager");
+        FileIndexManager    = require("project/FileIndexManager"),
+        KeyEvent            = require("utils/KeyEvent");
+
     
     var FIND_IN_FILES_MAX = 100;
 
@@ -108,13 +110,13 @@ define(function (require, exports, module) {
         $searchField.get(0).select();
         
         $searchField.bind("keydown", function (event) {
-            if (event.keyCode === 13 || event.keyCode === 27) {  // Enter/Return key or Esc key
+            if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
                 event.stopPropagation();
                 event.preventDefault();
                 
                 var query = $searchField.val();
                 
-                if (event.keyCode === 27) {
+                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     query = null;
                 }
                 
