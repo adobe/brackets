@@ -78,7 +78,7 @@ define({
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1" : "Live Preview: Kobler til...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2" : "Live Preview: Initaliserer...",
-    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live File Preview",
+    "LIVE_DEV_STATUS_TIP_CONNECTED" : "Koble fra Live Preview",
 
     "SAVE_CLOSE_TITLE" : "Lagre endringer",
     "SAVE_CLOSE_MESSAGE" : "Ønsker du å lagre enderinger i dokumentet <span class='dialog-filename'>{0}</span>?",
