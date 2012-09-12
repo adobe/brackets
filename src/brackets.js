@@ -74,7 +74,6 @@ define(function (require, exports, module) {
         KeyBindingManager       = require("command/KeyBindingManager"),
         Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
-        BuildInfoUtils          = require("utils/BuildInfoUtils"),
         CodeHintManager         = require("editor/CodeHintManager"),
         JSLintUtils             = require("language/JSLintUtils"),
         PerfUtils               = require("utils/PerfUtils"),
@@ -218,10 +217,6 @@ define(function (require, exports, module) {
         KeyBindingManager.init();
         Menus.init(); // key bindings should be initialized first
         _initWindowListeners();
-        
-        // Read "build number" SHAs off disk at the time the matching Brackets JS code is being loaded, instead
-        // of later, when they may have been updated to a different version
-        BuildInfoUtils.init();
 
         // Use quiet scrollbars if we aren't on Lion. If we're on Lion, only
         // use native scroll bars when the mouse is not plugged in or when
@@ -271,9 +266,13 @@ define(function (require, exports, module) {
             UpdateNotification.checkForUpdate();
         }
     }
-
+    
     // Localize MainViewHTML and inject into <BODY> tag
-    var templateVars = $.extend({ ABOUT_ICON: brackets.config.about_icon }, Strings);
+    var templateVars    = $.extend({
+        ABOUT_ICON  : brackets.config.about_icon,
+        VERSION     : brackets.metadata.version
+    }, Strings);
+    
     $("body").html(Mustache.render(MainViewHTML, templateVars));
     
     // Update title
