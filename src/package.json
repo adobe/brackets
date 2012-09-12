@@ -18,6 +18,7 @@
         "about_icon"        : "styles/images/brackets_icon.svg",
         "show_debug_menu"   : true,
         "enable_jslint"     : true,
-        "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev"
+        "forum_url"         : "https://groups.google.com/forum/?fromgroups#!forum/brackets-dev",
+        "update_info_url"   : "http://dev.brackets.io/updates/stable/"
     }
 }

@@ -35,7 +35,8 @@ define(function (require, exports, module) {
         NativeApp           = require("utils/NativeApp"),
         PreferencesManager  = require("preferences/PreferencesManager"),
         Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils");
+        StringUtils         = require("utils/StringUtils"),
+        Global              = require("utils/Global");
     
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = /-([0-9]+)/.exec(brackets.metadata.version)[1];
@@ -55,7 +56,7 @@ define(function (require, exports, module) {
     // you force an update check it is always loaded.
     
     // URL to fetch the version information.
-    var _versionInfoURL = "http://dev.brackets.io/updates/stable/"; // {locale}.json will be appended
+    var _versionInfoURL;
     
     // Information on all posted builds of Brackets. This is an Array, where each element is 
     // an Object with the following fields:
@@ -344,7 +345,7 @@ define(function (require, exports, module) {
     }
     
     // Append locale to version info URL
-    _versionInfoURL += (window.localStorage.getItem("locale") || brackets.app.language) + ".json";
+    _versionInfoURL = brackets.config.update_info_url + (window.localStorage.getItem("locale") || brackets.app.language) + ".json";
     
     // Define public API
     exports.checkForUpdate = checkForUpdate;
