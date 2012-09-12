@@ -82,7 +82,7 @@ define(function (require, exports, module) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
             // FIXME (issue #418) CMD+. Cancel swallowed by native shell
-            } else if (e.metaKey && (e.which === KeyEventDOM_VK_PERIOD)) {
+            } else if (e.metaKey && (e.which === KeyEvent.DOM_VK_PERIOD)) {
                 buttonId = DIALOG_BTN_CANCEL;
             }
         } else { // if (brackets.platform === "win") {
