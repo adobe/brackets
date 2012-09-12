@@ -131,3 +131,18 @@
         outline: none;
     }
 }
+
+/*
+ * Temporarily override bold and italic syntax highlighting until
+ * SourceCodePro supports them in a fixed pitch
+ */
+span.cm-em {
+    font-style: normal;
+}
+span.cm-strong {
+    font-weight: normal;
+}
+span.cm-emstrong {
+    font-style: normal;
+    font-weight: normal;
+}
