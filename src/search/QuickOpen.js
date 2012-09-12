@@ -485,13 +485,15 @@ define(function (require, exports, module) {
     function searchFileList(query) {
         // FileIndexManager may still be loading asynchronously - if so, can't return a result yet
         if (!fileList) {
-            // Smart Autocomplete allows us to return a Deferred instead
+            // Smart Autocomplete allows us to return a Promise instead...
             var asyncResult = new $.Deferred();
             fileListPromise.done(function () {
-                // Make sure filter text hasn't changed while we were waiting
+                // ...but it's not very robust. If a previous Promise is obsoleted by the query string changing, it
+                // keeps listening to it anyway. So the last Promise to resolve "wins" the UI update even if it's for
+                // a stale query. Guard from that by checking that filter text hasn't changed while we were waiting:
                 var currentQuery = $("input#quickOpenSearch").val();
                 if (currentQuery === query) {
-                    // This is still the query. Synchronously re-run the search call and resolve with its results.
+                    // We're still the current query. Synchronously re-run the search call and resolve with its results
                     asyncResult.resolve(searchFileList(query));
                 } else {
                     asyncResult.reject();
