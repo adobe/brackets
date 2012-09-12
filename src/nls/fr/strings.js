@@ -34,7 +34,7 @@ define({
 	"NOT_FOUND_ERR": "Fichier introuvable.",
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
-	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Les autorisations dont vous disposez ne vous permettent pas d’effectuer des modifications.",
+	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -228,5 +228,5 @@ define({
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
-	"GET_IT_NOW": "Obtenir maintenant !"
+	"GET_IT_NOW": "Télécharger"
 });
