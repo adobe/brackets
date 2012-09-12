@@ -34,7 +34,7 @@ define({
 	"NOT_FOUND_ERR": "Fichier introuvable.",
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
-	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Les autorisations dont vous disposez ne vous permettent pas d’effectuer des modifications.",
+	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -68,17 +68,17 @@ define({
 	"ERROR_CANT_FIND_CHROME": "Le navigateur Google Chrome est introuvable. Assurez-vous qu’il est installé.",
 	"ERROR_LAUNCHING_BROWSER": "Une erreur s’est produite lors du lancement du navigateur. (Erreur {0})",
     
-	"LIVE_DEVELOPMENT_ERROR_TITLE": "[Bg] !é=Live Preview Error=!",
-	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "[CW] !é=Connecting to Browser=!",
-	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "[Bf] !é=In order for Live Preview to connect, Chrome needs to be relaunched with remote debugging enabled.<br /><br />Would you like to relaunch Chrome and enable remote debugging?=!",
+	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur du module Aperçu en direct",
+	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
+	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
-	"LIVE_DEVELOPMENT_INFO_TITLE": "[CV] !é=Welcome to Live Preview!=!",
-	"LIVE_DEVELOPMENT_INFO_MESSAGE": "[CU] !é=Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)=!",
+	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
+	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version de {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec les modifications apportées aux <strong>fichiers CSS</strong> et uniquement dans <strong>Google Chrome</strong>. Nous prévoyons de le rendre bientôt compatible avec les fichiers HTML et JavaScript.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
     
 	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
-	"LIVE_DEV_STATUS_TIP_PROGRESS1": "[Bk] !é=Live Preview: Connecting...=!",
-	"LIVE_DEV_STATUS_TIP_PROGRESS2": "[Bl] !é=Live Preview: Initializing...=!",
-	"LIVE_DEV_STATUS_TIP_CONNECTED": "[Bi] !é=Disconnect Live Preview=!",
+	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion...",
+	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation...",
+	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
@@ -209,7 +209,7 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "Version expérimentale",
 	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_NO_ERRORS": "[CX] !é=No JSLint errors - good job!=!",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -228,5 +228,5 @@ define({
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
 	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
-	"GET_IT_NOW": "Obtenir maintenant !"
+	"GET_IT_NOW": "Télécharger"
 });
