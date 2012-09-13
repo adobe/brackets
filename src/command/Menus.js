@@ -915,6 +915,11 @@ define(function (require, exports, module) {
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION, "Ctrl-T");
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC,        [{key: "Ctrl-Tab", platform: "win"},
+                                                             {key: "Ctrl-Tab", platform: "mac"}]);
+        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC,        [{key: "Ctrl-Shift-Tab", platform: "win"},
+                                                             {key: "Ctrl-Shift-Tab", platform: "mac"}]);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH,    {key: "Alt-Down", displayKey: "Alt-\u2193"});
