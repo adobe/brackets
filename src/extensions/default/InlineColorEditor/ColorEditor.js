@@ -300,6 +300,7 @@
         switch (event.keyCode) {
           case 37:
             step = 1.5;
+            step = event.shiftKey ? step * 5 : step;
             xOffset = Number($.trim(this.$selectionBase.css('left').replace('%', '')));
             xOffset = Math.min(100, Math.max(0, xOffset - step));
             hsv = {};
@@ -308,6 +309,7 @@
             return false;
           case 39:
             step = 1.5;
+            step = event.shiftKey ? step * 5 : step;
             xOffset = Number($.trim(this.$selectionBase.css('left').replace('%', '')));
             xOffset = Math.min(100, Math.max(0, xOffset + step));
             hsv = {};
@@ -316,6 +318,7 @@
             return false;
           case 40:
             step = 1.5;
+            step = event.shiftKey ? step * 5 : step;
             yOffset = Number($.trim(this.$selectionBase.css('bottom').replace('%', '')));
             yOffset = Math.min(100, Math.max(0, yOffset - step));
             hsv = {};
@@ -324,6 +327,7 @@
             return false;
           case 38:
             step = 1.5;
+            step = event.shiftKey ? step * 5 : step;
             yOffset = Number($.trim(this.$selectionBase.css('bottom').replace('%', '')));
             yOffset = Math.min(100, Math.max(0, yOffset + step));
             hsv = {};
@@ -335,9 +339,10 @@
 
       ColorEditor.prototype.handleHueFocus = function(event) {
         var hsv, hue, step;
-        step = 3.6;
         switch (event.keyCode) {
           case 40:
+            step = 3.6;
+            step = event.shiftKey ? step * 5 : step;
             hsv = {};
             hue = Number(this.hsv.h);
             if (hue > 0) {
@@ -346,6 +351,8 @@
             }
             return false;
           case 38:
+            step = 3.6;
+            step = event.shiftKey ? step * 5 : step;
             hsv = {};
             hue = Number(this.hsv.h);
             if (hue < 360) {
@@ -358,9 +365,10 @@
 
       ColorEditor.prototype.handleOpacityFocus = function(event) {
         var alpha, hsv, step;
-        step = 0.01;
         switch (event.keyCode) {
           case 40:
+            step = 0.01;
+            step = event.shiftKey ? step * 5 : step;
             hsv = {};
             alpha = this.hsv.a;
             if (alpha > 0) {
@@ -369,6 +377,8 @@
             }
             return false;
           case 38:
+            step = 0.01;
+            step = event.shiftKey ? step * 5 : step;
             hsv = {};
             alpha = this.hsv.a;
             if (alpha < 100) {
