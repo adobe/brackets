@@ -236,8 +236,8 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement("Application Startup");
         
         // finish UI initialization before loading extensions
-        var initialProjectPath = ProjectManager.getInitialProjectPath();
-        ProjectManager.openProject(initialProjectPath).done(function () {
+        var initialProjectInfo = ProjectManager.getInitialProjectInfo();
+        ProjectManager.openProject(initialProjectInfo.root, initialProjectInfo.type).done(function () {
             _initTest();
 
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
@@ -252,8 +252,8 @@ define(function (require, exports, module) {
             var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
             if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
-                if (ProjectManager.isDefaultProjectPath(initialProjectPath)) {
-                    var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
+                if (initialProjectInfo.type === ProjectManager.TYPE_WELCOME) {
+                    var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectInfo.root);
                     dirEntry.getFile("index.html", {}, function (fileEntry) {
                         CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
                     });
