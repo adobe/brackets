@@ -97,6 +97,14 @@
         });
       };
 
+      ColorEditor.prototype.focus = function() {
+        if (!this.$selection.find('.selector_base').is(":focus")) {
+          this.$selection.find('.selector_base').focus();
+          return true;
+        }
+        return false;
+      };
+
       ColorEditor.prototype.colorSetter = function() {
         var newColor, newValue;
         newValue = $.trim(this.$colorValue.val());

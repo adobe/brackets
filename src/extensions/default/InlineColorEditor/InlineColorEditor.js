@@ -68,7 +68,8 @@
       };
 
       InlineColorEditor.prototype.onAdded = function() {
-        return window.setTimeout(this._sizeEditorToContent.bind(this));
+        window.setTimeout(this._sizeEditorToContent.bind(this));
+        return console.log(this.colorEditor.focus());
       };
 
       InlineColorEditor.prototype._sizeEditorToContent = function() {
