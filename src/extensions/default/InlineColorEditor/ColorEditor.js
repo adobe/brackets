@@ -300,7 +300,7 @@
         switch (event.keyCode) {
           case 37:
             step = 1.5;
-            xOffset = $.trim(this.$selectionBase.css('left').replace('%', ''));
+            xOffset = Number($.trim(this.$selectionBase.css('left').replace('%', '')));
             xOffset = Math.min(100, Math.max(0, xOffset - step));
             hsv = {};
             hsv.s = xOffset / 100;
@@ -308,7 +308,7 @@
             return false;
           case 39:
             step = 1.5;
-            xOffset = $.trim(this.$selectionBase.css('left').replace('%', ''));
+            xOffset = Number($.trim(this.$selectionBase.css('left').replace('%', '')));
             xOffset = Math.min(100, Math.max(0, xOffset + step));
             hsv = {};
             hsv.s = xOffset / 100;
@@ -316,7 +316,7 @@
             return false;
           case 40:
             step = 1.5;
-            yOffset = $.trim(this.$selectionBase.css('bottom').replace('%', ''));
+            yOffset = Number($.trim(this.$selectionBase.css('bottom').replace('%', '')));
             yOffset = Math.min(100, Math.max(0, yOffset - step));
             hsv = {};
             hsv.v = yOffset / 100;
@@ -324,7 +324,7 @@
             return false;
           case 38:
             step = 1.5;
-            yOffset = $.trim(this.$selectionBase.css('bottom').replace('%', ''));
+            yOffset = Number($.trim(this.$selectionBase.css('bottom').replace('%', '')));
             yOffset = Math.min(100, Math.max(0, yOffset + step));
             hsv = {};
             hsv.v = yOffset / 100;
