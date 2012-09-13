@@ -296,39 +296,39 @@
       };
 
       ColorEditor.prototype.handleSelectionFocus = function(event) {
-        var hsv, sat, value;
+        var hsv, step, xOffset, yOffset;
         switch (event.keyCode) {
           case 37:
+            step = 1.5;
+            xOffset = $.trim(this.$selectionBase.css('left').replace('%', ''));
+            xOffset = Math.min(100, Math.max(0, xOffset - step));
             hsv = {};
-            sat = $.trim(this.hsv.s.replace('%', ''));
-            if (sat > 0) {
-              hsv.s = (sat - 1) <= 0 ? 0 : sat - 1;
-              this.setColorAsHsv(hsv);
-            }
+            hsv.s = xOffset / 100;
+            this.setColorAsHsv(hsv, false);
             return false;
           case 39:
+            step = 1.5;
+            xOffset = $.trim(this.$selectionBase.css('left').replace('%', ''));
+            xOffset = Math.min(100, Math.max(0, xOffset + step));
             hsv = {};
-            sat = $.trim(this.hsv.s.replace('%', ''));
-            if (sat < 100) {
-              hsv.s = (Number(sat) + 1) >= 100 ? 100 : Number(sat) + 1;
-              this.setColorAsHsv(hsv);
-            }
+            hsv.s = xOffset / 100;
+            this.setColorAsHsv(hsv, false);
             return false;
           case 40:
+            step = 1.5;
+            yOffset = $.trim(this.$selectionBase.css('bottom').replace('%', ''));
+            yOffset = Math.min(100, Math.max(0, yOffset - step));
             hsv = {};
-            value = $.trim(this.hsv.v.replace('%', ''));
-            if (value > 0) {
-              hsv.v = (value - 1) <= 0 ? 0 : value - 1;
-              this.setColorAsHsv(hsv);
-            }
+            hsv.v = yOffset / 100;
+            this.setColorAsHsv(hsv, false);
             return false;
           case 38:
+            step = 1.5;
+            yOffset = $.trim(this.$selectionBase.css('bottom').replace('%', ''));
+            yOffset = Math.min(100, Math.max(0, yOffset + step));
             hsv = {};
-            value = $.trim(this.hsv.v.replace('%', ''));
-            if (value < 100) {
-              hsv.v = (Number(value) + 1) >= 100 ? 100 : Number(value) + 1;
-              this.setColorAsHsv(hsv);
-            }
+            hsv.v = yOffset / 100;
+            this.setColorAsHsv(hsv, false);
             return false;
         }
       };
