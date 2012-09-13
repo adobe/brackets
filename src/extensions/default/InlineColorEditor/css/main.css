@@ -162,7 +162,7 @@
   width: 114px;
   height: 23px;
   margin-right: 6px;
-  background-color: #aaa;
+  border-color: #aaa;
   box-sizing: border-box;
   display: inline-block;
   color: #222;
@@ -173,16 +173,16 @@
   padding: 0 0 0 4px;
   border: 1px solid rgba(0,0,0,0.53);
   box-shadow: inset 0px 1px 0px rgba(0,0,0,0.15);
-  background: rgba(255,255,255,0.15);
+  background: #fff;
   font-family: "SourceSans";
   font-size: 12px;
   color: rgba(255,255,255,0.6);
   border-radius: 3px;
   margin: 1px 0 0 0;
-  vertical-align: middle;
+  vertical-align: center;
 }
 .color_editor footer input:focus {
-  background: rgba(255,255,255,0.3);
+  background: #fff;
   outline: none;
   box-shadow: 0 0 8px rgba(0,0,0,0.35), inset 0 2px 4px rgba(0,0,0,0.15);
   border: 1px solid #1b1d1d;
@@ -199,28 +199,14 @@
   .color_editor ul.swatches li .swatch_bg {
     background-image: url("../img/color_thumb_back@2x.png");
   }
-  .color_editor .color_selection_field .saturation_gradient {
-    background-image: -webkit-gradient(linear, 0% 25%, 50% 25%, from(#fff), to(rgba(255,255,255,0)));
-  }
-  .color_editor .color_selection_field .luminosity_gradient {
-    background-image: -webkit-gradient(linear, 0% 0%, 0% 50%, from(transparent), to(#000));
-  }
   .color_editor .color_selection_field .selector {
     background-image: url("../img/grabber_color-well@2x.png");
-    background-size: 100% 100%;
   }
   .color_editor .slider .selector {
     background-image: url("../img/grabber_color-slider@2x.png");
-    background-size: 200% 100%;
   }
   .color_editor .slider.opacity_slider {
     background-image: url("../img/color_thumb_back@2x.png");
-  }
-  .color_editor .slider.opacity_slider .opacity_gradient {
-    background-size: contain;
-  }
-  .color_editor .hue_slider {
-    background-image: -webkit-linear-gradient(top, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00, #f0f, #00f, #0ff, #0f0, #ff0, #f00);
   }
 }
 ul,
