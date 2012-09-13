@@ -915,6 +915,9 @@ define(function (require, exports, module) {
 
         menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION, "Ctrl-T");
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC);
+        menu.addMenuItem(Commands.NAVIGATE_PREV_DOC);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH,    {key: "Alt-Down", displayKey: "Alt-\u2193"});
