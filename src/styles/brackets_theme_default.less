@@ -115,18 +115,16 @@
     // line-height must be specified in px not em because the code font and line number font sizes are different.
     // Sizing via em will cause the code and line numbers to misalign
     line-height: 15px;
+    font-size: 12px;
     font-family: 'SourceCodePro', monospace;
 }
 
 .code-font-win() {
     .code-font();
-    font-size: 13px;    /* < > chars look horrible at 12px  */
-    letter-spacing: -1px; /* temporary until spacing is fixed */
 }
 
 .code-font-mac() {
     .code-font();
-    font-size: 12px;
 }
 
 .code-cursor() {
