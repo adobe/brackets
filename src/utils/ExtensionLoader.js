@@ -97,7 +97,7 @@ define(function (require, exports, module) {
             extensionPath = FileUtils.getNativeBracketsDirectoryPath();
         
         // Assumes the caller's window.location context is /test/SpecRunner.html
-        extensionPath = extensionPath.replace("brackets/test", "brackets/src"); // convert from "test" to "src"
+        extensionPath = extensionPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
         extensionPath += "/" + config.baseUrl + "/" + entryPoint + ".js";
 
         var fileExists = false, statComplete = false;
