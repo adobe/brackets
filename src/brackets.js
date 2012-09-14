@@ -252,7 +252,7 @@ define(function (require, exports, module) {
             var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
             if (!params.get("skipSampleProjectLoad") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
-                if (ProjectManager.isDefaultProjectPath(initialProjectPath)) {
+                if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                     var dirEntry = new NativeFileSystem.DirectoryEntry(initialProjectPath);
                     dirEntry.getFile("index.html", {}, function (fileEntry) {
                         CommandManager.execute(Commands.FILE_ADD_TO_WORKING_SET, { fullPath: fileEntry.fullPath });
