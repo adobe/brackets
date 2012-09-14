@@ -77,6 +77,14 @@ define(function (require, exports, module) {
      */
     var _projectTree = null;
     
+    function canonicalize(path) {
+        if (path.length > 0 && path[path.length - 1] === "/") {
+            return path.slice(0, -1);
+        } else {
+            return path;
+        }
+    }
+    
     /**
      * @private
      * Reference to previous selected jstree leaf node when ProjectManager had
@@ -264,7 +272,7 @@ define(function (require, exports, module) {
                 fullPath = entry.fullPath;
 
                 // Truncate project path prefix, remove the trailing slash
-                shortPath = FileUtils.canonicalizeFolderPath(fullPath);
+                shortPath = fullPath.slice(projectPathLength, -1);
 
                 // Determine depth of the node by counting path separators.
                 // Children at the root have depth of zero
@@ -998,15 +1006,15 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
 
     // Define public API
-    exports.getProjectRoot          = getProjectRoot;
-    exports.isWithinProject         = isWithinProject;
+    exports.getProjectRoot           = getProjectRoot;
+    exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
-    exports.shouldShow              = shouldShow;
-    exports.openProject             = openProject;
-    exports.getSelectedItem         = getSelectedItem;
-    exports.getInitialProjectPath   = getInitialProjectPath;
-    exports.isWelcomeProjectPath    = isWelcomeProjectPath;
+    exports.shouldShow               = shouldShow;
+    exports.openProject              = openProject;
+    exports.getSelectedItem          = getSelectedItem;
+    exports.getInitialProjectPath    = getInitialProjectPath;
+    exports.isWelcomeProjectPath     = isWelcomeProjectPath;
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
-    exports.createNewItem           = createNewItem;
-    exports.forceFinishRename       = forceFinishRename;
+    exports.createNewItem            = createNewItem;
+    exports.forceFinishRename        = forceFinishRename;
 });
