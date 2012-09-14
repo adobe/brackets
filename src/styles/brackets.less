@@ -319,7 +319,7 @@ a, img {
 }
 
 .scroller-shadow {
-    // TODO: background-size should really be 100%, but due to a bug in WebKit,
+    // TODO (Issue #1615): background-size should really be 100%, but due to a bug in WebKit,
     // that makes the drop shadows look bad on retina displays. This value
     // should be changed to 100% once we've upgraded to a newer CEF that includes
     // the WebKit fix.
@@ -461,6 +461,18 @@ ins.jstree-icon {
         overflow-x: hidden;
         background-color: transparent;
     }
+}
+
+// TODO (Issue #1615): Remove this hack when we get a new CEF
+@media all and (-webkit-min-device-pixel-ratio:2),(min-device-pixel-ratio:2) {
+.inline-widget {
+    .shadow.top {
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+    }
+    .shadow.bottom {
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+    }
+}
 }
 
 /* CSSInlineEditor rule list */
