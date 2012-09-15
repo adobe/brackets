@@ -34,7 +34,7 @@ define({
 	"NOT_FOUND_ERR": "Fichier introuvable.",
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
-	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Les autorisations dont vous disposez ne vous permettent pas d’effectuer des modifications.",
+	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -56,36 +56,36 @@ define({
 	"ERROR_CREATING_FILE": "Une erreur s’est produite lors de la tentative de création du fichier <span class='dialog-filename'>{0}</span>. {1}",
 
     // Application error strings
-	"ERROR_BRACKETS_IN_BROWSER_TITLE": "Malheureusement, Brackets ne s’exécute pas encore dans les navigateurs.",
-	"ERROR_BRACKETS_IN_BROWSER": "Brackets est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-app</b> afin d’exécuter Brackets.",
+	"ERROR_IN_BROWSER_TITLE": "Malheureusement, {APP_NAME} n’est pas encore compatible avec les navigateurs.",
+	"ERROR_IN_BROWSER": "{APP_NAME} est défini en HTML, mais il s’exécute actuellement en tant qu’application de bureau, vous pouvez donc l’utiliser afin de modifier des fichiers locaux. Utilisez l’interpréteur de commandes d’application situé dans le référentiel <b>github.com/adobe/brackets-shell</b> afin d’exécuter {APP_NAME}.",
 
     // FileIndexManager error string
 	"ERROR_MAX_FILES_TITLE": "Erreur lors de l’indexation des fichiers",
 	"ERROR_MAX_FILES": "Vous avez atteint le nombre maximum de fichiers indexés. Il est possible que les actions impliquant une recherche des fichiers dans l’index ne fonctionnent pas correctement.",
-    
-    // CSSManager error strings
-	"ERROR_PARSE_TITLE": "Erreur lors de l’analyse des fichiers CSS :",
 
     // Live Development error strings
 	"ERROR_LAUNCHING_BROWSER_TITLE": "Erreur lors du lancement du navigateur",
 	"ERROR_CANT_FIND_CHROME": "Le navigateur Google Chrome est introuvable. Assurez-vous qu’il est installé.",
 	"ERROR_LAUNCHING_BROWSER": "Une erreur s’est produite lors du lancement du navigateur. (Erreur {0})",
     
-	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur au niveau du développement en direct",
-	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Une connexion de développement en direct n’a pas pu être établie avec Chrome. Pour que le développement en direct puisse fonctionner, Chrome doit être démarré avec la fonction de débogage distant activée.<br /><br />Souhaitez-vous relancer Chrome et activer le débogage distant ?",
+	"LIVE_DEVELOPMENT_ERROR_TITLE": "Erreur du module Aperçu en direct",
+	"LIVE_DEVELOPMENT_RELAUNCH_TITLE": "Connexion au navigateur",
+	"LIVE_DEVELOPMENT_ERROR_MESSAGE": "Pour que le module Aperçu en direct puisse se connecter, vous devez relancer Chrome en activant la fonction de débogage à distance.<br /><br />Voulez-vous relancer Chrome et activer le débogage à distance ?",
 	"LIVE_DEV_NEED_HTML_MESSAGE": "Ouvrez un fichier HTML pour lancer l’aperçu en direct.",
+	"LIVE_DEVELOPMENT_INFO_TITLE": "Bienvenue dans le module Aperçu en direct !",
+	"LIVE_DEVELOPMENT_INFO_MESSAGE": "Le module Aperçu en direct connecte {APP_NAME} à votre navigateur. Il ouvre un aperçu de votre fichier HTML dans le navigateur, puis le met à jour instantanément dès que vous modifiez le code.<br /><br />Dans cette première version de {APP_NAME}, le module Aperçu en direct ne fonctionne qu’avec les modifications apportées aux <strong>fichiers CSS</strong> et uniquement dans <strong>Google Chrome</strong>. Nous prévoyons de le rendre bientôt compatible avec les fichiers HTML et JavaScript.<br /><br />(Ce message ne s’affichera qu’une seule fois.)",
     
-	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu du fichier en direct",
-	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu du fichier en direct : Connexion...",
-	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu du fichier en direct : Initialisation...",
-	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter l’aperçu du fichier en direct",
+	"LIVE_DEV_STATUS_TIP_NOT_CONNECTED": "Aperçu en direct",
+	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion...",
+	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation...",
+	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
 	"SAVE_CLOSE_MULTI_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées aux fichiers suivants ?",
 	"EXT_MODIFIED_TITLE": "Modifications externes",
-	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans Brackets.<br /><br />Quelle version souhaitez-vous conserver ?",
-	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans Brackets.<br /><br />Souhaitez-vous conserver vos modifications ?",
+	"EXT_MODIFIED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été modifié sur le disque mais présente également des modifications non enregistrées dans {APP_NAME}.<br /><br />Quelle version souhaitez-vous conserver ?",
+	"EXT_DELETED_MESSAGE": "Le fichier <span class='dialog-filename'>{0}</span> a été supprimé sur le disque mais présente des modifications non enregistrées dans {APP_NAME}.<br /><br />Souhaitez-vous conserver vos modifications ?",
     
     // Find, Replace, Find in Files
 	"SEARCH_REGEXP_INFO": "Utiliser la syntaxe /re/ pour la recherche regexp",
@@ -99,7 +99,7 @@ define({
 
 	"RELEASE_NOTES": "Notes de mise à jour",
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
-	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de Brackets.",
+	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
     
 	"FIND_IN_FILES_TITLE": "- {0} {1} sur {2} {3}",
 	"FIND_IN_FILES_FILE": "fichier",
@@ -116,7 +116,7 @@ define({
     // Switch language
 	"LANGUAGE_TITLE": "Changer de langue",
 	"LANGUAGE_MESSAGE": "Sélectionnez la langue souhaitée dans la liste ci-dessous :",
-	"LANGUAGE_SUBMIT": "Recharger Brackets",
+	"LANGUAGE_SUBMIT": "Recharger {APP_NAME}",
 	"LANGUAGE_CANCEL": "Annuler",
 
     /**
@@ -124,6 +124,14 @@ define({
      */
 
 	"UNTITLED": "Sans titre",
+
+    /**
+     * Keyboard modifier names
+     */
+
+	"KEYBOARD_CTRL": "Ctrl",
+	"KEYBOARD_SHIFT": "Maj",
+	"KEYBOARD_SPACE": "Espace",
 
     /**
      * Command Name Constants
@@ -139,7 +147,7 @@ define({
 	"CMD_FILE_CLOSE_ALL": "Tout fermer",
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
-	"CMD_LIVE_FILE_PREVIEW": "Aperçu du fichier en direct",
+	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
 	"CMD_QUIT": "Quitter",
 
     // Edit menu commands
@@ -178,19 +186,21 @@ define({
     
     // Debug menu commands
 	"DEBUG_MENU": "Déboguer",
-	"CMD_REFRESH_WINDOW": "Recharger Brackets",
+	"CMD_REFRESH_WINDOW": "Recharger {APP_NAME}",
 	"CMD_SHOW_DEV_TOOLS": "Afficher les outils de développement",
 	"CMD_RUN_UNIT_TESTS": "Exécuter des tests",
 	"CMD_JSLINT": "Activer JSLint",
 	"CMD_SHOW_PERF_DATA": "Afficher les données de performances",
-	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre Brackets",
+	"CMD_NEW_BRACKETS_WINDOW": "Nouvelle fenêtre {APP_NAME}",
 	"CMD_SHOW_EXTENSIONS_FOLDER": "Afficher le dossier d’extensions",
 	"CMD_USE_TAB_CHARS": "Utiliser les caractères de tabulation",
 	"CMD_SWITCH_LANGUAGE": "Changer de langue",
 	"CMD_CHECK_FOR_UPDATE": "Rechercher les mises à jour",
 
     // Help menu commands
+	"HELP_MENU": "Aide",
 	"CMD_ABOUT": "A propos",
+	"CMD_FORUM": "Forum {APP_NAME}",
 
     // Special commands invoked by the native shell
 	"CMD_CLOSE_WINDOW": "Fermer la fenêtre",
@@ -199,6 +209,7 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "Version expérimentale",
 	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -211,11 +222,11 @@ define({
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "version expérimentale sprint 13 ",
+	"ABOUT_TEXT_LINE1": "version expérimentale sprint 14 ",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles (en anglais) à l’adresse <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty_fr/</span> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
-	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de Brackets est disponible. Cliquez ici pour plus de détails.",
+	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
 	"UPDATE_AVAILABLE_TITLE": "Mise à jour disponible",
-	"UPDATE_MESSAGE": "Une nouvelle version de Brackets est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
-	"GET_IT_NOW": "Obtenir maintenant !"
+	"UPDATE_MESSAGE": "Une nouvelle version de {APP_NAME} est disponible. Voici quelques-unes des nouvelles fonctionnalités proposées :",
+	"GET_IT_NOW": "Télécharger"
 });

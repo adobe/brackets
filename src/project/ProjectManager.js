@@ -59,7 +59,8 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         FileUtils           = require("file/FileUtils"),
-        Urls                = require("i18n!nls/urls");
+        Urls                = require("i18n!nls/urls"),
+        KeyEvent            = require("utils/KeyEvent");
     
     /**
      * @private
@@ -75,6 +76,14 @@ define(function (require, exports, module) {
      * @type {jQueryObject}
      */
     var _projectTree = null;
+    
+    function canonicalize(path) {
+        if (path.length > 0 && path[path.length - 1] === "/") {
+            return path.slice(0, -1);
+        } else {
+            return path;
+        }
+    }
     
     /**
      * @private
@@ -224,13 +233,6 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Initial project path is stored in prefs, which defaults to the getting started project
-     */
-    function getInitialProjectPath() {
-        return _prefs.getValue("projectPath");
-    }
-
-    /**
      * @private
      * Get prefs tree state lookup key for given project path.
      */
@@ -244,7 +246,7 @@ define(function (require, exports, module) {
         }
         return key;
     }
-
+    
     /**
      * @private
      * Save ProjectManager project path and tree state.
@@ -319,6 +321,11 @@ define(function (require, exports, module) {
         var result = new $.Deferred(),
             suppressToggleOpen = false;
 
+        // For #1542, make sure the tree is scrolled to the top before refreshing.
+        // If we try to do this later (e.g. after the tree has been refreshed), it 
+        // doesn't seem to work properly. 
+        $projectTreeContainer.scrollTop(0);
+        
         // Instantiate tree widget
         // (jsTree is smart enough to replace the old tree if there's already one there)
         $projectTreeContainer.hide();
@@ -608,11 +615,11 @@ define(function (require, exports, module) {
 
     }
     
-    /** Returns the full path to the default project folder. The path is currently the brackets src folder.
+    /** Returns the full path to the welcome project, which we open on first launch.
      * @private
      * @return {!string} fullPath reference
      */
-    function _getDefaultProjectPath() {
+    function _getWelcomeProjectPath() {
         var srcPath = decodeURI(window.location.pathname),
             initialPath = srcPath.substr(0, srcPath.lastIndexOf("/")),
             sampleUrl = Urls.GETTING_STARTED;
@@ -627,10 +634,32 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Returns true if the given path is the same as the one for the initial startup project.
+     * Returns true if the given path is the same as one of the welcome projects we've previously opened,
+     * or the one for the current build.
      */
-    function isDefaultProjectPath(path) {
-        return path === _getDefaultProjectPath();
+    function isWelcomeProjectPath(path) {
+        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+        welcomeProjects.push(_getWelcomeProjectPath());
+        return welcomeProjects.indexOf(FileUtils.canonicalizeFolderPath(path)) !== -1;
+    }
+    
+    /**
+     * If the provided path is to an old welcome project, updates to the current one.
+     */
+    function updateWelcomeProjectPath(path) {
+        if (isWelcomeProjectPath(path)) {
+            return _getWelcomeProjectPath();
+        } else {
+            return path;
+        }
+    }
+
+    /**
+     * Initial project path is stored in prefs, which defaults to the welcome project on
+     * first launch. 
+     */
+    function getInitialProjectPath() {
+        return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
     /**
@@ -670,9 +699,21 @@ define(function (require, exports, module) {
                         || _projectRoot.fullPath !== rootEntry.fullPath;
 
                     // Success!
-                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath);
+                    var perfTimerName = PerfUtils.markStart("Load Project: " + rootPath),
+                        canonPath = FileUtils.canonicalizeFolderPath(rootPath);
 
                     _projectRoot = rootEntry;
+                    
+                    // If this is the current welcome project, record it. In future launches, we always 
+                    // want to substitute the welcome project for the current build instead of using an
+                    // outdated one (when loading recent projects or the last opened project).
+                    if (canonPath === _getWelcomeProjectPath()) {
+                        var welcomeProjects = _prefs.getValue("welcomeProjects") || [];
+                        if (welcomeProjects.indexOf(canonPath) === -1) {
+                            welcomeProjects.push(canonPath);
+                            _prefs.setValue("welcomeProjects", welcomeProjects);
+                        }
+                    }
 
                     // The tree will invoke our "data provider" function to populate the top-level items, then
                     // go idle until a node is expanded - at which time it'll call us again to fetch the node's
@@ -709,7 +750,7 @@ define(function (require, exports, module) {
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
                         result.reject();
-                        return _loadProject(_getDefaultProjectPath());
+                        return _loadProject(_getWelcomeProjectPath());
                     });
                 }
                 );
@@ -921,7 +962,8 @@ define(function (require, exports, module) {
 
             $renameInput.on("keydown", function (event) {
                 // Listen for escape key on keydown, so we can remove the node in the create.jstree handler above
-                if (event.keyCode === 27) {
+                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+
                     escapeKeyPressed = true;
                 }
             });
@@ -952,7 +994,7 @@ define(function (require, exports, module) {
 
     // Init PreferenceStorage
     var defaults = {
-        projectPath:      _getDefaultProjectPath()  /* initialize to brackets source */
+        projectPath:      _getWelcomeProjectPath()  /* initialize to brackets source */
     };
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaults);
 
@@ -964,14 +1006,15 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_OPEN_FOLDER,    Commands.FILE_OPEN_FOLDER,  openProject);
 
     // Define public API
-    exports.getProjectRoot          = getProjectRoot;
-    exports.isWithinProject         = isWithinProject;
+    exports.getProjectRoot           = getProjectRoot;
+    exports.isWithinProject          = isWithinProject;
     exports.makeProjectRelativeIfPossible = makeProjectRelativeIfPossible;
-    exports.shouldShow              = shouldShow;
-    exports.openProject             = openProject;
-    exports.getSelectedItem         = getSelectedItem;
-    exports.getInitialProjectPath   = getInitialProjectPath;
-    exports.isDefaultProjectPath    = isDefaultProjectPath;
-    exports.createNewItem           = createNewItem;
-    exports.forceFinishRename       = forceFinishRename;
+    exports.shouldShow               = shouldShow;
+    exports.openProject              = openProject;
+    exports.getSelectedItem          = getSelectedItem;
+    exports.getInitialProjectPath    = getInitialProjectPath;
+    exports.isWelcomeProjectPath     = isWelcomeProjectPath;
+    exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
+    exports.createNewItem            = createNewItem;
+    exports.forceFinishRename        = forceFinishRename;
 });

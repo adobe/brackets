@@ -376,7 +376,7 @@ define(function LiveDevelopment(require, exports, module) {
                     _setStatus(STATUS_ERROR);
                     Dialogs.showModalDialog(
                         Dialogs.DIALOG_ID_LIVE_DEVELOPMENT,
-                        Strings.LIVE_DEVELOPMENT_ERROR_TITLE,
+                        Strings.LIVE_DEVELOPMENT_RELAUNCH_TITLE,
                         Strings.LIVE_DEVELOPMENT_ERROR_MESSAGE
                     ).done(function (id) {
                         if (id === Dialogs.DIALOG_BTN_OK) {

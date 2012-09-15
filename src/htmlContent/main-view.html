@@ -78,7 +78,7 @@
                     
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
                     
-                    <span id="gold-star" title="No JSLint errors - good job!">
+                    <span id="gold-star" title="{{JSLINT_NO_ERRORS}}">
                         &#9733;
                     </span>
                 </div>
@@ -91,7 +91,6 @@
             
             <div id="editor-holder">
                 <div id="not-editor">
-                    <div id="not-editor-content">[&nbsp;&nbsp;]</div>
                 </div>
             </div>
             
@@ -113,6 +112,10 @@
                 <div class="table-container"></div>
             </div>
         </div>
+
+        <!-- Hack to ensure that the code editor's web font is loaded early. -->
+        <!-- For more info, see note in brackets.less for class .dummy-text, or issue 76 -->
+        <div class="dummy-text">x</div>
     </div>
 
     <!-- Modal Windows -->
@@ -183,10 +186,10 @@
             <h1 class="dialog-title">{{ABOUT}}</h1>
         </div>
         <div class="modal-body">
-            <img class="about-icon" src="styles/images/brackets_icon.svg">
+            <img class="about-icon" src="{{ABOUT_ICON}}">
             <div class="about-text">
                 <h2>{{APP_NAME}}</h2>
-                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} <span id="about-build-number"><!-- populated programmatically --></span></p>
+                <p class="dialog-message">{{ABOUT_TEXT_LINE1}} {{VERSION}}<span id="about-build-number"><!-- populated programmatically --></span></p>
                 <p class="dialog-message"><!-- $NON-NLS$ -->Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
                 <p class="dialog-message">{{{ABOUT_TEXT_LINE3}}}</p>
                 <p class="dialog-message">{{{ABOUT_TEXT_LINE4}}}</p>

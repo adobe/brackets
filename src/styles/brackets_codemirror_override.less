@@ -91,7 +91,7 @@
     }
     .CodeMirror-gutter-text {
         color: @accent-comment;
-        font-size: 0.9em;
+        /*font-size: 0.9em;*/  /* restore after SourceCodePro font fix? */
         padding-top: 0px;
         padding-bottom: 0px;
     }
@@ -130,4 +130,19 @@
     .CodeMirror-scroll {
         outline: none;
     }
+}
+
+/*
+ * Temporarily override bold and italic syntax highlighting until
+ * SourceCodePro supports them in a fixed pitch
+ */
+span.cm-em {
+    font-style: normal;
+}
+span.cm-header, span.cm-strong {
+    font-weight: normal;
+}
+span.cm-emstrong {
+    font-style: normal;
+    font-weight: normal;
 }

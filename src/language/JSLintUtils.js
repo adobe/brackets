@@ -37,13 +37,14 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var Commands                = require("command/Commands"),
+    var Global                  = require("utils/Global"),
+        Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
         Strings                 = require("strings"),
-        EditorManager           = require("editor/EditorManager"),
         AppInit                 = require("utils/AppInit");
     
     var MIN_HEIGHT = 100;

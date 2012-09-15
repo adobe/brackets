@@ -385,6 +385,15 @@ define(function (require, exports, module) {
                     // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);
 
+                    // Check to see if this is the closing of a tag (either the start or end)
+                    // or a comment tag.
+                    if (ctx.token.className === "comment" ||
+                            (ctx.token.className === "tag" &&
+                            (ctx.token.string === ">" || ctx.token.string === "/>" ||
+                                (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")))) {
+                        return createTagInfo();
+                    }
+                    
                     // If it wasn't an attr value, assume it was an empty attr (ie. attr with no value)
                     if (!tagInfo.tagName) {
                         tagInfo = _getTagInfoStartingFromAttrName(ctx, true);
@@ -406,12 +415,12 @@ define(function (require, exports, module) {
         
         if (ctx.token.className === "tag") {
             // Check if the user just typed a white space after "<" that made an existing tag invalid.
-            if (ctx.token.string.indexOf("< ") === 0) {
+            if (ctx.token.string.match(/^<\s+/) && offset !== 1) {
                 return createTagInfo();
             }
             
             // Check to see if this is the closing of a tag (either the start or end)
-            if (ctx.token.string === ">" ||
+            if (ctx.token.string === ">" || ctx.token.string === "/>" ||
                     (ctx.token.string.charAt(0) === "<" && ctx.token.string.charAt(1) === "/")) {
                 return createTagInfo();
             }

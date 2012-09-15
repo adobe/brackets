@@ -45,7 +45,8 @@ define(function (require, exports, module) {
         Dialogs             = require("widgets/Dialogs"),
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        PerfUtils           = require("utils/PerfUtils");
+        PerfUtils           = require("utils/PerfUtils"),
+        KeyEvent            = require("utils/KeyEvent");
     
     /**
      * Handlers for commands related to document handling (opening, saving, etc.)
@@ -746,7 +747,7 @@ define(function (require, exports, module) {
      * @param {jQueryEvent} event Key-up event
      */
     function detectDocumentNavEnd(event) {
-        if (event.keyCode === 17) {  // Ctrl key
+        if (event.keyCode === KeyEvent.DOM_VK_CONTROL) {  // Ctrl key
             DocumentManager.finalizeDocumentNavigation();
             
             _addedNavKeyHandler = false;
@@ -801,11 +802,6 @@ define(function (require, exports, module) {
         CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
         CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
         CommandManager.register(Strings.CMD_ABORT_QUIT,         Commands.APP_ABORT_QUIT, _handleAbortQuit);
-
-        KeyBindingManager.addBinding(Commands.NAVIGATE_NEXT_DOC, [{key: "Ctrl-Tab",   platform: "win"},
-                                                                    {key: "Ctrl-Tab",  platform:  "mac"}]);
-        KeyBindingManager.addBinding(Commands.NAVIGATE_PREV_DOC, [{key: "Ctrl-Shift-Tab",   platform: "win"},
-                                                                    {key: "Ctrl-Shift-Tab",  platform:  "mac"}]);
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

@@ -38,14 +38,20 @@
 define(function main(require, exports, module) {
     "use strict";
 
-    var DocumentManager = require("document/DocumentManager"),
-        Commands        = require("command/Commands"),
-        AppInit         = require("utils/AppInit"),
-        LiveDevelopment = require("LiveDevelopment/LiveDevelopment"),
-        Inspector       = require("LiveDevelopment/Inspector/Inspector"),
-        CommandManager  = require("command/CommandManager"),
-        Strings = require("strings");
+    var DocumentManager     = require("document/DocumentManager"),
+        Commands            = require("command/Commands"),
+        AppInit             = require("utils/AppInit"),
+        LiveDevelopment     = require("LiveDevelopment/LiveDevelopment"),
+        Inspector           = require("LiveDevelopment/Inspector/Inspector"),
+        CommandManager      = require("command/CommandManager"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        Dialogs             = require("widgets/Dialogs"),
+        UrlParams           = require("utils/UrlParams").UrlParams,
+        Strings             = require("strings");
 
+    var PREFERENCES_KEY = "com.adobe.brackets.live-development";
+    var prefs;
+    var params = new UrlParams();
     var config = {
         experimental: false, // enable experimental features
         debug: true, // enable debug output and helpers
@@ -114,7 +120,18 @@ define(function main(require, exports, module) {
             LiveDevelopment.close();
             // TODO Ty: when checkmark support lands, remove checkmark
         } else {
-            LiveDevelopment.open();
+            if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
+                prefs.setValue("afterFirstLaunch", "true");
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_INFO,
+                    Strings.LIVE_DEVELOPMENT_INFO_TITLE,
+                    Strings.LIVE_DEVELOPMENT_INFO_MESSAGE
+                ).done(function (id) {
+                    LiveDevelopment.open();
+                });
+            } else {
+                LiveDevelopment.open();
+            }
             // TODO Ty: when checkmark support lands, add checkmark
         }
     }
@@ -167,6 +184,9 @@ define(function main(require, exports, module) {
 
     /** Initialize LiveDevelopment */
     function init() {
+        prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY);
+        params.parse();
+
         Inspector.init(config);
         LiveDevelopment.init(config);
         _loadStyles();

@@ -51,7 +51,8 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
         AppInit             = require("utils/AppInit"),
-        PreferencesManager  = require("preferences/PreferencesManager");
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        KeyEvent            = require("utils/KeyEvent");
     
     var FIND_IN_FILES_MAX = 100;
 
@@ -123,13 +124,13 @@ define(function (require, exports, module) {
         $searchField.get(0).select();
         
         $searchField.bind("keydown", function (event) {
-            if (event.keyCode === 13 || event.keyCode === 27) {  // Enter/Return key or Esc key
+            if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
                 event.stopPropagation();
                 event.preventDefault();
                 
                 var query = $searchField.val();
                 
-                if (event.keyCode === 27) {
+                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     query = null;
                 }
                 
@@ -352,7 +353,7 @@ define(function (require, exports, module) {
      * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
      */
     function _setHeight(height) {
-        var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
 
         height = Math.max(height, MIN_HEIGHT);
         
@@ -375,7 +376,7 @@ define(function (require, exports, module) {
         
         $searchResizer.on("mousedown.search", function (e) {
             var startY = e.clientY,
-                startHeight = $jslintResults.height(),
+                startHeight = $searchResults.height(),
                 newHeight = startHeight + (startY - e.clientY),
                 doResize = true;
             
@@ -417,7 +418,6 @@ define(function (require, exports, module) {
         $searchResults  = $("#search-results");
         $searchResizer  = $("#search-resizer");
         $searchContent  = $("#search-results .table-container");
-        $jslintResults  = $("#jslint-results");
 
         // init
         _initSearchResizer();
