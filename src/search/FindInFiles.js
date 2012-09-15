@@ -55,8 +55,7 @@ define(function (require, exports, module) {
     
     var FIND_IN_FILES_MAX = 100;
 
-    var EDITOR_MIN_HEIGHT = 400,
-        MIN_HEIGHT = 100;
+    var MIN_HEIGHT = 100;
     
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200 };
@@ -353,29 +352,12 @@ define(function (require, exports, module) {
      * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
      */
     function _setHeight(height) {
-        // if we specify a width with the handler call, use that. Otherwise use
-        // the greater of the current width or 200 (200 is the minimum width we'd snap back to)
-        
         var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-        //    sidebarWidth            = Math.max(prefs.getValue("sidebarWidth"), 10);
-        
-        var availableHeight = $mainView.height() - EDITOR_MIN_HEIGHT;
-        if ($jslintResults.is(':visible')) {
-            availableHeight -= $jslintResults.height();
-        }
-        
-        height = Math.min(height, availableHeight);
+
         height = Math.max(height, MIN_HEIGHT);
         
         $searchResults.height(height);
         $searchContent.height(height - 30);
-        //$jslintResizer.css("bottom", height - 1);
-        
-        // the following three lines help resize things when the sidebar shows
-        // but ultimately these should go into ProjectManager.js with a "notify" 
-        // event that we can just call from anywhere instead of hard-coding it.
-        // waiting on a ProjectManager refactor to add that. 
-        // $sidebar.find(".sidebar-selection").width(width);
         
         prefs.setValue("height", height);
         EditorManager.resizeEditor();
@@ -393,27 +375,19 @@ define(function (require, exports, module) {
         
         $searchResizer.on("mousedown.search", function (e) {
             var startY = e.clientY,
-                newHeight = $mainView.height() - e.clientY,
+                startHeight = $jslintResults.height(),
+                newHeight = startHeight + (startY - e.clientY),
                 doResize = true;
             
             isMouseDown = true;
-
-            // take away the shadows (for performance reasons during sidebarmovement)
-            //$sidebar.find(".scroller-shadow").css("display", "none");
-            
             $body.toggleClass("hor-resizing");
             
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
-                // only run this if the mouse is down so we don't constantly loop even 
-                // after we're done resizing.
                 if (!isMouseDown) {
                     return;
                 }
                 
                 if (doResize) {
-                    // for right now, displayTriangle is always going to be false for _setWidth
-                    // because we want to hide it when we move, and _setWidth only gets called
-                    // on mousemove now.
                     _setHeight(newHeight);
                 }
                 
@@ -421,21 +395,14 @@ define(function (require, exports, module) {
             });
             
             $mainView.on("mousemove.search", function (e) {
-                newHeight = $mainView.height() - e.clientY;
+                newHeight = startHeight + (startY - e.clientY);
                 e.preventDefault();
             });
                 
             $mainView.one("mouseup.search", function (e) {
                 isMouseDown = false;
-                
-                // replace shadows and triangle
-                //$sidebar.find(".scroller-shadow").css("display", "block");
-                
-                //$projectFilesContainer.triggerHandler("scroll");
-                //$openFilesContainer.triggerHandler("scroll");
                 $mainView.off("mousemove.search");
                 $body.toggleClass("hor-resizing");
-                //startingSidebarPosition = $sidebar.width();
             });
             
             e.preventDefault();
