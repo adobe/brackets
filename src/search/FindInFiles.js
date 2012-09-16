@@ -416,7 +416,7 @@ define(function (require, exports, module) {
 
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
     
-        // Initialize items dependent on HTML DOM
+    // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $mainView       = $(".main-view");
         $searchResults  = $("#search-results");
