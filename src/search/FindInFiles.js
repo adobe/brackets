@@ -66,8 +66,8 @@ define(function (require, exports, module) {
     var $mainView,
         $searchResults,
         $searchContent,
-        $searchResizer,
-        $jslintResults;
+        $searchToolbar,
+        $searchResizer;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -349,8 +349,8 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets sidebar width and resizes editor. Does not change internal sidebar open/closed state.
-     * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
+     * Sets jslint panel height and resizes editor.
+     * @param {number} height Height in pixels.
      */
     function _setHeight(height) {
         var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
@@ -358,7 +358,7 @@ define(function (require, exports, module) {
         height = Math.max(height, MIN_HEIGHT);
         
         $searchResults.height(height);
-        $searchContent.height(height - 30);
+        $searchContent.height(height - $searchToolbar);
         
         prefs.setValue("height", height);
         EditorManager.resizeEditor();
@@ -366,7 +366,7 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Install sidebar resize handling.
+     * Install resize handling.
      */
     function _initSearchResizer() {
         var $body                   = $(document.body),
@@ -384,6 +384,8 @@ define(function (require, exports, module) {
             $body.toggleClass("hor-resizing");
             
             animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
+                // only run this if the mouse is down so we don't constantly loop even 
+                // after we're done resizing.
                 if (!isMouseDown) {
                     return;
                 }
@@ -396,6 +398,8 @@ define(function (require, exports, module) {
             });
             
             $mainView.on("mousemove.search", function (e) {
+                // calculate newHeight as difference between stargint and current
+                // position to avoid dependencies with other panels
                 newHeight = startHeight + (startY - e.clientY);
                 e.preventDefault();
             });
@@ -417,6 +421,7 @@ define(function (require, exports, module) {
         $mainView       = $(".main-view");
         $searchResults  = $("#search-results");
         $searchResizer  = $("#search-resizer");
+        $searchToolbar  = $("#search-results .toolbar");
         $searchContent  = $("#search-results .table-container");
 
         // init

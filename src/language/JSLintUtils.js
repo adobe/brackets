@@ -57,8 +57,8 @@ define(function (require, exports, module) {
     var $mainView,
         $jslintResults,
         $jslintContent,
-        $jslintResizer,
-        $searchResults;
+        $jslintToolbar,
+        $jslintResizer;
         
     /**
      * @private
@@ -216,22 +216,22 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Sets sidebar width and resizes editor. Does not change internal sidebar open/closed state.
-     * @param {number} width Optional width in pixels. If null or undefined, the default width is used.
+     * Sets jslint panel height and resizes editor.
+     * @param {number} height Height in pixels.
      */
     function _setHeight(height) {
         height = Math.max(height, MIN_HEIGHT);
+        _prefs.setValue("height", height);
         
         $jslintResults.height(height);
-        $jslintContent.height(height - 30);
+        $jslintContent.height(height - $jslintToolbar);
         
-        _prefs.setValue("height", height);
         EditorManager.resizeEditor();
     }
     
     /**
      * @private
-     * Install sidebar resize handling.
+     * Initialize resize handling.
      */
     function _initJSLintResizer() {
         var $body                   = $(document.body),
@@ -266,6 +266,8 @@ define(function (require, exports, module) {
             });
             
             $mainView.on("mousemove.jslint", function (e) {
+                // calculate newHeight as difference between stargint and current
+                // position to avoid dependencies with other panels
                 newHeight = startHeight + (startY - e.clientY);
                 e.preventDefault();
             });
@@ -292,8 +294,8 @@ define(function (require, exports, module) {
         $mainView       = $(".main-view");
         $jslintResults  = $("#jslint-results");
         $jslintResizer  = $("#jslint-resizer");
+        $jslintToolbar  = $("#jslint-results .toolbar");
         $jslintContent  = $("#jslint-results .table-container");
-        $searchResults  = $("#search-results");
 
         // init
         _initJSLintResizer();
