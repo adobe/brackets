@@ -237,7 +237,7 @@ define(function (require, exports, module) {
         
         // finish UI initialization before loading extensions
         var initialProjectPath = ProjectManager.getInitialProjectPath();
-        ProjectManager.openProject(initialProjectPath).done(function () {
+        ProjectManager.openProject(initialProjectPath).always(function () {
             _initTest();
 
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
