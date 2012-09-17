@@ -269,14 +269,15 @@ define(function (require, exports, module) {
     
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
-        ABOUT_ICON  : brackets.config.about_icon,
-        VERSION     : brackets.metadata.version
+        ABOUT_ICON          : brackets.config.about_icon,
+        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+        VERSION             : brackets.metadata.version
     }, Strings);
     
     $("body").html(Mustache.render(MainViewHTML, templateVars));
     
     // Update title
-    $("title").text(Strings.APP_NAME);
+    $("title").text(brackets.config.app_title);
 
     // Dispatch htmlReady callbacks
     AppInit._dispatchReady(AppInit.HTML_READY);
