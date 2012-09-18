@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils */
+/*global define, $, brackets, JSLINT, PathUtils */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -37,13 +37,14 @@ define(function (require, exports, module) {
     require("thirdparty/jslint/jslint");
     
     // Load dependent modules
-    var Commands                = require("command/Commands"),
+    var Global                  = require("utils/Global"),
+        Commands                = require("command/Commands"),
         CommandManager          = require("command/CommandManager"),
         DocumentManager         = require("document/DocumentManager"),
+        EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        Strings                 = require("strings"),
-        EditorManager           = require("editor/EditorManager");
+        Strings                 = require("strings");
     
     /**
      * @private
@@ -204,7 +205,7 @@ define(function (require, exports, module) {
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: true });
+    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: !!brackets.config.enable_jslint });
     _setEnabled(_prefs.getValue("enabled"));
     
     // Define public API

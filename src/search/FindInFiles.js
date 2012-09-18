@@ -49,7 +49,11 @@ define(function (require, exports, module) {
         StringUtils         = require("utils/StringUtils"),
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
-        FileIndexManager    = require("project/FileIndexManager");
+        FileIndexManager    = require("project/FileIndexManager"),
+        KeyEvent            = require("utils/KeyEvent");
+
+    
+    var FIND_IN_FILES_MAX = 100;
 
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -87,7 +91,7 @@ define(function (require, exports, module) {
         EditorManager.focusEditor();
         this.result.resolve(value);
     };
-        
+    
     /**
     * Shows the search dialog 
     * @param {?string} initialString Default text to prepopulate the search field with
@@ -106,13 +110,13 @@ define(function (require, exports, module) {
         $searchField.get(0).select();
         
         $searchField.bind("keydown", function (event) {
-            if (event.keyCode === 13 || event.keyCode === 27) {  // Enter/Return key or Esc key
+            if (event.keyCode === KeyEvent.DOM_VK_RETURN || event.keyCode === KeyEvent.DOM_VK_ESCAPE) {  // Enter/Return key or Esc key
                 event.stopPropagation();
                 event.preventDefault();
                 
                 var query = $searchField.val();
                 
-                if (event.keyCode === 27) {
+                if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                     query = null;
                 }
                 
@@ -175,16 +179,23 @@ define(function (require, exports, module) {
             });
             
             // Show result summary in header
+            var summary = StringUtils.format(
+                Strings.FIND_IN_FILES_TITLE,
+                numMatches,
+                (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
+                searchResults.length,
+                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+            );
+            
             $("#search-result-summary")
-                .text("- " + numMatches + " match" + (numMatches > 1 ? "es" : "") +
-                      " in " + searchResults.length + " file" + (searchResults.length > 1 ? "s" : "") +
-                     (numMatches > 100 ? " (showing the first 100 matches)" : ""))
+                .text(summary +
+                     (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
                 .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
             searchResults.forEach(function (item) {
-                if (item && resultsDisplayed < 100) {
+                if (item && resultsDisplayed < FIND_IN_FILES_MAX) {
                     var makeCell = function (content) {
                         return $("<td/>").html(content);
                     };
@@ -201,7 +212,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>File: <b>" + item.fullPath + "</b></td>")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, item.fullPath) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
@@ -211,10 +222,10 @@ define(function (require, exports, module) {
                     
                     // Add row for each match in file
                     item.matches.forEach(function (match) {
-                        if (resultsDisplayed < 100) {
+                        if (resultsDisplayed < FIND_IN_FILES_MAX) {
                             var $row = $("<tr/>")
                                 .append(makeCell(" "))      // Indent
-                                .append(makeCell("line: " + (match.start.line + 1)))
+                                .append(makeCell(StringUtils.format(Strings.FIND_IN_FILES_LINE, (match.start.line + 1))))
                                 .append(makeCell(highlightMatch(match.line, match.start.ch, match.end.ch)))
                                 .appendTo($resultTable);
                             

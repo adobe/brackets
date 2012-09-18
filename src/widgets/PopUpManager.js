@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window */
+/*global define, window, $, brackets */
 
 /**
  * Utilities for managing pop-ups.
@@ -31,7 +31,8 @@
 define(function (require, exports, module) {
     "use strict";
     
-    var EditorManager = require("editor/EditorManager");
+    var EditorManager = require("editor/EditorManager"),
+        KeyEvent      = require("utils/KeyEvent");
     
     var _popUps = [];
         
@@ -40,22 +41,17 @@ define(function (require, exports, module) {
      *
      * @param {!jQuery} $popUp jQuery object for the DOM element pop-up
      * @param {function} removeHandler Pop-up specific remove (e.g. display:none or DOM removal)
-     * @param {?Boolean} autoAddRemove - Specify true to indicate the PopUpManager should 
-     *      add/remove the popup from the DOM when the popup is open/closed. Specify false
-     *      when the popup is either always persistant in the DOM or the add/remove is handled 
-     *      external to the PopupManager 
+     * @param {?Boolean} autoRemove - Specify true to indicate the PopUpManager should 
+     *      remove the popup from the _popUps array when the popup is closed. Specify false
+     *      when the popup is always persistant in the _popUps array.
      *      
      */
-    function addPopUp($popUp, removeHandler, autoAddRemove) {
-        autoAddRemove = autoAddRemove || false;
-        
+    function addPopUp($popUp, removeHandler, autoRemove) {
+        autoRemove = autoRemove || false;
+
         _popUps.push($popUp[0]);
-        $popUp.data("PopUpManager-autoAddRemove", autoAddRemove);
+        $popUp.data("PopUpManager-autoRemove", autoRemove);
         $popUp.data("PopUpManager-removeHandler", removeHandler);
-        
-        if (autoAddRemove) {
-            $(window.document.body).append($popUp);
-        }
     }
     
     /**
@@ -65,24 +61,29 @@ define(function (require, exports, module) {
      * @param {!jQuery} $popUp
      */
     function removePopUp($popUp) {
-        var index = _popUps.indexOf($popUp[0]);
-        if (index >= 0) {
-            var autoAddRemove = $popUp.data("PopUpManager-autoAddRemove"),
-                removeHandler = $popUp.data("PopUpManager-removeHandler");
-            
-            if (removeHandler && $popUp.find(":visible").length > 0) {
+        // check visible first to help protect against recursive calls
+        // via removeHandler
+        if ($popUp.find(":visible").length > 0) {
+            var removeHandler = $popUp.data("PopUpManager-removeHandler");
+            if (removeHandler) {
                 removeHandler();
             }
-            
-            if (autoAddRemove) {
+        }
+
+        // check index after removeHandler is done processing to protect
+        // against recursive calls
+        var index = _popUps.indexOf($popUp[0]);
+        if (index >= 0) {
+            var autoRemove = $popUp.data("PopUpManager-autoRemove");
+            if (autoRemove) {
                 $popUp.remove();
-                _popUps = _popUps.slice(index);
+                _popUps.splice(index, 1);
             }
         }
     }
     
     function _keydownCaptureListener(keyEvent) {
-        if (keyEvent.keyCode !== 27) { // escape key
+        if (keyEvent.keyCode !== KeyEvent.DOM_VK_ESCAPE) { // escape key
             return;
         }
         

@@ -103,10 +103,12 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (start.ch !== end.ch) {
-            editor.document.replaceRange(completion, start, end);
-        } else {
-            editor.document.replaceRange(completion, start);
+        if (completion !== tagInfo.tagName) {
+            if (start.ch !== end.ch) {
+                editor.document.replaceRange(completion, start, end);
+            } else {
+                editor.document.replaceRange(completion, start);
+            }
         }
     };
 
@@ -153,7 +155,8 @@ define(function (require, exports, module) {
             charCount = 0,
             insertedName = false,
             replaceExistingOne = tagInfo.attr.valueAssigned,
-            endQuote = "";
+            endQuote = "",
+            shouldReplace = true;
 
         if (tokenType === HTMLUtils.ATTR_NAME) {
             charCount = tagInfo.attr.name.length;
@@ -163,6 +166,8 @@ define(function (require, exports, module) {
                     attributes[completion].type !== "flag") {
                 completion += "=\"\"";
                 insertedName = true;
+            } else if (completion === tagInfo.attr.name) {
+                shouldReplace = false;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
             charCount = tagInfo.attr.value.length;
@@ -170,7 +175,11 @@ define(function (require, exports, module) {
                 endQuote = tagInfo.attr.quoteChar;
                 if (endQuote) {
                     completion += endQuote;
+                } else if (tagInfo.position.offset === 0) {
+                    completion = "\"" + completion + "\"";
                 }
+            } else if (completion === tagInfo.attr.value) {
+                shouldReplace = false;
             }
         }
 
@@ -178,10 +187,12 @@ define(function (require, exports, module) {
         start.ch = cursor.ch - tagInfo.position.offset;
         end.ch = start.ch + charCount;
 
-        if (start.ch !== end.ch) {
-            editor.document.replaceRange(completion, start, end);
-        } else {
-            editor.document.replaceRange(completion, start);
+        if (shouldReplace) {
+            if (start.ch !== end.ch) {
+                editor.document.replaceRange(completion, start, end);
+            } else {
+                editor.document.replaceRange(completion, start);
+            }
         }
 
         if (insertedName) {
@@ -221,6 +232,12 @@ define(function (require, exports, module) {
                     query.queryStr = tagInfo.attr.value.slice(0, tagInfo.position.offset);
                     query.attrName = tagInfo.attr.name;
                 }
+            } else if (tokenType === HTMLUtils.ATTR_VALUE) {
+                // We get negative offset for a quoted attribute value with some leading whitespaces 
+                // as in <a rel= "rtl" where the cursor is just to the right of the "=".
+                // So just set the queryStr to an empty string. 
+                query.queryStr = "";
+                query.attrName = tagInfo.attr.name;
             }
 
             // TODO: get existing attributes for the current tag and add them to query.usedAttr
@@ -285,7 +302,7 @@ define(function (require, exports, module) {
      * @return {boolean} return true/false to indicate whether hinting should be triggered by this key.
      */
     AttrHints.prototype.shouldShowHintsOnKey = function (key) {
-        return (key === " " || key === "'" || key === "\"");
+        return (key === " " || key === "'" || key === "\"" || key === "=");
     };
 
     var tagHints = new TagHints();

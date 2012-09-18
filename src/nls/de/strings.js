@@ -25,9 +25,20 @@
 /*global define */
 
 define({
+    /**
+     * Errors
+     */
+
+    // General file io error strings
+    "GENERIC_ERROR"                     : "(Fehler {0})",
+    "NOT_FOUND_ERR"                     : "Die Datei konnte nicht gefunden werden.",
+    "NOT_READABLE_ERR"                  : "Die Datei konnte nicht gelesen werden.",
+    "NO_MODIFICATION_ALLOWED_ERR"       : "Das Ziel-Verzeichnis kann nicht verändert werden.",
+    "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "Die Berechtigungen erlauben Ihnen nicht, Veränderungen vorzunehmen.",
+
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Fehler beim Laden des Projekts",
-    "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Öffnen Dialogs. (Fehler {0})",
+    "OPEN_DIALOG_ERROR"                 : "Fehler beim Erstellen des Datei-Öffnen-Dialogs. (Fehler {0})",
     "REQUEST_NATIVE_FILE_SYSTEM_ERROR"  : "Fehler beim Lesen des Verzeichnisses <span class='dialog-filename'>{0}</span>. (Fehler {1})",
     "READ_DIRECTORY_ENTRIES_ERROR"      : "Fehler beim Lesen der Verzeichnisinhalte von <span class='dialog-filename'>{0}</span>. (Fehler {1})",
 
@@ -39,57 +50,96 @@ define({
     "ERROR_SAVING_FILE_TITLE"           : "Fehler beim Speichern der Datei",
     "ERROR_SAVING_FILE"                 : "Beim Speichern der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
     "INVALID_FILENAME_TITLE"            : "Ungültiger Dateiname",
-    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgenden Zeichen nicht enthalten: /?*:;{}<>\\|",
+    "INVALID_FILENAME_MESSAGE"          : "Dateinamen dürfen folgende Zeichen nicht enthalten: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "Die Datei <span class='dialog-filename'>{0}</span> existiert bereits.",
     "ERROR_CREATING_FILE_TITLE"         : "Fehler beim Erstellen der Datei",
     "ERROR_CREATING_FILE"               : "Beim Erstellen der Datei <span class='dialog-filename'>{0}</span> ist ein Fehler aufgetreten: {1}",
 
     // Application error strings
-    "ERROR_BRACKETS_IN_BROWSER_TITLE"   : "Ups! Brackets läuft derzeit leider nocht nicht im Browser.",
-    "ERROR_BRACKETS_IN_BROWSER"         : "Brackets wurde in HTML programmiert aber derzeite läuft es nur als Desktop Anwendung um damit lokale Dateien zu bearbeiten. Bitte benutzen Sie die Anwendung von <b>github.com/adobe/brackets-app</b>.",
+    "ERROR_IN_BROWSER_TITLE"            : "Ups! {APP_NAME} kann derzeit leider noch nicht im Browser ausgeführt werden.",
+    "ERROR_IN_BROWSER"                  : "{APP_NAME} wurde in HTML programmiert, ist derzeit jedoch lediglich als Desktop-Anwendung verfügbar, um damit lokale Dateien zu bearbeiten. Bitte verwenden Sie die Anwendungs-Shell im Repo <b>github.com/adobe/brackets-shell</b>, um {APP_NAME} auszuführen.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Fehler beim Indizieren der Dateien",
-    "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl inidizierbarer Datein wurde überschritten. Funktionen die auf dem Index beruhen werden möglicherweise nicht korrekt funktionieren.",
+    "ERROR_MAX_FILES"                   : "Die maximal mögliche Anzahl indizierbarer Dateien wurde überschritten. Funktionen, die auf dem Index beruhen, werden möglicherweise nicht korrekt ausgeführt.",
     
     // CSSManager error strings
-    "ERROR_PARSE_TITLE"                 : "Fehler beim interpretieren der CSS Datei(en):",
+    "ERROR_PARSE_TITLE"                 : "Fehler beim Interpretieren der CSS Datei(en):",
 
     // Live Development error strings
-    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Webbrowsers",
-    "ERROR_CANT_FIND_CHROME"            : "Google Chrome konnte nicht gefunden werden. Bitte laden Sie den Browser unter <b>google.de/chrome</b>.",
-    "ERROR_LAUNCHING_BROWSER"           : "Beim Starten des Webbrowsers ist ein Fehler aufgetreten: (Fehler {0})",
+    "ERROR_LAUNCHING_BROWSER_TITLE"     : "Fehler beim Starten des Browsers",
+    "ERROR_CANT_FIND_CHROME"            : "Der Browser Google Chrome konnte nicht gefunden werden. Bitte stellen Sie sicher, dass er installiert ist.",
+    "ERROR_LAUNCHING_BROWSER"           : "Beim Starten des Browsers ist ein Fehler aufgetreten. (Fehler {0})",
     
-    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live Entwicklung",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Beim Aufbauen einer Live Verbindung zu Chrome ist ein Fehler aufgetreten. "
-                                                + "Für die Live Entwicklung muss das Remote Debugger Protokoll von Chrome aktiviert sein."
-                                                + "<br /><br />Soll Chrome neu gestartet werden um das Remote Debugger Protokoll zu aktivieren?",
-    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie erst eine HTML Datei und aktivieren Sie dann die Live Verbindung.",
+    "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Fehler bei der Live-Vorschau",
+    "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Verbinden zum Browser",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Um die Live-Vorschau zu verwenden, muss Chrome mit aktiviertem Remote-Debugging neu gestartet werden.<br /><br />Soll Chrome neu gestartet werden, um das Remote Debugger Protokoll zu aktivieren?",
+    "LIVE_DEV_NEED_HTML_MESSAGE"        : "Öffnen Sie eine HTML-Datei, um die Live-Vorschau zu starten.",
+    "LIVE_DEVELOPMENT_INFO_TITLE"       : "Willkommen bei der Live-Vorschau!",
+    "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Die Live-Vorschau verbindet {APP_NAME} mit Ihrem Browser. Sie startet eine Vorschau Ihrer HTML-Datei im Browser, und aktualisiert die Vorschau dann sofort, wenn Sie Ihren Code bearbeiten.<br /><br />In dieser frühen Version von {APP_NAME} funktioniert die Live-Vorschau nur beim Bearbeiten von <strong>CSS-Dateien</strong> und nur mit <strong>Google Chrome</strong>. Wir werden sie bald für HTML und JavaScript implementieren!<br /><br />(Sie sehen diese Meldung nur einmal.)",
     
-    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Entwicklung",
-    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Entwicklung: Verbinden...",
-    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Entwicklung: Initialisieren...",
-    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Trennen der Live Verbindung",
+    "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live-Vorschau",
+    "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live-Vorschau: Verbinden...",
+    "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live-Vorschau: Initialisieren...",
+    "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Live-Vorschau trennen",
     
-    "SAVE_CLOSE_TITLE"                  : "Ungespeicherte Änderungen",
+    "SAVE_CLOSE_TITLE"                  : "Änderungen speichern",
     "SAVE_CLOSE_MESSAGE"                : "Wollen Sie die Änderungen in dem Dokument <span class='dialog-filename'>{0}</span> speichern?",
-    "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie die Änderungen in den folgenden Dateien speichern?",
+    "SAVE_CLOSE_MULTI_MESSAGE"          : "Wollen Sie Ihre Änderungen in den folgenden Dateien speichern?",
     "EXT_MODIFIED_TITLE"                : "Externe Änderungen",
-    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in Brackets."
+    "EXT_MODIFIED_MESSAGE"              : "<span class='dialog-filename'>{0}</span> wurde extern geändert und hat ungespeicherte Änderungen in {APP_NAME}."
                                                 + "<br /><br />"
-                                                + "Welche Version wollen Sie erhalten?",
-    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in Brackets."
+                                                + "Welche Version wollen Sie weiter verwenden?",
+    "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> wurde extern gelöscht und hat ungespeicherte Änderungen in {APP_NAME}."
                                                 + "<br /><br />"
-                                                + "Wollen Sie die Änderungen erhalten?",
+                                                + "Wollen Sie die Änderungen beibehalten?",
     
-    "OPEN_FILE"                         : "Datei Öffnen",
+    // Find, Replace, Find in Files
+    "SEARCH_REGEXP_INFO"                : "/re/-Syntax zum Suchen mit regulären Ausdrücken verwenden",
+    "WITH"                              : "Mit",
+    "BUTTON_YES"                        : "Ja",
+    "BUTTON_NO"                         : "Nein",
+    "BUTTON_STOP"                       : "Stopp",
 
+    "OPEN_FILE"                         : "Datei öffnen",
+    "CHOOSE_FOLDER"                     : "Ordner wählen",
+
+    "RELEASE_NOTES"                     : "Release-Notes",
+    "NO_UPDATE_TITLE"                   : "Sie sind auf dem Laufenden!",
+    "NO_UPDATE_MESSAGE"                 : "Sie führen die neuste Version von {APP_NAME} aus.",
+    
+    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_FILE"                : "Datei",
+    "FIND_IN_FILES_FILES"               : "Dateien",
+    "FIND_IN_FILES_MATCH"               : "Treffer",
+    "FIND_IN_FILES_MATCHES"             : "Treffer",
+    "FIND_IN_FILES_MAX"                 : " (die ersten {0} Treffer werden angezeigt)",
+    "FIND_IN_FILES_FILE_PATH"           : "Datei: <b>{0}</b>",
+    "FIND_IN_FILES_LINE"                : "Zeile:&nbsp;{0}",
+
+    "ERROR_FETCHING_UPDATE_INFO_TITLE"  : "Fehler beim Abrufen der Update-Info",
+    "ERROR_FETCHING_UPDATE_INFO_MSG"    : "Beim Abrufen der neusten Update-Informationen vom Server ist ein Problem aufgetreten. Bitte stellen Sie sicher, dass Sie mit dem Internet verbunden sind, und probieren Sie es erneut.",
+    
     // Switch language
-    "LANGUAGE_TITLE"                    : "Sprache Wechseln",
+    "LANGUAGE_TITLE"                    : "Sprache wechseln",
     "LANGUAGE_MESSAGE"                  : "Bitte wählen Sie die gewünschte Sprache aus der folgenden Liste aus:",
-    "LANGUAGE_SUBMIT"                   : "Brackets neu starten",
+    "LANGUAGE_SUBMIT"                   : "{APP_NAME} neu starten",
     "LANGUAGE_CANCEL"                   : "Abbrechen",
 
+
+    /**
+     * ProjectManager
+     */
+
+    "UNTITLED" : "Unbenannt",
+
+    /**
+     * Keyboard modifier names
+     */
+
+    "KEYBOARD_CTRL"   : "Strg",
+    "KEYBOARD_SHIFT"  : "Umschalt",
+    "KEYBOARD_SPACE"  : "Leer",
 
     /**
      * Command Name Constants
@@ -102,9 +152,10 @@ define({
     "CMD_ADD_TO_WORKING_SET"              : "Zum Projekt hinzufügen",
     "CMD_OPEN_FOLDER"                     : "Ordner öffnen\u2026",
     "CMD_FILE_CLOSE"                      : "Schließen",
-    "CMD_FILE_CLOSE_ALL"                  : "Alles schlieen",
+    "CMD_FILE_CLOSE_ALL"                  : "Alles schließen",
     "CMD_FILE_SAVE"                       : "Speichern",
-    "CMD_LIVE_FILE_PREVIEW"               : "Live Entwicklung",
+    "CMD_FILE_SAVE_ALL"                   : "Alles speichern",
+    "CMD_LIVE_FILE_PREVIEW"               : "Live-Vorschau",
     "CMD_QUIT"                            : "Beenden",
 
     // Edit menu commands
@@ -132,10 +183,10 @@ define({
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigation",
-    "CMD_QUICK_OPEN"                      : "Schnell Öffnen",
+    "CMD_QUICK_OPEN"                      : "Schnell öffnen",
     "CMD_GOTO_LINE"                       : "Gehe zu Zeile",
     "CMD_GOTO_DEFINITION"                 : "Gehe zu Definition",
-    "CMD_TOGGLE_QUICK_EDIT"               : "Schnell Bearbeiten",
+    "CMD_TOGGLE_QUICK_EDIT"               : "Schnell bearbeiten",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Voriger Treffer",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Nächster Treffer",
     "CMD_NEXT_DOC"                        : "Nächstes Dokument",
@@ -143,19 +194,47 @@ define({
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
-    "CMD_REFRESH_WINDOW"                  : "Brackets neu laden",
+    "CMD_REFRESH_WINDOW"                  : "{APP_NAME} neu laden",
     "CMD_SHOW_DEV_TOOLS"                  : "Entwicklungswerkzeuge zeigen",
     "CMD_RUN_UNIT_TESTS"                  : "Tests durchführen",
     "CMD_JSLINT"                          : "JSLint aktivieren",
-    "CMD_SHOW_PERF_DATA"                  : "Performance Analyse",
-    "CMD_NEW_BRACKETS_WINDOW"             : "Neues Brackets Fenster",
+    "CMD_SHOW_PERF_DATA"                  : "Performance-Analyse",
+    "CMD_NEW_BRACKETS_WINDOW"             : "Neues {APP_NAME}-Fenster",
+    "CMD_SHOW_EXTENSIONS_FOLDER"          : "Ordner Erweiterungen anzeigen",
     "CMD_USE_TAB_CHARS"                   : "Mit Tabs einrücken",
     "CMD_SWITCH_LANGUAGE"                 : "Sprache wechseln",
+    "CMD_CHECK_FOR_UPDATE"                : "Nach Updates suchen",
 
     // Help menu commands
-    "CMD_ABOUT"                           : "Über",
+    "HELP_MENU"                           : "Hilfe",
+    "CMD_ABOUT"                           : "Über {APP_TITLE}",
+    "CMD_FORUM"                           : "{APP_NAME}-Forum",
 
     // Special commands invoked by the native shell
-    "CMD_CLOSE_WINDOW"                    : "Fenster schließen"
+    "CMD_CLOSE_WINDOW"                    : "Fenster schließen",
+    "CMD_ABORT_QUIT"                      : "Abort Quit",
 
+    // Strings for main-view.html
+    "EXPERIMENTAL_BUILD"                   : "Experimenteller Build",
+    "JSLINT_ERRORS"                        : "JSLint-Fehler",
+    "JSLINT_NO_ERRORS"                     : "Keine JSLint-Fehler – gute Arbeit!",
+    "SEARCH_RESULTS"                       : "Suchergebnisse",
+    "OK"                                   : "OK",
+    "DONT_SAVE"                            : "Nicht speichern",
+    "SAVE"                                 : "Speichern",
+    "CANCEL"                               : "Abbrechen",
+    "RELOAD_FROM_DISK"                     : "Von der Festplatte neu laden",
+    "KEEP_CHANGES_IN_EDITOR"               : "Änderungen im Editor behalten",
+    "CLOSE_DONT_SAVE"                      : "Schließen (nicht speichern)",
+    "RELAUNCH_CHROME"                      : "Chrome neu starten",
+    "ABOUT"                                : "Über",
+    "APP_NAME"                             : "xBrackets",
+    "CLOSE"                                : "Schließen",
+    "ABOUT_TEXT_LINE1"                     : "Sprint 14 experimenteller Build ",
+    "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> und sind hier durch Bezugnahme eingeschlossen.",
+    "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",
+    "UPDATE_AVAILABLE_TITLE"               : "Update verfügbar",
+    "UPDATE_MESSAGE"                       : "Hallo! Eine neue Version von {APP_NAME} ist verfügbar. Hier einige der neuen Funktionen:",
+    "GET_IT_NOW"                           : "Jetzt updaten!"
 });

@@ -105,16 +105,7 @@ a, img {
         .vbox;
         .box-pack(center);
         .box-align(center);
-        background-color: @background-color-2;
-        
-        #not-editor-content {
-            color: @background-color-1;
-            font-size: 350px;
-            line-height: normal;
-            margin-top: -0.25em;
-            text-shadow: 0 1px @bc-black;
-            opacity: 0.30;
-        }
+        background: @background-color-2 url('images/no_content_bg.svg') no-repeat center 45%;
     }
 }
     
@@ -328,7 +319,11 @@ a, img {
 }
 
 .scroller-shadow {
-    background-size: 100% 5px;
+    // TODO (Issue #1615): background-size should really be 100%, but due to a bug in WebKit,
+    // that makes the drop shadows look bad on retina displays. This value
+    // should be changed to 100% once we've upgraded to a newer CEF that includes
+    // the WebKit fix.
+    background-size: 99.99%;
     background-repeat: no-repeat;
     height: 5px;
     position: fixed;
@@ -468,6 +463,18 @@ ins.jstree-icon {
     }
 }
 
+// TODO (Issue #1615): Remove this hack when we get a new CEF
+@media all and (-webkit-min-device-pixel-ratio:2),(min-device-pixel-ratio:2) {
+.inline-widget {
+    .shadow.top {
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
+    }
+    .shadow.bottom {
+        background-image: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+    }
+}
+}
+
 /* CSSInlineEditor rule list */
 .related-container {
     @top-margin: 12px;
@@ -536,6 +543,23 @@ ins.jstree-icon {
             -webkit-transition: color 0.1s ease-out .15s;
         }
     }
+}
+
+/* This text is used to force the code editor's font to be loaded early on if it's a
+   web font. This is necessary in order for the editor's horizontal measurement of text
+   to work properly.
+
+   In the future, when we allow the user to switch fonts, we'll need to make sure to
+   update the font for this text item whenever the user switches. We'll also need to
+   wait to initiate a re-measure in CodeMirror until the new font is loaded (if they
+   choose a web font). This library allows for checking if a web font is loaded:
+
+     http://code.google.com/apis/webfonts/docs/webfont_loader.html
+*/
+.dummy-text {
+    position: fixed;
+    top: -10000px;
+    .code-font();
 }
 
 /* Styles for the search dialog--this is temporary, only for debugging */
