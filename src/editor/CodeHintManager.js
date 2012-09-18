@@ -398,7 +398,15 @@ define(function (require, exports, module) {
      *
      */
     function handleChange(editor) {
-        if (shouldShowHintsOnChange) {
+        // If there are inline editors open, we'll get called multiple times, once for each inline
+        // editor plus the main editor. We only want to handle this if it's coming from the focused
+        // editor. As a safety mechanism, if getFocusedEditor() happens to return null (as it might
+        // if focus has been lost for any reason), we go ahead and handle the first editor that
+        // calls us, so we don't drop the code hint menu on the floor and pop it up later at some
+        // unexpected time.
+        var focusedEditor = EditorManager.getFocusedEditor();
+        if (shouldShowHintsOnChange &&
+                (focusedEditor === null || focusedEditor === undefined || editor === focusedEditor)) {
             shouldShowHintsOnChange = false;
             showHint(editor);
         }
