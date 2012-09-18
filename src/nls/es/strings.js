@@ -191,7 +191,7 @@ define({
 
     // Help menu commands
     "HELP_MENU"                           : "Ayuda",
-    "CMD_ABOUT"                           : "Acerca de...",
+    "CMD_ABOUT"                           : "Acerca de {APP_TITLE}",
     "CMD_FORUM"                           : "Foro de {APP_NAME}",
 
     // Special commands invoked by the native shell

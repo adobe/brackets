@@ -137,9 +137,9 @@ define({
      * Keyboard modifier names
      */
 
-     "KEYBOARD_CTRL"   : "Strg",
-     "KEYBOARD_SHIFT"  : "Umschalt",
-     "KEYBOARD_SPACE"  : "Leer",
+    "KEYBOARD_CTRL"   : "Strg",
+    "KEYBOARD_SHIFT"  : "Umschalt",
+    "KEYBOARD_SPACE"  : "Leer",
 
     /**
      * Command Name Constants
@@ -207,7 +207,7 @@ define({
 
     // Help menu commands
     "HELP_MENU"                           : "Hilfe",
-    "CMD_ABOUT"                           : "Über",
+    "CMD_ABOUT"                           : "Über {APP_TITLE}",
     "CMD_FORUM"                           : "{APP_NAME}-Forum",
 
     // Special commands invoked by the native shell
