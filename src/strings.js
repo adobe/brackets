@@ -38,10 +38,12 @@ define(function (require, exports, module) {
         StringUtils = require("utils/StringUtils");
     
     strings.APP_NAME = brackets.metadata.name || strings.APP_NAME;
+    strings.APP_TITLE = brackets.config.app_title || strings.APP_NAME;
     
     // Convert {APP_NAME}
     Object.keys(strings).forEach(function (key) {
         strings[key] = strings[key].replace(/\{APP_NAME\}/g, strings.APP_NAME);
+        strings[key] = strings[key].replace(/\{APP_TITLE\}/g, strings.APP_TITLE);
     });
 
     module.exports = strings;
