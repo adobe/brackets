@@ -40,7 +40,8 @@ define(function (require, exports, module) {
 
     var hintProviders = [],
         hintList,
-        shouldShowHintsOnChange = false;
+        shouldShowHintsOnChange = false,
+        keyDownEditor;
 
 
     /**
@@ -297,6 +298,7 @@ define(function (require, exports, module) {
         if (hintList === this) {
             hintList = null;
             shouldShowHintsOnChange = false;
+            keyDownEditor = null;
         }
     };
         
@@ -386,6 +388,9 @@ define(function (require, exports, module) {
             });
             
             shouldShowHintsOnChange = !!provider;
+            if (shouldShowHintsOnChange) {
+                keyDownEditor = editor;
+            }
         }
 
         // Pass to the hint list, if it's open
@@ -398,8 +403,9 @@ define(function (require, exports, module) {
      *
      */
     function handleChange(editor) {
-        if (shouldShowHintsOnChange) {
+        if (shouldShowHintsOnChange && keyDownEditor === editor) {
             shouldShowHintsOnChange = false;
+            keyDownEditor = null;
             showHint(editor);
         }
     }
