@@ -6,5 +6,5 @@
 	</defs>
 	
 	<polyline points="4.5,7 8,1 1,1 " filter="url(#blur)" opacity=".5" transform="translate(0, 1)"/>
-	<polyline fill="#878787" points="4.5,7 8,1 1,1 " filter="url(#blur)"/>
+	<polyline fill="#878787" points="4.5,7 8,1 1,1 "/>
 </svg>
