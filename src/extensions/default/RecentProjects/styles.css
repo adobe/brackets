@@ -3,7 +3,7 @@
     width: 10px;
     height: 8px;
     margin-left: 4px;
-    background-image: url("down-arrow.png");
+    background-image: url("down-arrow.svg");
 }
 
 #project-dropdown-toggle:hover {
