@@ -651,8 +651,21 @@ define(function (require, exports, module) {
             origSelection = null;
         }
         
+        // Set dialogLabel depending on which Navigation option is chosen
+        var dialogLabel = "";
+        switch (prefix) {
+        case "":
+            dialogLabel  = Strings.CMD_QUICK_OPEN;
+            break;
+        case ":":
+            dialogLabel = Strings.CMD_GOTO_LINE;
+            break;
+        case "@":
+            dialogLabel = Strings.CMD_GOTO_DEFINITION;
+            break;
+        }
         // Show the search bar ("dialog")
-        var dialogHTML = Strings.CMD_QUICK_OPEN + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
+        var dialogHTML = dialogLabel + ": <input type='text' autocomplete='off' id='quickOpenSearch' style='width: 30em'>";
         that._createDialogDiv(dialogHTML);
         that.$searchField = $("input#quickOpenSearch");
 
