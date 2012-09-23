@@ -430,8 +430,8 @@ define(function (require, exports, module) {
         }
         
         if (!classOrIdSelector) {
-            // Tag selectors must have nothing or whitespace before it.
-            selector = "(^|\\s)" + selector;
+            // Tag selectors must have nothing, whitespace, or a combinator before it.
+            selector = "(^|[\\s>+~])" + selector;
         }
         
         var re = new RegExp(selector + "(\\[[^\\]]*\\]|:{1,2}[\\w-()]+|\\.[\\w-]+|#[\\w-]+)*\\s*$", classOrIdSelector ? "" : "i");
