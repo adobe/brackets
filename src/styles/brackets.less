@@ -94,6 +94,49 @@ a, img {
     z-index: @z-index-brackets-toolbar;
 }
 
+.busyCursor {
+    cursor: wait !important;
+}
+
+.statusbar {
+    height: 19px;
+    overflow: hidden;
+    background-color: lighten(@bc-grey, @bc-color-step-size*4);
+    
+    .info {
+        float: left;
+        margin-left: 8px;
+        margin-top: 3px;
+        
+        span {
+            color: @bc-grey;
+            padding-right: 15px;
+            vertical-align: middle;
+        }
+    }
+    
+    #busy-indicator {
+        color: @bc-grey;
+        display: inline-block;
+        float: right;
+        margin: 0px 4px 0px 0px;
+    }
+    
+    .indicators {
+        display: block;
+        float:right;
+        position: absolute;
+        right: 16px;
+        margin: 3px 0px 0px 0px;
+        
+        .indicator {
+            margin-right: 2px;
+            margin-left: 2px;
+            color: @bc-grey;
+        }
+    }
+}
+
 #editor-holder {
     .vbox;
     .box-flex(1);
@@ -164,6 +207,21 @@ a, img {
 #gold-star {
     display: none;
     font-size: 1.2em;
+    color: #ffe13b;
+}
+
+.jslint-disabled {
+    font-size: 0.8em;
+    color: #cccccc;
+}
+
+.jslint-errors {
+    font-size: 0.8em;
+    color: @bc-red;
+}
+
+.jslint-valid {
+    font-size: 0.8em;
     color: #ffe13b;
 }
 

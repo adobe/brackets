@@ -36,7 +36,8 @@ define(function (require, exports, module) {
         PreferencesManager  = require("preferences/PreferencesManager"),
         Strings             = require("strings"),
         StringUtils         = require("utils/StringUtils"),
-        Global              = require("utils/Global");
+        Global              = require("utils/Global"),
+        StatusBar           = require("project/StatusBar");
     
     // Extract current build number from package.json version field 0.0.0-0
     var _buildNumber = /-([0-9]+)/.exec(brackets.metadata.version)[1];
@@ -284,8 +285,11 @@ define(function (require, exports, module) {
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
                 
                 if (allUpdates) {
+                    
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
+
+                    StatusBar.addIndicator("update-notification", $updateNotification, true);
                     
                     $updateNotification.css("display", "inline-block");
                     if (!_addedClickHandler) {

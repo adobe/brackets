@@ -50,7 +50,8 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        StatusBar           = require("project/StatusBar");
 
     
     var FIND_IN_FILES_MAX = 100;
@@ -296,6 +297,7 @@ define(function (require, exports, module) {
         dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
+                    StatusBar.showBusyIndicator(true);
                     var queryExpr = _getQueryRegExp(query);
                     FileIndexManager.getFileInfoList("all")
                         .done(function (fileListResult) {
@@ -324,9 +326,11 @@ define(function (require, exports, module) {
                             })
                                 .done(function () {
                                     _showSearchResults(searchResults);
+                                    StatusBar.hideBusyIndicator();
                                 })
                                 .fail(function () {
                                     console.log("find in files failed.");
+                                    StatusBar.hideBusyIndicator();
                                 });
                         });
                 }

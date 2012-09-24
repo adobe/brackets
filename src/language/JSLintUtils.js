@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, JSLINT, PathUtils */
+/*global define, $, brackets, JSLINT, PathUtils, document */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -44,7 +44,9 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        Strings                 = require("strings");
+        Strings                 = require("strings"),
+        AppInit                 = require("utils/AppInit"),
+        StatusBar               = require("project/StatusBar");
     
     /**
      * @private
@@ -136,9 +138,11 @@ define(function (require, exports, module) {
                     .append($errorTable);
                 $lintResults.show();
                 $goldStar.hide();
+                StatusBar.updateIndicator(module.id, true, "jslint-errors", JSLINT.errors.length + " JSLint errors");
             } else {
                 $lintResults.hide();
                 $goldStar.show();
+                StatusBar.updateIndicator(module.id, true, "jslint-valid", "No JSLint errors - good job!");
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -148,6 +152,7 @@ define(function (require, exports, module) {
             // both the results and the gold star
             $lintResults.hide();
             $goldStar.hide();
+            StatusBar.updateIndicator(module.id, true, "jslint-disabled", "JSLint disabled or not working for the current file");
         }
         
         EditorManager.resizeEditor();
@@ -207,6 +212,15 @@ define(function (require, exports, module) {
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: !!brackets.config.enable_jslint });
     _setEnabled(_prefs.getValue("enabled"));
+    
+    // Init StatusBar indicator
+    AppInit.htmlReady(function () {
+        var jslintIndicator = document.createElement('span');
+        jslintIndicator.innerHTML = "&#9733;";
+        
+        StatusBar.addIndicator(module.id, jslintIndicator, false);
+    });
+    
     
     // Define public API
     exports.run = run;
