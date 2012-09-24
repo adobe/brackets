@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, JSLINT, PathUtils, document */
+/*global define, $, brackets, JSLINT, PathUtils */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -215,8 +215,7 @@ define(function (require, exports, module) {
     
     // Init StatusBar indicator
     AppInit.htmlReady(function () {
-        var jslintIndicator = document.getElementById("gold-star");
-        StatusBar.addIndicator(module.id, jslintIndicator, false);
+        StatusBar.addIndicator(module.id, $("#gold-star"), false);
     });
     
     

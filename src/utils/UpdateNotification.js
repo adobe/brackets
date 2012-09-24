@@ -285,7 +285,6 @@ define(function (require, exports, module) {
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
                 
                 if (allUpdates) {
-                    
                     // Always show the "update available" icon if any updates are available
                     var $updateNotification = $("#update-notification");
 
