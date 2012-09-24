@@ -129,9 +129,9 @@ define({
      * Keyboard modifier names
      */
 
-     "KEYBOARD_CTRL"   : "Ctrl",
-     "KEYBOARD_SHIFT"  : "Shift",
-     "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SPACE"  : "Space",
 
     /**
      * Command Name Constants
@@ -199,7 +199,7 @@ define({
 
     // Help menu commands
     "HELP_MENU" : "Hjelp",
-    "CMD_ABOUT" : "Om",
+    "CMD_ABOUT" : "Om {APP_TITLE}",
     "CMD_FORUM" : "{APP_NAME} forum",
 
     // Special commands invoked by the native shell

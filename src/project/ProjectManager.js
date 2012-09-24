@@ -749,8 +749,12 @@ define(function (require, exports, module) {
                         // project directory.
                         // TODO (issue #267): When Brackets supports having no project directory
                         // defined this code will need to change
-                        result.reject();
-                        return _loadProject(_getWelcomeProjectPath());
+                        _loadProject(_getWelcomeProjectPath()).always(function () {
+                            // Make sure not to reject the original deferred until the fallback
+                            // project is loaded, so we don't violate expectations that there is always
+                            // a current project before continuing after _loadProject().
+                            result.reject();
+                        });
                     });
                 }
                 );
