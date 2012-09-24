@@ -118,7 +118,6 @@ define(function main(require, exports, module) {
     function _handleGoLiveCommand() {
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
-            // TODO Ty: when checkmark support lands, remove checkmark
         } else {
             if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
@@ -132,8 +131,11 @@ define(function main(require, exports, module) {
             } else {
                 LiveDevelopment.open();
             }
-            // TODO Ty: when checkmark support lands, add checkmark
         }
+        
+        //update the checkmark next to 'Live Preview' menu item
+        //add checkmark when LiveDevelopment.status is STATUS_CONNECTING or later; otherwise remove it
+        CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING);
     }
 
     /** Create the menu item "Go Live" */
