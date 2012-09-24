@@ -117,17 +117,19 @@ a, img {
     
     #busy-indicator {
         color: @bc-grey;
+        font-size: 1.4em;
         display: inline-block;
         float: right;
-        margin: 0px 4px 0px 0px;
+        margin: 0px 8px 0px 0px;
     }
     
     .indicators {
+        overflow: hidden;
         display: block;
         float:right;
         position: absolute;
-        right: 16px;
-        margin: 3px 0px 0px 0px;
+        right: 24px;
+        margin: 1px 0px 1px 0px;
         
         .indicator {
             margin-right: 2px;
@@ -204,25 +206,19 @@ a, img {
     display:none;
 }
 
-#gold-star {
-    display: none;
-    font-size: 1.2em;
-    color: #ffe13b;
-}
-
 .jslint-disabled {
-    font-size: 0.8em;
-    color: #cccccc;
+    font-size: 1em;
+    color: @bc-grey;
 }
 
 .jslint-errors {
-    font-size: 0.8em;
+    font-size: 1em;
     color: @bc-red;
 }
 
 .jslint-valid {
-    font-size: 0.8em;
-    color: #ffe13b;
+    font-size: 1em;
+    color: lighten(@bc-yellow, @bc-color-step-size*2);
 }
 
 #toolbar-go-live {

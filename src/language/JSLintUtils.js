@@ -215,9 +215,7 @@ define(function (require, exports, module) {
     
     // Init StatusBar indicator
     AppInit.htmlReady(function () {
-        var jslintIndicator = document.createElement('span');
-        jslintIndicator.innerHTML = "&#9733;";
-        
+        var jslintIndicator = document.getElementById("gold-star");
         StatusBar.addIndicator(module.id, jslintIndicator, false);
     });
     

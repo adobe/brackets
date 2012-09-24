@@ -1,7 +1,9 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, document, console */
+/*global define, $, brackets, window, document*/
 
-/** Simple extension that adds a "File > Hello World" menu item */
+/**
+ * A status bar with support for file information and busy and status indicators.
+ */
 define(function (require, exports, module) {
     'use strict';
     
@@ -10,7 +12,17 @@ define(function (require, exports, module) {
         EditorManager   = require("editor/EditorManager"),
         ExtensionUtils  = require("utils/ExtensionUtils");
     
-    //
+    // Current focused full editor
+    var fullEditor;
+    
+    // Indicates if the busy cursor is active to avoid unnecesary operations
+    var busyCursor = false;
+    
+    // A simple regexp to sanitize indicator ids
+    var indicatorIDRegexp = new RegExp("[^a-zA-Z 0-9]+", "g");
+    
+    // These vars are initialized by the AppInit.htmlReady handler
+    // below since they refer to DOM elements
     var $editorContainer,
         $statusBar,
         $modeInfo,
@@ -20,42 +32,36 @@ define(function (require, exports, module) {
         $indicators,
         $busyIndicator;
     
-    var busyCursor = false;
+    function _updateModeInfo() {
+        $modeInfo.text(fullEditor.getModeForSelection());
+    }
     
-    var indicatorIDRegexp = new RegExp("[^a-zA-Z 0-9]+", "g");
+    function _updateFileInfo() {
+        $fileInfo.text(fullEditor.lineCount() + " Lines");
+    }
+    
+    function _updateTabCharInfo() {
+        $tabInfo.text("Tab Size: " + fullEditor._codeMirror.getOption("tabSize"));
+    }
     
     function _updateCursorInfo() {
-        var fullEditor  = EditorManager.getCurrentFullEditor(),
-            cursor      = fullEditor.getCursorPos(),
+        var cursor      = fullEditor.getCursorPos(),
             cursorInfo  = "Line " + (cursor.line + 1) + ", " + "Column " + (cursor.ch + 1);
         
         $cursorInfo.text(cursorInfo);
     }
     
-    function _updateModeInfo() {
-        var fullEditor  = EditorManager.getCurrentFullEditor(),
-            mode        = fullEditor.getModeForSelection();
-        
-        $modeInfo.text(mode);
-    }
-    
-    function _updateFileInfo() {
-        var fullEditor  = EditorManager.getCurrentFullEditor(),
-            lineCount   = fullEditor.lineCount();
-        
-        $fileInfo.text(lineCount + " Lines");
-    }
-    
-    function _updateTabCharInfo() {
-        var fullEditor  = EditorManager.getCurrentFullEditor(),
-            tabSize     = fullEditor._codeMirror.getOption("tabSize");
-        
-        $tabInfo.text("Tab Size: " + tabSize);
-    }
-    
+    /**
+     * @private
+     * Updates the focused full editor and cleans listeners
+     */
     function _onFocusedEditorChange(evt) {
         
-        var fullEditor  = EditorManager.getCurrentFullEditor();
+        if (fullEditor) {
+            $(fullEditor).off("cursorActivity", _updateCursorInfo);
+        }
+        
+        fullEditor  = EditorManager.getCurrentFullEditor();
         
         $(fullEditor).on('cursorActivity', _updateCursorInfo);
         _updateCursorInfo();
@@ -65,8 +71,8 @@ define(function (require, exports, module) {
     }
     
     /**
-     * Shows the 'busy' notification
-     * 
+     * Shows the 'busy' indicator
+     * @param {boolean} updateCursor Sets the cursor to "wait"
      */
     function showBusyIndicator(updateCursor) {
         if (updateCursor) {
@@ -75,12 +81,10 @@ define(function (require, exports, module) {
         }
         
         $busyIndicator.show();
-        //$busyIndicator.addClass("busyIndicator");
     }
     
     /**
-     *
-     *
+     * Hides the 'busy' indicator
      */
     function hideBusyIndicator() {
         // Check if we are using the busyCursor class to avoid
@@ -90,18 +94,19 @@ define(function (require, exports, module) {
             $("*").removeClass("busyCursor");
         }
         
-        //$busyIndicator.removeClass("busyIndicator");
         $busyIndicator.hide();
     }
     
     /**
-     *
+     * Registers a new status indicator
+     * @param {string} id Registration id of the indicator to be updated.
+     * @param {DOMNode) indicator Optional DOMNode for the indicator
+     * @param {boolean} visible Shows or hides the indicator over the statusbar.
+     * @param {string} style Sets the attribute "class" of the indicator.
+     * @param {string} tooltip Sets the attribute "title" of the indicator.
+     * @param {string} command Optional command name to execute on the indicator click.
      */
     function addIndicator(id, indicator, visible, style, tooltip, command) {
-        
-        console.log(id);
-        console.log(indicator);
-        console.log(visible);
         
         indicator = indicator || document.createElement("span");
         tooltip = tooltip || "";
@@ -114,10 +119,6 @@ define(function (require, exports, module) {
         $indicator.attr("title", tooltip);
         $indicator.addClass("indicator");
         $indicator.addClass("style");
-        $indicator.on('click', function () {
-            console.log("add command");
-            console.log(command);
-        });
             
         if (!visible) {
             $indicator.hide();
@@ -127,7 +128,12 @@ define(function (require, exports, module) {
     }
     
     /**
-     *
+     * Updates a status indicator
+     * @param {string} id Registration id of the indicator to be updated.
+     * @param {boolean} visible Shows or hides the indicator over the statusbar.
+     * @param {string} style Sets the attribute "class" of the indicator.
+     * @param {string} tooltip Sets the attribute "title" of the indicator.
+     * @param {string} command Optional command name to execute on the indicator click.
      */
     function updateIndicator(id, visible, style, tooltip, command) {
         
@@ -152,18 +158,15 @@ define(function (require, exports, module) {
             if (tooltip) {
                 $indicator.attr("title", tooltip);
             }
-            
-            if (command) {
-                $indicator.on('click', function () {
-                    console.log("udpate command");
-                    console.log(command);
-                });
-            }
         }
     }
     
+    /**
+     * @private
+     * Initialize the status bar and the focused editor status 
+     */
     function _initStatusBar() {
-        var fullEditor  = EditorManager.getCurrentFullEditor();
+        fullEditor = EditorManager.getCurrentFullEditor();
         $(fullEditor).on("cursorActivity", _updateCursorInfo);
         
         _updateCursorInfo();
