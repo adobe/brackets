@@ -132,10 +132,6 @@ define(function main(require, exports, module) {
                 LiveDevelopment.open();
             }
         }
-        
-        //update the checkmark next to 'Live Preview' menu item
-        //add checkmark when LiveDevelopment.status is STATUS_CONNECTING or later; otherwise remove it
-        CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING);
     }
 
     /** Create the menu item "Go Live" */
@@ -156,6 +152,20 @@ define(function main(require, exports, module) {
 
         // Initialize tooltip for 'not connected' state
         _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
+    }
+    
+    /** maintains state of the menu item */
+    function _setupGoLiveMenu() {
+        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+            //update the checkmark next to 'Live Preview' menu item
+            //add checkmark when status is STATUS_CONNECTING 
+            if (status === LiveDevelopment.STATUS_CONNECTING) {
+                CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(true);
+            } else if (status < LiveDevelopment.STATUS_CONNECTING) {
+                //remove checkmark if status is STATUS_INACTIVE or STATUS_ERROR
+                CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(false);
+            }
+        });
     }
 
     /** Create the menu item "Highlight" */
@@ -193,6 +203,8 @@ define(function main(require, exports, module) {
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();
+        _setupGoLiveMenu();
+
         /* _setupHighlightButton(); FUTURE - Highlight button */
         if (config.debug) {
             _setupDebugHelpers();
@@ -211,9 +223,9 @@ define(function main(require, exports, module) {
                 }
             });
         }
+        
     }
     window.setTimeout(init);
-
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions
