@@ -578,7 +578,9 @@ define(function (require, exports, module) {
 
                 // create the file
                 if (options.create) {
-                    brackets.fs.makedir(directoryFullPath, 0 /* TODO - should be 0777 */, function (err) {
+                    // TODO: Pass permissions. The current implementation of fs.makedir() always 
+                    // creates the directory with the full permissions available to the current user. 
+                    brackets.fs.makedir(directoryFullPath, 0, function (err) {
                         if (err) {
                             createDirectoryError(err);
                         } else {
