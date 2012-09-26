@@ -358,7 +358,7 @@ define(function (require, exports, module) {
         height = Math.max(height, MIN_HEIGHT);
         
         $searchResults.height(height);
-        $searchContent.height(height - $searchToolbar.height());
+        $searchContent.height(height - $searchToolbar.outerHeight());
         
         prefs.setValue("height", height);
         EditorManager.resizeEditor();

@@ -220,11 +220,19 @@ define(function (require, exports, module) {
      * @param {number} height Height in pixels.
      */
     function _setHeight(height) {
+        // There seems to be a race condition when accessing height if JSLint is
+        // enabled when Brackets is opening. Neither htmlReady nor appReady seem 
+        // to work for that. Forcing 27px height for the toolbar in that case.
+        var toolbarHeight = $jslintToolbar.outerHeight(true);
+        if (!$jslintToolbar.height()) {
+            toolbarHeight = 27;
+        }
+        
         height = Math.max(height, MIN_HEIGHT);
         _prefs.setValue("height", height);
         
         $jslintResults.height(height);
-        $jslintContent.height(height - $jslintToolbar);
+        $jslintContent.height(height - toolbarHeight);
         
         EditorManager.resizeEditor();
     }
