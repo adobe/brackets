@@ -97,7 +97,11 @@ define(function (require, exports, module) {
     
     function resetDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
-        var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+
+        // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
+        // exception. This code should be removed (if not needed), or updated with a unique
+        // timer name (if needed).
+        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
@@ -113,7 +117,7 @@ define(function (require, exports, module) {
         // Update title text & "dirty dot" display
         updateTitle();
 
-        PerfUtils.addMeasurement(perfTimerName);
+        // PerfUtils.addMeasurement(perfTimerName);
     }
     
     function handleDirtyChange(event, changedDoc) {
