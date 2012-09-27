@@ -67,7 +67,11 @@ define(function (require, exports, module) {
             buttonId = null,
             which = String.fromCharCode(e.which);
         
-        if (e.which === KeyEvent.DOM_VK_RETURN) {
+        // There might be a textfield in the dialog's UI; don't want to mistake normal typing for dialog dismissal
+        var inFormField = ($(e.target).filter(":input").length > 0),
+            inTextArea = (e.target.tagName === "TEXTAREA");
+        
+        if (e.which === KeyEvent.DOM_VK_RETURN && !inTextArea) {  // enter key in single-line text input still dismisses
             // Click primary button
             if (primaryBtn) {
                 buttonId = primaryBtn.attr("data-button-id");
@@ -87,7 +91,7 @@ define(function (require, exports, module) {
             }
         } else { // if (brackets.platform === "win") {
             // 'N' Don't Save
-            if (which === "N") {
+            if (which === "N" && !inFormField) {
                 if (_hasButton(this, DIALOG_BTN_DONTSAVE)) {
                     buttonId = DIALOG_BTN_DONTSAVE;
                 }
@@ -96,8 +100,7 @@ define(function (require, exports, module) {
         
         if (buttonId) {
             _dismissDialog(this, buttonId);
-        } else if (!($.contains(this.get(0), e.target)) ||
-                  ($(e.target).filter(":input").length === 0)) {
+        } else if (!($.contains(this.get(0), e.target)) || !inFormField) {
             // Stop the event if the target is not inside the dialog
             // or if the target is not a form element.
             // TODO (issue #414): more robust handling of dialog scoped
