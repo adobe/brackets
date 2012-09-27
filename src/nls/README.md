@@ -2,16 +2,12 @@
 
 1. Create a subfolder of the `nls` folder whose name is the language or locale you want to
    create a translation for.
-   
     * If you're creating a general translation for a language, just use its two-letter code 
       (e.g. `en`, `de`).
-      
     * If you're creating a locale-specific translation for a particular country, add a hyphen 
       and the country code in lowercase (e.g. `en-ca`, `en-gb`).
-      
 2. Add an entry for your translation to the `module.exports` object in `nls/strings.js`.
    (Eventually, we should remove this requirement and just scan the folder for available languages.)
-
 3. Copy the root `strings.js` file into your subfolder and start translating!
 
 Strings not specified in a given locale will fall back to the language for that locale, if any,
