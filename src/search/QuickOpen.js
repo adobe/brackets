@@ -401,34 +401,138 @@ define(function (require, exports, module) {
     };
     
     
-    /**
-     * Performs basic filtering of a string based on a filter query, and ranks how close the match
-     * is. Use basicMatchSort() to sort the filtered results taking this ranking into account. The
-     * label of the SearchResult is set to 'str'.
-     * @param {!string} str
-     * @param {!string} query
-     * @return {?SearchResult}
-     */
+    var NAME_BOOST = 3;
+    var MATCH_BOOST = 5;
+    var PATH_SEGMENT_START_MATCH_BOOST = 5;
+
+   /**
+    * Performs matching of a string based on a query, and scores
+    * the result based on specificity (assuming that the rightmost
+    * side of the input is the most specific) and how clustered the
+    * query characters are in the input string. The matching is
+    * case-insensitive
+    *
+    * If the query characters cannot be found in order (but not necessarily all together), 
+    * undefined is returned.
+    *
+    * the returned SearchResult has a matchGoodness score that can be used
+    * for sorting. It also has a stringRanges array, each entry with
+    * "text" and "matched". If you string the "text" properties together, you will
+    * get the original str. Using the matched properties, you can highlight
+    * the string matches.
+    *
+    * Use basicMatchSort() to sort the filtered results taking this ranking
+    * label of the SearchResult is set to 'str'.
+    * @param {!string} str
+    * @param {!string} query
+    * @return {?SearchResult}
+    */
     function stringMatch(str, query) {
-        // is it a match at all?
-        var matchIndex = str.toLowerCase().indexOf(query.toLowerCase());
-        if (matchIndex !== -1) {
-            var searchResult = new SearchResult(str);
-            
-            // Rough heuristic to decide how good the match is: if query very closely matches str,
-            // rank it highly. Divides the search results into three broad buckets (0-2)
-            if (matchIndex === 0) {
-                if (str.length === query.length) {
-                    searchResult.matchGoodness = 0;
-                } else {
-                    searchResult.matchGoodness = 1;
+        if (!query) {
+            return;
+        }
+        var lowerStr = str.toLowerCase();
+        var queryChars = query.toLowerCase().split("");
+
+        var score = 0;
+        
+        // sequentialMatches is positive when we are stepping through matched
+        // characters and negative when stepping through unmatched characters
+        var sequentialMatches = 0;
+        var segmentCounter = 0;
+        var stringRanges = [];
+        
+        // start at the end and work backward, because we give preference
+        // to matches in the name (last) segment
+        var strCounter = lowerStr.length - 1;
+        var queryCounter = queryChars.length - 1;
+        while (strCounter >= 0 && queryCounter >= 0) {
+            var curChar = lowerStr.charAt(strCounter);
+            if (curChar === '/') {
+                // Beginning of segment, apply boost for a matching
+                // string of characters, if there is one
+                if (sequentialMatches > 0) {
+                    score += sequentialMatches * sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
                 }
-            } else {
-                searchResult.matchGoodness = 2;
+                
+                // if this is the name segment, add the boost
+                if (segmentCounter === 0) {
+                    score = score * NAME_BOOST;
+                }
+                segmentCounter++;
             }
             
-            return searchResult;
+            if (queryChars[queryCounter] === curChar) {
+                // are we ending a string of unmatched characters?
+                if (sequentialMatches < 0) {
+                    stringRanges.unshift({
+                        text: str.substr(strCounter + 1, -1 * sequentialMatches),
+                        matched: false
+                    });
+                    sequentialMatches = 0;
+                }
+                
+                // matched character, chaulk up another match
+                // and move both counters back a character
+                sequentialMatches++;
+                queryCounter--;
+                strCounter--;
+            } else {
+                // are we ending a string of matched characters?
+                if (sequentialMatches > 0) {
+                    stringRanges.unshift({
+                        text: str.substr(strCounter + 1, sequentialMatches),
+                        matched: true
+                    });
+                    score += sequentialMatches * sequentialMatches * MATCH_BOOST;
+                    sequentialMatches = 0;
+                }
+                // character didn't match, apply sequential matches
+                // to score and keep looking
+                strCounter--;
+                sequentialMatches--;
+            }
         }
+        
+        // if there are still query characters left, we don't
+        // have a match
+        if (queryCounter >= 0) {
+            return undefined;
+        }
+        
+        if (sequentialMatches) {
+            stringRanges.unshift({
+                text: str.substr(strCounter + 1, Math.abs(sequentialMatches)),
+                matched: sequentialMatches > 0
+            });
+        }
+        
+        if (strCounter > 0) {
+            stringRanges.unshift({
+                text: str.substring(0, strCounter + 1),
+                matched: false
+            });
+        }
+        
+        // now, we need to apply any score we've accumulated
+        // before we ran out of query characters
+        score += sequentialMatches * sequentialMatches * MATCH_BOOST;
+        
+        if (sequentialMatches && strCounter >= 0) {
+            if (lowerStr.charAt(strCounter) === '/') {
+                score += sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
+            }
+        }
+        if (segmentCounter === 0) {
+            score = score * NAME_BOOST;
+        }
+        
+        // return score, fullPath tuple for sorting
+        // the extra Array is there because jQuery.map flattens Arrays
+        var result = new SearchResult(str);
+        result.matchGoodness = -1 * score;
+        result.stringRanges = stringRanges;
+        return result;
     }
     
     /**
@@ -507,8 +611,9 @@ define(function (require, exports, module) {
         var filteredList = $.map(fileList, function (fileInfo) {
             // Is it a match at all?
             // match query against filename only (not the full path)
-            var searchResult = stringMatch(fileInfo.name, query);
+            var searchResult = stringMatch(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
             if (searchResult) {
+                searchResult.label = fileInfo.name;
                 searchResult.fullPath = fileInfo.fullPath;
                 searchResult.filenameWithoutExtension = _filenameFromPath(fileInfo.name, false);
             }
@@ -569,16 +674,20 @@ define(function (require, exports, module) {
         // Use the filename formatter
         query = StringUtils.htmlEscape(query);
         var displayName = StringUtils.htmlEscape(item.label);
-        var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath));
-
-        if (query.length > 0) {
-            // make the user's query bold within the item's text
-            displayName = displayName.replace(
-                new RegExp(StringUtils.regexEscape(query), "gi"),
-                "<strong>$&</strong>"
-            );
-        }
-
+        
+        // put the path pieces together, highlighting the matched parts
+        // of the string
+        var displayPath = "";
+        item.stringRanges.forEach(function (segment) {
+            if (segment.matched) {
+                displayPath += '<span class="quicksearch-match">';
+            }
+            displayPath += StringUtils.htmlEscape(segment.text);
+            if (segment.matched) {
+                displayPath += "</span>";
+            }
+        });
+        
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }
 
