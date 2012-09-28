@@ -50,24 +50,15 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
-        AppInit             = require("utils/AppInit"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        KeyEvent            = require("utils/KeyEvent");
+        KeyEvent            = require("utils/KeyEvent"),
+        AppInit             = require("utils/AppInit"),
+        Resizer             = require("utils/Resizer");
     
     var FIND_IN_FILES_MAX = 100;
-
-    var MIN_HEIGHT = 100;
     
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200 };
-    
-    // These vars are initialized by the htmlReady handler
-    // below since they refer to DOM elements
-    var $mainView,
-        $searchResults,
-        $searchContent,
-        $searchToolbar,
-        $searchResizer;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -347,84 +338,22 @@ define(function (require, exports, module) {
             });
     }
     
-    /**
-     * @private
-     * Sets jslint panel height and resizes editor.
-     * @param {number} height Height in pixels.
-     */
-    function _setHeight(height) {
-        var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-
-        height = Math.max(height, MIN_HEIGHT);
-        
-        $searchResults.height(height);
-        $searchContent.height(height - $searchToolbar.outerHeight());
-        
-        prefs.setValue("height", height);
-        EditorManager.resizeEditor();
-    }
-    
-    /**
-     * @private
-     * Install resize handling.
-     */
-    function _initSearchResizer() {
-        var $body                   = $(document.body),
-            prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
-            animationRequest        = null,
-            isMouseDown             = false;
-        
-        $searchResizer.on("mousedown.search", function (e) {
-            var startY = e.clientY,
-                startHeight = $searchResults.height(),
-                newHeight = startHeight + (startY - e.clientY),
-                doResize = true;
-            
-            isMouseDown = true;
-            $body.toggleClass("hor-resizing");
-            
-            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
-                // only run this if the mouse is down so we don't constantly loop even 
-                // after we're done resizing.
-                if (!isMouseDown) {
-                    return;
-                }
-                
-                if (doResize) {
-                    _setHeight(newHeight);
-                }
-                
-                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
-            });
-            
-            $mainView.on("mousemove.search", function (e) {
-                // calculate newHeight as difference between stargint and current
-                // position to avoid dependencies with other panels
-                newHeight = startHeight + (startY - e.clientY);
-                e.preventDefault();
-            });
-                
-            $mainView.one("mouseup.search", function (e) {
-                isMouseDown = false;
-                $mainView.off("mousemove.search");
-                $body.toggleClass("hor-resizing");
-            });
-            
-            e.preventDefault();
-        });
-    }
-
-    CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
-    
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        $mainView       = $(".main-view");
-        $searchResults  = $("#search-results");
-        $searchResizer  = $("#search-resizer");
-        $searchToolbar  = $("#search-results .toolbar");
-        $searchContent  = $("#search-results .table-container");
+        var $searchResults  = $("#search-results"),
+            $searchContent  = $("#search-results .table-container"),
+            prefs           = PreferencesManager.getPreferenceStorage(module.id, defaultPrefs),
+            height          = prefs.getValue("height");
 
-        // init
-        _initSearchResizer();
+        $searchResults.height(height);
+        $searchContent.height(height - 27);
+        
+        $.when(Resizer.promise($("#search-results"))).progress(function (status, height) {
+            if (status === "end") {
+                prefs.setValue("height", height);
+            }
+        });
     });
+
+    CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });

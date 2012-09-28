@@ -45,20 +45,11 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
         Strings                 = require("strings"),
-        AppInit                 = require("utils/AppInit");
-    
-    var MIN_HEIGHT = 100;
-    
+        AppInit                 = require("utils/AppInit"),
+        Resizer                 = require("utils/Resizer");
+        
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200, enabled: true };
-    
-    // These vars are initialized by the htmlReady handler
-    // below since they refer to DOM elements
-    var $mainView,
-        $jslintResults,
-        $jslintContent,
-        $jslintToolbar,
-        $jslintResizer;
         
     /**
      * @private
@@ -214,82 +205,6 @@ define(function (require, exports, module) {
         setEnabled(!getEnabled());
     }
     
-    /**
-     * @private
-     * Sets jslint panel height and resizes editor.
-     * @param {number} height Height in pixels.
-     */
-    function _setHeight(height) {
-        // There seems to be a race condition when accessing height if JSLint is
-        // enabled when Brackets is opening. Neither htmlReady nor appReady seem 
-        // to work for that. Forcing 27px height for the toolbar in that case.
-        var toolbarHeight = $jslintToolbar.outerHeight(true);
-        if (!$jslintToolbar.height()) {
-            toolbarHeight = 27;
-        }
-        
-        height = Math.max(height, MIN_HEIGHT);
-        _prefs.setValue("height", height);
-        
-        $jslintResults.height(height);
-        $jslintContent.height(height - toolbarHeight);
-        
-        EditorManager.resizeEditor();
-    }
-    
-    /**
-     * @private
-     * Initialize resize handling.
-     */
-    function _initJSLintResizer() {
-        var $body                   = $(document.body),
-            animationRequest        = null,
-            isMouseDown             = false;
-                
-        if (_enabled) {
-            _setHeight(_prefs.getValue("height"));
-        }
-        
-        $jslintResizer.on("mousedown.jslint", function (e) {
-            var startY = e.clientY,
-                startHeight = $jslintResults.height(),
-                newHeight = startHeight + (startY - e.clientY),
-                doResize = true;
-            
-            isMouseDown = true;
-            $body.toggleClass("hor-resizing");
-            
-            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
-                // only run this if the mouse is down so we don't constantly loop even 
-                // after we're done resizing.
-                if (!isMouseDown) {
-                    return;
-                }
-                
-                if (doResize) {
-                    _setHeight(newHeight);
-                }
-                
-                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
-            });
-            
-            $mainView.on("mousemove.jslint", function (e) {
-                // calculate newHeight as difference between stargint and current
-                // position to avoid dependencies with other panels
-                newHeight = startHeight + (startY - e.clientY);
-                e.preventDefault();
-            });
-                
-            $mainView.one("mouseup.jslint", function (e) {
-                isMouseDown = false;
-                $mainView.off("mousemove.jslint");
-                $body.toggleClass("hor-resizing");
-            });
-            
-            e.preventDefault();
-        });
-    }
-    
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
     
@@ -299,14 +214,22 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        $mainView       = $(".main-view");
-        $jslintResults  = $("#jslint-results");
-        $jslintResizer  = $("#jslint-resizer");
-        $jslintToolbar  = $("#jslint-results .toolbar");
-        $jslintContent  = $("#jslint-results .table-container");
+        var height          = _prefs.getValue("height"),
+            $jslintResults  = $("#jslint-results"),
+            $jslintContent  = $("#jslint-results .table-container");
 
-        // init
-        _initJSLintResizer();
+        $jslintResults.height(height);
+        $jslintContent.height(height - 27);
+        
+        if (_enabled) {
+            EditorManager.resizeEditor();
+        }
+                
+        $.when(Resizer.promise($jslintResults)).progress(function (status, height) {
+            if (status === "end") {
+                _prefs.setValue("height", height);
+            }
+        });
     });
     
     // Define public API
