@@ -52,6 +52,7 @@ define(function (require, exports, module) {
         FileIndexManager    = require("project/FileIndexManager"),
         KeyEvent            = require("utils/KeyEvent");
 
+    var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100;
 
@@ -287,11 +288,12 @@ define(function (require, exports, module) {
     function doFindInFiles() {
 
         var dialog = new FindInFilesDialog();
-        var searchResults = [];
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getFocusedEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
+        
+        searchResults = [];
                             
         dialog.showDialog(initialString)
             .done(function (query) {
@@ -333,5 +335,16 @@ define(function (require, exports, module) {
             });
     }
 
+    function _fileNameChangeHandler(event, oldName, newName) {
+        if ($("#search-results").is(":visible")) {
+            // Update the search results
+            searchResults.forEach(function (item) {
+                item.fullPath = item.fullPath.replace(oldName, newName);
+            });
+            _showSearchResults(searchResults);
+        }
+    }
+    
+    $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });

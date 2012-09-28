@@ -1074,7 +1074,9 @@ define(function (require, exports, module) {
         var i, path;
         
         // Update currentDocument
-        FileUtils.updateFileEntryPath(_currentDocument.file, oldName, newName);
+        if (_currentDocument) {
+            FileUtils.updateFileEntryPath(_currentDocument.file, oldName, newName);
+        }
         
         // Update open documents
         var keysToDelete = [];

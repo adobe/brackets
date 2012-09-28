@@ -1020,6 +1020,76 @@ define(function (require, exports, module) {
     }
 
     /**
+     * Rename a file/folder. This will update the project tree data structures
+     * and send notifications about the rename.
+     *
+     * @prarm {string} oldName Old item name
+     * @param {string} newName New item name
+     * @return {$.Promise} A promise object that will be resolved or rejected when
+     *   the rename is finished.
+     */
+    function renameItem(oldName, newName) {
+        var result = new $.Deferred();
+        
+        if (oldName === newName) {
+            result.resolve();
+            return result;
+        }
+        
+        // TODO: This should call FileEntry.moveTo(), but that isn't implemented
+        // yet. For now, call directly to the low-level fs.rename()
+        brackets.fs.rename(oldName, newName, function (err) {
+            if (!err) {
+                // Update all nodes in the project tree.
+                // All other updating is done by DocumentManager.notifyFileNameChanged() below
+                var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
+                    i;
+                
+                for (i = 0; i < nodes.length; i++) {
+                    var node = $(nodes[i]);
+                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName);
+                }
+                
+                // Notify that one of the project files has changed
+                $(exports).triggerHandler("projectFilesChange");
+                
+                // Tell the document manager about the name change. This will update
+                // all of the model information and send notification to all views
+                DocumentManager.notifyFileNameChanged(oldName, newName);
+                
+                // Finally, re-open the selected document
+                if (DocumentManager.getCurrentDocument()) {
+                    FileViewController.openAndSelectDocument(
+                        DocumentManager.getCurrentDocument().file.fullPath,
+                        FileViewController.getFileSelectionFocus()
+                    );
+                }
+                
+                _redraw(true);
+
+                result.resolve();
+            } else {
+                // Show and error alert
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.ERROR_RENAMING_FILE_TITLE,
+                    StringUtils.format(
+                        Strings.ERROR_RENAMING_FILE,
+                        StringUtils.htmlEscape(newName),
+                        err === brackets.fs.ERR_FILE_EXISTS ?
+                                Strings.FILE_EXISTS_ERR :
+                                FileUtils.getFileErrorString(err)
+                    )
+                );
+                
+                result.reject(err);
+            }
+        });
+        
+        return result;
+    }
+    
+    /**
      * Rename the selected item in the project tree
      */
     function renameSelectedItem() {
@@ -1047,32 +1117,8 @@ define(function (require, exports, module) {
                 var oldName = selected.data("entry").fullPath;
                 var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
                 
-                // TODO: This should call FileEntry.moveTo(), but that isn't implemented
-                // yet. For now, call directly to the low-level fs.rename()
-                brackets.fs.rename(oldName, newName, function (err) {
-                    if (!err) {
-                        // Update all nodes in the project tree.
-                        // All other updating is done by DocumentManager.notifyFileNameChanged() below
-                        var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
-                            i;
-                        
-                        for (i = 0; i < nodes.length; i++) {
-                            var node = $(nodes[i]);
-                            FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName);
-                        }
-                        
-                        // Notify that one of the project files has changed
-                        $(exports).triggerHandler("projectFilesChange");
-                        
-                        // Tell the document manager about the name change. This will update
-                        // all of the model information and send notification to all views
-                        DocumentManager.notifyFileNameChanged(oldName, newName);
-                        
-                        // Finally, re-open the selected document
-                        FileViewController.openAndSelectDocument(
-                            DocumentManager.getCurrentDocument().file.fullPath,
-                            FileViewController.getFileSelectionFocus()
-                        );
+                renameItem(oldName, newName)
+                    .done(function () {
                         
                         // If a folder was renamed, re-select it here, since openAndSelectDocument()
                         // changed the selection.
@@ -1084,27 +1130,11 @@ define(function (require, exports, module) {
                             _projectTree.jstree("select_node", selected, true);
                             suppressToggleOpen = oldSuppressToggleOpen;
                         }
-                        
-                        _redraw(true);
-
-                    } else {
+                    })
+                    .fail(function (err) {
                         // Error during rename. Reset to the old name and alert the user.
                         _resetOldFilename();
-                        
-                        // Show and error alert
-                        Dialogs.showModalDialog(
-                            Dialogs.DIALOG_ID_ERROR,
-                            Strings.ERROR_RENAMING_FILE_TITLE,
-                            StringUtils.format(
-                                Strings.ERROR_RENAMING_FILE,
-                                StringUtils.htmlEscape(newName),
-                                err === brackets.fs.ERR_FILE_EXISTS ?
-                                        Strings.FILE_EXISTS_ERR :
-                                        FileUtils.getFileErrorString(err)
-                            )
-                        );
-                    }
-                });
+                    });
             });
             _projectTree.jstree("rename");
         }
