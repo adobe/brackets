@@ -214,7 +214,7 @@ define(function (require, exports, module) {
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        var height          = _prefs.getValue("height"),
+        var height          = Math.max(_prefs.getValue("height"), 100),
             $jslintResults  = $("#jslint-results"),
             $jslintContent  = $("#jslint-results .table-container");
 

@@ -70,7 +70,7 @@ body {
     
     /* This appears to be necessary in Firefox when body is set to display: box. */
     height: 100%;
-    &.hor-resizing a, &.hor-resizing #projects a, &.hor-resizing .main-view, &.hor-resizing .CodeMirror-lines {
+    &.ver-resizing a, &.ver-resizing #projects a, &.ver-resizing .main-view, &.ver-resizing .CodeMirror-lines {
         cursor: row-resize;   
     }
 }
@@ -114,22 +114,31 @@ a, img {
         background: @background-color-2 url('images/no_content_bg.svg') no-repeat center 45%;
     }
 }
-    
+
+.ver-resizer {
+    position: absolute;
+    height: 6px;
+    width: 100%;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
+    cursor: row-resize;
+}
+
+.hor-resizer {
+    position: absolute;
+    height: 100%;
+    width: 6px;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
+    cursor: col-resize;
+}
+
 .bottom-panel {
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
     border-color: lighten(@bc-grey, @bc-color-step-size*4);
-
-    .h-resizer {
-        position: absolute;
-        height: 6px;
-        width: 100%;
-        z-index: @z-index-brackets-bottom-resizer;
-        opacity: 0;
-        cursor: row-resize;
-    }
     
     .toolbar {
         height: auto;
