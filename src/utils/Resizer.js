@@ -8,8 +8,13 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var VERTICAL = "ver";
-    var HORIZONTAL = "hor";
+    var DIRECTION_VERTICAL = "ver";
+    var DIRECTION_HORIZONTAL = "hor";
+    
+    var POSITION_TOP = "top";
+    var POSITION_BOTTOM = "bottom";
+    var POSITION_LEFT = "left";
+    var POSITION_RIGHT = "right";
     
     var DEFAULT_MIN_HEIGHT = 100;
     
@@ -28,7 +33,7 @@ define(function (require, exports, module) {
      * 
      *
      */
-    function makeResizable(element, direction, minSize) {
+    function makeResizable(element, direction, position, minSize) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
@@ -36,8 +41,8 @@ define(function (require, exports, module) {
             $body               = $(document.body),
             $deferred           = $.Deferred(),
             animationRequest    = null,
-            directionProperty   = direction === HORIZONTAL ? "clientX" : "clientY",
-            elementSizeFunction = direction === HORIZONTAL ? $element.width : $element.height,
+            directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
+            elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             contSizeFunction    = null;
                 
         minSize = minSize || 0;
@@ -56,14 +61,15 @@ define(function (require, exports, module) {
             $deferred.notify("start");
             
             if ($resizableElement !== undefined) {
-                $element.children().not(".hor-resizer, ver-resizer, .resizable").each(function (index, child) {
-                    if (direction === HORIZONTAL) {
+                $element.children().not(".hor-resizer, .ver-resizer, .resizable").each(function (index, child) {
+                    if (direction === DIRECTION_HORIZONTAL) {
                         baseSize += $(child).outerWidth();
                     } else {
                         baseSize += $(child).outerHeight();
                     }
                 });
             }
+            console.log(baseSize);
 
             $body.toggleClass(direction + "-resizing");
             
@@ -130,11 +136,25 @@ define(function (require, exports, module) {
         $mainView = $(".main-view");
         
         $(".vresizable").each(function (index, element) {
-            makeResizable(element, VERTICAL, DEFAULT_MIN_HEIGHT);
+            
+            if ($(element).hasClass("top-resizer")) {
+                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, DEFAULT_MIN_HEIGHT);
+            }
+            
+            //if ($(element).hasClass("bottom-resizer")) {
+            //    makeResizable(element, DIRECTION_VERTICAL, POSITION_BOTTOM, DEFAULT_MIN_HEIGHT);
+            //}
         });
         
         $(".hresizable").each(function (index, element) {
-            makeResizable(element, HORIZONTAL, DEFAULT_MIN_HEIGHT);
+            
+            //if ($(element).hasClass("left-resizer")) {
+            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_HEIGHT);
+            //}
+
+            //if ($(element).hasClass("bottom-resizer")) {
+            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_HEIGHT);
+            //}
         });
     });
     
