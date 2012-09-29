@@ -348,7 +348,7 @@ define(function (require, exports, module) {
         $searchResults.height(height);
         $searchContent.height(height - 27);
         
-        $.when(Resizer.promise($("#search-results"))).progress(function (status, height) {
+        $.when(Resizer.resizing($("#search-results"))).progress(function (status, height) {
             if (status === "end") {
                 prefs.setValue("height", height);
             }

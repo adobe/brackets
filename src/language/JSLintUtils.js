@@ -225,7 +225,7 @@ define(function (require, exports, module) {
             EditorManager.resizeEditor();
         }
                 
-        $.when(Resizer.promise($jslintResults)).progress(function (status, height) {
+        $.when(Resizer.resizing($jslintResults)).progress(function (status, height) {
             if (status === "end") {
                 _prefs.setValue("height", height);
             }

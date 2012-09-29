@@ -2,8 +2,22 @@
 /*global define, $, document, window */
 
 /**
- * Allows JSLint to run on the current document and report results in a UI panel.
+ * Resizer is a Module utility to inject resizing capabilities to any element
+ * inside Brackets.
+ * 
+ * On initialization, Resizer discovers all nodes tagged as "ver-resizable" 
+ * and "hor-resizable" to add the resizer handler. Additionally, "top-resizer", 
+ * "bottom-resizer", "left-resizer" and "right-resizer" classes control de 
+ * position of the resizer on the element.
  *
+ * An element can be made resizable at any time using the `makeResizable` API
+ *
+ * The `makeResizable` and `resizing` APIs return a promise that can be used to 
+ * get updates about the resizing operations. The associated deferred object is
+ * notified on resize start, progress and completion. This can be used to create
+ * performance optimizations (such as hiding/showing elements while resizing),
+ * custom or internal resizes and save the final resized value into local storage
+ * for example.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -16,34 +30,53 @@ define(function (require, exports, module) {
     var POSITION_LEFT = "left";
     var POSITION_RIGHT = "right";
     
-    var DEFAULT_MIN_HEIGHT = 100;
+    // Minimum size (height or width) for autodiscovered resizable panels
+    var DEFAULT_MIN_SIZE = 100;
     
     // Load dependent modules
     var AppInit                 = require("utils/AppInit"),
         EditorManager           = require("editor/EditorManager");
     
-    // These vars are initialized by the htmlReady handler
-    // below since they refer to DOM elements
     var $mainView;
     
-    //
+    // Map of resize promises
     var resizePromises = {};
     
     /**
-     * 
+     * Adds resizing capabilities to a given html element.
      *
+     * Resizing can be configured in two directions:
+     *  - Vertical ("ver"): Resizes the height of the element
+     *  - Horizontal ("hor"): Resizes the width of the element
+     *
+     * Resizer handlers can be positioned on the element at:
+     *  - Top ("top") or bottom ("bottom") for vertical resizing
+     *  - Left ("left") or right ("right") for horizontal resizing
+     *
+     * A resize operation notifies its associated deferred object at:
+     *  - start: When the resize starts 
+     *  - update: On resize updates (every time it is redrawn)
+     *  - end: When the resize ends
+     *
+     * @param {DOMNode} element Html element which should be made resizable.
+     * @param {string} direction The direction of the resize action. Must be "hor" or "ver".
+     * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
+     * for vertical resizing and "left" or "right" for horizontal resizing.
+     * @param {int} minSize Minimum size (width or height) of the element.
+     * @return {$.Promise} jQuery Promise object that is never resolved, but gets
+     * notified anytime the resize starts, updates or ends.
      */
     function makeResizable(element, direction, position, minSize) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
-            $resizableElement   = $($element.find(".resizable:first")[0]),
+            $resizableElement   = $($element.find(".resizable-content:first")[0]),
             $body               = $(document.body),
             $deferred           = $.Deferred(),
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
-            contSizeFunction    = null;
+            contentSizeFunction = null;
                 
         minSize = minSize || 0;
         resizePromises[$element.attr("id")] = $deferred.promise();
@@ -58,18 +91,19 @@ define(function (require, exports, module) {
                 doResize        = true,
                 isMouseDown     = true;
             
-            $deferred.notify("start");
+            $deferred.notifyWith($element, ["start", elementSizeFunction.apply($element)]);
             
             if ($resizableElement !== undefined) {
-                $element.children().not(".hor-resizer, .ver-resizer, .resizable").each(function (index, child) {
+                $element.children().not(".hor-resizer, .ver-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
                         baseSize += $(child).outerWidth();
                     } else {
                         baseSize += $(child).outerHeight();
                     }
                 });
+                
+                contentSizeFunction = direction === DIRECTION_HORIZONTAL ? $resizableElement.width : $resizableElement.height;
             }
-            console.log(baseSize);
 
             $body.toggleClass(direction + "-resizing");
             
@@ -81,29 +115,26 @@ define(function (require, exports, module) {
                 }
                 
                 if (doResize) {
-                    // resize the main element to the new height
+                    // resize the main element to the new size
                     elementSizeFunction.apply($element, [newSize]);
-                    //$element.height(newHeight);
                     
-                    // if there is an internal resizable element, get the size of
-                    // all the other elements and set the resizable element size to
-                    // the rest
+                    // if there is a content element, its size is the new size
+                    // minus the size of the non-resizable elements
                     if ($resizableElement !== undefined) {
-                        elementSizeFunction.apply($resizableElement, [newSize - baseSize]);
-                        //$resizableElement.height(newSize - baseSize);
+                        contentSizeFunction.apply($resizableElement, [newSize - baseSize]);
                     }
                     
                     EditorManager.resizeEditor();
                     
-                    $deferred.notify("update");
+                    $deferred.notifyWith($element, ["update", elementSizeFunction.apply($element)]);
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
             });
             
             $mainView.on("mousemove", function (e) {
-                // calculate newHeight as difference between starting and current
-                // position, capped at minHeight if exists
+                // calculate newSize adding to startSize the difference
+                // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + (startPosition - e[directionProperty]), minSize);
                 e.preventDefault();
             });
@@ -126,38 +157,44 @@ define(function (require, exports, module) {
         return $deferred.promise();
     }
     
-    //
-    function promise(element) {
+    /**
+     * Gets the resize promise for an element
+     *
+     * @param {DOMNode} element Already resizable html element
+     * @return {$.Promise} jQuery The associated promise object or a new one
+     * if the element is not registered as resizable.
+     */
+    function resizing(element) {
         return resizePromises[element.attr("id")] || new $.Deferred().promise();
     }
     
-    // Scan DOM for hresizable and vresizable classes and make them resizable
+    // Scan DOM for hor-resizable and ver-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         $mainView = $(".main-view");
         
-        $(".vresizable").each(function (index, element) {
+        $(".ver-resizable").each(function (index, element) {
             
             if ($(element).hasClass("top-resizer")) {
-                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, DEFAULT_MIN_HEIGHT);
+                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, DEFAULT_MIN_SIZE);
             }
             
             //if ($(element).hasClass("bottom-resizer")) {
-            //    makeResizable(element, DIRECTION_VERTICAL, POSITION_BOTTOM, DEFAULT_MIN_HEIGHT);
+            //    makeResizable(element, DIRECTION_VERTICAL, POSITION_BOTTOM, DEFAULT_MIN_SIZE);
             //}
         });
         
-        $(".hresizable").each(function (index, element) {
+        $(".hor-resizable").each(function (index, element) {
             
             //if ($(element).hasClass("left-resizer")) {
-            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_HEIGHT);
+            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_SIZE);
             //}
 
             //if ($(element).hasClass("bottom-resizer")) {
-            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_HEIGHT);
+            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_SIZE);
             //}
         });
     });
     
     exports.makeResizable = makeResizable;
-    exports.promise = promise;
+    exports.resizing = resizing;
 });
