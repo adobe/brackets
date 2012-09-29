@@ -223,9 +223,9 @@ define(function main(require, exports, module) {
                 }
             });
         }
-        
     }
     window.setTimeout(init);
+   
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions
