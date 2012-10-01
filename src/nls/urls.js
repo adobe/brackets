@@ -35,7 +35,6 @@ define(function (require, exports, module) {
     module.exports = {
         root: true,
         "fr": true,
-        "es": true,
-        "it": true
+        "es": true
     };
 });
