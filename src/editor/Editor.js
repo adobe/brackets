@@ -309,12 +309,12 @@ define(function (require, exports, module) {
             },
             "Backspace": function (instance) {
                 if (!_handleSoftTabNavigation(instance, -1, "deleteH")) {
-                    CodeMirror.commands.delCharLeft(instance);
+                    CodeMirror.commands.delCharBefore(instance);
                 }
             },
             "Delete": function (instance) {
                 if (!_handleSoftTabNavigation(instance, 1, "deleteH")) {
-                    CodeMirror.commands.delCharRight(instance);
+                    CodeMirror.commands.delCharAfter(instance);
                 }
             },
             "Esc": function (instance) {
@@ -581,26 +581,28 @@ define(function (require, exports, module) {
     
     
     /**
-     * Install singleton event handlers on the CodeMirror instance, translating them into multi-
-     * listener-capable jQuery events on the Editor instance.
+     * Install event handlers on the CodeMirror instance, translating them into 
+     * jQuery events on the Editor instance.
      */
     Editor.prototype._installEditorListeners = function () {
         var self = this;
         
-        // FUTURE: if this list grows longer, consider making this a more generic mapping
-        // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
-        // Document
-        this._codeMirror.setOption("onChange", function (instance, changeList) {
-            $(self).triggerHandler("change", [self, changeList]);
-        });
+        // onKeyEvent is still an option in CodeMirror v3 rather than an event.
         this._codeMirror.setOption("onKeyEvent", function (instance, event) {
             $(self).triggerHandler("keyEvent", [self, event]);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         });
-        this._codeMirror.setOption("onCursorActivity", function (instance) {
+        
+        // FUTURE: if this list grows longer, consider making this a more generic mapping
+        // NOTE: change is a "private" event--others shouldn't listen to it on Editor, only on
+        // Document
+        this._codeMirror.on("change", function (instance, changeList) {
+            $(self).triggerHandler("change", [self, changeList]);
+        });
+        this._codeMirror.on("cursorActivity", function (instance) {
             $(self).triggerHandler("cursorActivity", [self]);
         });
-        this._codeMirror.setOption("onScroll", function (instance) {
+        this._codeMirror.on("scroll", function (instance) {
             // If this editor is visible, close all dropdowns on scroll.
             // (We don't want to do this if we're just scrolling in a non-visible editor
             // in response to some document change event.)
@@ -615,12 +617,12 @@ define(function (require, exports, module) {
         });
 
         // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
-        this._codeMirror.setOption("onFocus", function () {
+        this._codeMirror.on("focus", function () {
             self._focused = true;
             EditorManager._notifyFocusedEditorChanged(self);
         });
         
-        this._codeMirror.setOption("onBlur", function () {
+        this._codeMirror.on("blur", function () {
             self._focused = false;
             // EditorManager only cares about other Editors gaining focus, so we don't notify it of anything here
         });

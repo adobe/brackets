@@ -361,7 +361,7 @@ define(function (require, exports, module) {
         _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
         
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(editorAreaHt);
+            $(_currentEditor.getRootElement()).height(editorAreaHt);
             if (!skipRefresh) {
                 _currentEditor.refresh();
             }

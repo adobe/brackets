@@ -452,10 +452,11 @@ define(function (require, exports, module) {
             // we need to figure out our position relative to the top of the virtual scroll area, which is
             // the top of the actual scroller minus the scroll position.
             var scrollerTop = $(this.hostEditor.getScrollerElement()).offset().top - this.hostEditor.getScrollPos().y;
-            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
-                                                       cursorCoords.y - scrollerTop,
-                                                       cursorCoords.x - lineSpaceOffset.left,
-                                                       cursorCoords.yBot - scrollerTop);
+            // TODO: [cmv3] scrollIntoView isn't implemented yet
+//            this.hostEditor._codeMirror.scrollIntoView(cursorCoords.x - lineSpaceOffset.left,
+//                                                       cursorCoords.y - scrollerTop,
+//                                                       cursorCoords.x - lineSpaceOffset.left,
+//                                                       cursorCoords.yBot - scrollerTop);
         }
     };
     
