@@ -63,17 +63,14 @@ define({
     "ERROR_MAX_FILES_TITLE"             : "Errore durante l'indicizzazione dei file",
     "ERROR_MAX_FILES"                   : "E' stato raggiunto il massimo numero di file indicizzati. Le azioni che controllano file presenti nell'indice posso funzionare in modo non corretto.",
     
-    // CSSManager error strings
-    "ERROR_PARSE_TITLE"                 : "Errore durante il parsing del/dei file CSS:",
-
     // Live Development error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"     : "Errore durante l'avvio del browser",
     "ERROR_CANT_FIND_CHROME"            : "Non è stato possibile trovare il browser Google Chrome. Assicurarsi che sia correttamente installato.",
-    "ERROR_LAUNCHING_BROWSER"           : "Errore durante l'avvio del browser. (errorw {0})",
+    "ERROR_LAUNCHING_BROWSER"           : "Errore durante l'avvio del browser. (errore {0})",
     
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Errore durante l'Anteprima Live",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Connessione al Browser in corso",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per effettuare una connessione con Anteprima Live, Chrome ndeve essere rilanciato con il debugging remoto abilitato.<br /><br />Vuoi rilanciare Chrome e abilitare il debugging remoto?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Per effettuare una connessione con Anteprima Live, Chrome deve essere rilanciato con il debugging remoto abilitato.<br /><br />Vuoi rilanciare Chrome e abilitare il debugging remoto?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Apri un file HTML per lanciare l'Anteprima Live.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Benvenuto nell'Anteprima Live!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Anteprima Live connette {APP_NAME} al tuo browser. Lancia una anteprima del tuo file HTML nel browser e dopo ogni tua modifica l'anteprima verrà aggiornata istantaneamente per riflettere le modifiche del tuo codice.<br /><br />In questa versione preliminare di {APP_NAME}, Anteprima Live funziona solo per le modifiche su <strong>file CSS</strong> e solo con <strong>Google Chrome</strong>. Verrà implementata presto anche per HTML e JavaScript!<br /><br />(Vedrai questo messaggio una sola volta.)",
@@ -202,7 +199,7 @@ define({
     "CMD_ABORT_QUIT"                      : "Annulla la chiusura",
 
     // Strings for main-view.html
-    "EXPERIMENTAL_BUILD"                   : "Experimental Build",
+    "EXPERIMENTAL_BUILD"                   : "Build sperimentale",
     "JSLINT_ERRORS"                        : "Errori di JSLint",
     "SEARCH_RESULTS"                       : "Risultati della ricerca",
     "OK"                                   : "OK",
@@ -216,10 +213,10 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Chiudi",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
-    "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
+    "ABOUT_TEXT_LINE1"                     : "sprint 14 build sperimentale",
+    "ABOUT_TEXT_LINE3"                     : "Avvisi, termini e condizioni pertinenti software di terze parti sono disponibili all'indirizzo <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e incorporati per riferimento in questo documento.",
+    "ABOUT_TEXT_LINE4"                     : "Documentazione e codice sorgente sono disponibili all'indirizzo <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "UPDATE_NOTIFICATION_TOOLTIP"          : "E' disponibile una nuova versione di {APP_NAME}! Clicca qui per i dettagli.",
     "UPDATE_AVAILABLE_TITLE"               : "Aggiornamento disponibile",
     "UPDATE_MESSAGE"                       : "Hey, è disponibile una nuova versione di {APP_NAME}. Nuove caratteristiche:",
     "GET_IT_NOW"                           : "Installalo ora!"
