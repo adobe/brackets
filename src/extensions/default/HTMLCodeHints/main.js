@@ -29,12 +29,15 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
-    var HTMLUtils       = brackets.getModule("language/HTMLUtils"),
-        HTMLTags        = require("text!HtmlTags.json"),
-        HTMLAttributes  = require("text!HtmlAttributes.json"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        tags            = JSON.parse(HTMLTags),
-        attributes      = JSON.parse(HTMLAttributes);
+    var CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
+        DocumentManager     = brackets.getModule("document/DocumentManager"),
+        EditorManager       = brackets.getModule("editor/EditorManager"),
+        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
+        NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        HTMLTags            = require("text!HtmlTags.json"),
+        HTMLAttributes      = require("text!HtmlAttributes.json"),
+        tags                = JSON.parse(HTMLTags),
+        attributes          = JSON.parse(HTMLAttributes);
 
     /**
      * @constructor
@@ -126,6 +129,7 @@ define(function (require, exports, module) {
      */
     function AttrHints() {
         this.globalAttributes = this.readGlobalAttrHints();
+        this.cachedHints = null;
     }
 
     /**
@@ -247,6 +251,113 @@ define(function (require, exports, module) {
     };
 
     /**
+     * Helper function for search(). Create a list of urls to existing files base on the query.
+     * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
+     *     that will be used to filter out code hints
+     * @return {Array.<string>}
+     */
+    AttrHints.prototype._getUrlList = function (query) {
+        var doc,
+            result = [];
+
+        // get path to current document
+        doc = DocumentManager.getCurrentDocument();
+        if (!doc || !doc.file) {
+            return result;
+        }
+
+        var docUrl = window.PathUtils.parseUrl(doc.file.fullPath);
+        if (!docUrl) {
+            return result;
+        }
+
+        var docDir = docUrl.domain + docUrl.directory;
+
+        // get relative path from query string
+        // TODO: detect absolute path and exit
+        // TODO: need to handle "../" ?
+        // TODO: handle site-root relative
+        var queryDir = "";
+        var queryUrl = window.PathUtils.parseUrl(query.queryStr);
+        if (queryUrl) {
+            queryDir = queryUrl.directory;
+        }
+
+        // build target folder path
+        var targetDir = docDir + queryDir;
+        console.log("_getUrlList: dir=" + targetDir);
+
+        // get list of files from target folder
+        var unfiltered = [];
+        var useCache = false;       // TODO: is this flag necessary?
+
+        // Getting the file/folder info is an asynch operation, so it works like this:
+        //
+        // The initial pass initiates the asynchronous retrieval of data and returns an
+        // empty list, so no code hints are displayed. In the async callback, the code
+        // hints and the original query are stored in a cache, and then the process to
+        // show code hints is re-initiated.
+        //
+        // During the next pass, there should now be code hints cached from the initial
+        // pass, but user may have typed while file/folder info was being retrieved from
+        // disk, so we need to make sure code hints still apply to current query. If so,
+        // display them, otherwise, clear cache and start over.
+        //
+        // As user types within a folder, the same unfiltered file/folder list is still
+        // valid and re-used from cache. Filtering based on user input is done outside
+        // of this method. When user moves to a new folder, then the cache is deleted,
+        // and file/folder info for new folder is then retrieved.
+
+        if (this.cachedHints) {
+            // Determine if cached url hints are valid with current query
+            if (this.cachedHints.query.tag === query.tag &&
+                    this.cachedHints.query.attrName === query.attrName &&
+                    this.cachedHints.queryDir === queryDir) {
+                useCache = true;
+            } else {
+                this.cachedHints = null;
+            }
+        }
+
+// TODO: FIX RACE CONDITION: detect case where file/folder info is already in the process of being retrieved
+//                           in this case, return empty list.
+
+        if (useCache) {
+            unfiltered = this.cachedHints.unfiltered;
+        } else {
+            var self = this;
+            NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
+                dirEntry.createReader().readEntries(function (entries) {
+                    entries.forEach(function (entry) {
+                        var entryStr = entry.fullPath.replace(docDir, "");
+                        unfiltered.push(entryStr);
+                    });
+
+                    self.cachedHints = {};
+                    self.cachedHints.unfiltered = unfiltered;
+                    self.cachedHints.query      = query;
+                    self.cachedHints.queryDir   = queryDir;
+
+                    // re-initiate code hints
+                    CodeHintManager.showHint(EditorManager.getFocusedEditor());
+                });
+            });
+            return result;
+        }
+
+        // filter list of files from query string
+        result = unfiltered;    // for now...
+
+        // TODO: filter by desired file type based on tag, type attr, etc.
+
+        // TODO: add list item to top of list to popup modal File Finder dialog
+        // New string: "Browse..." or "Choose a File..."
+        // Command: Commands.FILE_OPEN
+
+        return result;
+    };
+
+    /**
      * Create a complete list of attributes for the tag in the query. Then filter 
      * the list by attrName in the query and return the result.
      * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
@@ -274,6 +385,8 @@ define(function (require, exports, module) {
                 if (attrInfo) {
                     if (attrInfo.type === "boolean") {
                         unfiltered = ["false", "true"];
+                    } else if (attrInfo.type === "url") {
+                        unfiltered = this._getUrlList(query);
                     } else if (attrInfo.attribOption) {
                         unfiltered = attrInfo.attribOption;
                     }
@@ -285,6 +398,7 @@ define(function (require, exports, module) {
             }
 
             if (unfiltered.length) {
+                console.assert(!result.length);
                 result = $.map(unfiltered, function (item) {
                     if (item.indexOf(filter) === 0) {
                         return item;
