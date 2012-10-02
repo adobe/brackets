@@ -1069,8 +1069,9 @@ define(function (require, exports, module) {
      *
      * @param {string} oldName The old name of the file/folder
      * @param {string} newName The new name of the file/folder
+     * @param {boolean} isFolder True if path is a folder; False if it is a file.
      */
-    function notifyFileNameChanged(oldName, newName) {
+    function notifyPathNameChanged(oldName, newName, isFolder) {
         var i, path;
         
         // Update currentDocument
@@ -1091,6 +1092,12 @@ define(function (require, exports, module) {
                     
                     // Update document file
                     FileUtils.updateFileEntryPath(_openDocuments[newKey].file, oldName, newName);
+                        
+                    if (!isFolder) {
+                        // If the path name is a file, there can only be one matched entry in the open document
+                        // list, which we just updated. Break out of the for .. in loop. 
+                        break;
+                    }
                 }
             }
         }
@@ -1126,7 +1133,7 @@ define(function (require, exports, module) {
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
     exports.notifyFileDeleted = notifyFileDeleted;
-    exports.notifyFileNameChanged = notifyFileNameChanged;
+    exports.notifyPathNameChanged = notifyPathNameChanged;
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);

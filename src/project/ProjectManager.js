@@ -935,6 +935,12 @@ define(function (require, exports, module) {
                     }
                     _projectTree.jstree("select_node", data.rslt.obj, true);
                     
+                    // If the new item is a folder, force a re-sort here. Windows sorts folders
+                    // and files separately.
+                    if (isFolder) {
+                        _projectTree.jstree("sort", _projectTree);
+                    }
+                    
                     // Notify listeners that the project model has changed
                     $(exports).triggerHandler("projectFilesChange");
                     
@@ -1025,10 +1031,11 @@ define(function (require, exports, module) {
      *
      * @prarm {string} oldName Old item name
      * @param {string} newName New item name
+     * @param {boolean} isFolder True if item is a folder; False if it is a file.
      * @return {$.Promise} A promise object that will be resolved or rejected when
      *   the rename is finished.
      */
-    function renameItem(oldName, newName) {
+    function renameItem(oldName, newName, isFolder) {
         var result = new $.Deferred();
         
         if (oldName === newName) {
@@ -1041,7 +1048,7 @@ define(function (require, exports, module) {
         brackets.fs.rename(oldName, newName, function (err) {
             if (!err) {
                 // Update all nodes in the project tree.
-                // All other updating is done by DocumentManager.notifyFileNameChanged() below
+                // All other updating is done by DocumentManager.notifyPathNameChanged() below
                 var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
                     i;
                 
@@ -1055,7 +1062,7 @@ define(function (require, exports, module) {
                 
                 // Tell the document manager about the name change. This will update
                 // all of the model information and send notification to all views
-                DocumentManager.notifyFileNameChanged(oldName, newName);
+                DocumentManager.notifyPathNameChanged(oldName, newName, isFolder);
                 
                 // Finally, re-open the selected document
                 if (DocumentManager.getCurrentDocument()) {
@@ -1093,7 +1100,9 @@ define(function (require, exports, module) {
      * Rename the selected item in the project tree
      */
     function renameSelectedItem() {
-        var selected = _projectTree.jstree("get_selected");
+        var selected = _projectTree.jstree("get_selected"),
+            isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
+        
         if (selected) {
             _projectTree.on("rename.jstree", function (event, data) {
                 $(event.target).off("rename.jstree");
@@ -1117,12 +1126,12 @@ define(function (require, exports, module) {
                 var oldName = selected.data("entry").fullPath;
                 var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
                 
-                renameItem(oldName, newName)
+                renameItem(oldName, newName, isFolder)
                     .done(function () {
                         
                         // If a folder was renamed, re-select it here, since openAndSelectDocument()
                         // changed the selection.
-                        if (selected.hasClass("jstree-open") || selected.hasClass("jstree-closed")) {
+                        if (isFolder) {
                             var oldSuppressToggleOpen = suppressToggleOpen;
                             
                             // Supress the open/close toggle

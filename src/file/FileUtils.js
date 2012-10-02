@@ -267,6 +267,7 @@ define(function (require, exports, module) {
      * @param {FileEntry} entry The FileEntry or DirectoryEntry to update
      * @param {string} oldName The full path of the old name
      * @param {string} newName The full path of the new name
+     * @return {boolean} Returns true if the file entry was updated
      */
     function updateFileEntryPath(entry, oldName, newName) {
         if (entry.fullPath.indexOf(oldName) === 0) {
@@ -284,7 +285,11 @@ define(function (require, exports, module) {
                     entry.name = pathParts.pop();
                 }
             }
+            
+            return true;
         }
+        
+        return false;
     }
 
     // Define public API

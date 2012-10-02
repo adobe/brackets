@@ -142,7 +142,7 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW"                        : "New",
+    "CMD_FILE_NEW"                        : "New File",
     "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
@@ -152,7 +152,7 @@ define({
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
-    "CMD_FILE_RENAME"                     : "Rename\u2026",
+    "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands

@@ -95,7 +95,7 @@ define(function (require, exports, module) {
         }
     }
     
-    function resetDocumentTitle() {
+    function updateDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
 
         // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
@@ -833,7 +833,7 @@ define(function (require, exports, module) {
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-        $(DocumentManager).on("currentDocumentChange fileNameChange", resetDocumentTitle);
+        $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
     }
 
     // Define public API
