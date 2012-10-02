@@ -168,6 +168,8 @@ define(function GotoAgent(require, exports, module) {
         url = _urlWithoutQueryString(url);
         // Extract the path, also strip the third slash when on Windows
         var path = url.slice(brackets.platform === "win" ? 8 : 7);
+        // URL-decode the path ('%20' => ' ')
+        path = decodeURIComponent(path);
         var promise = DocumentManager.getDocumentForPath(path);
         promise.done(function onDone(doc) {
             DocumentManager.setCurrentDocument(doc);
