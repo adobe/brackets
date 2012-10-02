@@ -274,8 +274,6 @@ define(function (require, exports, module) {
         var docDir = docUrl.domain + docUrl.directory;
 
         // get relative path from query string
-        // TODO: detect absolute path and exit
-        // TODO: need to handle "../" ?
         // TODO: handle site-root relative
         var queryDir = "";
         var queryUrl = window.PathUtils.parseUrl(query.queryStr);
@@ -285,11 +283,9 @@ define(function (require, exports, module) {
 
         // build target folder path
         var targetDir = docDir + queryDir;
-        console.log("_getUrlList: dir=" + targetDir);
 
         // get list of files from target folder
         var unfiltered = [];
-        var useCache = false;       // TODO: is this flag necessary?
 
         // Getting the file/folder info is an asynch operation, so it works like this:
         //
@@ -308,24 +304,30 @@ define(function (require, exports, module) {
         // of this method. When user moves to a new folder, then the cache is deleted,
         // and file/folder info for new folder is then retrieved.
 
-        if (this.cachedHints) {
-            // Determine if cached url hints are valid with current query
-            if (this.cachedHints.query.tag === query.tag &&
-                    this.cachedHints.query.attrName === query.attrName &&
-                    this.cachedHints.queryDir === queryDir) {
-                useCache = true;
-            } else {
+        if (this.cachedHints && !this.cachedHints.waiting) {
+            // url hints have been cached, so determine if they're are stale
+            if (!this.cachedHints.query ||
+                    this.cachedHints.query.tag !== query.tag ||
+                    this.cachedHints.query.attrName !== query.attrName ||
+                    this.cachedHints.queryDir !== queryDir) {
+
+                // delete stale cache
                 this.cachedHints = null;
             }
         }
 
-// TODO: FIX RACE CONDITION: detect case where file/folder info is already in the process of being retrieved
-//                           in this case, return empty list.
-
-        if (useCache) {
+        if (this.cachedHints) {
+            // if (cachedHints.waiting === true), then we'll return an empty list
+            // and not start another readEntries() operation
             unfiltered = this.cachedHints.unfiltered;
         } else {
             var self = this;
+
+            // create empty object so we can detect "waiting" state
+            self.cachedHints = {};
+            self.cachedHints.unfiltered = [];
+            self.cachedHints.waiting = true;
+
             NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
                 dirEntry.createReader().readEntries(function (entries) {
                     entries.forEach(function (entry) {
@@ -333,10 +335,10 @@ define(function (require, exports, module) {
                         unfiltered.push(entryStr);
                     });
 
-                    self.cachedHints = {};
                     self.cachedHints.unfiltered = unfiltered;
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
+                    self.cachedHints.waiting    = false;
 
                     // re-initiate code hints
                     CodeHintManager.showHint(EditorManager.getFocusedEditor());
@@ -345,8 +347,19 @@ define(function (require, exports, module) {
             return result;
         }
 
-        // filter list of files from query string
-        result = unfiltered;    // for now...
+        // build list
+
+        // without these entries, typing "../" will not display entries for containing folder
+        if (queryUrl.filename === ".") {
+            result.push(queryDir + ".");
+        } else if (queryUrl.filename === "..") {
+            result.push(queryDir + "..");
+        }
+
+        // add file/folder entries
+        unfiltered.forEach(function (item) {
+            result.push(item);
+        });
 
         // TODO: filter by desired file type based on tag, type attr, etc.
 
