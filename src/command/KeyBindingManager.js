@@ -185,7 +185,7 @@ define(function (require, exports, module) {
         // If keycode represents one of the digit keys (0-9), then return the corresponding digit
         // by subtracting KeyEvent.DOM_VK_0 from keycode. ie. [48-57] --> [0-9]
         if (keycode >= KeyEvent.DOM_VK_0 && keycode <= KeyEvent.DOM_VK_9) {
-            return Number(keycode - KeyEvent.DOM_VK_0).toString();
+            return String(keycode - KeyEvent.DOM_VK_0);
         }
         
         switch (keycode) {

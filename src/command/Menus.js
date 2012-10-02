@@ -889,7 +889,7 @@ define(function (require, exports, module) {
                                                          {key:  "Cmd-Ctrl-Down", displayKey: "Cmd-Ctrl-\u2193",
                                                           platform: "mac"}]);
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-/");
+        menu.addMenuItem(Commands.EDIT_LINE_COMMENT,    "Ctrl-Shift-1");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_USE_TAB_CHARS);
 
@@ -918,7 +918,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_NEXT_DOC,        [{key: "Ctrl-Tab", platform: "win"},
                                                              {key: "Ctrl-Tab", platform: "mac"}]);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC,        [{key: "Ctrl-Shift-Tab", platform: "win"},
-                                                             {key: "Ctrl-Shift-Tab", platform: "mac"}]);
+                                                             {key: "Ctrl-Shift-4", platform: "mac"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
