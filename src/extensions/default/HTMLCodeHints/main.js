@@ -91,8 +91,9 @@ define(function (require, exports, module) {
      * @param {string} completion - text to insert into current code editor
      * @param {Editor} editor
      * @param {Cursor} current cursor location
+     * @param {boolean} closeHints - true to close hints, or false to continue hinting
      */
-    TagHints.prototype.handleSelect = function (completion, editor, cursor) {
+    TagHints.prototype.handleSelect = function (completion, editor, cursor, closeHints) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
@@ -150,8 +151,9 @@ define(function (require, exports, module) {
      * @param {string} completion - text to insert into current code editor
      * @param {Editor} editor
      * @param {Cursor} current cursor location
+     * @param {boolean} closeHints - true to close hints, or false to continue hinting
      */
-    AttrHints.prototype.handleSelect = function (completion, editor, cursor) {
+    AttrHints.prototype.handleSelect = function (completion, editor, cursor, closeHints) {
         var start = {line: -1, ch: -1},
             end = {line: -1, ch: -1},
             tagInfo = HTMLUtils.getTagInfo(editor, cursor),
@@ -199,15 +201,17 @@ define(function (require, exports, module) {
             }
         }
 
-        if (insertedName) {
-            editor.setCursorPos(start.line, start.ch + completion.length - 1);
-            
-            // Since we're now inside the double-quotes we just inserted,
-            // mmediately pop up the attribute value hint.
-            CodeHintManager.showHint(editor);
-        } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
-            // Move the cursor to the right of the existing end quote after value insertion.
-            editor.setCursorPos(start.line, start.ch + completion.length + 1);
+        if (closeHints) {
+            if (insertedName) {
+                editor.setCursorPos(start.line, start.ch + completion.length - 1);
+
+                // Since we're now inside the double-quotes we just inserted,
+                // immediately pop up the attribute value hint.
+                CodeHintManager.showHint(editor);
+            } else if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.hasEndQuote) {
+                // Move the cursor to the right of the existing end quote after value insertion.
+                editor.setCursorPos(start.line, start.ch + completion.length + 1);
+            }
         }
     };
 
