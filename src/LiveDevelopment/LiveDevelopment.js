@@ -479,6 +479,17 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /** Triggered by a document saved from the DocumentManager */
+    function _onReloadDocument() {
+        var doc = _getCurrentDocument();
+
+        if (doc && Inspector.connected()) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
+                Inspector.Page.reload();
+            }
+        }
+    }
+
     function getLiveDocForPath(path) {
         var docsToSearch = [];
         if (_relatedDocuments) {
@@ -512,7 +523,8 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector).on("connect", _onConnect)
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange);
+        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+            .on("documentSaved", _onReloadDocument);
     }
 
     // Export public functions
