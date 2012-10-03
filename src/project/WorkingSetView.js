@@ -333,6 +333,18 @@ define(function (require, exports, module) {
 
     }
 
+    /**
+     * @private
+     * @param {string} oldName
+     * @param {string} newName
+     */
+    function _handleFileNameChanged(oldName, newName) {
+        // Rebuild the working set if any file or folder name changed.
+        // We could be smarter about this and only update the
+        // nodes that changed, if needed...
+        _rebuildWorkingSet();
+    }
+    
     function create(element) {
         // Init DOM element
         $openFilesContainer = element;
@@ -359,6 +371,10 @@ define(function (require, exports, module) {
             _handleDirtyFlagChanged(doc);
         });
     
+        $(DocumentManager).on("fileNameChange", function (event, oldName, newName) {
+            _handleFileNameChanged(oldName, newName);
+        });
+        
         $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
         
         // Show scroller shadows when open-files-container scrolls
