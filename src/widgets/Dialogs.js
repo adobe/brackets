@@ -34,7 +34,8 @@ define(function (require, exports, module) {
     require("utils/Global");
 
     var KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent          = require("utils/KeyEvent");
+        KeyEvent          = require("utils/KeyEvent"),
+        NativeApp         = require("utils/NativeApp");
 
     var DIALOG_BTN_CANCEL = "cancel",
         DIALOG_BTN_OK = "ok",
@@ -55,6 +56,7 @@ define(function (require, exports, module) {
 
     function _dismissDialog(dlg, buttonId) {
         dlg.data("buttonId", buttonId);
+        $(".clickable-link", dlg).off("click");
         dlg.modal(true).hide();
     }
     
@@ -153,6 +155,13 @@ define(function (require, exports, module) {
         if (message) {
             $(".dialog-message", $dlg).html(message);
         }
+
+        $(".clickable-link", $dlg).on("click", function _handleLink(e) {
+            // Links use data-href (not href) attribute so Brackets itself doesn't redirect
+            if (e.target.dataset && e.target.dataset.href) {
+                NativeApp.openURLInDefaultBrowser(e.target.dataset.href);
+            }
+        });
 
         var handleKeyDown = _handleKeyDown.bind($dlg);
 
