@@ -136,7 +136,9 @@ define(function (require, exports, module) {
 
                 $("#jslint-results .table-container")
                     .empty()
-                    .append($errorTable);
+                    .append($errorTable)
+                    .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
+                
                 $lintResults.show();
                 $goldStar.hide();
                 if (JSLINT.errors.length === 1) {
