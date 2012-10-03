@@ -66,11 +66,28 @@ define(function (require, exports, module) {
         
         fullEditor  = EditorManager.getCurrentFullEditor();
         
-        $(fullEditor).on('cursorActivity', _updateCursorInfo);
-        _updateCursorInfo();
-        _updateModeInfo();
-        _updateFileInfo();
-        _updateTabCharInfo();
+        if (fullEditor === null) {
+            
+           // Check if the statusbar is visible to hide it
+            if ($statusBar.is(":visible")) {
+                $statusBar.hide();
+                EditorManager.resizeEditor();
+            }
+            
+        } else {
+            
+            // Check if the statusbar is not visible to show it
+            if (!$statusBar.is(":visible")) {
+                $statusBar.show();
+                EditorManager.resizeEditor();
+            }
+            
+            $(fullEditor).on('cursorActivity', _updateCursorInfo);
+            _updateCursorInfo();
+            _updateModeInfo();
+            _updateFileInfo();
+            _updateTabCharInfo();
+        }
     }
     
     /**
@@ -184,7 +201,7 @@ define(function (require, exports, module) {
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
         $editorContainer    = $("#editor-holder");
-        $statusBar          = $("#statusbar");
+        $statusBar          = $("#status-bar");
         $modeInfo           = $("#status-mode");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
@@ -192,6 +209,7 @@ define(function (require, exports, module) {
         $indicators         = $("#status-indicators");
         $busyIndicator      = $("#busy-indicator");
         
+        $statusBar.hide();
         $busyIndicator.hide();
         _onFocusedEditorChange();
     });
