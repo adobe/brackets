@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, JSLINT, PathUtils, document, window */
+/*global define, $, JSLINT, PathUtils */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -50,7 +50,11 @@ define(function (require, exports, module) {
         
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200, enabled: true };
-        
+    
+    // Height in pixels of the JSLint panel header. Hardcoded to avoid race
+    // condition when measuring it on htmlReady
+    var HEADER_HEIGHT = 27;
+    
     /**
      * @private
      * @type {PreferenceStorage}
@@ -219,16 +223,14 @@ define(function (require, exports, module) {
             $jslintContent  = $("#jslint-results .table-container");
 
         $jslintResults.height(height);
-        $jslintContent.height(height - 27);
+        $jslintContent.height(height - HEADER_HEIGHT);
         
         if (_enabled) {
             EditorManager.resizeEditor();
         }
-                
-        $.when(Resizer.resizing($jslintResults)).progress(function (status, height) {
-            if (status === "end") {
-                _prefs.setValue("height", height);
-            }
+        
+        $jslintResults.on("panelResizeEnd", function (event, height) {
+            _prefs.setValue("height", height);
         });
     });
     

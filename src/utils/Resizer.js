@@ -1,5 +1,28 @@
+/*
+ * Copyright (c) 2012 Adobe Systems Incorporated. All rights reserved.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"), 
+ * to deal in the Software without restriction, including without limitation 
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+ * and/or sell copies of the Software, and to permit persons to whom the 
+ * Software is furnished to do so, subject to the following conditions:
+ *  
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window */
+/*global define, $, window */
 
 /**
  * Resizer is a Module utility to inject resizing capabilities to any element
@@ -7,17 +30,18 @@
  * 
  * On initialization, Resizer discovers all nodes tagged as "ver-resizable" 
  * and "hor-resizable" to add the resizer handler. Additionally, "top-resizer", 
- * "bottom-resizer", "left-resizer" and "right-resizer" classes control de 
+ * "bottom-resizer", "left-resizer" and "right-resizer" classes control the 
  * position of the resizer on the element.
  *
  * An element can be made resizable at any time using the `makeResizable` API
  *
- * The `makeResizable` and `resizing` APIs return a promise that can be used to 
- * get updates about the resizing operations. The associated deferred object is
- * notified on resize start, progress and completion. This can be used to create
- * performance optimizations (such as hiding/showing elements while resizing),
- * custom or internal resizes and save the final resized value into local storage
- * for example.
+ * The resizable elements trigger a panelResizeStart, panelResizeUpdate and panelResizeEnd
+ * event that can be used to create performance optimizations (such as hiding/showing elements 
+ * while resizing), custom or internal resizes and save the final resized value into local 
+ * storage for example.
+ *
+ * TODO Trigger panelResizeStart and panelResizeUpdate as required. They aren't needed
+ *      currently.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -39,9 +63,6 @@ define(function (require, exports, module) {
     
     var $mainView;
     
-    // Map of resize promises
-    var resizePromises = {};
-    
     /**
      * Adds resizing capabilities to a given html element.
      *
@@ -53,33 +74,29 @@ define(function (require, exports, module) {
      *  - Top ("top") or bottom ("bottom") for vertical resizing
      *  - Left ("left") or right ("right") for horizontal resizing
      *
-     * A resize operation notifies its associated deferred object at:
-     *  - start: When the resize starts 
-     *  - update: On resize updates (every time it is redrawn)
-     *  - end: When the resize ends
+     * A resizable element triggers the following events while resizing:
+     *  - panelResizeStart: When the resize starts 
+     *  - panelResizeUpdate: On resize updates (every time it is redrawn)
+     *  - panelResizeEnds: When the resize ends
      *
      * @param {DOMNode} element Html element which should be made resizable.
      * @param {string} direction The direction of the resize action. Must be "hor" or "ver".
      * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
-     * for vertical resizing and "left" or "right" for horizontal resizing.
+     *                          for vertical resizing and "left" or "right" for horizontal resizing.
      * @param {int} minSize Minimum size (width or height) of the element.
-     * @return {$.Promise} jQuery Promise object that is never resolved, but gets
-     * notified anytime the resize starts, updates or ends.
      */
     function makeResizable(element, direction, position, minSize) {
         
         var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),
-            $body               = $(document.body),
-            $deferred           = $.Deferred(),
+            $body               = $(window.document.body),
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             contentSizeFunction = null;
                 
         minSize = minSize || 0;
-        resizePromises[$element.attr("id")] = $deferred.promise();
             
         $element.prepend($resizer);
         
@@ -90,9 +107,7 @@ define(function (require, exports, module) {
                 baseSize        = 0,
                 doResize        = true,
                 isMouseDown     = true;
-            
-            $deferred.notifyWith($element, ["start", elementSizeFunction.apply($element)]);
-            
+                        
             if ($resizableElement !== undefined) {
                 $element.children().not(".hor-resizer, .ver-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
@@ -125,8 +140,6 @@ define(function (require, exports, module) {
                     }
                     
                     EditorManager.resizeEditor();
-                    
-                    $deferred.notifyWith($element, ["update", elementSizeFunction.apply($element)]);
                 }
                 
                 animationRequest = window.webkitRequestAnimationFrame(doRedraw);
@@ -144,7 +157,7 @@ define(function (require, exports, module) {
                     isMouseDown = false;
                     $mainView.off("mousemove");
                     $body.toggleClass(direction + "-resizing");
-                    $deferred.notifyWith($element, ["end", elementSizeFunction.apply($element)]);
+                    $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
                 }
             }
             
@@ -153,19 +166,6 @@ define(function (require, exports, module) {
             
             e.preventDefault();
         });
-        
-        return $deferred.promise();
-    }
-    
-    /**
-     * Gets the resize promise for an element
-     *
-     * @param {DOMNode} element Already resizable html element
-     * @return {$.Promise} jQuery The associated promise object or a new one
-     * if the element is not registered as resizable.
-     */
-    function resizing(element) {
-        return resizePromises[element.attr("id")] || new $.Deferred().promise();
     }
     
     // Scan DOM for hor-resizable and ver-resizable classes and make them resizable
@@ -196,5 +196,4 @@ define(function (require, exports, module) {
     });
     
     exports.makeResizable = makeResizable;
-    exports.resizing = resizing;
 });

@@ -22,7 +22,7 @@
  */
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, PathUtils, window, document */
+/*global define, $, PathUtils, window */
 
 /*
  * Adds a "find in files" command to allow the user to find all occurances of a string in all files in
@@ -59,6 +59,10 @@ define(function (require, exports, module) {
     
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200 };
+    
+    // Height in pixels of the JSLint panel header. Hardcoded to avoid race
+    // condition when measuring it on htmlReady
+    var HEADER_HEIGHT = 27;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
@@ -346,12 +350,10 @@ define(function (require, exports, module) {
             height          = prefs.getValue("height");
 
         $searchResults.height(height);
-        $searchContent.height(height - 27);
+        $searchContent.height(height - HEADER_HEIGHT);
         
-        $.when(Resizer.resizing($("#search-results"))).progress(function (status, height) {
-            if (status === "end") {
-                prefs.setValue("height", height);
-            }
+        $searchResults.on("panelResizeEnd", function (event, height) {
+            prefs.setValue("height", height);
         });
     });
 

@@ -62,14 +62,10 @@ html, body {
 body {
     .vbox;
     
-    /* This appears to be necessary in Firefox when body is set to display: box. */
-    width: 100%;
     &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
         cursor: col-resize;   
     }
     
-    /* This appears to be necessary in Firefox when body is set to display: box. */
-    height: 100%;
     &.ver-resizing a, &.ver-resizing #projects a, &.ver-resizing .main-view, &.ver-resizing .CodeMirror-lines {
         cursor: row-resize;   
     }
