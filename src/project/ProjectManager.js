@@ -659,7 +659,10 @@ define(function (require, exports, module) {
      * first launch. 
      */
     function getInitialProjectPath() {
-        return "/Library/WebServer/Documents/";
+        if (brackets.inBrowser) {
+            // this obviously needs to be changed to a dynamic path
+            return "/Library/WebServer/Documents/";
+        }
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
