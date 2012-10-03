@@ -48,10 +48,13 @@ define(function (require, exports, module) {
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
         global.brackets = {
+            inBrowser: true,
             app: require("proxy/app"),
             fs: require("proxy/fs")
         };
         require("proxy/proxy").connect();
+    } else {
+        global.brackets.inBrowser = false;
     }
     
     // Parse src/config.json
@@ -70,8 +73,6 @@ define(function (require, exports, module) {
     // Load native shell when brackets is run in a native shell rather than the browser
     // TODO: (issue #266) load conditionally
     global.brackets.shellAPI = require("utils/ShellAPI");
-    
-    global.brackets.inBrowser = true;
     
     global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
     
