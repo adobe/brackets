@@ -2,6 +2,8 @@
 /*global define */
 
 define(function (require, exports, module) {
+    "use strict";
+
     var proxy = require("proxy/proxy");
 
     var NO_ERROR = 0;
@@ -18,11 +20,11 @@ define(function (require, exports, module) {
     function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
         console.log("PROXY: fs.showOpenDialog()", arguments);
     }
-    
+
     function readdir(path, callback) {
         return proxy.send("fs", "readdir", path, callback);
     }
-    
+
     function stat(path, callback) {
         proxy.send("fs", "stat", path, function (err, statData) {
             if (statData && callback) {
@@ -39,19 +41,19 @@ define(function (require, exports, module) {
             }
         });
     }
-    
+
     function readFile(path, encoding, callback) {
         return proxy.send("fs", "readFile", path, encoding, callback);
     }
-    
+
     function writeFile(path, data, encoding, callback) {
         return proxy.send("fs", "writeFile", path, data, encoding, callback);
     }
-    
+
     function chmod(path, mode, callback) {
         return proxy.send("fs", "chmod", path, mode, callback);
     }
-    
+
     function unlink(path, callback) {
         return proxy.send("fs", "unlink", path, callback);
     }

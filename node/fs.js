@@ -1,4 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global exports, require */
 
 var fs = require("fs");
 var promise = require("node-promise/promise");
@@ -15,6 +16,7 @@ var ERR_NOT_FILE = 8;
 var ERR_NOT_DIRECTORY = 9;
 
 function _wrap(method) {
+    "use strict";
     return function () {
         var r = promise.defer();
         var args = Array.prototype.slice.call(arguments, 0);
@@ -32,10 +34,12 @@ function _wrap(method) {
 }
 
 function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
+    "use strict";
     console.log("PROXY: fs.showOpenDialog()", arguments);
 }
 
 function stat(path, callback) {
+    "use strict";
     fs.stat(path, function (err, statData) {
         if (statData && callback) {
             statData._isFile = statData.isFile();

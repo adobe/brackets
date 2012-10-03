@@ -1,7 +1,8 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define */
+/*global define, window, navigator */
 
 define(function (require, exports, module) {
+    "use strict";
 
     function quit() {
         console.log("PROXY: app.quit()", arguments);
@@ -16,7 +17,7 @@ define(function (require, exports, module) {
     }
 
     function getElapsedMilliseconds() {
-        console.log("PROXY: app.getElapsedMilliseconds()", arguments);
+        return new Date().getTime();
     }
 
     function openLiveBrowser(url, enableRemoteDebugging, callback) {
