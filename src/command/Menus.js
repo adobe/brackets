@@ -47,7 +47,7 @@ define(function (require, exports, module) {
         EDIT_MENU       : "edit-menu",
         VIEW_MENU       : "view-menu",
         NAVIGATE_MENU   : "navigate-menu",
-        DEBUG_MENU      : "debug-menu",
+        DEBUG_MENU      : "debug-menu",     // Note: not present in some configurations of Brackets (getMenu() will return null)
         HELP_MENU       : "help-menu"
     };
 

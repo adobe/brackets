@@ -101,7 +101,7 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -222,7 +222,7 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
+    "ABOUT_TEXT_LINE1"                     : "sprint 15 experimental build ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
