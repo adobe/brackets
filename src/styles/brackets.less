@@ -115,14 +115,6 @@ a, img {
         }
     }
     
-    #busy-indicator {
-        color: @bc-grey;
-        font-size: 1.4em;
-        display: inline-block;
-        float: right;
-        margin: 0px 8px 0px 0px;
-    }
-    
     .indicators {
         overflow: hidden;
         display: block;
@@ -137,6 +129,14 @@ a, img {
             color: @bc-grey;
         }
     }
+}
+
+#busy-indicator {
+    color: @bc-grey;
+    font-size: 1.4em;
+    display: inline-block;
+    float: right;
+    margin: 0px 8px 0px 0px;
 }
 
 #editor-holder {
@@ -196,7 +196,7 @@ a, img {
     }
 }
 
-#update-notification {
+#utils-UpdateNotification {
     padding-right: 5px;
     margin-bottom: -1px;
     .sprite-icon(0,0, 14px,14px, "images/updateSprites.svg");

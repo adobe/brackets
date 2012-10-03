@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
         KeyEvent            = require("utils/KeyEvent"),
-        StatusBar           = require("project/StatusBar");
+        StatusBar           = require("widgets/StatusBar");
 
     
     var FIND_IN_FILES_MAX = 100;

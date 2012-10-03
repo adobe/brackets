@@ -45,8 +45,9 @@ define(function (require, exports, module) {
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
         Strings                 = require("strings"),
+        StringUtils             = require("utils/StringUtils"),
         AppInit                 = require("utils/AppInit"),
-        StatusBar               = require("project/StatusBar");
+        StatusBar               = require("widgets/StatusBar");
     
     /**
      * @private
@@ -138,11 +139,15 @@ define(function (require, exports, module) {
                     .append($errorTable);
                 $lintResults.show();
                 $goldStar.hide();
-                StatusBar.updateIndicator(module.id, true, "jslint-errors", JSLINT.errors.length + " JSLint errors");
+                if (JSLINT.errors.length === 1) {
+                    StatusBar.updateIndicator(module.id, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
+                } else {
+                    StatusBar.updateIndicator(module.id, true, "jslint-errors", StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, JSLINT.errors.length));
+                }
             } else {
                 $lintResults.hide();
                 $goldStar.show();
-                StatusBar.updateIndicator(module.id, true, "jslint-valid", "No JSLint errors - good job!");
+                StatusBar.updateIndicator(module.id, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -152,7 +157,7 @@ define(function (require, exports, module) {
             // both the results and the gold star
             $lintResults.hide();
             $goldStar.hide();
-            StatusBar.updateIndicator(module.id, true, "jslint-disabled", "JSLint disabled or not working for the current file");
+            StatusBar.updateIndicator(module.id, true, "jslint-disabled", Strings.JSLINT_DISABLED);
         }
         
         EditorManager.resizeEditor();

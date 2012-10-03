@@ -91,7 +91,7 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        StatusBar               = require("project/Statusbar");
+        StatusBar               = require("widgets/Statusbar");
 
     // Local variables
     var params                  = new UrlParams(),

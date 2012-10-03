@@ -10,7 +10,9 @@ define(function (require, exports, module) {
     var AppInit         = require("utils/AppInit"),
         Editor          = require("editor/Editor"),
         EditorManager   = require("editor/EditorManager"),
-        ExtensionUtils  = require("utils/ExtensionUtils");
+        ExtensionUtils  = require("utils/ExtensionUtils"),
+        Strings         = require("strings"),
+        StringUtils     = require("utils/StringUtils");
     
     // Current focused full editor
     var fullEditor;
@@ -37,16 +39,16 @@ define(function (require, exports, module) {
     }
     
     function _updateFileInfo() {
-        $fileInfo.text(fullEditor.lineCount() + " Lines");
+        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, fullEditor.lineCount()));
     }
     
     function _updateTabCharInfo() {
-        $tabInfo.text("Tab Size: " + fullEditor._codeMirror.getOption("tabSize"));
+        $tabInfo.text(StringUtils.format(Strings.STATUSBAR_TAB_SIZE, fullEditor._codeMirror.getOption("tabSize")));
     }
     
     function _updateCursorInfo() {
         var cursor      = fullEditor.getCursorPos(),
-            cursorInfo  = "Line " + (cursor.line + 1) + ", " + "Column " + (cursor.ch + 1);
+            cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
         
         $cursorInfo.text(cursorInfo);
     }
@@ -54,6 +56,7 @@ define(function (require, exports, module) {
     /**
      * @private
      * Updates the focused full editor and cleans listeners
+     * TODO Add support for inline editors
      */
     function _onFocusedEditorChange(evt) {
         
@@ -100,11 +103,12 @@ define(function (require, exports, module) {
     /**
      * Registers a new status indicator
      * @param {string} id Registration id of the indicator to be updated.
-     * @param {DOMNode) indicator Optional DOMNode for the indicator
+     * @param {DOMNode} indicator Optional DOMNode for the indicator
      * @param {boolean} visible Shows or hides the indicator over the statusbar.
      * @param {string} style Sets the attribute "class" of the indicator.
      * @param {string} tooltip Sets the attribute "title" of the indicator.
      * @param {string} command Optional command name to execute on the indicator click.
+     * TODO Unused command parameter. Include command functionality for statusbar indicators.
      */
     function addIndicator(id, indicator, visible, style, tooltip, command) {
         
@@ -189,7 +193,7 @@ define(function (require, exports, module) {
         $busyIndicator      = $("#busy-indicator");
         
         $busyIndicator.hide();
-        _initStatusBar();
+        _onFocusedEditorChange();
     });
     
     exports.showBusyIndicator = showBusyIndicator;
