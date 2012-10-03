@@ -44,7 +44,10 @@ define(function (require, exports, module) {
         EditorManager           = require("editor/EditorManager"),
         PreferencesManager      = require("preferences/PreferencesManager"),
         PerfUtils               = require("utils/PerfUtils"),
-        Strings                 = require("strings");
+        Strings                 = require("strings"),
+        StringUtils             = require("utils/StringUtils"),
+        AppInit                 = require("utils/AppInit"),
+        StatusBar               = require("widgets/StatusBar");
     
     /**
      * @private
@@ -136,9 +139,15 @@ define(function (require, exports, module) {
                     .append($errorTable);
                 $lintResults.show();
                 $goldStar.hide();
+                if (JSLINT.errors.length === 1) {
+                    StatusBar.updateIndicator(module.id, true, "jslint-errors", Strings.JSLINT_ERROR_INFORMATION);
+                } else {
+                    StatusBar.updateIndicator(module.id, true, "jslint-errors", StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, JSLINT.errors.length));
+                }
             } else {
                 $lintResults.hide();
                 $goldStar.show();
+                StatusBar.updateIndicator(module.id, true, "jslint-valid", Strings.JSLINT_NO_ERRORS);
             }
 
             PerfUtils.addMeasurement(perfTimerDOM);
@@ -148,6 +157,7 @@ define(function (require, exports, module) {
             // both the results and the gold star
             $lintResults.hide();
             $goldStar.hide();
+            StatusBar.updateIndicator(module.id, true, "jslint-disabled", Strings.JSLINT_DISABLED);
         }
         
         EditorManager.resizeEditor();
@@ -207,6 +217,12 @@ define(function (require, exports, module) {
     // Init PreferenceStorage
     _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: !!brackets.config.enable_jslint });
     _setEnabled(_prefs.getValue("enabled"));
+    
+    // Init StatusBar indicator
+    AppInit.htmlReady(function () {
+        StatusBar.addIndicator(module.id, $("#gold-star"), false);
+    });
+    
     
     // Define public API
     exports.run = run;
