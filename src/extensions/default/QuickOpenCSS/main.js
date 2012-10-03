@@ -61,23 +61,6 @@ define(function (require, exports, module) {
         }
     }
 
-    function getLocationFromSelectorName(selector) {
-        if (!selectorList) {
-            return null;
-        }
-        
-        // TODO: handle multiple selectors with same name in CSS file
-        var i, result;
-        for (i = 0; i < selectorList.length; i++) {
-            var selectorInfo = selectorList[i];
-            if (selectorInfo.selector === selector) {
-                result = selectorInfo;
-                break;
-            }
-        }
-
-        return result;
-    }
 
     /**
      * @param {string} query what the user is searching for
@@ -89,7 +72,11 @@ define(function (require, exports, module) {
         
         // Filter and rank how good each match is
         var filteredList = $.map(selectorList, function (itemInfo) {
-            return QuickOpen.stringMatch(itemInfo.selector, query);
+            var searchResult = QuickOpen.stringMatch(itemInfo.selector, query);
+            if (searchResult) {
+                searchResult.selectorInfo = itemInfo;
+            }
+            return searchResult;
         });
         
         // Sort based on ranking & basic alphabetical order
@@ -119,12 +106,11 @@ define(function (require, exports, module) {
         if (!selectedItem) {
             return;
         }
-        var selectorInfo = getLocationFromSelectorName(selectedItem.label);
-        if (selectorInfo) {
-            var from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
-            var to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
-        }
+        var selectorInfo = selectedItem.selectorInfo;
+
+        var from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
+        var to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
+        EditorManager.getCurrentFullEditor().setSelection(from, to);
     }
 
     function itemSelect(selectedItem) {

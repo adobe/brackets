@@ -118,7 +118,6 @@ define(function main(require, exports, module) {
     function _handleGoLiveCommand() {
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
             LiveDevelopment.close();
-            // TODO Ty: when checkmark support lands, remove checkmark
         } else {
             if (!params.get("skipLiveDevelopmentInfo") && !prefs.getValue("afterFirstLaunch")) {
                 prefs.setValue("afterFirstLaunch", "true");
@@ -132,7 +131,6 @@ define(function main(require, exports, module) {
             } else {
                 LiveDevelopment.open();
             }
-            // TODO Ty: when checkmark support lands, add checkmark
         }
     }
 
@@ -154,6 +152,15 @@ define(function main(require, exports, module) {
 
         // Initialize tooltip for 'not connected' state
         _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
+    }
+    
+    /** Maintains state of the Live Preview menu item */
+    function _setupGoLiveMenu() {
+        $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
+            // Update the checkmark next to 'Live Preview' menu item
+            // Add checkmark when status is STATUS_ACTIVE; otherwise remove it 
+            CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
+        });
     }
 
     /** Create the menu item "Highlight" */
@@ -191,6 +198,8 @@ define(function main(require, exports, module) {
         LiveDevelopment.init(config);
         _loadStyles();
         _setupGoLiveButton();
+        _setupGoLiveMenu();
+
         /* _setupHighlightButton(); FUTURE - Highlight button */
         if (config.debug) {
             _setupDebugHelpers();
@@ -211,7 +220,7 @@ define(function main(require, exports, module) {
         }
     }
     window.setTimeout(init);
-
+   
     CommandManager.register(Strings.CMD_LIVE_FILE_PREVIEW,  Commands.FILE_LIVE_FILE_PREVIEW, _handleGoLiveCommand);
 
     // Export public functions

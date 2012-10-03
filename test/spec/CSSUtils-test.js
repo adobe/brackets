@@ -1014,6 +1014,22 @@ define(function (require, exports, module) {
                 expect(result.length).toBe(1);
                 
             });
+            
+            // Issue #1699
+            it("should find the target of combinators with no whitespace", function () {
+                // Child combinator
+                var result = match("foo>section { color: red }", { tag: "section" });
+                expect(result.length).toBe(1);
+                // Adjacent sibling combinator
+                result = match("foo+section { color: red }", { tag: "section" });
+                expect(result.length).toBe(1);
+                // General sibling combinator
+                result = match("foo~section { color: red }", { tag: "section" });
+                expect(result.length).toBe(1);
+                // Invalid combinator
+                result = match("foo!section { color: red }", { tag: "section" });
+                expect(result.length).toBe(0);
+            });
         }); // describe("Combinators")        
         
         
