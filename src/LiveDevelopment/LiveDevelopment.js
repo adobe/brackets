@@ -480,10 +480,10 @@ define(function LiveDevelopment(require, exports, module) {
     }
 
     /** Triggered by a document saved from the DocumentManager */
-    function _onReloadDocument() {
+    function _onDocumentSaved() {
         var doc = _getCurrentDocument();
 
-        if (doc && Inspector.connected()) {
+        if (doc && doc.extension !== "css" && Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 Inspector.Page.reload();
             }
@@ -524,7 +524,7 @@ define(function LiveDevelopment(require, exports, module) {
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
-            .on("documentSaved", _onReloadDocument);
+            .on("documentSaved", _onDocumentSaved);
     }
 
     // Export public functions
