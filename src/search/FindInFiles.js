@@ -247,7 +247,8 @@ define(function (require, exports, module) {
             
             $("#search-results .table-container")
                 .empty()
-                .append($resultTable);
+                .append($resultTable)
+                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
             $("#search-results .close")
                 .one("click", function () {
