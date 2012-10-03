@@ -53,8 +53,8 @@ define(function (require, exports, module) {
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200, enabled: true };
     
-    // Height in pixels of the JSLint panel header. Hardcoded to avoid race
-    // condition when measuring it on htmlReady
+    /** @type {Number} Height of the JSLint panel header in pixels. Hardcoded to avoid race 
+                       condition when measuring it on htmlReady*/
     var HEADER_HEIGHT = 27;
     
     /**

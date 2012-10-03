@@ -75,8 +75,6 @@ define(function (require, exports, module) {
      *  - Left ("left") or right ("right") for horizontal resizing
      *
      * A resizable element triggers the following events while resizing:
-     *  - panelResizeStart: When the resize starts 
-     *  - panelResizeUpdate: On resize updates (every time it is redrawn)
      *  - panelResizeEnds: When the resize ends
      *
      * @param {DOMNode} element Html element which should be made resizable.

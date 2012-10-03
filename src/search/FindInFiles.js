@@ -61,8 +61,8 @@ define(function (require, exports, module) {
     var PREFERENCES_CLIENT_ID = module.id,
         defaultPrefs = { height: 200 };
     
-    // Height in pixels of the JSLint panel header. Hardcoded to avoid race
-    // condition when measuring it on htmlReady
+    /** @type {Number} Height of the FIF panel header in pixels. Hardcoded to avoid race 
+                       condition when measuring it on htmlReady*/
     var HEADER_HEIGHT = 27;
     
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
