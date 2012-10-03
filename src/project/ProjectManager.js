@@ -32,6 +32,8 @@
  * This module dispatches these events:
  *    - beforeProjectClose -- before _projectRoot changes
  *    - projectOpen        -- after  _projectRoot changes
+ *    - projectFilesChange -- sent if one of the project files has changed--
+ *                            added, removed, renamed, etc.
  *
  * These are jQuery events, so to listen for them you do something like this:
  *    $(ProjectManager).on("eventname", handler);
@@ -133,6 +135,8 @@ define(function (require, exports, module) {
         id              : 0,    /* incrementing id */
         fullPathToIdMap : {}    /* mapping of fullPath to tree node id attr */
     };
+    
+    var suppressToggleOpen = false;
     
     /**
      * @private
@@ -318,8 +322,7 @@ define(function (require, exports, module) {
      * http://www.jstree.com/documentation/json_data
      */
     function _renderTree(treeDataProvider) {
-        var result = new $.Deferred(),
-            suppressToggleOpen = false;
+        var result = new $.Deferred();
 
         // For #1542, make sure the tree is scrolled to the top before refreshing.
         // If we try to do this later (e.g. after the tree has been refreshed), it 
@@ -817,18 +820,40 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
-
+    /**
+     * @private
+     *
+     * Check a filename for illegal characters. If any are found, show an error
+     * dialog and return false. If no illegal characters are found, return true.
+     */
+    function _checkForValidFilename(filename) {
+        // Validate file name
+        // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
+        // We may want to add checks for those here.
+        // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
+        if (filename.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
+            Dialogs.showModalDialog(
+                Dialogs.DIALOG_ID_ERROR,
+                Strings.INVALID_FILENAME_TITLE,
+                Strings.INVALID_FILENAME_MESSAGE
+            );
+            return false;
+        }
+        return true;
+    }
+    
     /**
      * Create a new item in the project tree.
      *
      * @param baseDir {string} Full path of the directory where the item should go
      * @param initialName {string} Initial name for the item
      * @param skipRename {boolean} If true, don't allow the user to rename the item
+     * @param isFolder {boolean} If true, create a folder instead of a file
      * @return {$.Promise} A promise object that will be resolved with the FileEntry
      *  of the created object, or rejected if the user cancelled or entered an illegal
      *  filename.
      */
-    function createNewItem(baseDir, initialName, skipRename) {
+    function createNewItem(baseDir, initialName, skipRename, isFolder) {
         var node                = null,
             selection           = _projectTree.jstree("get_selected"),
             selectionEntry      = null,
@@ -894,57 +919,80 @@ define(function (require, exports, module) {
 
             if (!escapeKeyPressed) {
                 // Validate file name
-                // TODO (issue #270): There are some filenames like COM1, LPT3, etc. that are not valid on Windows.
-                // We may want to add checks for those here.
-                // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx
-                if (data.rslt.name.search(/[\/?*:;\{\}<>\\|]+/) !== -1) {
-                    Dialogs.showModalDialog(
-                        Dialogs.DIALOG_ID_ERROR,
-                        Strings.INVALID_FILENAME_TITLE,
-                        Strings.INVALID_FILENAME_MESSAGE
-                    );
-
+                if (!_checkForValidFilename(data.rslt.name)) {
                     errorCleanup();
                     return;
                 }
 
-                // Use getFile() to create the new file
-                selectionEntry.getFile(
-                    data.rslt.name,
-                    {create: true, exclusive: true},
-                    function (entry) {
-                        data.rslt.obj.data("entry", entry);
-                        _projectTree.jstree("select_node", data.rslt.obj, true);
-                        result.resolve(entry);
-                    },
-                    function (error) {
-                        if ((error.code === FileError.PATH_EXISTS_ERR)
-                                || (error.code === FileError.TYPE_MISMATCH_ERR)) {
-                            Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
-                                Strings.INVALID_FILENAME_TITLE,
-                                StringUtils.format(Strings.FILE_ALREADY_EXISTS,
-                                    StringUtils.htmlEscape(data.rslt.name))
-                            );
-                        } else {
-                            var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
-                                             Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                             StringUtils.format(String.GENERIC_ERROR, error.code);
-
-                            var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
-                                            StringUtils.htmlEscape(data.rslt.name),
-                                            errString);
-                          
-                            Dialogs.showModalDialog(
-                                Dialogs.DIALOG_ID_ERROR,
-                                Strings.ERROR_CREATING_FILE_TITLE,
-                                errMsg
-                            );
-                        }
-
-                        errorCleanup();
+                var successCallback = function (entry) {
+                    data.rslt.obj.data("entry", entry);
+                    if (isFolder) {
+                        // If the new item is a folder, remove the leaf and folder related
+                        // classes and add "jstree-closed". Selecting the item will open
+                        // the folder.
+                        data.rslt.obj.removeClass("jstree-leaf jstree-closed jstree-open")
+                            .addClass("jstree-closed");
                     }
-                );
+                    
+                    // If the new item is a folder, force a re-sort here. Windows sorts folders
+                    // and files separately.
+                    if (isFolder) {
+                        _projectTree.jstree("sort", data.rslt.obj.parent());
+                    }
+
+                    _projectTree.jstree("select_node", data.rslt.obj, true);
+
+                    // Notify listeners that the project model has changed
+                    $(exports).triggerHandler("projectFilesChange");
+                    
+                    result.resolve(entry);
+                };
+                
+                var errorCallback = function (error) {
+                    if ((error.code === FileError.PATH_EXISTS_ERR)
+                            || (error.code === FileError.TYPE_MISMATCH_ERR)) {
+                        Dialogs.showModalDialog(
+                            Dialogs.DIALOG_ID_ERROR,
+                            Strings.INVALID_FILENAME_TITLE,
+                            StringUtils.format(Strings.FILE_ALREADY_EXISTS,
+                                StringUtils.htmlEscape(data.rslt.name))
+                        );
+                    } else {
+                        var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
+                                         Strings.NO_MODIFICATION_ALLOWED_ERR :
+                                         StringUtils.format(String.GENERIC_ERROR, error.code);
+
+                        var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
+                                        StringUtils.htmlEscape(data.rslt.name),
+                                        errString);
+                      
+                        Dialogs.showModalDialog(
+                            Dialogs.DIALOG_ID_ERROR,
+                            Strings.ERROR_CREATING_FILE_TITLE,
+                            errMsg
+                        );
+                    }
+
+                    errorCleanup();
+                };
+                
+                if (isFolder) {
+                    // Use getDirectory() to create the new folder
+                    selectionEntry.getDirectory(
+                        data.rslt.name,
+                        {create: true, exclusive: true},
+                        successCallback,
+                        errorCallback
+                    );
+                } else {
+                    // Use getFile() to create the new file
+                    selectionEntry.getFile(
+                        data.rslt.name,
+                        {create: true, exclusive: true},
+                        successCallback,
+                        errorCallback
+                    );
+                }
             } else { //escapeKeyPressed
                 errorCleanup();
             }
@@ -978,6 +1026,130 @@ define(function (require, exports, module) {
         return result.promise();
     }
 
+    /**
+     * Rename a file/folder. This will update the project tree data structures
+     * and send notifications about the rename.
+     *
+     * @prarm {string} oldName Old item name
+     * @param {string} newName New item name
+     * @param {boolean} isFolder True if item is a folder; False if it is a file.
+     * @return {$.Promise} A promise object that will be resolved or rejected when
+     *   the rename is finished.
+     */
+    function renameItem(oldName, newName, isFolder) {
+        var result = new $.Deferred();
+        
+        if (oldName === newName) {
+            result.resolve();
+            return result;
+        }
+        
+        // TODO: This should call FileEntry.moveTo(), but that isn't implemented
+        // yet. For now, call directly to the low-level fs.rename()
+        brackets.fs.rename(oldName, newName, function (err) {
+            if (!err) {
+                // Update all nodes in the project tree.
+                // All other updating is done by DocumentManager.notifyPathNameChanged() below
+                var nodes = _projectTree.find(".jstree-leaf, .jstree-open, .jstree-closed"),
+                    i;
+                
+                for (i = 0; i < nodes.length; i++) {
+                    var node = $(nodes[i]);
+                    FileUtils.updateFileEntryPath(node.data("entry"), oldName, newName);
+                }
+                
+                // Notify that one of the project files has changed
+                $(exports).triggerHandler("projectFilesChange");
+                
+                // Tell the document manager about the name change. This will update
+                // all of the model information and send notification to all views
+                DocumentManager.notifyPathNameChanged(oldName, newName, isFolder);
+                
+                // Finally, re-open the selected document
+                if (DocumentManager.getCurrentDocument()) {
+                    FileViewController.openAndSelectDocument(
+                        DocumentManager.getCurrentDocument().file.fullPath,
+                        FileViewController.getFileSelectionFocus()
+                    );
+                }
+                
+                _redraw(true);
+
+                result.resolve();
+            } else {
+                // Show and error alert
+                Dialogs.showModalDialog(
+                    Dialogs.DIALOG_ID_ERROR,
+                    Strings.ERROR_RENAMING_FILE_TITLE,
+                    StringUtils.format(
+                        Strings.ERROR_RENAMING_FILE,
+                        StringUtils.htmlEscape(newName),
+                        err === brackets.fs.ERR_FILE_EXISTS ?
+                                Strings.FILE_EXISTS_ERR :
+                                FileUtils.getFileErrorString(err)
+                    )
+                );
+                
+                result.reject(err);
+            }
+        });
+        
+        return result;
+    }
+    
+    /**
+     * Rename the selected item in the project tree
+     */
+    function renameSelectedItem() {
+        var selected = _projectTree.jstree("get_selected"),
+            isFolder = selected.hasClass("jstree-open") || selected.hasClass("jstree-closed");
+        
+        if (selected) {
+            _projectTree.on("rename.jstree", function (event, data) {
+                $(event.target).off("rename.jstree");
+                
+                // Make sure the file was actually renamed
+                if (data.rslt.old_name === data.rslt.new_name) {
+                    return;
+                }
+                
+                var _resetOldFilename = function () {
+                    _projectTree.jstree("set_text", selected, data.rslt.old_name);
+                    _projectTree.jstree("refresh", -1);
+                };
+                
+                if (!_checkForValidFilename(data.rslt.new_name)) {
+                    // Invalid filename. Reset the old name and bail.
+                    _resetOldFilename();
+                    return;
+                }
+                
+                var oldName = selected.data("entry").fullPath;
+                var newName = oldName.replace(data.rslt.old_name, data.rslt.new_name);
+                
+                renameItem(oldName, newName, isFolder)
+                    .done(function () {
+                        
+                        // If a folder was renamed, re-select it here, since openAndSelectDocument()
+                        // changed the selection.
+                        if (isFolder) {
+                            var oldSuppressToggleOpen = suppressToggleOpen;
+                            
+                            // Supress the open/close toggle
+                            suppressToggleOpen = true;
+                            _projectTree.jstree("select_node", selected, true);
+                            suppressToggleOpen = oldSuppressToggleOpen;
+                        }
+                    })
+                    .fail(function (err) {
+                        // Error during rename. Reset to the old name and alert the user.
+                        _resetOldFilename();
+                    });
+            });
+            _projectTree.jstree("rename");
+        }
+    }
+    
     /**
      * Forces createNewItem() to complete by removing focus from the rename field which causes
      * the new file to be written to disk
@@ -1020,5 +1192,6 @@ define(function (require, exports, module) {
     exports.isWelcomeProjectPath     = isWelcomeProjectPath;
     exports.updateWelcomeProjectPath = updateWelcomeProjectPath;
     exports.createNewItem            = createNewItem;
+    exports.renameSelectedItem       = renameSelectedItem;
     exports.forceFinishRename        = forceFinishRename;
 });

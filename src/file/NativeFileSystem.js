@@ -517,8 +517,88 @@ define(function (require, exports, module) {
     };
     
     NativeFileSystem.DirectoryEntry.prototype.getDirectory = function (path, options, successCallback, errorCallback) {
-        // TODO (issue #241)
-        // http://www.w3.org/TR/2011/WD-file-system-api-20110419/#widl-DirectoryEntry-getDirectory
+        var directoryFullPath = path;
+        
+        function isRelativePath(path) {
+            // If the path contains a colons it must be a full path on Windows (colons are
+            // not valid path characters on mac or in URIs)
+            if (path.indexOf(":") !== -1) {
+                return false;
+            }
+            
+            // For everyone else, absolute paths start with a "/"
+            return path[0] !== "/";
+        }
+
+        // resolve relative paths relative to the DirectoryEntry
+        if (isRelativePath(path)) {
+            directoryFullPath = this.fullPath + path;
+        }
+
+        var createDirectoryEntry = function () {
+            if (successCallback) {
+                successCallback(new NativeFileSystem.DirectoryEntry(directoryFullPath));
+            }
+        };
+
+        var createDirectoryError = function (err) {
+            if (errorCallback) {
+                errorCallback(NativeFileSystem._nativeToFileError(err));
+            }
+        };
+
+        // Use stat() to check if file exists
+        brackets.fs.stat(directoryFullPath, function (err, stats) {
+            if ((err === brackets.fs.NO_ERROR)) {
+                // NO_ERROR implies the path already exists
+
+                // throw error if the file the path is not a directory
+                if (!stats.isDirectory()) {
+                    if (errorCallback) {
+                        errorCallback(new NativeFileSystem.FileError(FileError.TYPE_MISMATCH_ERR));
+                    }
+
+                    return;
+                }
+
+                // throw error if the file exists but create is exclusive
+                if (options.create && options.exclusive) {
+                    if (errorCallback) {
+                        errorCallback(new NativeFileSystem.FileError(FileError.PATH_EXISTS_ERR));
+                    }
+
+                    return;
+                }
+
+                // Create a file entry for the existing directory. If create == true,
+                // a file entry is created without error.
+                createDirectoryEntry();
+            } else if (err === brackets.fs.ERR_NOT_FOUND) {
+                // ERR_NOT_FOUND implies we write a new, empty file
+
+                // create the file
+                if (options.create) {
+                    // TODO: Pass permissions. The current implementation of fs.makedir() always 
+                    // creates the directory with the full permissions available to the current user. 
+                    brackets.fs.makedir(directoryFullPath, 0, function (err) {
+                        if (err) {
+                            createDirectoryError(err);
+                        } else {
+                            createDirectoryEntry();
+                        }
+                    });
+                    return;
+                }
+
+                // throw error if file not found and the create == false
+                if (errorCallback) {
+                    errorCallback(new NativeFileSystem.FileError(FileError.NOT_FOUND_ERR));
+                }
+            } else {
+                // all other brackets.fs.stat() errors
+                createDirectoryError(err);
+            }
+        });
     };
     
     NativeFileSystem.DirectoryEntry.prototype.removeRecursively = function (successCallback, errorCallback) {
