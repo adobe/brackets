@@ -96,6 +96,51 @@ a, img {
     z-index: @z-index-brackets-toolbar;
 }
 
+.busyCursor {
+    cursor: wait !important;
+}
+
+.statusbar {
+    height: 19px;
+    overflow: hidden;
+    background-color: lighten(@bc-grey, @bc-color-step-size*4);
+    
+    .info {
+        float: left;
+        margin-left: 8px;
+        margin-top: 3px;
+        
+        span {
+            color: @bc-grey;
+            padding-right: 15px;
+            vertical-align: middle;
+        }
+    }
+    
+    .indicators {
+        overflow: hidden;
+        display: block;
+        float:right;
+        position: absolute;
+        right: 24px;
+        margin: 1px 0px 1px 0px;
+        
+        .indicator {
+            margin-right: 2px;
+            margin-left: 2px;
+            color: @bc-grey;
+        }
+    }
+}
+
+#busy-indicator {
+    color: @bc-grey;
+    font-size: 1.4em;
+    display: inline-block;
+    float: right;
+    margin: 0px 8px 0px 0px;
+}
+
 #editor-holder {
     .vbox;
     .box-flex(1);
@@ -181,10 +226,19 @@ a, img {
     display:none;
 }
 
-#gold-star {
-    display: none;
-    font-size: 1.2em;
-    color: #ffe13b;
+.jslint-disabled {
+    font-size: 1em;
+    color: @bc-grey;
+}
+
+.jslint-errors {
+    font-size: 1em;
+    color: @bc-red;
+}
+
+.jslint-valid {
+    font-size: 1em;
+    color: lighten(@bc-yellow, @bc-color-step-size*2);
 }
 
 #toolbar-go-live {
@@ -641,8 +695,6 @@ ins.jstree-icon {
     }
 }
 
-
 li.smart_autocomplete_highlight {
-    background-color: #5fa3e0;
-
+    background-color: #e0f0fa;
 }

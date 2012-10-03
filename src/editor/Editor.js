@@ -318,7 +318,9 @@ define(function (require, exports, module) {
             },
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
-            "Shift-Insert": "paste"
+            "Shift-Insert": "paste",
+            "'>'": function (cm) { cm.closeTag(cm, '>'); },
+            "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
         
         EditorManager.mergeExtraKeys(self, codeMirrorKeyMap, additionalKeys);
@@ -585,8 +587,12 @@ define(function (require, exports, module) {
             $(self).triggerHandler("cursorActivity", [self]);
         });
         this._codeMirror.setOption("onScroll", function (instance) {
-            // close all dropdowns on scroll
-            Menus.closeAll();
+            // If this editor is visible, close all dropdowns on scroll.
+            // (We don't want to do this if we're just scrolling in a non-visible editor
+            // in response to some document change event.)
+            if (self.isFullyVisible()) {
+                Menus.closeAll();
+            }
 
             $(self).triggerHandler("scroll", [self]);
         

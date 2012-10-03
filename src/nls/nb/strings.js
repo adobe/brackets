@@ -129,9 +129,9 @@ define({
      * Keyboard modifier names
      */
 
-     "KEYBOARD_CTRL"   : "Ctrl",
-     "KEYBOARD_SHIFT"  : "Shift",
-     "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SPACE"  : "Space",
 
     /**
      * Command Name Constants
@@ -199,7 +199,7 @@ define({
 
     // Help menu commands
     "HELP_MENU" : "Hjelp",
-    "CMD_ABOUT" : "Om",
+    "CMD_ABOUT" : "Om {APP_TITLE}",
     "CMD_FORUM" : "{APP_NAME} forum",
 
     // Special commands invoked by the native shell
@@ -221,7 +221,7 @@ define({
     "ABOUT" : "About",
     "APP_NAME" : "Brackets",
     "CLOSE" : "Lukk",
-    "ABOUT_TEXT_LINE1" : "sprint 14 experimental build ",
+    "ABOUT_TEXT_LINE1" : "sprint 15 experimental build ",
     "ABOUT_TEXT_LINE3": "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4" : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP" : "En ny for {APP_NAME} er tilgjengelig! Klikk her for mer informasjon.",

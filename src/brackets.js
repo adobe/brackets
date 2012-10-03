@@ -91,7 +91,8 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        Resizer                 = require("utils/Resizer");
+        Resizer                 = require("utils/Resizer"),
+        StatusBar               = require("widgets/Statusbar");
 
     // Local variables
     var params                  = new UrlParams(),
@@ -238,7 +239,7 @@ define(function (require, exports, module) {
         
         // finish UI initialization before loading extensions
         var initialProjectPath = ProjectManager.getInitialProjectPath();
-        ProjectManager.openProject(initialProjectPath).done(function () {
+        ProjectManager.openProject(initialProjectPath).always(function () {
             _initTest();
 
             // WARNING: AppInit.appReady won't fire if ANY extension fails to
@@ -270,14 +271,15 @@ define(function (require, exports, module) {
     
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
-        ABOUT_ICON  : brackets.config.about_icon,
-        VERSION     : brackets.metadata.version
+        ABOUT_ICON          : brackets.config.about_icon,
+        APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
+        VERSION             : brackets.metadata.version
     }, Strings);
     
     $("body").html(Mustache.render(MainViewHTML, templateVars));
     
     // Update title
-    $("title").text(Strings.APP_NAME);
+    $("title").text(brackets.config.app_title);
 
     // Dispatch htmlReady callbacks
     AppInit._dispatchReady(AppInit.HTML_READY);

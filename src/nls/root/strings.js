@@ -101,7 +101,7 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -129,9 +129,16 @@ define({
      * Keyboard modifier names
      */
 
-     "KEYBOARD_CTRL"   : "Ctrl",
-     "KEYBOARD_SHIFT"  : "Shift",
-     "KEYBOARD_SPACE"  : "Space",
+    "KEYBOARD_CTRL"   : "Ctrl",
+    "KEYBOARD_SHIFT"  : "Shift",
+    "KEYBOARD_SPACE"  : "Space",
+    
+    /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION" : "Line {0}, Column {1}",
+    "STATUSBAR_TAB_SIZE"        : "Tab Size {0}",
+    "STATUSBAR_LINE_COUNT"      : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -199,7 +206,7 @@ define({
 
     // Help menu commands
     "HELP_MENU"                           : "Help",
-    "CMD_ABOUT"                           : "About",
+    "CMD_ABOUT"                           : "About {APP_TITLE}",
     "CMD_FORUM"                           : "{APP_NAME} Forum",
 
     // Special commands invoked by the native shell
@@ -209,7 +216,10 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
     "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
     "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
@@ -222,7 +232,7 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
+    "ABOUT_TEXT_LINE1"                     : "sprint 15 experimental build ",
     "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
     "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",

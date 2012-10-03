@@ -182,6 +182,12 @@ define(function (require, exports, module) {
      * @return {string} If the key is OS-inconsistent, the correct key; otherwise, the original key.
      **/
     function _mapKeycodeToKey(keycode, key) {
+        // If keycode represents one of the digit keys (0-9), then return the corresponding digit
+        // by subtracting KeyEvent.DOM_VK_0 from keycode. ie. [48-57] --> [0-9]
+        if (keycode >= KeyEvent.DOM_VK_0 && keycode <= KeyEvent.DOM_VK_9) {
+            return String(keycode - KeyEvent.DOM_VK_0);
+        }
+        
         switch (keycode) {
         case KeyEvent.DOM_VK_SEMICOLON:
             return ";";

@@ -109,6 +109,18 @@
                 </div>
                 <div class="table-container resizable-content"></div>
             </div>
+            
+            <div id="status-bar" class="statusbar">
+                <ul id="status-info" class="info" >
+                    <span id="status-cursor"></span>
+                    <span id="status-file"></span>
+                    <span id="status-mode"></span>
+                    <span id="status-tab"></span>
+                </ul>
+                <div id="busy-indicator">&#9719;</div>
+                <ul id="status-indicators" class="indicators">
+                </ul>
+            </div>
         </div>
 
         <!-- Hack to ensure that the code editor's web font is loaded early. -->
@@ -186,7 +198,7 @@
         <div class="modal-body">
             <img class="about-icon" src="{{ABOUT_ICON}}">
             <div class="about-text">
-                <h2>{{APP_NAME}}</h2>
+                <h2>{{APP_NAME_ABOUT_BOX}}</h2>
                 <p class="dialog-message">{{ABOUT_TEXT_LINE1}} {{VERSION}}<span id="about-build-number"><!-- populated programmatically --></span></p>
                 <p class="dialog-message"><!-- $NON-NLS$ -->Copyright 2012 Adobe Systems Incorporated and its licensors. All rights reserved.</p>
                 <p class="dialog-message">{{{ABOUT_TEXT_LINE3}}}</p>
