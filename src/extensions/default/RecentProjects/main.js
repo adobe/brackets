@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
             recentProjects = prefs.getValue("recentProjects") || [],
             i;
-        for (i = 0; i < recentProjects.length; i++) {
+		for (i = 0; i < recentProjects.length; i++) {
             recentProjects[i] = FileUtils.canonicalizeFolderPath(ProjectManager.updateWelcomeProjectPath(recentProjects[i]));
         }
         return recentProjects;
@@ -66,7 +66,7 @@ define(function (require, exports, module) {
             prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
             recentProjects = getRecentProjects(),
             index = recentProjects.indexOf(root);
-        if (index !== -1) {
+		if (index !== -1) {
             recentProjects.splice(index, 1);
         }
         recentProjects.unshift(root);
@@ -95,8 +95,12 @@ define(function (require, exports, module) {
         
         var folderSpan = $("<span></span>").addClass("recent-folder").text(folder),
             restSpan = $("<span></span>").addClass("recent-folder-path").text(" - " + rest);
-        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan);
+        return $("<a></a>").addClass("recent-folder-link").append(folderSpan).append(restSpan).data("path", path);
     }
+	
+	function renderDelete() {
+		return $("<div id='recent-folder-delete'></div>").addClass("trash-icon");
+	}
     
     /**
      * Show or hide the recent projects dropdown.
@@ -148,13 +152,45 @@ define(function (require, exports, module) {
                                 }
                             });
                         closeDropdown();
-                    });
-                $("<li></li>")
+                    })
+					.mouseenter(function (e) {
+						var $target = $(e.currentTarget),
+							$del =  renderDelete()
+							.click(function () {
+								// remove the project from the preferences.
+								var prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_KEY),
+									recentProjects = getRecentProjects(),
+									index = recentProjects.indexOf($(this).data("path")),
+									newProjects = [],
+									i;
+								for (i = 0; i < recentProjects.length; i++) {
+									if(i !== index) {
+										newProjects.push(recentProjects[i]);
+									}
+								}
+								prefs.setValue("recentProjects", newProjects);
+								closeDropdown();
+							});
+						
+						$(this).append($del);
+
+						$del.css("right", 5);
+						$del.css("top", $target.position().top + 11);
+						$del.css("display", "inline-block");
+						$del.data("path", $(this).data("path"));
+					})
+					.mouseleave(function () {
+						$("#recent-folder-delete").remove();
+					});
+				
+				$("<li></li>")
                     .append($link)
                     .appendTo($dropdown);
                 hasProject = true;
             }
         });
+		
+		
         if (hasProject) {
             $("<li class='divider'>").appendTo($dropdown);
         }
@@ -164,7 +200,7 @@ define(function (require, exports, module) {
             })
             .appendTo($dropdown);
         
-        $dropdown.css({
+		$dropdown.css({
             left: toggleOffset.left,
             top: toggleOffset.top + $dropdownToggle.outerHeight()
         })
