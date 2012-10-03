@@ -933,14 +933,15 @@ define(function (require, exports, module) {
                         data.rslt.obj.removeClass("jstree-leaf jstree-closed jstree-open")
                             .addClass("jstree-closed");
                     }
-                    _projectTree.jstree("select_node", data.rslt.obj, true);
                     
                     // If the new item is a folder, force a re-sort here. Windows sorts folders
                     // and files separately.
                     if (isFolder) {
                         _projectTree.jstree("sort", data.rslt.obj.parent());
                     }
-                    
+
+                    _projectTree.jstree("select_node", data.rslt.obj, true);
+
                     // Notify listeners that the project model has changed
                     $(exports).triggerHandler("projectFilesChange");
                     
