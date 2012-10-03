@@ -154,17 +154,12 @@ define(function main(require, exports, module) {
         _setLabel(_$btnGoLive, null, _statusStyle[1], _statusTooltip[1]);
     }
     
-    /** Maintains state of the menu item */
+    /** Maintains state of the Live Preview menu item */
     function _setupGoLiveMenu() {
         $(LiveDevelopment).on("statusChange", function statusChange(event, status) {
             // Update the checkmark next to 'Live Preview' menu item
-            // Add checkmark when status is STATUS_ACTIVE 
-            if (status === LiveDevelopment.STATUS_ACTIVE) {
-                CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(true);
-            } else {
-                // Remove checkmark in all other cases
-                CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(false);
-            }
+            // Add checkmark when status is STATUS_ACTIVE; otherwise remove it 
+            CommandManager.get(Commands.FILE_LIVE_FILE_PREVIEW).setChecked(status === LiveDevelopment.STATUS_ACTIVE);
         });
     }
 
