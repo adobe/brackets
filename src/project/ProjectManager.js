@@ -659,6 +659,7 @@ define(function (require, exports, module) {
      * first launch. 
      */
     function getInitialProjectPath() {
+        return "/Library/WebServer/Documents/";
         return updateWelcomeProjectPath(_prefs.getValue("projectPath"));
     }
     
@@ -691,7 +692,8 @@ define(function (require, exports, module) {
         _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
 
         // Populate file tree as long as we aren't running in the browser
-        if (!brackets.inBrowser) {
+        // Always populate file tree!
+        if (true || !brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function (rootEntry) {

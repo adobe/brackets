@@ -51,6 +51,7 @@ define(function (require, exports, module) {
             app: require("proxy/app"),
             fs: require("proxy/fs")
         };
+        require("proxy/proxy").connect();
     }
     
     // Parse src/config.json

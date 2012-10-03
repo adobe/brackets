@@ -2,6 +2,8 @@
 /*global define */
 
 define(function (require, exports, module) {
+    var proxy = require("proxy/proxy");
+
     var NO_ERROR = 0;
     var ERR_UNKNOWN = 1;
     var ERR_INVALID_PARAMS = 2;
@@ -18,27 +20,40 @@ define(function (require, exports, module) {
     }
     
     function readdir(path, callback) {
-        console.log("PROXY: fs.readdir()", arguments);
+        return proxy.send("fs", "readdir", path, callback);
     }
     
     function stat(path, callback) {
-        console.log("PROXY: fs.stat()", arguments);
+        proxy.send("fs", "stat", path, function (err, statData) {
+            if (statData && callback) {
+                statData.isFile = function () { return statData._isFile; };
+                statData.isDirectory = function () { return statData._isDirectory; };
+                statData.isBlockDevice = function () { return statData._isBlockDevice; };
+                statData.isCharacterDevice = function () { return statData._isCharacterDevice; };
+                statData.isFIFO = function () { return statData._isFIFO; };
+                statData.isSocket = function () { return statData._isSocket; };
+                statData.atime = new Date(statData.atime);
+                statData.mtime = new Date(statData.mtime);
+                statData.ctime = new Date(statData.ctime);
+                callback(err, statData);
+            }
+        });
     }
     
     function readFile(path, encoding, callback) {
-        console.log("PROXY: fs.readFile()", arguments);
+        return proxy.send("fs", "readFile", path, encoding, callback);
     }
     
     function writeFile(path, data, encoding, callback) {
-        console.log("PROXY: fs.writeFile()", arguments);
+        return proxy.send("fs", "writeFile", path, data, encoding, callback);
     }
     
     function chmod(path, mode, callback) {
-        console.log("PROXY: fs.chmod()", arguments);
+        return proxy.send("fs", "chmod", path, mode, callback);
     }
     
     function unlink(path, callback) {
-        console.log("PROXY: fs.unlink()", arguments);
+        return proxy.send("fs", "unlink", path, callback);
     }
 
     exports.NO_ERROR = NO_ERROR;

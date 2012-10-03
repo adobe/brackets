@@ -28,7 +28,10 @@ define(function (require, exports, module) {
     }
 
     function openURLInDefaultBrowser(callback, url) {
-        console.log("PROXY: app.openURLInDefaultBrowser()", arguments);
+        window.open("url", "_blank");
+        if (callback) {
+            callback();
+        }
     }
 
     function showExtensionsFolder() {
