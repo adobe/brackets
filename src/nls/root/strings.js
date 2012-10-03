@@ -132,6 +132,13 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
+    
+    /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION" : "Line {0}, Column {1}",
+    "STATUSBAR_TAB_SIZE"        : "Tab Size {0}",
+    "STATUSBAR_LINE_COUNT"      : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -209,7 +216,10 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
     "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
     "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
