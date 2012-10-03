@@ -267,6 +267,12 @@ define(function (require, exports, module) {
         }
     }
     
+    // Prevent unhandled mousedown events from triggering native behavior
+    // Example: activating AutoScroll when clicking the middle mouse button (see #510)
+    $("html").on("mousedown", function(event) {
+        event.preventDefault();
+    });
+    
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
         ABOUT_ICON          : brackets.config.about_icon,
