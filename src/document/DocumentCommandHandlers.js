@@ -257,10 +257,11 @@ define(function (require, exports, module) {
      * @param {string} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {string} fileExt  The file extension
+     * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with 
      *   the given base name
      */
-    function _getUntitledFileSuggestion(dir, baseFileName, fileExt) {
+    function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
         var suggestedName = baseFileName + fileExt;
         var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
@@ -273,18 +274,30 @@ define(function (require, exports, module) {
             }
 
             //check this name
-            dirEntry.getFile(
-                suggestedName,
-                {},
-                function successCallback(entry) {
-                    //file exists, notify to the next progress
-                    result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
-                },
-                function errorCallback(error) {
-                    //most likely error is FNF, user is better equiped to handle the rest
-                    result.resolve(suggestedName);
-                }
-            );
+            var successCallback = function (entry) {
+                //file exists, notify to the next progress
+                result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
+            };
+            var errorCallback = function (error) {
+                //most likely error is FNF, user is better equiped to handle the rest
+                result.resolve(suggestedName);
+            };
+            
+            if (isFolder) {
+                dirEntry.getDirectory(
+                    suggestedName,
+                    {},
+                    successCallback,
+                    errorCallback
+                );
+            } else {
+                dirEntry.getFile(
+                    suggestedName,
+                    {},
+                    successCallback,
+                    errorCallback
+                );
+            }
         });
 
         //kick it off
@@ -326,7 +339,7 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js");
+        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)

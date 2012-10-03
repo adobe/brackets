@@ -938,7 +938,7 @@ define(function (require, exports, module) {
                     // If the new item is a folder, force a re-sort here. Windows sorts folders
                     // and files separately.
                     if (isFolder) {
-                        _projectTree.jstree("sort", _projectTree);
+                        _projectTree.jstree("sort", data.rslt.obj.parent());
                     }
                     
                     // Notify listeners that the project model has changed
