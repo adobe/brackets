@@ -34,7 +34,7 @@ require.config({
     // NOTE: When we change to navigator.language here, we also should change to
     // navigator.language in ExtensionLoader (when making require contexts for each
     // extension).
-    locale: window.localStorage.getItem("locale") || brackets.app.language
+    locale: window.localStorage.getItem("locale") || navigator.language
 });
 
 /**
@@ -202,15 +202,6 @@ define(function (require, exports, module) {
         $("body").addClass("platform-" + brackets.platform);
         
         EditorManager.setEditorHolder($("#editor-holder"));
-
-        // Let the user know Brackets doesn't run in a web browser yet
-        if (brackets.inBrowser) {
-            Dialogs.showModalDialog(
-                Dialogs.DIALOG_ID_ERROR,
-                Strings.ERROR_IN_BROWSER_TITLE,
-                Strings.ERROR_IN_BROWSER
-            );
-        }
 
         _initDragAndDropListeners();
         _initCommandHandlers();

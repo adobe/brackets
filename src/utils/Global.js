@@ -47,7 +47,10 @@ define(function (require, exports, module) {
     //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
-        global.brackets = {};
+        global.brackets = {
+            app: require("proxy/app"),
+            fs: require("proxy/fs")
+        };
     }
     
     // Parse src/config.json
@@ -67,7 +70,7 @@ define(function (require, exports, module) {
     // TODO: (issue #266) load conditionally
     global.brackets.shellAPI = require("utils/ShellAPI");
     
-    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
+    global.brackets.inBrowser = true;
     
     global.brackets.platform = (global.navigator.platform === "MacIntel" || global.navigator.platform === "MacPPC") ? "mac" : "win";
     
