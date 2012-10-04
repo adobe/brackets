@@ -146,25 +146,24 @@ define(function (require, exports, module) {
         
         // create range list & add listeners for range textrange changes
         var rangeItemText;
-        this._ranges.forEach(function (range, i) {
+        this._ranges.forEach(function (range) {
             // Create list item UI
             var $rangeItem = $(window.document.createElement("li")).appendTo($rangeList);
             _updateRangeLabel($rangeItem, range);
             $rangeItem.mousedown(function () {
-                self.setSelectedIndex(i);
+                self.setSelectedIndex(self._ranges.indexOf(range));
             });
 
-            self._ranges[i].$listItem = $rangeItem;
+            range.$listItem = $rangeItem;
             
             // Update list item as TextRange changes
-            $(self._ranges[i].textRange).on("change", function () {
+            $(range.textRange).on("change", function () {
                 _updateRangeLabel($rangeItem, range);
             });
             
-            // If TextRange lost sync, react just as we do for an inline Editor's lostContent event:
-            // close the whole inline widget
-            $(self._ranges[i].textRange).on("lostSync", function () {
-                self.close();
+            // If TextRange lost sync, remove it from the list (and close the widget if no other ranges are left)
+            $(range.textRange).on("lostSync", function () {
+                self._removeRange(range);
             });
         });
         
@@ -207,10 +206,10 @@ define(function (require, exports, module) {
         }
 
         // Remove selected class(es)
-        var previousItem = (this._selectedRangeIndex >= 0) ? this._ranges[this._selectedRangeIndex].$listItem : null;
+        var $previousItem = (this._selectedRangeIndex >= 0) ? this._ranges[this._selectedRangeIndex].$listItem : null;
         
-        if (previousItem) {
-            previousItem.toggleClass("selected", false);
+        if ($previousItem) {
+            $previousItem.toggleClass("selected", false);
         }
         
         this._selectedRangeIndex = newIndex;
@@ -249,6 +248,44 @@ define(function (require, exports, module) {
         this.sizeInlineWidgetToContents(true, false);
         this._updateRelatedContainer();
 
+        this._updateSelectedMarker();
+    };
+
+    MultiRangeInlineEditor.prototype._removeRange = function (range) {
+        // If this is the last range, just close the whole widget
+        if (this._ranges.length <= 1) {
+            this.close();
+            return;
+        }
+
+        // Now we know there is at least one other range -> found out which one this is
+        var index = this._ranges.indexOf(range);
+        
+        // If the range to be removed is the selected one, first switch to another one
+        if (index === this._selectedRangeIndex) {
+            // If possible, select the one below, else select the one above
+            if (index + 1 < this._ranges.length) {
+                this.setSelectedIndex(index + 1);
+            } else {
+                this.setSelectedIndex(index - 1);
+            }
+        }
+
+        // Now we can remove this range
+        range.$listItem.remove();
+        range.textRange.dispose();
+        this._ranges.splice(index, 1);
+
+        // If the selected range is below, we need to update the index
+        if (index < this._selectedRangeIndex) {
+            this._selectedRangeIndex--;
+            this._updateSelectedMarker();
+        }
+    };
+
+    MultiRangeInlineEditor.prototype._updateSelectedMarker = function () {
+        var $rangeItem = this._ranges[this._selectedRangeIndex].$listItem;
+        
         // scroll the selection to the rangeItem, use setTimeout to wait for DOM updates
         var self = this;
         window.setTimeout(function () {
@@ -427,6 +464,16 @@ define(function (require, exports, module) {
     MultiRangeInlineEditor.prototype._handleChange = function () {
         this._updateRelatedContainer();
         this._ensureCursorVisible();
+    };
+
+    /**
+     * If Document's file is deleted, or Editor loses sync with Document
+     */
+    MultiRangeInlineEditor.prototype._onLostContent = function (event, cause) {
+        // Ignore when the editor's content got lost due to a deleted file, this is handled via TextRange's lostSync
+        if (cause && cause.type === 'deleted') { return; }
+        // Else yield to the parent's implementation
+        return this.parentClass._onLostContent.apply(this, arguments);
     };
 
     /**
