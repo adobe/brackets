@@ -3,6 +3,7 @@
 
 var DEBUG = true;
 
+var http = require("http");
 var WebSocketServer = require('ws').Server;
 
 function _logError(error) {
@@ -36,7 +37,7 @@ function _handleMessage(ws, message) {
 }
 
 // set up the web socket server
-var wss = new WebSocketServer({ port: 9000 });
+var wss = new WebSocketServer({ host: http.INADDR_ANY, port: 9000 });
 _log("Brackets Node Server listening on port 9000");
 wss.on('connection', function (ws) {
 	"use strict";
