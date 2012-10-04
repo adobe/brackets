@@ -599,6 +599,13 @@ define(function (require, exports, module) {
             // notify all inline widgets of a position change
             self._fireWidgetOffsetTopChanged(self.getFirstVisibleLine() - 1);
         });
+
+        // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
+        this._codeMirror.setOption("onFocus", function () {
+            if (!self._internalFocus) {
+                EditorManager._doFocusedEditorChanged(self);
+            }
+        });
     };
     
     /**
@@ -924,7 +931,15 @@ define(function (require, exports, module) {
     
     /** Gives focus to the editor control */
     Editor.prototype.focus = function () {
+        // Capture the currently focused editor before making CodeMirror changes
+        var previous = EditorManager.getFocusedEditor();
+
+        // Prevent duplicate focusedEditorChanged events with this _internalFocus flag
+        this._internalFocus = true;
         this._codeMirror.focus();
+        this._internalFocus = false;
+
+        EditorManager._doFocusedEditorChanged(this, previous);
     };
     
     /** Returns true if the editor has focus */
