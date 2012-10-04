@@ -188,6 +188,25 @@ define(function (require, exports, module) {
     }
     
     /**
+     * @private
+     * Deletes the current line if there is no selection or the lines for the selection
+     * (removing the end of line too)
+     * @param {!CodeMirror} instance CodeMirror instance
+     */
+    function _deleteCurrentLines(instance) {
+        var from, to, sel;
+        sel = instance.getCursor(true);
+        from = {line: sel.line, ch: 0};
+        sel = instance.getCursor(false);
+        to = {line: sel.line + 1, ch: 0};
+        if (instance.lineCount() === to.line && from.line > 0) {
+            from.line -= 1;
+            from.ch = instance.getLine(from.line).length;
+        }
+        instance.replaceRange("", from, to);
+    }
+    
+    /**
      * Checks if the user just typed a closing brace/bracket/paren, and considers automatically
      * back-indenting it if so.
      */
@@ -319,6 +338,9 @@ define(function (require, exports, module) {
             "Shift-Delete": "cut",
             "Ctrl-Insert": "copy",
             "Shift-Insert": "paste",
+            "Ctrl-Y": function (instance) {
+                _deleteCurrentLines(instance);
+            },
             "'>'": function (cm) { cm.closeTag(cm, '>'); },
             "'/'": function (cm) { cm.closeTag(cm, '/'); }
         };
