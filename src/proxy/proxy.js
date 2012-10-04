@@ -58,9 +58,6 @@ define(function (require, exports, module) {
 		_socket.onerror = _onerror;
 		_socket.onclose = _onclose;
 		_socket.onmessage = _onmessage;
-		setTimeout(function () {
-			console.log(_socket.readyState);
-		}, 500);
 	}
 
 	// forward the method for the module to the node server
