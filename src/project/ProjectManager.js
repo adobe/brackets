@@ -929,7 +929,7 @@ define(function (require, exports, module) {
                         } else {
                             var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
                                              Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                             StringUtils.format(String.GENERIC_ERROR, error.code);
+                                             StringUtils.format(Strings.GENERIC_ERROR, error.code);
 
                             var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
                                             StringUtils.htmlEscape(data.rslt.name),
