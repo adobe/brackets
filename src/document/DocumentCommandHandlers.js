@@ -320,14 +320,12 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
+        // createNewItem also ensures that the new file is added to the working set.
         var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, ".js");
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
-                .always(function () { fileNewInProgress = false; })
-                .done(function (entry) {
-                    FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                });
+                .always(function () { fileNewInProgress = false; });
         };
 
         deferred.done(createWithSuggestedName);
