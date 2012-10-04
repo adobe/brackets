@@ -176,6 +176,18 @@ define(function (require, exports, module) {
                 shouldReplace = false;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
+/***
+            // Value encoding
+            if (closeHints) {
+                var tagPlusAttr = tagInfo.tagName + "/" + tagInfo.attr.name,
+                    attrInfo = attributes[tagPlusAttr] || attributes[tagInfo.attr.name],
+                    needsEncoding = attrInfo && (attrInfo.type === "url");
+                if (needsEncoding) {
+                    completion = encodeURI(completion);
+                }
+            }
+***/
+
             charCount = tagInfo.attr.value.length;
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
@@ -308,7 +320,8 @@ define(function (require, exports, module) {
         // of this method. When user moves to a new folder, then the cache is deleted,
         // and file/folder info for new folder is then retrieved.
 
-        if (this.cachedHints && !this.cachedHints.waiting) {
+//        if (this.cachedHints && !this.cachedHints.waiting) {
+        if (this.cachedHints) {
             // url hints have been cached, so determine if they're are stale
             if (!this.cachedHints.query ||
                     this.cachedHints.query.tag !== query.tag ||
@@ -335,6 +348,7 @@ define(function (require, exports, module) {
             NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
                 dirEntry.createReader().readEntries(function (entries) {
                     entries.forEach(function (entry) {
+                        // convert to doc relative path
                         var entryStr = entry.fullPath.replace(docDir, "");
                         unfiltered.push(entryStr);
                     });
