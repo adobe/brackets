@@ -2,6 +2,7 @@
 /*global exports, require */
 
 var fs = require("fs");
+var path = require("path");
 var promise = require("node-promise/promise");
 
 var NO_ERROR = 0;
@@ -14,6 +15,17 @@ var ERR_CANT_WRITE = 6;
 var ERR_OUT_OF_SPACE = 7;
 var ERR_NOT_FILE = 8;
 var ERR_NOT_DIRECTORY = 9;
+
+function _convertError(error) {
+    if (!error) {
+        return NO_ERROR;
+    }
+    switch (error.errno) {
+    case 34:
+        return ERR_NOT_FOUND;
+    }
+    return ERR_UNKNOWN;
+}
 
 // wrap a function that takes a callback as the last parameter to instead return a promise
 function _wrap(method) {
@@ -31,10 +43,8 @@ function _wrap(method) {
         args.push(function () {
             var response = Array.prototype.slice.call(arguments, 0);
 
-            // convert undefined/null error to 0 (required by Brackets)
-            if (response[0] === undefined || response[0] === null) {
-                response[0] = NO_ERROR;
-            }
+            // convert error objects to Brackets error codes
+            response[0] = _convertError(response[0]);
             r.resolve(response);
         });
 
@@ -62,9 +72,16 @@ function stat(path, callback) {
             statData._isCharacterDevice = statData.isCharacterDevice();
             statData._isFIFO = statData.isFIFO();
             statData._isSocket = statData.isSocket();
+        }
+        if (callback) {
             callback(err, statData);
         }
     });
+}
+
+// current working directory
+function cwd(callback) {
+    callback(undefined, path.resolve());
 }
 
 // export error codes
@@ -87,3 +104,4 @@ exports.readFile = _wrap(fs.readFile);
 exports.writeFile = _wrap(fs.writeFile);
 exports.chmod = _wrap(fs.chmod);
 exports.unlink = _wrap(fs.unlink);
+exports.cwd = _wrap(cwd);
