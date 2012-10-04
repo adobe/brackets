@@ -35,7 +35,7 @@ define({
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
-	"FILE_EXISTS_ERR": "[DY] !é=The file already exists.=!",
+	"FILE_EXISTS_ERR": "The file already exists.",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -50,8 +50,8 @@ define({
 	"ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
-	"ERROR_RENAMING_FILE_TITLE": "[DX] !é=Error renaming file=!",
-	"ERROR_RENAMING_FILE": "[DW] !é=An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}=!",
+	"ERROR_RENAMING_FILE_TITLE": "Error renaming file",
+	"ERROR_RENAMING_FILE": "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
 	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
@@ -104,7 +104,7 @@ define({
 	"NO_UPDATE_TITLE": "Votre logiciel est à jour.",
 	"NO_UPDATE_MESSAGE": "Vous utilisez la dernière version de {APP_NAME}.",
     
-	"FIND_IN_FILES_TITLE": "[CP] !é=for \"{4}\" - {0} {1} in {2} {3}=!",
+	"FIND_IN_FILES_TITLE": "for \"{4}\" - {0} {1} in {2} {3}",
 	"FIND_IN_FILES_FILE": "fichier",
 	"FIND_IN_FILES_FILES": "fichiers",
 	"FIND_IN_FILES_MATCH": "résultat",
@@ -139,9 +139,12 @@ define({
     /**
      * StatusBar strings
      */
-	"STATUSBAR_CURSOR_POSITION": "[Dc] !é=Line {0}, Column {1}=!",
-	"STATUSBAR_TAB_SIZE": "[De] !é=Tab Size {0}=!",
-	"STATUSBAR_LINE_COUNT": "[Dd] !é={0} Lines=!",
+	"STATUSBAR_CURSOR_POSITION": "Line {0}, Column {1}",
+	"STATUSBAR_INDENT_TOOLTIP_SPACES": "Click to switch indentation to spaces",
+	"STATUSBAR_INDENT_TOOLTIP_TABS": "Click to switch indentation to tabs",
+	"STATUSBAR_SPACES": "Espaces",
+	"STATUSBAR_TAB_SIZE": "Tab Size",
+	"STATUSBAR_LINE_COUNT": "{0} Lines",
 
     /**
      * Command Name Constants
@@ -221,10 +224,10 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "Version expérimentale",
 	"JSLINT_ERRORS": "Erreurs JSLint",
-	"JSLINT_ERROR_INFORMATION": "[Db] !é=1 JSLint Error=!",
-	"JSLINT_ERRORS_INFORMATION": "[Da] !é={0} JSLint Errors=!",
+	"JSLINT_ERROR_INFORMATION": "1 JSLint Error",
+	"JSLINT_ERRORS_INFORMATION": "{0} JSLint Errors",
 	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
-	"JSLINT_DISABLED": "[DZ] !é=JSLint disabled or not working for the current file=!",
+	"JSLINT_DISABLED": "JSLint disabled or not working for the current file",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
