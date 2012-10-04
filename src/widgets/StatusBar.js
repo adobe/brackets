@@ -7,15 +7,7 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var AppInit         = require("utils/AppInit"),
-        Editor          = require("editor/Editor"),
-        EditorManager   = require("editor/EditorManager"),
-        ExtensionUtils  = require("utils/ExtensionUtils"),
-        Strings         = require("strings"),
-        StringUtils     = require("utils/StringUtils");
-    
-    // Current focused editor
-    var currentEditor;
+    var AppInit = require("utils/AppInit");
     
     // Indicates if the busy cursor is active to avoid unnecesary operations
     var busyCursor = false;
@@ -27,67 +19,9 @@ define(function (require, exports, module) {
     // below since they refer to DOM elements
     var $editorContainer,
         $statusBar,
-        $modeInfo,
-        $cursorInfo,
-        $fileInfo,
-        $tabInfo,
         $indicators,
         $busyIndicator;
-    
-    function _updateModeInfo() {
-        $modeInfo.text(currentEditor.getModeForSelection());
-    }
-    
-    function _updateFileInfo() {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, currentEditor.lineCount()));
-    }
-    
-    function _updateTabCharInfo() {
-        $tabInfo.text(StringUtils.format(Strings.STATUSBAR_TAB_SIZE, currentEditor._codeMirror.getOption("tabSize")));
-    }
-    
-    function _updateCursorInfo() {
-        var cursor      = currentEditor.getCursorPos(),
-            cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
         
-        $cursorInfo.text(cursorInfo);
-    }
-    
-    /**
-     * @private
-     * Updates the focused full editor and cleans listeners
-     * TODO Add support for inline editors
-     */
-    function _onFocusedEditorChange(event, current, previous) {
-        
-        if (currentEditor) {
-            $(currentEditor).off("cursorActivity", _updateCursorInfo);
-        }
-        
-        currentEditor = current;
-        
-        if (!currentEditor) {
-            // Check if the statusbar is visible to hide it
-            if ($statusBar.is(":visible")) {
-                $statusBar.hide();
-                EditorManager.resizeEditor();
-            }
-        } else {
-            
-            // Check if the statusbar is not visible to show it
-            if (!$statusBar.is(":visible")) {
-                $statusBar.show();
-                EditorManager.resizeEditor();
-            }
-            
-            $(currentEditor).on('cursorActivity', _updateCursorInfo);
-            _updateCursorInfo();
-            _updateModeInfo();
-            _updateFileInfo();
-            _updateTabCharInfo();
-        }
-    }
-    
     /**
      * Shows the 'busy' indicator
      * @param {boolean} updateCursor Sets the cursor to "wait"
@@ -127,7 +61,7 @@ define(function (require, exports, module) {
      */
     function addIndicator(id, indicator, visible, style, tooltip, command) {
         
-        indicator = indicator || document.createElement("span");
+        indicator = indicator || document.createElement("div");
         tooltip = tooltip || "";
         style = style || "";
         id = id.replace(indicatorIDRegexp, "-") || "";
@@ -181,41 +115,32 @@ define(function (require, exports, module) {
     }
     
     /**
-     * @private
-     * Initialize the status bar and the focused editor status 
+     * Hide the statusbar
      */
-    function _initStatusBar() {
-        currentEditor = EditorManager.getFocusedEditor();
-        $(currentEditor).on("cursorActivity", _updateCursorInfo);
-        
-        _updateCursorInfo();
-        _updateModeInfo();
-        _updateFileInfo();
-        _updateTabCharInfo();
+    function hide() {
+        $statusBar.hide();
     }
     
-    $(EditorManager).on("focusedEditorChange", _onFocusedEditorChange);
+    /**
+     * Show the statusbar
+     */
+    function show() {
+        $statusBar.show();
+    }
     
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
-        $editorContainer    = $("#editor-holder");
         $statusBar          = $("#status-bar");
-        $modeInfo           = $("#status-mode");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $tabInfo            = $("#status-tab");
         $indicators         = $("#status-indicators");
         $busyIndicator      = $("#busy-indicator");
         
-        $statusBar.hide();
         $busyIndicator.hide();
-
-        // Initialize to the first editor
-        _onFocusedEditorChange(null, EditorManager.getFocusedEditor(), null);
     });
     
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;
     exports.updateIndicator = updateIndicator;
+    exports.hide = hide;
+    exports.show = show;
 });
