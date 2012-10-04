@@ -140,8 +140,8 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION"         : "Line {0}, Column {1}",
-    "STATUSBAR_INDENT_TOOLTIP_SPACES"   : "Click to switch to spaces",
-    "STATUSBAR_INDENT_TOOLTIP_TABS"     : "Click to switch to tabs",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"   : "Click to switch indentation to spaces",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"     : "Click to switch indentation to tabs",
     "STATUSBAR_SPACES"                  : "Spaces",
     "STATUSBAR_TAB_SIZE"                : "Tab Size",
     "STATUSBAR_LINE_COUNT"              : "{0} Lines",

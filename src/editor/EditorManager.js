@@ -637,6 +637,11 @@ define(function (require, exports, module) {
             resizeEditor();
             
             $(current).on("cursorActivity", _updateCursorInfo);
+            $(current).on("change", function () {
+                // async update to keep typing speed smooth
+                window.setTimeout(function () { _updateFileInfo(current); }, 0);
+            });
+            
             _updateCursorInfo(null, current);
             _updateModeInfo(current);
             _updateFileInfo(current);

@@ -100,7 +100,7 @@ a, img {
 
 #status-bar {
     background-color: @background-color-3;
-    border-top: 1px solid darken(@background-color-3, @bc-color-step-size * 2);
+    border-top: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
     box-sizing: border-box;
     color: @bc-grey;
     font-family: @fontstack-sans-serif;
@@ -154,6 +154,7 @@ a, img {
     width: 4px;
     height: 8px;
     cursor: pointer;
+    padding-left: 1px;
 }
     
 #indent-decrement {
