@@ -140,7 +140,9 @@ define({
      * StatusBar strings
      */
     "STATUSBAR_CURSOR_POSITION" : "Line {0}, Column {1}",
-    "STATUSBAR_TAB_SIZE"        : "Tab Size {0}",
+    "STATUSBAR_INDENT"          : "{0} {1}",
+    "STATUSBAR_SPACES"          : "Spaces",
+    "STATUSBAR_TAB_SIZE"        : "Tab Size",
     "STATUSBAR_LINE_COUNT"      : "{0} Lines",
 
     /**

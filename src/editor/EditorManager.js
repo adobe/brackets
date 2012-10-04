@@ -76,7 +76,9 @@ define(function (require, exports, module) {
     var $modeInfo,
         $cursorInfo,
         $fileInfo,
-        $tabInfo;
+        $indentInfo,
+        $indentDecrement,
+        $indentIncrement;
     
     /**
      * Adds keyboard command handlers to an Editor instance.
@@ -551,8 +553,30 @@ define(function (require, exports, module) {
         $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
     }
     
-    function _updateTabCharInfo(editor) {
-        $tabInfo.text(StringUtils.format(Strings.STATUSBAR_TAB_SIZE, editor._codeMirror.getOption("tabSize")));
+    function _updateIndentInfo(editor) {
+        $indentInfo.text(StringUtils.format(
+            Strings.STATUSBAR_INDENT,
+            editor._codeMirror.getOption("indentWithTabs") ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES,
+            editor._codeMirror.getOption("tabSize")
+        ));
+    }
+    
+    function _toggleIndentType() {
+        var editor = getFocusedEditor(),
+            val = editor._codeMirror.getOption("indentWithTabs");
+        
+        editor._codeMirror.setOption("indentWithTabs", !val);
+        
+        _updateIndentInfo(editor);
+    }
+    
+    function _updateIndentSize(inc) {
+        var editor = getFocusedEditor(),
+            val = editor._codeMirror.getOption("indentUnit");
+        
+        editor._codeMirror.setOption("indentWithTabs", val + inc);
+        
+        _updateIndentInfo(editor);
     }
     
     function _updateCursorInfo(event, editor) {
@@ -579,7 +603,7 @@ define(function (require, exports, module) {
             _updateCursorInfo(null, current);
             _updateModeInfo(current);
             _updateFileInfo(current);
-            _updateTabCharInfo(current);
+            _updateIndentInfo(current);
         }
     }
 
@@ -601,7 +625,14 @@ define(function (require, exports, module) {
         $modeInfo           = $("#status-mode");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
-        $tabInfo            = $("#tab-width-label");
+        $indentInfo         = $("#tab-width-label");
+        $indentDecrement    = $("#status-indent .decrement");
+        $indentIncrement    = $("#status-indent .increment");
+        
+        // indentation event handlers
+        $indentInfo.on("click", _toggleIndentType);
+        $indentDecrement.on("click", function () { _updateIndentSize(-1); });
+        $indentIncrement.on("click", function () { _updateIndentSize(1); });
         
         StatusBar.hide();
         _onFocusedEditorChange();
