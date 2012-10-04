@@ -6,15 +6,15 @@ var DEBUG = true;
 var http = require("http");
 var WebSocketServer = require('ws').Server;
 
-function _logError(error) {
+function _logError() {
 	"use strict";
-	console.error("[server] " + error.stack);
+	console.error.apply(console, arguments);
 }
 
-function _log(msg) {
+function _log() {
 	"use strict";
 	if (DEBUG) {
-		console.log("[server] " + msg);
+		console.log.apply(console, arguments);
 	}
 }
 
@@ -27,6 +27,7 @@ function _handleMessage(ws, message) {
 	var response = handler.apply(null, messageObj.args);
 	if (response && typeof response.then === "function") {
 		response.then(function (response) {
+			_log("->", response);
 			ws.send(JSON.stringify({ id: messageObj.id, response: response }));
 		}, function (error) {
 			_logError(error);
