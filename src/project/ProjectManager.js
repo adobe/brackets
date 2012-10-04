@@ -625,7 +625,7 @@ define(function (require, exports, module) {
         if (sampleUrl) {
             // Back up one more folder. The samples folder is assumed to be at the same level as
             // the src folder, and the sampleUrl is relative to the samples folder.
-            initialPath = (initialPath === ".") ? "./.." : initialPath.substr(0, initialPath.lastIndexOf("/"));
+            initialPath = (initialPath === ".") ? ".." : initialPath.substr(0, initialPath.lastIndexOf("/"));
             initialPath += "/samples/" + sampleUrl;
         }
 
