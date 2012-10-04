@@ -12,5 +12,6 @@
 , "dependencies": {
     "ws": "~ 0.4.15"
   , "node-promise": "~ 0.5.2"
+  , "trycatch": "~ 0.0.1"
   }
 }

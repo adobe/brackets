@@ -1,6 +1,7 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global exports, require */
 
+var trycatch = require("trycatch");
 var fs = require("fs");
 var path = require("path");
 var promise = require("node-promise/promise");
@@ -33,6 +34,7 @@ function _convertError(error) {
     case 56: // EROFS
         return ERR_OUT_OF_SPACE;
     case 28: // EISDIR
+    case 50: // EPERM
         return ERR_NOT_FILE;
     case 27: // ENOTDIR
         return ERR_NOT_DIRECTORY;
@@ -62,19 +64,22 @@ function _wrap(method) {
         });
 
         // call the method
-        try {
-            method.apply(undefined, args);
-        } catch (e) {
-            var err;
-            if (e instanceof TypeError) {
-                err = ERR_INVALID_PARAMS;
-            } else if (e.message === "Unknown encoding") {
-                err = ERR_UNSUPPORTED_ENCODING;
-            } else {
-                err = ERR_UNKNOWN;
+        trycatch(
+            function () {
+                method.apply(undefined, args);
+            },
+            function (error) {
+                var code;
+                if (error instanceof TypeError) {
+                    code = ERR_INVALID_PARAMS;
+                } else if (error.message === "Unknown encoding") {
+                    code = ERR_UNSUPPORTED_ENCODING;
+                } else {
+                    code = ERR_UNKNOWN;
+                }
+                r.resolve([code]);
             }
-            r.resolve([err]);
-        }
+        );
         return r;
     };
 }
