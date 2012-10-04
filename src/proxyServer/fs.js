@@ -16,13 +16,25 @@ var ERR_OUT_OF_SPACE = 7;
 var ERR_NOT_FILE = 8;
 var ERR_NOT_DIRECTORY = 9;
 
+
 function _convertError(error) {
     if (!error) {
         return NO_ERROR;
     }
     switch (error.errno) {
-    case 34:
+    case 18: // EINVAL
+        return ERR_INVALID_PARAMS;
+    case 34: // ENOENT
         return ERR_NOT_FOUND;
+    case 3: // EACCESS
+        return ERR_CANT_READ;
+    case 54: // ENOSPC
+    case 56: // EROFS
+        return ERR_OUT_OF_SPACE;
+    case 28: // EISDIR
+        return ERR_NOT_FILE;
+    case 27: // ENOTDIR
+        return ERR_NOT_DIRECTORY;
     }
     return ERR_UNKNOWN;
 }
@@ -49,7 +61,19 @@ function _wrap(method) {
         });
 
         // call the method
-        method.apply(undefined, args);
+        try {
+            method.apply(undefined, args);
+        } catch (e) {
+            var err;
+            if (e instanceof TypeError) {
+                err = ERR_INVALID_PARAMS;
+            } else if (e.message === "Unknown encoding") {
+                err = ERR_UNSUPPORTED_ENCODING;
+            } else {
+                err = ERR_UNKNOWN;
+            }
+            r.resolve([err]);
+        }
         return r;
     };
 }
@@ -61,7 +85,7 @@ function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialP
 }
 
 // file stats
-function stat(path, callback) {
+function _stat(path, callback) {
     "use strict";
     fs.stat(path, function (err, statData) {
         if (statData && callback) {
@@ -80,7 +104,7 @@ function stat(path, callback) {
 }
 
 // current working directory
-function cwd(callback) {
+function _cwd(callback) {
     callback(undefined, path.resolve());
 }
 
@@ -99,9 +123,9 @@ exports.ERR_NOT_DIRECTORY = ERR_NOT_DIRECTORY;
 // export functions
 exports.showOpenDialog = _wrap(fs.showOpenDialog);
 exports.readdir = _wrap(fs.readdir);
-exports.stat = _wrap(stat);
+exports.stat = _wrap(_stat);
 exports.readFile = _wrap(fs.readFile);
 exports.writeFile = _wrap(fs.writeFile);
 exports.chmod = _wrap(fs.chmod);
 exports.unlink = _wrap(fs.unlink);
-exports.cwd = _wrap(cwd);
+exports.cwd = _wrap(_cwd);
