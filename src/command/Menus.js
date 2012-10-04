@@ -854,9 +854,9 @@ define(function (require, exports, module) {
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
         menu.addMenuItem(Commands.FILE_SAVE_ALL,            "Ctrl-Alt-S");
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
         if (!brackets.inBrowser) {
+            menu.addMenuDivider();
+            menu.addMenuItem(Commands.FILE_LIVE_FILE_PREVIEW,   "Ctrl-Alt-P");
             menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT,                "Ctrl-Q");
         }

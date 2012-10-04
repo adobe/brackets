@@ -76,6 +76,8 @@ define({
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Open an HTML file in order to launch live preview.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Welcome to Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview connects {APP_NAME} to your browser. It launches a preview of your HTML file in the browser, then updates the preview instantly as you edit your code.<br /><br />In this early version of {APP_NAME}, Live Preview only works for edits to <strong>CSS files</strong> and only with <strong>Google Chrome</strong>. We'll be implementing it for HTML and JavaScript soon!<br /><br />(You'll only see this message once.)",
+    "LIVE_DEVELOPMENT_NOT_SUPPORTED_TITLE"   : "Live Preview Not Supported",
+    "LIVE_DEVELOPMENT_NOT_SUPPORTED_MESSAGE" : "Live Preview is not supported when running Brackets in a web browser. Please run the Brackets Shell instead.",
     
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED" : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
