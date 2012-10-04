@@ -53,8 +53,19 @@ define(function (require, exports, module) {
         }, callback);
     }
 
+    function _showConnectErrorDialog(callback) {
+        var r = Dialogs.showModalDialog(
+            Dialogs.DIALOG_ID_CONNECT,
+            Strings.ERROR_PROXY_SERVER_TITLE,
+            Strings.ERROR_PROXY_SERVER);
+        r.then(function (id) {
+            callback(undefined);
+        }, callback);
+    }
+
     function init() {
         brackets.fs.showOpenDialog = _showOpenDialog;
+        brackets.fs.showConnectErrorDialog = _showConnectErrorDialog;
     }
 
     exports.init = init;

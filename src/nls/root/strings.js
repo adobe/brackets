@@ -58,6 +58,8 @@ define({
     // Application error strings
     "ERROR_IN_BROWSER_TITLE"            : "Oops! {APP_NAME} doesn't run in browsers yet.",
     "ERROR_IN_BROWSER"                  : "{APP_NAME} is built in HTML, but right now it runs as a desktop app so you can use it to edit local files. Please use the application shell in the <b>github.com/adobe/brackets-shell</b> repo to run {APP_NAME}.",
+    "ERROR_PROXY_SERVER_TITLE"          : "Could not connect to the Node Proxy Server.",
+    "ERROR_PROXY_SERVER"                : "Please ensure that the Node Proxy Server is running on port 9000 on your web server and that your firewall is configured to allow traffic to the server.",
 
     // FileIndexManager error string
     "ERROR_MAX_FILES_TITLE"             : "Error Indexing Files",
@@ -226,9 +228,8 @@ define({
     "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
+    "RETRY"                                : "Retry",
     "DONT_SAVE"                            : "Don't Save",
-    "OPEN_FILE"                            : "Open File",
-    "OPEN_FOLDER"                          : "Open Folder",
     "SAVE"                                 : "Save",
     "CANCEL"                               : "Cancel",
     "RELOAD_FROM_DISK"                     : "Reload from Disk",

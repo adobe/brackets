@@ -24,21 +24,43 @@ define(function (require, exports, module) {
 		}
 	}
 
+	// on websocket open
+	function _onopen(event) {
+		var i;
+		// execute all pending requests
+		for (i in _messageQueue) {
+			if (_messageQueue.hasOwnProperty(i)) {
+				_socket.send(JSON.stringify(_messageQueue[i]));
+			}
+		}
+		_messageQueue = [];
+	}
+
+	// on websocket closed
+	function _onclose(event) {
+		brackets.fs.showConnectErrorDialog(function (err) {
+			if (err) {
+				// TODO: show the error dialog
+			} else {
+				connect();
+			}
+		})
+	}
+
+	// on websocket error
+	function _onerror(event) {
+	}
+
 	// connect to the node server
 	function connect() {
 		_socket = new WebSocket("ws://" + window.location.host + ":9000");
-		_socket.onopen = function (event) {
-			var i;
-			for (i in _messageQueue) {
-				if (_messageQueue.hasOwnProperty(i)) {
-					_socket.send(JSON.stringify(_messageQueue[i]));
-				}
-			}
-		};
-		_socket.onerror = function (event) {
-			throw arguments;
-		};
+		_socket.onopen = _onopen;
+		_socket.onerror = _onerror;
+		_socket.onclose = _onclose;
 		_socket.onmessage = _onmessage;
+		setTimeout(function () {
+			console.log(_socket.readyState);
+		}, 500);
 	}
 
 	// forward the method for the module to the node server
