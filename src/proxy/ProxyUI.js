@@ -29,7 +29,8 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_OPEN_FILE,
             Strings.OPEN_FILE_TITLE,
-            _message(Strings.OPEN_FILE_MESSAGE, path));
+            _message(Strings.OPEN_FILE_MESSAGE, path)
+        );
     }
 
     function _showOpenFolderDialog() {
@@ -37,7 +38,8 @@ define(function (require, exports, module) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_OPEN_FOLDER,
             Strings.OPEN_FOLDER_TITLE,
-            _message(Strings.OPEN_FOLDER_MESSAGE, path));
+            _message(Strings.OPEN_FOLDER_MESSAGE, path)
+        );
     }
 
     function _showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
@@ -57,7 +59,8 @@ define(function (require, exports, module) {
         var r = Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_CONNECT,
             Strings.ERROR_PROXY_SERVER_TITLE,
-            Strings.ERROR_PROXY_SERVER);
+            Strings.ERROR_PROXY_SERVER
+        );
         r.then(function (id) {
             callback(undefined);
         }, callback);

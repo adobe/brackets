@@ -18,6 +18,7 @@ var ERR_NOT_DIRECTORY = 9;
 
 
 function _convertError(error) {
+    "use strict";
     if (!error) {
         return NO_ERROR;
     }
@@ -105,6 +106,7 @@ function _stat(path, callback) {
 
 // current working directory
 function _cwd(callback) {
+    "use strict";
     callback(undefined, path.resolve());
 }
 

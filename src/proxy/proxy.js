@@ -39,12 +39,8 @@ define(function (require, exports, module) {
 	// on websocket closed
 	function _onclose(event) {
 		brackets.fs.showConnectErrorDialog(function (err) {
-			if (err) {
-				// TODO: show the error dialog
-			} else {
-				connect();
-			}
-		})
+			exports.connect();
+		});
 	}
 
 	// on websocket error

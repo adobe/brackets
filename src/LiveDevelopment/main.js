@@ -121,7 +121,8 @@ define(function main(require, exports, module) {
             Dialogs.showModalDialog(
                 Dialogs.DIALOG_ID_ERROR,
                 Strings.LIVE_DEVELOPMENT_NOT_SUPPORTED_TITLE,
-                Strings.LIVE_DEVELOPMENT_NOT_SUPPORTED_MESSAGE);
+                Strings.LIVE_DEVELOPMENT_NOT_SUPPORTED_MESSAGE
+            );
             return;
         }
         if (LiveDevelopment.status >= LiveDevelopment.STATUS_CONNECTING) {
