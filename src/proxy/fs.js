@@ -4,7 +4,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var proxy = require("proxy/proxy");
+    var Proxy = require("proxy/Proxy");
 
     var NO_ERROR = 0;
     var ERR_UNKNOWN = 1;
@@ -17,16 +17,12 @@ define(function (require, exports, module) {
     var ERR_NOT_FILE = 8;
     var ERR_NOT_DIRECTORY = 9;
 
-    function showOpenDialog(allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
-        console.log("PROXY: fs.showOpenDialog()", arguments);
-    }
-
     function readdir(path, callback) {
-        return proxy.send("fs", "readdir", path, callback);
+        return Proxy.send("fs", "readdir", path, callback);
     }
 
     function stat(path, callback) {
-        proxy.send("fs", "stat", path, function (err, statData) {
+        Proxy.send("fs", "stat", path, function (err, statData) {
             if (statData && callback) {
                 statData.isFile = function () { return statData._isFile; };
                 statData.isDirectory = function () { return statData._isDirectory; };
@@ -37,25 +33,31 @@ define(function (require, exports, module) {
                 statData.atime = new Date(statData.atime);
                 statData.mtime = new Date(statData.mtime);
                 statData.ctime = new Date(statData.ctime);
+            }
+            if (callback) {
                 callback(err, statData);
             }
         });
     }
 
     function readFile(path, encoding, callback) {
-        return proxy.send("fs", "readFile", path, encoding, callback);
+        return Proxy.send("fs", "readFile", path, encoding, callback);
     }
 
     function writeFile(path, data, encoding, callback) {
-        return proxy.send("fs", "writeFile", path, data, encoding, callback);
+        return Proxy.send("fs", "writeFile", path, data, encoding, callback);
     }
 
     function chmod(path, mode, callback) {
-        return proxy.send("fs", "chmod", path, mode, callback);
+        return Proxy.send("fs", "chmod", path, mode, callback);
     }
 
     function unlink(path, callback) {
-        return proxy.send("fs", "unlink", path, callback);
+        return Proxy.send("fs", "unlink", path, callback);
+    }
+
+    function cwd(callback) {
+        return Proxy.send("fs", "cwd", callback);
     }
 
     exports.NO_ERROR = NO_ERROR;
@@ -69,11 +71,11 @@ define(function (require, exports, module) {
     exports.ERR_NOT_FILE = ERR_NOT_FILE;
     exports.ERR_NOT_DIRECTORY = ERR_NOT_DIRECTORY;
 
-    exports.showOpenDialog = showOpenDialog;
     exports.readdir = readdir;
     exports.stat = stat;
     exports.readFile = readFile;
     exports.writeFile = writeFile;
     exports.chmod = chmod;
     exports.unlink = unlink;
+    exports.cwd = cwd;
 });

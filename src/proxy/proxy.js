@@ -1,14 +1,18 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, WebSocket, window */
+/*global brackets, define, WebSocket, window */
 
 define(function (require, exports, module) {
 	"use strict";
+
+    var app = require("proxy/app");
+    var fs  = require("proxy/fs");
 
 	var _socket;
 	var _messageId = 1;
 	var _messageQueue = [];
 	var _messageCallbacks = {};
 
+	// received message from the node server
 	function _onmessage(data) {
 		if (data.type === "message") {
 			var msg = JSON.parse(data.data);
@@ -20,7 +24,8 @@ define(function (require, exports, module) {
 		}
 	}
 
-	function connect(onopen, onclose) {
+	// connect to the node server
+	function connect() {
 		_socket = new WebSocket("ws://" + window.location.host + ":9000");
 		_socket.onopen = function (event) {
 			var i;
@@ -29,14 +34,14 @@ define(function (require, exports, module) {
 					_socket.send(JSON.stringify(_messageQueue[i]));
 				}
 			}
-			if (onopen) {
-				onopen(event);
-			}
+		};
+		_socket.onerror = function (event) {
+			throw arguments;
 		};
 		_socket.onmessage = _onmessage;
-		_socket.onclose = onclose;
 	}
 
+	// forward the method for the module to the node server
 	function send(module, method) {
 		var args = Array.prototype.slice.call(arguments, 2);
 		var id;
@@ -59,8 +64,14 @@ define(function (require, exports, module) {
 		}
 	}
 
+	function init() {
+		brackets.app = app;
+		brackets.fs = fs;
+		connect();
+	}
 
 	exports.connect = connect;
 	exports.send = send;
+	exports.init = init;
 
 });
