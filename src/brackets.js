@@ -61,6 +61,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
+        ProxyUI                 = require("proxy/ProxyUI"),
         AppInit                 = require("utils/AppInit"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
@@ -96,6 +97,11 @@ define(function (require, exports, module) {
     // Local variables
     var params                  = new UrlParams(),
         PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
+
+    // load the proxy if running in browser
+    if (brackets.inBrowser) {
+        ProxyUI.init();
+    }
     
     // read URL params
     params.parse();

@@ -35,6 +35,7 @@ define(function (require, exports, module) {
     "use strict";
     
     var packageJSON = require("text!package.json");
+    var Proxy = require("proxy/Proxy");
     
     // Define core brackets namespace if it isn't already defined
     //
@@ -47,12 +48,11 @@ define(function (require, exports, module) {
     //   http://stackoverflow.com/questions/3277182/how-to-get-the-global-object-in-javascript
     var Fn = Function, global = (new Fn("return this"))();
     if (!global.brackets) {
-        global.brackets = {
-            inBrowser: true,
-            app: require("proxy/app"),
-            fs: require("proxy/fs")
-        };
-        require("proxy/proxy").connect();
+        global.brackets = {};
+        global.brackets.inBrowser = true;
+
+        // initialize the proxy connection - this will define brackets.app and brackets.fs
+        Proxy.init();
     } else {
         global.brackets.inBrowser = false;
     }
