@@ -620,16 +620,15 @@ define(function (require, exports, module) {
      * @return {!string} fullPath reference
      */
     function _getWelcomeProjectPath() {
-        var srcPath = decodeURI(window.location.pathname),
-            initialPath = srcPath.substr(0, srcPath.lastIndexOf("/")),
+        var initialPath = FileUtils.getNativeBracketsDirectoryPath(),
             sampleUrl = Urls.GETTING_STARTED;
         if (sampleUrl) {
             // Back up one more folder. The samples folder is assumed to be at the same level as
             // the src folder, and the sampleUrl is relative to the samples folder.
-            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
+            initialPath = (initialPath === ".") ? "./.." : initialPath.substr(0, initialPath.lastIndexOf("/"));
+            initialPath += "/samples/" + sampleUrl;
         }
 
-        initialPath = FileUtils.convertToNativePath(initialPath);
         return initialPath;
     }
     
