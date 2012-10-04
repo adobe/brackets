@@ -21,7 +21,7 @@ define(function (require, exports, module) {
         $statusBar,
         $indicators,
         $busyIndicator;
-    
+        
     /**
      * Shows the 'busy' indicator
      * @param {boolean} updateCursor Sets the cursor to "wait"
