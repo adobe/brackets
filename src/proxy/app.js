@@ -5,15 +5,15 @@ define(function (require, exports, module) {
     "use strict";
 
     function quit() {
-        console.log("PROXY: app.quit()", arguments);
+        // unsupported
     }
 
     function abortQuit() {
-        console.log("PROXY: app.abortQuit()", arguments);
+        // unsupported
     }
 
     function showDeveloperTools() {
-        console.log("PROXY: app.showDeveloperTools()", arguments);
+        // nothing (Chrome does this automatically)
     }
 
     function getElapsedMilliseconds() {
@@ -21,11 +21,11 @@ define(function (require, exports, module) {
     }
 
     function openLiveBrowser(url, enableRemoteDebugging, callback) {
-        console.log("PROXY: app.openLiveBrowser()", arguments);
+        callback(undefined);
     }
 
     function closeLiveBrowser(callback) {
-        console.log("PROXY: app.closeLiveBrowser()", arguments);
+        callback(undefined);
     }
 
     function openURLInDefaultBrowser(callback, url) {
