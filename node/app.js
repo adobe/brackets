@@ -1,6 +1,8 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global exports: true */
 
+// this is currently unused - provided for sake of completeness
+
 function quit() {
     "use strict";
     console.log("PROXY: app.quit()", arguments);
@@ -41,6 +43,7 @@ function showExtensionsFolder() {
     console.log("PROXY: app.showExtensionsFolder()", arguments);
 }
 
+// export functions
 exports.quit = quit;
 exports.abortQuit = abortQuit;
 exports.showDeveloperTools = showDeveloperTools;

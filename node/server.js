@@ -1,6 +1,8 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require */
 
+var DEBUG = true;
+
 var WebSocketServer = require('ws').Server;
 
 function _logError(error) {
@@ -10,7 +12,9 @@ function _logError(error) {
 
 function _log(msg) {
 	"use strict";
-	console.log("[server] " + msg);
+	if (DEBUG) {
+		console.log("[server] " + msg);
+	}
 }
 
 function _handleMessage(ws, message) {
