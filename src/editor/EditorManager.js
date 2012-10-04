@@ -35,7 +35,8 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires asynchronously after the focused editor (full or inline) changes and size/visibility are complete.
+ *    - focusedEditorChange -- Fires asynchronously after the focused editor
+ *                             (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -345,8 +346,9 @@ define(function (require, exports, module) {
                 _currentEditor.setVisible(false);
             }
 
-            // current may be an inline editor, but _currentEditor must be a full editor
-            if (current && !current._visibleRange) {
+            // _currentEditor must be a full editor or null (show no editor).
+            // _currentEditor must not be an inline editor
+            if (!current || (current && !current._visibleRange)) {
                 _currentEditor = current;
             }
         
@@ -366,7 +368,7 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _doFocusedEditorChanged(document._masterEditor);
+        _doFocusedEditorChanged(document._masterEditor, _currentEditor);
     }
 
     /**
@@ -397,7 +399,7 @@ define(function (require, exports, module) {
     function _showNoEditor() {
         if (_currentEditor) {
             _destroyEditorIfUnneeded(_currentEditorsDocument);
-            _doFocusedEditorChanged(null);
+            _doFocusedEditorChanged(null, _currentEditor);
             
             _currentEditorsDocument = null;
             
@@ -582,13 +584,13 @@ define(function (require, exports, module) {
     // For unit tests and internal use only
     exports._openInlineWidget = _openInlineWidget;
     exports._doFocusedEditorChanged = _doFocusedEditorChanged;
+    exports._createFullEditorForDocument = _createFullEditorForDocument;
+    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;
     exports.getCurrentFullEditor = getCurrentFullEditor;
     exports.createInlineEditorForDocument = createInlineEditorForDocument;
-    exports._createFullEditorForDocument = _createFullEditorForDocument;
-    exports._destroyEditorIfUnneeded = _destroyEditorIfUnneeded;
     exports.focusEditor = focusEditor;
     exports.getFocusedEditor = getFocusedEditor;
     exports.getFocusedInlineWidget = getFocusedInlineWidget;

@@ -66,14 +66,12 @@ define(function (require, exports, module) {
         
         currentEditor = current;
         
-        if (currentEditor === null) {
-            
-           // Check if the statusbar is visible to hide it
+        if (!currentEditor) {
+            // Check if the statusbar is visible to hide it
             if ($statusBar.is(":visible")) {
                 $statusBar.hide();
                 EditorManager.resizeEditor();
             }
-            
         } else {
             
             // Check if the statusbar is not visible to show it
@@ -211,7 +209,9 @@ define(function (require, exports, module) {
         
         $statusBar.hide();
         $busyIndicator.hide();
-        _onFocusedEditorChange();
+
+        // Initialize to the first editor
+        _onFocusedEditorChange(null, EditorManager.getFocusedEditor(), null);
     });
     
     exports.showBusyIndicator = showBusyIndicator;
