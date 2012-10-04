@@ -35,7 +35,7 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- When the focused editor (full or inline) changes and size/visibility are complete.
+ *    - focusedEditorChange -- Fires asynchronously after the focused editor (full or inline) changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -202,11 +202,15 @@ define(function (require, exports, module) {
      */
     function getInlineEditors(hostEditor) {
         var inlineEditors = [];
-        hostEditor.getInlineWidgets().forEach(function (widget) {
-            if (widget instanceof InlineTextEditor) {
-                inlineEditors = inlineEditors.concat(widget.editors);
-            }
-        });
+        
+        if (hostEditor) {
+            hostEditor.getInlineWidgets().forEach(function (widget) {
+                if (widget instanceof InlineTextEditor) {
+                    inlineEditors = inlineEditors.concat(widget.editors);
+                }
+            });
+        }
+
         return inlineEditors;
     }
     
@@ -248,8 +252,6 @@ define(function (require, exports, module) {
     function createInlineEditorForDocument(doc, range, inlineContent, additionalKeys) {
         // Create the Editor
         var inlineEditor = _createEditorForDocument(doc, false, inlineContent, range, additionalKeys);
-        
-        $(exports).triggerHandler("focusedEditorChange", inlineEditor);
         
         return { content: inlineContent, editor: inlineEditor };
     }
@@ -324,6 +326,39 @@ define(function (require, exports, module) {
         }
     }
     
+    /**
+     * @private
+     */
+    function _doFocusedEditorChanged(current, previous) {
+        // Fire focusedEditorChange asynchronously to allow CodeMirror to
+        // completely update focused state. CodeMirror fires it's "onFocus"
+        // event prior to setting it's internal state.
+        window.setTimeout(function () {
+            // Skip if the new editor is already the focused editor.
+            // This may happen if the window loses then regains focus.
+            if (previous === current) {
+                return;
+            }
+
+            // if switching to no-editor, hide the last full editor
+            if (_currentEditor && !current) {
+                _currentEditor.setVisible(false);
+            }
+
+            // current may be an inline editor, but _currentEditor must be a full editor
+            if (current && !current._visibleRange) {
+                _currentEditor = current;
+            }
+        
+            // Window may have been resized since last time editor was visible, so kick it now
+            if (_currentEditor) {
+                _currentEditor.setVisible(true);
+                resizeEditor();
+            }
+            
+            $(exports).triggerHandler("focusedEditorChange", [current, previous]);
+        });
+    }
     
     /**
      * @private
@@ -331,14 +366,7 @@ define(function (require, exports, module) {
     function _doShow(document) {
         // Show new editor
         _currentEditorsDocument = document;
-        _currentEditor = document._masterEditor;
-        
-        _currentEditor.setVisible(true);
-        
-        // Window may have been resized since last time editor was visible, so kick it now
-        resizeEditor();
-        
-        $(exports).triggerHandler("focusedEditorChange", _currentEditor);
+        _doFocusedEditorChanged(document._masterEditor);
     }
 
     /**
@@ -368,15 +396,12 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
-            _currentEditor.setVisible(false);
             _destroyEditorIfUnneeded(_currentEditorsDocument);
+            _doFocusedEditorChanged(null);
             
             _currentEditorsDocument = null;
-            _currentEditor = null;
             
             $("#not-editor").css("display", "");
-        
-            $(exports).triggerHandler("focusedEditorChange", _currentEditor);
         }
     }
 
@@ -400,7 +425,6 @@ define(function (require, exports, module) {
         } else {
             _showNoEditor();
         }
-
 
         PerfUtils.addMeasurement(perfTimerName);
     }
@@ -471,6 +495,15 @@ define(function (require, exports, module) {
         
         return result;
     }
+
+    function _getFocusedInlineEditor() {
+        var focusedInline = getFocusedInlineWidget();
+        if (focusedInline) {
+            return focusedInline.editor;
+        }
+
+        return null;
+    }
     
     /**
      * Returns the currently focused editor instance (full-sized OR inline editor).
@@ -480,9 +513,9 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             
             // See if any inlines have focus
-            var focusedInline = getFocusedInlineWidget();
+            var focusedInline = _getFocusedInlineEditor();
             if (focusedInline) {
-                return focusedInline.editor;
+                return focusedInline;
             }
 
             // otherwise, see if full-sized editor has focus
@@ -491,7 +524,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return null;
+        return _currentEditor;
     }
  
     /**
@@ -546,8 +579,9 @@ define(function (require, exports, module) {
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);
     
-    // For unit tests
+    // For unit tests and internal use only
     exports._openInlineWidget = _openInlineWidget;
+    exports._doFocusedEditorChanged = _doFocusedEditorChanged;
     
     // Define public API
     exports.setEditorHolder = setEditorHolder;

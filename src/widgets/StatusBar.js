@@ -14,8 +14,8 @@ define(function (require, exports, module) {
         Strings         = require("strings"),
         StringUtils     = require("utils/StringUtils");
     
-    // Current focused full editor
-    var fullEditor;
+    // Current focused editor
+    var currentEditor;
     
     // Indicates if the busy cursor is active to avoid unnecesary operations
     var busyCursor = false;
@@ -35,19 +35,19 @@ define(function (require, exports, module) {
         $busyIndicator;
     
     function _updateModeInfo() {
-        $modeInfo.text(fullEditor.getModeForSelection());
+        $modeInfo.text(currentEditor.getModeForSelection());
     }
     
     function _updateFileInfo() {
-        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, fullEditor.lineCount()));
+        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, currentEditor.lineCount()));
     }
     
     function _updateTabCharInfo() {
-        $tabInfo.text(StringUtils.format(Strings.STATUSBAR_TAB_SIZE, fullEditor._codeMirror.getOption("tabSize")));
+        $tabInfo.text(StringUtils.format(Strings.STATUSBAR_TAB_SIZE, currentEditor._codeMirror.getOption("tabSize")));
     }
     
     function _updateCursorInfo() {
-        var cursor      = fullEditor.getCursorPos(),
+        var cursor      = currentEditor.getCursorPos(),
             cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
         
         $cursorInfo.text(cursorInfo);
@@ -58,15 +58,15 @@ define(function (require, exports, module) {
      * Updates the focused full editor and cleans listeners
      * TODO Add support for inline editors
      */
-    function _onFocusedEditorChange(evt) {
+    function _onFocusedEditorChange(event, current, previous) {
         
-        if (fullEditor) {
-            $(fullEditor).off("cursorActivity", _updateCursorInfo);
+        if (currentEditor) {
+            $(currentEditor).off("cursorActivity", _updateCursorInfo);
         }
         
-        fullEditor  = EditorManager.getCurrentFullEditor();
+        currentEditor = current;
         
-        if (fullEditor === null) {
+        if (currentEditor === null) {
             
            // Check if the statusbar is visible to hide it
             if ($statusBar.is(":visible")) {
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
                 EditorManager.resizeEditor();
             }
             
-            $(fullEditor).on('cursorActivity', _updateCursorInfo);
+            $(currentEditor).on('cursorActivity', _updateCursorInfo);
             _updateCursorInfo();
             _updateModeInfo();
             _updateFileInfo();
@@ -187,8 +187,8 @@ define(function (require, exports, module) {
      * Initialize the status bar and the focused editor status 
      */
     function _initStatusBar() {
-        fullEditor = EditorManager.getCurrentFullEditor();
-        $(fullEditor).on("cursorActivity", _updateCursorInfo);
+        currentEditor = EditorManager.getFocusedEditor();
+        $(currentEditor).on("cursorActivity", _updateCursorInfo);
         
         _updateCursorInfo();
         _updateModeInfo();
