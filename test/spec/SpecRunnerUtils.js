@@ -43,9 +43,9 @@ define(function (require, exports, module) {
     
     function getTestRoot() {
         // /path/to/brackets/test/SpecRunner.html
-        var path = window.location.pathname;
-        path = path.substr(0, path.lastIndexOf("/"));
-        path = FileUtils.convertToNativePath(path);
+        var path = FileUtils.getNativeBracketsDirectoryPath();
+        path = path === "." ? ".." : path.substr(0, path.lastIndexOf("/"));
+        path += "/test";
         return path;
     }
     
@@ -54,11 +54,10 @@ define(function (require, exports, module) {
     }
     
     function getBracketsSourceRoot() {
-        var path = window.location.pathname;
-        path = path.split("/");
-        path = path.slice(0, path.length - 2);
-        path.push("src");
-        return path.join("/");
+        var path = FileUtils.getNativeBracketsDirectoryPath();
+        path = path === "." ? ".." : path.substr(0, path.lastIndexOf("/"));
+        path += "/src";
+        return path;
     }
     
     /**
