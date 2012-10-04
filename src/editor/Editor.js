@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false };
+        defaultPrefs = { useTabChar: false, tabSize: 4 };
     
     /**
      * @private
@@ -241,6 +241,8 @@ define(function (require, exports, module) {
     /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
     var _useTabChar = _prefs.getValue("useTabChar");
     
+    /** @type {boolean}  Global setting: Tab size */
+    var _tabSize = _prefs.getValue("tabSize");
     
     
     /**
@@ -336,8 +338,8 @@ define(function (require, exports, module) {
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
         this._codeMirror = new CodeMirror(container, {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
-            indentUnit: 4,
             indentWithTabs: _useTabChar,
+            tabSize: _tabSize,
             lineNumbers: true,
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
@@ -1079,11 +1081,29 @@ define(function (require, exports, module) {
         _prefs.setValue("useTabChar", Boolean(_useTabChar));
     };
     
-    /** @type {boolean}  Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
+    /** @type {boolean} Gets whether all Editors use tab characters (vs. spaces) when inserting new text */
     Editor.getUseTabChar = function (value) {
         return _useTabChar;
     };
 
+    /**
+     * Sets tab size for both tab and space indentation. Affects all Editors.
+     * @param {number} value
+     */
+    Editor.setTabSize = function (value) {
+        _tabSize = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("tabSize", _tabSize);
+        });
+        
+        // Remember the setting across launches
+        _prefs.setValue("tabSize", _tabSize);
+    };
+    
+    /** @type {number} Get  */
+    Editor.getTabSize = function (value) {
+        return _tabSize;
+    };
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
     CommandManager.register(Strings.CMD_SELECT_ALL,     Commands.EDIT_SELECT_ALL, _handleSelectAll);
