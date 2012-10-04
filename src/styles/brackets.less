@@ -134,36 +134,35 @@ a, img {
     font-size: 1.4em;
 }
 
-#tab-width-label {
-    /* override default label styles */
-    color: @bc-grey;
-    float: none;
-    font-size: 1em;
-    line-height: 1;
-    padding: 0;
-    width: auto;
+#status-indent div {
+    display: inline-block;
+}
+
+#indent-type, #indent-width, #indent-decrement {
+    margin-right: 2px;
+}
+
+#indent-type, #indent-decrement, #indent-increment {
     cursor: pointer;
 }
 
-#tab-width-label:hover {
+#indent-type:hover {
     text-decoration: underline;
 }
 
-#status-indent div {
-    display: inline-block;
+#indent-decrement, #indent-increment {
     width: 4px;
     height: 8px;
-    padding: 0;
     cursor: pointer;
+}
     
-    &.decrement {
-        background: url("images/stepper-arrow-sprites.svg") no-repeat top left;
-        margin-right: 2px;
-    }
-    
-    &.increment {
-        background: url("images/stepper-arrow-sprites.svg") no-repeat top right;
-    }
+#indent-decrement {
+    background: url("images/stepper-arrow-sprites.svg") no-repeat top left;
+}
+
+#indent-increment {
+    background: url("images/stepper-arrow-sprites.svg") no-repeat top right;
+    margin-right: 0px;
 }
 
 #editor-holder {

@@ -76,7 +76,8 @@ define(function (require, exports, module) {
     var $modeInfo,
         $cursorInfo,
         $fileInfo,
-        $indentInfo,
+        $indentType,
+        $indentWidth,
         $indentDecrement,
         $indentIncrement;
     
@@ -554,11 +555,10 @@ define(function (require, exports, module) {
     }
     
     function _updateIndentInfo(editor) {
-        $indentInfo.text(StringUtils.format(
-            Strings.STATUSBAR_INDENT,
-            editor._codeMirror.getOption("indentWithTabs") ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES,
-            editor._codeMirror.getOption("tabSize")
-        ));
+        var indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
+        $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
+        $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
+        $indentWidth.text(editor._codeMirror.getOption("tabSize"));
     }
     
     function _toggleIndentType() {
@@ -625,12 +625,13 @@ define(function (require, exports, module) {
         $modeInfo           = $("#status-mode");
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
-        $indentInfo         = $("#tab-width-label");
-        $indentDecrement    = $("#status-indent .decrement");
-        $indentIncrement    = $("#status-indent .increment");
+        $indentType         = $("#indent-type");
+        $indentWidth        = $("#indent-width");
+        $indentDecrement    = $("#indent-decrement");
+        $indentIncrement    = $("#indent-increment");
         
         // indentation event handlers
-        $indentInfo.on("click", _toggleIndentType);
+        $indentType.on("click", _toggleIndentType);
         $indentDecrement.on("click", function () { _updateIndentSize(-1); });
         $indentIncrement.on("click", function () { _updateIndentSize(1); });
         
