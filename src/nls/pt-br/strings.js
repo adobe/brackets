@@ -70,7 +70,7 @@ define({
 
     "LIVE_DEVELOPMENT_ERROR_TITLE"      : "Erro de Live Preview",
     "LIVE_DEVELOPMENT_RELAUNCH_TITLE"   : "Conectando ao navegador",
-    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para que a Live Preview conecte, Chrome deve ser aberto com a opção de depuração remota ativada.<br /><br />Gostaria de reabir Chrome e permitir a depuração remota?",
+    "LIVE_DEVELOPMENT_ERROR_MESSAGE"    : "Para que a Live Preview conecte, Chrome deve ser aberto com a opção de depuração remota ativada.<br /><br />Gostaria de reabrir Chrome e permitir a depuração remota?",
     "LIVE_DEV_NEED_HTML_MESSAGE"        : "Abra um arquivo HTML a fim de lançar Live Preview.",
     "LIVE_DEVELOPMENT_INFO_TITLE"       : "Bem-vindo à Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"     : "Live Preview se conecta {APP_NAME} ao seu navegador. Ele lança uma prévia do seu arquivo HTML no navegador, em seguida atualiza a visualização de imediato, quando você editar o código.<br /><br />Nesta versão inicial de {APP_NAME}, Live Preview só funciona para as edições de <strong>arquivos CSS</strong> e apenas com <strong>Google Chrome</strong>. Nós iremos implementá-lo para HTML e JavaScript em breve!<br /><br />(Você só vai ver esta mensagem uma vez.)",
@@ -166,7 +166,7 @@ define({
     "CMD_LINE_DOWN"                       : "Mover Linha(s) para baixo",
 
     // View menu commands
-    "VIEW_MENU"                           : "Vver",
+    "VIEW_MENU"                           : "Ver",
     "CMD_HIDE_SIDEBAR"                    : "Esconder Barra Lateral",
     "CMD_SHOW_SIDEBAR"                    : "Mostrar Barra Lateral",
     "CMD_INCREASE_FONT_SIZE"              : "Aumentar Tamanho da Font",
@@ -208,8 +208,8 @@ define({
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versão Experimental",
-    "JSLINT_ERRORS"                        : "Errores JSLint",
-    "JSLINT_NO_ERRORS"                     : "Sem errores JSLint - bom trabalho!",
+    "JSLINT_ERRORS"                        : "Erros JSLint",
+    "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
     "SEARCH_RESULTS"                       : "Resultados da Pesquisa",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Não Salvar",
@@ -222,7 +222,7 @@ define({
     "ABOUT"                                : "Sobre",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Fechar",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 versão experimental",
+    "ABOUT_TEXT_LINE1"                     : "sprint 15 versão experimental",
     "ABOUT_TEXT_LINE3"                     : "Avisos, termos e condições de softwares de terceiros estão localizados em <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e aqui incorporados por referência.",
     "ABOUT_TEXT_LINE4"                     : "Documentação e fontes <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Há uma nova versão de {APP_NAME} disponível! Clique aqui para mais detalhes.",
