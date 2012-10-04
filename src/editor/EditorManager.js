@@ -41,7 +41,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var FileUtils           = require("file/FileUtils"),
+    var AppInit             = require("utils/AppInit"),
+        FileUtils           = require("file/FileUtils"),
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -50,7 +51,9 @@ define(function (require, exports, module) {
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        Strings             = require("strings");
+        StatusBar           = require("widgets/StatusBar"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -69,6 +72,11 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
+    /* StatusBar indicators */
+    var $modeInfo,
+        $cursorInfo,
+        $fileInfo,
+        $tabInfo;
     
     /**
      * Adds keyboard command handlers to an Editor instance.
@@ -534,7 +542,48 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+    
+    function _updateModeInfo(editor) {
+        $modeInfo.text(editor.getModeForSelection());
+    }
+    
+    function _updateFileInfo(editor) {
+        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
+    }
+    
+    function _updateTabCharInfo(editor) {
+        $tabInfo.text(StringUtils.format(Strings.STATUSBAR_TAB_SIZE, editor._codeMirror.getOption("tabSize")));
+    }
+    
+    function _updateCursorInfo(event, editor) {
+        var cursor      = editor.getCursorPos(),
+            cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
+        
+        $cursorInfo.text(cursorInfo);
+    }
+    
+    function _onFocusedEditorChange(event, current, previous) {
+        if (previous) {
+            $(previous).off("cursorActivity", _updateCursorInfo);
+        }
+        
+        if (!current) {
+            StatusBar.hide();
+            resizeEditor();
+        } else {
+            // Check if the statusbar is not visible to show it
+            StatusBar.show();
+            resizeEditor();
+            
+            $(current).on("cursorActivity", _updateCursorInfo);
+            _updateCursorInfo(null, current);
+            _updateModeInfo(current);
+            _updateFileInfo(current);
+            _updateTabCharInfo(current);
+        }
+    }
 
+    // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
     // Initialize: register listeners
@@ -545,6 +594,18 @@ define(function (require, exports, module) {
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);
+    
+    // Initialize: status bar focused listener
+    $(exports).on("focusedEditorChange", _onFocusedEditorChange);
+    AppInit.htmlReady(function () {
+        $modeInfo           = $("#status-mode");
+        $cursorInfo         = $("#status-cursor");
+        $fileInfo           = $("#status-file");
+        $tabInfo            = $("#tab-width-label");
+        
+        StatusBar.hide();
+        _onFocusedEditorChange();
+    });
     
     // For unit tests
     exports._openInlineWidget = _openInlineWidget;
