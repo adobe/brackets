@@ -35,6 +35,7 @@ define({
 	"NOT_READABLE_ERR": "Impossible de lire le fichier.",
 	"NO_MODIFICATION_ALLOWED_ERR": "Le répertoire cible ne peut pas être modifié.",
 	"NO_MODIFICATION_ALLOWED_ERR_FILE": "Vous n’êtes pas autorisé à effectuer des modifications.",
+	"FILE_EXISTS_ERR": "[DY] !é=The file already exists.=!",
 
     // Project error strings
 	"ERROR_LOADING_PROJECT": "Erreur lors du chargement du projet",
@@ -49,6 +50,8 @@ define({
 	"ERROR_RELOADING_FILE": "Une erreur s’est produite lors de la tentative de rechargement du fichier <span class='dialog-filename'>{0}</span>. {1}",
 	"ERROR_SAVING_FILE_TITLE": "Erreur lors de l’enregistrement du fichier",
 	"ERROR_SAVING_FILE": "Une erreur s’est produite lors de la tentative d’enregistrement du fichier <span class='dialog-filename'>{0}</span>. {1}",
+	"ERROR_RENAMING_FILE_TITLE": "[DX] !é=Error renaming file=!",
+	"ERROR_RENAMING_FILE": "[DW] !é=An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}=!",
 	"INVALID_FILENAME_TITLE": "Nom de fichier non valide",
 	"INVALID_FILENAME_MESSAGE": "Les noms de fichier ne peuvent pas contenir les caractères suivants : /?*:;{}<>\\|",
 	"FILE_ALREADY_EXISTS": "Le fichier <span class='dialog-filename'>{0}</span> existe déjà.",
@@ -132,6 +135,13 @@ define({
 	"KEYBOARD_CTRL": "Ctrl",
 	"KEYBOARD_SHIFT": "Maj",
 	"KEYBOARD_SPACE": "Espace",
+    
+    /**
+     * StatusBar strings
+     */
+	"STATUSBAR_CURSOR_POSITION": "[Dc] !é=Line {0}, Column {1}=!",
+	"STATUSBAR_TAB_SIZE": "[De] !é=Tab Size {0}=!",
+	"STATUSBAR_LINE_COUNT": "[Dd] !é={0} Lines=!",
 
     /**
      * Command Name Constants
@@ -139,7 +149,8 @@ define({
 
     // File menu commands
 	"FILE_MENU": "Fichier",
-	"CMD_FILE_NEW": "Nouveau",
+	"CMD_FILE_NEW": "Nouveau fichier",
+	"CMD_FILE_NEW_FOLDER": "Nouveau dossier",
 	"CMD_FILE_OPEN": "Ouvrir\u2026",
 	"CMD_ADD_TO_WORKING_SET": "Ajouter à l’ensemble de travail",
 	"CMD_OPEN_FOLDER": "Ouvrir un dossier\u2026",
@@ -148,6 +159,7 @@ define({
 	"CMD_FILE_SAVE": "Enregistrer",
 	"CMD_FILE_SAVE_ALL": "Enregistrer tout",
 	"CMD_LIVE_FILE_PREVIEW": "Aperçu en direct",
+	"CMD_FILE_RENAME": "Renommer",
 	"CMD_QUIT": "Quitter",
 
     // Edit menu commands
@@ -209,7 +221,10 @@ define({
     // Strings for main-view.html
 	"EXPERIMENTAL_BUILD": "Version expérimentale",
 	"JSLINT_ERRORS": "Erreurs JSLint",
+	"JSLINT_ERROR_INFORMATION": "[Db] !é=1 JSLint Error=!",
+	"JSLINT_ERRORS_INFORMATION": "[Da] !é={0} JSLint Errors=!",
 	"JSLINT_NO_ERRORS": "Aucune erreur JSLint - Félicitations !",
+	"JSLINT_DISABLED": "[DZ] !é=JSLint disabled or not working for the current file=!",
 	"SEARCH_RESULTS": "Résultats de la recherche",
 	"OK": "OK",
 	"DONT_SAVE": "Ne pas enregistrer",
@@ -222,7 +237,7 @@ define({
 	"ABOUT": "A propos",
 	"APP_NAME": "Brackets",
 	"CLOSE": "Fermer",
-	"ABOUT_TEXT_LINE1": "[C] !é=sprint 15 experimental build =!",
+	"ABOUT_TEXT_LINE1": "version expérimentale sprint 15",
 	"ABOUT_TEXT_LINE3": "Les mentions légales et conditions générales relatives aux logiciels tiers sont disponibles (en anglais) à l’adresse <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty_fr/</span> et sont incluses dans le présent document à titre de référence.",
 	"ABOUT_TEXT_LINE4": "La documentation et le code source sont disponibles à l’adresse <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
 	"UPDATE_NOTIFICATION_TOOLTIP": "Une nouvelle version de {APP_NAME} est disponible. Cliquez ici pour plus de détails.",
