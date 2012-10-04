@@ -593,8 +593,7 @@ define(function (require, exports, module) {
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
         
-        var size = indentWithTabs ? editor._codeMirror.getOption("tabSize") : editor._codeMirror.getOption("indentUnit");
-        $indentWidth.text(size);
+        $indentWidth.text(editor._codeMirror.getOption("tabSize"));
     }
     
     function _toggleIndentType() {
@@ -607,12 +606,10 @@ define(function (require, exports, module) {
     }
     
     function _updateIndentSize(inc) {
-        var editor          = getFocusedEditor(),
-            indentWithTabs  = editor._codeMirror.getOption("indentWithTabs"),
-            option          = indentWithTabs ? "tabSize" : "indentUnit",
-            size            = editor._codeMirror.getOption(option);
+        var editor = getFocusedEditor(),
+            size = editor._codeMirror.getOption("tabSize");
         
-        editor._codeMirror.setOption(option, size + inc);
+        editor._codeMirror.setOption("tabSize", size + inc);
         
         _updateIndentInfo(editor);
     }
