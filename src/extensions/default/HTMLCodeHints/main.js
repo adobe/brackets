@@ -176,18 +176,6 @@ define(function (require, exports, module) {
                 shouldReplace = false;
             }
         } else if (tokenType === HTMLUtils.ATTR_VALUE) {
-/***
-            // Value encoding
-            if (closeHints) {
-                var tagPlusAttr = tagInfo.tagName + "/" + tagInfo.attr.name,
-                    attrInfo = attributes[tagPlusAttr] || attributes[tagInfo.attr.name],
-                    needsEncoding = attrInfo && (attrInfo.type === "url");
-                if (needsEncoding) {
-                    completion = encodeURI(completion);
-                }
-            }
-***/
-
             charCount = tagInfo.attr.value.length;
             if (!tagInfo.attr.hasEndQuote) {
                 endQuote = tagInfo.attr.quoteChar;
@@ -298,7 +286,7 @@ define(function (require, exports, module) {
         }
 
         // build target folder path
-        var targetDir = docDir + queryDir;
+        var targetDir = docDir + decodeURI(queryDir);
 
         // get list of files from target folder
         var unfiltered = [];
@@ -320,7 +308,6 @@ define(function (require, exports, module) {
         // of this method. When user moves to a new folder, then the cache is deleted,
         // and file/folder info for new folder is then retrieved.
 
-//        if (this.cachedHints && !this.cachedHints.waiting) {
         if (this.cachedHints) {
             // url hints have been cached, so determine if they're are stale
             if (!this.cachedHints.query ||
@@ -350,7 +337,9 @@ define(function (require, exports, module) {
                     entries.forEach(function (entry) {
                         // convert to doc relative path
                         var entryStr = entry.fullPath.replace(docDir, "");
-                        unfiltered.push(entryStr);
+                        // code hints show the same strings that are inserted into text,
+                        // so strings in list will be encoded. wysiwyg, baby!
+                        unfiltered.push(encodeURI(entryStr));
                     });
 
                     self.cachedHints.unfiltered = unfiltered;
