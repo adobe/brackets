@@ -49,6 +49,7 @@
  * 1: Connecting to the remote debugger
  * 2: Loading agents
  * 3: Active
+ * 4: Out of sync
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -56,11 +57,12 @@ define(function LiveDevelopment(require, exports, module) {
     require("utils/Global");
 
     // Status Codes
-    var STATUS_ERROR          = exports.STATUS_ERROR = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE = 0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING = 1;
+    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       = 0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     = 1;
     var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS = 2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE = 3;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         = 3;
+    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    = 4;
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
@@ -486,6 +488,19 @@ define(function LiveDevelopment(require, exports, module) {
         if (doc && doc.extension !== "css" && Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 Inspector.Page.reload();
+                
+                // Set status back to active
+                _setStatus(STATUS_ACTIVE);
+            }
+        }
+    }
+
+    /** Triggered by a change in dirty flag from the DocumentManager */
+    function _onDirtyFlagChange(event, doc) {
+        if (doc && doc.isDirty && doc.extension !== "css" && Inspector.connected()) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
+                // Set status to out of sync
+                _setStatus(STATUS_OUT_OF_SYNC);
             }
         }
     }
@@ -524,7 +539,8 @@ define(function LiveDevelopment(require, exports, module) {
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
         $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
-            .on("documentSaved", _onDocumentSaved);
+            .on("documentSaved", _onDocumentSaved)
+            .on("dirtyFlagChange", _onDirtyFlagChange);
     }
 
     // Export public functions
