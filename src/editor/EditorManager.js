@@ -337,6 +337,14 @@ define(function (require, exports, module) {
             $(_currentEditor.getScrollerElement()).height(_editorHolder.height());
         }
     }
+
+    function _kickCurrentEditor() {
+        // Window may have been resized since last time editor was visible, so kick it now
+        if (_currentEditor) {
+            _currentEditor.setVisible(true);
+            resizeEditor();
+        }
+    }
     
     /**
      * @private
@@ -345,6 +353,7 @@ define(function (require, exports, module) {
         // Skip if the new editor is already the focused editor.
         // This may happen if the window loses then regains focus.
         if (previous === current) {
+            _kickCurrentEditor();
             return;
         }
 
@@ -358,17 +367,13 @@ define(function (require, exports, module) {
         if (!current || (current && !current._visibleRange)) {
             _currentEditor = current;
         }
+        
+        _kickCurrentEditor();
 
         // Fire focusedEditorChange asynchronously to allow CodeMirror to
         // completely update focused state. CodeMirror fires it's "onFocus"
         // event prior to setting it's internal state.
         window.setTimeout(function () {
-            // Window may have been resized since last time editor was visible, so kick it now
-            if (_currentEditor) {
-                _currentEditor.setVisible(true);
-                resizeEditor();
-            }
-            
             $(exports).triggerHandler("focusedEditorChange", [current, previous]);
         });
     }
