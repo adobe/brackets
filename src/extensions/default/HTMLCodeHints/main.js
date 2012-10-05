@@ -35,6 +35,7 @@ define(function (require, exports, module) {
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
         ProjectManager      = brackets.getModule("project/ProjectManager"),
+        StringUtils         = brackets.getModule("utils/StringUtils"),
         HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
         tags                = JSON.parse(HTMLTags),
@@ -256,7 +257,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Helper function for search(). Create a list of urls to existing files base on the query.
+     * Helper function for search(). Create a list of urls to existing files based on the query.
      * @param {Object.<queryStr: string, ...} query -- a query object with a required property queryStr 
      *     that will be used to filter out code hints
      * @return {Array.<string>}
@@ -264,6 +265,11 @@ define(function (require, exports, module) {
     AttrHints.prototype._getUrlList = function (query) {
         var doc,
             result = [];
+
+        // site-root relative links are not yet supported, so filter them out
+        if (query.queryStr.length > 0 && query.queryStr[0] === "/") {
+            return result;
+        }
 
         // get path to current document
         doc = DocumentManager.getCurrentDocument();
@@ -327,7 +333,8 @@ define(function (require, exports, module) {
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
-            var self = this;
+            var self = this,
+                origEditor = EditorManager.getFocusedEditor();
 
             // create empty object so we can detect "waiting" state
             self.cachedHints = {};
@@ -353,8 +360,11 @@ define(function (require, exports, module) {
                     self.cachedHints.queryDir   = queryDir;
                     self.cachedHints.waiting    = false;
 
-                    // re-initiate code hints
-                    CodeHintManager.showHint(EditorManager.getFocusedEditor());
+                    // If the editor has not changed, then re-initiate code hints. Cached data
+                    // is still valid for folder even if we're not going to show it now.
+                    if (origEditor === EditorManager.getFocusedEditor()) {
+                        CodeHintManager.showHint(origEditor);
+                    }
                 });
             });
 
@@ -398,7 +408,8 @@ define(function (require, exports, module) {
             var tagName = query.tag,
                 attrName = query.attrName,
                 filter = query.queryStr,
-                unfiltered = [];
+                unfiltered = [],
+                sortFunc = null;
 
             if (attrName) {
                 // We look up attribute values with tagName plus a slash and attrName first.  
@@ -414,6 +425,7 @@ define(function (require, exports, module) {
                         unfiltered = ["false", "true"];
                     } else if (attrInfo.type === "url") {
                         unfiltered = this._getUrlList(query);
+                        sortFunc = StringUtils.urlSort;
                     } else if (attrInfo.attribOption) {
                         unfiltered = attrInfo.attribOption;
                     }
@@ -430,7 +442,7 @@ define(function (require, exports, module) {
                     if (item.indexOf(filter) === 0) {
                         return item;
                     }
-                }).sort();
+                }).sort(sortFunc);
             }
         }
 
