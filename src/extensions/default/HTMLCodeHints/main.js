@@ -328,8 +328,7 @@ define(function (require, exports, module) {
         }
 
         if (this.cachedHints) {
-            // if (cachedHints.waiting === true), then we'll return an empty list
-            // and not start another readEntries() operation
+            // use cached hints
             unfiltered = this.cachedHints.unfiltered;
 
         } else {
@@ -339,7 +338,6 @@ define(function (require, exports, module) {
             // create empty object so we can detect "waiting" state
             self.cachedHints = {};
             self.cachedHints.unfiltered = [];
-            self.cachedHints.waiting = true;
 
             NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
                 dirEntry.createReader().readEntries(function (entries) {
@@ -358,7 +356,6 @@ define(function (require, exports, module) {
                     self.cachedHints.unfiltered = unfiltered;
                     self.cachedHints.query      = query;
                     self.cachedHints.queryDir   = queryDir;
-                    self.cachedHints.waiting    = false;
 
                     // If the editor has not changed, then re-initiate code hints. Cached data
                     // is still valid for folder even if we're not going to show it now.
