@@ -34,6 +34,7 @@ define(function (require, exports, module) {
         EditorManager       = brackets.getModule("editor/EditorManager"),
         HTMLUtils           = brackets.getModule("language/HTMLUtils"),
         NativeFileSystem    = brackets.getModule("file/NativeFileSystem").NativeFileSystem,
+        ProjectManager      = brackets.getModule("project/ProjectManager"),
         HTMLTags            = require("text!HtmlTags.json"),
         HTMLAttributes      = require("text!HtmlAttributes.json"),
         tags                = JSON.parse(HTMLTags),
@@ -309,7 +310,7 @@ define(function (require, exports, module) {
         // and file/folder info for new folder is then retrieved.
 
         if (this.cachedHints) {
-            // url hints have been cached, so determine if they're are stale
+            // url hints have been cached, so determine if they're stale
             if (!this.cachedHints.query ||
                     this.cachedHints.query.tag !== query.tag ||
                     this.cachedHints.query.attrName !== query.attrName ||
@@ -324,6 +325,7 @@ define(function (require, exports, module) {
             // if (cachedHints.waiting === true), then we'll return an empty list
             // and not start another readEntries() operation
             unfiltered = this.cachedHints.unfiltered;
+
         } else {
             var self = this;
 
@@ -334,12 +336,16 @@ define(function (require, exports, module) {
 
             NativeFileSystem.requestNativeFileSystem(targetDir, function (dirEntry) {
                 dirEntry.createReader().readEntries(function (entries) {
+
                     entries.forEach(function (entry) {
-                        // convert to doc relative path
-                        var entryStr = entry.fullPath.replace(docDir, "");
-                        // code hints show the same strings that are inserted into text,
-                        // so strings in list will be encoded. wysiwyg, baby!
-                        unfiltered.push(encodeURI(entryStr));
+                        if (ProjectManager.shouldShow(entry)) {
+                            // convert to doc relative path
+                            var entryStr = entry.fullPath.replace(docDir, "");
+
+                            // code hints show the same strings that are inserted into text,
+                            // so strings in list will be encoded. wysiwyg, baby!
+                            unfiltered.push(encodeURI(entryStr));
+                        }
                     });
 
                     self.cachedHints.unfiltered = unfiltered;
@@ -351,6 +357,7 @@ define(function (require, exports, module) {
                     CodeHintManager.showHint(EditorManager.getFocusedEditor());
                 });
             });
+
             return result;
         }
 
