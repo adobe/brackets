@@ -342,27 +342,27 @@ define(function (require, exports, module) {
      * @private
      */
     function _doFocusedEditorChanged(current, previous) {
+        // Skip if the new editor is already the focused editor.
+        // This may happen if the window loses then regains focus.
+        if (previous === current) {
+            return;
+        }
+
+        // if switching to no-editor, hide the last full editor
+        if (_currentEditor && !current) {
+            _currentEditor.setVisible(false);
+        }
+
+        // _currentEditor must be a full editor or null (show no editor).
+        // _currentEditor must not be an inline editor
+        if (!current || (current && !current._visibleRange)) {
+            _currentEditor = current;
+        }
+
         // Fire focusedEditorChange asynchronously to allow CodeMirror to
         // completely update focused state. CodeMirror fires it's "onFocus"
         // event prior to setting it's internal state.
         window.setTimeout(function () {
-            // Skip if the new editor is already the focused editor.
-            // This may happen if the window loses then regains focus.
-            if (previous === current) {
-                return;
-            }
-
-            // if switching to no-editor, hide the last full editor
-            if (_currentEditor && !current) {
-                _currentEditor.setVisible(false);
-            }
-
-            // _currentEditor must be a full editor or null (show no editor).
-            // _currentEditor must not be an inline editor
-            if (!current || (current && !current._visibleRange)) {
-                _currentEditor = current;
-            }
-        
             // Window may have been resized since last time editor was visible, so kick it now
             if (_currentEditor) {
                 _currentEditor.setVisible(true);
@@ -536,7 +536,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return _currentEditor;
+        return null;
     }
  
     /**
