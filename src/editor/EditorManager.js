@@ -42,7 +42,8 @@ define(function (require, exports, module) {
     "use strict";
     
     // Load dependent modules
-    var FileUtils           = require("file/FileUtils"),
+    var AppInit             = require("utils/AppInit"),
+        FileUtils           = require("file/FileUtils"),
         Commands            = require("command/Commands"),
         CommandManager      = require("command/CommandManager"),
         DocumentManager     = require("document/DocumentManager"),
@@ -51,7 +52,9 @@ define(function (require, exports, module) {
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
         EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
-        Strings             = require("strings");
+        StatusBar           = require("widgets/StatusBar"),
+        Strings             = require("strings"),
+        StringUtils         = require("utils/StringUtils");
     
     /** @type {jQueryObject} DOM node that contains all editors (visible and hidden alike) */
     var _editorHolder = null;
@@ -70,6 +73,14 @@ define(function (require, exports, module) {
      */
     var _inlineEditProviders = [];
     
+    /* StatusBar indicators */
+    var $modeInfo,
+        $cursorInfo,
+        $fileInfo,
+        $indentType,
+        $indentWidth,
+        $indentDecrement,
+        $indentIncrement;
     
     /**
      * Adds keyboard command handlers to an Editor instance.
@@ -331,27 +342,27 @@ define(function (require, exports, module) {
      * @private
      */
     function _doFocusedEditorChanged(current, previous) {
+        // Skip if the new editor is already the focused editor.
+        // This may happen if the window loses then regains focus.
+        if (previous === current) {
+            return;
+        }
+
+        // if switching to no-editor, hide the last full editor
+        if (_currentEditor && !current) {
+            _currentEditor.setVisible(false);
+        }
+
+        // _currentEditor must be a full editor or null (show no editor).
+        // _currentEditor must not be an inline editor
+        if (!current || (current && !current._visibleRange)) {
+            _currentEditor = current;
+        }
+
         // Fire focusedEditorChange asynchronously to allow CodeMirror to
         // completely update focused state. CodeMirror fires it's "onFocus"
         // event prior to setting it's internal state.
         window.setTimeout(function () {
-            // Skip if the new editor is already the focused editor.
-            // This may happen if the window loses then regains focus.
-            if (previous === current) {
-                return;
-            }
-
-            // if switching to no-editor, hide the last full editor
-            if (_currentEditor && !current) {
-                _currentEditor.setVisible(false);
-            }
-
-            // _currentEditor must be a full editor or null (show no editor).
-            // _currentEditor must not be an inline editor
-            if (!current || (current && !current._visibleRange)) {
-                _currentEditor = current;
-            }
-        
             // Window may have been resized since last time editor was visible, so kick it now
             if (_currentEditor) {
                 _currentEditor.setVisible(true);
@@ -400,7 +411,6 @@ define(function (require, exports, module) {
         if (_currentEditor) {
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             _doFocusedEditorChanged(null, _currentEditor);
-            
             _currentEditorsDocument = null;
             
             $("#not-editor").css("display", "");
@@ -526,7 +536,7 @@ define(function (require, exports, module) {
             }
         }
         
-        return _currentEditor;
+        return null;
     }
  
     /**
@@ -569,7 +579,75 @@ define(function (require, exports, module) {
         
         return result.promise();
     }
+    
+    function _updateModeInfo(editor) {
+        $modeInfo.text(editor.getModeForSelection());
+    }
+    
+    function _updateFileInfo(editor) {
+        $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
+    }
+    
+    function _updateIndentInfo(editor) {
+        var indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
+        $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
+        $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
+        
+        $indentWidth.text(editor._codeMirror.getOption("tabSize"));
+    }
+    
+    function _toggleIndentType() {
+        var editor = getFocusedEditor(),
+            indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
+        
+        editor._codeMirror.setOption("indentWithTabs", !indentWithTabs);
+        
+        _updateIndentInfo(editor);
+    }
+    
+    function _updateIndentSize(inc) {
+        var editor = getFocusedEditor(),
+            size = editor._codeMirror.getOption("tabSize");
+        
+        editor._codeMirror.setOption("tabSize", size + inc);
+        
+        _updateIndentInfo(editor);
+    }
+    
+    function _updateCursorInfo(event, editor) {
+        var cursor      = editor.getCursorPos(),
+            cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
+        
+        $cursorInfo.text(cursorInfo);
+    }
+    
+    function _onFocusedEditorChange(event, current, previous) {
+        if (previous) {
+            $(previous).off("cursorActivity", _updateCursorInfo);
+        }
+        
+        if (!current) {
+            StatusBar.hide();
+            resizeEditor();
+        } else {
+            // Check if the statusbar is not visible to show it
+            StatusBar.show();
+            resizeEditor();
+            
+            $(current).on("cursorActivity", _updateCursorInfo);
+            $(current).on("change", function () {
+                // async update to keep typing speed smooth
+                window.setTimeout(function () { _updateFileInfo(current); }, 0);
+            });
+            
+            _updateCursorInfo(null, current);
+            _updateModeInfo(current);
+            _updateFileInfo(current);
+            _updateIndentInfo(current);
+        }
+    }
 
+    // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
     // Initialize: register listeners
@@ -580,6 +658,26 @@ define(function (require, exports, module) {
     // Add this as a capture handler so we're guaranteed to run it before the editor does its own
     // refresh on resize.
     window.addEventListener("resize", _updateEditorSize, true);
+    
+    // Initialize: status bar focused listener
+    $(exports).on("focusedEditorChange", _onFocusedEditorChange);
+    AppInit.htmlReady(function () {
+        $modeInfo           = $("#status-mode");
+        $cursorInfo         = $("#status-cursor");
+        $fileInfo           = $("#status-file");
+        $indentType         = $("#indent-type");
+        $indentWidth        = $("#indent-width");
+        $indentDecrement    = $("#indent-decrement");
+        $indentIncrement    = $("#indent-increment");
+        
+        // indentation event handlers
+        $indentType.on("click", _toggleIndentType);
+        $indentDecrement.on("click", function () { _updateIndentSize(-1); });
+        $indentIncrement.on("click", function () { _updateIndentSize(1); });
+        
+        StatusBar.hide();
+        _onFocusedEditorChange(null, getFocusedEditor(), null);
+    });
     
     // For unit tests and internal use only
     exports._openInlineWidget = _openInlineWidget;

@@ -77,10 +77,6 @@
                     <span class="experimental-label">{{EXPERIMENTAL_BUILD}}</span>
                     
                     <a href="#" id="toolbar-go-live"></a> <!-- tooltip for this is set in JS -->
-                    
-                    <span id="gold-star" title="{{JSLINT_NO_ERRORS}}">
-                        &#9733;
-                    </span>
                 </div>
                 
                 <!-- Filename label -->
@@ -110,15 +106,21 @@
             </div>
             
             <div id="status-bar" class="statusbar">
-                <ul id="status-info" class="info" >
-                    <span id="status-cursor"></span>
-                    <span id="status-file"></span>
-                    <span id="status-mode"></span>
-                    <span id="status-tab"></span>
-                </ul>
-                <div id="busy-indicator">&#9719;</div>
-                <ul id="status-indicators" class="indicators">
-                </ul>
+                <div id="status-info" class="info" >
+                    <div id="status-cursor"></div>
+                </div>
+                <div id="status-indicators" class="indicators">
+                    <div id="gold-star" title="{{JSLINT_NO_ERRORS}}">&#9733;</div>
+                    <div id="status-file"></div>
+                    <div id="status-mode"></div>
+                    <div id="status-indent">
+                        <div id="indent-type"></div>
+                        <div id="indent-width"></div>
+                        <div id="indent-decrement" class="indent-step"></div>
+                        <div id="indent-increment" class="indent-step"></div>
+                    </div>
+                    <div id="busy-indicator">&#9719;</div>
+                </div>
             </div>
         </div>
 
