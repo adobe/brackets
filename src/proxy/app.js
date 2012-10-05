@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         console.log("PROXY: app.showExtensionsFolder()", arguments);
     }
 
-    exports.language = navigator.language;
+    exports.language = window.localStorage.getItem("locale") || navigator.language;
 
     exports.quit = quit;
     exports.abortQuit = abortQuit;
