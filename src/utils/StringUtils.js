@@ -140,6 +140,19 @@ define(function (require, exports, module) {
             return (a2 > b2) ? 1 : -1;
         }
     }
+    
+    /**
+     * Return a path or URL string that can be broken near path separators.
+     * @param {string} url the path or URL to format
+     * @return {string} the formatted path or URL
+     */
+    function breakableUrl(url) {
+        // Inject zero-width space character (U+200B) near path separators (/) to allow line breaking there
+        return url.replace(
+            new RegExp(regexEscape("/"), "g"),
+            "/" + "&#8203;"
+        );
+    }
 
     // Define public API
     exports.format          = format;
@@ -149,4 +162,5 @@ define(function (require, exports, module) {
     exports.getLines        = getLines;
     exports.offsetToLineNum = offsetToLineNum;
     exports.urlSort         = urlSort;
+    exports.breakableUrl    = breakableUrl;
 });
