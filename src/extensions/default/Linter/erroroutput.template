@@ -1,0 +1,19 @@
+
+    <div class="toolbar simple-toolbar-layout">
+        <div class="title">{{JSLINT_ERRORS}}</div>
+    </div>
+
+    <div class="table-container">
+        <table class="zebra-striped condensed-table" id="jslint-error-tab">
+            <tbody>
+                {{#each errors}}
+                <tr>
+                    <td>{{this.line}}</td>
+                    <td>{{this.reason}}</td>
+                    <td>{{this.evidence}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+

@@ -4,20 +4,30 @@
 define(function (require, exports, module) {
     'use strict';
     
-    require("../../../thirdparty/jslint/jslint");
-    
     var CommandManager  = brackets.getModule("command/CommandManager");
     var DocumentManager = brackets.getModule("document/DocumentManager");
     var Menus           = brackets.getModule("command/Menus");
+    var EditorManager   = brackets.getModule("editor/EditorManager");
+    var Strings         = brackets.getModule("strings");
     
+    require("../../../thirdparty/jslint/jslint");
+    
+    //todo: do this on first use
+    require("Handlebars/handlebars");
+    var outputTemplateSource = require("text!erroroutput.template");
+    var outputTemplate = Handlebars.compile(outputTemplateSource);
+
     var LINTER = "LINTER";
     var enabled = true;
     var ignoreEmptyLines = true;
+    var outputErrorsToConsole = false;
+    
     
     //todo: should this both run the linter and display results?
     //todo: need to lint file on startup
     //todo: need to lint file on document change
-    
+    //todo: move jslint source to Linter extension
+
     function _stripEmptyLines(text) {
         //todo: precompile this regex
         //todo: check this works with multiple line endings
@@ -43,12 +53,32 @@ define(function (require, exports, module) {
     function _displayLintErrors(errors) {
         var len = errors.length;
 
-        var error;
-        var i;
-        for (i = 0; i < len; i++) {
-            error = errors[i];
-            console.log(error.line + "\t" + error.reason + "\t" + error.evidence);
+        if (outputErrorsToConsole) {
+            var error;
+            var i;
+            for (i = 0; i < len; i++) {
+                error = errors[i];
+                console.log(error.line + "\t" + error.reason + "\t" + error.evidence);
+            }
         }
+        
+        var context = {
+            errors: errors,
+            JSLINT_ERRORS: Strings.JSLINT_ERRORS
+        };
+    
+        var output = $(outputTemplate(context));
+
+        //todo: content should be an id
+        //todo:needs to be right before status bar #status-bar
+        //todo: does output need to be wrapped in $
+        //$(".content").append($(output));
+        
+        $("#bottom-panel").empty();
+        $("#bottom-panel").append(output);
+        $("#bottom-panel").show();
+        
+        EditorManager.resizeEditor();
     }
     
     function _lintCurrentDocument() {
