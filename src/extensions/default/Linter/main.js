@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, JSLINT */
+/*global define, $, brackets, JSLINT, Handlebars */
 
 define(function (require, exports, module) {
     'use strict';
@@ -9,6 +9,7 @@ define(function (require, exports, module) {
     var Menus           = brackets.getModule("command/Menus");
     var EditorManager   = brackets.getModule("editor/EditorManager");
     var Strings         = brackets.getModule("strings");
+    var BottomPanel     = brackets.getModule("widgets/BottomPanel");
     
     require("../../../thirdparty/jslint/jslint");
     
@@ -27,6 +28,7 @@ define(function (require, exports, module) {
     //todo: need to lint file on startup
     //todo: need to lint file on document change
     //todo: move jslint source to Linter extension
+    //todo: remove JSLintUtils.js
 
     function _stripEmptyLines(text) {
         //todo: precompile this regex
@@ -68,23 +70,23 @@ define(function (require, exports, module) {
         };
     
         var output = $(outputTemplate(context));
-
-        //todo: content should be an id
-        //todo:needs to be right before status bar #status-bar
-        //todo: does output need to be wrapped in $
-        //$(".content").append($(output));
         
+        /*
         $("#bottom-panel").empty();
         $("#bottom-panel").append(output);
         $("#bottom-panel").show();
+        */
         
-        EditorManager.resizeEditor();
+        BottomPanel.loadContent(output);
     }
     
     function _lintCurrentDocument() {
         var errors = lintDocument(DocumentManager.getCurrentDocument());
         
         if (!errors) {
+            console.log("no errors clearing content");
+            BottomPanel.clearContent();
+            BottomPanel.close();
             return;
         }
         
@@ -92,6 +94,7 @@ define(function (require, exports, module) {
     }
     
     function _onDocumentUpdated(event) {
+        console.log("updated");
         _lintCurrentDocument();
     }
     
@@ -118,7 +121,7 @@ define(function (require, exports, module) {
     //todo: can we do this on a module loaded event? and not on initialization?
     //do we know document has loaded yet?
     if (enabled) {
-        $(DocumentManager).on("documentSaved documentChanged", _onDocumentUpdated);
+        $(DocumentManager).on("documentSaved currentDocumentChange", _onDocumentUpdated);
         _lintCurrentDocument();
     }
 });
