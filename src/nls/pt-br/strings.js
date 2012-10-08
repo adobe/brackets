@@ -129,9 +129,9 @@ define({
      * Keyboard modifier names
      */
 
-     "KEYBOARD_CTRL"   : "Ctrl",
-     "KEYBOARD_SHIFT"  : "Shift",
-     "KEYBOARD_SPACE"  : "Space",
+	"KEYBOARD_CTRL"   : "Ctrl",
+	"KEYBOARD_SHIFT"  : "Shift",
+	"KEYBOARD_SPACE"  : "Space",
 
     /**
      * Command Name Constants
@@ -222,7 +222,7 @@ define({
     "ABOUT"                                : "Sobre",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Fechar",
-    "ABOUT_TEXT_LINE1"                     : "sprint 15 versão experimental",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versão experimental",
     "ABOUT_TEXT_LINE3"                     : "Avisos, termos e condições de softwares de terceiros estão localizados em <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> e aqui incorporados por referência.",
     "ABOUT_TEXT_LINE4"                     : "Documentação e fontes <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Há uma nova versão de {APP_NAME} disponível! Clique aqui para mais detalhes.",

@@ -230,7 +230,7 @@ define({
     "ABOUT"                                : "Über",
     "APP_NAME"                             : "xBrackets",
     "CLOSE"                                : "Schließen",
-    "ABOUT_TEXT_LINE1"                     : "Sprint 15 experimenteller Build ",
+    "ABOUT_TEXT_LINE1"                     : "Sprint {VERSION_MINOR} experimenteller Build ",
     "ABOUT_TEXT_LINE3"                     : "Hinweise, Bestimmungen und Bedingungen, die sich auf Drittanbieter-Software beziehen, finden sich unter <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> und sind hier durch Bezugnahme eingeschlossen.",
     "ABOUT_TEXT_LINE4"                     : "Dokumentation und Quellcode unter <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "Eine neue Version von {APP_NAME} ist verfügbar! Für Details hier klicken.",

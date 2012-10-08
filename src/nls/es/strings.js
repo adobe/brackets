@@ -213,7 +213,7 @@ define({
     "ABOUT"                                : "Acerca de...",
     "APP_NAME"                             : "{APP_NAME}",
     "CLOSE"                                : "Cerrar",
-    "ABOUT_TEXT_LINE1"                     : "sprint 15 versión experimental ",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} versión experimental ",
     "ABOUT_TEXT_LINE3"                     : "Los avisos, términos y condiciones pertenecientes a software de terceros se encuentran en <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> y se incluyen aquí como referencia.",
     "ABOUT_TEXT_LINE4"                     : "Puedes encontrar la documentación y código fuente en <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "¡Hay una nueva versión de {APP_NAME} disponible! Haz click aquí para más detalles.",
