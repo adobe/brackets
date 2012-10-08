@@ -1020,7 +1020,7 @@ define(function (require, exports, module) {
          *
          * TODO (#1069): change selection on right mousedown if not on something already selected
          */
-        $("#projects").on("contextmenu", function (e) {
+        $("#project-files-container").on("contextmenu", function (e) {
             project_cmenu.open(e);
         });
 
