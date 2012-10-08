@@ -4,6 +4,8 @@
 define(function (require, exports, module) {
     'use strict';
     
+    var EditorManager   = require("editor/EditorManager");
+    
     var open = function() {
         //foo
     };
@@ -14,6 +16,8 @@ define(function (require, exports, module) {
 
     var clearContent = function() {
         $("#bottom-panel").empty();
+        $("#bottom-panel").hide();
+        EditorManager.resizeEditor();
     };
     
     var loadContent = function(html) {
@@ -21,6 +25,7 @@ define(function (require, exports, module) {
         
         $("#bottom-panel").append(html);
         $("#bottom-panel").show();
+        EditorManager.resizeEditor();
     };
     
     exports.open = open;
