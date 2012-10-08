@@ -91,8 +91,8 @@ define(function (require, exports, module) {
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
         PreferencesManager      = require("preferences/PreferencesManager"),
-        StatusBar               = require("widgets/Statusbar");
-
+        StatusBar               = require("widgets/Statusbar"),
+        BottomPanel             = require("widgets/BottomPanel");
     // Local variables
     var params                  = new UrlParams(),
         PREFERENCES_CLIENT_ID   = "com.adobe.brackets.startup";
