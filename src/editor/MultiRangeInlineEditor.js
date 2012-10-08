@@ -471,7 +471,8 @@ define(function (require, exports, module) {
         this.hostEditor.setInlineWidgetHeight(this, widgetHeight, ensureVisibility);
 
         // The related ranges container size itself based on htmlContent which is set by setInlineWidgetHeight above.
-        this._updateRelatedContainer();
+        // Use setTimeout to trigger a layout update before accessing positions, heights, etc.
+        window.setTimeout(this._updateRelatedContainer);
     };
 
     /**

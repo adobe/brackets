@@ -848,6 +848,7 @@ define(function (require, exports, module) {
         var menu;
         menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
         menu.addMenuItem(Commands.FILE_NEW,                 "Ctrl-N");
+        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN,                "Ctrl-O");
         menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
@@ -962,6 +963,8 @@ define(function (require, exports, module) {
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
+        project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);

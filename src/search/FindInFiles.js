@@ -55,6 +55,8 @@ define(function (require, exports, module) {
         AppInit             = require("utils/AppInit"),
         Resizer             = require("utils/Resizer"),
         StatusBar           = require("widgets/StatusBar");
+
+    var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100;
     
@@ -223,7 +225,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, item.fullPath) + "</td>")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(item.fullPath)) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
@@ -256,7 +258,8 @@ define(function (require, exports, module) {
             
             $("#search-results .table-container")
                 .empty()
-                .append($resultTable);
+                .append($resultTable)
+                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
             $("#search-results .close")
                 .one("click", function () {
@@ -298,11 +301,12 @@ define(function (require, exports, module) {
     function doFindInFiles() {
 
         var dialog = new FindInFilesDialog();
-        var searchResults = [];
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getFocusedEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
+        
+        searchResults = [];
                             
         dialog.showDialog(initialString)
             .done(function (query) {
@@ -362,5 +366,16 @@ define(function (require, exports, module) {
         });
     });
 
+    function _fileNameChangeHandler(event, oldName, newName) {
+        if ($("#search-results").is(":visible")) {
+            // Update the search results
+            searchResults.forEach(function (item) {
+                item.fullPath = item.fullPath.replace(oldName, newName);
+            });
+            _showSearchResults(searchResults);
+        }
+    }
+    
+    $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });

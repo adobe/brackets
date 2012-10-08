@@ -95,9 +95,13 @@ define(function (require, exports, module) {
         }
     }
     
-    function handleCurrentDocumentChange() {
+    function updateDocumentTitle() {
         var newDocument = DocumentManager.getCurrentDocument();
-        var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
+
+        // TODO: This timer is causing a "Recursive tests with the same name are not supporte"
+        // exception. This code should be removed (if not needed), or updated with a unique
+        // timer name (if needed).
+        // var perfTimerName = PerfUtils.markStart("DocumentCommandHandlers._onCurrentDocumentChange():\t" + (!newDocument || newDocument.file.fullPath));
         
         if (newDocument) {
             var fullPath = newDocument.file.fullPath;
@@ -113,7 +117,7 @@ define(function (require, exports, module) {
         // Update title text & "dirty dot" display
         updateTitle();
 
-        PerfUtils.addMeasurement(perfTimerName);
+        // PerfUtils.addMeasurement(perfTimerName);
     }
     
     function handleDirtyChange(event, changedDoc) {
@@ -253,10 +257,11 @@ define(function (require, exports, module) {
      * @param {string} dir  The directory to use
      * @param {string} baseFileName  The base to start with, "-n" will get appened to make unique
      * @param {string} fileExt  The file extension
+     * @param {boolean} isFolder True if the suggestion is for a folder name
      * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with 
      *   the given base name
      */
-    function _getUntitledFileSuggestion(dir, baseFileName, fileExt) {
+    function _getUntitledFileSuggestion(dir, baseFileName, fileExt, isFolder) {
         var result = new $.Deferred();
         var suggestedName = baseFileName + fileExt;
         var dirEntry = new NativeFileSystem.DirectoryEntry(dir);
@@ -269,18 +274,30 @@ define(function (require, exports, module) {
             }
 
             //check this name
-            dirEntry.getFile(
-                suggestedName,
-                {},
-                function successCallback(entry) {
-                    //file exists, notify to the next progress
-                    result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
-                },
-                function errorCallback(error) {
-                    //most likely error is FNF, user is better equiped to handle the rest
-                    result.resolve(suggestedName);
-                }
-            );
+            var successCallback = function (entry) {
+                //file exists, notify to the next progress
+                result.notify(baseFileName + "-" + nextIndexToUse + fileExt, nextIndexToUse + 1);
+            };
+            var errorCallback = function (error) {
+                //most likely error is FNF, user is better equiped to handle the rest
+                result.resolve(suggestedName);
+            };
+            
+            if (isFolder) {
+                dirEntry.getDirectory(
+                    suggestedName,
+                    {},
+                    successCallback,
+                    errorCallback
+                );
+            } else {
+                dirEntry.getFile(
+                    suggestedName,
+                    {},
+                    successCallback,
+                    errorCallback
+                );
+            }
         });
 
         //kick it off
@@ -297,9 +314,11 @@ define(function (require, exports, module) {
      * file creation call is outstanding
      */
     var fileNewInProgress = false;
-
-    function handleFileNewInProject() {
-
+    
+    /**
+     * Bottleneck function for creating new files and folders in the project tree.
+     */
+    function _handleNewItemInProject(isFolder) {
         if (fileNewInProgress) {
             ProjectManager.forceFinishRename();
             return;
@@ -320,21 +339,37 @@ define(function (require, exports, module) {
         
         // Create the new node. The createNewItem function does all the heavy work
         // of validating file name, creating the new file and selecting.
-        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, ".js");
+        var deferred = _getUntitledFileSuggestion(baseDir, Strings.UNTITLED, isFolder ? "" : ".js", isFolder);
         var createWithSuggestedName = function (suggestedName) {
-            ProjectManager.createNewItem(baseDir, suggestedName, false)
+            ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
                 .always(function () { fileNewInProgress = false; })
                 .done(function (entry) {
-                    FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                    if (!isFolder) {
+                        FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
+                    }
                 });
         };
 
         deferred.done(createWithSuggestedName);
-        deferred.fail(function createWithDefault() { createWithSuggestedName("Untitled.js"); });
+        deferred.fail(function createWithDefault() { createWithSuggestedName(isFolder ? "Untitled" : "Untitled.js"); });
         return deferred;
     }
+
+    /**
+     * Create a new file in the project tree.
+     */
+    function handleFileNewInProject() {
+        _handleNewItemInProject(false);
+    }
     
+    /**
+     * Create a new folder in the project tree.
+     */
+    function handleNewFolderInProject() {
+        _handleNewItemInProject(true);
+    }
+
     function showSaveFileError(code, path) {
         return Dialogs.showModalDialog(
             Dialogs.DIALOG_ID_ERROR,
@@ -711,6 +746,10 @@ define(function (require, exports, module) {
         );
     }
     
+    function handleFileRename() {
+        ProjectManager.renameSelectedItem();
+    }
+
     /** Closes the window, then quits the app */
     function handleFileQuit(commandData) {
         return _handleWindowGoingAway(
@@ -791,11 +830,13 @@ define(function (require, exports, module) {
         // File > New should open a new blank tab, and handleFileNewInProject should
         // be called from a "+" button in the project
         CommandManager.register(Strings.CMD_FILE_NEW,           Commands.FILE_NEW, handleFileNewInProject);
+        CommandManager.register(Strings.CMD_FILE_NEW_FOLDER,    Commands.FILE_NEW_FOLDER, handleNewFolderInProject);
         CommandManager.register(Strings.CMD_FILE_SAVE,          Commands.FILE_SAVE, handleFileSave);
         CommandManager.register(Strings.CMD_FILE_SAVE_ALL,      Commands.FILE_SAVE_ALL, handleFileSaveAll);
 
         CommandManager.register(Strings.CMD_FILE_CLOSE,         Commands.FILE_CLOSE, handleFileClose);
         CommandManager.register(Strings.CMD_FILE_CLOSE_ALL,     Commands.FILE_CLOSE_ALL, handleFileCloseAll);
+        CommandManager.register(Strings.CMD_FILE_RENAME,        Commands.FILE_RENAME, handleFileRename);
         CommandManager.register(Strings.CMD_CLOSE_WINDOW,       Commands.FILE_CLOSE_WINDOW, handleFileCloseWindow);
         CommandManager.register(Strings.CMD_QUIT,               Commands.FILE_QUIT, handleFileQuit);
         CommandManager.register(Strings.CMD_REFRESH_WINDOW,     Commands.DEBUG_REFRESH_WINDOW, handleFileReload);
@@ -805,7 +846,7 @@ define(function (require, exports, module) {
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);
-        $(DocumentManager).on("currentDocumentChange", handleCurrentDocumentChange);
+        $(DocumentManager).on("currentDocumentChange fileNameChange", updateDocumentTitle);
     }
 
     // Define public API

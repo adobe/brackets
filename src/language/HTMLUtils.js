@@ -28,102 +28,13 @@
 define(function (require, exports, module) {
     "use strict";
     
+    var TokenUtils = require("utils/TokenUtils");
+    
     //constants
     var TAG_NAME = "tagName",
         ATTR_NAME = "attr.name",
         ATTR_VALUE = "attr.value";
     
-    /**
-     * @private
-     * moves the current context backwards by one token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
-     * @return {boolean} whether the context changed
-     */
-    function _movePrevToken(ctx) {
-        if (ctx.pos.ch <= 0 || ctx.token.start <= 0) {
-            //move up a line
-            if (ctx.pos.line <= 0) {
-                return false; //at the top already
-            }
-            ctx.pos.line--;
-            ctx.pos.ch = ctx.editor.getLine(ctx.pos.line).length;
-        } else {
-            ctx.pos.ch = ctx.token.start;
-        }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
-        return true;
-    }
-    
-    /**
-     * @private
-     * moves the current context forward by one token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
-     * @return {boolean} whether the context changed
-     */
-    function _moveNextToken(ctx) {
-        var eol = ctx.editor.getLine(ctx.pos.line).length;
-        if (ctx.pos.ch >= eol || ctx.token.end >= eol) {
-            //move down a line
-            if (ctx.pos.line >= ctx.editor.lineCount() - 1) {
-                return false; //at the bottom
-            }
-            ctx.pos.line++;
-            ctx.pos.ch = 0;
-        } else {
-            ctx.pos.ch = ctx.token.end + 1;
-        }
-        ctx.token = ctx.editor.getTokenAt(ctx.pos);
-        return true;
-    }
-    
-   /**
-     * @private
-     * moves the current context in the given direction, skipping any whitespace it hits
-     * @param {function} moveFxn the funciton to move the context
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} ctx
-     * @return {boolean} whether the context changed
-     */
-    function _moveSkippingWhitespace(moveFxn, ctx) {
-        if (!moveFxn(ctx)) {
-            return false;
-        }
-        while (!ctx.token.className && ctx.token.string.trim().length === 0) {
-            if (!moveFxn(ctx)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-   /**
-     * @private
-     * creates a context object
-     * @param {CodeMirror} editor
-     * @param {{ch:{string}, line:{number}} pos
-     * @return {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}
-     */
-    function _getInitialContext(editor, pos) {
-        return {
-            "editor": editor,
-            "pos": pos,
-            "token": editor.getTokenAt(pos)
-        };
-    }
-    
-    /**
-     * @private
-     * in the given context, get the character offset of pos from the start of the token
-     * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
-     * @return {number}
-     */
-    function _offsetInToken(ctx) {
-        var offset = ctx.pos.ch - ctx.token.start;
-        if (offset < 0) {
-            console.log("CodeHintUtils: _offsetInToken - Invalid context: the pos what not in the current token!");
-        }
-        return offset;
-    }
- 
    /**
      * @private
      * Sometimes as attr values are getting typed, if the quotes aren't balanced yet
@@ -136,7 +47,7 @@ define(function (require, exports, module) {
         var attrValue = ctx.token.string,
             startChar = attrValue.charAt(0),
             endChar = attrValue.charAt(attrValue.length - 1),
-            offset = _offsetInToken(ctx),
+            offset = TokenUtils.offsetInToken(ctx),
             foundEqualSign = false;
         
         //If this is a fully quoted value, return the whole
@@ -251,12 +162,12 @@ define(function (require, exports, module) {
         }
         
         //Move to the prev token, and check if it's "="
-        if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.string !== "=") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.string !== "=") {
             return createTagInfo();
         }
         
         //Move to the prev token, and check if it's an attribute
-        if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.className !== "attribute") {
             return createTagInfo();
         }
         
@@ -283,13 +194,13 @@ define(function (require, exports, module) {
         
         var tagName = _extractTagName(ctx);
         var attrName = ctx.token.string;
-        var offset = _offsetInToken(ctx);
+        var offset = TokenUtils.offsetInToken(ctx);
         
-        if (!_moveSkippingWhitespace(_moveNextToken, ctx) || ctx.token.string !== "=") {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx) || ctx.token.string !== "=") {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         
-        if (!_moveSkippingWhitespace(_moveNextToken, ctx)) {
+        if (!TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, ctx)) {
             return createTagInfo(ATTR_NAME, offset, tagName, attrName);
         }
         //this should be the attrvalue
@@ -320,9 +231,9 @@ define(function (require, exports, module) {
         // the pos the caller passed in so we use extend to make a safe copy of it.	
         // This is what pass by value in c++ would do.	
         var pos = $.extend({}, constPos),
-            ctx = _getInitialContext(editor._codeMirror, pos),
+            ctx = TokenUtils.getInitialContext(editor._codeMirror, pos),
             tempCtx = null,
-            offset = _offsetInToken(ctx),
+            offset = TokenUtils.offsetInToken(ctx),
             tagInfo,
             tokenType;
         
@@ -366,15 +277,15 @@ define(function (require, exports, module) {
                 // use it to scan backwards if we don't find an equal sign here.
                 // Comment out this block to fix issue #1510.
 //                if (testToken.string.length > 0 && testToken.string.charAt(0) !== ">") {
-//                    tempCtx = _getInitialContext(editor._codeMirror, pos);
-//                    if (_moveSkippingWhitespace(_moveNextToken, tempCtx) && tempCtx.token.string === "=") {
+//                    tempCtx = TokenUtils.getInitialContext(editor._codeMirror, pos);
+//                    if (TokenUtils.moveSkippingWhitespace(TokenUtils.moveNextToken, tempCtx) && tempCtx.token.string === "=") {
 //                        // Return an empty tag info since we're between an atribute name and the equal sign.
 //                        return createTagInfo();
 //                    }
 //                }
 
                 // next, see what's before pos
-                if (!_movePrevToken(ctx)) {
+                if (!TokenUtils.movePrevToken(ctx)) {
                     return createTagInfo();
                 }
 
@@ -438,7 +349,7 @@ define(function (require, exports, module) {
         if (ctx.token.string === "=") {
             // We could be between the attr and the value
             // Step back and check
-            if (!_moveSkippingWhitespace(_movePrevToken, ctx) || ctx.token.className !== "attribute") {
+            if (!TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx) || ctx.token.className !== "attribute") {
                 return createTagInfo();
             }
             
@@ -484,13 +395,13 @@ define(function (require, exports, module) {
      */
     function findStyleBlocks(editor) {
         // Start scanning from beginning of file
-        var ctx = _getInitialContext(editor._codeMirror, {line: 0, ch: 0});
+        var ctx = TokenUtils.getInitialContext(editor._codeMirror, {line: 0, ch: 0});
         
         var styleBlocks = [];
         var currentStyleBlock = null;
         var inStyleBlock = false;
         
-        while (_moveNextToken(ctx)) {
+        while (TokenUtils.moveNextToken(ctx)) {
             if (inStyleBlock) {
                 // Check for end of this <style> block
                 if (ctx.token.state.mode !== "css") {

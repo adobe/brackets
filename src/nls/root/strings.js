@@ -35,6 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
+    "FILE_EXISTS_ERR"                   : "The file already exists.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -49,6 +50,8 @@ define({
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
+    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
@@ -136,9 +139,12 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION" : "Line {0}, Column {1}",
-    "STATUSBAR_TAB_SIZE"        : "Tab Size {0}",
-    "STATUSBAR_LINE_COUNT"      : "{0} Lines",
+    "STATUSBAR_CURSOR_POSITION"         : "Line {0}, Column {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"   : "Click to switch indentation to spaces",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"     : "Click to switch indentation to tabs",
+    "STATUSBAR_SPACES"                  : "Spaces",
+    "STATUSBAR_TAB_SIZE"                : "Tab Size",
+    "STATUSBAR_LINE_COUNT"              : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -146,7 +152,8 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW"                        : "New",
+    "CMD_FILE_NEW"                        : "New File",
+    "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -155,6 +162,7 @@ define({
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands
@@ -233,8 +241,8 @@ define({
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
     "ABOUT_TEXT_LINE1"                     : "sprint 15 experimental build ",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
