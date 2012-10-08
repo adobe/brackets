@@ -39,7 +39,7 @@ define(function (require, exports, module) {
         Global              = require("utils/Global");
     
     // Extract current build number from package.json version field 0.0.0-0
-    var _buildNumber = /-([0-9]+)/.exec(brackets.metadata.version)[1];
+    var _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]);
     
     // PreferenceStorage
     var _prefs = PreferencesManager.getPreferenceStorage(module.id, {lastNotifiedBuildNumber: 0});
@@ -282,6 +282,15 @@ define(function (require, exports, module) {
             .done(function (versionInfo) {
                 // Get all available updates
                 var allUpdates = _stripOldVersionInfo(versionInfo, _buildNumber);
+                
+                // When running directly from GitHub source (as opposed to 
+                // an installed build), _buildNumber is 0. In this case, if the
+                // test is not forced, don't show the update notification icon or
+                // dialog.
+                if (_buildNumber === 0 && !force) {
+                    result.resolve();
+                    return;
+                }
                 
                 if (allUpdates) {
                     // Always show the "update available" icon if any updates are available
