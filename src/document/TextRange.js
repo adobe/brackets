@@ -45,7 +45,7 @@ define(function (require, exports, module) {
      *  - lostSync -- When the backing Document changes in such a way that the range can no longer
      *          accurately be maintained. Generally, occurs whenever an edit spans a range boundary.
      *          After this, startLine & endLine will be unusable (set to null).
-     *          Also occurs when the document is deleted, thought startLine & endLine won't be modified
+     *          Also occurs when the document is deleted, though startLine & endLine won't be modified
      * These events only ever occur in response to Document changes, so if you are already listening
      * to the Document, you could ignore the TextRange events and just read its updated value in your
      * own Document change handler.
