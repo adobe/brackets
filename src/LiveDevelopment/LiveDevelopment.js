@@ -485,7 +485,11 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (doc && doc.extension !== "css" && Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
+                // Reload HTML page
                 Inspector.Page.reload();
+
+                // Reload unsaved changes
+                _onConnect();
             }
         }
     }
