@@ -215,7 +215,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, item.fullPath) + "</td>")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(item.fullPath)) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
