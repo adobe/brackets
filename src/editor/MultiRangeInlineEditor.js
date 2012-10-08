@@ -471,7 +471,7 @@ define(function (require, exports, module) {
      */
     MultiRangeInlineEditor.prototype._onLostContent = function (event, cause) {
         // Ignore when the editor's content got lost due to a deleted file, this is handled via TextRange's lostSync
-        if (cause && cause.type === 'deleted') { return; }
+        if (cause && cause.type === "deleted") { return; }
         // Else yield to the parent's implementation
         return this.parentClass._onLostContent.apply(this, arguments);
     };
