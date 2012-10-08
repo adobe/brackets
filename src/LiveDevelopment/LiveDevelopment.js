@@ -162,6 +162,15 @@ define(function LiveDevelopment(require, exports, module) {
         }
     }
 
+    /** Determine whether the given document is an HTML file 
+     *  by checking its extension.
+     * @param {Document} document to check
+     * @return {boolean} true if the given document's extension has "htm", false otherwise.
+     */
+    function _isHTMLDocument(doc) {
+        return (doc && doc.extension.indexOf("htm") !== -1);
+    }
+
     /**
      * Removes the given CSS/JSDocument from _relatedDocuments. Signals that the
      * given file is no longer associated with the HTML document that is live (e.g.
@@ -318,10 +327,15 @@ define(function LiveDevelopment(require, exports, module) {
     function _onLoad() {
         var doc = _getCurrentDocument();
         if (doc) {
-            var editor = EditorManager.getCurrentFullEditor();
+            var editor = EditorManager.getCurrentFullEditor(),
+                status = STATUS_ACTIVE;
+
             _openDocument(doc, editor);
+            if (doc.isDirty && _isHTMLDocument(doc)) {
+                status = STATUS_OUT_OF_SYNC;
+            }
+            _setStatus(status);
         }
-        _setStatus(STATUS_ACTIVE);
     }
 
     /** Triggered by Inspector.connect */
@@ -461,7 +475,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
-        var doc = _getCurrentDocument();
+        var doc = _getCurrentDocument(),
+            status = STATUS_ACTIVE;
         if (!doc) {
             return;
         }
@@ -478,6 +493,11 @@ define(function LiveDevelopment(require, exports, module) {
                     window.setTimeout(open);
                 }
             }
+            
+            if (doc.isDirty && _isHTMLDocument(doc)) {
+                status = STATUS_OUT_OF_SYNC;
+            }
+            _setStatus(status);
         }
     }
 
@@ -485,7 +505,7 @@ define(function LiveDevelopment(require, exports, module) {
     function _onDocumentSaved() {
         var doc = _getCurrentDocument();
 
-        if (doc && doc.extension !== "css" && Inspector.connected()) {
+        if (doc && _classForDocument(doc) !== CSSDocument && Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 Inspector.Page.reload();
                 
@@ -497,7 +517,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
-        if (doc && doc.isDirty && doc.extension !== "css" && Inspector.connected()) {
+        if (doc && doc.isDirty && _isHTMLDocument(doc) && Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 // Set status to out of sync
                 _setStatus(STATUS_OUT_OF_SYNC);

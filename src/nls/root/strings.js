@@ -82,7 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
-    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Save file to update Live Preview",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
