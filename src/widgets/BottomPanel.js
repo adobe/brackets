@@ -4,19 +4,22 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var open = function (){
+    var open = function() {
+        //foo
     };
     
-    var close = function (){
+    var close = function() {
+        //foo
     };
 
-    var clearContent = function () {
+    var clearContent = function() {
         $("#bottom-panel").empty();
     };
     
-    var loadContent = function ( html ) {
-        $("#bottom-panel").empty();
-        $("#bottom-panel").append(output);
+    var loadContent = function(html) {
+        clearContent();
+        
+        $("#bottom-panel").append(html);
         $("#bottom-panel").show();
     };
     
