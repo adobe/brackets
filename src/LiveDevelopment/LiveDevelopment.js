@@ -336,6 +336,13 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_INACTIVE);
     }
 
+    function _onReconnect() {
+        unloadAgents();
+        var promises = loadAgents();
+        _setStatus(STATUS_LOADING_AGENTS);
+        $.when.apply(undefined, promises).then(_onLoad, _onError);
+    }
+
     /** Open the Connection and go live */
     function open() {
         var result = new $.Deferred(),
@@ -489,7 +496,7 @@ define(function LiveDevelopment(require, exports, module) {
                 Inspector.Page.reload();
 
                 // Reload unsaved changes
-                _onConnect();
+                _onReconnect();
             }
         }
     }
