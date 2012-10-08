@@ -28,8 +28,8 @@
  * Resizer is a Module utility to inject resizing capabilities to any element
  * inside Brackets.
  * 
- * On initialization, Resizer discovers all nodes tagged as "ver-resizable" 
- * and "hor-resizable" to add the resizer handler. Additionally, "top-resizer", 
+ * On initialization, Resizer discovers all nodes tagged as "vert-resizable" 
+ * and "horz-resizable" to add the resizer handler. Additionally, "top-resizer", 
  * "bottom-resizer", "left-resizer" and "right-resizer" classes control the 
  * position of the resizer on the element.
  *
@@ -46,8 +46,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var DIRECTION_VERTICAL = "ver";
-    var DIRECTION_HORIZONTAL = "hor";
+    var DIRECTION_VERTICAL = "vert";
+    var DIRECTION_HORIZONTAL = "horz";
     
     var POSITION_TOP = "top";
     var POSITION_BOTTOM = "bottom";
@@ -67,8 +67,8 @@ define(function (require, exports, module) {
      * Adds resizing capabilities to a given html element.
      *
      * Resizing can be configured in two directions:
-     *  - Vertical ("ver"): Resizes the height of the element
-     *  - Horizontal ("hor"): Resizes the width of the element
+     *  - Vertical ("vert"): Resizes the height of the element
+     *  - Horizontal ("horz"): Resizes the width of the element
      *
      * Resizer handlers can be positioned on the element at:
      *  - Top ("top") or bottom ("bottom") for vertical resizing
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
      *  - panelResizeEnds: When the resize ends
      *
      * @param {DOMNode} element Html element which should be made resizable.
-     * @param {string} direction The direction of the resize action. Must be "hor" or "ver".
+     * @param {string} direction The direction of the resize action. Must be "horz" or "vert".
      * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
      *                          for vertical resizing and "left" or "right" for horizontal resizing.
      * @param {int} minSize Minimum size (width or height) of the element.
@@ -107,7 +107,7 @@ define(function (require, exports, module) {
                 isMouseDown     = true;
                         
             if ($resizableElement !== undefined) {
-                $element.children().not(".hor-resizer, .ver-resizer, .resizable-content").each(function (index, child) {
+                $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
                         baseSize += $(child).outerWidth();
                     } else {
@@ -166,11 +166,11 @@ define(function (require, exports, module) {
         });
     }
     
-    // Scan DOM for hor-resizable and ver-resizable classes and make them resizable
+    // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
         $mainView = $(".main-view");
         
-        $(".ver-resizable").each(function (index, element) {
+        $(".vert-resizable").each(function (index, element) {
             
             if ($(element).hasClass("top-resizer")) {
                 makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, DEFAULT_MIN_SIZE);
@@ -181,13 +181,13 @@ define(function (require, exports, module) {
             //}
         });
         
-        $(".hor-resizable").each(function (index, element) {
+        $(".horz-resizable").each(function (index, element) {
             
             //if ($(element).hasClass("left-resizer")) {
             //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_SIZE);
             //}
 
-            //if ($(element).hasClass("bottom-resizer")) {
+            //if ($(element).hasClass("right-resizer")) {
             //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_SIZE);
             //}
         });
