@@ -344,6 +344,11 @@ define(function (require, exports, module) {
             extraKeys: codeMirrorKeyMap
         });
         
+        // Can't get CodeMirror's focused state without searching for
+        // CodeMirror-focused. Instead, track focus via onFocus and onBlur
+        // options and track state with this._focused
+        this._focused = false;
+        
         this._installEditorListeners();
         
         $(this)
@@ -602,9 +607,15 @@ define(function (require, exports, module) {
 
         // Convert CodeMirror onFocus events to EditorManager focusedEditorChanged
         this._codeMirror.setOption("onFocus", function () {
+            self._focused = true;
+            
             if (!self._internalFocus) {
                 EditorManager._doFocusedEditorChanged(self);
             }
+        });
+        
+        this._codeMirror.setOption("onBlur", function () {
+            self._focused = false;
         });
     };
     
@@ -944,8 +955,7 @@ define(function (require, exports, module) {
     
     /** Returns true if the editor has focus */
     Editor.prototype.hasFocus = function () {
-        // The CodeMirror instance wrapper has a "CodeMirror-focused" class set when focused
-        return $(this.getScrollerElement()).hasClass("CodeMirror-focused");
+        return this._focused;
     };
     
     /**
