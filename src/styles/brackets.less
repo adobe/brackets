@@ -62,10 +62,12 @@ html, body {
 body {
     .vbox;
     
-    /* This appears to be necessary in Firefox when body is set to display: box. */
-    width: 100%;
     &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
         cursor: col-resize;   
+    }
+    
+    &.vert-resizing a, &.vert-resizing #projects a, &.vert-resizing .main-view, &.vert-resizing .CodeMirror-lines {
+        cursor: row-resize;   
     }
 }
 
@@ -180,14 +182,32 @@ a, img {
         background: @background-color-2 url('images/no_content_bg.svg') no-repeat center 45%;
     }
 }
-    
+
+.vert-resizer {
+    position: absolute;
+    height: 6px;
+    width: 100%;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
+    cursor: row-resize;
+}
+
+.horz-resizer {
+    position: absolute;
+    height: 100%;
+    width: 6px;
+    z-index: @z-index-brackets-panel-resizer;
+    opacity: 0;
+    cursor: col-resize;
+}
+
 .bottom-panel {
     display: none;
     height: 200px;
     border-top-style: solid;
     border-width: 1px;
     border-color: lighten(@bc-grey, @bc-color-step-size*4);
-
+    
     .toolbar {
         height: auto;
         padding-top: @base-padding / 2;
