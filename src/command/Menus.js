@@ -903,8 +903,6 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.VIEW_INCREASE_FONT_SIZE, [{key: "Ctrl-=", displayKey: "Ctrl-+"}]);
         menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
         menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
-        menu.addMenuDivider();
-        menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
         /*
          * Navigate menu
