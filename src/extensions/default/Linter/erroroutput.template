@@ -7,10 +7,10 @@
         <table class="zebra-striped condensed-table" id="jslint-error-tab">
             <tbody>
                 {{#each errors}}
-                <tr>
-                    <td>{{this.line}}</td>
-                    <td>{{this.reason}}</td>
-                    <td>{{this.evidence}}</td>
+                <tr class="lint-error-row" data-index="{{this.index}}">
+                    <td>{{this.error.line}}</td>
+                    <td>{{this.error.reason}}</td>
+                    <td>{{this.error.evidence}}</td>
                 </tr>
                 {{/each}}
             </tbody>

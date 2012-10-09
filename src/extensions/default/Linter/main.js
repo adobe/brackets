@@ -26,6 +26,7 @@ define(function (require, exports, module) {
     var outputErrorsToConsole = false;
     
     var outputTemplate;
+    var currentErrors;
 
     function _stripEmptyLines(text) {
         //todo: precompile this regex
@@ -44,9 +45,24 @@ define(function (require, exports, module) {
         return arr.join("\n");
     }
     
+    function _lintRowClickHandler(e) {
+        var index = parseInt($(e.currentTarget).data("index"), 10);
+        var error = currentErrors[index];
+        //line
+        //charachter
+        var editor = EditorManager.getCurrentFullEditor();
+        editor.setCursorPos(error.line - 1, error.character - 1);
+            
+        EditorManager.focusEditor();
+    }
+    
     function _displayLintErrors(errors) {
         
+        currentErrors = errors;
+
         if (!errors) {
+            
+            $(".lint-error-row").off("click", _lintRowClickHandler);
             BottomPanel.clearContent();
             BottomPanel.close();
             return;
@@ -54,17 +70,24 @@ define(function (require, exports, module) {
         
         var len = errors.length;
 
+        var i;
         if (outputErrorsToConsole) {
             var error;
-            var i;
+            
             for (i = 0; i < len; i++) {
                 error = errors[i];
                 console.log(error.line + "\t" + error.reason + "\t" + error.evidence);
             }
         }
         
+        var errorData = [];
+        for (i = 0; i < len; i++) {
+            errorData.push({error: errors[i], index: i});
+        }
+        
+        
         var context = {
-            errors: errors,
+            errors: errorData,
             JSLINT_ERRORS: Strings.JSLINT_ERRORS
         };
     
@@ -79,6 +102,8 @@ define(function (require, exports, module) {
         var output = $(outputTemplate(context));
         
         BottomPanel.loadContent(output);
+        
+        $(".lint-error-row").on("click", _lintRowClickHandler);
     }
     
     function lintDocument(document) {
