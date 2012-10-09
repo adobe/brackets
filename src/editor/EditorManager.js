@@ -583,30 +583,29 @@ define(function (require, exports, module) {
         $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
     }
     
-    function _updateIndentInfo(editor) {
-        var indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
+    function _updateIndentType() {
+        var indentWithTabs = Editor.getUseTabChar();
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
-        
-        $indentWidth.text(editor._codeMirror.getOption("tabSize"));
-    }
-    
-    function _toggleIndentType() {
-        var editor = getFocusedEditor(),
-            indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
-        
-        editor._codeMirror.setOption("indentWithTabs", !indentWithTabs);
-        
-        _updateIndentInfo(editor);
     }
     
     function _updateIndentSize(inc) {
-        var editor = getFocusedEditor(),
-            size = editor._codeMirror.getOption("tabSize");
-        
-        editor._codeMirror.setOption("tabSize", size + inc);
-        
-        _updateIndentInfo(editor);
+        $indentWidth.text(Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit());
+    }
+    
+    function _toggleIndentType() {
+        Editor.setUseTabChar(!Editor.getUseTabChar());
+        _updateIndentType();
+        _updateIndentSize();
+    }
+    
+    function _changeIndentSize(inc) {
+        if (Editor.getUseTabChar()) {
+            Editor.setTabSize(Editor.getTabSize() + inc);
+        } else {
+            Editor.setIndentUnit(Editor.getIndentUnit() + inc);
+        }
+        _updateIndentSize();
     }
     
     function _updateCursorInfo(event, editor) {
@@ -638,7 +637,8 @@ define(function (require, exports, module) {
             _updateCursorInfo(null, current);
             _updateModeInfo(current);
             _updateFileInfo(current);
-            _updateIndentInfo(current);
+            _updateIndentType();
+            _updateIndentSize();
         }
     }
 
@@ -668,8 +668,8 @@ define(function (require, exports, module) {
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
-        $indentDecrement.on("click", function () { _updateIndentSize(-1); });
-        $indentIncrement.on("click", function () { _updateIndentSize(1); });
+        $indentDecrement.on("click", function () { _changeIndentSize(-1); });
+        $indentIncrement.on("click", function () { _changeIndentSize(1); });
         
         StatusBar.hide();
         _onFocusedEditorChange(null, getFocusedEditor(), null);
