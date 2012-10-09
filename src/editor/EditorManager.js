@@ -595,16 +595,21 @@ define(function (require, exports, module) {
     }
     
     function _updateIndentSize(inc) {
-        $indentWidth.text(Editor.getTabSize());
+        $indentWidth.text(Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit());
     }
     
     function _toggleIndentType() {
         Editor.setUseTabChar(!Editor.getUseTabChar());
         _updateIndentType();
+        _updateIndentSize();
     }
     
     function _changeIndentSize(inc) {
-        Editor.setTabSize(Editor.getTabSize() + inc);
+        if (Editor.getUseTabChar()) {
+            Editor.setTabSize(Editor.getTabSize() + inc);
+        } else {
+            Editor.setIndentUnit(Editor.getIndentUnit() + inc);
+        }
         _updateIndentSize();
     }
     

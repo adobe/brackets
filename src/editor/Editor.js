@@ -73,7 +73,19 @@ define(function (require, exports, module) {
         ViewUtils          = require("utils/ViewUtils");
     
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.Editor",
-        defaultPrefs = { useTabChar: false, tabSize: 4 };
+        defaultPrefs = { useTabChar: false, tabSize: 4, indentUnit: 4 };
+    
+    /** Editor preferences */
+    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
+    
+    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
+    var _useTabChar = _prefs.getValue("useTabChar");
+    
+    /** @type {boolean}  Global setting: Tab size */
+    var _tabSize = _prefs.getValue("tabSize");
+    
+    /** @type {boolean}  Global setting: Indent unit (i.e. number of spaces when indenting) */
+    var _indentUnit = _prefs.getValue("indentUnit");
     
     /**
      * @private
@@ -121,7 +133,7 @@ define(function (require, exports, module) {
             if (instance.getOption("indentWithTabs")) {
                 CodeMirror.commands.insertTab(instance);
             } else {
-                var i, ins = "", numSpaces = instance.getOption("tabSize");
+                var i, ins = "", numSpaces = _indentUnit;
                 numSpaces -= to.ch % numSpaces;
                 for (i = 0; i < numSpaces; i++) {
                     ins += " ";
@@ -143,12 +155,11 @@ define(function (require, exports, module) {
         var handled = false;
         if (!instance.getOption("indentWithTabs")) {
             var cursor = instance.getCursor(),
-                tabSize = instance.getOption("tabSize"),
-                jump = cursor.ch % tabSize,
+                jump = cursor.ch % _indentUnit,
                 line = instance.getLine(cursor.line);
 
             if (direction === 1) {
-                jump = tabSize - jump;
+                jump = _indentUnit - jump;
 
                 if (cursor.ch + jump > line.length) { // Jump would go beyond current line
                     return false;
@@ -167,7 +178,7 @@ define(function (require, exports, module) {
                 // If we are on the tab boundary, jump by the full amount, 
                 // but not beyond the start of the line.
                 if (jump === 0) {
-                    jump = tabSize;
+                    jump = _indentUnit;
                 }
 
                 // Search backwards to the first non-space character
@@ -228,21 +239,12 @@ define(function (require, exports, module) {
         }
     }
     
-    /** Editor preferences */
-    var _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
-    
     /**
      * List of all current (non-destroy()ed) Editor instances. Needed when changing global preferences
      * that affect all editors, e.g. tabbing or color scheme settings.
      * @type {Array.<Editor>}
      */
     var _instances = [];
-    
-    /** @type {boolean}  Global setting: When inserting new text, use tab characters? (instead of spaces) */
-    var _useTabChar = _prefs.getValue("useTabChar");
-    
-    /** @type {boolean}  Global setting: Tab size */
-    var _tabSize = _prefs.getValue("tabSize");
     
     
     /**
@@ -340,6 +342,7 @@ define(function (require, exports, module) {
             electricChars: false,   // we use our own impl of this to avoid CodeMirror bugs; see _checkElectricChars()
             indentWithTabs: _useTabChar,
             tabSize: _tabSize,
+            indentUnit: _indentUnit,
             lineNumbers: true,
             matchBrackets: true,
             dragDrop: false,    // work around issue #1123
@@ -1077,7 +1080,6 @@ define(function (require, exports, module) {
             editor._codeMirror.setOption("indentWithTabs", _useTabChar);
         });
         
-        // Remember the setting across launches
         _prefs.setValue("useTabChar", Boolean(_useTabChar));
     };
     
@@ -1087,7 +1089,7 @@ define(function (require, exports, module) {
     };
 
     /**
-     * Sets tab size for both tab and space indentation. Affects all Editors.
+     * Sets tab character width. Affects all Editors.
      * @param {number} value
      */
     Editor.setTabSize = function (value) {
@@ -1096,13 +1098,30 @@ define(function (require, exports, module) {
             editor._codeMirror.setOption("tabSize", _tabSize);
         });
         
-        // Remember the setting across launches
         _prefs.setValue("tabSize", _tabSize);
     };
     
-    /** @type {number} Get  */
+    /** @type {number} Get indent unit  */
     Editor.getTabSize = function (value) {
         return _tabSize;
+    };
+
+    /**
+     * Sets indentation width. Affects all Editors.
+     * @param {number} value
+     */
+    Editor.setIndentUnit = function (value) {
+        _indentUnit = value;
+        _instances.forEach(function (editor) {
+            editor._codeMirror.setOption("indentUnit", _indentUnit);
+        });
+        
+        _prefs.setValue("indentUnit", _indentUnit);
+    };
+    
+    /** @type {number} Get indentation width */
+    Editor.getIndentUnit = function (value) {
+        return _indentUnit;
     };
     
     // Global commands that affect the currently focused Editor instance, wherever it may be
