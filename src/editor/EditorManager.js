@@ -35,8 +35,8 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires asynchronously after the focused editor
- *                             (full or inline) changes and size/visibility are complete.
+ *    - focusedEditorChange -- Fires after the focused editor (full or inline)
+ *                             changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -359,18 +359,13 @@ define(function (require, exports, module) {
             _currentEditor = current;
         }
 
-        // Fire focusedEditorChange asynchronously to allow CodeMirror to
-        // completely update focused state. CodeMirror fires it's "onFocus"
-        // event prior to setting it's internal state.
-        window.setTimeout(function () {
-            // Window may have been resized since last time editor was visible, so kick it now
-            if (_currentEditor) {
-                _currentEditor.setVisible(true);
-                resizeEditor();
-            }
-            
-            $(exports).triggerHandler("focusedEditorChange", [current, previous]);
-        });
+        // Window may have been resized since last time editor was visible, so kick it now
+        if (_currentEditor) {
+            _currentEditor.setVisible(true);
+            resizeEditor();
+        }
+
+        $(exports).triggerHandler("focusedEditorChange", [current, previous]);
     }
     
     /**
@@ -661,6 +656,7 @@ define(function (require, exports, module) {
     
     // Initialize: status bar focused listener
     $(exports).on("focusedEditorChange", _onFocusedEditorChange);
+    
     AppInit.htmlReady(function () {
         $modeInfo           = $("#status-mode");
         $cursorInfo         = $("#status-cursor");

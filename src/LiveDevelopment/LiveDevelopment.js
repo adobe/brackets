@@ -352,6 +352,13 @@ define(function LiveDevelopment(require, exports, module) {
         _setStatus(STATUS_INACTIVE);
     }
 
+    function _onReconnect() {
+        unloadAgents();
+        var promises = loadAgents();
+        _setStatus(STATUS_LOADING_AGENTS);
+        $.when.apply(undefined, promises).then(_onLoad, _onError);
+    }
+
     /** Open the Connection and go live */
     function open() {
         var result = new $.Deferred(),
@@ -507,7 +514,11 @@ define(function LiveDevelopment(require, exports, module) {
 
         if (doc && _classForDocument(doc) !== CSSDocument && Inspector.connected()) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
+                // Reload HTML page
                 Inspector.Page.reload();
+
+                // Reload unsaved changes
+                _onReconnect();
                 
                 // Set status back to active
                 _setStatus(STATUS_ACTIVE);
