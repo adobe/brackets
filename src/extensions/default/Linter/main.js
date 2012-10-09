@@ -14,6 +14,7 @@ define(function (require, exports, module) {
     var StatusBar       = brackets.getModule("widgets/StatusBar");
     var PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
     var StringUtils = brackets.getModule("utils/StringUtils");
+    var ExtensionUtils = brackets.getModule("utils/ExtensionUtils");
 
     //todo: readd scrolling code
     //todo: save enabled settings and update menu
@@ -88,8 +89,9 @@ define(function (require, exports, module) {
         currentErrors = errors;
 
         if (!errors) {
+            console.log("lint-valid");
             StatusBar.updateIndicator(id, true, "lint-valid", Strings.JSLINT_NO_ERRORS);
-            statusIcon.hide();
+            //statusIcon.hide();
             $(".lint-error-row").off("click", _lintRowClickHandler);
             BottomPanel.clearContent();
             //BottomPanel.close();
@@ -129,9 +131,10 @@ define(function (require, exports, module) {
         var output = $(outputTemplate(context));
 
         BottomPanel.loadContent(output);
-        statusIcon.show();
+        //statusIcon.show();
 
         var errorString = (len === 1) ? Strings.JSLINT_ERROR_INFORMATION : StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, len);
+        console.log("lint-errors");
         StatusBar.updateIndicator(id, true, "lint-errors", errorString);
 
         $(".lint-error-row").on("click", _lintRowClickHandler);
@@ -141,11 +144,6 @@ define(function (require, exports, module) {
         by the linter
     */
     function lintDocument(document) {
-
-        if (!_isSupportedExtension(document)) {
-            StatusBar.updateIndicator(id, true, "lint-disabled", Strings.JSLINT_DISABLED);
-            return;
-        }
 
         var text = document.getText();
 
@@ -163,7 +161,16 @@ define(function (require, exports, module) {
     }
 
     function _lintCurrentDocument() {
-        var errors = lintDocument(DocumentManager.getCurrentDocument());
+
+        var document = DocumentManager.getCurrentDocument();
+
+        if (!_isSupportedExtension(document)) {
+            console.log("lint-disabled");
+            StatusBar.updateIndicator(id, true, "lint-disabled", Strings.JSLINT_DISABLED);
+            return;
+        }
+
+        var errors = lintDocument(document);
 
         _displayLintErrors(errors);
     }
@@ -196,6 +203,7 @@ define(function (require, exports, module) {
             $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
         } else {
             $(DocumentManager).off(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
+            console.log("lint-disabled");
             StatusBar.updateIndicator(id, true, "lint-disabled", Strings.JSLINT_DISABLED);
         }
     }
@@ -207,17 +215,19 @@ define(function (require, exports, module) {
     _initMenu();
     _initPrefs();
 
-    //todo: need to pull preference on whether linting is enabled, and only
-    //register for this if it is enabled
-    //todo: can we do this on a module loaded event? and not on initialization?
-    //do we know document has loaded yet?
-    if (enabled) {
-        $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
-        _lintCurrentDocument();
-    }
+
 
     AppInit.htmlReady(function () {
-        StatusBar.addIndicator(id, $("#gold-star"), false);
+        ExtensionUtils.loadStyleSheet(module, "linter.css");
+        StatusBar.addIndicator(id, statusIcon, true);
+        //todo: need to pull preference on whether linting is enabled, and only
+        //register for this if it is enabled
+        //todo: can we do this on a module loaded event? and not on initialization?
+        //do we know document has loaded yet?
+        if (enabled) {
+            $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
+            _lintCurrentDocument();
+        }
     });
 
     exports.lintDocument = lintDocument;

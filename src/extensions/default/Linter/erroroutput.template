@@ -1,21 +1,3 @@
-<style>
-    .lint-disabled {
-        font-size: 1em;
-        color: #808080; /*@bc-grey*/
-    }
-    
-    .lint-errors {
-        font-size: 1em;
-        color: #dc322f/*@bc-red*/;
-    }
-    
-    .lint-valid {
-        font-size: 1em;
-        color: lighten(#b58900, 20%);
-        /*color: lighten(@bc-yellow, @bc-color-step-size*2);*/
-    }
-</style>
-
 <div class="toolbar simple-toolbar-layout">
     <div class="title">{{JSLINT_ERRORS}}</div>
 </div>
