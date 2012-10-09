@@ -29,7 +29,6 @@ define(function (require, exports, module) {
     
     var Editor                = require("editor/Editor").Editor,
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
-        EditorManager         = require("editor/EditorManager"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
@@ -46,26 +45,23 @@ define(function (require, exports, module) {
                              "\n" +
                              "}";
 
-        var myDocument, myEditor, $editorHolder;
+        var myDocument, myEditor;
         beforeEach(function () {
-            // Initialize EditorManager
-            $editorHolder = $("<div id='editor-holder'/>");
-            EditorManager._init();
-            EditorManager.setEditorHolder($editorHolder);
-            $("body").append($editorHolder);
-
             // create dummy Document for the Editor
             myDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-
+            
             // create Editor instance (containing a CodeMirror instance)
-            myEditor = new Editor(myDocument, true, "javascript", $editorHolder.get(0), {});
+            $("body").append("<div id='editor'/>");
+            myEditor = new Editor(myDocument, true, "javascript", $("#editor").get(0), {});
+            
+            // Must be focused so editor commands target it
             myEditor.focus();
         });
 
         afterEach(function () {
-            EditorManager._destroyEditorIfUnneeded(myDocument);
-            $editorHolder.remove();
+            myEditor.destroy();
             myEditor = null;
+            $("#editor").remove();
             myDocument = null;
         });
         

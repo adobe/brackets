@@ -39,24 +39,21 @@ define(function (require, exports, module) {
         
         var inlineEditor,
             $editorHolder,
-            hostEditor,
-            doc;
+            hostEditor;
         
         beforeEach(function () {
             // init Editor instance (containing a CodeMirror instance)
-            $editorHolder = $("<div id='editor-holder'/>");
-            EditorManager._init();
-            EditorManager.setEditorHolder($editorHolder);
-            $("body").append($editorHolder);
+            $("body").append("<div id='editor-holder'/>");
+            $editorHolder = $("#editor-holder");
+            EditorManager.setEditorHolder(this.$editorHolder);
             
-            doc = SpecRunnerUtils.createMockDocument("hostEditor");
+            var doc = SpecRunnerUtils.createMockDocument("hostEditor");
             hostEditor = new Editor(doc, true, "", $editorHolder.get(0), {});
         });
         
         afterEach(function () {
-            EditorManager._destroyEditorIfUnneeded(doc);
+            hostEditor.destroy();
             $editorHolder.remove();
-            hostEditor = null;
         });
 
         it("should initialize to a default state", function () {

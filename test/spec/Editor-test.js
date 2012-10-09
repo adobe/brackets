@@ -29,36 +29,31 @@ define(function (require, exports, module) {
     'use strict';
     
     var Editor          = require("editor/Editor").Editor,
-        EditorManager   = require("editor/EditorManager"),
         SpecRunnerUtils = require("spec/SpecRunnerUtils"),
         EditorUtils     = require("editor/EditorUtils");
 
     describe("Editor", function () {
         var defaultContent = 'Brackets is going to be awesome!\n';
-        var myDocument, myEditor, $editorHolder;
+        var myDocument, myEditor;
         
         function createTestEditor(content, mode) {
-            // Initialize EditorManager
-            $editorHolder = $("<div id='editor-holder'/>");
-            EditorManager._init();
-            EditorManager.setEditorHolder($editorHolder);
-            $("body").append($editorHolder);
-            
             // create dummy Document for the Editor
             myDocument = SpecRunnerUtils.createMockDocument(content);
             
-            // create Editor instance
-            myEditor = new Editor(myDocument, true, mode, $editorHolder.get(0), {});
+            // create Editor instance (containing a CodeMirror instance)
+            $("body").append("<div id='editor'/>");
+            myEditor = new Editor(myDocument, true, mode, $("#editor").get(0), {});
         }
 
         afterEach(function () {
             if (myEditor) {
-                EditorManager._destroyEditorIfUnneeded(myDocument);
-                $editorHolder.remove();
+                myEditor.destroy();
                 myEditor = null;
+                $("#editor").remove();
                 myDocument = null;
             }
         });
+        
 
         describe("Editor wrapper", function () {
             beforeEach(function () {

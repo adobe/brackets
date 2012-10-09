@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, document, Mustache */
+/*global define, $, brackets, window, document*/
 
 /**
  * A status bar with support for file information and busy and status indicators.
@@ -7,17 +7,13 @@
 define(function (require, exports, module) {
     'use strict';
     
-    var AppInit         = require("utils/AppInit"),
-        StatusBarHTML   = require("text!widgets/StatusBar.html"),
-        Strings         = require("strings");
-
-    var _init = false;
+    var AppInit = require("utils/AppInit");
     
     // Indicates if the busy cursor is active to avoid unnecesary operations
-    var _busyCursor = false;
+    var busyCursor = false;
     
     // A simple regexp to sanitize indicator ids
-    var _indicatorIDRegexp = new RegExp("[^a-zA-Z 0-9]+", "g");
+    var indicatorIDRegexp = new RegExp("[^a-zA-Z 0-9]+", "g");
     
     // These vars are initialized by the AppInit.htmlReady handler
     // below since they refer to DOM elements
@@ -31,12 +27,8 @@ define(function (require, exports, module) {
      * @param {boolean} updateCursor Sets the cursor to "wait"
      */
     function showBusyIndicator(updateCursor) {
-        if (!_init) {
-            return;
-        }
-
         if (updateCursor) {
-            _busyCursor = true;
+            busyCursor = true;
             $("*").addClass("busyCursor");
         }
         
@@ -47,14 +39,10 @@ define(function (require, exports, module) {
      * Hides the 'busy' indicator
      */
     function hideBusyIndicator() {
-        if (!_init) {
-            return;
-        }
-
         // Check if we are using the busyCursor class to avoid
         // unnecesary calls to $('*').removeClass()
-        if (_busyCursor) {
-            _busyCursor = false;
+        if (busyCursor) {
+            busyCursor = false;
             $("*").removeClass("busyCursor");
         }
         
@@ -72,14 +60,11 @@ define(function (require, exports, module) {
      * TODO Unused command parameter. Include command functionality for statusbar indicators.
      */
     function addIndicator(id, indicator, visible, style, tooltip, command) {
-        if (!_init) {
-            return;
-        }
-
+        
         indicator = indicator || document.createElement("div");
         tooltip = tooltip || "";
         style = style || "";
-        id = id.replace(_indicatorIDRegexp, "-") || "";
+        id = id.replace(indicatorIDRegexp, "-") || "";
         
         var $indicator = $(indicator);
         
@@ -104,11 +89,8 @@ define(function (require, exports, module) {
      * @param {string} command Optional command name to execute on the indicator click.
      */
     function updateIndicator(id, visible, style, tooltip, command) {
-        if (!_init) {
-            return;
-        }
         
-        var $indicator = $("#" + id.replace(_indicatorIDRegexp, "-"));
+        var $indicator = $("#" + id.replace(indicatorIDRegexp, "-"));
         
         if ($indicator) {
             
@@ -136,10 +118,6 @@ define(function (require, exports, module) {
      * Hide the statusbar
      */
     function hide() {
-        if (!_init) {
-            return;
-        }
-
         $statusBar.hide();
     }
     
@@ -147,36 +125,18 @@ define(function (require, exports, module) {
      * Show the statusbar
      */
     function show() {
-        if (!_init) {
-            return;
-        }
-
         $statusBar.show();
     }
-
-    function init($parent) {
-        // check if status bar already exists
-        if (_init) {
-            return;
-        }
-
-        $parent = $parent || $("body");
-        $parent.append(Mustache.render(StatusBarHTML, Strings));
-
-        // Initialize items dependent on HTML DOM
+    
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
         $busyIndicator      = $("#busy-indicator");
         
         $busyIndicator.hide();
-
-        _init = true;
-
-        // hide on init
-        hide();
-    }
+    });
     
-    exports.init = init;
     exports.showBusyIndicator = showBusyIndicator;
     exports.hideBusyIndicator = hideBusyIndicator;
     exports.addIndicator = addIndicator;
