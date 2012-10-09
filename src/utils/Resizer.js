@@ -107,6 +107,24 @@ define(function (require, exports, module) {
             });
         }
         
+        // A value of 0 for minSize implies that the panel is collapsable
+        if (!minSize) {
+            $resizer.on("dblclick", function () {
+                if ($element.is(":visible")) {
+                    $element.hide();
+                    $resizer.insertBefore($element).css("left", 5);
+                    $element.trigger("panelCollapsed");
+                } else {
+                    $element.show();
+                    $element.prepend($resizer);
+                    $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
+                    $element.trigger("panelExpanded");
+                }
+                
+                EditorManager.resizeEditor();
+            });
+        }
+        
         $resizer.on("mousedown", function (e) {
             var startPosition   = e[directionProperty],
                 startSize       = elementSizeFunction.apply($element),
@@ -168,11 +186,13 @@ define(function (require, exports, module) {
                     $mainView.off("mousemove");
                     $body.toggleClass(direction + "-resizing");
                     
-                    if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
-                        $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
+                    if ($element.is(":visible")) {
+                        if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
+                            $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
+                        }
+                        
+                        $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
                     }
-                    
-                    $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
                 }
             }
             
@@ -185,12 +205,17 @@ define(function (require, exports, module) {
     
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
+        var minSize = DEFAULT_MIN_SIZE;
         $mainView = $(".main-view");
         
         $(".vert-resizable").each(function (index, element) {
             
+            if ($(element).hasClass("collapsable")) {
+                minSize = 0;
+            }
+            
             if ($(element).hasClass("top-resizer")) {
-                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, DEFAULT_MIN_SIZE);
+                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize);
             }
             
             //if ($(element).hasClass("bottom-resizer")) {
@@ -200,12 +225,16 @@ define(function (require, exports, module) {
         
         $(".horz-resizable").each(function (index, element) {
             
+            if ($(element).hasClass("collapsable")) {
+                minSize = 0;
+            }
+            
             //if ($(element).hasClass("left-resizer")) {
             //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_SIZE);
             //}
 
             if ($(element).hasClass("right-resizer")) {
-                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_SIZE);
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, minSize);
             }
         });
     });

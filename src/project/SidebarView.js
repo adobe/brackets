@@ -157,11 +157,19 @@ define(function (require, exports, module) {
             prefs.setValue("sidebarWidth", width);
         });
         
+        $sidebar.on("panelCollapsed", function () {
+            console.log("COLLAPSE!!!");
+        });
+        
+        $sidebar.on("panelExpanded", function () {
+            console.log("EXPAND!!!");
+        });
+        
         // Set initial state
         if (prefs.getValue("sidebarClosed")) {
             toggleSidebar(sidebarWidth);
         } else {
-            $sidebar.width(sidebarWidth);
+            $sidebar.width(400);
         }
         
         $sidebar.trigger("resize");
