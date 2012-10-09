@@ -6,6 +6,7 @@ define(function (require, exports, module) {
     
     var EditorManager   = require("editor/EditorManager");
     
+    /*
     var open = function() {
         console.log("open");
     };
@@ -13,23 +14,24 @@ define(function (require, exports, module) {
     var close = function() {
         console.log("close");
     };
+*/
 
-    var clearContent = function() {
+    function clearContent() {
         $("#bottom-panel").empty();
         $("#bottom-panel").hide();
         EditorManager.resizeEditor();
-    };
+    }
     
-    var loadContent = function(html) {
+    function loadContent(html) {
         clearContent();
         
         $("#bottom-panel").append(html);
         $("#bottom-panel").show();
         EditorManager.resizeEditor();
-    };
+    }
     
-    exports.open = open;
-    exports.close = close;
+    //exports.open = open;
+    //exports.close = close;
     exports.loadContent = loadContent;
     exports.clearContent = clearContent;
 });

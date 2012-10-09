@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, JSLINT, Handlebars */
+/*global define, $, brackets, JSLINT, Handlebars, AppInit, StatusBar, PathUtils */
 
 define(function (require, exports, module) {
     'use strict';
@@ -10,9 +10,11 @@ define(function (require, exports, module) {
     var EditorManager   = brackets.getModule("editor/EditorManager");
     var Strings         = brackets.getModule("strings");
     var BottomPanel     = brackets.getModule("widgets/BottomPanel");
+    var AppInit         = brackets.getModule("utils/AppInit");
+    var StatusBar       = brackets.getModule("widgets/StatusBar");
     
-    //todo: should this both run the linter and display results?
-    //todo: remove JSLintUtils.js
+    //todo: only lint support file extension
+    //todo: readd scrolling code
     
     //todo: move jslint source to Linter extension
     require("../../../thirdparty/jslint/jslint");
@@ -25,9 +27,18 @@ define(function (require, exports, module) {
     var ignoreEmptyLines = true;
     var outputErrorsToConsole = false;
     
+    var statusIcon = $("#gold-star");
+    
     var outputTemplate;
     var currentErrors;
+    var extRegEx = /^(\.js|\.json\.css\.htm|\.html)$/i;
 
+    function _isSupportedExtension(document) {
+        var ext = document ? PathUtils.filenameExtension(document.file.fullPath) : "";
+
+        return extRegEx.test(ext);
+    }
+    
     function _stripEmptyLines(text) {
         //todo: precompile this regex
         //todo: check this works with multiple line endings
@@ -61,9 +72,10 @@ define(function (require, exports, module) {
 
         if (!errors) {
             
+            statusIcon.hide();
             $(".lint-error-row").off("click", _lintRowClickHandler);
             BottomPanel.clearContent();
-            BottomPanel.close();
+            //BottomPanel.close();
             return;
         }
         
@@ -92,7 +104,7 @@ define(function (require, exports, module) {
     
         if (!outputTemplate) {
             //if the Handlebars template hasnt been compiled yet, compile it
-            //and then cache it for future use.
+            //and then cache it for future use (for performance).
             require("Handlebars/handlebars");
             var outputTemplateSource = require("text!erroroutput.template");
             outputTemplate = Handlebars.compile(outputTemplateSource);
@@ -101,11 +113,20 @@ define(function (require, exports, module) {
         var output = $(outputTemplate(context));
         
         BottomPanel.loadContent(output);
-        
+        statusIcon.show();
         $(".lint-error-row").on("click", _lintRowClickHandler);
     }
     
+    /* Runs linting on the specified document, and returns an array of errors found
+        by the linter
+    */
     function lintDocument(document) {
+        
+        if (!_isSupportedExtension(document)) {
+            return;
+        }
+        
+        
         var text = document.getText();
         
         if (ignoreEmptyLines) {
@@ -157,4 +178,10 @@ define(function (require, exports, module) {
         $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
         _lintCurrentDocument();
     }
+    
+    AppInit.htmlReady(function () {
+        StatusBar.addIndicator(module.id, $("#gold-star"), false);
+    });
+    
+    exports.lintDocument = lintDocument;
 });
