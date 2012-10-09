@@ -11,29 +11,74 @@ define(function (require, exports, module) {
     var Strings         = brackets.getModule("strings");
     var BottomPanel     = brackets.getModule("widgets/BottomPanel");
     
-    require("../../../thirdparty/jslint/jslint");
+    //todo: should this both run the linter and display results?
+    //todo: remove JSLintUtils.js
     
-    //todo: do this on first use
-    require("Handlebars/handlebars");
-    var outputTemplateSource = require("text!erroroutput.template");
-    var outputTemplate = Handlebars.compile(outputTemplateSource);
+    //todo: move jslint source to Linter extension
+    require("../../../thirdparty/jslint/jslint");
 
+    var DOCUMENT_SAVED = "documentSaved";
+    var CURRENT_DOCUMENT_CHANGED = "currentDocumentChange";
+     
     var LINTER = "LINTER";
     var enabled = true;
     var ignoreEmptyLines = true;
     var outputErrorsToConsole = false;
     
-    
-    //todo: should this both run the linter and display results?
-    //todo: need to lint file on startup
-    //todo: need to lint file on document change
-    //todo: move jslint source to Linter extension
-    //todo: remove JSLintUtils.js
+    var outputTemplate;
 
     function _stripEmptyLines(text) {
         //todo: precompile this regex
         //todo: check this works with multiple line endings
-        return text.replace(/^\s*$[\n\r]{1,}/gm, "");
+        //return text.replace(/^\s*$[\n\r]{1,}/gm, "");
+
+        //todo: need to find more optimal way to do this. if we use
+        //regex above, it works, but then line numbers are off.
+
+        var i, arr = text.split("\n");
+        for (i = 0; i < arr.length; i++) {
+            if (!arr[i].match(/\S/)) {
+                arr[i] = "";
+            }
+        }
+        return arr.join("\n");
+    }
+    
+    function _displayLintErrors(errors) {
+        
+        if (!errors) {
+            BottomPanel.clearContent();
+            BottomPanel.close();
+            return;
+        }
+        
+        var len = errors.length;
+
+        if (outputErrorsToConsole) {
+            var error;
+            var i;
+            for (i = 0; i < len; i++) {
+                error = errors[i];
+                console.log(error.line + "\t" + error.reason + "\t" + error.evidence);
+            }
+        }
+        
+        var context = {
+            errors: errors,
+            JSLINT_ERRORS: Strings.JSLINT_ERRORS
+        };
+    
+        if (!outputTemplate) {
+            //if the Handlebars template hasnt been compiled yet, compile it
+            //and then cache it for future use.
+            require("Handlebars/handlebars");
+            var outputTemplateSource = require("text!erroroutput.template");
+            outputTemplate = Handlebars.compile(outputTemplateSource);
+        }
+        
+        var output = $(outputTemplate(context));
+        
+        BottomPanel.loadContent(output);
     }
     
     function lintDocument(document) {
@@ -52,49 +97,13 @@ define(function (require, exports, module) {
         return JSLINT.errors;
     }
     
-    function _displayLintErrors(errors) {
-        var len = errors.length;
-
-        if (outputErrorsToConsole) {
-            var error;
-            var i;
-            for (i = 0; i < len; i++) {
-                error = errors[i];
-                console.log(error.line + "\t" + error.reason + "\t" + error.evidence);
-            }
-        }
-        
-        var context = {
-            errors: errors,
-            JSLINT_ERRORS: Strings.JSLINT_ERRORS
-        };
-    
-        var output = $(outputTemplate(context));
-        
-        /*
-        $("#bottom-panel").empty();
-        $("#bottom-panel").append(output);
-        $("#bottom-panel").show();
-        */
-        
-        BottomPanel.loadContent(output);
-    }
-    
     function _lintCurrentDocument() {
         var errors = lintDocument(DocumentManager.getCurrentDocument());
-        
-        if (!errors) {
-            console.log("no errors clearing content");
-            BottomPanel.clearContent();
-            BottomPanel.close();
-            return;
-        }
         
         _displayLintErrors(errors);
     }
     
     function _onDocumentUpdated(event) {
-        console.log("updated");
         _lintCurrentDocument();
     }
     
@@ -102,9 +111,9 @@ define(function (require, exports, module) {
         enabled = !enabled;
         
         if (enabled) {
-            $(DocumentManager).on("documentSaved documentChanged", _onDocumentUpdated);
+            $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
         } else {
-            $(DocumentManager).off("documentSaved documentChanged", _onDocumentUpdated);
+            $(DocumentManager).off(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
         }
     }
     
@@ -121,7 +130,7 @@ define(function (require, exports, module) {
     //todo: can we do this on a module loaded event? and not on initialization?
     //do we know document has loaded yet?
     if (enabled) {
-        $(DocumentManager).on("documentSaved currentDocumentChange", _onDocumentUpdated);
+        $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
         _lintCurrentDocument();
     }
 });

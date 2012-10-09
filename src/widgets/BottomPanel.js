@@ -7,11 +7,11 @@ define(function (require, exports, module) {
     var EditorManager   = require("editor/EditorManager");
     
     var open = function() {
-        //foo
+        console.log("open");
     };
     
     var close = function() {
-        //foo
+        console.log("close");
     };
 
     var clearContent = function() {
