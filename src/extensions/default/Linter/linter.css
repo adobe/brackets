@@ -1,0 +1,15 @@
+.lint-valid {
+    font-size: 1em;
+    color: limegreen;
+    /*color: lighten(@bc-yellow, @bc-color-step-size*2);*/
+}
+
+.lint-disabled {
+    font-size: 1em;
+    color: #808080; /*@bc-grey*/
+}
+
+.lint-errors {
+    font-size: 1em;
+    color: #dc322f/*@bc-red*/;
+}

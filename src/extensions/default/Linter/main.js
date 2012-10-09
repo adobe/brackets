@@ -16,7 +16,6 @@ define(function (require, exports, module) {
     var StringUtils = brackets.getModule("utils/StringUtils");
     var ExtensionUtils = brackets.getModule("utils/ExtensionUtils");
 
-    //todo: readd scrolling code
     //todo: save enabled settings and update menu
 
     //todo: move jslint source to Linter extension
@@ -215,15 +214,10 @@ define(function (require, exports, module) {
     _initMenu();
     _initPrefs();
 
-
-
     AppInit.htmlReady(function () {
         ExtensionUtils.loadStyleSheet(module, "linter.css");
         StatusBar.addIndicator(id, statusIcon, true);
-        //todo: need to pull preference on whether linting is enabled, and only
-        //register for this if it is enabled
-        //todo: can we do this on a module loaded event? and not on initialization?
-        //do we know document has loaded yet?
+
         if (enabled) {
             $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
             _lintCurrentDocument();
