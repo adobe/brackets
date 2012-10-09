@@ -48,8 +48,7 @@ define(function (require, exports, module) {
     function _lintRowClickHandler(e) {
         var index = parseInt($(e.currentTarget).data("index"), 10);
         var error = currentErrors[index];
-        //line
-        //charachter
+
         var editor = EditorManager.getCurrentFullEditor();
         editor.setCursorPos(error.line - 1, error.character - 1);
             
