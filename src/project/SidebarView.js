@@ -143,9 +143,7 @@ define(function (require, exports, module) {
             startingSidebarPosition = sidebarWidth,
             animationRequest        = null,
             isMouseDown             = false;
-        
-        $sidebarResizer.css("left", sidebarWidth - 1);
-        
+                
         if (prefs.getValue("sidebarClosed")) {
             toggleSidebar(sidebarWidth);
         } else {
@@ -163,16 +161,6 @@ define(function (require, exports, module) {
             }
         });
         $sidebarResizer.on("mousedown.sidebar", function (e) {
-            var startX = e.clientX,
-                newWidth = Math.max(e.clientX, 0),
-                doResize = true;
-            
-            isMouseDown = true;
-
-            // take away the shadows (for performance reasons during sidebarmovement)
-            $sidebar.find(".scroller-shadow").css("display", "none");
-            
-            $body.toggleClass("resizing");
             
             // check to see if we're currently in hidden mode
             if (isSidebarClosed) {
@@ -180,13 +168,7 @@ define(function (require, exports, module) {
             }
                         
             
-            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() {
-                // only run this if the mouse is down so we don't constantly loop even 
-                // after we're done resizing.
-                if (!isMouseDown) {
-                    return;
-                }
-                    
+            animationRequest = window.webkitRequestAnimationFrame(function doRedraw() { 
                 // if we've gone below 10 pixels on a mouse move, and the
                 // sidebar is shrinking, hide the sidebar automatically an
                 // unbind the mouse event. 
@@ -206,38 +188,7 @@ define(function (require, exports, module) {
                     isMouseDown = false;
                         
                 }
-                
-                if (doResize) {
-                    // for right now, displayTriangle is always going to be false for _setWidth
-                    // because we want to hide it when we move, and _setWidth only gets called
-                    // on mousemove now.
-                    _setWidth(newWidth, false, false);
-                }
-                
-                animationRequest = window.webkitRequestAnimationFrame(doRedraw);
             });
-            
-            $mainView.on("mousemove.sidebar", function (e) {
-                newWidth = Math.max(e.clientX, 0);
-                
-                e.preventDefault();
-            });
-                
-            $mainView.one("mouseup.sidebar", function (e) {
-                isMouseDown = false;
-                
-                // replace shadows and triangle
-                $sidebar.find(".sidebar-selection-triangle").css("display", "block");
-                $sidebar.find(".scroller-shadow").css("display", "block");
-                
-                $projectFilesContainer.triggerHandler("scroll");
-                $openFilesContainer.triggerHandler("scroll");
-                $mainView.off("mousemove.sidebar");
-                $body.toggleClass("resizing");
-                startingSidebarPosition = $sidebar.width();
-            });
-            
-            e.preventDefault();
         });
     }
 
@@ -256,6 +207,22 @@ define(function (require, exports, module) {
         // init
         WorkingSetView.create($openFilesContainer);
         //_initSidebarResizer();
+        
+        $sidebar.on("panelResizeStart", function (evt, width) {
+            $sidebar.find(".sidebar-selection-triangle").css("display", "none");
+            $sidebar.find(".scroller-shadow").css("display", "none");
+        });
+        
+        $sidebar.on("panelResizeUpdate", function (evt, width) {
+            $sidebar.find(".sidebar-selection").width(width);
+        });
+        
+        $sidebar.on("panelResizeEnd", function (evt, width) {
+            $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
+            $sidebar.find(".scroller-shadow").css("display", "block");
+            $projectFilesContainer.triggerHandler("scroll");
+            $openFilesContainer.triggerHandler("scroll");
+        });
         
         $sidebar.trigger("resize");
     });

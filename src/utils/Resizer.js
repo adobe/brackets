@@ -92,7 +92,7 @@ define(function (require, exports, module) {
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
-            directionIncrement  = position === POSITION_TOP ? 1 : -1,
+            directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
             contentSizeFunction = null,
             resizerCSSPosition  = "left";
 
@@ -100,9 +100,11 @@ define(function (require, exports, module) {
             
         $element.prepend($resizer);
         
-        $element.resize(function () {
-            $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - 1);
-        });
+        if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
+            $element.resize(function () {
+                $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
+            });
+        }
         
         $resizer.on("mousedown", function (e) {
             var startPosition   = e[directionProperty],
@@ -155,6 +157,7 @@ define(function (require, exports, module) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
                 newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
+                $element.trigger("panelResizeUpdate", [newSize]);
                 e.preventDefault();
             });
             
@@ -163,6 +166,11 @@ define(function (require, exports, module) {
                     isMouseDown = false;
                     $mainView.off("mousemove");
                     $body.toggleClass(direction + "-resizing");
+                    
+                    if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
+                        $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
+                    }
+                    
                     $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
                 }
             }
