@@ -92,11 +92,17 @@ define(function (require, exports, module) {
             animationRequest    = null,
             directionProperty   = direction === DIRECTION_HORIZONTAL ? "clientX" : "clientY",
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
-            contentSizeFunction = null;
-                
+            directionIncrement  = position === POSITION_TOP ? 1 : -1,
+            contentSizeFunction = null,
+            resizerCSSPosition  = "left";
+
         minSize = minSize || 0;
             
         $element.prepend($resizer);
+        
+        $element.resize(function () {
+            $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - 1);
+        });
         
         $resizer.on("mousedown", function (e) {
             var startPosition   = e[directionProperty],
@@ -105,7 +111,9 @@ define(function (require, exports, module) {
                 baseSize        = 0,
                 doResize        = true,
                 isMouseDown     = true;
-                        
+            
+            $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
+            
             if ($resizableElement !== undefined) {
                 $element.children().not(".horz-resizer, .vert-resizer, .resizable-content").each(function (index, child) {
                     if (direction === DIRECTION_HORIZONTAL) {
@@ -146,7 +154,7 @@ define(function (require, exports, module) {
             $mainView.on("mousemove", function (e) {
                 // calculate newSize adding to startSize the difference
                 // between starting and current position, capped at minSize
-                newSize = Math.max(startSize + (startPosition - e[directionProperty]), minSize);
+                newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
                 e.preventDefault();
             });
             
@@ -187,9 +195,9 @@ define(function (require, exports, module) {
             //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_LEFT, DEFAULT_MIN_SIZE);
             //}
 
-            //if ($(element).hasClass("right-resizer")) {
-            //    makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_SIZE);
-            //}
+            if ($(element).hasClass("right-resizer")) {
+                makeResizable(element, DIRECTION_HORIZONTAL, POSITION_RIGHT, DEFAULT_MIN_SIZE);
+            }
         });
     });
     

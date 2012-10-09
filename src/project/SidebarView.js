@@ -243,6 +243,9 @@ define(function (require, exports, module) {
 
     // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
+        var prefs           = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
+            sidebarWidth    = prefs.getValue("sidebarWidth");
+            
         $sidebar                = $("#sidebar");
         $sidebarMenuText        = $("#menu-view-hide-sidebar span");
         $sidebarResizer         = $("#sidebar-resizer");
@@ -252,7 +255,9 @@ define(function (require, exports, module) {
 
         // init
         WorkingSetView.create($openFilesContainer);
-        _initSidebarResizer();
+        //_initSidebarResizer();
+        
+        $sidebar.trigger("resize");
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);
