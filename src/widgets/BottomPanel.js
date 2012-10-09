@@ -3,14 +3,14 @@
 
 define(function (require, exports, module) {
     'use strict';
-    
+
     var EditorManager   = require("editor/EditorManager");
-    
+
     /*
     var open = function() {
         console.log("open");
     };
-    
+
     var close = function() {
         console.log("close");
     };
@@ -21,15 +21,15 @@ define(function (require, exports, module) {
         $("#bottom-panel").hide();
         EditorManager.resizeEditor();
     }
-    
+
     function loadContent(html) {
         clearContent();
-        
+
         $("#bottom-panel").append(html);
         $("#bottom-panel").show();
         EditorManager.resizeEditor();
     }
-    
+
     //exports.open = open;
     //exports.close = close;
     exports.loadContent = loadContent;
