@@ -136,19 +136,38 @@ define(function (require, exports, module) {
      * Install sidebar resize handling.
      */
     function _initSidebarResizer() {
-        var $mainView               = $(".main-view"),
-            $body                   = $(document.body),
-            prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
-            sidebarWidth            = prefs.getValue("sidebarWidth"),
-            startingSidebarPosition = sidebarWidth,
-            animationRequest        = null,
-            isMouseDown             = false;
-                
+        var prefs                   = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs),
+            sidebarWidth            = prefs.getValue("sidebarWidth");
+        
+        $sidebar.on("panelResizeStart", function (evt, width) {
+            $sidebar.find(".sidebar-selection-triangle").css("display", "none");
+            $sidebar.find(".scroller-shadow").css("display", "none");
+        });
+        
+        $sidebar.on("panelResizeUpdate", function (evt, width) {
+            $sidebar.find(".sidebar-selection").width(width);
+        });
+        
+        $sidebar.on("panelResizeEnd", function (evt, width) {
+            $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
+            $sidebar.find(".scroller-shadow").css("display", "block");
+            $projectFilesContainer.triggerHandler("scroll");
+            $openFilesContainer.triggerHandler("scroll");
+            
+            prefs.setValue("sidebarWidth", width);
+        });
+        
+        // Set initial state
         if (prefs.getValue("sidebarClosed")) {
             toggleSidebar(sidebarWidth);
         } else {
-            _setWidth(sidebarWidth, true, true);
+            $sidebar.width(sidebarWidth);
         }
+        
+        $sidebar.trigger("resize");
+        
+        /*
+
         
         $sidebarResizer.on("dblclick", function () {
             if ($sidebar.width() < 10) {
@@ -190,6 +209,7 @@ define(function (require, exports, module) {
                 }
             });
         });
+        */
     }
 
     // Initialize items dependent on HTML DOM
@@ -206,25 +226,8 @@ define(function (require, exports, module) {
 
         // init
         WorkingSetView.create($openFilesContainer);
-        //_initSidebarResizer();
+        _initSidebarResizer();
         
-        $sidebar.on("panelResizeStart", function (evt, width) {
-            $sidebar.find(".sidebar-selection-triangle").css("display", "none");
-            $sidebar.find(".scroller-shadow").css("display", "none");
-        });
-        
-        $sidebar.on("panelResizeUpdate", function (evt, width) {
-            $sidebar.find(".sidebar-selection").width(width);
-        });
-        
-        $sidebar.on("panelResizeEnd", function (evt, width) {
-            $sidebar.find(".sidebar-selection-triangle").css("display", "block").css("left", width);
-            $sidebar.find(".scroller-shadow").css("display", "block");
-            $projectFilesContainer.triggerHandler("scroll");
-            $openFilesContainer.triggerHandler("scroll");
-        });
-        
-        $sidebar.trigger("resize");
     });
     
     $(ProjectManager).on("projectOpen", _updateProjectTitle);

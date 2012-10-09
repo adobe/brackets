@@ -94,7 +94,8 @@ define(function (require, exports, module) {
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
             contentSizeFunction = null,
-            resizerCSSPosition  = "left";
+            resizerCSSPosition  = "left",
+            toggleSize          = 0;
 
         minSize = minSize || 0;
             
