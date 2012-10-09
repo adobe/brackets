@@ -14,7 +14,7 @@ define(function (require, exports, module) {
     var close = function() {
         console.log("close");
     };
-*/
+    */
 
     function clearContent() {
         $("#bottom-panel").empty();

@@ -12,6 +12,7 @@ define(function (require, exports, module) {
     var BottomPanel     = brackets.getModule("widgets/BottomPanel");
     var AppInit         = brackets.getModule("utils/AppInit");
     var StatusBar       = brackets.getModule("widgets/StatusBar");
+    var PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
 
     //todo: readd scrolling code
     //todo: save enabled settings and update menu
@@ -22,7 +23,12 @@ define(function (require, exports, module) {
     var DOCUMENT_SAVED = "documentSaved";
     var CURRENT_DOCUMENT_CHANGED = "currentDocumentChange";
 
+    var id = "brackets.linter";
+
     var LINTER = "LINTER";
+
+    var _prefs;
+    var command;
 
     //whether or not linting is enabled
     var enabled = true;
@@ -161,8 +167,25 @@ define(function (require, exports, module) {
         _lintCurrentDocument();
     }
 
+    function _initPrefs() {
+        _prefs = PreferencesManager.getPreferenceStorage(id, { enabled: true });
+        enabled = _prefs.getValue("enabled");
+        command.setChecked(enabled);
+    }
+
+    function _initMenu() {
+        var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
+        menu.addMenuDivider();
+        menu.addMenuItem(LINTER);
+    }
+
+
     function _toggleLinting() {
         enabled = !enabled;
+
+        command.setChecked(enabled);
+
+        _prefs.setValue("enabled", enabled);
 
         if (enabled) {
             $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
@@ -173,11 +196,10 @@ define(function (require, exports, module) {
 
     //todo: externalize this for localization?
     //todo: What tense should the menu item be?
-    CommandManager.register("Enable Linting", LINTER, _toggleLinting);
+    command = CommandManager.register("Enable Linting", LINTER, _toggleLinting);
 
-    var menu = Menus.getMenu(Menus.AppMenuBar.VIEW_MENU);
-    menu.addMenuDivider();
-    menu.addMenuItem(LINTER);
+    _initMenu();
+    _initPrefs();
 
     //todo: need to pull preference on whether linting is enabled, and only
     //register for this if it is enabled
@@ -189,7 +211,7 @@ define(function (require, exports, module) {
     }
 
     AppInit.htmlReady(function () {
-        StatusBar.addIndicator(module.id, $("#gold-star"), false);
+        StatusBar.addIndicator(id, $("#gold-star"), false);
     });
 
     exports.lintDocument = lintDocument;
