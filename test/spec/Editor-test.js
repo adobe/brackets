@@ -35,26 +35,18 @@ define(function (require, exports, module) {
 
     describe("Editor", function () {
         var defaultContent = 'Brackets is going to be awesome!\n';
-        var myDocument, myEditor, $editorHolder;
+        var myDocument, myEditor;
         
         function createTestEditor(content, mode) {
-            // Initialize EditorManager
-            $editorHolder = $("<div id='editor-holder'/>");
-            EditorManager._init();
-            EditorManager.setEditorHolder($editorHolder);
-            $("body").append($editorHolder);
-            
-            // create dummy Document for the Editor
-            myDocument = SpecRunnerUtils.createMockDocument(content);
-            
-            // create Editor instance
-            myEditor = new Editor(myDocument, true, mode, $editorHolder.get(0), {});
+            // create dummy Document and Editor
+            var mocks = SpecRunnerUtils.createMockEditor(content, mode);
+            myDocument = mocks.doc;
+            myEditor = mocks.editor;
         }
 
         afterEach(function () {
             if (myEditor) {
-                EditorManager._destroyEditorIfUnneeded(myDocument);
-                $editorHolder.remove();
+                SpecRunnerUtils.destroyMockEditor(myDocument);
                 myEditor = null;
                 myDocument = null;
             }

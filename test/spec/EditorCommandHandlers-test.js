@@ -46,25 +46,18 @@ define(function (require, exports, module) {
                              "\n" +
                              "}";
 
-        var myDocument, myEditor, $editorHolder;
+        var myDocument, myEditor;
         beforeEach(function () {
-            // Initialize EditorManager
-            $editorHolder = $("<div id='editor-holder'/>");
-            EditorManager._init();
-            EditorManager.setEditorHolder($editorHolder);
-            $("body").append($editorHolder);
-
-            // create dummy Document for the Editor
-            myDocument = SpecRunnerUtils.createMockDocument(defaultContent);
-
-            // create Editor instance (containing a CodeMirror instance)
-            myEditor = new Editor(myDocument, true, "javascript", $editorHolder.get(0), {});
+            // create dummy Document and Editor
+            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
+            myDocument = mocks.doc;
+            myEditor = mocks.editor;
+            
             myEditor.focus();
         });
 
         afterEach(function () {
-            EditorManager._destroyEditorIfUnneeded(myDocument);
-            $editorHolder.remove();
+            SpecRunnerUtils.destroyMockEditor(myDocument);
             myEditor = null;
             myDocument = null;
         });
