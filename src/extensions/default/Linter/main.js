@@ -13,6 +13,7 @@ define(function (require, exports, module) {
     var AppInit         = brackets.getModule("utils/AppInit");
     var StatusBar       = brackets.getModule("widgets/StatusBar");
     var PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+    var StringUtils = brackets.getModule("utils/StringUtils");
 
     //todo: readd scrolling code
     //todo: save enabled settings and update menu
@@ -87,7 +88,7 @@ define(function (require, exports, module) {
         currentErrors = errors;
 
         if (!errors) {
-
+            StatusBar.updateIndicator(id, true, "lint-valid", Strings.JSLINT_NO_ERRORS);
             statusIcon.hide();
             $(".lint-error-row").off("click", _lintRowClickHandler);
             BottomPanel.clearContent();
@@ -112,7 +113,6 @@ define(function (require, exports, module) {
             errorData.push({error: errors[i], index: i});
         }
 
-
         var context = {
             errors: errorData,
             JSLINT_ERRORS: Strings.JSLINT_ERRORS
@@ -130,6 +130,10 @@ define(function (require, exports, module) {
 
         BottomPanel.loadContent(output);
         statusIcon.show();
+
+        var errorString = (len === 1) ? Strings.JSLINT_ERROR_INFORMATION : StringUtils.format(Strings.JSLINT_ERRORS_INFORMATION, len);
+        StatusBar.updateIndicator(id, true, "lint-errors", errorString);
+
         $(".lint-error-row").on("click", _lintRowClickHandler);
     }
 
@@ -139,6 +143,7 @@ define(function (require, exports, module) {
     function lintDocument(document) {
 
         if (!_isSupportedExtension(document)) {
+            StatusBar.updateIndicator(id, true, "lint-disabled", Strings.JSLINT_DISABLED);
             return;
         }
 
@@ -191,6 +196,7 @@ define(function (require, exports, module) {
             $(DocumentManager).on(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
         } else {
             $(DocumentManager).off(DOCUMENT_SAVED + " " + CURRENT_DOCUMENT_CHANGED, _onDocumentUpdated);
+            StatusBar.updateIndicator(id, true, "lint-disabled", Strings.JSLINT_DISABLED);
         }
     }
 
