@@ -642,6 +642,25 @@ define(function (require, exports, module) {
         }
     }
 
+    function _init() {
+        StatusBar.init($(".main-view .content"));
+
+        $modeInfo           = $("#status-mode");
+        $cursorInfo         = $("#status-cursor");
+        $fileInfo           = $("#status-file");
+        $indentType         = $("#indent-type");
+        $indentWidth        = $("#indent-width");
+        $indentDecrement    = $("#indent-decrement");
+        $indentIncrement    = $("#indent-increment");
+        
+        // indentation event handlers
+        $indentType.on("click", _toggleIndentType);
+        $indentDecrement.on("click", function () { _changeIndentSize(-1); });
+        $indentIncrement.on("click", function () { _changeIndentSize(1); });
+
+        _onFocusedEditorChange(null, getFocusedEditor(), null);
+    }
+
     // Initialize: command handlers
     CommandManager.register(Strings.CMD_TOGGLE_QUICK_EDIT, Commands.TOGGLE_QUICK_EDIT, _toggleQuickEdit);
     
@@ -657,25 +676,10 @@ define(function (require, exports, module) {
     // Initialize: status bar focused listener
     $(exports).on("focusedEditorChange", _onFocusedEditorChange);
     
-    AppInit.htmlReady(function () {
-        $modeInfo           = $("#status-mode");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $indentType         = $("#indent-type");
-        $indentWidth        = $("#indent-width");
-        $indentDecrement    = $("#indent-decrement");
-        $indentIncrement    = $("#indent-increment");
-        
-        // indentation event handlers
-        $indentType.on("click", _toggleIndentType);
-        $indentDecrement.on("click", function () { _changeIndentSize(-1); });
-        $indentIncrement.on("click", function () { _changeIndentSize(1); });
-        
-        StatusBar.hide();
-        _onFocusedEditorChange(null, getFocusedEditor(), null);
-    });
+    AppInit.htmlReady(_init);
     
     // For unit tests and internal use only
+    exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
     exports._doFocusedEditorChanged = _doFocusedEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;
