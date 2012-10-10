@@ -247,7 +247,7 @@ define(function (require, exports, module) {
             $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
         });
         
-        // If Document's file is deleted, or Editor loses sync with Document
+        // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
         $(inlineInfo.editor).on("lostContent", function () {
             self._onLostContent.apply(self, arguments);
         });
