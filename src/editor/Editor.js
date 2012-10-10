@@ -571,8 +571,9 @@ define(function (require, exports, module) {
      * Responds to the Document's underlying file being deleted. The Document is now basically dead,
      * so we must close.
      */
-    Editor.prototype._handleDocumentDeleted = function () {
-        $(this).triggerHandler("lostContent");
+    Editor.prototype._handleDocumentDeleted = function (event) {
+        // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
+        $(this).triggerHandler("lostContent", [event]);
     };
     
     

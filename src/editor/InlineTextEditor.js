@@ -247,11 +247,9 @@ define(function (require, exports, module) {
             $lineNumber.text(inlineInfo.editor.getFirstVisibleLine() + 1);
         });
         
-        // If Document's file is deleted, or Editor loses sync with Document, just close
+        // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
         $(inlineInfo.editor).on("lostContent", function () {
-            // Note: this closes the entire inline widget if any one Editor loses sync. This seems
-            // better than leaving it open but suddenly removing one rule from the result list.
-            self.close();
+            self._onLostContent.apply(self, arguments);
         });
         
         // set dirty indicator state
@@ -285,6 +283,14 @@ define(function (require, exports, module) {
         });
     };
         
+    /**
+     * If Document's file is deleted, or Editor loses sync with Document, just close
+     */
+    InlineTextEditor.prototype._onLostContent = function () {
+        // Note: this closes the entire inline widget if any one Editor loses sync. This seems
+        // better than leaving it open but suddenly removing one rule from the result list.
+        this.close();
+    };
     
     // consolidate all dirty document updates
     $(DocumentManager).on("dirtyFlagChange", _dirtyFlagChangeHandler);
