@@ -82,6 +82,7 @@ define({
 	"LIVE_DEV_STATUS_TIP_PROGRESS1": "Aperçu en direct : Connexion...",
 	"LIVE_DEV_STATUS_TIP_PROGRESS2": "Aperçu en direct : Initialisation...",
 	"LIVE_DEV_STATUS_TIP_CONNECTED": "Déconnecter le module Aperçu en direct",
+	"LIVE_DEV_STATUS_TIP_OUT_OF_SYNC": "Live Preview: Click to disconnect (Save file to update)",
     
 	"SAVE_CLOSE_TITLE": "Enregistrer les modifications",
 	"SAVE_CLOSE_MESSAGE": "Souhaitez-vous enregistrer les modifications apportées au document <span class='dialog-filename'>{0}</span> ?",
