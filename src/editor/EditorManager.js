@@ -589,7 +589,7 @@ define(function (require, exports, module) {
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
     }
     
-    function _updateIndentSize(inc) {
+    function _updateIndentSize() {
         $indentWidth.text(Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit());
     }
     
@@ -599,25 +599,45 @@ define(function (require, exports, module) {
         _updateIndentSize();
     }
     
-    function _changeIndentSize(inc) {
-        if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Editor.getTabSize() + inc);
-        } else {
-            Editor.setIndentUnit(Editor.getIndentUnit() + inc);
+    function _updateCursorInfo(event, editor) {
+        editor = editor || getFocusedEditor();
+
+        // compute columns, account for tab size
+        var cursor          = editor.getCursorPos(),
+            line            = editor.document.getRange({line: cursor.line, ch: 0}, cursor),
+            tabSize         = Editor.getTabSize(),
+            column          = 0,
+            i               = 0;
+
+        for (i = 0; i < line.length; i++) {
+            if (line[i] === '\t') {
+                column += (tabSize - (column % tabSize));
+            } else {
+                column++;
+            }
         }
-        _updateIndentSize();
+        
+        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), column + 1));
     }
     
-    function _updateCursorInfo(event, editor) {
-        var cursor      = editor.getCursorPos(),
-            cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
-        
-        $cursorInfo.text(cursorInfo);
+    function _changeIndentSize(inc) {
+        if (Editor.getUseTabChar()) {
+            Editor.setTabSize(Math.max(Editor.getTabSize() + inc, 1));
+        } else {
+            Editor.setIndentUnit(Math.max(Editor.getIndentUnit() + inc, 1));
+        }
+
+        // update indicator
+        _updateIndentSize();
+
+        // column position may change when tab size changes
+        _updateCursorInfo(null);
     }
     
     function _onFocusedEditorChange(event, current, previous) {
         if (previous) {
-            $(previous).off("cursorActivity", _updateCursorInfo);
+            $(previous).off("cursorActivity.statusbar");
+            $(previous).off("change.statusbar");
         }
         
         if (!current) {
@@ -628,8 +648,8 @@ define(function (require, exports, module) {
             StatusBar.show();
             resizeEditor();
             
-            $(current).on("cursorActivity", _updateCursorInfo);
-            $(current).on("change", function () {
+            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
+            $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
