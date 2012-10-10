@@ -95,7 +95,8 @@ define(function (require, exports, module) {
      * @param {string} direction The direction of the resize action. Must be "horz" or "vert".
      * @param {string} position The position of the resizer on the element. Can be "top" or "bottom"
      *                          for vertical resizing and "left" or "right" for horizontal resizing.
-     * @param {int} minSize Minimum size (width or height) of the element.
+     * @param {int} minSize Minimum size (width or height) of the element. A value of 0 makes the
+     *                      panel collapsable on double click on the resizer.
      */
     function makeResizable(element, direction, position, minSize) {
         
@@ -108,17 +109,23 @@ define(function (require, exports, module) {
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
             contentSizeFunction = null,
-            resizerCSSPosition  = "left",
+            resizerCSSPosition  = "",
             toggleSize          = 0;
 
         minSize = minSize || 0;
-            
+        
+        switch (position) {
+        case POSITION_RIGHT:
+            resizerCSSPosition = "left";
+            break;
+        }
+        
         $element.prepend($resizer);
         
         $element.data("toggleVisibility", function () {
             if ($element.is(":visible")) {
                 $element.hide();
-                $resizer.insertBefore($element).css("left", 5);
+                $resizer.insertBefore($element).css(resizerCSSPosition, 0);
                 $element.trigger("panelCollapsed");
             } else {
                 $element.show();
@@ -127,6 +134,8 @@ define(function (require, exports, module) {
                 $element.trigger("panelExpanded");
                 $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
             }
+            
+            EditorManager.resizeEditor();
         });
         
         EditorManager.resizeEditor();
@@ -146,7 +155,7 @@ define(function (require, exports, module) {
         
         $resizer.on("mousedown", function (e) {
             var startPosition   = e[directionProperty],
-                startSize       = elementSizeFunction.apply($element),
+                startSize       = $element.is(":visible") ? elementSizeFunction.apply($element) : 0,
                 newSize         = startSize,
                 baseSize        = 0,
                 doResize        = true,
@@ -183,6 +192,15 @@ define(function (require, exports, module) {
                     // minus the size of the non-resizable elements
                     if ($resizableElement !== undefined) {
                         contentSizeFunction.apply($resizableElement, [newSize - baseSize]);
+                    }
+                    
+                    if (!$element.is(":visible") && newSize > 10) {
+                        toggleVisibility($element);
+                        $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
+                    }
+                    
+                    if ($element.is(":visible") && newSize < 10) {
+                        toggleVisibility($element);
                     }
                     
                     EditorManager.resizeEditor();
