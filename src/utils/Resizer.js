@@ -64,6 +64,16 @@ define(function (require, exports, module) {
     var $mainView;
     
     /**
+     *
+     */
+    function toggleVisibility($element) {
+        var toggleFunction = $element.data("toggleVisibility");
+        if (toggleFunction) {
+            toggleFunction();
+        }
+    }
+    
+    /**
      * Adds resizing capabilities to a given html element.
      *
      * Resizing can be configured in two directions:
@@ -75,7 +85,11 @@ define(function (require, exports, module) {
      *  - Left ("left") or right ("right") for horizontal resizing
      *
      * A resizable element triggers the following events while resizing:
+     *  - panelResizeStarts: When the resize starts
+     *  - panelResizeUpdate: When the resize gets updated
      *  - panelResizeEnds: When the resize ends
+     *  - panelCollapsed: When the panel gets collapsed (or hidden)
+     *  - panelExpanded: When the panel gets expanded (or shown)
      *
      * @param {DOMNode} element Html element which should be made resizable.
      * @param {string} direction The direction of the resize action. Must be "horz" or "vert".
@@ -101,6 +115,22 @@ define(function (require, exports, module) {
             
         $element.prepend($resizer);
         
+        $element.data("toggleVisibility", function () {
+            if ($element.is(":visible")) {
+                $element.hide();
+                $resizer.insertBefore($element).css("left", 5);
+                $element.trigger("panelCollapsed");
+            } else {
+                $element.show();
+                $element.prepend($resizer);
+                $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
+                $element.trigger("panelExpanded");
+                $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
+            }
+        });
+        
+        EditorManager.resizeEditor();
+        
         if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
             $element.resize(function () {
                 $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
@@ -110,18 +140,7 @@ define(function (require, exports, module) {
         // A value of 0 for minSize implies that the panel is collapsable
         if (!minSize) {
             $resizer.on("dblclick", function () {
-                if ($element.is(":visible")) {
-                    $element.hide();
-                    $resizer.insertBefore($element).css("left", 5);
-                    $element.trigger("panelCollapsed");
-                } else {
-                    $element.show();
-                    $element.prepend($resizer);
-                    $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
-                    $element.trigger("panelExpanded");
-                }
-                
-                EditorManager.resizeEditor();
+                toggleVisibility($element);
             });
         }
         
@@ -240,4 +259,5 @@ define(function (require, exports, module) {
     });
     
     exports.makeResizable = makeResizable;
+    exports.toggleVisibility = toggleVisibility;
 });
