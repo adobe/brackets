@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     
     var Editor                = require("editor/Editor").Editor,
         EditorCommandHandlers = require("editor/EditorCommandHandlers"),
+        EditorManager         = require("editor/EditorManager"),
         Commands              = require("command/Commands"),
         CommandManager        = require("command/CommandManager"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils"),
@@ -47,21 +48,17 @@ define(function (require, exports, module) {
 
         var myDocument, myEditor;
         beforeEach(function () {
-            // create dummy Document for the Editor
-            myDocument = SpecRunnerUtils.createMockDocument(defaultContent);
+            // create dummy Document and Editor
+            var mocks = SpecRunnerUtils.createMockEditor(defaultContent, "javascript");
+            myDocument = mocks.doc;
+            myEditor = mocks.editor;
             
-            // create Editor instance (containing a CodeMirror instance)
-            $("body").append("<div id='editor'/>");
-            myEditor = new Editor(myDocument, true, "javascript", $("#editor").get(0), {});
-            
-            // Must be focused so editor commands target it
             myEditor.focus();
         });
 
         afterEach(function () {
-            myEditor.destroy();
+            SpecRunnerUtils.destroyMockEditor(myDocument);
             myEditor = null;
-            $("#editor").remove();
             myDocument = null;
         });
         
