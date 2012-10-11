@@ -41,11 +41,8 @@ define(function (require, exports, module) {
         Commands            = require("command/Commands"),
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager"),
-        EditorManager       = require("editor/EditorManager"),
         Global              = require("utils/Global"),
         Resizer             = require("utils/Resizer");
-
-    var isSidebarClosed         = false;
 
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
