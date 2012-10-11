@@ -186,23 +186,24 @@ define(function (require, exports, module) {
                 
                 if (doResize) {
                     // resize the main element to the new size
-                    elementSizeFunction.apply($element, [newSize]);
                     
-                    // if there is a content element, its size is the new size
-                    // minus the size of the non-resizable elements
-                    if ($resizableElement !== undefined) {
-                        contentSizeFunction.apply($resizableElement, [newSize - baseSize]);
-                    }
+                    if ($element.is(":visible")) {
+                        elementSizeFunction.apply($element, [newSize]);
+                        
+                        // if there is a content element, its size is the new size
+                        // minus the size of the non-resizable elements
+                        if ($resizableElement !== undefined) {
+                            contentSizeFunction.apply($resizableElement, [newSize - baseSize]);
+                        }
                     
-                    if (!$element.is(":visible") && newSize > 10) {
+                        if (newSize < 10) {
+                            toggleVisibility($element);
+                        }
+                    } else if (newSize > 10) {
                         toggleVisibility($element);
                         $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
                     }
-                    
-                    if ($element.is(":visible") && newSize < 10) {
-                        toggleVisibility($element);
-                    }
-                    
+
                     EditorManager.resizeEditor();
                 }
                 
