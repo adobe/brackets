@@ -483,6 +483,7 @@ define(function (require, exports, module) {
             function (event) {
                 if (handleKey(_translateKeyboardEvent(event))) {
                     event.stopPropagation();
+                    event.preventDefault();
                 }
             },
             true
