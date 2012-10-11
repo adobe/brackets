@@ -1115,7 +1115,7 @@ define(function (require, exports, module) {
                 
                 var _resetOldFilename = function () {
                     _projectTree.jstree("set_text", selected, data.rslt.old_name);
-                    _projectTree.jstree("refresh", -1);
+                    _projectTree.jstree("sort", selected.parent());
                 };
                 
                 if (!_checkForValidFilename(data.rslt.new_name)) {

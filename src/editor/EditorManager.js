@@ -35,8 +35,8 @@
  * must have some knowledge about Document's internal state (we access its _editor property).
  *
  * This module dispatches the following events:
- *    - focusedEditorChange -- Fires asynchronously after the focused editor
- *                             (full or inline) changes and size/visibility are complete.
+ *    - focusedEditorChange -- Fires after the focused editor (full or inline)
+ *                             changes and size/visibility are complete.
  */
 define(function (require, exports, module) {
     "use strict";
@@ -359,18 +359,13 @@ define(function (require, exports, module) {
             _currentEditor = current;
         }
 
-        // Fire focusedEditorChange asynchronously to allow CodeMirror to
-        // completely update focused state. CodeMirror fires it's "onFocus"
-        // event prior to setting it's internal state.
-        window.setTimeout(function () {
-            // Window may have been resized since last time editor was visible, so kick it now
-            if (_currentEditor) {
-                _currentEditor.setVisible(true);
-                resizeEditor();
-            }
-            
-            $(exports).triggerHandler("focusedEditorChange", [current, previous]);
-        });
+        // Window may have been resized since last time editor was visible, so kick it now
+        if (_currentEditor) {
+            _currentEditor.setVisible(true);
+            resizeEditor();
+        }
+
+        $(exports).triggerHandler("focusedEditorChange", [current, previous]);
     }
     
     /**
@@ -588,42 +583,61 @@ define(function (require, exports, module) {
         $fileInfo.text(StringUtils.format(Strings.STATUSBAR_LINE_COUNT, editor.lineCount()));
     }
     
-    function _updateIndentInfo(editor) {
-        var indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
+    function _updateIndentType() {
+        var indentWithTabs = Editor.getUseTabChar();
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
-        
-        $indentWidth.text(editor._codeMirror.getOption("tabSize"));
+    }
+    
+    function _updateIndentSize() {
+        $indentWidth.text(Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit());
     }
     
     function _toggleIndentType() {
-        var editor = getFocusedEditor(),
-            indentWithTabs = editor._codeMirror.getOption("indentWithTabs");
-        
-        editor._codeMirror.setOption("indentWithTabs", !indentWithTabs);
-        
-        _updateIndentInfo(editor);
-    }
-    
-    function _updateIndentSize(inc) {
-        var editor = getFocusedEditor(),
-            size = editor._codeMirror.getOption("tabSize");
-        
-        editor._codeMirror.setOption("tabSize", size + inc);
-        
-        _updateIndentInfo(editor);
+        Editor.setUseTabChar(!Editor.getUseTabChar());
+        _updateIndentType();
+        _updateIndentSize();
     }
     
     function _updateCursorInfo(event, editor) {
-        var cursor      = editor.getCursorPos(),
-            cursorInfo  = StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), (cursor.ch + 1));
+        editor = editor || getFocusedEditor();
+
+        // compute columns, account for tab size
+        var cursor          = editor.getCursorPos(),
+            line            = editor.document.getRange({line: cursor.line, ch: 0}, cursor),
+            tabSize         = Editor.getTabSize(),
+            column          = 0,
+            i               = 0;
+
+        for (i = 0; i < line.length; i++) {
+            if (line[i] === '\t') {
+                column += (tabSize - (column % tabSize));
+            } else {
+                column++;
+            }
+        }
         
-        $cursorInfo.text(cursorInfo);
+        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), column + 1));
+    }
+    
+    function _changeIndentSize(inc) {
+        if (Editor.getUseTabChar()) {
+            Editor.setTabSize(Math.max(Editor.getTabSize() + inc, 1));
+        } else {
+            Editor.setIndentUnit(Math.max(Editor.getIndentUnit() + inc, 1));
+        }
+
+        // update indicator
+        _updateIndentSize();
+
+        // column position may change when tab size changes
+        _updateCursorInfo(null);
     }
     
     function _onFocusedEditorChange(event, current, previous) {
         if (previous) {
-            $(previous).off("cursorActivity", _updateCursorInfo);
+            $(previous).off("cursorActivity.statusbar");
+            $(previous).off("change.statusbar");
         }
         
         if (!current) {
@@ -634,8 +648,8 @@ define(function (require, exports, module) {
             StatusBar.show();
             resizeEditor();
             
-            $(current).on("cursorActivity", _updateCursorInfo);
-            $(current).on("change", function () {
+            $(current).on("cursorActivity.statusbar", _updateCursorInfo);
+            $(current).on("change.statusbar", function () {
                 // async update to keep typing speed smooth
                 window.setTimeout(function () { _updateFileInfo(current); }, 0);
             });
@@ -643,8 +657,28 @@ define(function (require, exports, module) {
             _updateCursorInfo(null, current);
             _updateModeInfo(current);
             _updateFileInfo(current);
-            _updateIndentInfo(current);
+            _updateIndentType();
+            _updateIndentSize();
         }
+    }
+
+    function _init() {
+        StatusBar.init($(".main-view .content"));
+
+        $modeInfo           = $("#status-mode");
+        $cursorInfo         = $("#status-cursor");
+        $fileInfo           = $("#status-file");
+        $indentType         = $("#indent-type");
+        $indentWidth        = $("#indent-width");
+        $indentDecrement    = $("#indent-decrement");
+        $indentIncrement    = $("#indent-increment");
+        
+        // indentation event handlers
+        $indentType.on("click", _toggleIndentType);
+        $indentDecrement.on("click", function () { _changeIndentSize(-1); });
+        $indentIncrement.on("click", function () { _changeIndentSize(1); });
+
+        _onFocusedEditorChange(null, getFocusedEditor(), null);
     }
 
     // Initialize: command handlers
@@ -661,25 +695,11 @@ define(function (require, exports, module) {
     
     // Initialize: status bar focused listener
     $(exports).on("focusedEditorChange", _onFocusedEditorChange);
-    AppInit.htmlReady(function () {
-        $modeInfo           = $("#status-mode");
-        $cursorInfo         = $("#status-cursor");
-        $fileInfo           = $("#status-file");
-        $indentType         = $("#indent-type");
-        $indentWidth        = $("#indent-width");
-        $indentDecrement    = $("#indent-decrement");
-        $indentIncrement    = $("#indent-increment");
-        
-        // indentation event handlers
-        $indentType.on("click", _toggleIndentType);
-        $indentDecrement.on("click", function () { _updateIndentSize(-1); });
-        $indentIncrement.on("click", function () { _updateIndentSize(1); });
-        
-        StatusBar.hide();
-        _onFocusedEditorChange(null, getFocusedEditor(), null);
-    });
+    
+    AppInit.htmlReady(_init);
     
     // For unit tests and internal use only
+    exports._init = _init;
     exports._openInlineWidget = _openInlineWidget;
     exports._doFocusedEditorChanged = _doFocusedEditorChanged;
     exports._createFullEditorForDocument = _createFullEditorForDocument;

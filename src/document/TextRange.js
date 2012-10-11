@@ -45,6 +45,7 @@ define(function (require, exports, module) {
      *  - lostSync -- When the backing Document changes in such a way that the range can no longer
      *          accurately be maintained. Generally, occurs whenever an edit spans a range boundary.
      *          After this, startLine & endLine will be unusable (set to null).
+     *          Also occurs when the document is deleted, though startLine & endLine won't be modified
      * These events only ever occur in response to Document changes, so if you are already listening
      * to the Document, you could ignore the TextRange events and just read its updated value in your
      * own Document change handler.
@@ -59,9 +60,11 @@ define(function (require, exports, module) {
         
         this.document = document;
         document.addRef();
-        // store this-bound version of listener so we can remove them later
+        // store this-bound versions of listeners so we can remove them later
         this._handleDocumentChange = this._handleDocumentChange.bind(this);
+        this._handleDocumentDeleted = this._handleDocumentDeleted.bind(this);
         $(document).on("change", this._handleDocumentChange);
+        $(document).on("deleted", this._handleDocumentDeleted);
     }
     
     /** Detaches from the Document. The TextRange will no longer update or send change events */
@@ -69,6 +72,7 @@ define(function (require, exports, module) {
         // Disconnect from Document
         this.document.releaseRef();
         $(this.document).off("change", this._handleDocumentChange);
+        $(this.document).off("deleted", this._handleDocumentDeleted);
     };
     
     
@@ -165,6 +169,10 @@ define(function (require, exports, module) {
     
     TextRange.prototype._handleDocumentChange = function (event, doc, changeList) {
         this._applyChangesToRange(changeList);
+    };
+    
+    TextRange.prototype._handleDocumentDeleted = function (event) {
+        $(this).triggerHandler("lostSync");
     };
     
     
