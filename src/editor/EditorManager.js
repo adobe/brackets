@@ -50,6 +50,7 @@ define(function (require, exports, module) {
         PerfUtils           = require("utils/PerfUtils"),
         Editor              = require("editor/Editor").Editor,
         InlineTextEditor    = require("editor/InlineTextEditor").InlineTextEditor,
+        KeyEvent            = require("utils/KeyEvent"),
         EditorUtils         = require("editor/EditorUtils"),
         ViewUtils           = require("utils/ViewUtils"),
         StatusBar           = require("widgets/StatusBar"),
@@ -78,9 +79,8 @@ define(function (require, exports, module) {
         $cursorInfo,
         $fileInfo,
         $indentType,
-        $indentWidth,
-        $indentDecrement,
-        $indentIncrement;
+        $indentWidthLabel,
+        $indentWidthInput;
     
     /**
      * Adds keyboard command handlers to an Editor instance.
@@ -588,9 +588,15 @@ define(function (require, exports, module) {
         $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
         $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
     }
+
+    function _getIndentSize() {
+        return Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit();
+    }
     
     function _updateIndentSize() {
-        $indentWidth.text(Editor.getUseTabChar() ? Editor.getTabSize() : Editor.getIndentUnit());
+        var size = _getIndentSize();
+        $indentWidthLabel.text(size);
+        $indentWidthInput.val(size);
     }
     
     function _toggleIndentType() {
@@ -620,18 +626,31 @@ define(function (require, exports, module) {
         $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), column + 1));
     }
     
-    function _changeIndentSize(inc) {
+    function _changeIndentWidth(value) {
+        $indentWidthLabel.toggleClass("hidden");
+        $indentWidthInput.toggleClass("hidden");
+        
+        // remove all event handlers from the input field
+        $indentWidthInput.off("blur keyup");
+        
+        // restore focus to the editor
+        focusEditor();
+
+        if (!value || isNaN(value)) {
+            return;
+        }
+        
         if (Editor.getUseTabChar()) {
-            Editor.setTabSize(Math.max(Editor.getTabSize() + inc, 1));
+            Editor.setTabSize(Math.max(Math.min(value, 10), 1));
         } else {
-            Editor.setIndentUnit(Math.max(Editor.getIndentUnit() + inc, 1));
+            Editor.setIndentUnit(Math.max(Math.min(value, 10), 1));
         }
 
         // update indicator
         _updateIndentSize();
 
         // column position may change when tab size changes
-        _updateCursorInfo(null);
+        _updateCursorInfo();
     }
     
     function _onFocusedEditorChange(event, current, previous) {
@@ -669,14 +688,34 @@ define(function (require, exports, module) {
         $cursorInfo         = $("#status-cursor");
         $fileInfo           = $("#status-file");
         $indentType         = $("#indent-type");
-        $indentWidth        = $("#indent-width");
-        $indentDecrement    = $("#indent-decrement");
-        $indentIncrement    = $("#indent-increment");
+        $indentWidthLabel   = $("#indent-width-label");
+        $indentWidthInput   = $("#indent-width-input");
         
         // indentation event handlers
         $indentType.on("click", _toggleIndentType);
-        $indentDecrement.on("click", function () { _changeIndentSize(-1); });
-        $indentIncrement.on("click", function () { _changeIndentSize(1); });
+        $indentWidthLabel
+            .on("click", function () {
+                // update the input value before displaying
+                $indentWidthInput.val(_getIndentSize());
+
+                $indentWidthLabel.toggleClass("hidden");
+                $indentWidthInput.toggleClass("hidden");
+                $indentWidthInput.focus();
+        
+                $indentWidthInput
+                    .on("blur", function () {
+                        _changeIndentWidth($indentWidthInput.val());
+                    })
+                    .on("keyup", function (event) {
+                        if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
+                            $indentWidthInput.blur();
+                        } else if (event.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                            _changeIndentWidth(false);
+                        }
+                    });
+            });
+
+        $indentWidthInput.focus(function () { $indentWidthInput.select(); });
 
         _onFocusedEditorChange(null, getFocusedEditor(), null);
     }
