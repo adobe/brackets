@@ -241,8 +241,7 @@ define(function (require, exports, module) {
         if (module && module.uri) {
 
             // Remove window name from base path. Maintain trailing slash.
-            pathname = decodeURI(window.location.pathname);
-            path = convertToNativePath(pathname.substr(0, pathname.lastIndexOf("/") + 1));
+            path = getNativeBracketsDirectoryPath() + "/";
 
             // Remove module name from relative path. Remove trailing slash.
             pathname = decodeURI(module.uri);
