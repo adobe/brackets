@@ -195,6 +195,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_SHOW_IN_TREE"                    : "Show in Tree",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
