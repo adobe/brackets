@@ -61,7 +61,7 @@ define(function (require, exports, module) {
     
     // Load dependent modules
     var Global                  = require("utils/Global"),
-        ProxyUI                 = require("proxy/ProxyUI"),
+        NativeProxyUI           = require("nativeProxy/NativeProxyUI"),
         AppInit                 = require("utils/AppInit"),
         ProjectManager          = require("project/ProjectManager"),
         DocumentManager         = require("document/DocumentManager"),
@@ -100,7 +100,7 @@ define(function (require, exports, module) {
 
     // load the proxy if running in browser
     if (brackets.inBrowser) {
-        ProxyUI.init();
+        NativeProxyUI.init();
     }
     
     // read URL params

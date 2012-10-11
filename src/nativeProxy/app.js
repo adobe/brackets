@@ -4,6 +4,8 @@
 define(function (require, exports, module) {
     "use strict";
 
+    var _startupTime = new Date().getTime();
+
     function quit() {
         // unsupported
     }
@@ -17,15 +19,19 @@ define(function (require, exports, module) {
     }
 
     function getElapsedMilliseconds() {
-        return new Date().getTime();
+        return new Date().getTime() - _startupTime;
     }
 
     function openLiveBrowser(url, enableRemoteDebugging, callback) {
-        callback(undefined);
+        if (callback) {
+            callback();
+        }
     }
 
     function closeLiveBrowser(callback) {
-        callback(undefined);
+        if (callback) {
+            callback();
+        }
     }
 
     function openURLInDefaultBrowser(callback, url) {
@@ -36,7 +42,7 @@ define(function (require, exports, module) {
     }
 
     function showExtensionsFolder() {
-        console.log("PROXY: app.showExtensionsFolder()", arguments);
+        console.log("Not implemented in NativeProxy: app.showExtensionsFolder()", arguments);
     }
 
     exports.language = window.localStorage.getItem("locale") || navigator.language;

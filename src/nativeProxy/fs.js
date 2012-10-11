@@ -4,7 +4,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var Proxy = require("proxy/Proxy");
+    var NativeProxy = require("nativeProxy/NativeProxy");
 
     var NO_ERROR = 0;
     var ERR_UNKNOWN = 1;
@@ -18,11 +18,11 @@ define(function (require, exports, module) {
     var ERR_NOT_DIRECTORY = 9;
 
     function readdir(path, callback) {
-        return Proxy.send("fs", "readdir", path, callback);
+        return NativeProxy.send("fs", "readdir", path, callback);
     }
 
     function stat(path, callback) {
-        Proxy.send("fs", "stat", path, function (err, statData) {
+        NativeProxy.send("fs", "stat", path, function (err, statData) {
             if (statData && callback) {
                 statData.isFile = function () { return statData._isFile; };
                 statData.isDirectory = function () { return statData._isDirectory; };
@@ -41,23 +41,23 @@ define(function (require, exports, module) {
     }
 
     function readFile(path, encoding, callback) {
-        return Proxy.send("fs", "readFile", path, encoding, callback);
+        return NativeProxy.send("fs", "readFile", path, encoding, callback);
     }
 
     function writeFile(path, data, encoding, callback) {
-        return Proxy.send("fs", "writeFile", path, data, encoding, callback);
+        return NativeProxy.send("fs", "writeFile", path, data, encoding, callback);
     }
 
     function chmod(path, mode, callback) {
-        return Proxy.send("fs", "chmod", path, mode, callback);
+        return NativeProxy.send("fs", "chmod", path, mode, callback);
     }
 
     function unlink(path, callback) {
-        return Proxy.send("fs", "unlink", path, callback);
+        return NativeProxy.send("fs", "unlink", path, callback);
     }
 
     function cwd(callback) {
-        return Proxy.send("fs", "cwd", callback);
+        return NativeProxy.send("fs", "cwd", callback);
     }
 
     exports.NO_ERROR = NO_ERROR;

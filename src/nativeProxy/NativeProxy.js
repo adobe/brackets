@@ -4,8 +4,8 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var app = require("proxy/app");
-    var fs  = require("proxy/fs");
+    var app = require("nativeProxy/app");
+    var fs  = require("nativeProxy/fs");
 
     var _socket;
     var _messageId = 1;
