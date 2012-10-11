@@ -168,7 +168,7 @@ define(function LiveDevelopment(require, exports, module) {
      * @return {boolean} true if the given document's extension has "htm", false otherwise.
      */
     function _isHTMLDocument(doc) {
-        return (doc && doc.extension.indexOf("htm") !== -1);
+        return (doc && doc.extension && doc.extension.indexOf("htm") !== -1);
     }
 
     /**
