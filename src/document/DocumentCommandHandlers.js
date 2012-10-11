@@ -343,12 +343,7 @@ define(function (require, exports, module) {
         var createWithSuggestedName = function (suggestedName) {
             ProjectManager.createNewItem(baseDir, suggestedName, false, isFolder)
                 .pipe(deferred.resolve, deferred.reject, deferred.notify)
-                .always(function () { fileNewInProgress = false; })
-                .done(function (entry) {
-                    if (!isFolder) {
-                        FileViewController.addToWorkingSetAndSelect(entry.fullPath, FileViewController.PROJECT_MANAGER);
-                    }
-                });
+                .always(function () { fileNewInProgress = false; });
         };
 
         deferred.done(createWithSuggestedName);
