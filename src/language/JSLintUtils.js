@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, JSLINT, PathUtils */
+/*global define, $, JSLINT, PathUtils */
 
 /**
  * Allows JSLint to run on the current document and report results in a UI panel.
@@ -47,7 +47,15 @@ define(function (require, exports, module) {
         Strings                 = require("strings"),
         StringUtils             = require("utils/StringUtils"),
         AppInit                 = require("utils/AppInit"),
+        Resizer                 = require("utils/Resizer"),
         StatusBar               = require("widgets/StatusBar");
+        
+    var PREFERENCES_CLIENT_ID = module.id,
+        defaultPrefs = { height: 200, enabled: true };
+    
+    /** @type {Number} Height of the JSLint panel header in pixels. Hardcoded to avoid race 
+                       condition when measuring it on htmlReady*/
+    var HEADER_HEIGHT = 27;
     
     /**
      * @private
@@ -136,7 +144,9 @@ define(function (require, exports, module) {
 
                 $("#jslint-results .table-container")
                     .empty()
-                    .append($errorTable);
+                    .append($errorTable)
+                    .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
+                
                 $lintResults.show();
                 $goldStar.hide();
                 if (JSLINT.errors.length === 1) {
@@ -210,20 +220,33 @@ define(function (require, exports, module) {
         setEnabled(!getEnabled());
     }
     
-    
     // Register command handlers
     CommandManager.register(Strings.CMD_JSLINT, Commands.TOGGLE_JSLINT, _handleToggleJSLint);
     
     // Init PreferenceStorage
-    _prefs = PreferencesManager.getPreferenceStorage(module.id, { enabled: !!brackets.config.enable_jslint });
+    _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID, defaultPrefs);
     _setEnabled(_prefs.getValue("enabled"));
     
-    // Init StatusBar indicator
+    // Initialize items dependent on HTML DOM
     AppInit.htmlReady(function () {
+        var height          = Math.max(_prefs.getValue("height"), 100),
+            $jslintResults  = $("#jslint-results"),
+            $jslintContent  = $("#jslint-results .table-container");
+
+        $jslintResults.height(height);
+        $jslintContent.height(height - HEADER_HEIGHT);
+        
+        if (_enabled) {
+            EditorManager.resizeEditor();
+        }
+        
+        $jslintResults.on("panelResizeEnd", function (event, height) {
+            _prefs.setValue("height", height);
+        });
+        
         StatusBar.addIndicator(module.id, $("#gold-star"), false);
     });
-    
-    
+
     // Define public API
     exports.run = run;
     exports.getEnabled = getEnabled;

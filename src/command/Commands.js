@@ -34,6 +34,7 @@ define(function (require, exports, module) {
 
     // FILE
     exports.FILE_NEW                    = "file.new";
+    exports.FILE_NEW_FOLDER             = "file.newFolder";
     exports.FILE_OPEN                   = "file.open";
     exports.FILE_OPEN_FOLDER            = "file.openFolder";
     exports.FILE_SAVE                   = "file.save";
@@ -43,6 +44,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
+    exports.FILE_RENAME                 = "file.rename";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT

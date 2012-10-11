@@ -58,7 +58,8 @@ define(function (require, exports, module) {
     var ContextMenuIds = {
         EDITOR_MENU:        "editor-context-menu",
         INLINE_EDITOR_MENU: "inline-editor-context-menu",
-        PROJECT_MENU:       "project-context-menu"
+        PROJECT_MENU:       "project-context-menu",
+        WORKING_SET_MENU:   "working-set-context-menu"
     };
 
 
@@ -848,8 +849,8 @@ define(function (require, exports, module) {
         var menu;
         menu = addMenu(Strings.FILE_MENU, AppMenuBar.FILE_MENU);
         menu.addMenuItem(Commands.FILE_NEW,                 "Ctrl-N");
+        menu.addMenuItem(Commands.FILE_NEW_FOLDER);
         menu.addMenuItem(Commands.FILE_OPEN,                "Ctrl-O");
-        menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
         menu.addMenuItem(Commands.FILE_CLOSE,               "Ctrl-W");
         menu.addMenuDivider();
         menu.addMenuItem(Commands.FILE_SAVE,                "Ctrl-S");
@@ -968,6 +969,12 @@ define(function (require, exports, module) {
          */
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
+        project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME);
+
+        var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
+        working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
+        working_set_cmenu.addMenuItem(Commands.FILE_SAVE);
 
         var editor_cmenu = registerContextMenu(ContextMenuIds.EDITOR_MENU);
         editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
@@ -1019,12 +1026,14 @@ define(function (require, exports, module) {
         });
 
         /**
-         * Context menu for folder tree & working set list
-         *
-         * TODO (#1069): change selection on right mousedown if not on something already selected
+         * Context menus for folder tree & working set list
          */
-        $("#projects").on("contextmenu", function (e) {
+        $("#project-files-container").on("contextmenu", function (e) {
             project_cmenu.open(e);
+        });
+
+        $("#open-files-container").on("contextmenu", function (e) {
+            working_set_cmenu.open(e);
         });
 
         // Prevent the browser context menu since Brackets creates a custom context menu

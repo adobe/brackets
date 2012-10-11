@@ -49,6 +49,7 @@
  * 1: Connecting to the remote debugger
  * 2: Loading agents
  * 3: Active
+ * 4: Out of sync
  */
 define(function LiveDevelopment(require, exports, module) {
     "use strict";
@@ -56,11 +57,12 @@ define(function LiveDevelopment(require, exports, module) {
     require("utils/Global");
 
     // Status Codes
-    var STATUS_ERROR          = exports.STATUS_ERROR = -1;
-    var STATUS_INACTIVE       = exports.STATUS_INACTIVE = 0;
-    var STATUS_CONNECTING     = exports.STATUS_CONNECTING = 1;
+    var STATUS_ERROR          = exports.STATUS_ERROR          = -1;
+    var STATUS_INACTIVE       = exports.STATUS_INACTIVE       = 0;
+    var STATUS_CONNECTING     = exports.STATUS_CONNECTING     = 1;
     var STATUS_LOADING_AGENTS = exports.STATUS_LOADING_AGENTS = 2;
-    var STATUS_ACTIVE         = exports.STATUS_ACTIVE = 3;
+    var STATUS_ACTIVE         = exports.STATUS_ACTIVE         = 3;
+    var STATUS_OUT_OF_SYNC    = exports.STATUS_OUT_OF_SYNC    = 4;
 
     var DocumentManager = require("document/DocumentManager");
     var EditorManager = require("editor/EditorManager");
@@ -158,6 +160,15 @@ define(function LiveDevelopment(require, exports, module) {
         default:
             return null;
         }
+    }
+
+    /** Determine whether the given document is an HTML file 
+     *  by checking its extension.
+     * @param {Document} document to check
+     * @return {boolean} true if the given document's extension has "htm", false otherwise.
+     */
+    function _isHTMLDocument(doc) {
+        return (doc && doc.extension.indexOf("htm") !== -1);
     }
 
     /**
@@ -316,10 +327,15 @@ define(function LiveDevelopment(require, exports, module) {
     function _onLoad() {
         var doc = _getCurrentDocument();
         if (doc) {
-            var editor = EditorManager.getCurrentFullEditor();
+            var editor = EditorManager.getCurrentFullEditor(),
+                status = STATUS_ACTIVE;
+
             _openDocument(doc, editor);
+            if (doc.isDirty && _isHTMLDocument(doc)) {
+                status = STATUS_OUT_OF_SYNC;
+            }
+            _setStatus(status);
         }
-        _setStatus(STATUS_ACTIVE);
     }
 
     /** Triggered by Inspector.connect */
@@ -334,6 +350,13 @@ define(function LiveDevelopment(require, exports, module) {
         unloadAgents();
         _closeDocument();
         _setStatus(STATUS_INACTIVE);
+    }
+
+    function _onReconnect() {
+        unloadAgents();
+        var promises = loadAgents();
+        _setStatus(STATUS_LOADING_AGENTS);
+        $.when.apply(undefined, promises).then(_onLoad, _onError);
     }
 
     /** Open the Connection and go live */
@@ -459,7 +482,8 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a document change from the DocumentManager */
     function _onDocumentChange() {
-        var doc = _getCurrentDocument();
+        var doc = _getCurrentDocument(),
+            status = STATUS_ACTIVE;
         if (!doc) {
             return;
         }
@@ -475,6 +499,39 @@ define(function LiveDevelopment(require, exports, module) {
                     close();
                     window.setTimeout(open);
                 }
+            }
+            
+            if (doc.isDirty && _isHTMLDocument(doc)) {
+                status = STATUS_OUT_OF_SYNC;
+            }
+            _setStatus(status);
+        }
+    }
+
+    /** Triggered by a document saved from the DocumentManager */
+    function _onDocumentSaved() {
+        var doc = _getCurrentDocument();
+
+        if (doc && _classForDocument(doc) !== CSSDocument && Inspector.connected()) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
+                // Reload HTML page
+                Inspector.Page.reload();
+
+                // Reload unsaved changes
+                _onReconnect();
+                
+                // Set status back to active
+                _setStatus(STATUS_ACTIVE);
+            }
+        }
+    }
+
+    /** Triggered by a change in dirty flag from the DocumentManager */
+    function _onDirtyFlagChange(event, doc) {
+        if (doc && doc.isDirty && _isHTMLDocument(doc) && Inspector.connected()) {
+            if (agents.network && agents.network.wasURLRequested(doc.url)) {
+                // Set status to out of sync
+                _setStatus(STATUS_OUT_OF_SYNC);
             }
         }
     }
@@ -512,7 +569,9 @@ define(function LiveDevelopment(require, exports, module) {
         $(Inspector).on("connect", _onConnect)
             .on("disconnect", _onDisconnect)
             .on("error", _onError);
-        $(DocumentManager).on("currentDocumentChange", _onDocumentChange);
+        $(DocumentManager).on("currentDocumentChange", _onDocumentChange)
+            .on("documentSaved", _onDocumentSaved)
+            .on("dirtyFlagChange", _onDirtyFlagChange);
     }
 
     // Export public functions
