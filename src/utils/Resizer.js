@@ -40,8 +40,10 @@
  * while resizing), custom or internal resizes and save the final resized value into local 
  * storage for example.
  *
- * TODO Trigger panelResizeStart and panelResizeUpdate as required. They aren't needed
- *      currently.
+ * A resizable element can be collapsed/expanded using the `toggleVisibility` API
+ *
+ * The resizable elements trigger a panelCollapsed and panelExpanded event when the panel toggles
+ * between visible and invisible
  */
 define(function (require, exports, module) {
     "use strict";
@@ -64,10 +66,12 @@ define(function (require, exports, module) {
     var $mainView;
     
     /**
-     *
+     * Changes the visibility state of a resizable element. The toggle
+     * functionality is added when an element is made resizable.
+     * @param {DOMNode} element Html element to toggle if possible
      */
-    function toggleVisibility($element) {
-        var toggleFunction = $element.data("toggleVisibility");
+    function toggleVisibility(element) {
+        var toggleFunction = $(element).data("toggleVisibility");
         if (toggleFunction) {
             toggleFunction();
         }
@@ -109,8 +113,7 @@ define(function (require, exports, module) {
             elementSizeFunction = direction === DIRECTION_HORIZONTAL ? $element.width : $element.height,
             directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1,
             contentSizeFunction = null,
-            resizerCSSPosition  = "",
-            toggleSize          = 0;
+            resizerCSSPosition  = "";
 
         minSize = minSize || 0;
         
@@ -123,6 +126,7 @@ define(function (require, exports, module) {
         $element.prepend($resizer);
         
         $element.data("toggleVisibility", function () {
+                
             if ($element.is(":visible")) {
                 $element.hide();
                 $resizer.insertBefore($element).css(resizerCSSPosition, 0);
@@ -137,16 +141,14 @@ define(function (require, exports, module) {
             
             EditorManager.resizeEditor();
         });
-        
-        EditorManager.resizeEditor();
-        
+                
         if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
             $element.resize(function () {
                 $resizer.css(resizerCSSPosition, elementSizeFunction.apply($element) - elementSizeFunction.apply($resizer) + 1);
             });
         }
         
-        // A value of 0 for minSize implies that the panel is collapsable
+        // A value of 0 for minSize implies that the panel is collapsable on doubleclick
         if (!minSize) {
             $resizer.on("dblclick", function () {
                 toggleVisibility($element);
