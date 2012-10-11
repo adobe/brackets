@@ -202,6 +202,7 @@ define(function (require, exports, module) {
                             toggleVisibility($element);
                         }
                     } else if (newSize > 10) {
+                        elementSizeFunction.apply($element, [newSize]);
                         toggleVisibility($element);
                         $element.trigger("panelResizeStart", [elementSizeFunction.apply($element)]);
                     }
