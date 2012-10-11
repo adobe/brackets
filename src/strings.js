@@ -36,14 +36,22 @@ define(function (require, exports, module) {
     var strings     = require("i18n!nls/strings"),
         Global      = require("utils/Global"),
         StringUtils = require("utils/StringUtils");
+
+    var additionalGlobals = {},
+        parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);
     
-    strings.APP_NAME = brackets.metadata.name || strings.APP_NAME;
-    strings.APP_TITLE = brackets.config.app_title || strings.APP_NAME;
+    additionalGlobals.APP_NAME      = brackets.metadata.name || strings.APP_NAME;
+    additionalGlobals.APP_TITLE     = brackets.config.app_title || strings.APP_NAME;
+    additionalGlobals.VERSION       = brackets.metadata.version;
+    additionalGlobals.VERSION_MAJOR = parsedVersion[1];
+    additionalGlobals.VERSION_MINOR = parsedVersion[2];
+    additionalGlobals.VERSION_PATCH = parsedVersion[3];
     
-    // Convert {APP_NAME}
+    // Insert application strings
     Object.keys(strings).forEach(function (key) {
-        strings[key] = strings[key].replace(/\{APP_NAME\}/g, strings.APP_NAME);
-        strings[key] = strings[key].replace(/\{APP_TITLE\}/g, strings.APP_TITLE);
+        Object.keys(additionalGlobals).forEach(function (name) {
+            strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
+        });
     });
 
     module.exports = strings;

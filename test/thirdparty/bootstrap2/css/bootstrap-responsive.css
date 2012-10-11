@@ -135,7 +135,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 727px) {
   body {
     padding-right: 20px;
     padding-left: 20px;
@@ -679,7 +679,7 @@
   }
 }
 
-@media (max-width: 979px) {
+@media (max-width: 727px) {
   body {
     padding-top: 0;
   }

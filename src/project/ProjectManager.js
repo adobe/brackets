@@ -513,7 +513,7 @@ define(function (require, exports, module) {
     
     /** @param {Entry} entry File or directory to filter */
     function shouldShow(entry) {
-        return [".git", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) === -1;
+        return [".git", ".gitignore", ".gitmodules", ".svn", ".DS_Store", "Thumbs.db"].indexOf(entry.name) === -1;
     }
 
     /**
@@ -1115,7 +1115,7 @@ define(function (require, exports, module) {
                 
                 var _resetOldFilename = function () {
                     _projectTree.jstree("set_text", selected, data.rslt.old_name);
-                    _projectTree.jstree("refresh", -1);
+                    _projectTree.jstree("sort", selected.parent());
                 };
                 
                 if (!_checkForValidFilename(data.rslt.new_name)) {

@@ -569,7 +569,7 @@ define(function (require, exports, module) {
         // Use the filename formatter
         query = StringUtils.htmlEscape(query);
         var displayName = StringUtils.htmlEscape(item.label);
-        var displayPath = StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath));
+        var displayPath = StringUtils.breakableUrl(StringUtils.htmlEscape(ProjectManager.makeProjectRelativeIfPossible(item.fullPath)));
 
         if (query.length > 0) {
             // make the user's query bold within the item's text

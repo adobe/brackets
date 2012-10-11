@@ -82,6 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
@@ -139,9 +140,12 @@ define({
     /**
      * StatusBar strings
      */
-    "STATUSBAR_CURSOR_POSITION" : "Line {0}, Column {1}",
-    "STATUSBAR_TAB_SIZE"        : "Tab Size {0}",
-    "STATUSBAR_LINE_COUNT"      : "{0} Lines",
+    "STATUSBAR_CURSOR_POSITION"         : "Line {0}, Column {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"   : "Click to switch indentation to spaces",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"     : "Click to switch indentation to tabs",
+    "STATUSBAR_SPACES"                  : "Spaces",
+    "STATUSBAR_TAB_SIZE"                : "Tab Size",
+    "STATUSBAR_LINE_COUNT"              : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -237,9 +241,9 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint 15 experimental build ",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",
