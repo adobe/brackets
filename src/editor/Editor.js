@@ -443,6 +443,26 @@ define(function (require, exports, module) {
                           {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
+    Editor.prototype._updateHiddenLines = function () {
+        if (this._visibleRange) {
+            var cm = this._codeMirror,
+                self = this;
+            cm.operation(function () {
+                // TODO: could make this more efficient by only iterating across the min-max line
+                // range of the union of all changes
+                var i;
+                for (i = 0; i < cm.lineCount(); i++) {
+                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
+                        self._hideLine(i);
+                    } else {
+                        // Double-check that the set of NON-hidden lines matches our range too
+                        console.assert(!cm.getLineHandle(i).hidden);
+                    }
+                }
+            });
+        }
+    };
+    
     Editor.prototype._applyChanges = function (changeList) {
         var self = this;
         
@@ -474,21 +494,7 @@ define(function (require, exports, module) {
         });
         
         // The update above may have inserted new lines - must hide any that fall outside our range
-        if (self._visibleRange) {
-            cm.operation(function () {
-                // TODO: could make this more efficient by only iterating across the min-max line
-                // range of the union of all changes
-                var i;
-                for (i = 0; i < cm.lineCount(); i++) {
-                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
-                        self._hideLine(i);
-                    } else {
-                        // Double-check that the set of NON-hidden lines matches our range too
-                        console.assert(!cm.getLineHandle(i).hidden);
-                    }
-                }
-            });
-        }
+        this._updateHiddenLines();
     };
     
     /**
@@ -518,6 +524,11 @@ define(function (require, exports, module) {
             // what the right Document API would be, though.
             this._duringSync = true;
             this.document._masterEditor._applyChanges(changeList);
+            
+            // Update which lines are hidden inside our editor, since we're not going to go through
+            // _applyChanges() in our own editor.
+            this._updateHiddenLines();
+            
             this._duringSync = false;
         }
         // Else, Master editor:
