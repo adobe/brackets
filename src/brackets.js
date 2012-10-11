@@ -21,9 +21,11 @@
  * 
  */
 
-
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
 /*global require, define, brackets: true, $, PathUtils, window, navigator, Mustache */
+
+// get a startup timestamp as soon as possible
+window._startupTime = new Date().getTime();
 
 require.config({
     paths: {

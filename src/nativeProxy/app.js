@@ -4,8 +4,6 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var _startupTime = new Date().getTime();
-
     function quit() {
         // unsupported
     }
@@ -19,7 +17,7 @@ define(function (require, exports, module) {
     }
 
     function getElapsedMilliseconds() {
-        return new Date().getTime() - _startupTime;
+        return new Date().getTime() - window._startupTime;
     }
 
     function openLiveBrowser(url, enableRemoteDebugging, callback) {
