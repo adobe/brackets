@@ -49,7 +49,7 @@ define(function (require, exports, module) {
 
     // connect to the node server
     function connect() {
-        _socket = new WebSocket("ws://" + window.location.host + ":9000");
+        _socket = new WebSocket("ws://" + window.location.host.replace(/:[0-9]+$/,'') + ":9000");
         _socket.onopen = _onopen;
         _socket.onerror = _onerror;
         _socket.onclose = _onclose;
