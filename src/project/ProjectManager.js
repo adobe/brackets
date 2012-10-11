@@ -628,8 +628,7 @@ define(function (require, exports, module) {
         if (sampleUrl) {
             // Back up one more folder. The samples folder is assumed to be at the same level as
             // the src folder, and the sampleUrl is relative to the samples folder.
-            initialPath = (initialPath === ".") ? ".." : initialPath.substr(0, initialPath.lastIndexOf("/"));
-            initialPath += "/samples/" + sampleUrl;
+            initialPath = initialPath.substr(0, initialPath.lastIndexOf("/")) + "/samples/" + sampleUrl;
         }
 
         return initialPath;
@@ -693,7 +692,7 @@ define(function (require, exports, module) {
         _projectInitialLoad.previous = _prefs.getValue(_getTreeStateKey(rootPath)) || [];
 
         // Populate file tree as long as we aren't running in the browser
-        {
+        if (!brackets.inBrowser) {
             // Point at a real folder structure on local disk
             NativeFileSystem.requestNativeFileSystem(rootPath,
                 function (rootEntry) {
@@ -959,7 +958,7 @@ define(function (require, exports, module) {
                     } else {
                         var errString = error.code === FileError.NO_MODIFICATION_ALLOWED_ERR ?
                                          Strings.NO_MODIFICATION_ALLOWED_ERR :
-                                         StringUtils.format(String.GENERIC_ERROR, error.code);
+                                         StringUtils.format(Strings.GENERIC_ERROR, error.code);
 
                         var errMsg = StringUtils.format(Strings.ERROR_CREATING_FILE,
                                         StringUtils.htmlEscape(data.rslt.name),

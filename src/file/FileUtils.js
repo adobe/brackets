@@ -223,12 +223,6 @@ define(function (require, exports, module) {
      * @return {string}
      */
     function getNativeBracketsDirectoryPath() {
-        if (brackets.inBrowser) {
-            // Just return the current path "." if we are in the browser
-            // This will probably break on windows and show be changed to use fs.cwd
-            // However, that call must be asynchronous, which does not work here
-            return ".";
-        }
         var pathname = decodeURI(window.location.pathname);
         var directory = pathname.substr(0, pathname.lastIndexOf("/"));
         return convertToNativePath(directory);
@@ -246,7 +240,7 @@ define(function (require, exports, module) {
 
         if (module && module.uri) {
 
-            // Get the native brackets directory path with a trailing slash.
+            // Remove window name from base path. Maintain trailing slash.
             path = getNativeBracketsDirectoryPath() + "/";
 
             // Remove module name from relative path. Remove trailing slash.
