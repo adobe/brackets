@@ -848,7 +848,7 @@ define(function (require, exports, module) {
         
         CommandManager.register(Strings.CMD_NEXT_DOC,           Commands.NAVIGATE_NEXT_DOC, handleGoNextDoc);
         CommandManager.register(Strings.CMD_PREV_DOC,           Commands.NAVIGATE_PREV_DOC, handleGoPrevDoc);
-        CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_TREE, handleShowInTree);
+        CommandManager.register(Strings.CMD_SHOW_IN_TREE,       Commands.NAVIGATE_SHOW_IN_FILE_TREE, handleShowInTree);
         
         // Listen for changes that require updating the editor titlebar
         $(DocumentManager).on("dirtyFlagChange", handleDirtyChange);

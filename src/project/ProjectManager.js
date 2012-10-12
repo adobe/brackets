@@ -776,14 +776,15 @@ define(function (require, exports, module) {
      * @return {$.Promise} Resolved with jQ obj for the jsTree tree node; or rejected if not found
      */
     function _findTreeNode(entry) {
-        var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
-        var treeAPI = $.jstree._reference(_projectTree);
         var result = new $.Deferred();
         
         // If path not within project, ignore
+        var projRelativePath = makeProjectRelativeIfPossible(entry.fullPath);
         if (projRelativePath === entry.fullPath) {
-            return null;
+            return result.reject().promise();
         }
+        
+        var treeAPI = $.jstree._reference(_projectTree);
         
         // We're going to traverse from root of tree, one segment at a time
         var pathSegments = projRelativePath.split("/");

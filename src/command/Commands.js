@@ -77,7 +77,7 @@ define(function (require, exports, module) {
     // Navigate
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
-    exports.NAVIGATE_SHOW_IN_TREE       = "navigate.showInTree";
+    exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
