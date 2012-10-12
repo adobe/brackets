@@ -65,9 +65,21 @@ body {
     &.resizing a, &.resizing #projects a, &.resizing .main-view, &.resizing .CodeMirror-lines {
         cursor: col-resize;   
     }
+}
+
+.resizing-container {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: @z-index-brackets-panel-resizer;
     
-    &.vert-resizing a, &.vert-resizing #projects a, &.vert-resizing .main-view, &.vert-resizing .CodeMirror-lines {
-        cursor: row-resize;   
+    &.horz-resizing {
+        cursor: col-resize;
+    }
+    
+    &.vert-resizing {
+        cursor: row-resize;
     }
 }
 
