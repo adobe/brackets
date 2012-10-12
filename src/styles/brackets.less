@@ -130,7 +130,7 @@ a, img {
     
     div {
         display: inline;
-        padding-right: 20px;
+        margin-right: 20px;
     }
 }
     
@@ -139,12 +139,33 @@ a, img {
     
     &>div {
         display: inline;
-        padding-left: 20px;
+        margin-left: 20px;
+        
+        &#busy-indicator {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: -2px;
+            width: 12px;
+            height: 12px;
+            background: url("images/small_spinner.svg") no-repeat;
+            visibility: hidden;
+        
+            &.spin {
+                -webkit-animation: rotating 1.5s linear infinite;
+                visibility: visible;
+            }
+        }        
     }
 }
 
-#busy-indicator {
-    font-size: 1.4em;
+@-webkit-keyframes rotating {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
 #status-indent > * {
