@@ -322,8 +322,7 @@ define(function LiveDevelopment(require, exports, module) {
                 status = STATUS_ACTIVE;
 
             _openDocument(doc, editor);
-            var DocClass = _classForDocument(doc);
-            if (doc.isDirty && !(DocClass && DocClass === CSSDocument)) {
+            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                 status = STATUS_OUT_OF_SYNC;
             }
             _setStatus(status);
@@ -493,8 +492,7 @@ define(function LiveDevelopment(require, exports, module) {
                 }
             }
             
-            var DocClass = _classForDocument(doc);
-            if (doc.isDirty && !(DocClass && DocClass === CSSDocument)) {
+            if (doc.isDirty && _classForDocument(doc) !== CSSDocument) {
                 status = STATUS_OUT_OF_SYNC;
             }
             _setStatus(status);
@@ -503,10 +501,9 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a document saved from the DocumentManager */
     function _onDocumentSaved() {
-        var doc = _getCurrentDocument(),
-            DocClass = _classForDocument(doc);
+        var doc = _getCurrentDocument();
         
-        if (doc && Inspector.connected() && !(DocClass && DocClass === CSSDocument)) {
+        if (doc && Inspector.connected() && _classForDocument(doc) !== CSSDocument) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 // Reload HTML page
                 Inspector.Page.reload();
@@ -522,8 +519,7 @@ define(function LiveDevelopment(require, exports, module) {
 
     /** Triggered by a change in dirty flag from the DocumentManager */
     function _onDirtyFlagChange(event, doc) {
-        var DocClass = _classForDocument(doc);
-        if (Inspector.connected() && doc && doc.isDirty && !(DocClass && DocClass === CSSDocument)) {
+        if (Inspector.connected() && doc && doc.isDirty && _classForDocument(doc) !== CSSDocument) {
             if (agents.network && agents.network.wasURLRequested(doc.url)) {
                 // Set status to out of sync
                 _setStatus(STATUS_OUT_OF_SYNC);
