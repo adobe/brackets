@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     exports.EDIT_INDENT                 = "edit.indent";
     exports.EDIT_UNINDENT               = "edit.unindent";
     exports.EDIT_DUPLICATE              = "edit.duplicate";
+    exports.EDIT_DELETE_LINES           = "edit.deletelines";
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";

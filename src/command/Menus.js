@@ -882,6 +882,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
         menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_DELETE_LINES,    "Ctrl-Shift-D");
         menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
                                                           platform: "win"},
                                                          {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
