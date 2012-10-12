@@ -628,8 +628,8 @@ define(function (require, exports, module) {
     }
     
     function _changeIndentWidth(value) {
-        $indentWidthLabel.toggleClass("hidden");
-        $indentWidthInput.toggleClass("hidden");
+        $indentWidthLabel.removeClass("hidden");
+        $indentWidthInput.addClass("hidden");
         
         // remove all event handlers from the input field
         $indentWidthInput.off("blur keyup");
@@ -699,8 +699,8 @@ define(function (require, exports, module) {
                 // update the input value before displaying
                 $indentWidthInput.val(_getIndentSize());
 
-                $indentWidthLabel.toggleClass("hidden");
-                $indentWidthInput.toggleClass("hidden");
+                $indentWidthLabel.addClass("hidden");
+                $indentWidthInput.removeClass("hidden");
                 $indentWidthInput.focus();
         
                 $indentWidthInput
