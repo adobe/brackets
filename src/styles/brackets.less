@@ -71,7 +71,6 @@ body {
     }
 }
 
-
 a, img {
     -webkit-user-drag: none;
 }
@@ -136,36 +135,50 @@ a, img {
     font-size: 1.4em;
 }
 
-#status-indent div {
+#status-indent > * {
     display: inline-block;
 }
 
-#indent-type, #indent-width, #indent-decrement {
+#status-indent > *.hidden {
+    display: none;
+}
+
+#indent-type, #indent-width-label {
     margin-right: 2px;
 }
 
-#indent-type, #indent-decrement, #indent-increment {
+#indent-type, #indent-width-label {
     cursor: pointer;
 }
 
-#indent-type:hover {
+#indent-type:hover, #indent-width-label:hover {
     text-decoration: underline;
 }
 
-#indent-decrement, #indent-increment {
-    width: 4px;
-    height: 8px;
-    cursor: pointer;
-    padding-left: 1px;
-}
-    
-#indent-decrement {
-    background: url("images/stepper-arrow-sprites.svg") no-repeat top left;
+#indent-width-input {
+    font-size: 1em;
+    height: 12px;
+    line-height: 1;
+    vertical-align: -2px;
+    border: 1px solid darken(@background-color-3, @bc-color-step-size / 2);
+    color: @bc-black;
+    margin: 0;
+    padding: 0;
+    width: 14px;
+    position: relative;
+    left: -1px;
+    top: -2px;
+    -webkit-border-radius: 0;
 }
 
-#indent-increment {
-    background: url("images/stepper-arrow-sprites.svg") no-repeat top right;
-    margin-right: 0px;
+#indent-width-input:focus {
+    border: 1px solid rgba(9,64,253,0.84);
+    outline: none;
+}
+
+#indent-width-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 #editor-holder {
