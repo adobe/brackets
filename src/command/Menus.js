@@ -923,6 +923,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC,        [{key: "Ctrl-Shift-Tab", platform: "win"},
                                                              {key: "Ctrl-Shift-Tab", platform: "mac"}]);
         menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+        menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});
         menu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH,    {key: "Alt-Down", displayKey: "Alt-\u2193"});
