@@ -443,6 +443,10 @@ define(function (require, exports, module) {
                           {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
+    /**
+     * Ensures that the lines that are actually hidden in the inline editor correspond to
+     * the desired visible range.
+     */
     Editor.prototype._updateHiddenLines = function () {
         if (this._visibleRange) {
             var cm = this._codeMirror,
@@ -464,13 +468,11 @@ define(function (require, exports, module) {
     };
     
     Editor.prototype._applyChanges = function (changeList) {
-        var self = this;
-        
         // _visibleRange has already updated via its own Document listener. See if this change caused
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                $(self).triggerHandler("lostContent");
+                $(this).triggerHandler("lostContent");
                 return;
             }
         }
@@ -524,12 +526,11 @@ define(function (require, exports, module) {
             // what the right Document API would be, though.
             this._duringSync = true;
             this.document._masterEditor._applyChanges(changeList);
+            this._duringSync = false;
             
             // Update which lines are hidden inside our editor, since we're not going to go through
             // _applyChanges() in our own editor.
             this._updateHiddenLines();
-            
-            this._duringSync = false;
         }
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since Document listens directly to us
