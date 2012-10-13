@@ -50,11 +50,23 @@ define(function (require, exports, module) {
         DocumentManager     = require("document/DocumentManager"),
         EditorManager       = require("editor/EditorManager"),
         FileIndexManager    = require("project/FileIndexManager"),
-        KeyEvent            = require("utils/KeyEvent");
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        KeyEvent            = require("utils/KeyEvent"),
+        AppInit             = require("utils/AppInit"),
+        Resizer             = require("utils/Resizer"),
+        StatusBar           = require("widgets/StatusBar");
 
+    var searchResults = [];
     
     var FIND_IN_FILES_MAX = 100;
-
+    
+    var PREFERENCES_CLIENT_ID = module.id,
+        defaultPrefs = { height: 200 };
+    
+    /** @type {Number} Height of the FIF panel header in pixels. Hardcoded to avoid race 
+                       condition when measuring it on htmlReady*/
+    var HEADER_HEIGHT = 27;
+    
     // This dialog class was mostly copied from QuickOpen. We should have a common dialog
     // class that everyone can use.
     
@@ -165,7 +177,7 @@ define(function (require, exports, module) {
         return matches;
     }
         
-    function _showSearchResults(searchResults) {
+    function _showSearchResults(searchResults, query) {
         var $searchResultsDiv = $("#search-results");
         
         if (searchResults && searchResults.length) {
@@ -184,13 +196,14 @@ define(function (require, exports, module) {
                 numMatches,
                 (numMatches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH,
                 searchResults.length,
-                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
+                (searchResults.length > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE),
+                query
             );
             
             $("#search-result-summary")
                 .text(summary +
                      (numMatches > FIND_IN_FILES_MAX ? StringUtils.format(Strings.FIND_IN_FILES_MAX, FIND_IN_FILES_MAX) : ""))
-                .prepend("&nbsp;");  // putting a normal space before the "-" is not enough
+                .prepend("&nbsp;"); // putting a normal space before the "-" is not enough
             
             var resultsDisplayed = 0;
             
@@ -212,7 +225,7 @@ define(function (require, exports, module) {
                     
                     // Add row for file name
                     $("<tr class='file-section' />")
-                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, item.fullPath) + "</td>")
+                        .append("<td colspan='3'>" + StringUtils.format(Strings.FIND_IN_FILES_FILE_PATH, StringUtils.breakableUrl(item.fullPath)) + "</td>")
                         .click(function () {
                             // Clicking file section header collapses/expands result rows for that file
                             var $fileHeader = $(this);
@@ -245,7 +258,8 @@ define(function (require, exports, module) {
             
             $("#search-results .table-container")
                 .empty()
-                .append($resultTable);
+                .append($resultTable)
+                .scrollTop(0);  // otherwise scroll pos from previous contents is remembered
             
             $("#search-results .close")
                 .one("click", function () {
@@ -287,15 +301,17 @@ define(function (require, exports, module) {
     function doFindInFiles() {
 
         var dialog = new FindInFilesDialog();
-        var searchResults = [];
         
         // Default to searching for the current selection
         var currentEditor = EditorManager.getFocusedEditor();
         var initialString = currentEditor && currentEditor.getSelectedText();
+        
+        searchResults = [];
                             
         dialog.showDialog(initialString)
             .done(function (query) {
                 if (query) {
+                    StatusBar.showBusyIndicator(true);
                     var queryExpr = _getQueryRegExp(query);
                     FileIndexManager.getFileInfoList("all")
                         .done(function (fileListResult) {
@@ -323,15 +339,43 @@ define(function (require, exports, module) {
                                 return result.promise();
                             })
                                 .done(function () {
-                                    _showSearchResults(searchResults);
+                                    _showSearchResults(searchResults, query);
+                                    StatusBar.hideBusyIndicator();
                                 })
                                 .fail(function () {
                                     console.log("find in files failed.");
+                                    StatusBar.hideBusyIndicator();
                                 });
                         });
                 }
             });
     }
+    
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        var $searchResults  = $("#search-results"),
+            $searchContent  = $("#search-results .table-container"),
+            prefs           = PreferencesManager.getPreferenceStorage(module.id, defaultPrefs),
+            height          = prefs.getValue("height");
 
+        $searchResults.height(height);
+        $searchContent.height(height - HEADER_HEIGHT);
+        
+        $searchResults.on("panelResizeEnd", function (event, height) {
+            prefs.setValue("height", height);
+        });
+    });
+
+    function _fileNameChangeHandler(event, oldName, newName) {
+        if ($("#search-results").is(":visible")) {
+            // Update the search results
+            searchResults.forEach(function (item) {
+                item.fullPath = item.fullPath.replace(oldName, newName);
+            });
+            _showSearchResults(searchResults);
+        }
+    }
+    
+    $(DocumentManager).on("fileNameChange", _fileNameChangeHandler);
     CommandManager.register(Strings.CMD_FIND_IN_FILES,  Commands.EDIT_FIND_IN_FILES,    doFindInFiles);
 });

@@ -64,29 +64,6 @@ define(function (require, exports, module) {
         functionList = null;
     }
 
-    /**
-     * Retrieves the FileLocation object stored in the functionsList for a given function name
-     * @param {string} functionName
-     * @returns {FileLocation}
-     */
-    function getLocationFromFunctionName(functionName) {
-        if (!functionList) {
-            return null;
-        }
-
-        // TODO: doesn't handle case where two functions have same name
-        var i, fileLocation;
-        for (i = 0; i < functionList.length; i++) {
-            var functionInfo = functionList[i];
-            if (functionInfo.functionName === functionName) {
-                fileLocation = functionInfo;
-                break;
-            }
-        }
-
-        return fileLocation;
-    }
-
     
     function createFunctionList() {
         var doc = DocumentManager.getCurrentDocument();
@@ -117,8 +94,12 @@ define(function (require, exports, module) {
         query = query.slice(query.indexOf("@") + 1, query.length);
         
         // Filter and rank how good each match is
-        var filteredList = $.map(functionList, function (itemInfo) {
-            return QuickOpen.stringMatch(itemInfo.functionName, query);
+        var filteredList = $.map(functionList, function (fileLocation) {
+            var searchResult = QuickOpen.stringMatch(fileLocation.functionName, query);
+            if (searchResult) {
+                searchResult.fileLocation = fileLocation;
+            }
+            return searchResult;
         });
         
         // Sort based on ranking & basic alphabetical order
@@ -149,13 +130,11 @@ define(function (require, exports, module) {
         if (!selectedItem) {
             return;
         }
-        var fileLocation = getLocationFromFunctionName(selectedItem.label);
+        var fileLocation = selectedItem.fileLocation;
 
-        if (fileLocation) {
-            var from = {line: fileLocation.line, ch: fileLocation.chFrom};
-            var to = {line: fileLocation.line, ch: fileLocation.chTo};
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
-        }
+        var from = {line: fileLocation.line, ch: fileLocation.chFrom};
+        var to = {line: fileLocation.line, ch: fileLocation.chTo};
+        EditorManager.getCurrentFullEditor().setSelection(from, to);
     }
 
     function itemSelect(selectedItem) {

@@ -35,6 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "The file could not be read.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "The target directory cannot be modified.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "The permissions do not allow you to make modifications.",
+    "FILE_EXISTS_ERR"                   : "The file already exists.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Error loading project",
@@ -49,6 +50,8 @@ define({
     "ERROR_RELOADING_FILE"              : "An error occurred when trying to reload the file <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Error saving file",
     "ERROR_SAVING_FILE"                 : "An error occurred when trying to save the file <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Error renaming file",
+    "ERROR_RENAMING_FILE"               : "An error occurred when trying to rename the file <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Invalid file name",
     "INVALID_FILENAME_MESSAGE"          : "Filenames cannot contain the following characters: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "The file <span class='dialog-filename'>{0}</span> already exists.",
@@ -79,6 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connecting...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Initializing...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Disconnect Live Preview",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Click to disconnect (Save file to update)",
     
     "SAVE_CLOSE_TITLE"                  : "Save Changes",
     "SAVE_CLOSE_MESSAGE"                : "Do you want to save the changes you made in the document <span class='dialog-filename'>{0}</span>?",
@@ -101,7 +105,7 @@ define({
     "NO_UPDATE_TITLE"                   : "You're up to date!",
     "NO_UPDATE_MESSAGE"                 : "You are running the latest version of {APP_NAME}.",
     
-    "FIND_IN_FILES_TITLE"               : "- {0} {1} in {2} {3}",
+    "FIND_IN_FILES_TITLE"               : "for \"{4}\" - {0} {1} in {2} {3}",
     "FIND_IN_FILES_FILE"                : "file",
     "FIND_IN_FILES_FILES"               : "files",
     "FIND_IN_FILES_MATCH"               : "match",
@@ -132,6 +136,18 @@ define({
     "KEYBOARD_CTRL"   : "Ctrl",
     "KEYBOARD_SHIFT"  : "Shift",
     "KEYBOARD_SPACE"  : "Space",
+    
+    /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION"             : "Line {0}, Column {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Click to switch indentation to spaces",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Click to switch indentation to tabs",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Click to change number of spaces used when indenting",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Click to change tab character width",
+    "STATUSBAR_SPACES"                      : "Spaces",
+    "STATUSBAR_TAB_SIZE"                    : "Tab Size",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Lines",
 
     /**
      * Command Name Constants
@@ -139,7 +155,8 @@ define({
 
     // File menu commands
     "FILE_MENU"                           : "File",
-    "CMD_FILE_NEW"                        : "New",
+    "CMD_FILE_NEW"                        : "New File",
+    "CMD_FILE_NEW_FOLDER"                 : "New Folder",
     "CMD_FILE_OPEN"                       : "Open\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Add To Working Set",
     "CMD_OPEN_FOLDER"                     : "Open Folder\u2026",
@@ -148,6 +165,7 @@ define({
     "CMD_FILE_SAVE"                       : "Save",
     "CMD_FILE_SAVE_ALL"                   : "Save All",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_FILE_RENAME"                     : "Rename",
     "CMD_QUIT"                            : "Quit",
 
     // Edit menu commands
@@ -161,6 +179,7 @@ define({
     "CMD_INDENT"                          : "Indent",
     "CMD_UNINDENT"                        : "Unindent",
     "CMD_DUPLICATE"                       : "Duplicate",
+    "CMD_DELETE_LINES"                    : "Delete Selected Line(s)",
     "CMD_COMMENT"                         : "Comment/Uncomment Lines",
     "CMD_LINE_UP"                         : "Move Line(s) Up",
     "CMD_LINE_DOWN"                       : "Move Line(s) Down",
@@ -183,6 +202,7 @@ define({
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Next Match",
     "CMD_NEXT_DOC"                        : "Next Document",
     "CMD_PREV_DOC"                        : "Previous Document",
+    "CMD_SHOW_IN_TREE"                    : "Show in File Tree",
     
     // Debug menu commands
     "DEBUG_MENU"                          : "Debug",
@@ -209,7 +229,10 @@ define({
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Experimental Build",
     "JSLINT_ERRORS"                        : "JSLint Errors",
+    "JSLINT_ERROR_INFORMATION"             : "1 JSLint Error",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} JSLint Errors",
     "JSLINT_NO_ERRORS"                     : "No JSLint errors - good job!",
+    "JSLINT_DISABLED"                      : "JSLint disabled or not working for the current file",
     "SEARCH_RESULTS"                       : "Search Results",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Don't Save",
@@ -222,9 +245,9 @@ define({
     "ABOUT"                                : "About",
     "APP_NAME"                             : "Brackets",
     "CLOSE"                                : "Close",
-    "ABOUT_TEXT_LINE1"                     : "sprint 14 experimental build ",
-    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <span class=\"non-clickble-link\">http://www.adobe.com/go/thirdparty/</span> and incorporated by reference herein.",
-    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <span class=\"non-clickble-link\">https://github.com/adobe/brackets/</span>",
+    "ABOUT_TEXT_LINE1"                     : "sprint {VERSION_MINOR} experimental build {VERSION}",
+    "ABOUT_TEXT_LINE3"                     : "Notices, terms and conditions pertaining to third party software are located at <a class=\"clickable-link\" data-href=\"http://www.adobe.com/go/thirdparty/\">http://www.adobe.com/go/thirdparty/</a> and incorporated by reference herein.",
+    "ABOUT_TEXT_LINE4"                     : "Documentation and source at <a class=\"clickable-link\" data-href=\"https://github.com/adobe/brackets/\">https://github.com/adobe/brackets/</a>",
     "UPDATE_NOTIFICATION_TOOLTIP"          : "There's a new build of {APP_NAME} available! Click here for details.",
     "UPDATE_AVAILABLE_TITLE"               : "Update Available",
     "UPDATE_MESSAGE"                       : "Hey, there's a new build of {APP_NAME} available. Here are some of the new features:",

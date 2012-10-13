@@ -687,6 +687,7 @@ define(function (require, exports, module) {
                 displayPath += "</span>";
             }
         });
+        displayPath = StringUtils.breakableUrl(displayPath);
         
         return "<li>" + displayName + "<br /><span class='quick-open-path'>" + displayPath + "</span></li>";
     }

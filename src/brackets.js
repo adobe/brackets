@@ -90,7 +90,8 @@ define(function (require, exports, module) {
         UpdateNotification      = require("utils/UpdateNotification"),
         UrlParams               = require("utils/UrlParams").UrlParams,
         NativeFileSystem        = require("file/NativeFileSystem").NativeFileSystem,
-        PreferencesManager      = require("preferences/PreferencesManager");
+        PreferencesManager      = require("preferences/PreferencesManager"),
+        Resizer                 = require("utils/Resizer");
 
     // Local variables
     var params                  = new UrlParams(),
@@ -266,6 +267,12 @@ define(function (require, exports, module) {
             UpdateNotification.checkForUpdate();
         }
     }
+    
+    // Prevent unhandled mousedown events from triggering native behavior
+    // Example: activating AutoScroll when clicking the middle mouse button (see #510)
+    $("html").on("mousedown", function (event) {
+        event.preventDefault();
+    });
     
     // Localize MainViewHTML and inject into <BODY> tag
     var templateVars    = $.extend({
