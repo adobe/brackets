@@ -443,14 +443,36 @@ define(function (require, exports, module) {
                           {line: endLine, ch: this.document.getLine(endLine).length});
     };
     
+    /**
+     * Ensures that the lines that are actually hidden in the inline editor correspond to
+     * the desired visible range.
+     */
+    Editor.prototype._updateHiddenLines = function () {
+        if (this._visibleRange) {
+            var cm = this._codeMirror,
+                self = this;
+            cm.operation(function () {
+                // TODO: could make this more efficient by only iterating across the min-max line
+                // range of the union of all changes
+                var i;
+                for (i = 0; i < cm.lineCount(); i++) {
+                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
+                        self._hideLine(i);
+                    } else {
+                        // Double-check that the set of NON-hidden lines matches our range too
+                        console.assert(!cm.getLineHandle(i).hidden);
+                    }
+                }
+            });
+        }
+    };
+    
     Editor.prototype._applyChanges = function (changeList) {
-        var self = this;
-        
         // _visibleRange has already updated via its own Document listener. See if this change caused
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                $(self).triggerHandler("lostContent");
+                $(this).triggerHandler("lostContent");
                 return;
             }
         }
@@ -474,21 +496,7 @@ define(function (require, exports, module) {
         });
         
         // The update above may have inserted new lines - must hide any that fall outside our range
-        if (self._visibleRange) {
-            cm.operation(function () {
-                // TODO: could make this more efficient by only iterating across the min-max line
-                // range of the union of all changes
-                var i;
-                for (i = 0; i < cm.lineCount(); i++) {
-                    if (i < self._visibleRange.startLine || i > self._visibleRange.endLine) {
-                        self._hideLine(i);
-                    } else {
-                        // Double-check that the set of NON-hidden lines matches our range too
-                        console.assert(!cm.getLineHandle(i).hidden);
-                    }
-                }
-            });
-        }
+        this._updateHiddenLines();
     };
     
     /**
@@ -519,6 +527,10 @@ define(function (require, exports, module) {
             this._duringSync = true;
             this.document._masterEditor._applyChanges(changeList);
             this._duringSync = false;
+            
+            // Update which lines are hidden inside our editor, since we're not going to go through
+            // _applyChanges() in our own editor.
+            this._updateHiddenLines();
         }
         // Else, Master editor:
         // we're the ground truth; nothing else to do, since Document listens directly to us
@@ -653,10 +665,31 @@ define(function (require, exports, module) {
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
+     * @param {boolean} expandTabs If true, return the actual visual column number instead of the character offset in
+     *      the "ch" property.
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function () {
-        return this._codeMirror.getCursor();
+    Editor.prototype.getCursorPos = function (expandTabs) {
+        var cursor = this._codeMirror.getCursor();
+        
+        if (expandTabs) {
+            var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
+                tabSize = Editor.getTabSize(),
+                column  = 0,
+                i;
+
+            for (i = 0; i < line.length; i++) {
+                if (line[i] === '\t') {
+                    column += (tabSize - (column % tabSize));
+                } else {
+                    column++;
+                }
+            }
+            
+            cursor.ch = column;
+        }
+        
+        return cursor;
     };
     
     /**

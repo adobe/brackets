@@ -40,7 +40,7 @@ define(function (require, exports, module) {
             $("*").addClass("busyCursor");
         }
         
-        $busyIndicator.show();
+        $busyIndicator.addClass("spin");
     }
     
     /**
@@ -58,7 +58,7 @@ define(function (require, exports, module) {
             $("*").removeClass("busyCursor");
         }
         
-        $busyIndicator.hide();
+        $busyIndicator.removeClass("spin");
     }
     
     /**
@@ -167,8 +167,6 @@ define(function (require, exports, module) {
         $statusBar          = $("#status-bar");
         $indicators         = $("#status-indicators");
         $busyIndicator      = $("#busy-indicator");
-        
-        $busyIndicator.hide();
 
         _init = true;
 

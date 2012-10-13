@@ -882,6 +882,7 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.EDIT_INDENT,          [{key: "Indent", displayKey: "Tab"}]);
         menu.addMenuItem(Commands.EDIT_UNINDENT,        [{key: "Unindent", displayKey: "Shift-Tab"}]);
         menu.addMenuItem(Commands.EDIT_DUPLICATE,       "Ctrl-D");
+        menu.addMenuItem(Commands.EDIT_DELETE_LINES,    "Ctrl-Shift-D");
         menu.addMenuItem(Commands.EDIT_LINE_UP,         [{key: "Ctrl-Shift-Up", displayKey: "Ctrl-Shift-\u2191",
                                                           platform: "win"},
                                                          {key:  "Cmd-Ctrl-Up", displayKey: "Cmd-Ctrl-\u2191",
@@ -921,6 +922,8 @@ define(function (require, exports, module) {
                                                              {key: "Ctrl-Tab", platform: "mac"}]);
         menu.addMenuItem(Commands.NAVIGATE_PREV_DOC,        [{key: "Ctrl-Shift-Tab", platform: "win"},
                                                              {key: "Ctrl-Shift-Tab", platform: "mac"}]);
+        menu.addMenuDivider();
+        menu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_QUICK_EDIT,        "Ctrl-E");
         menu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH,    {key: "Alt-Up", displayKey: "Alt-\u2191"});

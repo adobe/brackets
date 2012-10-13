@@ -62,6 +62,7 @@ define(function (require, exports, module) {
     exports.EDIT_INDENT                 = "edit.indent";
     exports.EDIT_UNINDENT               = "edit.unindent";
     exports.EDIT_DUPLICATE              = "edit.duplicate";
+    exports.EDIT_DELETE_LINES           = "edit.deletelines";
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
@@ -77,6 +78,7 @@ define(function (require, exports, module) {
     // Navigate
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
+    exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
