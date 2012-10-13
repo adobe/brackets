@@ -179,6 +179,7 @@ define({
 	"CMD_INDENT": "Retrait",
 	"CMD_UNINDENT": "Annuler le retrait",
 	"CMD_DUPLICATE": "Dupliquer",
+	"CMD_DELETE_LINES": "Delete Selected Line(s)",
 	"CMD_COMMENT": "Commenter les lignes/Annuler les commentaires",
 	"CMD_LINE_UP": "Déplacer les lignes vers le haut",
 	"CMD_LINE_DOWN": "Déplacer les lignes vers le bas",
@@ -201,6 +202,7 @@ define({
 	"CMD_QUICK_EDIT_NEXT_MATCH": "Correspondance suivante",
 	"CMD_NEXT_DOC": "Document suivant",
 	"CMD_PREV_DOC": "Document précédent",
+	"CMD_SHOW_IN_TREE": "Show in File Tree",
     
     // Debug menu commands
 	"DEBUG_MENU": "Déboguer",
