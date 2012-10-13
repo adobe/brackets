@@ -610,21 +610,9 @@ define(function (require, exports, module) {
         editor = editor || getFocusedEditor();
 
         // compute columns, account for tab size
-        var cursor          = editor.getCursorPos(),
-            line            = editor.document.getRange({line: cursor.line, ch: 0}, cursor),
-            tabSize         = Editor.getTabSize(),
-            column          = 0,
-            i               = 0;
-
-        for (i = 0; i < line.length; i++) {
-            if (line[i] === '\t') {
-                column += (tabSize - (column % tabSize));
-            } else {
-                column++;
-            }
-        }
+        var cursor = editor.getCursorPos(true);
         
-        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, (cursor.line + 1), column + 1));
+        $cursorInfo.text(StringUtils.format(Strings.STATUSBAR_CURSOR_POSITION, cursor.line + 1, cursor.ch + 1));
     }
     
     function _changeIndentWidth(value) {
