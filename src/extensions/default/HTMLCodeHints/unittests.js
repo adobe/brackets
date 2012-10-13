@@ -459,7 +459,7 @@ define(function (require, exports, module) {
             function selectHint(provider, expectedHint) {
                 var hintList = expectHints(provider);
                 expect(hintList.indexOf(expectedHint)).not.toBe(-1);
-                provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos());
+                provider.handleSelect(expectedHint, testEditor, testEditor.getCursorPos(), true);
             }
             
             // Helper function for testing cursor position
