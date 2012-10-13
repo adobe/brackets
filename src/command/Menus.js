@@ -968,7 +968,8 @@ define(function (require, exports, module) {
         var project_cmenu = registerContextMenu(ContextMenuIds.PROJECT_MENU);
         project_cmenu.addMenuItem(Commands.FILE_NEW);
         project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
-        project_cmenu.addMenuItem(Commands.FILE_RENAME);
+        project_cmenu.addMenuItem(Commands.FILE_RENAME, [{key: "F2", platform: "win"},
+                                                         {key: "F2", platform: "mac"}]);
 
         var working_set_cmenu = registerContextMenu(ContextMenuIds.WORKING_SET_MENU);
         working_set_cmenu.addMenuItem(Commands.FILE_CLOSE);
