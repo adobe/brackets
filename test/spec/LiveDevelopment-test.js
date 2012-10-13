@@ -309,7 +309,7 @@ define(function (require, exports, module) {
                     LiveDevelopment.open();
                 });
 
-                waits(5000);
+                waits(2000);
                 
                 // Grab the node that we've just modified in Brackets.
                 var originalNode;
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
                     waitsForDone(promise, "Saving modified html document");
                 });
 
-                waits(5000);
+                waits(1000);
                 
                 waitsFor(function () {
                     liveDoc = LiveDevelopment.getLiveDocForPath(testPath + "/simple1.css");
@@ -350,8 +350,6 @@ define(function (require, exports, module) {
                     expect(fixSpaces(browserCssText)).toBe(fixSpaces(localCssText));
                 });
 
-                waits(5000);
-                
                 // Grab the node that we've modified in Brackets. 
                 // This time we should have modified text since the file has been saved in Brackets.
                 var updatedNode;
