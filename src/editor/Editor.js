@@ -665,10 +665,31 @@ define(function (require, exports, module) {
     /**
      * Gets the current cursor position within the editor. If there is a selection, returns whichever
      * end of the range the cursor lies at.
+     * @param {boolean} expandTabs If true, return the actual visual column number instead of the character offset in
+     *      the "ch" property.
      * @return !{line:number, ch:number}
      */
-    Editor.prototype.getCursorPos = function () {
-        return this._codeMirror.getCursor();
+    Editor.prototype.getCursorPos = function (expandTabs) {
+        var cursor = this._codeMirror.getCursor();
+        
+        if (expandTabs) {
+            var line    = this._codeMirror.getRange({line: cursor.line, ch: 0}, cursor),
+                tabSize = Editor.getTabSize(),
+                column  = 0,
+                i;
+
+            for (i = 0; i < line.length; i++) {
+                if (line[i] === '\t') {
+                    column += (tabSize - (column % tabSize));
+                } else {
+                    column++;
+                }
+            }
+            
+            cursor.ch = column;
+        }
+        
+        return cursor;
     };
     
     /**
