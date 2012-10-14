@@ -906,8 +906,8 @@ define(function (require, exports, module) {
         menu.addMenuItem(Commands.VIEW_DECREASE_FONT_SIZE, [{key: "Ctrl--", displayKey: "Ctrl-\u2212"}]);
         menu.addMenuItem(Commands.VIEW_RESTORE_FONT_SIZE, "Ctrl-0");
         menu.addMenuDivider();
-        menu.addMenuItem(Commands.VIEW_SCROLL_LINE_UP,   [{key: "Ctrl-Alt-Up", displayKey: "Ctrl-Alt-\u2191"}]);
-        menu.addMenuItem(Commands.VIEW_SCROLL_LINE_DOWN, [{key: "Ctrl-Alt-Down", displayKey: "Ctrl-Alt-\u2193"}]);
+        menu.addMenuItem(Commands.VIEW_SCROLL_LINE_UP,   [{key: "Ctrl-Up", displayKey: "Ctrl-\u2191"}]);
+        menu.addMenuItem(Commands.VIEW_SCROLL_LINE_DOWN, [{key: "Ctrl-Down", displayKey: "Ctrl-\u2193"}]);
         menu.addMenuDivider();
         menu.addMenuItem(Commands.TOGGLE_JSLINT);
 
