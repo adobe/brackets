@@ -191,8 +191,8 @@ define({
     "CMD_INCREASE_FONT_SIZE"              : "Increase Font Size",
     "CMD_DECREASE_FONT_SIZE"              : "Decrease Font Size",
     "CMD_RESTORE_FONT_SIZE"               : "Restore Font Size",
-    "CMD_SCROLL_LINE_UP"                  : "Scroll one line Up",
-    "CMD_SCROLL_LINE_DOWN"                : "Scroll one line down",
+    "CMD_SCROLL_LINE_UP"                  : "Scroll Line Up",
+    "CMD_SCROLL_LINE_DOWN"                : "Scroll Line Down",
 
     // Navigate menu Commands
     "NAVIGATE_MENU"                       : "Navigate",

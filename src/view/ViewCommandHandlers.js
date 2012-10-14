@@ -128,21 +128,17 @@ define(function (require, exports, module) {
     
     /**
      * @private
-     * Scroll de code one line up or down.
+     * Scroll the viewport one line up or down.
      * @param {number} -1 to scroll one line up; 1 to scroll one line down.
      */
     function _scrollLine(direction) {
         var editor = EditorManager.getCurrentFullEditor();
         var scrollPos = editor.getScrollPos();
-        var lhStyle = $(".CodeMirror-scroll").css("line-height");
-        var lhValue = parseFloat(lhStyle.substring(0, lhStyle.length - 2));
-        var lhUnits = lhStyle.substring(lhStyle.length - 2, lhStyle.length);
+        var lineCount = editor.lineCount();
+        var totalHeight = editor.totalHeight();
+        var scrollDeltaY = Math.round(totalHeight / lineCount);
         
-        if (lhUnits === 'em') {
-            lhValue *= 10;
-        }
-        
-        editor.setScrollPos(scrollPos.x, scrollPos.y + (lhValue * direction));
+        editor.setScrollPos(scrollPos.x, scrollPos.y + (scrollDeltaY * direction));
     }
     
     function _handleScrollLineUp() {
