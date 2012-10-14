@@ -136,7 +136,7 @@ define(function (require, exports, module) {
         var scrollPos = editor.getScrollPos();
         var lineCount = editor.lineCount();
         var totalHeight = editor.totalHeight();
-        var scrollDeltaY = Math.round(totalHeight / lineCount);
+        var scrollDeltaY = totalHeight / lineCount;
         
         editor.setScrollPos(scrollPos.x, scrollPos.y + (scrollDeltaY * direction));
     }
