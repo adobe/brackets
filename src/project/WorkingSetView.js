@@ -268,7 +268,6 @@ define(function (require, exports, module) {
 
         $newItem.mousedown(function (e) {
             _reorderListItem(e);
-            
             e.preventDefault();
         });
 
@@ -463,7 +462,7 @@ define(function (require, exports, module) {
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
             _handleDirtyFlagChanged(doc);
         });
-        
+    
         $(DocumentManager).on("fileNameChange", function (event, oldName, newName) {
             _handleFileNameChanged(oldName, newName);
         });
