@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $  */
+/*global define, $, window  */
 
 /**
  * WorkingSetView generates the UI for the list of the files user is editing based on the model provided by EditorManager.
@@ -151,6 +151,82 @@ define(function (require, exports, module) {
         return (docIfOpen && docIfOpen.isDirty);
     }
     
+    
+    /** 
+     * Drags the list item afterfor reordening.
+     * @private
+     */
+    function _dragListItem(event) {
+        var $item = event.data.$item;
+		var $prevListItem = event.data.$prevListItem;
+		var $nextListItem = event.data.$nextListItem;
+        var top = event.pageY - event.data.startPageY;
+        
+		// Drag if the item is not the first and moving it up or
+		// if the item is not the last and moving down
+        if (($prevListItem.length && top < 0) || ($nextListItem.length && top > 0)) {
+            // Reorder the list once the item is halfway to the new position
+			if (Math.abs(top) > event.data.height / 2) {
+                if (top < 0) {
+                    // If moving up, place the previows item after the moving item
+					$prevListItem.insertAfter($item);
+                    event.data.startPageY -= event.data.height;
+                    top = top + event.data.height;
+                } else {
+					// If moving down, place the next item before the moving item
+                    $nextListItem.insertBefore($item);
+                    event.data.startPageY += event.data.height;
+                    top = top - event.data.height;
+                }
+				
+                // Update the previows and next items
+                event.data.$prevListItem = $item.prev();
+                event.data.$nextListItem = $item.next();
+            }
+        } else {
+		    top = 0;
+		}
+		
+		// Move the item
+		$item.css("top", top + "px");
+		
+		// Update the selection position
+		_fireSelectionChanged();
+    }
+    
+	/** 
+     * Drops the list item afterfor reordening.
+     * @private
+     */
+    function _dropListItem(event) {
+		// Removes the styles, placing the item in the chocen place
+        event.data.$item.removeAttr("style");
+		$(window.document).off("mousemove", _dragListItem)
+            .off("mouseup", _dropListItem);
+
+        // Update the selection position
+		_fireSelectionChanged();
+    }
+    
+	/** 
+     * Starts the drag and drop working set view reorder.
+     * @private
+     */
+    function _reorderListItem(event) {
+		var $item = $(event.currentTarget);
+		var data = {
+            $item: $item,
+			startPageY: event.pageY,
+            $prevListItem: $item.prev(),
+            $nextListItem: $item.next(),
+			height: $item.height()
+		};
+		
+        $item.css("position", "relative");
+        $(window.document).on("mousemove", data, _dragListItem)
+            .on("mouseup", data, _dropListItem);
+    }
+    
     /** 
      * Builds the UI for a new list item and inserts in into the end of the list
      * @private
@@ -175,6 +251,7 @@ define(function (require, exports, module) {
         _updateListItemSelection($newItem, curDoc);
 
         $newItem.mousedown(function (e) {
+            _reorderListItem(e);
             FileViewController.openAndSelectDocument(file.fullPath, FileViewController.WORKING_SET_VIEW);
             e.preventDefault();
         });
@@ -188,6 +265,7 @@ define(function (require, exports, module) {
             }
         );
     }
+    
     
     /** 
      * Deletes all the list items in the view and rebuilds them from the working set model
@@ -370,13 +448,13 @@ define(function (require, exports, module) {
         $(DocumentManager).on("dirtyFlagChange", function (event, doc) {
             _handleDirtyFlagChanged(doc);
         });
-    
+
         $(DocumentManager).on("fileNameChange", function (event, oldName, newName) {
             _handleFileNameChanged(oldName, newName);
         });
-        
+
         $(FileViewController).on("documentSelectionFocusChange fileViewFocusChange", _handleDocumentSelectionChange);
-        
+
         // Show scroller shadows when open-files-container scrolls
         ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
         ViewUtils.sidebarList($openFilesContainer);
