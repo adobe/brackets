@@ -172,6 +172,11 @@ define(function (require, exports, module) {
                 end: {line: lineNum, ch: ch + matchLength},
                 line: line
             });
+
+            // We have the max hits in just this 1 file. Stop searching.
+            if (matches.length >= FIND_IN_FILES_MAX) {
+                break;
+            }
         }
 
         return matches;
@@ -320,6 +325,7 @@ define(function (require, exports, module) {
                                 
                                 DocumentManager.getDocumentForPath(fileInfo.fullPath)
                                     .done(function (doc) {
+                                        console.log("doFindInFiles: " + fileInfo.fullPath);
                                         var matches = _getSearchMatches(doc.getText(), queryExpr);
                                         
                                         if (matches && matches.length) {
