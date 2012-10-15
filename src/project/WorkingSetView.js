@@ -268,6 +268,7 @@ define(function (require, exports, module) {
 
         $newItem.mousedown(function (e) {
             _reorderListItem(e);
+            
             e.preventDefault();
         });
 
