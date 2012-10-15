@@ -400,9 +400,14 @@ define(function (require, exports, module) {
         $(window.document).off("mousedown", this.handleDocumentMouseDown);
     };
     
-    
+    // Multiplier used for matches within the most-specific part of the name (filename, for example)
     var NAME_BOOST = 3;
+    
+    // Multiplier for the number of sequential matched characters
     var MATCH_BOOST = 5;
+    
+    // Multiplier for sequential matched characters at the beginning
+    // of a delimited section (after a '/' in a path, for example)
     var PATH_SEGMENT_START_MATCH_BOOST = 5;
 
    /**
@@ -415,7 +420,7 @@ define(function (require, exports, module) {
     * If the query characters cannot be found in order (but not necessarily all together), 
     * undefined is returned.
     *
-    * the returned SearchResult has a matchGoodness score that can be used
+    * The returned SearchResult has a matchGoodness score that can be used
     * for sorting. It also has a stringRanges array, each entry with
     * "text" and "matched". If you string the "text" properties together, you will
     * get the original str. Using the matched properties, you can highlight
@@ -440,14 +445,30 @@ define(function (require, exports, module) {
         // characters and negative when stepping through unmatched characters
         var sequentialMatches = 0;
         var segmentCounter = 0;
-        var stringRanges = [];
         
         // start at the end and work backward, because we give preference
         // to matches in the name (last) segment
         var strCounter = lowerStr.length - 1;
         var queryCounter = queryChars.length - 1;
+        
+        // stringRanges are used to keep track of which parts of
+        // the input str matched the query
+        var stringRanges = [];
+        
+        // addToStringRanges is used when we transition between matched and unmatched
+        // parts of the string.
+        function addToStringRanges(numberOfCharacters, matched) {
+            stringRanges.unshift({
+                text: str.substr(strCounter + 1, numberOfCharacters),
+                matched: matched
+            });
+        }
+
         while (strCounter >= 0 && queryCounter >= 0) {
             var curChar = lowerStr.charAt(strCounter);
+            
+            // Ideally, this function will work with different delimiters used in
+            // different contexts. For now, this is used for paths delimited by '/'.
             if (curChar === '/') {
                 // Beginning of segment, apply boost for a matching
                 // string of characters, if there is one
@@ -465,14 +486,11 @@ define(function (require, exports, module) {
             if (queryChars[queryCounter] === curChar) {
                 // are we ending a string of unmatched characters?
                 if (sequentialMatches < 0) {
-                    stringRanges.unshift({
-                        text: str.substr(strCounter + 1, -1 * sequentialMatches),
-                        matched: false
-                    });
+                    addToStringRanges(-sequentialMatches, false);
                     sequentialMatches = 0;
                 }
                 
-                // matched character, chaulk up another match
+                // matched character, chalk up another match
                 // and move both counters back a character
                 sequentialMatches++;
                 queryCounter--;
@@ -480,10 +498,7 @@ define(function (require, exports, module) {
             } else {
                 // are we ending a string of matched characters?
                 if (sequentialMatches > 0) {
-                    stringRanges.unshift({
-                        text: str.substr(strCounter + 1, sequentialMatches),
-                        matched: true
-                    });
+                    addToStringRanges(sequentialMatches, true);
                     score += sequentialMatches * sequentialMatches * MATCH_BOOST;
                     sequentialMatches = 0;
                 }
@@ -501,10 +516,7 @@ define(function (require, exports, module) {
         }
         
         if (sequentialMatches) {
-            stringRanges.unshift({
-                text: str.substr(strCounter + 1, Math.abs(sequentialMatches)),
-                matched: sequentialMatches > 0
-            });
+            addToStringRanges(Math.abs(sequentialMatches), sequentialMatches > 0);
         }
         
         if (strCounter > 0) {
@@ -520,7 +532,7 @@ define(function (require, exports, module) {
         
         if (sequentialMatches && strCounter >= 0) {
             if (lowerStr.charAt(strCounter) === '/') {
-                score += sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
+                score += sequentialMatches * sequentialMatches * PATH_SEGMENT_START_MATCH_BOOST;
             }
         }
         if (segmentCounter === 0) {
