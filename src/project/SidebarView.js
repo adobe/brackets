@@ -23,30 +23,40 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, document, window  */
+/*global define, $, document, window, brackets  */
+
+/**
+ * The view that controls the showing and hiding of the sidebar. Dispatches the following events:
+ *    hide -- when the sidebar is hidden
+ *    show -- when the sidebar is shown
+ */
 
 define(function (require, exports, module) {
     "use strict";
     
-    var ProjectManager          = require("project/ProjectManager"),
-        WorkingSetView          = require("project/WorkingSetView"),
-        CommandManager          = require("command/CommandManager"),
-        Commands                = require("command/Commands"),
-        Strings                 = require("strings"),
-        PreferencesManager      = require("preferences/PreferencesManager"),
-        EditorManager           = require("editor/EditorManager");
+    var AppInit             = require("utils/AppInit"),
+        ProjectManager      = require("project/ProjectManager"),
+        WorkingSetView      = require("project/WorkingSetView"),
+        CommandManager      = require("command/CommandManager"),
+        Commands            = require("command/Commands"),
+        Strings             = require("strings"),
+        PreferencesManager  = require("preferences/PreferencesManager"),
+        EditorManager       = require("editor/EditorManager"),
+        Global              = require("utils/Global");
 
-    var $sidebar                = $("#sidebar"),
-        $sidebarMenuText        = $("#menu-view-hide-sidebar span"),
-        $sidebarResizer         = $("#sidebar-resizer"),
-        $openFilesContainer     = $("#open-files-container"),
-        $projectTitle           = $("#project-title"),
-        $projectFilesContainer  = $("#project-files-container"),
-        isSidebarClosed         = false;
-    
+    var isSidebarClosed         = false;
+
     var PREFERENCES_CLIENT_ID = "com.adobe.brackets.SidebarView",
         defaultPrefs = { sidebarWidth: 200, sidebarClosed: false };
-    
+
+    // These vars are initialized by the htmlReady handler
+    // below since they refer to DOM elements
+    var $sidebar,
+        $sidebarMenuText,
+        $sidebarResizer,
+        $openFilesContainer,
+        $projectTitle,
+        $projectFilesContainer;
     
     /**
      * @private
@@ -108,8 +118,10 @@ define(function (require, exports, module) {
     function toggleSidebar(width) {
         if (isSidebarClosed) {
             $sidebar.show();
+            $(exports).triggerHandler("show");
         } else {
             $sidebar.hide();
+            $(exports).triggerHandler("hide");
         }
         
         isSidebarClosed = !isSidebarClosed;
@@ -228,17 +240,24 @@ define(function (require, exports, module) {
             e.preventDefault();
         });
     }
-    
-    // init
-    (function () {
-        WorkingSetView.create($openFilesContainer);
-        
-        $(ProjectManager).on("projectOpen", _updateProjectTitle);
 
-        CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
-        
+    // Initialize items dependent on HTML DOM
+    AppInit.htmlReady(function () {
+        $sidebar                = $("#sidebar");
+        $sidebarMenuText        = $("#menu-view-hide-sidebar span");
+        $sidebarResizer         = $("#sidebar-resizer");
+        $openFilesContainer     = $("#open-files-container");
+        $projectTitle           = $("#project-title");
+        $projectFilesContainer  = $("#project-files-container");
+
+        // init
+        WorkingSetView.create($openFilesContainer);
         _initSidebarResizer();
-    }());
+    });
     
+    $(ProjectManager).on("projectOpen", _updateProjectTitle);
+    CommandManager.register(Strings.CMD_HIDE_SIDEBAR,       Commands.VIEW_HIDE_SIDEBAR,     toggleSidebar);
+    
+    // Define public API
     exports.toggleSidebar = toggleSidebar;
 });

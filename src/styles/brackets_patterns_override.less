@@ -281,6 +281,8 @@
 .codehint-menu {
     .dropdown-menu {
         .box-shadow(none);
+        max-height: 160px;
+        overflow-y: auto;
 
         padding: 0;
         
@@ -311,6 +313,21 @@
 }
 
 /* Dialog-related styles */
+
+.modal {
+    width: auto;
+}
+
+.modal-body, .modal-header {
+    /* See styles/bootstrap/patterns.less .modal class.
+       Pushing this value down to .modal-header and .modal-body
+       to allow the overall modal to take the width of the footer */
+    width: 560px;
+}
+
+.modal-footer {
+    white-space: nowrap;
+}
 
 .modal-footer .btn.left {
     float: left;
@@ -363,6 +380,27 @@
     }
 }
 
+/* Update dialog */
+.update-dialog .modal-body {
+    position: relative;
+    .update-icon {
+        position: absolute;
+        left: 30px; // relative to border of modal-body
+        top: 20px;
+        width: 80px;
+        height: 80px;
+    }
+    .update-text {
+        // Icon is 120px, so we need at least that much left padding/margin to avoid overlap
+        margin: 0 10px 0 123px;
+
+        .update-info {
+            max-height: 200px;
+            overflow: auto;
+        }
+    }
+}
+
 /* About dialog */
 .about-dialog .modal-body {
     // Simple two-column layout: image on left, text taking up remaining space on right
@@ -384,7 +422,7 @@
     h2 {
         font-weight: normal;
         font-size: 25px;
-        margin-bottom: -8px;
+        margin-bottom: -4px;
         margin-top: 3px;
     }
     .dialog-message {

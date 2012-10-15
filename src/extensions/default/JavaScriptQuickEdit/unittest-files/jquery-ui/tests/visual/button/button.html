@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Button Visual Test</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.button.js"></script>
+	<script>
+	$(function() {
+		$( ".buttons" ).each(function() {
+			$( this ).children()
+				.eq( 0 )
+					.button({
+						text: false,
+						icons: {
+							primary: "ui-icon-help"
+						}
+					})
+				.end()
+				.eq( 1 )
+					.button({
+						icons: {
+							primary: "ui-icon-help"
+						},
+						disabled: true
+					})
+				.end()
+				.eq( 2 )
+					.button();
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="buttons">
+	<button>button</button>
+	<button>button</button>
+	<button>button</button>
+</div>
+
+<div class="buttons">
+	<button type="button">button button</button>
+	<button type="button">button button</button>
+	<button type="button">button button</button>
+</div>
+
+<div class="buttons">
+	<button type="submit">button submit</button>
+	<button type="submit">button submit</button>
+	<button type="submit">button submit</button>
+</div>
+
+<div class="buttons">
+	<input type="button" value="input button">
+	<input type="button" value="input button">
+	<input type="button" value="input button">
+</div>
+
+<div class="buttons">
+	<input type="submit" value="input submit">
+	<input type="submit" value="input submit">
+	<input type="submit" value="input submit">
+</div>
+
+<div class="buttons">
+	<input type="checkbox" id="input-checkbox0">
+	<input type="checkbox" id="input-checkbox1">
+	<input type="checkbox" id="input-checkbox2">
+	<label for="input-checkbox0">input checkbox</label>
+	<label for="input-checkbox1">input checkbox</label>
+	<label for="input-checkbox2">input checkbox</label>
+</div>
+
+<div class="buttons">
+	<input type="radio" id="input-radio0" name="radio">
+	<input type="radio" id="input-radio1" name="radio">
+	<input type="radio" id="input-radio2" name="radio">
+	<label for="input-radio0">input radio</label>
+	<label for="input-radio1">input radio</label>
+	<label for="input-radio2">input radio</label>
+</div>
+
+<div class="buttons">
+	<a href="#">anchor</a>
+	<a href="#">anchor</a>
+	<a href="#">anchor</a>
+</div>
+
+</body>
+</html>

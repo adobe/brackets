@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Slider - Range with fixed minimum</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.slider.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#demo-frame > div.demo { padding: 10px !important; };
+	</style>
+	<script>
+	$(function() {
+		var select = $( "#minbeds" );
+		var slider = $( "<div id='slider'></div>" ).insertAfter( select ).slider({
+			min: 1,
+			max: 6,
+			range: "min",
+			value: select[ 0 ].selectedIndex + 1,
+			slide: function( event, ui ) {
+				select[ 0 ].selectedIndex = ui.value - 1;
+			}
+		});
+		$( "#minbeds" ).change(function() {
+			slider.slider( "value", this.selectedIndex + 1 );
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<form id="reservation">
+	<label for="minbeds">Minimum number of beds</label>
+	<select name="minbeds" id="minbeds">
+		<option>1</option>
+		<option>2</option>
+		<option>3</option>
+		<option>4</option>
+		<option>5</option>
+		<option>6</option>
+	</select>
+</form>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>How to bind a slider to an existing select element. The select stays visible to display the change. When the select is changed, the slider is updated, too.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

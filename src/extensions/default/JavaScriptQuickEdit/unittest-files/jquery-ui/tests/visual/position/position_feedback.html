@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Position Visual Test: Feedback</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.position.js"></script>
+	<script src="../../../ui/jquery.ui.menu.js"></script>
+	<script>
+	$(function() {
+		function using( position, feedback ) {
+			$( this )
+				.css( position )
+				.text( feedback.horizontal + " " + feedback.vertical + " " + feedback.important )
+				.removeClass( "left right top bottom center middle vertical horizontal" )
+				.addClass( feedback.horizontal )
+				.addClass( feedback.vertical )
+				.addClass( feedback.important );
+		}
+
+		var element = $( ".element" ),
+			target = $( "#target" ).position({
+				my: "center",
+				at: "center",
+				of: window
+			}),
+			targetOffset = target.offset(),
+			oppositeElement = element.clone().width( 50 ).appendTo( "body" ),
+			leftElement = element.clone().width( 50 ).height( 150 ).appendTo( "body" ),
+			rightElement = element.clone().height( 150 ).width( 150 ).appendTo( "body" );
+
+		$.each([
+			"center top-100",
+			"right+25 top-50",
+			"right+75 top",
+			"right+75 center",
+			"right+75 bottom",
+			"right+25 bottom+50",
+			"center bottom+100",
+			"left-25 bottom+50",
+			"left-75 bottom",
+			"left-75 center",
+			"left-75 top",
+			"left-25 top-50"
+		], function( index, direction ) {
+			element.clone().insertAfter( target ).position({
+				my: "center",
+				at: direction,
+				of: target,
+				using: using
+			});
+		});
+
+		element.width( 150 );
+		$( document ).on( "mousemove", function( event ) {
+			var base = {
+				my: "left top",
+				at: "left top",
+				of: target,
+				using: using
+			};
+			element.position( $.extend({
+				offset: (event.pageX - targetOffset.left) + " " + (event.pageY - targetOffset.top)
+			}, base ));
+			oppositeElement.position( $.extend({
+				offset: (-1 * (event.pageX - targetOffset.left)) + " " + (-1 * (event.pageY - targetOffset.top))
+			}, base ));
+			leftElement.position( $.extend({
+				offset: (-0.9 * (event.pageX - targetOffset.left)) + " " + (0.9 * (event.pageY - targetOffset.top))
+			}, base ));
+			rightElement.position( $.extend({
+				offset: (0.9 * (event.pageX - targetOffset.left)) + " " + (-0.9 * (event.pageY - targetOffset.top))
+			}, base) );
+		});
+	});
+	</script>
+	<style>
+	#target, .element {
+		position: absolute;
+		border: 1px solid black;
+		border-radius: 5px;
+		width: 75px;
+		height: 25px;
+		padding: 5px;
+		font-size: 62.5%;
+	}
+	#target {
+		height: 75px;
+	}
+	.element:before {
+		font-size: 12pt;
+		content: "↑";
+		position: absolute;
+		top: -19px;
+		left: 5px;
+	}
+	.right:before {
+		left: auto;
+		right: 5px;
+	}
+	.bottom:before {
+		content: "↓";
+		top: auto;
+		bottom: -19px;
+	}
+	.center:before {
+		left: 50%;
+		right: auto;
+	}
+	.middle:before {
+		top: 50%;
+		bottom: auto;
+	}
+	.horizontal:before {
+		height: 10px;
+		top: 50%;
+		margin-top: -8px;
+		bottom: auto;
+		left: -18px;
+		right: auto;
+		content: "←";
+	}
+	.right.horizontal:before {
+		left: auto;
+		right: -18px;
+		content: "→";
+	}
+	.bottom.horizontal:before {
+		top: auto;
+		bottom: 5px;
+	}
+	.top.horizontal:before {
+		top: 5px;
+	}
+	</style>
+</head>
+<body>
+
+<div id="target">all around me</div>
+<div class="element"></div>
+
+</body>
+</html>

@@ -314,7 +314,7 @@ function RemoteFunctions() {
     }
 
     // install event listeners
-    
+
     /* FUTURE
     window.document.addEventListener("keyup", _onKeyUp);
     window.document.addEventListener("mousemove", _onMouse);
@@ -323,7 +323,7 @@ function RemoteFunctions() {
     window.document.addEventListener("mouseup", _preventEventWhenMeta, true);
     window.document.addEventListener("click", _onClick, true);
     */
-    
+
     return {
         "showGoto": showGoto,
         "hideHighlight": hideHighlight,

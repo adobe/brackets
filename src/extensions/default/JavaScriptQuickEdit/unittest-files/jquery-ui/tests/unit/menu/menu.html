@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Menu Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.menu" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.menu.js"
+		]
+	});
+	</script>
+
+	<script src="menu_test_helpers.js"></script>
+	<script src="menu_common.js"></script>
+	<script src="menu_core.js"></script>
+	<script src="menu_events.js"></script>
+	<script src="menu_methods.js"></script>
+	<script src="menu_options.js"></script>
+
+	<script src="../swarminject.js"></script>
+	<style>
+	.ui-menu {
+		font-size: 15px;
+	}
+	#menu3 {
+		height: 250px;
+		overflow: auto;
+	}
+	#menu4, #menu4 ul {
+		height: 250px;
+		overflow: auto;
+	}
+	</style>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Menu Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<ul class="foo" id="menu1">
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo"><a class="foo" href="#">Ada</a></li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a id="testID1" class="foo" href="#">Addyston</a></li>
+	<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+</ul>
+
+<ul id="menu2">
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo"><a class="foo" href="#">Ada</a></li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a class="foo" href="#"><span class="ui-icon ui-icon-print"></span>Addyston</a></li>
+	<li>
+		<a href="#">Delphi</a>
+		<ul>
+			<li class="foo"><a class="foo" href="#">Ada</a></li>
+			<li class="foo"><a class="foo" href="#">Saarland</a></li>
+			<li class="foo"><a class="foo" href="#">Salzburg</a></li>
+		</ul>
+	</li>
+	<li class="foo"><a class="foo" href="#">Saarland</a></li>
+	<li>
+		<a href="#">Salzburg</a>
+		<ul>
+			<li>
+				<a href="#">Delphi</a>
+				<ul>
+					<li class="foo"><a class="foo" href="#">Ada</a></li>
+					<li class="foo"><a class="foo" href="#">Saarland</a></li>
+					<li class="foo"><a class="foo" href="#">Salzburg</a></li>
+				</ul>
+			</li>
+			<li>
+				<a href="#">Delphi</a>
+				<ul>
+					<li class="foo"><a class="foo" href="#">Ada</a></li>
+					<li> - </li>
+					<li class="foo"><a class="foo" href="#">Saarland</a></li>
+					<li></li>
+					<li class="foo"><a class="foo" href="#">Salzburg</a></li>
+					<li>&ndash;</li>
+				</ul>
+			</li>
+			<li class="foo"><a class="foo" href="#">Perch</a></li>
+		</ul>
+	</li>
+</ul>
+
+<ul class="foo" id="menu3">
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo"><a class="foo" href="#">Ada</a></li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a class="foo" href="#">Addyston</a></li>
+	<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+	<li class="foo"><a class="foo" href="#">Adena</a></li>
+	<li class="foo"><a class="foo" href="#">Adrian</a></li>
+	<li class="foo"><a class="foo" href="#">Akron</a></li>
+	<li class="foo"><a class="foo" href="#">Albany</a></li>
+	<li class="foo"><a class="foo" href="#">Alexandria</a></li>
+	<li class="foo"><a class="foo" href="#">Alger</a></li>
+	<li class="foo"><a class="foo" href="#">Alledonia</a></li>
+	<li class="foo"><a class="foo" href="#">Alliance</a></li>
+	<li class="foo"><a class="foo" href="#">Alpha</a></li>
+	<li class="foo"><a class="foo" href="#">Alvada</a></li>
+	<li class="foo"><a class="foo" href="#">Alvordton</a></li>
+	<li class="foo"><a class="foo" href="#">Amanda</a></li>
+	<li class="foo"><a class="foo" href="#">Amelia</a></li>
+	<li class="foo"><a class="foo" href="#">Amesville</a></li>
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo"><a class="foo" href="#">Ada</a></li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a class="foo" href="#">Addyston</a></li>
+	<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+	<li class="foo"><a class="foo" href="#">Adena</a></li>
+	<li class="foo"><a class="foo" href="#">Adrian</a></li>
+	<li class="foo"><a class="foo" href="#">Akron</a></li>
+	<li class="foo"><a class="foo" href="#">Albany</a></li>
+	<li class="foo"><a class="foo" href="#">Alexandria</a></li>
+	<li class="foo"><a class="foo" href="#">Alger</a></li>
+	<li class="foo"><a class="foo" href="#">Alledonia</a></li>
+	<li class="foo"><a class="foo" href="#">Alliance</a></li>
+	<li class="foo"><a class="foo" href="#">Alpha</a></li>
+	<li class="foo"><a class="foo" href="#">Alvada</a></li>
+	<li class="foo"><a class="foo" href="#">Alvordton</a></li>
+	<li class="foo"><a class="foo" href="#">Amanda</a></li>
+	<li class="foo"><a class="foo" href="#">Amelia</a></li>
+	<li class="foo"><a class="foo" href="#">Amesville</a></li>
+</ul>
+
+<ul class="foo" id="menu4">
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo">
+		<a class="foo" href="#">Ada</a>
+		<ul class="foo">
+			<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+			<li class="foo"><a class="foo" href="#">Ada</a></li>
+			<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+			<li class="foo"><a class="foo" href="#">Addyston</a></li>
+			<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+			<li class="foo"><a class="foo" href="#">Adena</a></li>
+			<li class="foo"><a class="foo" href="#">Adrian</a></li>
+			<li class="foo"><a class="foo" href="#">Akron</a></li>
+			<li class="foo"><a class="foo" href="#">Albany</a></li>
+			<li class="foo"><a class="foo" href="#">Alexandria</a></li>
+			<li class="foo"><a class="foo" href="#">Alger</a></li>
+			<li class="foo"><a class="foo" href="#">Alledonia</a></li>
+			<li class="foo"><a class="foo" href="#">Alliance</a></li>
+			<li class="foo"><a class="foo" href="#">Alpha</a></li>
+			<li class="foo"><a class="foo" href="#">Alvada</a></li>
+			<li class="foo"><a class="foo" href="#">Alvordton</a></li>
+			<li class="foo"><a class="foo" href="#">Amanda</a></li>
+			<li class="foo"><a class="foo" href="#">Amelia</a></li>
+			<li class="foo"><a class="foo" href="#">Amesville</a></li>
+			<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+			<li class="foo"><a class="foo" href="#">Ada</a></li>
+			<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+			<li class="foo"><a class="foo" href="#">Addyston</a></li>
+			<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+			<li class="foo"><a class="foo" href="#">Adena</a></li>
+			<li class="foo"><a class="foo" href="#">Adrian</a></li>
+			<li class="foo"><a class="foo" href="#">Akron</a></li>
+			<li class="foo"><a class="foo" href="#">Albany</a></li>
+		</ul>
+	</li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a class="foo" href="#">Addyston</a></li>
+	<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+	<li class="foo"><a class="foo" href="#">Adena</a></li>
+	<li class="foo"><a class="foo" href="#">Adrian</a></li>
+	<li class="foo"><a class="foo" href="#">Akron</a></li>
+	<li class="foo"><a class="foo" href="#">Albany</a></li>
+	<li class="foo"><a class="foo" href="#">Alexandria</a></li>
+	<li class="foo"><a class="foo" href="#">Alger</a></li>
+	<li class="foo"><a class="foo" href="#">Alledonia</a></li>
+	<li class="foo"><a class="foo" href="#">Alliance</a></li>
+	<li class="foo"><a class="foo" href="#">Alpha</a></li>
+	<li class="foo"><a class="foo" href="#">Alvada</a></li>
+	<li class="foo"><a class="foo" href="#">Alvordton</a></li>
+	<li class="foo"><a class="foo" href="#">Amanda</a></li>
+	<li class="foo"><a class="foo" href="#">Amelia</a></li>
+	<li class="foo"><a class="foo" href="#">Amesville</a></li>
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo"><a class="foo" href="#">Ada</a></li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a class="foo" href="#">Addyston</a></li>
+	<li class="foo"><a class="foo" href="#">Adelphi</a></li>
+	<li class="foo"><a class="foo" href="#">Adena</a></li>
+	<li class="foo"><a class="foo" href="#">Adrian</a></li>
+	<li class="foo"><a class="foo" href="#">Akron</a></li>
+	<li class="foo"><a class="foo" href="#">Albany</a></li>
+	<li class="foo"><a class="foo" href="#">Alexandria</a></li>
+	<li class="foo"><a class="foo" href="#">Alger</a></li>
+	<li class="foo"><a class="foo" href="#">Alledonia</a></li>
+	<li class="foo"><a class="foo" href="#">Alliance</a></li>
+	<li class="foo"><a class="foo" href="#">Alpha</a></li>
+	<li class="foo"><a class="foo" href="#">Alvada</a></li>
+	<li class="foo"><a class="foo" href="#">Alvordton</a></li>
+	<li class="foo"><a class="foo" href="#">Amanda</a></li>
+	<li class="foo"><a class="foo" href="#">Amelia</a></li>
+	<li class="foo"><a class="foo" href="#">Amesville</a></li>
+</ul>
+
+<div id="menu5">
+	<blockquote><a href="#">Aberdeen</a></blockquote>
+	<blockquote><a href="#">Ada</a></blockquote>
+	<blockquote><a href="#">Adamsville</a></blockquote>
+	<blockquote><a href="#">Addyston</a></blockquote>
+	<blockquote>
+		<a href="#">Delphi</a>
+		<div>
+			<blockquote><a href="#">Ada</a></blockquote>
+			<blockquote><a href="#">Saarland</a></blockquote>
+			<blockquote><a href="#">Salzburg</a></blockquote>
+		</div>
+	</blockquote>
+	<blockquote><a href="#">Saarland</a></blockquote>
+	<blockquote>
+		<a href="#">Salzburg</a>
+		<div>
+			<blockquote>
+				<a href="#">Delphi</a>
+				<div>
+					<blockquote><a href="#">Ada</a></blockquote>
+					<blockquote><a id="testID2" href="#">Saarland</a></blockquote>
+					<blockquote><a href="#">Salzburg</a></blockquote>
+				</div>
+			</blockquote>
+			<blockquote>
+				<a href="#">Delphi</a>
+				<div>
+					<blockquote><a href="#">Ada</a></blockquote>
+					<blockquote><a href="#">Saarland</a></blockquote>
+					<blockquote><a href="#">Salzburg</a></blockquote>
+				</div>
+			</blockquote>
+			<blockquote><a href="#">Perch</a></blockquote>
+		</div>
+	</blockquote>
+</div>
+
+<ul id="menu6">
+	<li class="foo"><a class="foo" href="#">Aberdeen</a></li>
+	<li class="foo ui-state-disabled"><a class="foo" href="#">Ada</a></li>
+	<li class="foo"><a class="foo" href="#">Adamsville</a></li>
+	<li class="foo"><a class="foo" href="#">Addyston</a></li>
+	<li class="ui-state-disabled">
+		<a id="testID3" href="#">Delphi</a>
+		<ul>
+			<li class="foo"><a class="foo" href="#">Ada</a></li>
+			<li class="foo"><a class="foo" href="#">Saarland</a></li>
+			<li class="foo"><a class="foo" href="#">Salzburg</a></li>
+		</ul>
+	</li>
+	<li class="foo"><a class="foo" href="#">Saarland</a></li>
+</ul>
+
+<div id="log"></div>
+
+</div>
+</body>
+</html>

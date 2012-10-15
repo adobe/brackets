@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Datepicker - Animations</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.effects.core.js"></script>
+	<script src="../../ui/jquery.effects.blind.js"></script>
+	<script src="../../ui/jquery.effects.bounce.js"></script>
+	<script src="../../ui/jquery.effects.clip.js"></script>
+	<script src="../../ui/jquery.effects.drop.js"></script>
+	<script src="../../ui/jquery.effects.fold.js"></script>
+	<script src="../../ui/jquery.effects.slide.js"></script>
+	<script src="../../ui/jquery.ui.datepicker.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#datepicker" ).datepicker();
+		$( "#anim" ).change(function() {
+			$( "#datepicker" ).datepicker( "option", "showAnim", $( this ).val() );
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<p>Date: <input type="text" id="datepicker" size="30"/></p>
+
+<p>Animations:<br />
+	<select id="anim">
+		<option value="show">Show (default)</option>
+		<option value="slideDown">Slide down</option>
+		<option value="fadeIn">Fade in</option>
+		<option value="blind">Blind (UI Effect)</option>
+		<option value="bounce">Bounce (UI Effect)</option>
+		<option value="clip">Clip (UI Effect)</option>
+		<option value="drop">Drop (UI Effect)</option>
+		<option value="fold">Fold (UI Effect)</option>
+		<option value="slide">Slide (UI Effect)</option>
+		<option value="">None</option>
+	</select>
+</p>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Use different animations when opening or closing the datepicker.  Choose an animation from the dropdown, then click on the input to see its effect.  You can use one of the three standard animations or any of the UI Effects.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

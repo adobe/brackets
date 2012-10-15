@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Resizable - Delay start</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.resizable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#resizable, #resizable2 { width: 150px; height: 150px; padding: 0.5em; }
+	#resizable h3, #resizable2 h3 { text-align: center; margin: 0; }
+	</style>
+	<script>
+	$(function() {
+		$( "#resizable" ).resizable({
+			delay: 1000
+		});
+		
+		$( "#resizable2" ).resizable({
+			distance: 40
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	
+<h3 class="docs">Time delay (ms):</h3>
+<div id="resizable" class="ui-widget-content">
+	<h3 class="ui-widget-header">Time</h3>
+</div>
+
+<h3 class="docs">Distance delay (px):</h3>
+<div id="resizable2" class="ui-widget-content">
+	<h3 class="ui-widget-header">Distance</h3>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Delay the start of resizng for a number of milliseconds with the <code>delay</code> option; prevent resizing until the cursor is held down and dragged a specifed number of pixels with the <code>distance</code> option.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

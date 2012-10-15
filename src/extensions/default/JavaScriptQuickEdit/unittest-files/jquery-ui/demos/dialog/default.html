@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Dialog - Default functionality</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../external/jquery.bgiframe-2.1.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.draggable.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.resizable.js"></script>
+	<script src="../../ui/jquery.ui.dialog.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#dialog" ).dialog();
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<div id="dialog" title="Basic dialog">
+	<p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>
+</div>
+
+<!-- Sample page content to illustrate the layering of the dialog -->
+<div class="hiddenInViewSource" style="padding:20px;">
+<p>Sed vel diam id libero <a href="http://example.com">rutrum convallis</a>. Donec aliquet leo vel magna. Phasellus rhoncus faucibus ante. Etiam bibendum, enim faucibus aliquet rhoncus, arcu felis ultricies neque, sit amet auctor elit eros a lectus.</p>
+<form>
+	<input value="text input" /><br />
+	<input type="checkbox" />checkbox<br />
+	<input type="radio" />radio<br />
+	<select>
+		<option>select</option>
+	</select><br /><br />
+	<textarea>textarea</textarea><br />
+</form>
+</div><!-- End sample page content -->
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>The basic dialog window is an overlay positioned within the viewport and is protected from page content (like select elements) shining through with an iframe.  It has a title bar and a content area, and can be moved, resized and closed with the 'x' icon by default.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

@@ -60,6 +60,13 @@ define(function (require, exports, module) {
             // create a new empty preferences object
             prefs = (defaults && JSON.stringify(defaults)) ? defaults : {};
             prefStorage[clientID] = prefs;
+        } else if (defaults) {
+            // add new defaults
+            Object.keys(defaults).forEach(function (key) {
+                if (prefs[key] === undefined) {
+                    prefs[key] = defaults[key];
+                }
+            });
         }
 
         return new PreferenceStorage(clientID, prefs);

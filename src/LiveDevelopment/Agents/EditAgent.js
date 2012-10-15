@@ -75,7 +75,7 @@ define(function EditAgent(require, exports, module) {
     }
 
     // Remote Event: Go to the given source node
-    function _onRemoteEdit(res) {
+    function _onRemoteEdit(event, res) {
         // res = {nodeId, name, value}
         var node = DOMAgent.nodeWithId(res.nodeId);
         node = node.children[0];
@@ -90,7 +90,7 @@ define(function EditAgent(require, exports, module) {
             var from = codeMirror.posFromIndex(node.location + change.from);
             var to = codeMirror.posFromIndex(node.location + change.to);
             editor.document.replaceRange(change.text, from, to);
-            
+
             var newPos = codeMirror.posFromIndex(node.location + change.from + change.text.length);
             editor.setCursorPos(newPos.line, newPos.ch);
         }
@@ -98,12 +98,12 @@ define(function EditAgent(require, exports, module) {
 
     /** Initialize the agent */
     function load() {
-        Inspector.on("RemoteAgent.edit", _onRemoteEdit);
+        $(RemoteAgent).on("edit.EditAgent", _onRemoteEdit);
     }
 
     /** Initialize the agent */
     function unload() {
-        Inspector.off("RemoteAgent.edit", _onRemoteEdit);
+        $(RemoteAgent).off(".EditAgent");
     }
 
     // Export public functions

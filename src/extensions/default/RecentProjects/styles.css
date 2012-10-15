@@ -1,0 +1,32 @@
+.dropdown-arrow {
+    display: inline-block;
+    width: 10px;
+    height: 8px;
+    margin-left: 4px;
+    background-image: url("down-arrow.svg");
+}
+
+#project-dropdown-toggle:hover {
+    color: #a0a0a0;
+    text-decoration: none;
+}
+
+/* TODO: style the dropdown content */
+#project-dropdown.dropdown-menu {
+    position: absolute;
+    display: block;
+    max-width: none;
+    z-index: 100;
+}
+
+.recent-folder-link, .recent-folder, .recent-folder-path {
+    white-space: nowrap;
+}
+
+.recent-folder, #open-folder-link {
+    color: #333;
+}
+
+.recent-folder-path {
+    color: #aaa;
+}

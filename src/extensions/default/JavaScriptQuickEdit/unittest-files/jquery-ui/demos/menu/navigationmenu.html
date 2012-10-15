@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Menu - Navigation Menu demo</title>
+	<link type="text/css" href="../../themes/base/jquery.ui.all.css" rel="stylesheet" />
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.menu.js"></script>
+	<link href="../demos.css" rel="stylesheet" />
+	<script>
+	$(function() {
+		$("#navMenu").menu({
+			select: function( event, ui ) {
+				var link = ui.item.children( "a:first" );
+				if ( link.attr( "target" ) || event.metaKey || event.shiftKey || event.ctrlKey ) {
+					return;
+				}
+				location.href = link.attr( "href" );
+			}
+		});
+	});
+	</script>
+	<style>
+		body { font-size:62.5%; }
+		.ui-menu { width: 200px; margin-bottom: 2em; }
+	</style>
+</head>
+<body>
+
+<div class="demo">
+
+	<ul id="navMenu">
+		<li><a href="?Aberdeen">Aberdeen</a></li>
+		<li><a href="?Ada">Ada</a></li>
+		<li><a href="?Adamsville">Adamsville</a></li>
+		<li><a href="?Addyston">Addyston</a></li>
+		<li>
+			<a href="?Delphi">Delphi</a>
+			<ul>
+				<li><a href="?Ada">Ada</a></li>
+				<li><a href="?Saarland">Saarland</a></li>
+				<li><a href="?Salzburg">Salzburg</a></li>
+			</ul>
+		</li>
+		<li><a href="?Saarland">Saarland</a></li>
+		<li>
+			<a href="?Salzburg">Salzburg</a>
+			<ul>
+				<li>
+					<a href="?Delphi">Delphi</a>
+					<ul>
+						<li><a href="?Ada">Ada</a></li>
+						<li><a href="?Saarland">Saarland</a></li>
+						<li><a href="?Salzburg">Salzburg</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="?Delphi">Delphi</a>
+					<ul>
+						<li><a href="?Ada">Ada</a></li>
+						<li><a href="?Saarland">Saarland</a></li>
+						<li><a href="?Salzburg">Salzburg</a></li>
+					</ul>
+				</li>
+				<li><a href="?Perch">Perch</a></li>
+			</ul>
+		</li>
+	</ul>
+
+</div><!-- End demo -->
+
+<div class="demo-description">
+
+<p>A navigation menu. A list is transformed, adding themeing, mouse and keyboard navigation support. Try to tab to the menu and use the cursor keys to navigate.</p>
+
+</div><!-- End demo-description -->
+
+
+
+</body>
+</html>

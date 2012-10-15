@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Tooltip Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.tooltip" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.position.js",
+			"ui/jquery.ui.tooltip.js"
+		]
+	});
+	</script>
+
+	<script src="tooltip_common.js"></script>
+	<script src="tooltip_core.js"></script>
+	<script src="tooltip_events.js"></script>
+	<script src="tooltip_methods.js"></script>
+	<script src="tooltip_options.js"></script>
+
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Tooltip Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div>
+	<a id="tooltipped1" href="#" title="anchortitle">anchor</a>
+	<input title="inputtitle">
+	<span id="multiple-describedby" aria-describedby="fixture-span" title="...">aria-describedby</span>
+	<span id="fixture-span" title="title-text">span</span>
+</div>
+
+</div>
+</body>
+</html>

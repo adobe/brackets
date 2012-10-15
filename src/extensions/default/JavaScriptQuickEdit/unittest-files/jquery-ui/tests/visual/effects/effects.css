@@ -1,0 +1,49 @@
+body {
+	margin: 1em;
+	padding: 0;
+	background: #191919;
+	color: #fff;
+}
+
+ul.effects {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+ul.effects li {
+	padding: 0;
+	width: 120px;
+	height: 100px;
+	float: left;
+	margin-top: 20px;
+	margin-left: 20px;
+}
+
+div.effect {
+	width: 120px;
+	height: 100px;
+	background: #ccc;
+	border: 5px outset #aaa;
+	float: left;
+	cursor: pointer;
+	cursor: hand;
+}
+
+div.current {
+	border: 5px outset #FF9C08;
+	background: #FF9C08;
+}
+
+div.effect p {
+	color: #191919;
+	font-weight: bold;
+	margin: 0;
+	padding: 10px;
+}
+
+.ui-effects-transfer {
+	border: 1px dotted #fff;
+	background: #666;
+	opacity: 0.5;
+}

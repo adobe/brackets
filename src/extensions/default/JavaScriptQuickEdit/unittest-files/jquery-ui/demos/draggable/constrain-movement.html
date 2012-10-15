@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Draggable - Constrain movement</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.draggable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	.draggable { width: 90px; height: 90px; padding: 0.5em; float: left; margin: 0 10px 10px 0; }
+	#draggable, #draggable2 { margin-bottom:20px; }
+	#draggable { cursor: n-resize; }
+	#draggable2 { cursor: e-resize; }
+	#containment-wrapper { width: 95%; height:150px; border:2px solid #ccc; padding: 10px; }
+	</style>
+	<script>
+	$(function() {
+		$( "#draggable" ).draggable({ axis: "y" });
+		$( "#draggable2" ).draggable({ axis: "x" });
+
+		$( "#draggable3" ).draggable({ containment: "#containment-wrapper", scroll: false });
+		$( "#draggable4" ).draggable({ containment: "#demo-frame" });
+		$( "#draggable5" ).draggable({ containment: "parent" });
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<h3 class="docs">Constrain movement along an axis:</h3>
+	
+<div id="draggable" class="draggable ui-widget-content">
+	<p>I can be dragged only vertically</p>
+</div>
+
+<div id="draggable2" class="draggable ui-widget-content">
+	<p>I can be dragged only horizontally</p>
+</div>
+
+<h3 class="docs">Or to within another DOM element:</h3>
+<div id="containment-wrapper">
+<div id="draggable3" class="draggable ui-widget-content">
+	<p>I'm contained within the box</p>
+</div>
+
+<div id="draggable4" class="draggable ui-widget-content">
+	<p>I'm contained within the box's parent</p>
+</div>
+
+<div class="draggable ui-widget-content">
+	<p id="draggable5" class="ui-widget-header">I'm contained within my parent</p>
+</div>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Constrain the movement of each draggable by defining the boundaries of the draggable area. Set the <code>axis</code> option to limit the draggable's path to the x- or y-axis, or use the <code>containment</code> option to specify a parent DOM element or a jQuery selector, like 'document.'</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

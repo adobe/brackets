@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Tooltip Visual Test: Default</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.position.js"></script>
+	<script src="../../../ui/jquery.ui.button.js"></script>
+	<script src="../../../ui/jquery.ui.tooltip.js"></script>
+	<style>
+	.group {
+		margin-top: 2em;
+	}
+	</style>
+	<script>
+	$(function() {
+		// default
+		$( "#context1, form, #childish, #nested-input" ).tooltip();
+
+		// custom class, replaces ui-widget-content
+		$( "#context2" ).tooltip({
+			tooltipClass: "ui-widget-header"
+		});
+		$( "#right1" ).tooltip({
+			tooltipClass: "ui-state-error"
+		});
+
+		// synchronous content
+		$( "#footnotes" ).tooltip({
+			items: "[href^='#']",
+			content: function() {
+				return $( $( this ).attr( "href" ) ).html();
+			}
+		});
+
+		// asynchronous content
+		$( "#async" ).tooltip({
+			content: function( response ) {
+				setTimeout(function() {
+					response( "I loaded <strong>asyncrhonously</strong>!" );
+				}, 1000 );
+				return "Loading...";
+			}
+		});
+
+		// asynchronous content with caching
+		var content;
+		$( "#async2" ).tooltip({
+			content: function( response ) {
+				if ( content ) {
+					return content;
+				}
+				setTimeout(function() {
+					content = "<strong>Hello</strong> world!";
+					response( content );
+				}, 1000 );
+				return "Loading...";
+			}
+		});
+
+		// custom position
+		$( "#right2" ).tooltip({
+			tooltipClass: "ui-state-highlight",
+			position: {
+				my: "center top",
+				at: "center bottom",
+				offset: "0 10"
+			}
+		});
+
+		$( "#button1" ).button();
+		$( "#button2" ).button({
+			icons: {
+				primary: "ui-icon-wrench"
+			}
+		});
+		$( "#button3, #button4" ).button({
+			icons: {
+				primary: "ui-icon-wrench"
+			},
+			text: false
+		});
+		$( "#buttons" ).tooltip({
+			position: {
+				my: "center bottom",
+				at: "center top",
+				offset: "0 -5"
+			}
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div>
+	<p>Lots of tooltipped elements close together.<br>
+		Mouse through them quickly and slowly.</p>
+	<ul id="context1">
+		<li><a href="#" title="Tooltip text 1">Anchor 1</a></li>
+		<li><a href="#" title="Tooltip text 2">Anchor 2</a></li>
+		<li><a href="#" title="Tooltip text 3">Anchor 3</a></li>
+		<li><a href="#" title="Tooltip text 4 more Tooltip text Tooltip text ">Anchor 4</a></li>
+		<li><a href="#" title="Tooltip text 5 more Tooltip text Tooltip text ">Anchor 5</a></li>
+		<li><a href="#" title="Tooltip text 6 more Tooltip text Tooltip text ">Anchor 6</a></li>
+	</ul>
+
+	<div class="group" style="position: absolute; right: 1em; text-align: right;">
+		<p>These elements are right aligned.<br>
+			One collides and one uses custom position.</p>
+		<p id="right1" title="right aligned element">
+			collision detection should kick in around here
+		</p>
+		<p id="right2" title="right aligned element with custom position">
+			right aligned with custom position
+		</p>
+	</div>
+
+	<div class="group">
+		<p>These footnotes pull content form the elements they link to.</p>
+		<div id="footnotes">
+			<a href="#footnote1">I'm a link to a footnote.</a>
+			<a href="#footnote2">I'm another link to a footnote.</a>
+		</div>
+	</div>
+
+	<div class="group">
+		<p>These elements load their content asynchronously.<br>
+			There should be a loading message while the content is retrieved.</p>
+		<div id="async" style="width: 100px;" class="ui-widget-content" title="never be seen">
+			async
+		</div>
+		<div id="async2" style="width: 100px;" class="ui-widget-content" title="never be seen">
+			async + cache
+		</div>
+	</div>
+
+	<div class="group" style="width: 300px;">
+		<p>Nested elements.</p>
+		<div id="context2">
+			<div title="something else" style="border:1px solid red;">
+				tooltipped
+				<span title="something more" style="border:1px solid green; padding-left: 50px;">nested tooltipped</span>
+			</div>
+		</div>
+		<div id="childish" style="border: 1px solid black;" title="element with child elements">
+			Text in <strong>bold</strong>.
+		</div>
+	</div>
+
+	<div class="group">
+		<p>Play around with focusing and hovering of form elements.</p>
+		<form>
+			<div>
+				<label for="first">First Name:</label>
+				<input id="first" title="Your first name is optional">
+			</div>
+			<div>
+				<label for="last">Last Name:</label>
+				<input id="last" title="Your last name is optional">
+			</div>
+		</form>
+
+		<p>Some inputs nested inside labels:</p>
+		<div id="nested-input">
+			<label title="test"><input type="checkbox">This is a test</label>
+			<label title="test2"><input type="checkbox">This is a test</label>
+			<label><input type="checkbox" title="test3">This is a test</label>
+			<label><input type="checkbox" title="test4">This is a test</label>
+		</div>
+
+		<p>Some button widgets:</p>
+		<div id="buttons">
+			<button id="button1" title="Button Tooltip">Button Label</button>
+			<button id="button2" title="Icon Button">Button with Icon</button>
+			<button id="button3">Icon Only Button 1</button>
+			<button id="button4">Icon Only Button 2</button>
+		</div>
+	</div>
+
+	<div class="group">
+		<div id="footnote1">This is <strong>the</strong> footnote, including other elements</div>
+		<div id="footnote2">This is <strong>the other</strong> footnote, including other elements</div>
+	</div>
+</div>
+
+<div style="height: 2000px"></div>
+
+</body>
+</html>

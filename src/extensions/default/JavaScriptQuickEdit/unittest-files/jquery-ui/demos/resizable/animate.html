@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Resizable - Animate</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.resizable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#resizable { width: 150px; height: 150px; padding: 0.5em; }
+	#resizable h3 { text-align: center; margin: 0; }
+	.ui-resizable-helper { border: 1px dotted gray; }
+	</style>
+	<script>
+	$(function() {
+		$( "#resizable" ).resizable({
+			animate: true
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	
+<div id="resizable" class="ui-widget-content">
+	<h3 class="ui-widget-header">Animate</h3>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Animate the resize action using the <code>animate</code> option (boolean). When this option is set to true, drag the outline to the desired location; the element animates to that size on drag stop.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

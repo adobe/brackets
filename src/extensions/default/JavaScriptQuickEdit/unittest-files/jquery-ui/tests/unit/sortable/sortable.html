@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Sortable Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.sortable" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.mouse.js",
+			"ui/jquery.ui.sortable.js"
+		]
+	});
+	</script>
+
+	<script src="sortable_common.js"></script>
+	<script src="sortable_core.js"></script>
+	<script src="sortable_events.js"></script>
+	<script src="sortable_methods.js"></script>
+	<script src="sortable_options.js"></script>
+	<script src="sortable_tickets.js"></script>
+
+	<script>
+	// disable this stale testsuite for testswarm only
+	var url = window.location.search;
+	url = decodeURIComponent( url.slice( url.indexOf("swarmURL=") + 9 ) );
+	if ( url && url.indexOf("http") == 0 ) {
+		// reset config to kill previous tests; make sure testsuite.js is loaded afterwards to init the testswarm script
+		QUnit.init();
+		test("sortable", function() { ok(true, "disabled sortable testsuite"); });
+	}
+	</script>
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Sortable Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<ul id="sortable">
+	<li>Item 1</li>
+	<li>Item 2</li>
+	<li>Item 3</li>
+	<li>Item 4</li>
+	<li>Item 5</li>
+</ul>
+
+</div>
+</body>
+</html>

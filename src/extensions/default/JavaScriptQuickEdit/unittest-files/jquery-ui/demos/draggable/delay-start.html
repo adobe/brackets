@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Draggable - Delay start</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.draggable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#draggable, #draggable2 { width: 120px; height: 120px; padding: 0.5em; float: left; margin: 0 10px 10px 0; }
+	</style>
+	<script>
+	$(function() {
+		$( "#draggable" ).draggable({ distance: 20 });
+		$( "#draggable2" ).draggable({ delay: 1000 });
+		$( ".ui-draggable" ).disableSelection();
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	
+<div id="draggable" class="ui-widget-content">
+	<p>Only if you drag me by 20 pixels, the dragging will start</p>
+</div>
+
+<div id="draggable2" class="ui-widget-content">
+	<p>Regardless of the distance, you have to drag and wait for 1000ms before dragging starts</p>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Delay the start of dragging for a number of milliseconds with the <code>delay</code> option; prevent dragging until the cursor is held down and dragged a specifed number of pixels with the <code>distance</code> option. </p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

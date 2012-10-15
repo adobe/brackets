@@ -1,0 +1,61 @@
+/* Test ".si\mple" (simple) */
+.si\mple {}
+
+/* Test ".not\\so\|simple\?" (not\so|simple?) */
+ .not\\so\|simple\? {}
+
+/* Test ".\74 wodigi\74 s" (.twodigits)*/
+.\74 wodigi\74 s      {}
+
+/* Test ".fourdigi\0074 s" (.fourdigits)*/
+.fourdigi\0074 s {}
+
+/* Test ".sixdigi\000074s" (.sixdigits) */
+   .sixdigi\000074s {}
+
+/* Test ".two-digit-endspac\65 " (.two-digit-endspace) */
+.two-digit-endspac\65 {}
+
+/* Test ".four-digit-endspac\0065 " (.four-digit-endspace) */
+.four-digit-endspac\0065 {}
+
+/* Test ".six-digit-endspace\000065" (.six-digit-endspace) */
+.six-digit-endspac\000065 {}
+
+/* Test ".mi\78 in\002D it\2D a\00006C\006C" (.mixin-it-all) */
+.mi\78 in\002D it\2D a\00006C\006C{}
+
+/* Test ".\74 wo-wi\74out-space" (.two-wi74out-space) */
+.\74 wo-wi\74out-space {}
+
+/* Test ".four-n\0085-space" (.four-n0085-space) */
+.four-n\0085-space   {}
+
+/* Test "" Out of range unicode char, uses replace instead */
+.\110000\0075\74\cc6699frange {}
+
+ .escape\|random\|char {
+  color: red;
+}
+
+.mixin\!tUp {
+  font-weight: bold;
+}
+
+.\34 04 {
+  background: red;
+}
+
+.\34 04 strong {
+  color: #ff00ff;
+  font-weight: bold;
+}
+
+.trailingTest\+ {
+  color: red;
+}
+
+/* This hideous test of hideousness checks for the selector "blockquote" with various permutations of hex escapes */
+\62\6c\6f \63 \6B \0071 \000075o\74 e {
+  color: silver;
+}

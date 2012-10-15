@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Draggable - Auto-scroll</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.draggable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#draggable, #draggable2, #draggable3 { width: 100px; height: 100px; padding: 0.5em; float: left; margin: 0 10px 10px 0; }
+	</style>
+	<script>
+	$(function() {
+		$( "#draggable" ).draggable({ scroll: true });
+		$( "#draggable2" ).draggable({ scroll: true, scrollSensitivity: 100 });
+		$( "#draggable3" ).draggable({ scroll: true, scrollSpeed: 100 });
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	
+<div id="draggable" class="ui-widget-content">
+	<p>Scroll set to true, default settings</p>
+</div>
+
+<div id="draggable2" class="ui-widget-content">
+	<p>scrollSensitivity set to 100</p>
+</div>
+
+<div id="draggable3" class="ui-widget-content">
+	<p>scrollSpeed set to 100</p>
+</div>
+
+<div style='height: 5000px; width: 1px;'></div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Automatically scroll the document when the draggable is moved beyond the viewport. Set the <code>scroll</code> option to true to enable auto-scrolling, and fine-tune when scrolling is triggered and its speed with the <code>scrollSensitivity</code> and <code>scrollSpeed</code> options.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

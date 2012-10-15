@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Tooltip - Default functionality</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.tooltip.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.tooltip.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( ".demo" ).tooltip({
+			position: {
+				my: "center bottom-20",
+				at: "center top",
+				using: function( position, feedback ) {
+					$( this ).css( position );
+					$( "<div>" )
+						.addClass( "arrow" )
+						.addClass( feedback.vertical )
+						.addClass( feedback.horizontal )
+						.appendTo( this );
+				}
+			}
+		});
+	});
+	</script>
+	<style>
+	.ui-tooltip, .arrow:after {
+		background: black;
+		border: 2px solid white;
+	}
+	.ui-tooltip {
+		padding: 10px 20px;
+		color: white;
+		border-radius: 20px;
+		font: bold 14px "Helvetica Neue", Sans-Serif;
+		text-transform: uppercase;
+		box-shadow: 0 0 7px black;
+	}
+	.arrow {
+		width: 70px;
+		height: 16px;
+		overflow: hidden;
+		position: absolute;
+		left: 50%;
+		margin-left: -35px;
+		bottom: -16px;
+	}
+	.arrow.top {
+		top: -16px;
+		bottom: auto;
+	}
+	.arrow.left {
+		left: 20%;
+	}
+	.arrow:after {
+		content: "";
+		position: absolute;
+		left: 20px;
+		top: -20px;
+		width: 25px;
+		height: 25px;
+		box-shadow: 6px 5px 9px -9px black;
+		-webkit-transform: rotate(45deg);
+		-moz-transform: rotate(45deg);
+		-ms-transform: rotate(45deg);
+		-o-transform: rotate(45deg);
+		tranform: rotate(45deg);
+	}
+	.arrow.top:after {
+		bottom: -20px;
+		top: auto;
+	}
+	</style>
+</head>
+<body>
+
+<div class="demo">
+
+<p><a href="#" title="That's what this widget is">Tooltips</a> can be attached to any element. When you hover
+the element with your mouse, the title attribute is displayed in a little box next to the element, just like a native tooltip.</p>
+<p>But as it's not a native tooltip, it can be styled. Any themes built with
+<a href="http://themeroller.com" title="ThemeRoller: jQuery UI's theme builder application">ThemeRoller</a>
+will also style tooltips accordingly.</p>
+<p>Tooltips are also useful for form elements, to show some additional information in the context of each field.</p>
+<p><label for="age">Your age:</label><input id="age" title="We ask for your age only for statistical purposes."></p>
+<p>Hover the field to see the tooltip.</p>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Hover the links above or use the tab key to cycle the focus on each element.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

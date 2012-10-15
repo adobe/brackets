@@ -1,0 +1,1 @@
+<p><strong>This other content was loaded via ajax.</strong></p>

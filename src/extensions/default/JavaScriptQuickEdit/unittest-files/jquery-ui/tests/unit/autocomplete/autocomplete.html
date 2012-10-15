@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Autocomplete Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.menu", "ui.autocomplete" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.position.js",
+			"ui/jquery.ui.menu.js",
+			"ui/jquery.ui.autocomplete.js"
+		]
+	});
+	</script>
+
+	<script src="autocomplete_common.js"></script>
+	<script src="autocomplete_core.js"></script>
+	<script src="autocomplete_events.js"></script>
+	<script src="autocomplete_methods.js"></script>
+	<script src="autocomplete_options.js"></script>
+
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Autocomplete Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div id="ac-wrap1" class="ac-wrap"></div>
+<div id="ac-wrap2" class="ac-wrap"><input id="autocomplete" class="foo"></div>
+<div id="autocomplete-contenteditable" contenteditable="" tabindex=0></div>
+<textarea id="autocomplete-textarea"></textarea>
+
+</div>
+</body>
+</html>

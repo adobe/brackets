@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Tooltip - Default demo</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.tooltip.js"></script>
+	<script src="../../ui/jquery.ui.button.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	label {
+		display: inline-block; width: 5em;
+	}
+	fieldset div {
+		margin-bottom: 2em;
+	}
+	fieldset .help {
+		display: inline-block;
+	}
+	.ui-tooltip {
+		width: 210px;
+	}
+	</style>
+	<script>
+	$(function() {
+		var tooltips = $( "[title]" ).tooltip();
+		$( "<button>" )
+			.text( "Show help" )
+			.button()
+			.click(function() {
+				tooltips.tooltip( "open" );
+			})
+			.insertAfter( "form" );
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<form>
+	<fieldset>
+		<div>
+			<label for="firstname">Firstname</label>
+			<input id="firstname" name="firstname" title="Please provide your firstname.">
+		</div>
+		<div>
+			<label for="lastname">Lastname</label>
+			<input id="lastname" name="lastname" title="Please provide also your lastname.">
+		</div>
+		<div>
+			<label for="address">Address</label>
+			<input id="address" name="address" title="Your home or work address.">
+		</div>
+	</fieldset>
+</form>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Use the button below to display the help texts, or just focus or mouseover the indivdual inputs.</p>
+<p>A fixed width is defined in CSS to make the tooltips look consistent when displayed all at once.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

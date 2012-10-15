@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Droppable Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.mouse.js",
+			"ui/jquery.ui.draggable.js",
+			"ui/jquery.ui.droppable.js"
+		]
+	});
+	</script>
+
+	<script src="droppable_common.js"></script>
+	<script src="droppable_core.js"></script>
+	<script src="droppable_events.js"></script>
+	<script src="droppable_methods.js"></script>
+	<script src="droppable_options.js"></script>
+
+	<script>
+	// disable this stale testsuite for testswarm only
+	var url = window.location.search;
+	url = decodeURIComponent( url.slice( url.indexOf("swarmURL=") + 9 ) );
+	if ( url && url.indexOf("http") == 0 ) {
+		// reset config to kill previous tests; make sure testsuite.js is loaded afterwards to init the testswarm script
+		QUnit.init();
+		test("droppable", function() { ok(true, "disabled droppable testsuite"); });
+	}
+	</script>
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Droppable Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div id="draggable1" style="width: 25px; height: 25px;">Draggable</div>
+<div id="droppable1" style="width: 100px; height: 100px;">Droppable</div>
+<div style='width:1000px;height:1000px;'>&nbsp;</div>
+
+</div>
+</body>
+</html>

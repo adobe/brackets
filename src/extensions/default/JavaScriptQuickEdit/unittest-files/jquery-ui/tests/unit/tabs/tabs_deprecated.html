@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Tabs Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<script src="../../../external/jquery.cookie.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.tabs" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.widget.js",
+			"ui/jquery.ui.tabs.js"
+		]
+	});
+	</script>
+
+	<script src="tabs_test_helpers.js"></script>
+	<script src="tabs_common_deprecated.js"></script>
+	<script src="tabs_core.js"></script>
+	<script src="tabs_events.js"></script>
+	<script src="tabs_methods.js"></script>
+	<script src="tabs_options.js"></script>
+	<script src="tabs_deprecated.js"></script>
+
+	<script src="../swarminject.js"></script>
+	<style>
+	#tabs8, #tabs8 * {
+		margin: 0;
+		padding: 0;
+		font-size: 12px;
+		line-height: 15px;
+	}
+	</style>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Tabs Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div id="tabs1">
+	<ul>
+		<li><a href="#fragment-1"><span>1</span></a></li>
+		<li><a href="#fragment-2"><span>2</span></a></li>
+		<li><a href="#fragment-3"><span>3</span></a></li>
+	</ul>
+	<div id="fragment-1"></div>
+	<div id="fragment-2"></div>
+	<div id="fragment-3"></div>
+</div>
+
+<div id="tabs2">
+	<ul>
+		<li><a href="#colon:test"><span>1</span></a></li>
+		<li><a href="#inline-style"><span>2</span></a></li>
+		<li><a href="data/test.html#test"><span>3</span></a></li>
+		<li aria-controls="custom-id"><a href="data/test.html"><span>4</span></a></li>
+		<li><a href="data/test.html" title="∫ßáö Սե"><span>5</span></a></li>
+	</ul>
+	<div id="colon:test"></div>
+	<div style="height: 300px;" id="inline-style"></div>
+	<div id="custom-id"></div>
+</div>
+
+<div id="tabs3">
+	<div>
+		<ul id="tabs3-list">
+			<li><a href="#tabs3-1">1</a></li>
+		</ul>
+	</div>
+</div>
+
+<div id="tabs4">
+	<ul id="tabs4-list">
+		<li><a href="#tabs4-1">1</a></li>
+	</ul>
+	<ol>
+		<li><a href="#tabs4-1">1</a></li>
+	</ol>
+</div>
+
+<div id="tabs4a">
+	<ol id="tabs4a-list">
+		<li><a href="#tabs4a-1">1</a></li>
+	</ol>
+	<ul>
+		<li><a href="#tabs4a-1">1</a></li>
+	</ul>
+</div>
+
+<div id="tabs5">
+	<div>
+		<ul id="tabs5-list"></ul>
+	</div>
+</div>
+
+<div id="tabs6">
+	<ul id="tabs6-list">
+		<li><a href="#tabs6-1">1</a>
+			<ul>
+				<li><a href="#item6-3">3</a></li>
+				<li><a href="#item6-4">4</a></li>
+			</ul>
+		</li>
+		<li><a href="#tabs6-2">2</a></li>
+	</ul>
+	<div id="tabs6-1"></div>
+	<div id="tabs6-2"></div>
+</div>
+
+<div id="tabs7">
+	<ul id="tabs7-list">
+		<li><a href="#tabs7-1">1</a></li>
+		<li><a href="#tabs7-2">2</a></li>
+	</ul>
+	<div id="tabs7-2"></div>
+	<div id="tabs7-1"></div>
+</div>
+
+<div id="tabs8Wrapper">
+	<div id="tabs8">
+		<ul id="tabs8-list">
+			<li><a href="#tabs8-1">1</a></li>
+			<li><a href="#tabs8-2">2</a></li>
+		</ul>
+		<div id="tabs8-1">
+			<p>Lorem ipsum</p>
+			<p>Lorem ipsum</p>
+			<p>Lorem ipsum</p>
+		</div>
+		<div id="tabs8-2">
+			<p>Lorem ipsum</p>
+		</div>
+	</div>
+</div>
+
+</div>
+</body>
+</html>

@@ -54,13 +54,15 @@ define(function JSDocumentModule(require, exports, module) {
      * @param {Document} the source document
      */
     var JSDocument = function JSDocument(doc, editor) {
+        if (!editor) {
+            return;
+        }
         this.doc = doc;
         this.editor = editor;
-        this.script = ScriptAgent.scriptForURL(this.doc.url);
         this.onHighlight = this.onHighlight.bind(this);
         this.onChange = this.onChange.bind(this);
         this.onCursorActivity = this.onCursorActivity.bind(this);
-        Inspector.on("HighlightAgent.highlight", this.onHighlight);
+        $(HighlightAgent).on("highlight", this.onHighlight);
         $(this.editor).on("change", this.onChange);
         $(this.editor).on("cursorActivity", this.onCursorActivity);
         this.onCursorActivity();
@@ -68,10 +70,17 @@ define(function JSDocumentModule(require, exports, module) {
 
     /** Close the document */
     JSDocument.prototype.close = function close() {
-        Inspector.off("HighlightAgent.highlight", this.onHighlight);
+        if (!this.editor) {
+            return;
+        }
+        $(HighlightAgent).off("highlight", this.onHighlight);
         $(this.editor).off("change", this.onChange);
         $(this.editor).off("cursorActivity", this.onCursorActivity);
         this.onHighlight();
+    };
+
+    JSDocument.prototype.script = function script() {
+        return ScriptAgent.scriptForURL(this.doc.url);
     };
 
 
@@ -84,7 +93,7 @@ define(function JSDocumentModule(require, exports, module) {
     /** Triggered on change by the editor */
     JSDocument.prototype.onChange = function onChange(event, editor, change) {
         var src = this.doc.getText();
-        Inspector.Debugger.setScriptSource(this.script.scriptId, src, function onSetScriptSource(res) {
+        Inspector.Debugger.setScriptSource(this.script().scriptId, src, function onSetScriptSource(res) {
             Inspector.Runtime.evaluate("if($)$(\"canvas\").each(function(i,e){if(e.rerender)e.rerender()})");
         }.bind(this));
     };
@@ -103,10 +112,11 @@ define(function JSDocumentModule(require, exports, module) {
         }
 
         // go through the trace and find highlight the lines of this script
+        var scriptId = this.script().scriptId;
         var callFrame, line;
         for (i in node.trace) {
             callFrame = node.trace[i];
-            if (callFrame.location && callFrame.location.scriptId === this.script.scriptId) {
+            if (callFrame.location && callFrame.location.scriptId === scriptId) {
                 line = callFrame.location.lineNumber;
                 codeMirror.setLineClass(line, "highlight");
                 this._highlight.push(line);

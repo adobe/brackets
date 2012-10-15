@@ -10,3 +10,6 @@
 [submodule "src/thirdparty/smart-auto-complete"]
 	path = src/thirdparty/smart-auto-complete
 	url = https://github.com/laktek/jQuery-Smart-Auto-Complete.git
+[submodule "src/thirdparty/mustache"]
+	path = src/thirdparty/mustache
+	url = https://github.com/janl/mustache.js.git

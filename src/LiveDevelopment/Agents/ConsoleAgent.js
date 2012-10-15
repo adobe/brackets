@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
+/*global define, $ */
 
 /**
  * ConsoleAgent forwards all console message from the remote console to the
@@ -53,14 +53,14 @@ define(function ConsoleAgent(require, exports, module) {
     }
 
     // WebInspector Event: Console.messageAdded
-    function _onMessageAdded(res) {
+    function _onMessageAdded(event, res) {
         // res = {message}
         _lastMessage = res.message;
         _log(_lastMessage);
     }
 
     // WebInspector Event: Console.messageRepeatCountUpdated
-    function _onMessageRepeatCountUpdated(res) {
+    function _onMessageRepeatCountUpdated(event, res) {
         // res = {count}
         if (_lastMessage) {
             _log(_lastMessage);
@@ -68,23 +68,22 @@ define(function ConsoleAgent(require, exports, module) {
     }
 
     // WebInspector Event: Console.messagesCleared
-    function _onMessagesCleared(res) {
+    function _onMessagesCleared(event, res) {
         // res = {}
     }
 
     /** Initialize the agent */
     function load() {
         Inspector.Console.enable();
-        Inspector.on("Console.messageAdded", _onMessageAdded);
-        Inspector.on("Console.messageRepeatCountUpdated", _onMessageRepeatCountUpdated);
-        Inspector.on("Console.messagesCleared", _onMessagesCleared);
+        $(Inspector.Console)
+            .on("messageAdded.ConsoleAgent", _onMessageAdded)
+            .on("messageRepeatCountUpdated.ConsoleAgent", _onMessageRepeatCountUpdated)
+            .on("messagesCleared.ConsoleAgent", _onMessagesCleared);
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("Console.messageAdded", _onMessageAdded);
-        Inspector.off("Console.messageRepeatCountUpdated", _onMessageRepeatCountUpdated);
-        Inspector.off("Console.messagesCleared", _onMessagesCleared);
+        $(Inspector.Console).off(".ConsoleAgent");
     }
 
     // Export public functions

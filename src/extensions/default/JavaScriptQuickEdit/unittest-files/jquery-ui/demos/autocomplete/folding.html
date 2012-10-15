@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Autocomplete - Accent folding</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.menu.js"></script>
+	<script src="../../ui/jquery.ui.autocomplete.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		var names = [ "Jörn Zaefferer", "Scott González", "John Resig" ];
+
+		var accentMap = {
+			"á": "a",
+			"ö": "o"
+		};
+		var normalize = function( term ) {
+			var ret = "";
+			for ( var i = 0; i < term.length; i++ ) {
+				ret += accentMap[ term.charAt(i) ] || term.charAt(i);
+			}
+			return ret;
+		};
+
+		$( "#developer" ).autocomplete({
+			source: function( request, response ) {
+				var matcher = new RegExp( $.ui.autocomplete.escapeRegex( request.term ), "i" );
+				response( $.grep( names, function( value ) {
+					value = value.label || value.value || value;
+					return matcher.test( value ) || matcher.test( normalize( value ) );
+				}) );
+			}
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<div class="ui-widget">
+	<form>
+	<label for="developer">Developer: </label>
+	<input id="developer">
+	</form>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>The autocomplete field uses a custom source option which will match results that have accented characters even when the text field doesn't contain accented characters. However if the you type in accented characters in the text field it is smart enough not to show results that aren't accented.</p>
+<p>Try typing "Jo" to see "John" and "Jörn", then type "Jö" to see only "Jörn".</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

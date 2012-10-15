@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Button - Split button</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.button.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.menu.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+		.ui-menu { position: absolute; width: 100px; }
+	</style>
+	<script>
+	$(function() {
+		$( "#rerun" )
+			.button()
+			.click(function() {
+				alert( "Running the last action" );
+			})
+			.next()
+				.button({
+					text: false,
+					icons: {
+						primary: "ui-icon-triangle-1-s"
+					}
+				})
+				.click(function() {
+					var menu = $( this ).parent().next().show().position({
+						my: "left top",
+						at: "left bottom",
+						of: this
+					});
+					$( document ).one( "click", function() {
+						menu.hide();
+					});
+					return false;
+				})
+				.parent()
+					.buttonset()
+					.next()
+						.hide()
+						.menu();
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+	<div>
+		<div>
+			<button id="rerun">Run last action</button>
+			<button id="select">Select an action</button>
+		</div>
+		<ul>
+			<li><a href="#">Open...</a></li>
+			<li><a href="#">Save</a></li>
+			<li><a href="#">Delete</a></li>
+		</ul>
+	</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+
+<p>An example of a split button built with two buttons: A plain button with just text, one with only a primary icon
+and no text. Both are grouped together in a set.</p>
+
+</div><!-- End demo-description -->
+
+</body>
+</html>

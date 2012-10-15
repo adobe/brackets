@@ -83,31 +83,13 @@
 define(function Inspector(require, exports, module) {
     "use strict";
 
+    // jQuery exports object for events
+    var $exports = $(exports);
+
     var _messageId = 1; // id used for remote method calls, auto-incrementing
     var _messageCallbacks = {}; // {id -> function} for remote method calls
-    var _handlers = {}; // {name -> function} for attached event handlers
     var _socket; // remote debugger WebSocket
     var _connectDeferred; // The deferred connect
-
-    /** Trigger an event handler
-     * @param {function} event handler
-     * @param {Array} arguments array
-     */
-    function _triggerHandler(handler, args) {
-        handler.apply(undefined, args);
-    }
-
-    /** Trigger an event and all attached event handlers
-     * All passed arguments after the name are passed on as parameters.
-     * @param {string} event name
-     */
-    function trigger(name, res) {
-        var i, handlers = _handlers[name];
-        var args = Array.prototype.slice.call(arguments, 1);
-        for (i in handlers) {
-            window.setTimeout(_triggerHandler.bind(undefined, handlers[i], args));
-        }
-    }
 
     /** Check a parameter value against the given signature
      * This only checks for optional parameters, not types
@@ -138,7 +120,7 @@ define(function Inspector(require, exports, module) {
             // off auto re-opening when a new HTML file is selected.
             return;
         }
-        
+
         console.assert(_socket, "You must connect to the WebSocket before sending messages.");
         var id, callback, args, i, params = {};
 
@@ -164,17 +146,17 @@ define(function Inspector(require, exports, module) {
     /** WebSocket did close */
     function _onDisconnect() {
         _socket = undefined;
-        trigger("disconnect");
+        $exports.triggerHandler("disconnect");
     }
 
     /** WebSocket reported an error */
     function _onError(error) {
-        trigger("error", error);
+        $exports.triggerHandler("error", [error]);
     }
 
     /** WebSocket did open */
     function _onConnect() {
-        trigger("connect");
+        $exports.triggerHandler("connect");
     }
 
     /** Received message from the WebSocket
@@ -186,15 +168,18 @@ define(function Inspector(require, exports, module) {
      */
     function _onMessage(message) {
         var response = JSON.parse(message.data);
-        trigger("message", response);
+        $exports.triggerHandler("message", [response]);
         if (response.error) {
-            trigger("error", response.error);
+            $exports.triggerHandler("error", [response.error]);
         } else if (response.result) {
             if (_messageCallbacks[response.id]) {
                 _messageCallbacks[response.id](response.result);
             }
         } else {
-            trigger(response.method, response.params);
+            var domainAndMethod = response.method.split(".");
+            var domain = domainAndMethod[0];
+            var method = domainAndMethod[1];
+            $(exports[domain]).triggerHandler(method, response.params);
         }
     }
 
@@ -231,10 +216,7 @@ define(function Inspector(require, exports, module) {
      * @param {function} handler function
      */
     function on(name, handler) {
-        if (!_handlers[name]) {
-            _handlers[name] = [];
-        }
-        _handlers[name].push(handler);
+        $exports.on(name, handler);
     }
 
     /** Remove the given or all event handler(s) for the given event or remove all event handlers
@@ -242,18 +224,7 @@ define(function Inspector(require, exports, module) {
      * @param {function} optional handler function
      */
     function off(name, handler) {
-        if (!name) {
-            _handlers = {};
-        } else if (!handler) {
-            delete _handlers[name];
-        } else {
-            var i, handlers = _handlers[name];
-            for (i in handlers) {
-                if (handlers[i] === handler) {
-                    handlers.splice(i, 1);
-                }
-            }
-        }
+        $exports.off(name, handler);
     }
 
     /** Disconnect from the remote debugger WebSocket */
@@ -301,7 +272,7 @@ define(function Inspector(require, exports, module) {
             var i, page;
             for (i in response) {
                 page = response[i];
-                if (page.webSocketDebuggerUrl && page.url.search(url) === 0) {
+                if (page.webSocketDebuggerUrl && page.url.indexOf(url) === 0) {
                     connect(page.webSocketDebuggerUrl);
                     deferred.resolve();
                     return;
@@ -344,7 +315,6 @@ define(function Inspector(require, exports, module) {
     }
 
     // Export public functions
-    exports.trigger = trigger;
     exports.getAvailableSockets = getAvailableSockets;
     exports.on = on;
     exports.off = off;

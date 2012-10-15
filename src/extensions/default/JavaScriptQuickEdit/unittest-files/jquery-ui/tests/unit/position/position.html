@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Position Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<script>
+	$.uiBackCompat = false;
+	</script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		js: [ "ui/jquery.ui.position.js" ]
+	});
+	</script>
+
+	<script src="position_core.js"></script>
+
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+<div id="qunit" style="position:relative; z-index:2;"></div>
+
+<!--
+elements smaller than 20px have a line-height set on them to avoid a bug in IE6
+.height() returns the greater of the height and line-height
+-->
+
+<div id="qunit-fixture" style="top: 0; left: 0; z-index:1">
+	<div id="el1" style="position: absolute; width: 6px; height: 6px; line-height: 6px;"></div>
+	<div id="el2" style="position: absolute; width: 6px; height: 6px; line-height: 6px;"></div>
+	<div id="parent" style="position: absolute; width: 6px; height: 6px; top: 4px; left: 4px; line-height: 6px;"></div>
+	<div id="within" style="position: absolute; width: 12px; height: 12px; top: 2px; left: 0px; line-height: 12px;"></div>
+
+	<div id="scrollx" style="position: absolute; top: 0px; left: 0px">
+		<div id="elx" style="position: absolute; width: 10px; height: 10px; line-height: 10px;"></div>
+		<div id="parentx" style="position: absolute; width: 20px; height: 20px; top: 40px; left: 40px;"></div>
+	</div>
+
+	<div style="position: absolute; height: 5000px; width: 5000px;"></div>
+
+	<div id="fractions-parent" style="position: absolute; left: 10.7432222px; top: 10.532325px; height: 30px; width: 201px;">
+		<div id="fractions-element"></div>
+	</div>
+
+	<div id="bug-5280" style="height: 30px; width: 201px;">
+		<div style="width: 50px; height: 10px;"></div>
+	</div>
+</div>
+
+</body>
+</html>

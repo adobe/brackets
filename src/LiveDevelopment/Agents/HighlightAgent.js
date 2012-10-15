@@ -23,11 +23,13 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, forin: true, maxerr: 50, regexp: true */
-/*global define */
+/*global define, $ */
 
 /**
  * HighlightAgent dispatches events for highlight requests from in-browser
  * highlight requests, and allows highlighting nodes and rules in the browser.
+ *
+ * Trigger "highlight" when a node should be highlighted
  */
 define(function HighlightAgent(require, exports, module) {
     "use strict";
@@ -39,12 +41,12 @@ define(function HighlightAgent(require, exports, module) {
     var _highlight; // active highlight
 
     // Remote Event: Highlight
-    function _onRemoteHighlight(res) {
+    function _onRemoteHighlight(event, res) {
         var node;
         if (res.value === "1") {
             node = DOMAgent.nodeWithId(res.nodeId);
         }
-        Inspector.trigger("HighlightAgent.highlight", node);
+        $(exports).triggerHandler("highlight", node);
     }
 
     /** Hide in-browser highlighting */
@@ -103,12 +105,12 @@ define(function HighlightAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _highlight = {};
-        Inspector.on("RemoteAgent.highlight", _onRemoteHighlight);
+        $(RemoteAgent).on("highlight.HighlightAgent", _onRemoteHighlight);
     }
 
     /** Clean up */
     function unload() {
-        Inspector.off("RemoteAgent.highlight", _onRemoteHighlight);
+        $(RemoteAgent).off(".HighlightAgent");
     }
 
     // Export public functions

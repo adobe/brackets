@@ -32,11 +32,13 @@
  * the source document (replace [from,to] with text) call
  * `applyChange(from, to, text)`.
  *
- * The DOMAgent triggers `DOMAgent.getDocument` on Inspector once it has loaded
+ * The DOMAgent triggers `getDocument` once it has loaded
  * the document.
  */
 define(function DOMAgent(require, exports, module) {
     "use strict";
+
+    var $exports = $(exports);
 
     var Inspector = require("LiveDevelopment/Inspector/Inspector");
     var RemoteAgent = require("LiveDevelopment/Agents/RemoteAgent");
@@ -186,10 +188,10 @@ define(function DOMAgent(require, exports, module) {
     }
 
     // WebInspector Event: Page.loadEventFired
-    function _onLoadEventFired(res) {
+    function _onLoadEventFired(event, res) {
         // res = {timestamp}
         Inspector.DOM.getDocument(function onGetDocument(res) {
-            Inspector.trigger("DOMAgent.getDocument", res);
+            $exports.triggerHandler("getDocument", res);
             // res = {root}
             _idToNode = {};
             _pendingRequests = 0;
@@ -198,18 +200,18 @@ define(function DOMAgent(require, exports, module) {
     }
 
     // WebInspector Event: Page.frameNavigated
-    function _onFrameNavigated(res) {
+    function _onFrameNavigated(event, res) {
         // res = {frame}
         exports.url = _cleanURL(res.frame.url);
     }
 
      // WebInspector Event: DOM.documentUpdated
-    function _onDocumentUpdated(res) {
+    function _onDocumentUpdated(event, res) {
         // res = {}
     }
 
     // WebInspector Event: DOM.setChildNodes
-    function _onSetChildNodes(res) {
+    function _onSetChildNodes(event, res) {
         // res = {parentId, nodes}
         var node = nodeWithId(res.parentId);
         node.setChildrenPayload(res.nodes);
@@ -219,7 +221,7 @@ define(function DOMAgent(require, exports, module) {
     }
 
     // WebInspector Event: DOM.childNodeCountUpdated
-    function _onChildNodeCountUpdated(res) {
+    function _onChildNodeCountUpdated(event, res) {
         // res = {nodeId, childNodeCount}
         if (res.nodeId > 0) {
             Inspector.DOM.requestChildNodes(res.nodeId);
@@ -227,7 +229,7 @@ define(function DOMAgent(require, exports, module) {
     }
 
     // WebInspector Event: DOM.childNodeInserted
-    function _onChildNodeInserted(res) {
+    function _onChildNodeInserted(event, res) {
         // res = {parentNodeId, previousNodeId, node}
         if (res.node.nodeId > 0) {
             var parent = nodeWithId(res.parentNodeId);
@@ -238,7 +240,7 @@ define(function DOMAgent(require, exports, module) {
     }
 
     // WebInspector Event: DOM.childNodeRemoved
-    function _onChildNodeRemoved(res) {
+    function _onChildNodeRemoved(event, res) {
         // res = {parentNodeId, nodeId}
         if (res.nodeId > 0) {
             var node = nodeWithId(res.nodeId);
@@ -286,13 +288,15 @@ define(function DOMAgent(require, exports, module) {
     /** Initialize the agent */
     function load() {
         _load = new $.Deferred();
-        Inspector.on("Page.frameNavigated", _onFrameNavigated);
-        Inspector.on("Page.loadEventFired", _onLoadEventFired);
-        Inspector.on("DOM.documentUpdated", _onDocumentUpdated);
-        Inspector.on("DOM.setChildNodes", _onSetChildNodes);
-        Inspector.on("DOM.childNodeCountUpdated", _onChildNodeCountUpdated);
-        Inspector.on("DOM.childNodeInserted", _onChildNodeInserted);
-        Inspector.on("DOM.childNodeRemoved", _onChildNodeRemoved);
+        $(Inspector.Page)
+            .on("frameNavigated.DOMAgent", _onFrameNavigated)
+            .on("loadEventFired.DOMAgent", _onLoadEventFired);
+        $(Inspector.DOM)
+            .on("documentUpdated.DOMAgent", _onDocumentUpdated)
+            .on("setChildNodes.DOMAgent", _onSetChildNodes)
+            .on("childNodeCountUpdated.DOMAgent", _onChildNodeCountUpdated)
+            .on("childNodeInserted.DOMAgent", _onChildNodeInserted)
+            .on("childNodeRemoved.DOMAgent", _onChildNodeRemoved);
         Inspector.Page.enable();
         Inspector.Page.reload();
         return _load.promise();
@@ -300,13 +304,8 @@ define(function DOMAgent(require, exports, module) {
 
     /** Clean up */
     function unload() {
-        Inspector.off("Page.frameNavigated", _onFrameNavigated);
-        Inspector.off("Page.loadEventFired", _onLoadEventFired);
-        Inspector.off("DOM.documentUpdated", _onDocumentUpdated);
-        Inspector.off("DOM.setChildNodes", _onSetChildNodes);
-        Inspector.off("DOM.childNodeCountUpdated", _onChildNodeCountUpdated);
-        Inspector.off("DOM.childNodeInserted", _onChildNodeInserted);
-        Inspector.off("DOM.childNodeRemoved", _onChildNodeRemoved);
+        $(Inspector.Page).off(".DOMAgent");
+        $(Inspector.DOM).off(".DOMAgent");
     }
 
     // Export private functions

@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         //
         // TODO: these tests rely on real world example files that cannot be on open source. 
         // We should replace these with test files that can be in the public repro.
-        var testPath = SpecRunnerUtils.getTestPath("/../../../brackets-scenario/OpenFileTest/"),
+        var testPath = SpecRunnerUtils.getTestPath("/perf/OpenFile-perf-files/"),
             testWindow;
         
         function openFile(path) {
@@ -92,11 +92,11 @@ define(function (require, exports, module) {
         // tied to a window, so we need one window for all the tests. Need to think
         // more about how performance tests should ultimately work.
         it("File open performance", function () {
-            openFile("all-classes.js");
+            openFile("brackets-concat.js"); // 3.4MB
             openFile("jquery_ui_index.html");
             openFile("blank.js");
-            openFile("example-data.js");
-            openFile("sink.css");
+            openFile("InlineWidget.js");
+            openFile("quiet-scrollbars.css");
             openFile("England(Chinese).htm");
             openFile("jquery.mobile-1.1.0.css");
             openFile("jquery.mobile-1.1.0.min.css");

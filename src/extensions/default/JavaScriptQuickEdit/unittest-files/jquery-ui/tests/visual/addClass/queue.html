@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>addClass Visual Test : Queue</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.effects.core.js"></script>
+	<style>
+	.box {
+		width: 100px;
+		height: 100px;
+		background-color: #000;
+	}
+	.red {
+		background-color: #f00;
+	}
+	.green {
+		background-color: #0f0;
+	}
+	.blue {
+		background-color: #00f;
+	}
+	</style>
+	<script>
+	$(function() {
+		$( "#box1" )
+			.delay( 500 )
+			.addClass( "red", 2000 )
+			.delay( 500 )
+			.addClass( "green", 2000 )
+			.delay( 500 )
+			.addClass( "blue", 2000 );
+		$( "#box2" )
+			.addClass( "red", 2000 )
+			.delay( 500 )
+			.addClass( "green", 2000 )
+			.delay( 500 )
+			.addClass( "blue", 2000 );
+	});
+	</script>
+</head>
+<body>
+
+<p>WHAT: The two boxes animate from black to red to green to blue.</p>
+<p>EXPECTED: The first box should start with a delay, the second box should start immediately.</p>
+
+<div id="box1" class="box"></div>
+<div id="box2" class="box"></div>
+
+</body>
+</html>

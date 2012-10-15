@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Datepicker Test Suite</title>
+
+	<script src="../../jquery.js"></script>
+	<link rel="stylesheet" href="../../../external/qunit.css">
+	<script src="../../../external/qunit.js"></script>
+	<script src="../../jquery.simulate.js"></script>
+	<script src="../testsuite.js"></script>
+	<script>
+	TestHelpers.loadResources({
+		css: [ "ui.core", "ui.datepicker" ],
+		js: [
+			"ui/jquery.ui.core.js",
+			"ui/jquery.ui.datepicker.js",
+			"ui/i18n/jquery.ui.datepicker-fr.js",
+			"ui/i18n/jquery.ui.datepicker-he.js",
+			"ui/i18n/jquery.ui.datepicker-zh-CN.js"
+		]
+	});
+	</script>
+
+	<script src="datepicker_core.js"></script>
+	<script src="datepicker_defaults.js"></script>
+	<script src="datepicker_events.js"></script>
+	<script src="datepicker_methods.js"></script>
+	<script src="datepicker_options.js"></script>
+	<script src="datepicker_tickets.js"></script>
+
+	<script>
+	// disable this stale testsuite for testswarm only
+	var url = window.location.search;
+	url = decodeURIComponent( url.slice( url.indexOf("swarmURL=") + 9 ) );
+	if ( url && url.indexOf("http") == 0 ) {
+		// reset config to kill previous tests; make sure testsuite.js is loaded afterwards to init the testswarm script
+		QUnit.init();
+		test("datepicker", function() { ok(true, "disabled datepicker testsuite"); });
+	}
+	</script>
+	<script src="../swarminject.js"></script>
+</head>
+<body>
+
+<h1 id="qunit-header">jQuery UI Datepicker Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">
+
+<div><input type="text" id="inp"><input type="text" id="alt"><div id="inl"></div></div>
+<p><input type="text" id="inp2"></p>
+
+</div>
+</body>
+</html>

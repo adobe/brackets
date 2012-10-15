@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Autocomplete - Categories</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.position.js"></script>
+	<script src="../../ui/jquery.ui.menu.js"></script>
+	<script src="../../ui/jquery.ui.autocomplete.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	.ui-autocomplete-category {
+		font-weight: bold;
+		padding: .2em .4em;
+		margin: .8em 0 .2em;
+		line-height: 1.5;
+	}
+	</style>
+	<script>
+	$.widget( "custom.catcomplete", $.ui.autocomplete, {
+		_renderMenu: function( ul, items ) {
+			var that = this,
+				currentCategory = "";
+			$.each( items, function( index, item ) {
+				if ( item.category != currentCategory ) {
+					ul.append( "<li class='ui-autocomplete-category'>" + item.category + "</li>" );
+					currentCategory = item.category;
+				}
+				that._renderItem( ul, item );
+			});
+		}
+	});
+	</script>
+	<script>
+	$(function() {
+		var data = [
+			{ label: "anders", category: "" },
+			{ label: "andreas", category: "" },
+			{ label: "antal", category: "" },
+			{ label: "annhhx10", category: "Products" },
+			{ label: "annk K12", category: "Products" },
+			{ label: "annttop C13", category: "Products" },
+			{ label: "anders andersson", category: "People" },
+			{ label: "andreas andersson", category: "People" },
+			{ label: "andreas johnson", category: "People" }
+		];
+
+		$( "#search" ).catcomplete({
+			delay: 0,
+			source: data
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	<label for="search">Search: </label>
+	<input id="search">
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>A categorized search result. Try typing "a" or "n".</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

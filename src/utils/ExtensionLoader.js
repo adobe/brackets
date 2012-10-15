@@ -23,7 +23,7 @@
 
 
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $, CodeMirror, brackets */
+/*global define, $, CodeMirror, brackets, window */
 
 /**
  * ExtensionLoader searches the filesystem for extensions, then creates a new context for each one and loads it
@@ -32,10 +32,17 @@
 define(function (require, exports, module) {
     "use strict";
 
+    require("utils/Global");
+
     var NativeFileSystem    = require("file/NativeFileSystem").NativeFileSystem,
         FileUtils           = require("file/FileUtils"),
         Async               = require("utils/Async"),
-        contexts            = {};
+        contexts            = {},
+        globalConfig        = {
+            "text" : "../../../thirdparty/text",
+            "i18n" : "../../../thirdparty/i18n"
+        };
+    
     /**
      * Returns the require.js require context used to load an extension
      *
@@ -62,9 +69,8 @@ define(function (require, exports, module) {
                 context: name,
                 baseUrl: config.baseUrl,
                 /* FIXME (issue #1087): can we pass this from the global require context instead of hardcoding twice? */
-                paths: {
-                    "text" : "../../../thirdparty/text"
-                }
+                paths: globalConfig,
+                locale: window.localStorage.getItem("locale") || brackets.app.language
             });
         contexts[name] = extensionRequire;
 
@@ -91,7 +97,7 @@ define(function (require, exports, module) {
             extensionPath = FileUtils.getNativeBracketsDirectoryPath();
         
         // Assumes the caller's window.location context is /test/SpecRunner.html
-        extensionPath = extensionPath.replace("brackets/test", "brackets/src"); // convert from "test" to "src"
+        extensionPath = extensionPath.replace(/\/test$/, "/src"); // convert from "test" to "src"
         extensionPath += "/" + config.baseUrl + "/" + entryPoint + ".js";
 
         var fileExists = false, statComplete = false;
@@ -102,7 +108,7 @@ define(function (require, exports, module) {
                 var extensionRequire = brackets.libRequire.config({
                     context: name,
                     baseUrl: "../src/" + config.baseUrl,
-                    paths: config.paths
+                    paths: $.extend({}, config.paths, globalConfig)
                 });
     
                 console.log("[Extension] loading unit test " + config.baseUrl);

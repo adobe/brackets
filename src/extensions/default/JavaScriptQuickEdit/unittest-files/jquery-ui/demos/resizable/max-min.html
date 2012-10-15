@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Resizable - Maximum / minimum size</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.resizable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#resizable { width: 200px; height: 150px; padding: 5px; }
+	#resizable h3 { text-align: center; margin: 0; }
+	</style>
+	<script>
+	$(function() {
+		$( "#resizable" ).resizable({
+			maxHeight: 250,
+			maxWidth: 350,
+			minHeight: 150,
+			minWidth: 200
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	
+<div id="resizable" class="ui-widget-content">
+	<h3 class="ui-widget-header">Resize larger / smaller</h3>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Limit the resizable element to a maximum or minimum height or width using the <code>maxHeight</code>, <code>maxWidth</code>, <code>minHeight</code>, and <code>minWidth</code> options.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Button - Checkboxes</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.button.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#check" ).button();
+		$( "#format" ).buttonset();
+	});
+	</script>
+	<style>
+	#format { margin-top: 2em; }
+	</style>
+</head>
+<body>
+
+<div class="demo">
+
+<input type="checkbox" id="check" /><label for="check">Toggle</label>
+
+<div id="format">
+	<input type="checkbox" id="check1" /><label for="check1">B</label>
+	<input type="checkbox" id="check2" /><label for="check2">I</label>
+	<input type="checkbox" id="check3" /><label for="check3">U</label>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>A checkbox is styled as a toggle button with the button widget. The label element associated with the checkbox is used for the button text.</p>
+<p>This demo also demonstrates three checkboxes styled as a button set by calling <code>.buttonset()</code> on a common container.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

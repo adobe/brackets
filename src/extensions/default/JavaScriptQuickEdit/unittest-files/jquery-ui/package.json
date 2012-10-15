@@ -1,0 +1,38 @@
+{
+  "name": "jquery-ui",
+  "title": "jQuery UI",
+  "description": "Abstractions for low-level interaction and animation, advanced effects and high-level, themeable widgets, built on top of the jQuery JavaScript Library, that you can use to build highly interactive web applications.",
+  "version": "1.9.0pre",
+  "homepage": "https://github.com/jquery/jquery-ui",
+  "author": {
+    "name": "AUTHORS.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jquery/jquery-ui.git"
+  },
+  "bugs": {
+    "url": "http://bugs.jqueryui.com/"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://www.opensource.org/licenses/MIT"
+    },
+    {
+      "type": "GPL",
+      "url": "http://www.opensource.org/licenses/GPL-2.0"
+    }
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "0.3.9",
+    "grunt-css": "0.2.0",
+    "grunt-compare-size": "0.1.4",
+    "grunt-html": "0.1.1",
+    "request": "2.9.153",
+    "rimraf": "2.0.1",
+    "testswarm": "0.2.2"
+  },
+  "keywords": []
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Compound Visual Test : Datepicker in Dialog</title>
+	<link rel="stylesheet" href="../visual.css">
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../../ui/jquery.ui.position.js"></script>
+	<script src="../../../ui/jquery.ui.resizable.js"></script>
+	<script src="../../../ui/jquery.ui.draggable.js"></script>
+	<script src="../../../ui/jquery.ui.datepicker.js"></script>
+	<script src="../../../ui/jquery.ui.dialog.js"></script>
+	<script>
+	$(function() {
+		$( "#datepicker" ).datepicker();
+		$( "#dialog" ).dialog();
+	});
+	</script>
+</head>
+<body>
+
+<div id="dialog">
+	<input id="datepicker">
+</div>
+
+</body>
+</html>

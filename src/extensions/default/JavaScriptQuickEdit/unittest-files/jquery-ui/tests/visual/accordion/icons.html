@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Accordion Visual Test</title>
+	<link rel="stylesheet" href="../../../themes/base/jquery.ui.all.css">
+	<script src="../../../jquery-1.7.2.js"></script>
+	<script src="../../../ui/jquery.ui.core.js"></script>
+	<script src="../../../ui/jquery.ui.widget.js"></script>
+	<script src="../../../ui/jquery.ui.accordion.js"></script>
+	<script>
+	$(function() {
+		$( "#accordion-ynynyn" ).accordion({ icons: null });
+		$( "#accordion-ynyny" ).accordion();
+		$( "#accordion-ynyn" ).accordion({ icons: null });
+		$( "#accordion-yny" ).accordion();
+		$( "#accordion-yn" ).accordion({ icons: null });
+		$( "#accordion-y" ).accordion();
+
+		$( "#accordion-nynyny" ).accordion();
+		$( "#accordion-nynyn" ).accordion({ icons: null });
+		$( "#accordion-nyny" ).accordion();
+		$( "#accordion-nyn" ).accordion({ icons: null });
+		$( "#accordion-ny" ).accordion();
+		$( "#accordion-n" ).accordion({ icons: null });
+	});
+	</script>
+</head>
+<body>
+
+<p>WHAT: The following set of nested accordions alternate between icons and no icons.</p>
+<p>EXPECTED: The padding on the headers should correctly account for the icon settings.</p>
+
+<div id="accordion-y">
+	<div>Icons</div>
+	<div>
+		<div id="accordion-yn">
+			<div>No Icons</div>
+			<div>
+				<div id="accordion-yny">
+					<div>Icons</div>
+					<div>
+						<div id="accordion-ynyn">
+							<div>No Icons</div>
+							<div>
+								<div id="accordion-ynyny">
+									<div>Icons</div>
+									<div>
+										<div id="accordion-ynynyn">
+											<div>No Icons</div>
+											<div></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="accordion-n">
+	<div>No Icons</div>
+	<div>
+		<div id="accordion-ny">
+			<div>Icons</div>
+			<div>
+				<div id="accordion-nyn">
+					<div>No Icons</div>
+					<div>
+						<div id="accordion-nyny">
+							<div>Icons</div>
+							<div>
+								<div id="accordion-nynyn">
+									<div>No Icons</div>
+									<div>
+										<div id="accordion-nynyny">
+											<div>Icons</div>
+											<div></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>

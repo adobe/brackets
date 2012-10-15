@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Sortable - Drop placeholder</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.sortable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#sortable { list-style-type: none; margin: 0; padding: 0; width: 60%; }
+	#sortable li { margin: 0 5px 5px 5px; padding: 5px; font-size: 1.2em; height: 1.5em; }
+	html>body #sortable li { height: 1.5em; line-height: 1.2em; }
+	.ui-state-highlight { height: 1.5em; line-height: 1.2em; }
+	</style>
+	<script>
+	$(function() {
+		$( "#sortable" ).sortable({
+			placeholder: "ui-state-highlight"
+		});
+		$( "#sortable" ).disableSelection();
+	});
+	</script>
+</head>
+<body>
+<div class="demo">
+
+<ul id="sortable">
+	<li class="ui-state-default">Item 1</li>
+	<li class="ui-state-default">Item 2</li>
+	<li class="ui-state-default">Item 3</li>
+	<li class="ui-state-default">Item 4</li>
+	<li class="ui-state-default">Item 5</li>
+	<li class="ui-state-default">Item 6</li>
+	<li class="ui-state-default">Item 7</li>
+</ul>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>
+	When dragging a sortable item to a new location, other items will make room
+	for the that item by shifting to allow white space between them. Pass a
+	class into the <code>placeholder</code> option to style that space to
+	be visible.  Use the boolean <code>forcePlaceholderSize</code> option
+	to set dimensions on the placeholder.
+</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

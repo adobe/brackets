@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Datepicker - Icon trigger</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.datepicker.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#datepicker" ).datepicker({
+			showOn: "button",
+			buttonImage: "images/calendar.gif",
+			buttonImageOnly: true
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<p>Date: <input type="text" id="datepicker"></p>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Click the icon next to the input field to show the datepicker.  Set the datepicker to open on focus (default behavior), on icon click, or both.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

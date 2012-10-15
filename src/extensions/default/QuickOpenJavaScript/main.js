@@ -64,29 +64,6 @@ define(function (require, exports, module) {
         functionList = null;
     }
 
-    /**
-     * Retrieves the FileLocation object stored in the functionsList for a given function name
-     * @param {string} functionName
-     * @returns {FileLocation}
-     */
-    function getLocationFromFunctionName(functionName) {
-        if (!functionList) {
-            return null;
-        }
-
-        // TODO: doesn't handle case where two functions have same name
-        var i, fileLocation;
-        for (i = 0; i < functionList.length; i++) {
-            var functionInfo = functionList[i];
-            if (functionInfo.functionName === functionName) {
-                fileLocation = functionInfo;
-                break;
-            }
-        }
-
-        return fileLocation;
-    }
-
     
     function createFunctionList() {
         var doc = DocumentManager.getCurrentDocument();
@@ -110,29 +87,23 @@ define(function (require, exports, module) {
 
     /**
      * @param {string} query what the user is searching for
-     * @returns {Array.<string>} sorted and filtered results that match the query
+     * @returns {Array.<SearchResult>} sorted and filtered results that match the query
      */
     function search(query) {
         createFunctionList();
-
         query = query.slice(query.indexOf("@") + 1, query.length);
-        var filteredList = $.map(functionList, function (itemInfo) {
-
-            var functionName = itemInfo.functionName;
-            if (functionName.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
-                return functionName;
+        
+        // Filter and rank how good each match is
+        var filteredList = $.map(functionList, function (fileLocation) {
+            var searchResult = QuickOpen.stringMatch(fileLocation.functionName, query);
+            if (searchResult) {
+                searchResult.fileLocation = fileLocation;
             }
-        }).sort(function (a, b) {
-            a = a.toLowerCase();
-            b = b.toLowerCase();
-            if (a > b) {
-                return -1;
-            } else if (a < b) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return searchResult;
         });
+        
+        // Sort based on ranking & basic alphabetical order
+        QuickOpen.basicMatchSort(filteredList);
 
         return filteredList;
     }
@@ -153,21 +124,19 @@ define(function (require, exports, module) {
 
     /**
      * Select the selected item in the current document
-     * @param {HTMLLIElement} selectedItem
+     * @param {?SearchResult} selectedItem
      */
     function itemFocus(selectedItem) {
-        var fileLocation = getLocationFromFunctionName($(selectedItem).text());
-
-        if (fileLocation) {
-            var from = {line: fileLocation.line, ch: fileLocation.chFrom};
-            var to = {line: fileLocation.line, ch: fileLocation.chTo};
-            EditorManager.getCurrentFullEditor().setSelection(from, to);
+        if (!selectedItem) {
+            return;
         }
+        var fileLocation = selectedItem.fileLocation;
+
+        var from = {line: fileLocation.line, ch: fileLocation.chFrom};
+        var to = {line: fileLocation.line, ch: fileLocation.chTo};
+        EditorManager.getCurrentFullEditor().setSelection(from, to);
     }
 
-    /**
-     * TODO: selectedItem is currently a <LI> item from smart auto complete container. It should just be data
-     */
     function itemSelect(selectedItem) {
         itemFocus(selectedItem);
     }

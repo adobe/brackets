@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Spinner - Default functionality</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../external/jquery.mousewheel-3.0.4.js"></script>
+	<script src="../../external/globalize.js"></script>
+	<script src="../../external/globalize.culture.de-DE.js"></script>
+	<script src="../../external/globalize.culture.ja-JP.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.button.js"></script>
+	<script src="../../ui/jquery.ui.spinner.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<script>
+	$(function() {
+		$( "#currency" ).change(function() {
+			$( "#spinner" ).spinner( "option", "culture", $( this ).val() );
+		});
+
+		$( "#spinner" ).spinner({
+			min: 5,
+			max: 2500,
+			step: 25,
+			start: 1000,
+			numberFormat: "C"
+		});
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+
+<p>
+	<label for="currency">Currency to donate</label>
+	<select id="currency" name="currency">
+		<option value="en-US">US $</option>
+		<option value="de-DE">EUR €</option>
+		<option value="ja-JP">YEN ¥</option>
+	</select>
+</p>
+<p>
+	<label for="spinner">Amount to donate:</label>
+	<input id="spinner" name="spinner" value="5">
+</p>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Example of a donation form, with currency selection and amout spinner.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>

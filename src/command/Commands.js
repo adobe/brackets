@@ -34,6 +34,7 @@ define(function (require, exports, module) {
 
     // FILE
     exports.FILE_NEW                    = "file.new";
+    exports.FILE_NEW_FOLDER             = "file.newFolder";
     exports.FILE_OPEN                   = "file.open";
     exports.FILE_OPEN_FOLDER            = "file.openFolder";
     exports.FILE_SAVE                   = "file.save";
@@ -43,6 +44,7 @@ define(function (require, exports, module) {
     exports.FILE_CLOSE_WINDOW           = "file.close_window"; // string must MATCH string in native code (brackets_extensions)
     exports.FILE_ADD_TO_WORKING_SET     = "file.addToWorkingSet";
     exports.FILE_LIVE_FILE_PREVIEW      = "file.liveFilePreview";
+    exports.FILE_RENAME                 = "file.rename";
     exports.FILE_QUIT                   = "file.quit"; // string must MATCH string in native code (brackets_extensions)
 
     // EDIT
@@ -60,6 +62,7 @@ define(function (require, exports, module) {
     exports.EDIT_INDENT                 = "edit.indent";
     exports.EDIT_UNINDENT               = "edit.unindent";
     exports.EDIT_DUPLICATE              = "edit.duplicate";
+    exports.EDIT_DELETE_LINES           = "edit.deletelines";
     exports.EDIT_LINE_COMMENT           = "edit.lineComment";
     exports.EDIT_LINE_UP                = "edit.lineUp";
     exports.EDIT_LINE_DOWN              = "edit.lineDown";
@@ -75,6 +78,7 @@ define(function (require, exports, module) {
     // Navigate
     exports.NAVIGATE_NEXT_DOC           = "navigate.nextDoc";
     exports.NAVIGATE_PREV_DOC           = "navigate.prevDoc";
+    exports.NAVIGATE_SHOW_IN_FILE_TREE  = "navigate.showInFileTree";
     exports.NAVIGATE_QUICK_OPEN         = "navigate.quickOpen";
     exports.NAVIGATE_GOTO_DEFINITION    = "navigate.gotoDefinition";
     exports.NAVIGATE_GOTO_LINE          = "navigate.gotoLine";
@@ -88,9 +92,12 @@ define(function (require, exports, module) {
     exports.DEBUG_RUN_UNIT_TESTS        = "debug.runUnitTests";
     exports.DEBUG_SHOW_PERF_DATA        = "debug.showPerfData";
     exports.DEBUG_NEW_BRACKETS_WINDOW   = "debug.newBracketsWindow";
+    exports.DEBUG_SWITCH_LANGUAGE       = "debug.switchLanguage";
 
-	// Command that does nothing. Can be used for place holder menuItems
-    
+    // Help
+    exports.HELP_SHOW_EXT_FOLDER        = "help.showExtensionsFolder";
+    exports.HELP_CHECK_FOR_UPDATE       = "help.checkForUpdate";
+    exports.HELP_FORUM                  = "help.forum";
     exports.HELP_ABOUT                  = "help.about";
 
     // File shell callbacks

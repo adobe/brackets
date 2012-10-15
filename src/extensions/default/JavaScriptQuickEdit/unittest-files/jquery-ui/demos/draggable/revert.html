@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>jQuery UI Draggable - Revert position</title>
+	<link rel="stylesheet" href="../../themes/base/jquery.ui.all.css">
+	<script src="../../jquery-1.7.2.js"></script>
+	<script src="../../ui/jquery.ui.core.js"></script>
+	<script src="../../ui/jquery.ui.widget.js"></script>
+	<script src="../../ui/jquery.ui.mouse.js"></script>
+	<script src="../../ui/jquery.ui.draggable.js"></script>
+	<link rel="stylesheet" href="../demos.css">
+	<style>
+	#draggable, #draggable2 { width: 100px; height: 100px; padding: 0.5em; float: left; margin: 0 10px 10px 0; }
+	</style>
+	<script>
+	$(function() {
+		$( "#draggable" ).draggable({ revert: true });
+		$( "#draggable2" ).draggable({ revert: true, helper: "clone" });
+	});
+	</script>
+</head>
+<body>
+
+<div class="demo">
+	
+<div id="draggable" class="ui-widget-content">
+	<p>Revert the original</p>
+</div>
+
+<div id="draggable2" class="ui-widget-content">
+	<p>Revert the helper</p>
+</div>
+
+</div><!-- End demo -->
+
+
+
+<div class="demo-description">
+<p>Return the draggable (or it's helper) to its original location when dragging stops with the boolean <code>revert</code> option.</p>
+</div><!-- End demo-description -->
+
+</body>
+</html>
