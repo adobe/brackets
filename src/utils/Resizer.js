@@ -112,7 +112,7 @@ define(function (require, exports, module) {
      *  - Left ("left") or right ("right") for horizontal resizing
      *
      * A resizable element triggers the following events while resizing:
-     *  - panelResizeStarts: When the resize starts
+     *  - panelResizeStart: When the resize starts
      *  - panelResizeUpdate: When the resize gets updated
      *  - panelResizeEnds: When the resize ends
      *  - panelCollapsed: When the panel gets collapsed (or hidden)
@@ -153,7 +153,6 @@ define(function (require, exports, module) {
             
             EditorManager.resizeEditor();
             $element.trigger("panelExpanded");
-            $element.trigger("panelResizeEnd", [elementSizeFunction.apply($element)]);
         });
                       
         $element.data("hide", function () {
