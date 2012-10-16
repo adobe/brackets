@@ -152,95 +152,90 @@ define(function (require, exports, module) {
     }
     
     /** 
-     * Drags the list item afterfor reordening.
-     * @private
-     */
-    function _dragListItem(event) {
-        var $item = event.data.$item;
-        var $prevListItem = event.data.$prevListItem;
-        var $nextListItem = event.data.$nextListItem;
-        var top = event.pageY - event.data.startPageY;
-        
-        // Drag if the item is not the first and moving it up or
-        // if the item is not the last and moving down
-        if (($prevListItem.length && top < 0) || ($nextListItem.length && top > 0)) {
-            // Reorder the list once the item is halfway to the new position
-            if (Math.abs(top) > event.data.height / 2) {
-                if (top < 0) {
-                    // If moving up, place the previows item after the moving item
-                    $prevListItem.insertAfter($item);
-                    event.data.startPageY -= event.data.height;
-                    top = top + event.data.height;
-                } else {
-                    // If moving down, place the next item before the moving item
-                    $nextListItem.insertBefore($item);
-                    event.data.startPageY += event.data.height;
-                    top = top - event.data.height;
-                }
-                
-                // Update the previows and next items
-                event.data.$prevListItem = $item.prev();
-                event.data.$nextListItem = $item.next();
-                event.data.ordered = true;
-                
-                if (!event.data.selected) {
-                    _fireSelectionChanged();
-                }
-            }
-        } else {
-            // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
-            top = 0;
-        }
-        
-        // Move the item
-        $item.css("top", top + "px");
-        
-        // Update the selection position
-        if (event.data.selected) {
-            _fireSelectionChanged();
-        }
-    }
-    
-    /** 
-     * Drops the list item afterfor reordening.
-     * @private
-     */
-    function _dropListItem(event) {
-        var $item = event.data.$item;
-        
-        // Removes the styles, placing the item in the chocen place
-        $item.removeAttr("style");
-        $(window.document).off("mousemove", _dragListItem)
-            .off("mouseup", _dropListItem);
-        
-        if (!event.data.ordered) {
-            // If file wasnt moved, open the file
-            FileViewController.openAndSelectDocument($item.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-        } else if (event.data.selected) {
-            // Update the selection position
-            _fireSelectionChanged();
-        }
-    }
-    
-    /** 
      * Starts the drag and drop working set view reorder.
      * @private
+     * @param {!Event} event - jQuery event
      */
     function _reorderListItem(event) {
-        var $item = $(event.currentTarget);
-        var data = {
-            $item: $item,
-            startPageY: event.pageY,
-            $prevListItem: $item.prev(),
-            $nextListItem: $item.next(),
-            selected: $item.hasClass("selected"),
-            height: $item.height(),
-            ordered: false
-        };
+        var $listItem     = $(event.currentTarget),
+            $prevListItem = $listItem.prev(),
+            $nextListItem = $listItem.next(),
+            selected      = $listItem.hasClass("selected"),
+            prevSelected  = $prevListItem.hasClass("selected"),
+            nextSelected  = $nextListItem.hasClass("selected"),
+            height        = $listItem.height(),
+            startPageY    = event.pageY,
+            ordered       = false;
         
-        $item.css("position", "relative");
-        $(window.document).on("mousemove", data, _dragListItem)
-            .on("mouseup", data, _dropListItem);
+        $listItem.css("position", "relative").css("z-index", 1);
+        
+        $(window.document).on("mousemove.workingSet", function (e) {
+            var top = e.pageY - startPageY;
+            
+            // Drag if the item is not the first and moving it up or
+            // if the item is not the last and moving down
+            if (($prevListItem.length && top < 0) || ($nextListItem.length && top > 0)) {
+                // Reorder the list once the item is halfway to the new position
+                if (Math.abs(top) > height / 2) {
+                    if (top < 0) {
+                        // If moving up, place the previows item after the moving item
+                        $prevListItem.insertAfter($listItem);
+                        startPageY -= height;
+                        top = top + height;
+                    } else {
+                        // If moving down, place the next item before the moving item
+                        $nextListItem.insertBefore($listItem);
+                        startPageY += height;
+                        top = top - height;
+                    }
+                    
+                    if (!selected) {
+                        // Update the selection when the previows or next element were selected
+                        if ((top > 0 && prevSelected) || (top < 0 && nextSelected)) {
+                            _fireSelectionChanged();
+                        }
+                        // Remove the shadows as it will appear and they should not
+                        ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
+                    }
+                    
+                    // Update the previows and next items
+                    $prevListItem = $listItem.prev();
+                    $nextListItem = $listItem.next();
+                    prevSelected  = $prevListItem.hasClass("selected");
+                    nextSelected  = $nextListItem.hasClass("selected");
+                    ordered       = true;
+                }
+            } else {
+                // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
+                top = 0;
+            }
+            
+            // Move the item
+            $listItem.css("top", top + "px");
+            
+            // Update the selection position
+            if (selected) {
+                _fireSelectionChanged();
+            }
+        });
+        
+        $(window.document).on("mouseup.workingSet", function (e) {
+            // Removes the styles, placing the item in the chocen place
+            $listItem.removeAttr("style");
+            $(window.document).off("mousemove.workingSet")
+                .off("mouseup.workingSet");
+            
+            if (!ordered) {
+                // If file wasnt moved, open the file
+                FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
+            } else if (selected) {
+                // Update the selection position
+                _fireSelectionChanged();
+            } else {
+                // Add the scroller shadow in the case they were removed
+                ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+            }
+        });
     }
     
     /** 
