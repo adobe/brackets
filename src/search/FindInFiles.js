@@ -325,7 +325,6 @@ define(function (require, exports, module) {
                                 
                                 DocumentManager.getDocumentForPath(fileInfo.fullPath)
                                     .done(function (doc) {
-                                        console.log("doFindInFiles: " + fileInfo.fullPath);
                                         var matches = _getSearchMatches(doc.getText(), queryExpr);
                                         
                                         if (matches && matches.length) {
