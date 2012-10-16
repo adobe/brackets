@@ -310,12 +310,18 @@ define(function (require, exports, module) {
     
     // Scan DOM for horz-resizable and vert-resizable classes and make them resizable
     AppInit.htmlReady(function () {
-        $mainView = $(".main-view");
+        var minSize = DEFAULT_MIN_SIZE;
+		
+		$mainView = $(".main-view");
         
         $(".vert-resizable").each(function (index, element) {
             
+			if ($(element).data().minsize !== undefined) {
+				minSize = $(element).data().minsize;
+			}
+			
             if ($(element).hasClass("top-resizer")) {
-                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, DEFAULT_MIN_SIZE, $(element).hasClass("collapsable"));
+                makeResizable(element, DIRECTION_VERTICAL, POSITION_TOP, minSize, $(element).hasClass("collapsable"));
             }
             
             //if ($(element).hasClass("bottom-resizer")) {
