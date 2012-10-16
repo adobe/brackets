@@ -404,10 +404,10 @@ define(function (require, exports, module) {
     /** Hide the currently visible editor and show a placeholder UI in its place */
     function _showNoEditor() {
         if (_currentEditor) {
+            var origCurrentEditor = _currentEditor;
             _destroyEditorIfUnneeded(_currentEditorsDocument);
-            _doFocusedEditorChanged(null, _currentEditor);
+            _doFocusedEditorChanged(null, origCurrentEditor);
             _currentEditorsDocument = null;
-            StatusBar.hide();
             
             $("#not-editor").css("display", "");
         }
