@@ -131,9 +131,6 @@ define(function (require, exports, module) {
             $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
             $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
         }
-        
-        // Dispatch event
-        $(exports).triggerHandler("workingSetReorder");
     }
     
     /** 
