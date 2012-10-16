@@ -313,41 +313,54 @@ define(function (require, exports, module) {
     }
     
     
+    /**
+     * Calculates the available height for the full-size Editor (or the no-editor placeholder),
+     * accounting for the current size of all visible panels, toolbar, & status bar.
+     * @return {number}
+     */
     function _calcEditorHeight() {
-        function ht(selector) {
-            var $elt = $(selector);
-            if ($elt.css("display") === "none") {
-                return 0;
-            } else {
-                return $elt.height();
+        var availableHt = $(".content").height();
+        
+        _editorHolder.siblings().each(function (i, elem) {
+            var $elem = $(elem);
+            if ($elem.css("display") !== "none") {
+                availableHt -= $elem.outerHeight();
             }
-        }
-        return ht(".content") - ht("#main-toolbar") - ht("#jslint-results") - ht("#search-results");
+        });
+        return availableHt;
     }
     
     /** 
-     * Resize the editor. This should only be called if the contents of the editor holder are changed
-     * or if the height of the editor holder changes (except for overall window resizes, which are
-     * already taken care of automatically).
-     * @see #_updateEditorSize()
+     * Resize the editor. This must be called any time the contents of the editor area are swapped
+     * or any time the editor area might change height. EditorManager takes care of calling this when
+     * the Editor is swapped, and on window resize. But anyone who changes size/visiblity of editor
+     * area siblings (toolbar, status bar, bottom panels) *must* manually call resizeEditor().
+     *
+     * @param {boolean=} skipRefresh For internal use, to avoid redundant refresh()es during window resize
      */
-    function resizeEditor() {
+    function resizeEditor(skipRefresh) {
+        if (!_editorHolder) {
+            return;  // still too early during init
+        }
+        
+        var editorAreaHt = _calcEditorHeight();
+        _editorHolder.height(editorAreaHt);    // affects size of "not-editor" placeholder as well
+        
         if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_calcEditorHeight());
-            _currentEditor.refresh();
+            $(_currentEditor.getScrollerElement()).height(editorAreaHt);
+            if (!skipRefresh) {
+                _currentEditor.refresh();
+            }
         }
     }
     
     /**
      * NJ's editor-resizing fix. Whenever the window resizes, we immediately adjust the editor's
      * height.
-     * @see #resizeEditor()
      */
     function _updateEditorSize() {
-        // The editor itself will call refresh() when it gets the window resize event.
-        if (_currentEditor) {
-            $(_currentEditor.getScrollerElement()).height(_calcEditorHeight());
-        }
+        // skipRefresh=true since CodeMirror will call refresh() itself when it sees the resize event
+        resizeEditor(true);
     }
     
     /**
