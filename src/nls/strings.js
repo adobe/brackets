@@ -41,6 +41,7 @@ define(function (require, exports, module) {
         "fr": true,
         "nb": true,
         "es": true,
-        "it": true
+        "it": true,
+        "pt-br": true
     };
 });
