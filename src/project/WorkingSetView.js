@@ -165,7 +165,7 @@ define(function (require, exports, module) {
             nextSelected  = $nextListItem.hasClass("selected"),
             height        = $listItem.height(),
             startPageY    = event.pageY,
-            ordered       = false;
+            moved         = false;
         
         $listItem.css("position", "relative").css("z-index", 1);
         
@@ -190,10 +190,6 @@ define(function (require, exports, module) {
                     }
                     
                     if (!selected) {
-                        // Update the selection when the previows or next element were selected
-                        if ((top > 0 && prevSelected) || (top < 0 && nextSelected)) {
-                            _fireSelectionChanged();
-                        }
                         // Remove the shadows as it will appear and they should not
                         ViewUtils.removeScrollerShadow($openFilesContainer[0], null);
                     }
@@ -201,22 +197,23 @@ define(function (require, exports, module) {
                     // Update the previows and next items
                     $prevListItem = $listItem.prev();
                     $nextListItem = $listItem.next();
-                    prevSelected  = $prevListItem.hasClass("selected");
-                    nextSelected  = $nextListItem.hasClass("selected");
-                    ordered       = true;
                 }
             } else {
                 // Set the top to 0 as the event probably didnt fired at the exact start/end of the list 
                 top = 0;
             }
             
+            // Once the movement is greater than 2 pixels, it is assumed that the user wantes to reorder files and not open
+            if (!moved && Math.abs(top) > 2) {
+                // Hides the selection to optimize the movement
+                $openFilesContainer.find(".sidebar-selection").css("display", "none");
+                $openFilesContainer.find(".sidebar-selection-triangle").css("display", "none");
+                $listItem.find(".file-status-icon").css("display", "none");
+                moved = true;
+            }
+            
             // Move the item
             $listItem.css("top", top + "px");
-            
-            // Update the selection position
-            if (selected) {
-                _fireSelectionChanged();
-            }
         });
         
         $(window.document).on("mouseup.workingSet", function (e) {
@@ -225,15 +222,19 @@ define(function (require, exports, module) {
             $(window.document).off("mousemove.workingSet")
                 .off("mouseup.workingSet");
             
-            if (!ordered) {
+            if (!moved) {
                 // If file wasnt moved, open the file
                 FileViewController.openAndSelectDocument($listItem.data(_FILE_KEY).fullPath, FileViewController.WORKING_SET_VIEW);
-            } else if (selected) {
-                // Update the selection position
-                _fireSelectionChanged();
             } else {
-                // Add the scroller shadow in the case they were removed
-                ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+                // Restore the file selection
+                _fireSelectionChanged();
+                // Display the status icon again
+                $listItem.find(".file-status-icon").css("display", "block");
+                
+                if (!selected) {
+                    // Add the scroller shadow in the case they were removed
+                    ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
+                }
             }
         });
     }
