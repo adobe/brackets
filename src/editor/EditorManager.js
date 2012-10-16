@@ -407,6 +407,7 @@ define(function (require, exports, module) {
             _destroyEditorIfUnneeded(_currentEditorsDocument);
             _doFocusedEditorChanged(null, _currentEditor);
             _currentEditorsDocument = null;
+            StatusBar.hide();
             
             $("#not-editor").css("display", "");
         }
