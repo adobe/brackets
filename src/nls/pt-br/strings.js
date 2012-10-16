@@ -35,6 +35,7 @@ define({
     "NOT_READABLE_ERR"                  : "O arquivo não pôde ser lido.",
     "NO_MODIFICATION_ALLOWED_ERR"       : "O diretório de destino não pode ser modificado.",
     "NO_MODIFICATION_ALLOWED_ERR_FILE"  : "As permissões não permitem que você faça modificações.",
+    "FILE_EXISTS_ERR"                   : "O arquivo já existe.",
 
     // Project error strings
     "ERROR_LOADING_PROJECT"             : "Erro ao carregar o projeto",
@@ -49,6 +50,8 @@ define({
     "ERROR_RELOADING_FILE"              : "Ocorreu um erro ao tentar recarregar o arquivo <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"           : "Erro ao salvar arquivo",
     "ERROR_SAVING_FILE"                 : "Ocorreu um erro ao tentar salvar o arquivo <span class='dialog-filename'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE_TITLE"         : "Erro ao renomear arquivo",
+    "ERROR_RENAMING_FILE"               : "Ocorreu um erro ao tentar renomear o arquivo <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"            : "Nome de arquivo inválido",
     "INVALID_FILENAME_MESSAGE"          : "Nomes de arquivos não podem conter os seguintes caracteres: /?*:;{}<>\\|",
     "FILE_ALREADY_EXISTS"               : "O arquivo <span class='dialog-filename'>{0}</span> já existe.",
@@ -79,6 +82,7 @@ define({
     "LIVE_DEV_STATUS_TIP_PROGRESS1"     : "Live Preview: Connectando...",
     "LIVE_DEV_STATUS_TIP_PROGRESS2"     : "Live Preview: Inicializando...",
     "LIVE_DEV_STATUS_TIP_CONNECTED"     : "Desconectando do Live Preview",
+    "LIVE_DEV_STATUS_TIP_OUT_OF_SYNC"   : "Live Preview: Clique para desconectar (Salve o arquivo para atualizar)",
 
     "SAVE_CLOSE_TITLE"                  : "Salvar alterações",
     "SAVE_CLOSE_MESSAGE"                : "Você quer salvar as alterações feitas no documento <span class='dialog-filename'>{0}</span>?",
@@ -88,7 +92,7 @@ define({
     "EXT_DELETED_MESSAGE"               : "<span class='dialog-filename'>{0}</span> foi deletado no disco, mas tem alterações não salvadas em {APP_NAME}.<br /><br />Você quer manter as suas alterações?",
 
     // Find, Replace, Find in Files
-    "SEARCH_REGEXP_INFO"                : "Use /re/ sintaxe para usar regexp na pesqisa",
+    "SEARCH_REGEXP_INFO"                : "Use /re/ sintaxe para usar regexp na pesquisa",
     "WITH"                              : "Com",
     "BUTTON_YES"                        : "Sim",
     "BUTTON_NO"                         : "Não",
@@ -134,12 +138,25 @@ define({
     "KEYBOARD_SPACE"  : "Space",
 
     /**
+     * StatusBar strings
+     */
+    "STATUSBAR_CURSOR_POSITION"             : "Linha {0}, Coluna {1}",
+    "STATUSBAR_INDENT_TOOLTIP_SPACES"       : "Clique para alterar a indentação para espaços",
+    "STATUSBAR_INDENT_TOOLTIP_TABS"         : "Clique para alterar a indentação para tabulação",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_SPACES"  : "Clique para alterar o número de espaços usados ao indentar",
+    "STATUSBAR_INDENT_SIZE_TOOLTIP_TABS"    : "Clique para alterar a largura do caractere de tabulação",
+    "STATUSBAR_SPACES"                      : "Espaços",
+    "STATUSBAR_TAB_SIZE"                    : "Tamanho da Tabulação",
+    "STATUSBAR_LINE_COUNT"                  : "{0} Linhas",
+
+    /**
      * Command Name Constants
      */
 
     // File menu commands
     "FILE_MENU"                           : "Arquivo",
     "CMD_FILE_NEW"                        : "Novo",
+    "CMD_FILE_NEW_FOLDER"                 : "Nova Pasta",
     "CMD_FILE_OPEN"                       : "Abrir\u2026",
     "CMD_ADD_TO_WORKING_SET"              : "Adicionar Para Conjunto de Trabalho",
     "CMD_OPEN_FOLDER"                     : "Abrir pasta\u2026",
@@ -148,11 +165,12 @@ define({
     "CMD_FILE_SAVE"                       : "Salvar",
     "CMD_FILE_SAVE_ALL"                   : "Salvar Tudo",
     "CMD_LIVE_FILE_PREVIEW"               : "Live Preview",
+    "CMD_FILE_RENAME"                     : "Renomear",
     "CMD_QUIT"                            : "Sair",
 
     // Edit menu commands
     "EDIT_MENU"                           : "Editar",
-    "CMD_SELECT_ALL"                      : "Selecionar tudo",
+    "CMD_SELECT_ALL"                      : "Selecionar Tudo",
     "CMD_FIND"                            : "Encontrar",
     "CMD_FIND_IN_FILES"                   : "Encontrar em Arquivos",
     "CMD_FIND_NEXT"                       : "Encontrar Próximo",
@@ -161,15 +179,16 @@ define({
     "CMD_INDENT"                          : "Recuar",
     "CMD_UNINDENT"                        : "Desfazer Recuo",
     "CMD_DUPLICATE"                       : "Duplicar",
+    "CMD_DELETE_LINES"                    : "Deletar Linha(s) Selecionadas",
     "CMD_COMMENT"                         : "Comentar/Descomentar Linhas",
-    "CMD_LINE_UP"                         : "Mover Linha(s) para cima",
-    "CMD_LINE_DOWN"                       : "Mover Linha(s) para baixo",
+    "CMD_LINE_UP"                         : "Mover Linha(s) para Cima",
+    "CMD_LINE_DOWN"                       : "Mover Linha(s) para Baixo",
 
     // View menu commands
     "VIEW_MENU"                           : "Ver",
     "CMD_HIDE_SIDEBAR"                    : "Esconder Barra Lateral",
     "CMD_SHOW_SIDEBAR"                    : "Mostrar Barra Lateral",
-    "CMD_INCREASE_FONT_SIZE"              : "Aumentar Tamanho da Font",
+    "CMD_INCREASE_FONT_SIZE"              : "Aumentar Tamanho da Fonte",
     "CMD_DECREASE_FONT_SIZE"              : "Diminuir Tamanho da Fonte",
     "CMD_RESTORE_FONT_SIZE"               : "Restaurar Tamanho da Fonte",
 
@@ -181,7 +200,7 @@ define({
     "CMD_TOGGLE_QUICK_EDIT"               : "Edição Rápida",
     "CMD_QUICK_EDIT_PREV_MATCH"           : "Resultado Anterior",
     "CMD_QUICK_EDIT_NEXT_MATCH"           : "Resultado Seguinte",
-    "CMD_NEXT_DOC"                        : "Document Seguint",
+    "CMD_NEXT_DOC"                        : "Documento Seguinte",
     "CMD_PREV_DOC"                        : "Documento Anterior",
 
     // Debug menu commands
@@ -194,7 +213,7 @@ define({
     "CMD_NEW_BRACKETS_WINDOW"             : "Nova Janela {APP_NAME}",
     "CMD_SHOW_EXTENSIONS_FOLDER"          : "Mostrar Pasta de Extensões",
     "CMD_USE_TAB_CHARS"                   : "Usar Caracteres de Tabulação",
-    "CMD_SWITCH_LANGUAGE"                 : "Comutar Linguagem",
+    "CMD_SWITCH_LANGUAGE"                 : "Trocar Linguagem",
     "CMD_CHECK_FOR_UPDATE"                : "Verificar Atualizações",
 
     // Help menu commands
@@ -204,12 +223,15 @@ define({
 
     // Special commands invoked by the native shell
     "CMD_CLOSE_WINDOW"                    : "Fechar Janela",
-    "CMD_ABORT_QUIT"                      : "Evitar Saida",
+    "CMD_ABORT_QUIT"                      : "Abortar Saída",
 
     // Strings for main-view.html
     "EXPERIMENTAL_BUILD"                   : "Versão Experimental",
     "JSLINT_ERRORS"                        : "Erros JSLint",
+    "JSLINT_ERROR_INFORMATION"             : "1 Erro JSLint",
+    "JSLINT_ERRORS_INFORMATION"            : "{0} Erros JSLint",
     "JSLINT_NO_ERRORS"                     : "Sem erros JSLint - bom trabalho!",
+    "JSLINT_DISABLED"                      : "JSLint desabilitado ou não funcionando para o arquivo atual",
     "SEARCH_RESULTS"                       : "Resultados da Pesquisa",
     "OK"                                   : "OK",
     "DONT_SAVE"                            : "Não Salvar",
