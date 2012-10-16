@@ -131,6 +131,9 @@ define(function (require, exports, module) {
             $fileStatusIcon.toggleClass("dirty", Boolean(isDirty));
             $fileStatusIcon.toggleClass("can-close", Boolean(canClose));
         }
+        
+        // Dispatch event
+        $(exports).triggerHandler("workingSetReorder");
     }
     
     /** 
@@ -164,7 +167,7 @@ define(function (require, exports, module) {
             prevSelected  = $prevListItem.hasClass("selected"),
             nextSelected  = $nextListItem.hasClass("selected"),
             index         = DocumentManager.findInWorkingSet($listItem.data(_FILE_KEY).fullPath),
-			height        = $listItem.height(),
+            height        = $listItem.height(),
             startPageY    = event.pageY,
             moved         = false;
         
@@ -183,13 +186,13 @@ define(function (require, exports, module) {
                         $prevListItem.insertAfter($listItem);
                         startPageY -= height;
                         top = top + height;
-						DocumentManager.switchFilesIndex(index, --index);
+                        DocumentManager.switchFilesIndex(index, --index);
                     } else {
                         // If moving down, place the next item before the moving item
                         $nextListItem.insertBefore($listItem);
                         startPageY += height;
                         top = top - height;
-						DocumentManager.switchFilesIndex(index, ++index);
+                        DocumentManager.switchFilesIndex(index, ++index);
                     }
                     
                     if (!selected) {
@@ -239,6 +242,9 @@ define(function (require, exports, module) {
                     ViewUtils.addScrollerShadow($openFilesContainer[0], null, true);
                 }
             }
+            
+            // Dispatch event
+            $(DocumentManager).triggerHandler("workingSetReorder");
         });
     }
     

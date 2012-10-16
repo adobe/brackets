@@ -1144,7 +1144,7 @@ define(function (require, exports, module) {
     exports.removeFromWorkingSet = removeFromWorkingSet;
     exports.getNextPrevFile = getNextPrevFile;
     exports.switchFilesIndex = switchFilesIndex;
-	exports.beginDocumentNavigation = beginDocumentNavigation;
+    exports.beginDocumentNavigation = beginDocumentNavigation;
     exports.finalizeDocumentNavigation = finalizeDocumentNavigation;
     exports.closeFullEditor = closeFullEditor;
     exports.closeAll = closeAll;
@@ -1153,7 +1153,7 @@ define(function (require, exports, module) {
 
     // Setup preferences
     _prefs = PreferencesManager.getPreferenceStorage(PREFERENCES_CLIENT_ID);
-    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange", _savePreferences);
+    $(exports).bind("currentDocumentChange workingSetAdd workingSetAddList workingSetRemove workingSetRemoveList fileNameChange workingSetReorder", _savePreferences);
     
     // Performance measurements
     PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
